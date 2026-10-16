@@ -10,9 +10,9 @@ import (
 	"strings"
 )
 
-// Parse invokes the abaplint bridge to parse ABAP source, then converts the
+// ParseNode invokes the research/reference abaplint bridge to parse ABAP source, then converts the
 // JSON AST into a semantic Program suitable for lowering to HIR.
-func Parse(src, name string) (*Program, error) {
+func ParseNode(src, name string) (*Program, error) {
 	// Locate bridge script relative to this Go source file.
 	_, thisFile, _, _ := runtime.Caller(0)
 	bridgeDir := filepath.Join(filepath.Dir(thisFile), "bridge")
@@ -52,14 +52,14 @@ func buildProgram(name string, r *ParseResult) (*Program, error) {
 	if r.Structure != nil {
 		decls, err := walkStructure(r.Structure)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("%s%w", name, err)
 		}
 		prog.Decls = decls
 	} else {
 		for _, s := range r.Statements {
 			d, err := convertStmt(s)
 			if err != nil {
-				continue // skip unsupported statements
+				return nil, statementError(name, s, err)
 			}
 			if d != nil {
 				prog.Decls = append(prog.Decls, d)
@@ -98,14 +98,20 @@ func walkStructure(sn *StructNode) ([]Decl, error) {
 			continue
 
 		case child.Type == "Form":
-			fd := convertFormStructure(child)
+			fd, err := convertFormStructure(child)
+			if err != nil {
+				return nil, err
+			}
 			if fd != nil {
 				decls = append(decls, fd)
 			}
 			continue
 
 		case child.Type == "FunctionModule":
-			fd := convertFunctionStructure(child)
+			fd, err := convertFunctionStructure(child)
+			if err != nil {
+				return nil, err
+			}
 			if fd != nil {
 				decls = append(decls, fd)
 			}
@@ -120,7 +126,10 @@ func walkStructure(sn *StructNode) ([]Decl, error) {
 
 		case child.Type == "ClassImplementation":
 			// Find matching ClassDecl and fill in method bodies
-			className, methods := convertClassImplementation(child)
+			className, methods, err := convertClassImplementation(child)
+			if err != nil {
+				return nil, err
+			}
 			if className != "" {
 				for _, d := range decls {
 					if cd, ok := d.(*ClassDecl); ok && cd.Name == className {
@@ -142,7 +151,10 @@ func walkStructure(sn *StructNode) ([]Decl, error) {
 		case isControlStructure(child.Type):
 			// While, If, Do, Case → convert to semantic statement
 			stmt, err := convertControlStructure(child)
-			if err == nil && stmt != nil {
+			if err != nil {
+				return nil, childError(child, err)
+			}
+			if stmt != nil {
 				d := &formBodyDecl{stmt: stmt}
 				if currentEvent != nil {
 					currentEvent.Body = append(currentEvent.Body, stmt)
@@ -179,14 +191,7 @@ func walkStructure(sn *StructNode) ([]Decl, error) {
 			}
 			d, err := convertStmt(stmt)
 			if err != nil {
-				// If inside an event, check if this is an event boundary
-				if ed, ok := d.(*EventDecl); ok {
-					if currentEvent != nil {
-						decls = append(decls, currentEvent)
-					}
-					currentEvent = ed
-				}
-				continue
+				return nil, statementError("", stmt, err)
 			}
 			if d != nil {
 				if currentEvent != nil {
@@ -210,7 +215,7 @@ func walkStructure(sn *StructNode) ([]Decl, error) {
 
 // convertFormStructure converts a Form structure node to a FormDecl.
 // Form node children: Form (header with FormName/FormUsing/FormChanging children), Body, EndForm.
-func convertFormStructure(node *ASTChild) *FormDecl {
+func convertFormStructure(node *ASTChild) (*FormDecl, error) {
 	fd := &FormDecl{}
 
 	for _, child := range node.Children {
@@ -242,20 +247,23 @@ func convertFormStructure(node *ASTChild) *FormDecl {
 			}
 		case "Body":
 			sub := &StructNode{Type: "Body", Children: child.Children}
-			decls, _ := walkStructure(sub)
+			decls, err := walkStructure(sub)
+			if err != nil {
+				return nil, err
+			}
 			fd.Body = collectStmtsFromDecls(decls)
 		}
 	}
 
 	if fd.Name == "" {
-		return nil
+		return nil, childError(node, fmt.Errorf("missing procedure name"))
 	}
-	return fd
+	return fd, nil
 }
 
 // convertFunctionStructure converts a FunctionModule structure to a FunctionDecl.
 // Reuses FORM infrastructure — FUNCTION is essentially FORM with IMPORTING/EXPORTING.
-func convertFunctionStructure(node *ASTChild) *FunctionDecl {
+func convertFunctionStructure(node *ASTChild) (*FunctionDecl, error) {
 	fd := &FunctionDecl{}
 
 	for _, child := range node.Children {
@@ -286,15 +294,18 @@ func convertFunctionStructure(node *ASTChild) *FunctionDecl {
 			}
 		case child.Type == "Body":
 			sub := &StructNode{Type: "Body", Children: child.Children}
-			decls, _ := walkStructure(sub)
+			decls, err := walkStructure(sub)
+			if err != nil {
+				return nil, err
+			}
 			fd.Body = collectStmtsFromDecls(decls)
 		}
 	}
 
 	if fd.Name == "" {
-		return nil
+		return nil, childError(node, fmt.Errorf("missing procedure name"))
 	}
-	return fd
+	return fd, nil
 }
 
 // parseFormParams extracts FORM parameters from tokens like "USING pv_a TYPE i pv_b TYPE i".
@@ -481,7 +492,7 @@ func parseClassDataAttr(toks []string) *DataDecl {
 }
 
 // convertClassImplementation extracts class name and method bodies from a ClassImplementation node.
-func convertClassImplementation(node *ASTChild) (string, map[string]*MethodDecl) {
+func convertClassImplementation(node *ASTChild) (string, map[string]*MethodDecl, error) {
 	var className string
 	methods := make(map[string]*MethodDecl)
 
@@ -494,17 +505,20 @@ func convertClassImplementation(node *ASTChild) (string, map[string]*MethodDecl)
 				}
 			}
 		case "Method":
-			name, body := convertMethodImpl(child)
+			name, body, err := convertMethodImpl(child)
+			if err != nil {
+				return "", nil, err
+			}
 			if name != "" {
 				methods[name] = &MethodDecl{Name: name, Body: body}
 			}
 		}
 	}
-	return className, methods
+	return className, methods, nil
 }
 
 // convertMethodImpl extracts method name and body from a Method node.
-func convertMethodImpl(node *ASTChild) (string, []Stmt_) {
+func convertMethodImpl(node *ASTChild) (string, []Stmt_, error) {
 	var name string
 	var body []Stmt_
 
@@ -520,11 +534,14 @@ func convertMethodImpl(node *ASTChild) (string, []Stmt_) {
 			}
 		case "Body":
 			sub := &StructNode{Type: "Body", Children: child.Children}
-			decls, _ := walkStructure(sub)
+			decls, err := walkStructure(sub)
+			if err != nil {
+				return "", nil, err
+			}
 			body = collectStmtsFromDecls(decls)
 		}
 	}
-	return name, body
+	return name, body, nil
 }
 
 // mergeMethodBodies merges method implementations into a ClassDecl's method signatures.
@@ -568,13 +585,16 @@ func convertWhile(node *ASTChild) (Stmt_, error) {
 		case "Body":
 			// Body contains the loop statements
 			sub := &StructNode{Type: "Body", Children: child.Children}
-			decls, _ := walkStructure(sub)
+			decls, err := walkStructure(sub)
+			if err != nil {
+				return nil, err
+			}
 			body = collectStmtsFromDecls(decls)
 		}
 	}
 
 	if cond == nil {
-		cond = &IntLit{Val: 1} // fallback: infinite loop
+		return nil, childError(node, fmt.Errorf("WHILE: missing condition"))
 	}
 	return &WhileStmt{Cond: cond, Body: body}, nil
 }
@@ -589,17 +609,23 @@ func convertIf(node *ASTChild) (Stmt_, error) {
 			cond = extractCondFromStmt(child)
 		case "Body":
 			sub := &StructNode{Type: "Body", Children: child.Children}
-			decls, _ := walkStructure(sub)
+			decls, err := walkStructure(sub)
+			if err != nil {
+				return nil, err
+			}
 			thenBody = collectStmtsFromDecls(decls)
 		case "Else":
 			sub := &StructNode{Type: "Else", Children: child.Children}
-			decls, _ := walkStructure(sub)
+			decls, err := walkStructure(sub)
+			if err != nil {
+				return nil, err
+			}
 			elseBody = collectStmtsFromDecls(decls)
 		}
 	}
 
 	if cond == nil {
-		cond = &IntLit{Val: 1}
+		return nil, childError(node, fmt.Errorf("IF: missing condition"))
 	}
 	return &IfStmt{Cond: cond, Then: thenBody, Else: elseBody}, nil
 }
@@ -630,7 +656,10 @@ func convertDo(node *ASTChild) (Stmt_, error) {
 			}
 		case "Body":
 			sub := &StructNode{Type: "Body", Children: child.Children}
-			decls, _ := walkStructure(sub)
+			decls, err := walkStructure(sub)
+			if err != nil {
+				return nil, err
+			}
 			body = collectStmtsFromDecls(decls)
 		}
 	}
@@ -659,7 +688,10 @@ func convertSelect(node *ASTChild) (Stmt_, error) {
 			}
 		case "Body":
 			sub := &StructNode{Type: "Body", Children: child.Children}
-			decls, _ := walkStructure(sub)
+			decls, err := walkStructure(sub)
+			if err != nil {
+				return nil, err
+			}
 			body = collectStmtsFromDecls(decls)
 		}
 	}
@@ -937,18 +969,28 @@ func isStructureType(t string) bool {
 }
 
 // convertStmt converts a single abaplint statement to a semantic Decl or wraps
-// it as a statement-bearing decl. Returns nil for unsupported statements.
+// it as a statement-bearing decl. Unsupported statements are errors.
 func convertStmt(s *StmtNode) (Decl, error) {
 	tokens := collectTokenStrings(s)
 	upper := strings.ToUpper(s.Type)
 
 	switch {
+	case upper == "REPORT" || upper == "COMMENT" || upper == "EMPTY" || upper == "ELSE":
+		// These syntax nodes have no executable effect. ELSE bodies are walked separately.
+		return nil, nil
 	case upper == "DATA" || s.Type == "Data":
 		return parseDataStmt(tokens)
 	case upper == "WRITE" || s.Type == "Write":
 		return parseWriteStmt(tokens)
 	case upper == "PARAMETER" || upper == "PARAMETERS" || s.Type == "Parameter":
 		return parseParamStmt(tokens)
+	case upper == "CLEAR":
+		if len(tokens) != 3 || tokens[2] != "." {
+			return nil, fmt.Errorf("CLEAR: only a single declared scalar target is supported")
+		}
+		return &formBodyDecl{stmt: &ClearStmt{Target: strings.ToLower(tokens[1])}}, nil
+	case upper == "PERFORM":
+		return parsePerformStmt(tokens)
 	case upper == "MOVE" || s.Type == "Move":
 		return parseMoveStmt(tokens)
 	case upper == "EXEC" || s.Type == "ExecSQL":
@@ -1520,4 +1562,44 @@ func parseTokenExpr(s string) Expr_ {
 	}
 	// Variable reference
 	return &VarRef{Name: s}
+}
+
+// statementError keeps admission failures tied to the offending source token.
+func statementError(name string, s *StmtNode, err error) error {
+	if len(s.Tokens) > 0 {
+		t := s.Tokens[0]
+		return fmt.Errorf("%s:%d:%d: %s: %w", name, t.Row, t.Col, s.Type, err)
+	}
+	return fmt.Errorf("%s: %s: %w", name, s.Type, err)
+}
+func childError(c *ASTChild, err error) error {
+	return statementError("", &StmtNode{Type: c.Type, Tokens: c.Tokens}, err)
+}
+
+func parsePerformStmt(tokens []string) (Decl, error) {
+	if len(tokens) < 3 || tokens[len(tokens)-1] != "." {
+		return nil, fmt.Errorf("PERFORM: malformed call")
+	}
+	p := &PerformStmt{FormName: strings.ToLower(tokens[1])}
+	var section string
+	for _, t := range tokens[2 : len(tokens)-1] {
+		switch strings.ToUpper(t) {
+		case "USING", "CHANGING":
+			section = strings.ToUpper(t)
+			continue
+		}
+		if section == "" {
+			return nil, fmt.Errorf("PERFORM: unsupported addition %s", t)
+		}
+		e := parseTokenExpr(t)
+		if _, ok := e.(*VarRef); !ok && section == "CHANGING" {
+			return nil, fmt.Errorf("PERFORM: only variable arguments are admitted, got %s", t)
+		}
+		if section == "USING" {
+			p.Using = append(p.Using, e)
+		} else {
+			p.Changing = append(p.Changing, e)
+		}
+	}
+	return &formBodyDecl{stmt: p}, nil
 }

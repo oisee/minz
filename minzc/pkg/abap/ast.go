@@ -174,6 +174,11 @@ type WriteStmt struct {
 
 func (*WriteStmt) abapStmt() {}
 
+// ClearStmt resets a declared object to its type-specific initial value.
+type ClearStmt struct{ Target string }
+
+func (*ClearStmt) abapStmt() {}
+
 type AssignStmt struct {
 	Target string // variable name
 	Val    Expr_

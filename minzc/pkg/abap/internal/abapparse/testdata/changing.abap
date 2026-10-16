@@ -1,0 +1,6 @@
+REPORT zparam.
+DATA x TYPE i VALUE 5.
+FORM inc CHANGING a TYPE i.
+ a = a + 1.
+ENDFORM.
+PERFORM inc CHANGING x.

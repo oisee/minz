@@ -112,14 +112,9 @@ func Compile(src, name string, target ...uint8) (*hir.Module, error) {
 	// parse them. We rewrite to FORM which is semantically equivalent.
 	src = preprocessFunctions(src)
 
-	// Try embedded Wasm parser (self-contained, no Node.js)
-	prog, err := ParseWasm(src, name)
+	prog, err := Parse(src, name)
 	if err != nil {
-		// Fall back to Node.js bridge
-		prog, err = Parse(src, name)
-		if err != nil {
-			return nil, fmt.Errorf("abap parse: %w", err)
-		}
+		return nil, fmt.Errorf("abap parse: %w", err)
 	}
 	// Scan source for *!sql pragmas BEFORE lowering (lowerer emits sqlite_exec calls).
 	sqlPragmaRe := regexp.MustCompile(`^\s*[*"]\s*!sql\s+(.+)$`)
@@ -257,11 +252,17 @@ func (l *lowerer) lower() (*hir.Module, error) {
 	for _, d := range l.prog.Decls {
 		switch d := d.(type) {
 		case *FormDecl:
-			l.lowerForm(d)
+			if err := l.lowerForm(d); err != nil {
+				return nil, err
+			}
 		case *FunctionDecl:
-			l.lowerFunction(d)
+			if err := l.lowerFunction(d); err != nil {
+				return nil, err
+			}
 		case *ClassDecl:
-			l.lowerClass(d)
+			if err := l.lowerClass(d); err != nil {
+				return nil, err
+			}
 		case *InterfaceDecl:
 			l.lowerInterface(d)
 		case *EventDecl:
@@ -832,7 +833,7 @@ func (l *lowerer) lowerLocalData(d *DataDecl) (hir.Stmt, error) {
 
 // ── FORM → hir.Func ─────────────────────────────────────────────────────────
 
-func (l *lowerer) lowerForm(d *FormDecl) {
+func (l *lowerer) lowerForm(d *FormDecl) error {
 	defer l.enterProcedure()()
 	params := make([]hir.Param, 0, len(d.Using)+len(d.Changing))
 	for _, p := range d.Using {
@@ -853,8 +854,7 @@ func (l *lowerer) lowerForm(d *FormDecl) {
 	}
 	body, err := l.lowerStmts(d.Body)
 	if err != nil {
-		l.hm.Warnings = append(l.hm.Warnings, fmt.Sprintf("FORM %s: %v", d.Name, err))
-		return
+		return fmt.Errorf("FORM %s: %w", d.Name, err)
 	}
 
 	// If the FORM has exactly one CHANGING parameter, emit it as a function
@@ -885,13 +885,14 @@ func (l *lowerer) lowerForm(d *FormDecl) {
 			Body:   body,
 		})
 	}
+	return nil
 }
 
 // ── FUNCTION MODULE → hir.Func ──────────────────────────────────────────────
 // Same as FORM but with IMPORTING/EXPORTING/CHANGING.
 // Name is lowercased function module name (e.g. 'Z_ADD' → 'z_add').
 
-func (l *lowerer) lowerFunction(d *FunctionDecl) {
+func (l *lowerer) lowerFunction(d *FunctionDecl) error {
 	defer l.enterProcedure()()
 	params := make([]hir.Param, 0, len(d.Importing)+len(d.Changing))
 	for _, p := range d.Importing {
@@ -912,8 +913,7 @@ func (l *lowerer) lowerFunction(d *FunctionDecl) {
 	}
 	body, err := l.lowerStmts(d.Body)
 	if err != nil {
-		l.hm.Warnings = append(l.hm.Warnings, fmt.Sprintf("FUNCTION %s: %v", d.Name, err))
-		return
+		return fmt.Errorf("FUNCTION %s: %w", d.Name, err)
 	}
 
 	// If exactly one EXPORTING param → promote to return value (like FORM CHANGING).
@@ -940,11 +940,12 @@ func (l *lowerer) lowerFunction(d *FunctionDecl) {
 			Body:   body,
 		})
 	}
+	return nil
 }
 
 // ── CLASS → struct + methods ─────────────────────────────────────────────────
 
-func (l *lowerer) lowerClass(d *ClassDecl) {
+func (l *lowerer) lowerClass(d *ClassDecl) error {
 	st := &mir2.StructTy{Name: d.Name}
 	for _, attr := range d.Attrs {
 		ty := l.abapTypeToHIR(attr.AbapTy, attr.Length)
@@ -953,11 +954,14 @@ func (l *lowerer) lowerClass(d *ClassDecl) {
 	l.hm.Structs = append(l.hm.Structs, st)
 
 	for _, m := range d.Methods {
-		l.lowerMethod(d.Name, m)
+		if err := l.lowerMethod(d.Name, m); err != nil {
+			return err
+		}
 	}
+	return nil
 }
 
-func (l *lowerer) lowerMethod(className string, m *MethodDecl) {
+func (l *lowerer) lowerMethod(className string, m *MethodDecl) error {
 	defer l.enterProcedure()()
 	// Only add self parameter if the class has attributes (instance data).
 	// Pure computation classes emit free functions, enabling compile-time asserts.
@@ -984,8 +988,7 @@ func (l *lowerer) lowerMethod(className string, m *MethodDecl) {
 	}
 	body, err := l.lowerStmts(m.Body)
 	if err != nil {
-		l.hm.Warnings = append(l.hm.Warnings, fmt.Sprintf("METHOD %s~%s: %v", className, m.Name, err))
-		return
+		return fmt.Errorf("METHOD %s~%s: %w", className, m.Name, err)
 	}
 
 	// If the method has RETURNING, add implicit return of the RETURNING variable.
@@ -1003,6 +1006,7 @@ func (l *lowerer) lowerMethod(className string, m *MethodDecl) {
 		RetTy:  retTy,
 		Body:   body,
 	})
+	return nil
 }
 
 // classHasAttrs checks if a class has instance data attributes.
@@ -1046,6 +1050,15 @@ func (l *lowerer) lowerStmt(s Stmt_) (hir.Stmt, error) {
 		return l.lowerLocalData(s)
 	case *WriteStmt:
 		return l.lowerWrite(s)
+	case *ClearStmt:
+		ty, ok := l.varTypes[s.Target]
+		if !ok {
+			return nil, fmt.Errorf("CLEAR: unknown target %s", s.Target)
+		}
+		if ty != mir2.TyU16 {
+			return nil, fmt.Errorf("CLEAR %s: type-specific initial value is not implemented for %s", s.Target, ty)
+		}
+		return &hir.AssignStmt{Target: &hir.VarRefExpr{Name: s.Target, Ty: ty}, Val: &hir.IntLitExpr{Val: 0, Ty: ty}}, nil
 	case *AssignStmt:
 		return l.lowerAssign(s)
 	case *IfStmt:
