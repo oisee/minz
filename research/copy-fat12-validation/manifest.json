@@ -56,6 +56,11 @@
       "path": "packed_pair.nanz.initial",
       "bytes": 355,
       "sha256": "4938f654dfbfea70bc24d0186f4cf9573723a8c5a5a5cd48a48addfbeedb29b5"
+    },
+    {
+      "path": "run.py",
+      "bytes": 6642,
+      "sha256": "9ed82132e2459f1f42f86675de6b6f0813d48586bbe47e70e8330d4f16c4b8f3"
     }
   ]
 }

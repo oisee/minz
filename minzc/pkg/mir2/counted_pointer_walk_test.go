@@ -118,3 +118,39 @@ func TestCountedPointerWalkRefusals(t *testing.T) {
 		})
 	}
 }
+
+func TestCountedPointerWalkPreservesUnrelatedForwardingAndOrigin(t *testing.T) {
+	_, f := countedPointerFixture()
+	entry, head, body := f.Blocks[0], f.Blocks[1], f.Blocks[2]
+	extra := f.AllocReg()
+	head.Params = append(head.Params, BlockParam{Dst: extra, Ty: TyU8, Class: ClassCounter})
+	entry.Term.(*TermJmp).Args = append(entry.Term.(*TermJmp).Args, f.Contract.Params[2].Reg)
+	body.Term.(*TermJmp).Args = append(body.Term.(*TermJmp).Args, extra)
+	next := body.Insts[len(body.Insts)-1]
+	next.SrcLine = 17
+	next.SrcFile = "counted.c"
+	if n := StrengthReduceCountedPointers(f); n != 2 {
+		t.Fatal(n)
+	}
+	found := false
+	for _, p := range head.Params {
+		if p.Dst == extra {
+			found = true
+		}
+	}
+	if !found {
+		t.Fatal("unrelated invariant was remapped")
+	}
+	bumps := 0
+	for _, x := range body.Insts {
+		if x.Op == OpPtrBump {
+			bumps++
+			if x.SrcLine != 17 || x.SrcFile != "counted.c" {
+				t.Fatal("missing source origin", x)
+			}
+		}
+	}
+	if bumps != 2 {
+		t.Fatal("missing bumps", bumps)
+	}
+}

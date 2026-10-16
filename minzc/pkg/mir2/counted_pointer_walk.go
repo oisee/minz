@@ -104,7 +104,7 @@ func StrengthReduceCountedPointers(f *Func) int {
 				return r
 			}
 			for i, p := range head.Params {
-				if p.Dst == r && back.Args[i] == r && params[incoming.Args[i]] {
+				if p.Dst == r && back.Args[i] == r && params[incoming.Args[i]] && p.Ty == types[incoming.Args[i]] {
 					return incoming.Args[i]
 				}
 			}
@@ -137,7 +137,14 @@ func StrengthReduceCountedPointers(f *Func) int {
 		// Collapse invariant header forwarding as well: otherwise dead cycles
 		// keep original bases live and cause unnecessary physical parallel copies.
 		invariants := map[Reg]Reg{}
+		needed := map[Reg]bool{bound: true}
+		for _, c := range candidates {
+			needed[c.x.Src[0]] = true
+		}
 		for _, p := range head.Params {
+			if !needed[p.Dst] {
+				continue
+			}
 			if r := root(p.Dst); r != NoReg && r != p.Dst {
 				invariants[p.Dst] = r
 			}
@@ -157,7 +164,7 @@ func StrengthReduceCountedPointers(f *Func) int {
 				bump := f.AllocReg()
 				head.Params = append(head.Params, BlockParam{Dst: walk, Ty: TyPtr, Class: ClassPointer})
 				incoming.Args = append(incoming.Args, c.base)
-				body.Insts = append(body.Insts, &Inst{Op: OpPtrBump, Dst: bump, Src: [2]Reg{walk}, Imm: 1, Ty: TyPtr, Cls: ClassPointer})
+				body.Insts = append(body.Insts, &Inst{Op: OpPtrBump, Dst: bump, Src: [2]Reg{walk}, Imm: 1, Ty: TyPtr, Cls: ClassPointer, SrcLine: next.SrcLine, SrcFile: next.SrcFile})
 				back.Args = append(back.Args, bump)
 				walks[c.base] = walk
 			}
