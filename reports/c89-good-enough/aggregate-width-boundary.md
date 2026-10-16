@@ -42,6 +42,7 @@ caller и callee используют согласованную четвёрк�
 HIR 28.799 s, MIR2 104.044 s, Nanz 25.774 s, interop 0.003 s, PASS.
 После marker уточнения aggregate/promotion tests — C89 4.127 s и HIR 0.011 s,
 PASS. После volatile guard: C89 4.765 s и HIR 0.010 s, PASS.
+Полные C89/HIR на итоговом коде guard и marker: 46.983 s / 39.100 s, PASS.
 
 ```sh
 cd minzc

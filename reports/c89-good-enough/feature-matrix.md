@@ -7,7 +7,8 @@ Aggregate scalarization интегрирована в main d6404fa4 через P
 switch/control-flow — в main 8fd960e5 через PR #164. Исправление ABI импортов — в main ce6d79ba через PR #165. Lifetime интегрирован в main 97e78d71 через PR #166.
 Language-admission интегрирован в main 1247c19d через PR #167; wide CALL, стоимость scalar ABI и глобальные
 relocations — в main 548d6135 через PR #168. Дополнительная control-closure
-матрица и её backend fix пока в следующей ветке. Полная цель остаётся активной.
+матрица и её backend fix интегрированы в main c69f2197 через PR #169.
+Граница scalar ABI до четырёх байт ожидает PR #170. Полная цель остаётся активной.
 
 | Семейство | Исполняемое доказательство | Состояние и граница |
 |---|---|---|
@@ -16,9 +17,9 @@ relocations — в main 548d6135 через PR #168. Дополнительна�
 | 32-bit multiply/divide/mod | `TestCIntegerSemanticsNativeVM` | C→raw/final VM/Z80 на граничных значениях; wide CALL с живыми caller значениями: `TestC89WideCallLiveVMZ80`, 2025 native / 2700 VM вызовов, интегрировано через PR #168 |
 | Pointer stride, difference, arithmetic | `TestCPointerArithmeticNativeVM` | VM/Z80; complete object types, target адреса 16-bit |
 | Lvalue, postfix, compound: вычислить адрес один раз | `TestCLvalueSingleEvaluationNativeVM` | VM/Z80; побочные эффекты и адреса |
-| if/while/for/do, continue и shadowing | `TestControlContinueShadowProbe` | raw/final VM/Z80; дополнительно `TestC89ControlClosureVMZ80`, пять семейств с точными trace-записями, пока в ветке |
+| if/while/for/do, continue и shadowing | `TestControlContinueShadowProbe` | raw/final VM/Z80; дополнительно `TestC89ControlClosureVMZ80`, пять семейств с точными trace-записями, интегрировано через PR #169 |
 | switch fallthrough/default/labels/nearest break | `TestC89ControlMatrixVMZ80` | VM/Z80; 10 семейств, интегрировано через PR #164 |
-| goto и join пути | `TestC89ControlMatrixVMZ80`, HIR goto suite | Простой C goto/join интегрирован; новая cleanup/multi-entry/nested-scope матрица: 225 native / 300 VM, пока в ветке |
+| goto и join пути | `TestC89ControlMatrixVMZ80`, HIR goto suite | Простой C goto/join интегрирован; новая cleanup/multi-entry/nested-scope матрица: 225 native / 300 VM, интегрировано через PR #169 |
 | logical/conditional/comma effects | `TestC89ExpressionEffectsNative`, `TestC89ControlEffectsNative` | C source + GCC frozen oracle; raw/final VM/Z80, порядок событий, память и PC/SP; expression suite — deep, control suite — fast |
 | Local/static storage, initialization | `TestCScalarConversionsNativeVM`, `TestCLocalAddressesNativeVM` | VM/Z80; отдельные адресуемые объекты, static long/array/struct |
 | Private symbols, extern, separate imports | `TestCSourcePrivateSymbolsNativeVM`, `TestCSourceImportNativeVM`, `TestC89AggregateImportVMZ80` | Mixed C/Nanz VM/Z80; aggregate ABI после связывания интегрирован через PR #165 |
@@ -52,7 +53,7 @@ long/VLA отклоняются. Их наличие в прежнем C-кор�
 [глобальные адресные инициализаторы](global-address-initializers.md),
 [cleanup, вложенные переходы и сохранность аргумента](control-closure.md),
 [граница scalar ABI в четыре байта](aggregate-width-boundary.md).
-Следующие работы: завершить строгую интеграцию control-closure/backend
-проверок, воспроизвести их на main и оценить оставшиеся пробелы в матрице.
+Следующие работы: завершить строгую интеграцию PR #170, воспроизвести
+декомпозицию на main и завершить [аудит условий цели](completion-audit.md).
 Runtime varargs и неизвестные indirect parameter ABI с живыми caller значениями явно
 не входят в заявленный Z80 допуск. Матрица сохраняет открытые строки.
