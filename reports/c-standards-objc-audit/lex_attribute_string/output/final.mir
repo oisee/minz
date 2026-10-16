@@ -1,0 +1,10 @@
+; MIR2 module: /home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c-standards-objc/lex_attribute_string/lex_attribute_string
+global @result : u16
+
+fun @execute()
+  block @entry:
+    %r1 = const 1 : u16 [pointer]
+    %r2 = addr_of @result : ptr [pointer]
+    store %r2, %r1 : u16
+    ret void
+

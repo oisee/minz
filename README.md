@@ -22,6 +22,8 @@ The project is active research: examples and targets have different levels of ma
 
 [C89 practical coverage matrix](reports/c89-good-enough/feature-matrix.md): small struct input/return decomposition, linked aggregate ABI, switch lowering and caller-owned struct-return buffers are integrated. The four-byte scalar ABI is integrated through [PR #170](https://github.com/oisee/minz/pull/170). Independent raw/final VM and assembled Z80 tests cover field order, signed values, copying, volatile accesses and live caller values. [Completion audit](reports/c89-good-enough/completion-audit.md) records the practical scope, measured call costs and integration checks; full ISO C89 conformance is not claimed.
 
+[C99/C11/C23 and Objective-C claim audit](reports/2026-10-16-c-standards-objc-audit.md): current executable coverage, 26 directed probes, preserved semantic and diagnostic failures, and the boundary between syntax extensions and ISO conformance.
+
 [Direct word stores on Z80](reports/2026-10-16-c89-direct-word-store.md): unchanged C/Nanz abs_diff reaches 27 bytes / 220,904 T. All six C families improve; measured PFCCO interactions and remaining losses are recorded. Integration and required checks are tracked in [PR #181](https://github.com/oisee/minz/pull/181).
 
 [C89/Nanz optimization completion audit](reports/2026-10-16-c89-optimization-completion-audit.md): frozen inputs, exact final compiler tree, primary and heldout VM/Z80 evidence, remaining losses and integration criteria.

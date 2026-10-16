@@ -1,0 +1,1 @@
+minz default c23_bitint_unsigned: ERROR 0 calls 0 bytes 0T c89 parse: /home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c-standards-objc/c23_bitint_unsigned/c23_bitint_unsigned.c:2:37: unexpected identifier, expected ';'

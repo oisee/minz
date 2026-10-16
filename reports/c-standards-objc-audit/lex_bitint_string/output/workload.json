@@ -1,0 +1,8 @@
+[
+  {
+    "id": "lex_bitint_string",
+    "inputs": {},
+    "expected": 11,
+    "after": {}
+  }
+]

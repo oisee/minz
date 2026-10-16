@@ -1,0 +1,8 @@
+[
+  {
+    "id": "c23_digit",
+    "inputs": {},
+    "expected": 1234,
+    "after": {}
+  }
+]

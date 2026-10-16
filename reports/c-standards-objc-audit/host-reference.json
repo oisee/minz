@@ -1,0 +1,72 @@
+[
+  {
+    "probe": "c99_designated",
+    "compiler": "GCC 13.3.0",
+    "host_exit": 5,
+    "expected": 5,
+    "compile_exit": 0
+  },
+  {
+    "probe": "c99_compound",
+    "compiler": "GCC 13.3.0",
+    "host_exit": 8,
+    "expected": 8,
+    "compile_exit": 0
+  },
+  {
+    "probe": "c99_for",
+    "compiler": "GCC 13.3.0",
+    "host_exit": 6,
+    "expected": 6,
+    "compile_exit": 0
+  },
+  {
+    "probe": "c11_generic",
+    "compiler": "GCC 13.3.0",
+    "host_exit": 7,
+    "expected": 7,
+    "compile_exit": 0
+  },
+  {
+    "probe": "c11_anonymous",
+    "compiler": "GCC 13.3.0",
+    "host_exit": 7,
+    "expected": 7,
+    "compile_exit": 0
+  },
+  {
+    "probe": "lex_digit_string",
+    "compiler": "GCC 13.3.0",
+    "host_exit": 4,
+    "expected": 4,
+    "compile_exit": 0
+  },
+  {
+    "probe": "lex_bitint_string",
+    "compiler": "GCC 13.3.0",
+    "host_exit": 11,
+    "expected": 11,
+    "compile_exit": 0
+  },
+  {
+    "probe": "lex_attribute_string",
+    "compiler": "GCC 13.3.0",
+    "host_exit": 14,
+    "expected": 14,
+    "compile_exit": 0
+  },
+  {
+    "probe": "c11_generic_pointer_ab",
+    "compiler": "GCC 13.3.0",
+    "host_exit": 1,
+    "expected": 1,
+    "compile_exit": 0
+  },
+  {
+    "probe": "c11_generic_pointer_ba",
+    "compiler": "GCC 13.3.0",
+    "host_exit": 1,
+    "expected": 1,
+    "compile_exit": 0
+  }
+]

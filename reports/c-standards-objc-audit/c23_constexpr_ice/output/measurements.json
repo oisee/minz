@@ -1,0 +1,15 @@
+{
+  "Compiler": "minz",
+  "Profile": "default",
+  "Case": "c23_constexpr_ice",
+  "SourceSHA256": "27813da2590999ad02ebcb789d94fa43a97c47722fc7be2a6ba5bbcded321c0b",
+  "WorkloadSHA256": "63d61d37067397aa3be81bed6c70d87c8f01c23cee1a8ffe202b6e4bbe8e7fb9",
+  "Status": "ERROR",
+  "InitializedBytes": 0,
+  "GlobalBytes": 0,
+  "ProgramBytes": 0,
+  "Calls": 0,
+  "TotalT": 0,
+  "Observations": null,
+  "Error": "c89 parse: /home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c-standards-objc/c23_constexpr_ice/c23_constexpr_ice.c:2:44: variable-length array types are not supported by this target (type.go:1890:newArrayType:)"
+}

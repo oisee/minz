@@ -1,0 +1,13 @@
+{
+  "samples": [
+    {
+      "id": "objc_property",
+      "inputs": {},
+      "expected": 1,
+      "after": {}
+    }
+  ],
+  "sizes": {
+    "result": 2
+  }
+}

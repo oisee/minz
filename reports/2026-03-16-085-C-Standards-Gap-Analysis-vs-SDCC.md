@@ -1,5 +1,10 @@
 # C Standards Gap Analysis: MinZ C Frontend vs SDCC
 
+> Historical planning document. Its percentages lack an ISO feature denominator
+> and are not measured conformance results; its support and optimization tables
+> are not current. Use the [16 October executable audit](2026-10-16-c-standards-objc-audit.md)
+> and [identical-source benchmark](2026-10-16-c89-nanz-full-benchmark.md) instead.
+
 **Date:** 2026-03-16
 **Report:** #085
 **Status:** Plan — use as implementation roadmap

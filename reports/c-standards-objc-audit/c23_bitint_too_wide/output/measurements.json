@@ -1,0 +1,22 @@
+{
+  "Compiler": "minz",
+  "Profile": "default",
+  "Case": "c23_bitint_too_wide",
+  "SourceSHA256": "c8f2b5fa9e42f00b1a2e032f7893e80d556ff92514225ce0f3b8ef17334b956c",
+  "WorkloadSHA256": "cf66da2d64c30c19a4ed40864eceaefaf1abfb18c4c78470d11f03ff0e7ca4e2",
+  "Status": "FAIL",
+  "InitializedBytes": 10,
+  "GlobalBytes": 2,
+  "ProgramBytes": 10,
+  "Calls": 1,
+  "TotalT": 40,
+  "Observations": [
+    {
+      "id": "c23_bitint_too_wide",
+      "expected": 0,
+      "result": 2,
+      "t_states": 40,
+      "error": "native result2 want0"
+    }
+  ]
+}

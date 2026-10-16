@@ -1,0 +1,13 @@
+{
+  "samples": [
+    {
+      "id": "c99_compound",
+      "inputs": {},
+      "expected": 8,
+      "after": {}
+    }
+  ],
+  "sizes": {
+    "result": 2
+  }
+}

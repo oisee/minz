@@ -1,0 +1,21 @@
+{
+  "Compiler": "minz",
+  "Profile": "default",
+  "Case": "c23_typeof",
+  "SourceSHA256": "554ed9310e6c13bbb19db639125eac493ff7e1dd012363a5100bec50e71ea7e9",
+  "WorkloadSHA256": "24cd0a282b1d1a449a0f66182901b31217f096c397d193660b11f11bf1517b07",
+  "Status": "PASS",
+  "InitializedBytes": 10,
+  "GlobalBytes": 2,
+  "ProgramBytes": 10,
+  "Calls": 1,
+  "TotalT": 40,
+  "Observations": [
+    {
+      "id": "c23_typeof",
+      "expected": 10,
+      "result": 10,
+      "t_states": 40
+    }
+  ]
+}

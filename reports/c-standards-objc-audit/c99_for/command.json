@@ -1,0 +1,13 @@
+[
+  "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/full-main/measure",
+  "-compiler",
+  "minz",
+  "-profile",
+  "default",
+  "-source",
+  "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c-standards-objc/c99_for/c99_for.c",
+  "-workload",
+  "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c-standards-objc/c99_for/workload.json",
+  "-out",
+  "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c-standards-objc/c99_for/output"
+]

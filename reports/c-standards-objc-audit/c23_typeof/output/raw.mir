@@ -1,0 +1,12 @@
+; MIR2 module: /home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c-standards-objc/c23_typeof/c23_typeof
+global @result : u16
+
+fun @execute()
+  block @entry:
+    %r1 = const 7 : i16 [pointer]
+    %r2 = const 3 : i16 [pointer]
+    %r3 = add %r1, %r2 : i16 [pointer]
+    %r4 = addr_of @result : ptr [pointer]
+    store %r4, %r3 : u16
+    ret void
+

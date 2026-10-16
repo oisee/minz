@@ -1,0 +1,13 @@
+{
+  "samples": [
+    {
+      "id": "c23_enum",
+      "inputs": {},
+      "expected": 1,
+      "after": {}
+    }
+  ],
+  "sizes": {
+    "result": 2
+  }
+}

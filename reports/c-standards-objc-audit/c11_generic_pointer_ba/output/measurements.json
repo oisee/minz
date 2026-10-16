@@ -1,0 +1,15 @@
+{
+  "Compiler": "minz",
+  "Profile": "default",
+  "Case": "c11_generic_pointer_ba",
+  "SourceSHA256": "4ab08e340b6832fe68281f209acb4ee3f950b705fa99114ba772c0e531f02dd8",
+  "WorkloadSHA256": "cdce6a9038e1bd58f196e62cf9396452dc811d7768321c1773a22145afca74ef",
+  "Status": "ERROR",
+  "InitializedBytes": 0,
+  "GlobalBytes": 0,
+  "ProgramBytes": 0,
+  "Calls": 0,
+  "TotalT": 0,
+  "Observations": null,
+  "Error": "c89 lower: c89: unsupported Z80 type \u003cinvalid type\u003e"
+}

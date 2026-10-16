@@ -1,0 +1,15 @@
+{
+  "Compiler": "minz",
+  "Profile": "default",
+  "Case": "objc_nil",
+  "SourceSHA256": "57ee50d0fb04cc262fd1ec57dbd246443b067da21097045b7f04b3b25b3f2d33",
+  "WorkloadSHA256": "e1ea8e8914d37f1861850f23c33c259a7b7b1ddc24b17ee4b5235839515d1891",
+  "Status": "ERROR",
+  "InitializedBytes": 0,
+  "GlobalBytes": 0,
+  "ProgramBytes": 0,
+  "Calls": 0,
+  "TotalT": 0,
+  "Observations": null,
+  "Error": "c89 parse: /home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c-standards-objc/objc_nil/objc_nil.m:4:32: unexpected ')', expected unary expression"
+}

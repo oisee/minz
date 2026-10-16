@@ -1,0 +1,21 @@
+{
+  "Compiler": "minz",
+  "Profile": "default",
+  "Case": "c11_generic_pointer_ab",
+  "SourceSHA256": "5ebbfc124255a6f5421e1b4ff2aa29c51ffeba29969d89972c14bb58f59650b5",
+  "WorkloadSHA256": "99e258373bd7ca0442ff5207f0c900315796f562ba07b1926b4079a525121730",
+  "Status": "PASS",
+  "InitializedBytes": 10,
+  "GlobalBytes": 2,
+  "ProgramBytes": 10,
+  "Calls": 1,
+  "TotalT": 40,
+  "Observations": [
+    {
+      "id": "c11_generic_pointer_ab",
+      "expected": 1,
+      "result": 1,
+      "t_states": 40
+    }
+  ]
+}

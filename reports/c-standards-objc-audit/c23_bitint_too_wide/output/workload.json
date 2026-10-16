@@ -1,0 +1,8 @@
+[
+  {
+    "id": "c23_bitint_too_wide",
+    "inputs": {},
+    "expected": 0,
+    "after": {}
+  }
+]

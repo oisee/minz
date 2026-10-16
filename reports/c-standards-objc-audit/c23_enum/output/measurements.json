@@ -1,0 +1,21 @@
+{
+  "Compiler": "minz",
+  "Profile": "default",
+  "Case": "c23_enum",
+  "SourceSHA256": "0ec310ee52364b4356e5f379e6b530c14259556364a9db5dda921ef4af27599c",
+  "WorkloadSHA256": "e6685acf5a105019824768d4902813544bf46462b010fe7ea35a1f4514f9d7d6",
+  "Status": "PASS",
+  "InitializedBytes": 10,
+  "GlobalBytes": 2,
+  "ProgramBytes": 10,
+  "Calls": 1,
+  "TotalT": 40,
+  "Observations": [
+    {
+      "id": "c23_enum",
+      "expected": 1,
+      "result": 1,
+      "t_states": 40
+    }
+  ]
+}

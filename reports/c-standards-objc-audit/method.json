@@ -1,0 +1,8 @@
+{
+  "compiler_commit": "0711d6837e09fdd3679c544427836ebb98bf9f7b",
+  "compiler_tree": "3cd5c7bb68658373a6f461cfad8508c33cc770f8",
+  "measure_binary_sha256": "a5a0b420147aae936b35dfc43690a4e235ab97ab59f97a8ff509b2c0d0ec1275",
+  "scope": "26 directed probes. PASS verifies raw/final MIR VM and native expected result+PC/SP. On raw VM failure the runner skips final VM; native still executes. Invalid-source admission probes use acceptance, not semantic-result equivalence. Original harness errors and one corrected invalid ObjC draft are retained.",
+  "driver_sha256": "f1da8cd225cca14e5739f50f44a9f247ee7aff84769fd1f045612b3bdc0be136",
+  "existing_tests_log_sha256": "5a2e4be99abb0a0982441dea520b4ae645c9cf8bde3ad12598f756755fea2cf9"
+}

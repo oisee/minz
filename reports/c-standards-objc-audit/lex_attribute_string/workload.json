@@ -1,0 +1,13 @@
+{
+  "samples": [
+    {
+      "id": "lex_attribute_string",
+      "inputs": {},
+      "expected": 14,
+      "after": {}
+    }
+  ],
+  "sizes": {
+    "result": 2
+  }
+}

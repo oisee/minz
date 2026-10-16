@@ -1,16 +1,26 @@
 ---
-title: "C23 on Z80: The World's First C23 Compiler for 8-Bit"
+title: "Selected C23 Syntax on Z80: Implementation and Limits"
 author: "MinZ Project"
 date: "2026-03-26"
 ---
 
-# C23 on Z80: The World's First C23 Compiler for 8-Bit
+# Selected C23 Syntax on Z80: Implementation and Limits
 
-**MinZ C Frontend — Full C23 (freestanding) on Zilog Z80.**
+**Historical feature guide, corrected 16 October 2026.**
 
-The MinZ compiler ships the first Z80-targeting C frontend with C23 support. 13/13 C23 features implemented. 619 corpus asserts. C17 conformant (`__STDC_VERSION__ = 201710L`) with full C23 extensions.
+MinZ implements a C subset and selected newer syntax on Z80. This guide does
+not establish C17 or C23 conformance. Its former “13/13”, “full C23” and
+“world's first” claims were unsupported. `__STDC_VERSION__ = 201710L` is a
+predefined compatibility macro, not evidence of conformance.
 
-For comparison: SDCC (the standard Z80 C compiler) supports approximately C99.
+The [current executable audit](../reports/2026-10-16-c-standards-objc-audit.md)
+finds semantic gaps in `_BitInt`, `constexpr`, `nullptr` and lexical handling;
+some valid newer-language programs are rejected. Examples below describe
+individual mechanisms and historical demonstrations, rather than a standard
+compliance guarantee.
+
+SDCC support must be stated for a particular version and target; no measured
+percentage of ISO language coverage is supplied here.
 
 ---
 
@@ -43,13 +53,18 @@ C source → preprocessor (MinZ) → modernc.org/cc → typed AST → lower.go �
 | **Z80 emulator** | `mze` | Full compile → assemble → emulate |
 | **Real hardware** | ZX Spectrum / CP/M | Production verification |
 
-**Status:** 619 asserts pass on MIR2 VM. Z80 path has known codegen bugs in conditional branches and while loops (MIR2→Z80 lowering). MIR2 VM is the reference implementation.
+**Historical status:** the old 619-assert figure is not a current conformance
+result. Current tests and native limitations are linked in the audit above.
+Language expectations require an independent oracle; agreement with MIR2 VM
+alone does not establish correctness.
 
 ---
 
 ## Chapter 2: C99 Features
 
-All C99 features relevant to Z80 are supported.
+Several C99 features have executable examples. Full C99 coverage is not
+established; floating-point, used 64-bit values and VLA storage are outside
+the current Z80 subset.
 
 ### 2.1 Inline Variable Declarations
 
@@ -300,7 +315,12 @@ int big = 1'000'000;
 
 Preprocessor strips `'` between digits. Safe: never touches char literals (`'A'`).
 
-### 5.10 `_BitInt(N)` — Fixed-Width Integers
+### 5.10 `_BitInt(N)` — Legacy Approximate Mapping
+
+This mapping is not ISO C23 `_BitInt` semantics. It changes signedness and
+width, rejects ordinary `unsigned _BitInt` syntax and silently maps widths
+above 32 to `int`. Do not use it as a fixed-width language guarantee; see the
+audit's preserved counterexamples.
 
 ```c
 _BitInt(4) nibble = 0x0F;    // → uint8_t

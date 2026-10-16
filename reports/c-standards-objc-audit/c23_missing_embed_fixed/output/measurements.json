@@ -1,0 +1,22 @@
+{
+  "Compiler": "minz",
+  "Profile": "default",
+  "Case": "c23_missing_embed_fixed",
+  "SourceSHA256": "cf22af6b4e376c7a824f40461ae2ec4e40d853c5bc6e8108a997b36af6bdf725",
+  "WorkloadSHA256": "07beed62a528f5d8f166fadd8ac0f57ced7dd05d0f1bee7970cf9e59d17b5d76",
+  "Status": "FAIL",
+  "InitializedBytes": 11,
+  "GlobalBytes": 2,
+  "ProgramBytes": 11,
+  "Calls": 1,
+  "TotalT": 40,
+  "Observations": [
+    {
+      "id": "c23_missing_embed_fixed",
+      "expected": 0,
+      "result": 1,
+      "t_states": 40,
+      "error": "native result1 want0"
+    }
+  ]
+}

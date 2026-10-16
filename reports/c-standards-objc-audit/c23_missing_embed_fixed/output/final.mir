@@ -1,0 +1,11 @@
+; MIR2 module: /home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c-standards-objc/c23_missing_embed_fixed/c23_missing_embed_fixed
+global @result : u16
+global @bytes : [1]u8
+
+fun @execute()
+  block @entry:
+    %r1 = const 1 : i16 [pointer]
+    %r2 = addr_of @result : ptr [pointer]
+    store %r2, %r1 : u16
+    ret void
+

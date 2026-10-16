@@ -1,0 +1,21 @@
+{
+  "Compiler": "minz",
+  "Profile": "default",
+  "Case": "c11_generic",
+  "SourceSHA256": "744715f963c208e8e27f1c79f1a951aea1c51afd05d69f0eae5d7fb1a4246248",
+  "WorkloadSHA256": "95a009ca718b956f7177a3c6c8b56bf33cdecce4d5021cbe47b5dca79f684881",
+  "Status": "PASS",
+  "InitializedBytes": 10,
+  "GlobalBytes": 2,
+  "ProgramBytes": 10,
+  "Calls": 1,
+  "TotalT": 40,
+  "Observations": [
+    {
+      "id": "c11_generic",
+      "expected": 7,
+      "result": 7,
+      "t_states": 40
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+; MIR2 module: /home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c-standards-objc/c11_anonymous/c11_anonymous
+global @result : u16
+
+fun @execute()
+  block @entry:
+    %r1 = alloca 2 : ptr
+    %r2 = const 7 : i16 [pointer]
+    store %r1, %r2 : i16
+    %r3 = load %r1 : i16 [pointer]
+    %r4 = addr_of @result : ptr [pointer]
+    store %r4, %r3 : u16
+    ret void
+

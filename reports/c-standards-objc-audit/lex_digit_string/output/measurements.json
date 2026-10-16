@@ -1,0 +1,22 @@
+{
+  "Compiler": "minz",
+  "Profile": "default",
+  "Case": "lex_digit_string",
+  "SourceSHA256": "dd6d33f5faa1154247cac39c241de2bb70ed167f46af9a5fa9963185d6daad8d",
+  "WorkloadSHA256": "a1c8b81f7e721905548488d3b32cc8ac7160dea1021aa67d9a2f88414285d36c",
+  "Status": "FAIL",
+  "InitializedBytes": 10,
+  "GlobalBytes": 2,
+  "ProgramBytes": 10,
+  "Calls": 1,
+  "TotalT": 40,
+  "Observations": [
+    {
+      "id": "lex_digit_string",
+      "expected": 4,
+      "result": 3,
+      "t_states": 40,
+      "error": "native result3 want4"
+    }
+  ]
+}

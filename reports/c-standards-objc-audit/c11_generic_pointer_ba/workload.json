@@ -1,0 +1,13 @@
+{
+  "samples": [
+    {
+      "id": "c11_generic_pointer_ba",
+      "inputs": {},
+      "expected": 1,
+      "after": {}
+    }
+  ],
+  "sizes": {
+    "result": 2
+  }
+}
