@@ -1,0 +1,9 @@
+global values: [u8; 256]
+global n: u8 = 0
+global result: u16 = 0
+fun sum_array(p: ^u8, count: u8) -> u16 {
+    var sum: u16 = 0
+    for value: u8 in p[0..count] { sum = sum + u16(value) }
+    return sum
+}
+fun execute() { result = sum_array(&values, n) }

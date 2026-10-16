@@ -1,0 +1,10 @@
+{
+  "Compiler": "sdcc",
+  "Profile": "size",
+  "Case": "struct_roundtrip",
+  "SourceSHA256": "719ab06cf429dd76e1bcca42e837ec2a64cf7b494ce958a3dae0135074f46689",
+  "Status": "COMPILE_ERROR",
+  "Error": "exit 1; see build.log",
+  "ObservationCount": 0,
+  "DetailedMeasurementsSHA256": "3897fd01c6c7efcf46d62b7f9f209b84ccd4635c31a2edb96ed293ff7fed079b"
+}
