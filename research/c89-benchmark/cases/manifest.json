@@ -1,0 +1,29 @@
+{
+  "frozen_before_measurement": true,
+  "cases": [
+    {
+      "file": "abs_diff.c",
+      "sha256": "797200976ad2f54c936f593b225328d084ee435e5e91136ba06632103ff28aeb"
+    },
+    {
+      "file": "copy_bytes.c",
+      "sha256": "f86ef9fea5e75ee7360505f1c7c8fb65099907aede479fb67c1949d0b483d2c9"
+    },
+    {
+      "file": "fat12_decode.c",
+      "sha256": "4a7338748721cbacb1766df589a1374358f8e209265a9a64cc43561d72dae050"
+    },
+    {
+      "file": "gcd.c",
+      "sha256": "34cc83bcd467c8d5008df94c60371a3b7bdf16ecab65e5a38ea655878fbc2fdb"
+    },
+    {
+      "file": "struct_roundtrip.c",
+      "sha256": "719ab06cf429dd76e1bcca42e837ec2a64cf7b494ce958a3dae0135074f46689"
+    },
+    {
+      "file": "sum_array.c",
+      "sha256": "38c71b12b18062652cbdc3d21d0a9b6a83d55940d5e8b99b7047390e265647bb"
+    }
+  ]
+}
