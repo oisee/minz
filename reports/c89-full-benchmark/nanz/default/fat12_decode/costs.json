@@ -1,0 +1,15 @@
+{
+  "Compiler": "nanz",
+  "Profile": "default",
+  "Case": "fat12_decode",
+  "SourceSHA256": "5f43ae7f72baaf7fb1cab6311fea3a456171a492eaeed8621c96634f1091fa59",
+  "WorkloadSHA256": "79b58d62a769018f93a7f89bfdf84af2518123abf5b479ff8f302ca4903f8cd7",
+  "Status": "PASS",
+  "InitializedBytes": 188,
+  "GlobalBytes": 67,
+  "ProgramBytes": 188,
+  "Calls": 64,
+  "TotalT": 38112,
+  "ObservationCount": 64,
+  "DetailedMeasurementsSHA256": "d1a3c722d3df4bf8a1dfa3b0314383942799e6ec9fffc140da8829098f99a4cf"
+}

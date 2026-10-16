@@ -1,0 +1,12 @@
+global a: u8 = 0
+global b: u8 = 0
+global result: u16 = 0
+fun gcd(x: u8, y: u8) -> u8 {
+    if x == 0 { return y }
+    if y == 0 { return x }
+    while x != y {
+        if x > y { x = x - y } else { y = y - x }
+    }
+    return x
+}
+fun execute() { result = u16(gcd(a, b)) }

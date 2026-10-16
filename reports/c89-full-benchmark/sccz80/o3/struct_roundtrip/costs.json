@@ -1,0 +1,10 @@
+{
+  "Compiler": "sccz80",
+  "Profile": "o3",
+  "Case": "struct_roundtrip",
+  "SourceSHA256": "719ab06cf429dd76e1bcca42e837ec2a64cf7b494ce958a3dae0135074f46689",
+  "Status": "COMPILE_ERROR",
+  "Error": "exit 1; see build.log",
+  "ObservationCount": 0,
+  "DetailedMeasurementsSHA256": "cb357ed2a2d579a1a801b7ea1cd033765cc9b95a0796993640b18ef759249203"
+}

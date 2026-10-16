@@ -1,0 +1,35 @@
+[
+  [
+    "/home/alice/dev/minz-artifacts/toolchains/sdcc-4.5/root/usr/bin/sdcc",
+    "-mz80",
+    "--std-c89",
+    "--opt-code-size",
+    "--no-std-crt0",
+    "--code-loc",
+    "0x8000",
+    "--data-loc",
+    "0xC000",
+    "--lib-path",
+    "/home/alice/dev/minz-artifacts/toolchains/sdcc-4.5/root/usr/share/sdcc/lib/z80",
+    "-o",
+    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c89-nanz-sdcc45/absdiff-cfg-full/sdcc45/size/abs_diff/program.ihx",
+    "/home/alice/dev/minz-artifacts/grace-workspaces/c89-absdiff-cfg/research/c89-benchmark/cases/abs_diff.c"
+  ],
+  [
+    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c89-nanz-sdcc45/absdiff-cfg-full/measure",
+    "-compiler",
+    "sdcc",
+    "-profile",
+    "size",
+    "-source",
+    "/home/alice/dev/minz-artifacts/grace-workspaces/c89-absdiff-cfg/research/c89-benchmark/cases/abs_diff.c",
+    "-out",
+    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c89-nanz-sdcc45/absdiff-cfg-full/sdcc45/size/abs_diff",
+    "-image",
+    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c89-nanz-sdcc45/absdiff-cfg-full/sdcc45/size/abs_diff/program.ihx",
+    "-symbols",
+    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c89-nanz-sdcc45/absdiff-cfg-full/sdcc45/size/abs_diff/program.noi",
+    "-build-info",
+    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c89-nanz-sdcc45/absdiff-cfg-full/sdcc45/size/abs_diff/build-info.json"
+  ]
+]

@@ -1,0 +1,15 @@
+{
+  "Compiler": "sccz80",
+  "Profile": "o3",
+  "Case": "fat12_decode",
+  "SourceSHA256": "4a7338748721cbacb1766df589a1374358f8e209265a9a64cc43561d72dae050",
+  "WorkloadSHA256": "79b58d62a769018f93a7f89bfdf84af2518123abf5b479ff8f302ca4903f8cd7",
+  "Status": "PASS",
+  "InitializedBytes": 207,
+  "GlobalBytes": 67,
+  "ProgramBytes": 207,
+  "Calls": 64,
+  "TotalT": 57952,
+  "ObservationCount": 64,
+  "DetailedMeasurementsSHA256": "fa63534d4eeba7b0bd3c02c3e29c48414d2cdb3345dbb3f3d3ae55bd95003fb9"
+}
