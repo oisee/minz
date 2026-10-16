@@ -118,7 +118,7 @@ func (r *Resolver) Resolve(src string) (string, []*hir.Module, error) {
 		}
 		modules = append(modules, childMods...)
 
-		mod, err := compiler(childSrc, filepath.Base(absPath))
+		mod, err := compiler(childSrc, absPath)
 		if err != nil {
 			return "", nil, fmt.Errorf("#import %q: %w", imp, err)
 		}

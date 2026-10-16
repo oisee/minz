@@ -50,6 +50,7 @@ import (
 
 	"github.com/minz/minzc/pkg/c89"
 	"github.com/minz/minzc/pkg/hir"
+	"github.com/minz/minzc/pkg/interop"
 	"github.com/minz/minzc/pkg/lanz"
 	"github.com/minz/minzc/pkg/lizp"
 	"github.com/minz/minzc/pkg/mir2"
@@ -1662,7 +1663,7 @@ func (p *parser) parseImport() error {
 	ext := filepath.Ext(filePath)
 	switch ext {
 	case ".c":
-		imported, err = c89.CompileWithOpts(string(src), filePath, c89.CompileOpts{BaseDir: filepath.Dir(filePath), IncludePaths: []string{filepath.Dir(filePath)}})
+		imported, err = c89.CompileWithOpts(string(src), filePath, c89.CompileOpts{BaseDir: filepath.Dir(filePath), IncludePaths: []string{filepath.Dir(filePath)}, Resolver: p.cSourceResolver(filePath)})
 	case ".lanz":
 		imported, err = lanz.Compile(string(src), modPath)
 	case ".lizp":
@@ -6583,4 +6584,25 @@ func mergeGeneratedDeclarations(dst, src *hir.Module) error {
 		dst.Structs = append(dst.Structs, st)
 	}
 	return nil
+}
+
+// C #import modules join the same HIR before the outer Nanz import receives
+// its namespace. Pass absolute source identities so nested includes/imports
+// resolve relative to the actual file, not the current process directory.
+func (p *parser) cSourceResolver(sourceFile string) *interop.Resolver {
+	compilers := map[string]interop.CompileFunc{}
+	compilers[".nanz"] = func(src, name string) (*hir.Module, error) {
+		loaded := map[string]bool{}
+		for k, v := range p.opts.Loaded {
+			loaded[k] = v
+		}
+		abs, _ := filepath.Abs(sourceFile)
+		loaded[abs] = true
+		return ParseWithOpts(src, name, ParseOpts{BaseDir: filepath.Dir(name), StdlibDir: p.opts.StdlibDir, OptSize: p.opts.OptSize, Loaded: loaded})
+	}
+	compilers[".minz"] = compilers[".nanz"]
+	compilers[".c"] = func(src, name string) (*hir.Module, error) {
+		return c89.CompileWithOpts(src, name, c89.CompileOpts{BaseDir: filepath.Dir(name), IncludePaths: []string{filepath.Dir(name)}})
+	}
+	return &interop.Resolver{BaseDir: filepath.Dir(sourceFile), Compilers: compilers}
 }

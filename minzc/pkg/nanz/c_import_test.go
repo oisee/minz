@@ -3,6 +3,7 @@ package nanz_test
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/minz/minzc/pkg/hir"
@@ -80,5 +81,52 @@ fun local_pair()->u16 {var v:Pair=Pair{tag:7,value:513} return v.value+u16(v.tag
 				}
 			}
 		}
+	}
+}
+
+func TestCSourceNestedNanzImportNativeVM(t *testing.T) {
+	dir := t.TempDir()
+	if e := os.MkdirAll(filepath.Join(dir, "sub"), 0755); e != nil {
+		t.Fatal(e)
+	}
+	for name, src := range map[string]string{
+		"api.h":           "unsigned int leaf_add(unsigned int);",
+		"bridge.c":        "#import \"sub/leaf.nanz\"\n#include \"api.h\"\nunsigned char buf[512]; unsigned int byte_at(unsigned char *p){return p[11];} unsigned int value(unsigned int x){buf[11]=7;return leaf_add(x)+byte_at(buf);}",
+		"sub/leaf.nanz":   "import values\nfun leaf_add(x:u16)->u16{return plus(x)}",
+		"sub/values.nanz": "fun plus(x:u16)->u16{return x+5}",
+	} {
+		if e := os.WriteFile(filepath.Join(dir, name), []byte(src), 0644); e != nil {
+			t.Fatal(e)
+		}
+	}
+	parse := func() *hir.Module {
+		h, e := nanz.ParseWithOpts("import bridge {value}\nfun run()->u16{return value(65535)}", filepath.Join(dir, "main.nanz"), nanz.ParseOpts{BaseDir: dir})
+		if e != nil {
+			t.Fatal(e)
+		}
+		return h
+	}
+	for _, grace := range []bool{false, true} {
+		h := parse()
+		h.Asserts = append(h.Asserts, hir.Assert{FuncName: "run", Expected: 11, Via: "z80"})
+		s, e := pipeline.CompileHIRSteps(h, pipeline.Options{ContractOpt: true, UseGrace: grace, UseHIRGrace: grace, AssertMode: "z80"})
+		if e != nil {
+			t.Fatal(e)
+		}
+		for _, m := range []*mir2.Module{hir.LowerModule(parse()), s.MIR2Module} {
+			v, e := mir2.NewVM(m).Call("run", nil)
+			if e != nil || len(v) != 1 || v[0].I != 11 {
+				t.Fatal(v, e)
+			}
+		}
+	}
+	if e := os.WriteFile(filepath.Join(dir, "cycle_driver.nanz"), []byte("import bridge\nfun leaf_add(x:u16)->u16{return x}"), 0644); e != nil {
+		t.Fatal(e)
+	}
+	if e := os.WriteFile(filepath.Join(dir, "bridge.c"), []byte("#import \"cycle_driver.nanz\"\nunsigned int value(unsigned int x){return x;}"), 0644); e != nil {
+		t.Fatal(e)
+	}
+	if _, e := nanz.ParseWithOpts("import bridge", filepath.Join(dir, "cycle.nanz"), nanz.ParseOpts{BaseDir: dir}); e == nil || !strings.Contains(e.Error(), "circular import") {
+		t.Fatalf("expected C/Nanz cycle diagnostic, got %v", e)
 	}
 }

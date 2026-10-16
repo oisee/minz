@@ -1466,6 +1466,12 @@ func (fl *funcLow) lowerPrimary(pe *cc.PrimaryExpression) (*exprResult, error) {
 			}
 		}
 		ty := fl.typeOf(name)
+		// Array storage retains its aggregate width, but the expression decays
+		// to a pointer (C99 6.3.2.1). Casting the storage width to a pointer
+		// otherwise makes native truncation throw away address bits.
+		if _, array := ty.(*mir2.ArrayTy); array {
+			ty = mir2.TyPtr
+		}
 		return wrapExpr(hir.Var(resolvedName, ty)), nil
 
 	case cc.PrimaryExpressionInt:
