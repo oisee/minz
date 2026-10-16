@@ -1,0 +1,50 @@
+; MIR2 module: /home/alice/dev/minz-artifacts/grace-workspaces/c89-absdiff-cfg/research/c89-benchmark/nanz-cases/gcd.nanz
+global @a : u8
+global @b : u8
+global @result : u16
+
+fun @gcd(%r1: u8 [acc], %r2: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r3 = const 0 : u8 [general]
+    %r4 = cmp.eq %r1, %r3 : bool [flag]
+    br_if %r4, @if_then1(), @if_join2()
+  block @if_then1:
+    ret %r2
+  block @if_join2:
+    %r5 = const 0 : u8 [general]
+    %r6 = cmp.eq %r2, %r5 : bool [flag]
+    br_if %r6, @if_then3(), @if_join4()
+  block @if_then3:
+    ret %r1
+  block @if_join4:
+    jmp @loop_head5(%r1, %r2)
+  block @loop_head5(%r7: u8 [general], %r8: u8 [general]):
+    %r9 = cmp.ne %r7, %r8 : bool [flag]
+    br_if %r9, @loop_body6(), @loop_exit7(%r7, %r8)
+  block @loop_body6:
+    %r10 = cmp.ugt %r7, %r8 : bool [flag]
+    br_if %r10, @if_then8(), @if_else10()
+  block @if_then8:
+    %r11 = sub %r7, %r8 : u8 [general]
+    jmp @if_join9(%r11, %r8)
+  block @if_else10:
+    %r12 = sub %r8, %r7 : u8 [general]
+    jmp @if_join9(%r7, %r12)
+  block @if_join9(%r13: u8 [general], %r14: u8 [general]):
+    jmp @loop_head5(%r13, %r14)
+  block @loop_exit7(%r15: u8 [general], %r16: u8 [general]):
+    ret %r15
+
+fun @execute()
+  block @entry:
+    %r17 = addr_of @a : ptr [pointer]
+    %r18 = load %r17 : u8 [general]
+    %r19 = move %r18 : u8 [acc]
+    %r20 = addr_of @b : ptr [pointer]
+    %r21 = load %r20 : u8 [general]
+    %r22 = call @gcd(%r19, %r21) : u8 [acc]
+    %r23 = ext %r22 : u8 -> u16 [pointer]
+    %r24 = addr_of @result : ptr [pointer]
+    store %r24, %r23 : u16
+    ret void
+

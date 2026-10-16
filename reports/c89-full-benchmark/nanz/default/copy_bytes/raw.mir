@@ -1,0 +1,42 @@
+; MIR2 module: /home/alice/dev/minz-artifacts/grace-workspaces/c89-absdiff-cfg/research/c89-benchmark/nanz-cases/copy_bytes.nanz
+global @source : [64]u8
+global @target : [64]u8
+global @n : u8
+global @result : u16
+
+fun @copy_bytes(%r1: ptr [pointer], %r2: ptr [pointer], %r3: u8 [counter])
+  block @entry:
+    %r4 = const 0 : u8 [general]
+    jmp @loop_head1(%r3, %r4, %r2)
+  block @loop_head1(%r5: u8 [general], %r6: u8 [general], %r7: ptr [general]):
+    %r8 = cmp.ult %r6, %r5 : bool [flag]
+    br_if %r8, @loop_body2(), @loop_exit3(%r5, %r6, %r7)
+  block @loop_body2:
+    %r9 = ext %r6 : u8 -> u16 [index]
+    %r10 = ptr_add %r7, %r9 : ptr [pointer]
+    %r11 = load %r10 : u8 [general]
+    %r12 = ptr_add %r1, %r6 : ptr [pointer]
+    store %r12, %r11 : u8
+    %r13 = const 1 : u8 [general]
+    %r14 = add %r6, %r13 : u8 [general]
+    jmp @loop_head1(%r5, %r14, %r7)
+  block @loop_exit3(%r15: u8 [general], %r16: u8 [general], %r17: ptr [general]):
+    ret void
+
+fun @execute()
+  block @entry:
+    %r18 = addr_of @target : ptr [pointer]
+    %r19 = move %r18 : ptr [pointer]
+    %r20 = addr_of @source : ptr [pointer]
+    %r21 = move %r20 : ptr [pointer]
+    %r22 = addr_of @n : ptr [pointer]
+    %r23 = load %r22 : u8 [general]
+    %r24 = move %r23 : u8 [counter]
+    call @copy_bytes(%r19, %r21, %r24)
+    %r25 = addr_of @n : ptr [pointer]
+    %r26 = load %r25 : u8 [general]
+    %r27 = ext %r26 : u8 -> u16 [pointer]
+    %r28 = addr_of @result : ptr [pointer]
+    store %r28, %r27 : u16
+    ret void
+

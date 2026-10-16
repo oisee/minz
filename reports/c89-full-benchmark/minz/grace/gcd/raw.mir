@@ -1,0 +1,62 @@
+; MIR2 module: /home/alice/dev/minz-artifacts/grace-workspaces/c89-absdiff-cfg/research/c89-benchmark/cases/gcd
+global @a : u8
+global @b : u8
+global @result : u16
+
+fun @gcd(%r1: u8 [acc], %r2: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r3 = ext %r1 : u8 -> i16 [pointer]
+    %r4 = const 0 : i16 [pointer]
+    %r5 = cmp.eq %r3, %r4 : bool [flag]
+    br_if %r5, @if_then1(), @if_join2()
+  block @if_then1:
+    ret %r2
+  block @if_join2:
+    %r6 = ext %r2 : u8 -> i16 [pointer]
+    %r7 = const 0 : i16 [pointer]
+    %r8 = cmp.eq %r6, %r7 : bool [flag]
+    br_if %r8, @if_then3(), @if_join4()
+  block @if_then3:
+    ret %r1
+  block @if_join4:
+    jmp @loop_head5(%r1, %r2)
+  block @loop_head5(%r9: u8 [general], %r10: u8 [general]):
+    %r11 = ext %r9 : u8 -> i16 [pointer]
+    %r12 = ext %r10 : u8 -> i16 [pointer]
+    %r13 = cmp.ne %r11, %r12 : bool [flag]
+    br_if %r13, @loop_body6(), @loop_exit7(%r9, %r10)
+  block @loop_body6:
+    %r14 = ext %r9 : u8 -> i16 [pointer]
+    %r15 = ext %r10 : u8 -> i16 [pointer]
+    %r16 = cmp.gt %r14, %r15 : bool [flag]
+    br_if %r16, @if_then8(), @if_else10()
+  block @if_then8:
+    %r17 = ext %r9 : u8 -> i16 [pointer]
+    %r18 = ext %r10 : u8 -> i16 [pointer]
+    %r19 = sub %r17, %r18 : i16 [pointer]
+    %r20 = trunc %r19 : i16 -> u8 [general]
+    jmp @if_join9(%r20, %r10)
+  block @if_else10:
+    %r21 = ext %r10 : u8 -> i16 [pointer]
+    %r22 = ext %r9 : u8 -> i16 [pointer]
+    %r23 = sub %r21, %r22 : i16 [pointer]
+    %r24 = trunc %r23 : i16 -> u8 [general]
+    jmp @if_join9(%r9, %r24)
+  block @if_join9(%r25: u8 [general], %r26: u8 [general]):
+    jmp @loop_head5(%r25, %r26)
+  block @loop_exit7(%r27: u8 [general], %r28: u8 [general]):
+    ret %r27
+
+fun @execute()
+  block @entry:
+    %r29 = addr_of @a : ptr [pointer]
+    %r30 = load %r29 : u8 [general]
+    %r31 = move %r30 : u8 [acc]
+    %r32 = addr_of @b : ptr [pointer]
+    %r33 = load %r32 : u8 [general]
+    %r34 = call @gcd(%r31, %r33) : u8 [acc]
+    %r35 = ext %r34 : u8 -> u16 [pointer]
+    %r36 = addr_of @result : ptr [pointer]
+    store %r36, %r35 : u16
+    ret void
+

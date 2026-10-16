@@ -1,0 +1,5 @@
+/home/alice/dev/minz-artifacts/grace-workspaces/c89-absdiff-cfg/research/c89-benchmark/cases/struct_roundtrip.c:4: error 54: Function cannot return aggregate. Func body ignored
+/home/alice/dev/minz-artifacts/grace-workspaces/c89-absdiff-cfg/research/c89-benchmark/cases/struct_roundtrip.c:7: error 97: SDCC cannot pass structure '_p' as function argument
+/home/alice/dev/minz-artifacts/grace-workspaces/c89-absdiff-cfg/research/c89-benchmark/cases/struct_roundtrip.c:9: warning 112: function 'make_pair' implicit declaration
+/home/alice/dev/minz-artifacts/grace-workspaces/c89-absdiff-cfg/research/c89-benchmark/cases/struct_roundtrip.c:9: error 101: too many parameters 
+/home/alice/dev/minz-artifacts/grace-workspaces/c89-absdiff-cfg/research/c89-benchmark/cases/struct_roundtrip.c:9: error 69: struct/union/array '': initialization needs curly braces
