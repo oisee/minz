@@ -439,6 +439,17 @@ func scalarizeAggregateLocals(b *Block) {
 			continue
 		}
 		lit, ok := d.Init.(*StructLitExpr)
+		if !ok && d.Init == nil {
+			if st := aggregateDeclarationType(d); isShallowScalarStruct(st) {
+				// Keep uninitialized scalar declarations. Actual subsequent field
+				// assignments provide the values; no initializer is replayed.
+				lit = &StructLitExpr{St: st}
+				for _, field := range st.Fields {
+					lit.Fields = append(lit.Fields, FieldInit{Name: field.Name})
+				}
+				ok = true
+			}
+		}
 		if !ok || !isShallowScalarStruct(lit.St) {
 			continue
 		}

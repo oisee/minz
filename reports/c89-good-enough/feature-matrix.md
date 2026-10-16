@@ -27,8 +27,8 @@ relocations — в main 548d6135 через PR #168. Дополнительна�
 | Struct layout, array/struct initializer | `TestCAggregateStorageNativeVM` | VM/Z80, bytes/layout; C99 designated cases считать отдельно от C89 |
 | Nested struct/union/overlapping bytes | `TestCNestedUnionLayoutNativeVM` | VM/Z80; memory fallback, не shallow scalar optimization |
 | By-value struct input | `TestCStructParametersNativeVM`, `TestC89AggregateScalarizationBehavior` | Copy semantics direct/indirect/recursive и изменение копии |
-| Small struct return → multiple values | `TestC89AggregateScalarizationABI`, `TestC89AggregateScalarizationBehavior` | Два HIR/MIR result slots, native значения; ≤4 bytes shallow fields |
-| Small struct input → multiple arguments | Те же aggregate tests | Два HIR/MIR parameter slots, no alloca; адрес/indirect/volatile сохраняют memory ABI |
+| Small struct return → multiple values | `TestC89AggregateScalarizationABI`, `TestC89AggregateScalarizationBehavior` | Pair интегрирован; граница 3/4 byte, 2 word и mixed: `TestC89AggregateScalarWidthVMZ80`, 144 native / 192 VM, пока в следующей ветке |
+| Small struct input → multiple arguments | Те же aggregate tests | Pair интегрирован; новая width matrix подтверждает количество/типы argument slots и no alloca; адрес/indirect/volatile сохраняют memory ABI |
 | Цена aggregate scalar ABI | `TestC89AggregateTransferCostVMZ80` | Пара primary/heldout, реальные буферы против tuple slots; 732 native / 1464 VM вызовов, интегрировано через PR #168 |
 | Возврат большой структуры и косвенный aggregate return | `TestC89AggregateReturnLifetimeVMZ80` | Буфер caller и копирование до освобождения frame; интегрировано через PR #166 |
 | Глобальные address initializers | `TestC89GlobalRelocationsVMZ80`, `TestC89GlobalRelocationImportVMZ80` | Строки, поля, массивы, static local, function pointers, C/C и Nanz/C; 231 native / 308 VM вызовов, интегрировано через PR #168 |
@@ -50,7 +50,8 @@ long/VLA отклоняются. Их наличие в прежнем C-кор�
 
 Новые доказательства: [wide CALL и стоимость scalar ABI](call-abi-and-cost.md),
 [глобальные адресные инициализаторы](global-address-initializers.md),
-[cleanup, вложенные переходы и сохранность аргумента](control-closure.md).
+[cleanup, вложенные переходы и сохранность аргумента](control-closure.md),
+[граница scalar ABI в четыре байта](aggregate-width-boundary.md).
 Следующие работы: завершить строгую интеграцию control-closure/backend
 проверок, воспроизвести их на main и оценить оставшиеся пробелы в матрице.
 Runtime varargs и неизвестные indirect parameter ABI с живыми caller значениями явно

@@ -270,22 +270,40 @@ func findReturnedStruct(fn *Func, idx structIndex) *mir2.StructTy {
 	return found
 }
 
+// The declared object type remains authoritative when its fields are assigned
+// after declaration. An initializer is not required for a C aggregate value.
+func aggregateDeclarationType(d *VarDeclStmt) *mir2.StructTy {
+	if d.Volatile || d.Ty != nil && mir2.HasVolatileStorage(d.Ty) {
+		return nil
+	}
+	if lit, ok := d.Init.(*StructLitExpr); ok && lit.St != nil {
+		return lit.St
+	}
+	if d.Ty != nil {
+		if st, ok := mir2.BaseOf(d.Ty).(*mir2.StructTy); ok {
+			return st
+		}
+	}
+	return nil
+}
+
 // findReturnedStructInBlock checks returns in a block using scoped struct var tracking.
 // parentVars provides declarations from enclosing blocks; local declarations shadow them.
-func findReturnedStructInBlock(blk *Block, idx structIndex, fieldAssigned map[string]*mir2.StructTy, found **mir2.StructTy, parentVars map[string]*StructLitExpr) bool {
+func findReturnedStructInBlock(blk *Block, idx structIndex, fieldAssigned map[string]*mir2.StructTy, found **mir2.StructTy, parentVars map[string]*mir2.StructTy) bool {
 	if blk == nil {
 		return true
 	}
 
 	// Build scoped vars: parent + local (local shadows parent).
-	scopeVars := make(map[string]*StructLitExpr, len(parentVars))
+	scopeVars := make(map[string]*mir2.StructTy, len(parentVars))
 	for k, v := range parentVars {
 		scopeVars[k] = v
 	}
 	for _, s := range blk.Body {
 		if decl, ok := s.(*VarDeclStmt); ok {
-			if lit, isLit := decl.Init.(*StructLitExpr); isLit && lit.St != nil {
-				scopeVars[decl.Name] = lit
+			delete(scopeVars, decl.Name) // a non-aggregate local also shadows
+			if st := aggregateDeclarationType(decl); st != nil {
+				scopeVars[decl.Name] = st
 			}
 		}
 	}
@@ -329,8 +347,8 @@ func findReturnedStructInBlock(blk *Block, idx structIndex, fieldAssigned map[st
 		// Indirect: return varName — use scoped resolution.
 		if st == nil {
 			if ref, isRef := ret.Val.(*VarRefExpr); isRef {
-				if lit, ok := scopeVars[ref.Name]; ok {
-					st = lit.St
+				if declared, ok := scopeVars[ref.Name]; ok {
+					st = declared
 				}
 			}
 		}
@@ -419,29 +437,31 @@ func rewriteReturns(fn *Func, info *promotionInfo) {
 	// Rewrite returns block-by-block with scoped variable resolution.
 	// Different blocks may define the same variable name with different
 	// values (e.g. if/else branches), so we use lexical scoping.
-	rewriteReturnsInBlock(fn.Body, info, fieldAssigns, nil)
+	pointerReturns := make(map[string]bool)
+	rewriteReturnsInBlock(fn.Body, info, fieldAssigns, nil, pointerReturns)
 
 	// For pointer-return pattern: remove the field-assign statements that
 	// were consumed into the tuple return.
-	removePtrReturnAssigns(fn.Body, info, fieldAssigns)
+	removePtrReturnAssigns(fn.Body, info, pointerReturns)
 }
 
 // rewriteReturnsInBlock processes one block with scoped variable resolution.
 // parentVars provides declarations from enclosing blocks.
-func rewriteReturnsInBlock(blk *Block, info *promotionInfo, fieldAssigns map[string]map[string]Expr, parentVars map[string]*StructLitExpr) {
+func rewriteReturnsInBlock(blk *Block, info *promotionInfo, fieldAssigns map[string]map[string]Expr, parentVars map[string]*mir2.StructTy, pointerReturns map[string]bool) {
 	if blk == nil {
 		return
 	}
 
 	// Build scoped vars: parent + local (local shadows parent).
-	scopeVars := make(map[string]*StructLitExpr)
+	scopeVars := make(map[string]*mir2.StructTy)
 	for k, v := range parentVars {
 		scopeVars[k] = v
 	}
 	for _, s := range blk.Body {
 		if decl, ok := s.(*VarDeclStmt); ok {
-			if lit, isLit := decl.Init.(*StructLitExpr); isLit {
-				scopeVars[decl.Name] = lit
+			delete(scopeVars, decl.Name) // a non-aggregate local also shadows
+			if st := aggregateDeclarationType(decl); st != nil {
+				scopeVars[decl.Name] = st
 			}
 		}
 	}
@@ -450,14 +470,14 @@ func rewriteReturnsInBlock(blk *Block, info *promotionInfo, fieldAssigns map[str
 		// Recurse into nested blocks with current scope.
 		switch st := s.(type) {
 		case *Block:
-			rewriteReturnsInBlock(st, info, fieldAssigns, scopeVars)
+			rewriteReturnsInBlock(st, info, fieldAssigns, scopeVars, pointerReturns)
 		case *IfStmt:
-			rewriteReturnsInBlock(st.Then, info, fieldAssigns, scopeVars)
-			rewriteReturnsInBlock(st.Else, info, fieldAssigns, scopeVars)
+			rewriteReturnsInBlock(st.Then, info, fieldAssigns, scopeVars, pointerReturns)
+			rewriteReturnsInBlock(st.Else, info, fieldAssigns, scopeVars, pointerReturns)
 		case *WhileStmt:
-			rewriteReturnsInBlock(st.Body, info, fieldAssigns, scopeVars)
+			rewriteReturnsInBlock(st.Body, info, fieldAssigns, scopeVars, pointerReturns)
 		case *ForRangeStmt:
-			rewriteReturnsInBlock(st.Body, info, fieldAssigns, scopeVars)
+			rewriteReturnsInBlock(st.Body, info, fieldAssigns, scopeVars, pointerReturns)
 		}
 
 		ret, isRet := s.(*ReturnStmt)
@@ -497,6 +517,7 @@ func rewriteReturnsInBlock(blk *Block, info *promotionInfo, fieldAssigns map[str
 						}
 					}
 					blk.Body[i] = &ReturnStmt{Vals: vals}
+					pointerReturns[ref.Name] = true
 				}
 			}
 		}
@@ -554,21 +575,13 @@ func collectFieldAssigns(blk *Block) map[string]map[string]Expr {
 
 // removePtrReturnAssigns removes field-assign statements for variables that
 // were promoted into tuple returns (pointer-return pattern).
-func removePtrReturnAssigns(blk *Block, info *promotionInfo, fieldAssigns map[string]map[string]Expr) {
+func removePtrReturnAssigns(blk *Block, info *promotionInfo, promoted map[string]bool) {
 	if blk == nil {
 		return
 	}
-	// Find which variables had their return &var promoted.
-	promoted := make(map[string]bool)
-	for _, s := range blk.Body {
-		if ret, ok := s.(*ReturnStmt); ok && len(ret.Vals) > 0 {
-			// This was already rewritten — check if it came from a pointer return.
-			// We can't easily tell, so check all field-assigned vars.
-			for varName := range fieldAssigns {
-				promoted[varName] = true
-			}
-		}
-	}
+	// Only the pointer-return rewrite consumes assignment expressions. Value
+	// returns read current fields and must retain their declarations and writes.
+
 	if len(promoted) == 0 {
 		return
 	}

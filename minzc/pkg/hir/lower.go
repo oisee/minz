@@ -773,6 +773,13 @@ func classForRetPos(ty mir2.Ty, pos int) mir2.RegClass {
 			return mir2.ClassCounter // B — 8-bit register, fits u8
 		}
 		return mir2.ClassIndex // DE — 16-bit pair for u16/ptr
+	case 3:
+		if w <= 8 {
+			// The third byte's canonical ClassGeneral return is C. A
+			// fourth byte must occupy a distinct home across the call ABI.
+			return mir2.ClassRegD
+		}
+		return mir2.ClassGeneral
 	default:
 		return mir2.ClassGeneral // C/D/E
 	}
