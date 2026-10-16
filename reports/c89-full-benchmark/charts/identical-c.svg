@@ -4,7 +4,7 @@
 <rect width="100%" height="100%" fill="white"/>
 <style>text{font-family:DejaVu Sans,Arial,sans-serif;fill:#172b3a} .cell{font-size:18px;font-weight:600} .small{font-size:14px} .label{font-size:17px}</style>
 <text x="20" y="32" font-size="23" font-weight="600">Identical C: every compiler/profile</text>
-<text x="20" y="59" class="small">Lower is better. Green: below reference; red: above; 100%: equal.</text>
+<text x="20" y="59" class="small">Lower is better. Every value below 100% is green; red: above; 100%: equal.</text>
 <text x="20" y="92" font-size="20" font-weight="600">Whole-module bytes / SDCC 4.5 Size = 100%</text>
 <text x="308.0" y="123" text-anchor="middle" class="small">abs_diff</text>
 <text x="444.0" y="123" text-anchor="middle" class="small">gcd</text>
@@ -13,26 +13,26 @@
 <text x="852.0" y="123" text-anchor="middle" class="small">fat12_decode</text>
 <text x="988.0" y="123" text-anchor="middle" class="small">struct_roundtrip</text>
 <text x="20" y="165" class="label">MinZ C default</text>
-<g><title>27 / 33 = 81.818182%</title><rect x="240" y="137" width="132" height="40" rx="4" fill="#dceee3"/><text x="306.0" y="164" text-anchor="middle" class="cell">81.8%</text></g>
+<g><title>27 / 33 = 81.818182%</title><rect x="240" y="137" width="132" height="40" rx="4" fill="#8acaa0"/><text x="306.0" y="164" text-anchor="middle" class="cell">81.8%</text></g>
 <g><title>74 / 54 = 137.037037%</title><rect x="376" y="137" width="132" height="40" rx="4" fill="#f4d5d2"/><text x="442.0" y="164" text-anchor="middle" class="cell">137.0%</text></g>
-<g><title>314 / 325 = 96.615385%</title><rect x="512" y="137" width="132" height="40" rx="4" fill="#f3f6f4"/><text x="578.0" y="164" text-anchor="middle" class="cell">96.6%</text></g>
-<g><title>210 / 213 = 98.591549%</title><rect x="648" y="137" width="132" height="40" rx="4" fill="#f6f7f7"/><text x="714.0" y="164" text-anchor="middle" class="cell">98.6%</text></g>
+<g><title>314 / 325 = 96.615385%</title><rect x="512" y="137" width="132" height="40" rx="4" fill="#99d0ac"/><text x="578.0" y="164" text-anchor="middle" class="cell">96.6%</text></g>
+<g><title>210 / 213 = 98.591549%</title><rect x="648" y="137" width="132" height="40" rx="4" fill="#9ad1ad"/><text x="714.0" y="164" text-anchor="middle" class="cell">98.6%</text></g>
 <g><title>184 / 140 = 131.428571%</title><rect x="784" y="137" width="132" height="40" rx="4" fill="#f4d9d7"/><text x="850.0" y="164" text-anchor="middle" class="cell">131.4%</text></g>
-<g><title>85 / 153 = 55.555556%</title><rect x="920" y="137" width="132" height="40" rx="4" fill="#a7d9bc"/><text x="986.0" y="164" text-anchor="middle" class="cell">55.6%</text></g>
+<g><title>85 / 153 = 55.555556%</title><rect x="920" y="137" width="132" height="40" rx="4" fill="#67bc84"/><text x="986.0" y="164" text-anchor="middle" class="cell">55.6%</text></g>
 <text x="20" y="209" class="label">MinZ C size</text>
-<g><title>27 / 33 = 81.818182%</title><rect x="240" y="181" width="132" height="40" rx="4" fill="#dceee3"/><text x="306.0" y="208" text-anchor="middle" class="cell">81.8%</text></g>
+<g><title>27 / 33 = 81.818182%</title><rect x="240" y="181" width="132" height="40" rx="4" fill="#8acaa0"/><text x="306.0" y="208" text-anchor="middle" class="cell">81.8%</text></g>
 <g><title>74 / 54 = 137.037037%</title><rect x="376" y="181" width="132" height="40" rx="4" fill="#f4d5d2"/><text x="442.0" y="208" text-anchor="middle" class="cell">137.0%</text></g>
-<g><title>314 / 325 = 96.615385%</title><rect x="512" y="181" width="132" height="40" rx="4" fill="#f3f6f4"/><text x="578.0" y="208" text-anchor="middle" class="cell">96.6%</text></g>
-<g><title>210 / 213 = 98.591549%</title><rect x="648" y="181" width="132" height="40" rx="4" fill="#f6f7f7"/><text x="714.0" y="208" text-anchor="middle" class="cell">98.6%</text></g>
+<g><title>314 / 325 = 96.615385%</title><rect x="512" y="181" width="132" height="40" rx="4" fill="#99d0ac"/><text x="578.0" y="208" text-anchor="middle" class="cell">96.6%</text></g>
+<g><title>210 / 213 = 98.591549%</title><rect x="648" y="181" width="132" height="40" rx="4" fill="#9ad1ad"/><text x="714.0" y="208" text-anchor="middle" class="cell">98.6%</text></g>
 <g><title>184 / 140 = 131.428571%</title><rect x="784" y="181" width="132" height="40" rx="4" fill="#f4d9d7"/><text x="850.0" y="208" text-anchor="middle" class="cell">131.4%</text></g>
-<g><title>85 / 153 = 55.555556%</title><rect x="920" y="181" width="132" height="40" rx="4" fill="#a7d9bc"/><text x="986.0" y="208" text-anchor="middle" class="cell">55.6%</text></g>
+<g><title>85 / 153 = 55.555556%</title><rect x="920" y="181" width="132" height="40" rx="4" fill="#67bc84"/><text x="986.0" y="208" text-anchor="middle" class="cell">55.6%</text></g>
 <text x="20" y="253" class="label">MinZ C grace</text>
-<g><title>27 / 33 = 81.818182%</title><rect x="240" y="225" width="132" height="40" rx="4" fill="#dceee3"/><text x="306.0" y="252" text-anchor="middle" class="cell">81.8%</text></g>
+<g><title>27 / 33 = 81.818182%</title><rect x="240" y="225" width="132" height="40" rx="4" fill="#8acaa0"/><text x="306.0" y="252" text-anchor="middle" class="cell">81.8%</text></g>
 <g><title>68 / 54 = 125.925926%</title><rect x="376" y="225" width="132" height="40" rx="4" fill="#f5dedc"/><text x="442.0" y="252" text-anchor="middle" class="cell">125.9%</text></g>
-<g><title>314 / 325 = 96.615385%</title><rect x="512" y="225" width="132" height="40" rx="4" fill="#f3f6f4"/><text x="578.0" y="252" text-anchor="middle" class="cell">96.6%</text></g>
-<g><title>210 / 213 = 98.591549%</title><rect x="648" y="225" width="132" height="40" rx="4" fill="#f6f7f7"/><text x="714.0" y="252" text-anchor="middle" class="cell">98.6%</text></g>
+<g><title>314 / 325 = 96.615385%</title><rect x="512" y="225" width="132" height="40" rx="4" fill="#99d0ac"/><text x="578.0" y="252" text-anchor="middle" class="cell">96.6%</text></g>
+<g><title>210 / 213 = 98.591549%</title><rect x="648" y="225" width="132" height="40" rx="4" fill="#9ad1ad"/><text x="714.0" y="252" text-anchor="middle" class="cell">98.6%</text></g>
 <g><title>184 / 140 = 131.428571%</title><rect x="784" y="225" width="132" height="40" rx="4" fill="#f4d9d7"/><text x="850.0" y="252" text-anchor="middle" class="cell">131.4%</text></g>
-<g><title>85 / 153 = 55.555556%</title><rect x="920" y="225" width="132" height="40" rx="4" fill="#a7d9bc"/><text x="986.0" y="252" text-anchor="middle" class="cell">55.6%</text></g>
+<g><title>85 / 153 = 55.555556%</title><rect x="920" y="225" width="132" height="40" rx="4" fill="#67bc84"/><text x="986.0" y="252" text-anchor="middle" class="cell">55.6%</text></g>
 <text x="20" y="297" class="label">SDCC 4.2 size</text>
 <g><title>34 / 33 = 103.030303%</title><rect x="240" y="269" width="132" height="40" rx="4" fill="#f8f5f4"/><text x="306.0" y="296" text-anchor="middle" class="cell">103.0%</text></g>
 <g><title>55 / 54 = 101.851852%</title><rect x="376" y="269" width="132" height="40" rx="4" fill="#f8f6f6"/><text x="442.0" y="296" text-anchor="middle" class="cell">101.9%</text></g>
@@ -57,10 +57,10 @@
 <text x="20" y="429" class="label">SDCC 4.5 speed</text>
 <g><title>33 / 33 = 100.000000%</title><rect x="240" y="401" width="132" height="40" rx="4" fill="#f8f8f8"/><text x="306.0" y="428" text-anchor="middle" class="cell">100.0%</text></g>
 <g><title>56 / 54 = 103.703704%</title><rect x="376" y="401" width="132" height="40" rx="4" fill="#f8f4f4"/><text x="442.0" y="428" text-anchor="middle" class="cell">103.7%</text></g>
-<g><title>316 / 325 = 97.230769%</title><rect x="512" y="401" width="132" height="40" rx="4" fill="#f4f7f5"/><text x="578.0" y="428" text-anchor="middle" class="cell">97.2%</text></g>
-<g><title>212 / 213 = 99.530516%</title><rect x="648" y="401" width="132" height="40" rx="4" fill="#f7f8f8"/><text x="714.0" y="428" text-anchor="middle" class="cell">99.5%</text></g>
+<g><title>316 / 325 = 97.230769%</title><rect x="512" y="401" width="132" height="40" rx="4" fill="#99d1ac"/><text x="578.0" y="428" text-anchor="middle" class="cell">97.2%</text></g>
+<g><title>212 / 213 = 99.530516%</title><rect x="648" y="401" width="132" height="40" rx="4" fill="#9bd1ae"/><text x="714.0" y="428" text-anchor="middle" class="cell">99.5%</text></g>
 <g><title>150 / 140 = 107.142857%</title><rect x="784" y="401" width="132" height="40" rx="4" fill="#f7f0f0"/><text x="850.0" y="428" text-anchor="middle" class="cell">107.1%</text></g>
-<g><title>152 / 153 = 99.346405%</title><rect x="920" y="401" width="132" height="40" rx="4" fill="#f7f8f7"/><text x="986.0" y="428" text-anchor="middle" class="cell">99.3%</text></g>
+<g><title>152 / 153 = 99.346405%</title><rect x="920" y="401" width="132" height="40" rx="4" fill="#9bd1ae"/><text x="986.0" y="428" text-anchor="middle" class="cell">99.3%</text></g>
 <text x="20" y="473" class="label">sccz80 o3</text>
 <g><title>87 / 33 = 263.636364%</title><rect x="240" y="445" width="132" height="40" rx="4" fill="#efaaa5"/><text x="306.0" y="472" text-anchor="middle" class="cell">263.6%</text></g>
 <g><title>168 / 54 = 311.111111%</title><rect x="376" y="445" width="132" height="40" rx="4" fill="#efaaa5"/><text x="442.0" y="472" text-anchor="middle" class="cell">311.1%</text></g>
@@ -76,26 +76,26 @@
 <text x="852.0" y="573" text-anchor="middle" class="small">fat12_decode</text>
 <text x="988.0" y="573" text-anchor="middle" class="small">struct_roundtrip</text>
 <text x="20" y="615" class="label">MinZ C default</text>
-<g><title>220,904 / 258,142 = 85.574606%</title><rect x="240" y="587" width="132" height="40" rx="4" fill="#e2f0e8"/><text x="306.0" y="614" text-anchor="middle" class="cell">85.6%</text></g>
+<g><title>220,904 / 258,142 = 85.574606%</title><rect x="240" y="587" width="132" height="40" rx="4" fill="#8ecca3"/><text x="306.0" y="614" text-anchor="middle" class="cell">85.6%</text></g>
 <g><title>5,109,358 / 4,243,840 = 120.394690%</title><rect x="376" y="587" width="132" height="40" rx="4" fill="#f6e3e2"/><text x="442.0" y="614" text-anchor="middle" class="cell">120.4%</text></g>
 <g><title>9,348,608 / 7,433,216 = 125.768012%</title><rect x="512" y="587" width="132" height="40" rx="4" fill="#f5dedd"/><text x="578.0" y="614" text-anchor="middle" class="cell">125.8%</text></g>
 <g><title>1,119,040 / 683,930 = 163.619084%</title><rect x="648" y="587" width="132" height="40" rx="4" fill="#f2c1bd"/><text x="714.0" y="614" text-anchor="middle" class="cell">163.6%</text></g>
 <g><title>36,832 / 25,152 = 146.437659%</title><rect x="784" y="587" width="132" height="40" rx="4" fill="#f3cdca"/><text x="850.0" y="614" text-anchor="middle" class="cell">146.4%</text></g>
-<g><title>935,936 / 1,826,816 = 51.233184%</title><rect x="920" y="587" width="132" height="40" rx="4" fill="#9bd5b3"/><text x="986.0" y="614" text-anchor="middle" class="cell">51.2%</text></g>
+<g><title>935,936 / 1,826,816 = 51.233184%</title><rect x="920" y="587" width="132" height="40" rx="4" fill="#60b97f"/><text x="986.0" y="614" text-anchor="middle" class="cell">51.2%</text></g>
 <text x="20" y="659" class="label">MinZ C size</text>
-<g><title>220,904 / 258,142 = 85.574606%</title><rect x="240" y="631" width="132" height="40" rx="4" fill="#e2f0e8"/><text x="306.0" y="658" text-anchor="middle" class="cell">85.6%</text></g>
+<g><title>220,904 / 258,142 = 85.574606%</title><rect x="240" y="631" width="132" height="40" rx="4" fill="#8ecca3"/><text x="306.0" y="658" text-anchor="middle" class="cell">85.6%</text></g>
 <g><title>5,109,358 / 4,243,840 = 120.394690%</title><rect x="376" y="631" width="132" height="40" rx="4" fill="#f6e3e2"/><text x="442.0" y="658" text-anchor="middle" class="cell">120.4%</text></g>
 <g><title>9,348,608 / 7,433,216 = 125.768012%</title><rect x="512" y="631" width="132" height="40" rx="4" fill="#f5dedd"/><text x="578.0" y="658" text-anchor="middle" class="cell">125.8%</text></g>
 <g><title>1,119,040 / 683,930 = 163.619084%</title><rect x="648" y="631" width="132" height="40" rx="4" fill="#f2c1bd"/><text x="714.0" y="658" text-anchor="middle" class="cell">163.6%</text></g>
 <g><title>36,832 / 25,152 = 146.437659%</title><rect x="784" y="631" width="132" height="40" rx="4" fill="#f3cdca"/><text x="850.0" y="658" text-anchor="middle" class="cell">146.4%</text></g>
-<g><title>935,936 / 1,826,816 = 51.233184%</title><rect x="920" y="631" width="132" height="40" rx="4" fill="#9bd5b3"/><text x="986.0" y="658" text-anchor="middle" class="cell">51.2%</text></g>
+<g><title>935,936 / 1,826,816 = 51.233184%</title><rect x="920" y="631" width="132" height="40" rx="4" fill="#60b97f"/><text x="986.0" y="658" text-anchor="middle" class="cell">51.2%</text></g>
 <text x="20" y="703" class="label">MinZ C grace</text>
-<g><title>220,904 / 258,142 = 85.574606%</title><rect x="240" y="675" width="132" height="40" rx="4" fill="#e2f0e8"/><text x="306.0" y="702" text-anchor="middle" class="cell">85.6%</text></g>
-<g><title>3,222,405 / 4,243,840 = 75.931350%</title><rect x="376" y="675" width="132" height="40" rx="4" fill="#d2eadc"/><text x="442.0" y="702" text-anchor="middle" class="cell">75.9%</text></g>
+<g><title>220,904 / 258,142 = 85.574606%</title><rect x="240" y="675" width="132" height="40" rx="4" fill="#8ecca3"/><text x="306.0" y="702" text-anchor="middle" class="cell">85.6%</text></g>
+<g><title>3,222,405 / 4,243,840 = 75.931350%</title><rect x="376" y="675" width="132" height="40" rx="4" fill="#83c79b"/><text x="442.0" y="702" text-anchor="middle" class="cell">75.9%</text></g>
 <g><title>9,348,608 / 7,433,216 = 125.768012%</title><rect x="512" y="675" width="132" height="40" rx="4" fill="#f5dedd"/><text x="578.0" y="702" text-anchor="middle" class="cell">125.8%</text></g>
 <g><title>1,119,040 / 683,930 = 163.619084%</title><rect x="648" y="675" width="132" height="40" rx="4" fill="#f2c1bd"/><text x="714.0" y="702" text-anchor="middle" class="cell">163.6%</text></g>
 <g><title>36,832 / 25,152 = 146.437659%</title><rect x="784" y="675" width="132" height="40" rx="4" fill="#f3cdca"/><text x="850.0" y="702" text-anchor="middle" class="cell">146.4%</text></g>
-<g><title>935,936 / 1,826,816 = 51.233184%</title><rect x="920" y="675" width="132" height="40" rx="4" fill="#9bd5b3"/><text x="986.0" y="702" text-anchor="middle" class="cell">51.2%</text></g>
+<g><title>935,936 / 1,826,816 = 51.233184%</title><rect x="920" y="675" width="132" height="40" rx="4" fill="#60b97f"/><text x="986.0" y="702" text-anchor="middle" class="cell">51.2%</text></g>
 <text x="20" y="747" class="label">SDCC 4.2 size</text>
 <g><title>264,286 / 258,142 = 102.380085%</title><rect x="240" y="719" width="132" height="40" rx="4" fill="#f8f5f5"/><text x="306.0" y="746" text-anchor="middle" class="cell">102.4%</text></g>
 <g><title>4,398,206 / 4,243,840 = 103.637413%</title><rect x="376" y="719" width="132" height="40" rx="4" fill="#f8f4f4"/><text x="442.0" y="746" text-anchor="middle" class="cell">103.6%</text></g>

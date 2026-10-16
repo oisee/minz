@@ -29,10 +29,14 @@ def label(key: tuple[str, str]) -> str:
 
 
 def color(ratio: float) -> str:
-    # Logarithmic saturation at half/twice the reference; the number remains exact.
+    # Every improvement is visibly green, including ratios just below 100%.
+    # Strength still increases logarithmically, saturating at half the reference.
     value = max(-1.0, min(1.0, math.log2(ratio)))
-    target = (152, 212, 177) if value < 0 else (239, 170, 165)
-    return "#" + "".join(f"{round(248 + (v - 248) * abs(value)):02x}" for v in target)
+    if value < 0:
+        target, strength = (94, 184, 125), 0.60 + 0.40 * abs(value)
+    else:
+        target, strength = (239, 170, 165), abs(value)
+    return "#" + "".join(f"{round(248 + (v - 248) * strength):02x}" for v in target)
 
 
 def render(rows, title, name, index, digest):
@@ -45,7 +49,7 @@ def render(rows, title, name, index, digest):
               '<rect width="100%" height="100%" fill="white"/>',
               '<style>text{font-family:DejaVu Sans,Arial,sans-serif;fill:#172b3a} .cell{font-size:18px;font-weight:600} .small{font-size:14px} .label{font-size:17px}</style>',
               f'<text x="20" y="32" font-size="23" font-weight="600">{html.escape(title)}</text>',
-              '<text x="20" y="59" class="small">Lower is better. Green: below reference; red: above; 100%: equal.</text>']
+              '<text x="20" y="59" class="small">Lower is better. Every value below 100% is green; red: above; 100%: equal.</text>']
     accounted = set()
     for panel, (metric, profile, heading) in enumerate((
             ("ProgramBytes", "size", "Whole-module bytes / SDCC 4.5 Size = 100%"),
@@ -143,7 +147,9 @@ def main():
               "MinZ C меньше, SDCC 4.5 Speed быстрее; такая же развилка у copy. FAT12 здесь",
               "выигрывает SDCC 4.5 по обоим критериям, но с разными профилями. Это результаты",
               "этих шести программ.", "",
-              "Цвет насыщается при 50%/200%; точное округлённое отношение остаётся в каждой",
+              "Все значения ниже 100% выделены заметным зелёным, включая небольшие выигрыши.",
+              "Ничьи нейтральны; цвет насыщается при 50%/200%. Минимальная зелёная",
+              "подсветка не означает одинаковый выигрыш: точное округлённое отношение — в каждой",
               "ячейке. Абсолютные цифры, ASM и ошибки сборки находятся в таблицах выше.",
               "Статические SVG и эта таблица генерируются из [summary.json](c89-full-benchmark/summary.json)",
               "командой `python3 research/c89-benchmark/plot_summary.py`. Генератор проверяет все",
