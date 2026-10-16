@@ -109,3 +109,5 @@ intervening, cross-block и index-pair без частичного подавл�
 [матрица](c89-direct-word-store/summary.json). Полные локальные artifacts и
 манифесты находятся в /home/alice/dev/minz-artifacts/grace-reports/2026-10-16/
 c89-nanz-sdcc45/direct-word-store-full/ и direct-word-store-old-claims/.
+
+Каталог reviewed evidence обновлён после повторного аудита PFCCO-теста: новый SHA256 соответствует проверке, которая сохраняет семантические оракулы и явно регистрирует проигрыш greedy. Проверка SHA256 самого каталога не ослаблена.

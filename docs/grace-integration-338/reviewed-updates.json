@@ -857,9 +857,9 @@
     "native_behavior": "executed-independent-vm-z80",
     "workload": "17 ordered u16 boundary pairs; contract off/greedy/PBQP",
     "independent_model": "uint16(b-a)+3*uint16(a-b) and persistent trace+2",
-    "boundary": "Original weighted_packet/helper calls; bounded model, all modes independently checked.",
+    "boundary": "Original weighted_packet/helper calls; bounded model, all modes independently checked. Performance is measured, not required to improve: current direct-word-store backend gives off 7769 T/46 B, greedy 7888 T/52 B and PBQP 7735 T/53 B. Greedy loss is retained; semantic, ordered memory and PC/SP checks remain mandatory.",
     "evidence": {
-      "minzc/pkg/pipeline/pfcco_native_workload_test.go": "61893a9895ace71ce06473cebb6c4c20edab22ce374ea2ea89929598fba33df8"
+      "minzc/pkg/pipeline/pfcco_native_workload_test.go": "c975d91461d338294a38433c019b7ebbd8393abd5925e2dffe410ec7e56220d8"
     }
   },
   {
