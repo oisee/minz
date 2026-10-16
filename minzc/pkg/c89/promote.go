@@ -4,8 +4,8 @@ package c89
 //
 // Detects C functions returning small structs ("Shallow Scalar Structs") and
 // promotes them to HIR tuple returns.  This allows PFCCO (contract optimizer)
-// to assign each return slot an optimal register — 0T overhead vs ~60T with
-// SDCC's stack-based struct return convention.
+// to assign each return slot a register. Actual transfers depend on the caller
+// and callee contracts; the representation alone does not prove zero overhead.
 //
 // Also handles the reverse pattern: struct-argument demotion where a struct
 // parameter is immediately destructured in the function body.
@@ -21,6 +21,7 @@ import (
 //   - Call sites with field access → TupleLetStmt
 //   - Out-param functions (void f(..., SSS *out)) → tuple-returning functions
 func PromoteStructReturns(m *hir.Module) {
+	scalarizeAggregateParams(m)
 	idx := buildStructIndex(m)
 	if len(idx) == 0 {
 		return
@@ -62,6 +63,10 @@ func PromoteStructReturns(m *hir.Module) {
 	// Phase 3: rewrite call sites.
 	for _, fn := range m.Funcs {
 		rewriteCallSites(fn.Body, eligible)
+	}
+
+	for _, fn := range m.Funcs {
+		scalarizeAggregateLocals(fn.Body)
 	}
 
 	// Phase 4: eliminate dead struct VarDecls left over from promotion.
@@ -164,9 +169,51 @@ func findEligibleFunctions(m *hir.Module, idx structIndex) map[string]*promotion
 		eligible[fn.Name] = info
 	}
 
-	// Phase 1b: verify all call sites are compatible.
-	// For now, we accept all call sites — field access patterns will be
-	// rewritten in phase 3, and non-field uses will get spilled.
+	// A tuple return may replace only a known, materialized direct call.
+	// Function pointers and expression-level uses retain the memory ABI until
+	// the corresponding adapters exist; never publish a mismatched signature.
+	for name := range eligible {
+		safe := true
+		allowed := map[*hir.CallExpr]bool{}
+		for _, fn := range m.Funcs {
+			visitAggregateStmts(fn.Body, func(s hir.Stmt) {
+				if d, ok := s.(*hir.VarDeclStmt); ok {
+					if c, ok := d.Init.(*hir.CallExpr); ok && c.Fn == name {
+						allowed[c] = true
+					}
+				}
+			})
+		}
+		for _, fn := range m.Funcs {
+			if fn.Body == nil {
+				continue
+			}
+			if !inspectAggregateStmt(fn.Body, func(e hir.Expr) (hir.Expr, bool) {
+				if c, ok := e.(*hir.CallExpr); ok && c.Fn == name && !allowed[c] {
+					safe = false
+				}
+				if a, ok := e.(*hir.AddrOfExpr); ok && a.Sym == name {
+					safe = false
+				}
+				if r, ok := e.(*hir.VarRefExpr); ok && r.Name == name {
+					safe = false
+				}
+				return e, true
+			}) {
+				safe = false
+			}
+		}
+		for _, g := range m.Globals {
+			for _, symbol := range g.VtableSyms {
+				if symbol == name {
+					safe = false
+				}
+			}
+		}
+		if !safe {
+			delete(eligible, name)
+		}
+	}
 	return eligible
 }
 
@@ -393,8 +440,15 @@ func rewriteReturnsInBlock(blk *hir.Block, info *promotionInfo, fieldAssigns map
 
 		// Pattern 2: indirect via variable — use scoped resolution.
 		if ref, ok := ret.Val.(*hir.VarRefExpr); ok {
-			if lit, found := scopeVars[ref.Name]; found {
-				blk.Body[i] = &hir.ReturnStmt{Vals: structLitToTuple(lit, info)}
+			if _, found := scopeVars[ref.Name]; found {
+				// The object may have changed since its initializer. Read its
+				// current fields; replaying initializer expressions loses writes
+				// and can repeat their side effects.
+				vals := make([]hir.Expr, len(info.fieldTys))
+				for j, field := range info.st.Fields {
+					vals[j] = &hir.FieldExpr{X: hir.Var(ref.Name, mir2.TyPtr), Field: field.Name, Offset: info.st.ByteOffset(j), Ty: info.fieldTys[j]}
+				}
+				blk.Body[i] = &hir.ReturnStmt{Vals: vals}
 				continue
 			}
 		}
@@ -560,30 +614,49 @@ func rewriteCallSites(blk *hir.Block, eligible map[string]*promotionInfo) {
 
 		// Found! Scan forward for field accesses on this variable.
 		varName := decl.Name
-		fieldVars := make(map[string]string) // field name → generated var name
 
 		// Generate names for each tuple position.
 		names := make([]string, len(info.fieldTys))
 		for j, f := range info.st.Fields {
 			genName := varName + "_" + f.Name
+			used := map[string]bool{}
+			visitAggregateStmts(blk, func(s hir.Stmt) {
+				if d, ok := s.(*hir.VarDeclStmt); ok {
+					used[d.Name] = true
+				}
+				if t, ok := s.(*hir.TupleLetStmt); ok {
+					for _, n := range t.Names {
+						used[n] = true
+					}
+				}
+			})
+			inspectAggregateStmt(blk, func(e hir.Expr) (hir.Expr, bool) {
+				if r, ok := e.(*hir.VarRefExpr); ok {
+					used[r.Name] = true
+				}
+				return e, true
+			})
+			for used[genName] {
+				genName += "_"
+			}
 			names[j] = genName
-			fieldVars[f.Name] = genName
 		}
 
-		// Replace the VarDeclStmt with TupleLetStmt.
-		// The tuple carries its result types separately; the scalar call type
-		// must match the promoted function's now-void RetTy.
+		// Keep a materialized by-value object until escape analysis proves it
+		// can be removed. Whole-object arguments and address uses need storage;
+		// blindly deleting the declaration left dangling references or stale
+		// tuple reads after memory mutation.
 		call.Ty = mir2.TyVoid
-		blk.Body[i] = &hir.TupleLetStmt{
-			Names: names,
-			Tys:   info.fieldTys,
-			Call:  call,
+		tuple := &hir.TupleLetStmt{Names: names, Tys: info.fieldTys, Call: call}
+		lit := &hir.StructLitExpr{St: info.st}
+		for j, field := range info.st.Fields {
+			lit.Fields = append(lit.Fields, hir.FieldInit{Name: field.Name, Val: hir.Var(names[j], info.fieldTys[j])})
 		}
+		decl.Init = lit
+		decl.Ty = info.st
+		blk.Body = append(blk.Body[:i], append([]hir.Stmt{tuple, decl}, blk.Body[i+1:]...)...)
+		i++
 
-		// Rewrite field accesses in subsequent statements.
-		for j := i + 1; j < len(blk.Body); j++ {
-			blk.Body[j] = rewriteFieldRefs(blk.Body[j], varName, fieldVars, info)
-		}
 	}
 }
 
