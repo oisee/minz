@@ -1,0 +1,13 @@
+{
+  "frozen_before_measurement": true,
+  "cases": [
+    {
+      "file": "count_less.c",
+      "sha256": "07c0dfbcbb9c199eb8a5e8e1259c87fd0486b08e21fdf8a8c5089d83105615b6"
+    },
+    {
+      "file": "in_interval.c",
+      "sha256": "cd7b0731b715de905adaf5d5ad062ed32a730ae579b2d9051658e8994be7273f"
+    }
+  ]
+}

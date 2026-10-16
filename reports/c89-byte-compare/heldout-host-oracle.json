@@ -1,0 +1,40 @@
+{
+  "version": "gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+  "results": [
+    {
+      "case": "count_less",
+      "calls": 4608,
+      "status": "PASS",
+      "source_sha256": "07c0dfbcbb9c199eb8a5e8e1259c87fd0486b08e21fdf8a8c5089d83105615b6",
+      "command": [
+        "gcc",
+        "-std=c89",
+        "-pedantic-errors",
+        "-O2",
+        "-shared",
+        "-fPIC",
+        "/home/alice/dev/minz-artifacts/grace-workspaces/c89-byte-narrow/research/c89-benchmark/heldout/count_less.c",
+        "-o",
+        "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c89-nanz-sdcc45/byte-compare-heldout/host-oracle/count_less.so"
+      ]
+    },
+    {
+      "case": "in_interval",
+      "calls": 2048,
+      "status": "PASS",
+      "source_sha256": "cd7b0731b715de905adaf5d5ad062ed32a730ae579b2d9051658e8994be7273f",
+      "command": [
+        "gcc",
+        "-std=c89",
+        "-pedantic-errors",
+        "-O2",
+        "-shared",
+        "-fPIC",
+        "/home/alice/dev/minz-artifacts/grace-workspaces/c89-byte-narrow/research/c89-benchmark/heldout/in_interval.c",
+        "-o",
+        "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c89-nanz-sdcc45/byte-compare-heldout/host-oracle/in_interval.so"
+      ]
+    }
+  ],
+  "total_calls": 6656
+}

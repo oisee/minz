@@ -1,0 +1,35 @@
+; MIR2 module: /home/alice/dev/minz-artifacts/grace-workspaces/c89-measured-benchmark/research/c89-benchmark/cases/sum_array
+global @values : [256]u8
+global @n : u8
+global @result : u16
+
+fun @sum_array(%r1: ptr [pointer], %r2: u8 [general]) -> u16 [pointer]
+  block @entry:
+    %r3 = const 0 : i16 [pointer]
+    %r4 = const 0 : u8 [general]
+    jmp @loop_head1(%r2, %r4, %r1, %r3)
+  block @loop_head1(%r5: u8 [general], %r4: u8 [general], %r7: ptr [general], %r3: u16 [pointer]):
+    %r9 = ext %r4 : u8 -> i16 [pointer]
+    %r10 = ext %r5 : u8 -> i16 [pointer]
+    %r11 = cmp.lt %r9, %r10 : bool [flag]
+    cond_ret %r11, [%r3], @loop_body2()
+  block @loop_body2:
+    %r12 = ext %r4 : u8 -> u16 [index]
+    %r13 = ptr_add %r7, %r12 : ptr [pointer]
+    %r14 = load %r13 : u8 [general]
+    %r15 = ext %r14 : u8 -> u16 [pointer]
+    %r16 = add %r3, %r15 : u16 [pointer]
+    %r17 = const 1 : u8 [general]
+    %r18 = add %r4, %r17 : u8 [general]
+    jmp @loop_head1(%r5, %r18, %r7, %r16)
+
+fun @execute()
+  block @entry:
+    %r19 = addr_of @values : ptr [pointer]
+    %r20 = move %r19 : ptr [pointer]
+    %r21 = addr_of @n : ptr [pointer]
+    %r22 = load %r21 : u8 [general]
+    %r23 = call @sum_array(%r20, %r22) : u16 [pointer]
+    %r24 = addr_of @result : ptr [pointer]
+    store %r24, %r23 : u16
+    ret void

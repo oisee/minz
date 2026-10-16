@@ -1,0 +1,39 @@
+; MIR2 module: /home/alice/dev/minz-artifacts/grace-workspaces/c89-measured-benchmark/research/c89-benchmark/cases/sum_array
+global @values : [256]u8
+global @n : u8
+global @result : u16
+
+fun @sum_array(%r1: ptr [pointer], %r2: u8 [general]) -> u16 [pointer]
+  block @entry:
+    %r3 = const 0 : i16 [pointer]
+    %r4 = const 0 : u8 [general]
+    %r5 = const 0 : i16 [pointer]
+    %r6 = trunc %r5 : i16 -> u8 [general]
+    jmp @loop_head1(%r2, %r6, %r1, %r3)
+  block @loop_head1(%r7: u8 [general], %r8: u8 [general], %r9: ptr [general], %r10: u16 [pointer]):
+    %r11 = ext %r8 : u8 -> i16 [pointer]
+    %r12 = ext %r7 : u8 -> i16 [pointer]
+    %r13 = cmp.lt %r11, %r12 : bool [flag]
+    br_if %r13, @loop_body2(), @loop_exit3(%r7, %r8, %r9, %r10)
+  block @loop_body2:
+    %r14 = ext %r8 : u8 -> u16 [index]
+    %r15 = ptr_add %r9, %r14 : ptr [pointer]
+    %r16 = load %r15 : u8 [general]
+    %r17 = ext %r16 : u8 -> u16 [pointer]
+    %r18 = add %r10, %r17 : u16 [pointer]
+    %r19 = const 1 : u8 [general]
+    %r20 = add %r8, %r19 : u8 [general]
+    jmp @loop_head1(%r7, %r20, %r9, %r18)
+  block @loop_exit3(%r21: u8 [general], %r22: u8 [general], %r23: ptr [general], %r24: u16 [pointer]):
+    ret %r24
+
+fun @execute()
+  block @entry:
+    %r25 = addr_of @values : ptr [pointer]
+    %r26 = move %r25 : ptr [pointer]
+    %r27 = addr_of @n : ptr [pointer]
+    %r28 = load %r27 : u8 [general]
+    %r29 = call @sum_array(%r26, %r28) : u16 [pointer]
+    %r30 = addr_of @result : ptr [pointer]
+    store %r30, %r29 : u16
+    ret void
