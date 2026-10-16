@@ -22,6 +22,8 @@ The project is active research: examples and targets have different levels of ma
 
 [Fresh identical-C Z80 benchmark](reports/2026-10-16-c89-identical-c-benchmark.md): six frozen C inputs, MinZ / SDCC / sccz80, real T-states and independent oracles. SDCC wins speed and size on the five common examples; MinZ also supports the tested struct-by-value case. No overall compiler superiority is claimed.
 
+[From C promotions to CP: before/after Z80 ASM](reports/2026-10-16-c89-byte-compare-asm.md): unchanged C abs_diff and sum_array, exact code and timing, safe byte-range proof and heldout verification.
+
 ## 🎉 Zork, compiled from Nanz to banked Z80!
 
 **The Spectrum 128K milestone is reached.** Our Z-machine V3 interpreter,
