@@ -1,0 +1,32 @@
+[
+  {
+    "file": "peephole_top500.json",
+    "entries": 500,
+    "sha256": "5977d3b1c7cdbdb63d0f81d583094fe4781fbf8f55da21ec9dba6180b02b3874",
+    "local_path": "/home/alice/dev/minz-artifacts/research-6502-gpu/z80-optimizer/data/peephole_top500.json"
+  },
+  {
+    "file": "peephole_4T_plus.json",
+    "entries": 739574,
+    "sha256": "7393762ea5f318d1182a026af666578ff49c2002a5be82d844e3d9dd27b683dc",
+    "local_path": "/home/alice/dev/minz-artifacts/research-6502-gpu/z80-optimizer/data/peephole_4T_plus.json"
+  },
+  {
+    "file": "mulopt8_clobber.json",
+    "entries": 254,
+    "sha256": "40e4374a6c23e4f23080946d44a5d4b74c3d64dbc7eeac9b3b448a07253f16d0",
+    "local_path": "/home/alice/dev/minz-artifacts/research-6502-gpu/z80-optimizer/data/mulopt8_clobber.json"
+  },
+  {
+    "file": "mulopt16_complete.json",
+    "entries": 254,
+    "sha256": "9512c50b21fdf4b9be4898256cf7623f16f10c084198ca6914eafbe704149603",
+    "local_path": "/home/alice/dev/minz-artifacts/research-6502-gpu/z80-optimizer/data/mulopt16_complete.json"
+  },
+  {
+    "file": "div8_optimal.json",
+    "entries": 254,
+    "sha256": "5be5a384094fdb1b05fb87c8428db6a29e74aff3cc54ec38b555b5afa52c0a71",
+    "local_path": "/home/alice/dev/minz-artifacts/research-6502-gpu/z80-optimizer/data/div8_optimal.json"
+  }
+]
