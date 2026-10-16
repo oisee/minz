@@ -7,8 +7,8 @@
     "-O3",
     "-S",
     "-o",
-    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/full-refined/sccz80/o3/gcd/program.asm",
-    "/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-z80/research/c89-benchmark/cases/gcd.c"
+    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/full-main/sccz80/o3/gcd/program.asm",
+    "/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-main-audit/research/c89-benchmark/cases/gcd.c"
   ],
   [
     "/home/alice/dev/minz-artifacts/toolchains/z88dk-src/bin/z88dk-z80asm",
@@ -16,25 +16,25 @@
     "-m",
     "-r0x8000",
     "-I/home/alice/dev/minz-artifacts/toolchains/z88dk-src/lib",
-    "-o/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/full-refined/sccz80/o3/gcd/program.bin",
+    "-o/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/full-main/sccz80/o3/gcd/program.bin",
     "-l/home/alice/dev/minz-artifacts/toolchains/z88dk-src/lib/z80_compiler_helpers.lib",
-    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/full-refined/sccz80/o3/gcd/program.asm"
+    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/full-main/sccz80/o3/gcd/program.asm"
   ],
   [
-    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/full-refined/measure",
+    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/full-main/measure",
     "-compiler",
     "sccz80",
     "-profile",
     "o3",
     "-source",
-    "/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-z80/research/c89-benchmark/cases/gcd.c",
+    "/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-main-audit/research/c89-benchmark/cases/gcd.c",
     "-out",
-    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/full-refined/sccz80/o3/gcd",
+    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/full-main/sccz80/o3/gcd",
     "-image",
-    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/full-refined/sccz80/o3/gcd/program.bin",
+    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/full-main/sccz80/o3/gcd/program.bin",
     "-symbols",
-    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/full-refined/sccz80/o3/gcd/program.map",
+    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/full-main/sccz80/o3/gcd/program.map",
     "-build-info",
-    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/full-refined/sccz80/o3/gcd/build-info.json"
+    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/full-main/sccz80/o3/gcd/build-info.json"
   ]
 ]

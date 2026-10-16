@@ -1,13 +1,13 @@
 [
   [
-    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/full-refined/measure",
+    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/full-main/measure",
     "-compiler",
     "nanz",
     "-profile",
     "size",
     "-source",
-    "/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-z80/research/c89-benchmark/nanz-cases/gcd.nanz",
+    "/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-main-audit/research/c89-benchmark/nanz-cases/gcd.nanz",
     "-out",
-    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/full-refined/nanz/size/gcd"
+    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/full-main/nanz/size/gcd"
   ]
 ]

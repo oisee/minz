@@ -1,4 +1,4 @@
-; MIR2 module: /home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-z80/research/c89-benchmark/cases/sum_array
+; MIR2 module: /home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-main-audit/research/c89-benchmark/cases/sum_array
 global @values : [256]u8
 global @n : u8
 global @result : u16

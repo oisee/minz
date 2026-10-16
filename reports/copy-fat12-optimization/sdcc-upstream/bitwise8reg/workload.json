@@ -1,0 +1,33 @@
+{
+  "sizes": {
+    "result": 2,
+    "regression_failures": 2,
+    "regression_checks": 2,
+    "c0": 1,
+    "c1": 1,
+    "c2": 1,
+    "c3": 1
+  },
+  "samples": [
+    {
+      "id": "upstream-test8",
+      "inputs": {
+        "regression_failures": "paU=",
+        "regression_checks": "paU=",
+        "c0": "pQ==",
+        "c1": "pQ==",
+        "c2": "pQ==",
+        "c3": "pQ=="
+      },
+      "expected": 2,
+      "after": {
+        "regression_failures": "AAA=",
+        "regression_checks": "AgA=",
+        "c0": "Ag==",
+        "c1": "Ag==",
+        "c2": "BA==",
+        "c3": "BA=="
+      }
+    }
+  ]
+}

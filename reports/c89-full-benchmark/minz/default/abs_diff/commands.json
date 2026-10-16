@@ -1,13 +1,13 @@
 [
   [
-    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/full-refined/measure",
+    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/full-main/measure",
     "-compiler",
     "minz",
     "-profile",
     "default",
     "-source",
-    "/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-z80/research/c89-benchmark/cases/abs_diff.c",
+    "/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-main-audit/research/c89-benchmark/cases/abs_diff.c",
     "-out",
-    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/full-refined/minz/default/abs_diff"
+    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/full-main/minz/default/abs_diff"
   ]
 ]

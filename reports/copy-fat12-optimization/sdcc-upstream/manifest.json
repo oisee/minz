@@ -1,0 +1,342 @@
+[
+  {
+    "path": "README.md",
+    "sha256": "461c0594659d32e7d68aecb4c814ed1d59865edcf926463d5d57ac9945a30f9a",
+    "bytes": 1980
+  },
+  {
+    "path": "bitwise8reg/bitwise8reg.c",
+    "sha256": "03dee3752c8356c78fe847fb886366779d5032cba96b930b49cd85e5027ed09c",
+    "bytes": 658
+  },
+  {
+    "path": "bitwise8reg/case.c",
+    "sha256": "102885758996384fd6cb6df150b048feeb095242f6542f85e175a92d02cedb74",
+    "bytes": 1574
+  },
+  {
+    "path": "bitwise8reg/minz/default/final.mir",
+    "sha256": "ecb612a4e4178a228aa006a23736441668f1169d178d0301ec3c8c983b6c0778",
+    "bytes": 6579
+  },
+  {
+    "path": "bitwise8reg/minz/default/program.a80",
+    "sha256": "91d84204554688a0e3c79694039422db09c3e7f023de1284028884b1c5a05ed0",
+    "bytes": 5428
+  },
+  {
+    "path": "bitwise8reg/minz/default/raw.mir",
+    "sha256": "752835d48eb07e40814f6ef2d44e374a9789fa9702544c524f151250c8a86928",
+    "bytes": 8296
+  },
+  {
+    "path": "bitwise8reg/minz/default/run-command.json",
+    "sha256": "fa4a3051c87fc6c195c05b8db03e5ab355a863d548f9e2bfd654c8737eddfedf",
+    "bytes": 540
+  },
+  {
+    "path": "bitwise8reg/minz/default/workload.json",
+    "sha256": "703c78de396961bd45f0be9e58c4d74bf601a6f3e9cc29b7f425839f7bcf2017",
+    "bytes": 405
+  },
+  {
+    "path": "bitwise8reg/minz/grace/final.mir",
+    "sha256": "b6190182dc6b92be8b915b31ef48ab11ac7b387e6eed24304572906e5a10a382",
+    "bytes": 6231
+  },
+  {
+    "path": "bitwise8reg/minz/grace/program.a80",
+    "sha256": "0b7facedca49a0b56950737d6bf7d7f17fc55236f63a6a14d873a1d36597e555",
+    "bytes": 5070
+  },
+  {
+    "path": "bitwise8reg/minz/grace/raw.mir",
+    "sha256": "752835d48eb07e40814f6ef2d44e374a9789fa9702544c524f151250c8a86928",
+    "bytes": 8296
+  },
+  {
+    "path": "bitwise8reg/minz/grace/run-command.json",
+    "sha256": "ca809e0a5bb1dc6319828c040033373cac64777834257c264131ab8297235506",
+    "bytes": 536
+  },
+  {
+    "path": "bitwise8reg/minz/grace/workload.json",
+    "sha256": "703c78de396961bd45f0be9e58c4d74bf601a6f3e9cc29b7f425839f7bcf2017",
+    "bytes": 405
+  },
+  {
+    "path": "bitwise8reg/minz/size/final.mir",
+    "sha256": "ecb612a4e4178a228aa006a23736441668f1169d178d0301ec3c8c983b6c0778",
+    "bytes": 6579
+  },
+  {
+    "path": "bitwise8reg/minz/size/program.a80",
+    "sha256": "91d84204554688a0e3c79694039422db09c3e7f023de1284028884b1c5a05ed0",
+    "bytes": 5428
+  },
+  {
+    "path": "bitwise8reg/minz/size/raw.mir",
+    "sha256": "752835d48eb07e40814f6ef2d44e374a9789fa9702544c524f151250c8a86928",
+    "bytes": 8296
+  },
+  {
+    "path": "bitwise8reg/minz/size/run-command.json",
+    "sha256": "fc235c4b785c62438e06cca571a5c8b4988be4a468cfe0cc2397c3db9b132a11",
+    "bytes": 534
+  },
+  {
+    "path": "bitwise8reg/minz/size/workload.json",
+    "sha256": "703c78de396961bd45f0be9e58c4d74bf601a6f3e9cc29b7f425839f7bcf2017",
+    "bytes": 405
+  },
+  {
+    "path": "bitwise8reg/preprocess-c89.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  {
+    "path": "bitwise8reg/sdcc/size/build-command.json",
+    "sha256": "dbab96fdc42247dc445796dc5159f75ac0ad6aaf391041d2b022cd2583e50a62",
+    "bytes": 544
+  },
+  {
+    "path": "bitwise8reg/sdcc/size/build-info.json",
+    "sha256": "95d8ed03ef0e08ace2aedad06c37f998466407d81b7b0623fa4ab8e33d9831ca",
+    "bytes": 264
+  },
+  {
+    "path": "bitwise8reg/sdcc/size/program.asm",
+    "sha256": "3f2a4e85e8d7242ee95d0c1470751e0a7b4534db7997ac7885b8ea3ee2dc7df6",
+    "bytes": 6982
+  },
+  {
+    "path": "bitwise8reg/sdcc/size/run-command.json",
+    "sha256": "496c70ed2e1c32ce4034e845438c15f411a28de8d54d1f1b4d845d228122bbc7",
+    "bytes": 959
+  },
+  {
+    "path": "bitwise8reg/sdcc/size/workload.json",
+    "sha256": "703c78de396961bd45f0be9e58c4d74bf601a6f3e9cc29b7f425839f7bcf2017",
+    "bytes": 405
+  },
+  {
+    "path": "bitwise8reg/sdcc/speed/build-command.json",
+    "sha256": "252f6ca283e592ef9bb8f0c5c7e02a45b5104944ca88df8e3ad03006d515c171",
+    "bytes": 546
+  },
+  {
+    "path": "bitwise8reg/sdcc/speed/build-info.json",
+    "sha256": "3f19095f6840ba7badac4c82d03a872500dece31083cca24167335c2db1d0dd8",
+    "bytes": 264
+  },
+  {
+    "path": "bitwise8reg/sdcc/speed/program.asm",
+    "sha256": "5b39005f82ab75557139324b226de5c9ce252e0063a7b0e3699969f5903b2ca4",
+    "bytes": 6982
+  },
+  {
+    "path": "bitwise8reg/sdcc/speed/run-command.json",
+    "sha256": "027700261573c89b227d31adc9aaaebb66492e8eaec138f257ba5c8b5a89c990",
+    "bytes": 964
+  },
+  {
+    "path": "bitwise8reg/sdcc/speed/workload.json",
+    "sha256": "703c78de396961bd45f0be9e58c4d74bf601a6f3e9cc29b7f425839f7bcf2017",
+    "bytes": 405
+  },
+  {
+    "path": "bitwise8reg/testfwk.h",
+    "sha256": "19197da200057a6873d05101f54fd4d80473193568ae2a76a63fe358ea68d703",
+    "bytes": 150
+  },
+  {
+    "path": "bitwise8reg/workload.json",
+    "sha256": "6e581842d83ef8f6debf5f81be296e8ab719965bee52793a17e7ddda0df83e46",
+    "bytes": 608
+  },
+  {
+    "path": "gcc-torture-execute-loop-11/case.c",
+    "sha256": "104cf9dac7eb91a1dc53f4183ba5002154346c6734eb96d2ea6383d485a84ac5",
+    "bytes": 1417
+  },
+  {
+    "path": "gcc-torture-execute-loop-11/gcc-torture-execute-loop-11.c",
+    "sha256": "5a611371d60aba373012f8627cc219a269e40e1facf4ff572e3c24d65dc7b328",
+    "bytes": 562
+  },
+  {
+    "path": "gcc-torture-execute-loop-11/minz/default/final.mir",
+    "sha256": "44336b7a81bb06ef50896c8acc711da0b4a5d21d8771fec6046db552083ec729",
+    "bytes": 3176
+  },
+  {
+    "path": "gcc-torture-execute-loop-11/minz/default/program.a80",
+    "sha256": "1788e461568f1f0f97acbaf2b841da17953e0d779c6b5a48e1823c0ffc981beb",
+    "bytes": 4680
+  },
+  {
+    "path": "gcc-torture-execute-loop-11/minz/default/raw.mir",
+    "sha256": "504e04332fbc145830e35b157f7532352e57cff20b3378f688ee07a138393bea",
+    "bytes": 3990
+  },
+  {
+    "path": "gcc-torture-execute-loop-11/minz/default/run-command.json",
+    "sha256": "49423b88305c66506829973a3b96759155cb246210ddccc6bea0421f2e39b9c3",
+    "bytes": 588
+  },
+  {
+    "path": "gcc-torture-execute-loop-11/minz/default/workload.json",
+    "sha256": "138cb91303cb947a41e5f9cdb205430585266861b727e6ef7f1caebafe74b87f",
+    "bytes": 1352
+  },
+  {
+    "path": "gcc-torture-execute-loop-11/minz/grace/final.mir",
+    "sha256": "49d99fe676f7d8bd4178d009ecc3b348735be72376a89b5bc71bb525247896db",
+    "bytes": 2930
+  },
+  {
+    "path": "gcc-torture-execute-loop-11/minz/grace/program.a80",
+    "sha256": "9da564abb7e0d44f0ba9c45b405aaeb783b2c49c05dcfd06aee4c4f4a4ddd45a",
+    "bytes": 4480
+  },
+  {
+    "path": "gcc-torture-execute-loop-11/minz/grace/raw.mir",
+    "sha256": "504e04332fbc145830e35b157f7532352e57cff20b3378f688ee07a138393bea",
+    "bytes": 3990
+  },
+  {
+    "path": "gcc-torture-execute-loop-11/minz/grace/run-command.json",
+    "sha256": "88fcaf03635c1f0388cc55aa19c248de9252df4a54d02f0401461a62f8b035f0",
+    "bytes": 584
+  },
+  {
+    "path": "gcc-torture-execute-loop-11/minz/grace/workload.json",
+    "sha256": "138cb91303cb947a41e5f9cdb205430585266861b727e6ef7f1caebafe74b87f",
+    "bytes": 1352
+  },
+  {
+    "path": "gcc-torture-execute-loop-11/minz/size/final.mir",
+    "sha256": "44336b7a81bb06ef50896c8acc711da0b4a5d21d8771fec6046db552083ec729",
+    "bytes": 3176
+  },
+  {
+    "path": "gcc-torture-execute-loop-11/minz/size/program.a80",
+    "sha256": "1788e461568f1f0f97acbaf2b841da17953e0d779c6b5a48e1823c0ffc981beb",
+    "bytes": 4680
+  },
+  {
+    "path": "gcc-torture-execute-loop-11/minz/size/raw.mir",
+    "sha256": "504e04332fbc145830e35b157f7532352e57cff20b3378f688ee07a138393bea",
+    "bytes": 3990
+  },
+  {
+    "path": "gcc-torture-execute-loop-11/minz/size/run-command.json",
+    "sha256": "4f5a187339289bce1dd0e8cb4adc7f15d77b2ec9a603494228794cce22f54df9",
+    "bytes": 582
+  },
+  {
+    "path": "gcc-torture-execute-loop-11/minz/size/workload.json",
+    "sha256": "138cb91303cb947a41e5f9cdb205430585266861b727e6ef7f1caebafe74b87f",
+    "bytes": 1352
+  },
+  {
+    "path": "gcc-torture-execute-loop-11/preprocess-c89.log",
+    "sha256": "75ac5e8962b02cef09a51b1c80debc7e2d0edc504591691db9ce8b45fa115b6b",
+    "bytes": 926
+  },
+  {
+    "path": "gcc-torture-execute-loop-11/sdcc/size/build-command.json",
+    "sha256": "a0936a927e801931f902fc52c45a824269313f28bb68065e2a3c720de8ae3071",
+    "bytes": 576
+  },
+  {
+    "path": "gcc-torture-execute-loop-11/sdcc/size/build-info.json",
+    "sha256": "ccf4abc3fd590aa38e5ac022c98ed27605e5a0f1a5c9b31e74859de4f97ea8b9",
+    "bytes": 264
+  },
+  {
+    "path": "gcc-torture-execute-loop-11/sdcc/size/initial-observer-error/build-info.json",
+    "sha256": "6305eb3d6779c2ce24f30daee779bed1dc078fa1866de7e9d4ec82b914e64d88",
+    "bytes": 264
+  },
+  {
+    "path": "gcc-torture-execute-loop-11/sdcc/size/observer-alias.json",
+    "sha256": "041eb6abfe145d9968280a86c8f0e9f877b2236a6682bb1be899f0bf8f8845a4",
+    "bytes": 405
+  },
+  {
+    "path": "gcc-torture-execute-loop-11/sdcc/size/program.asm",
+    "sha256": "e47ddaa33aa50cd053fe737b2da0bda57fa289c296abef45832d0fe1aa461808",
+    "bytes": 5356
+  },
+  {
+    "path": "gcc-torture-execute-loop-11/sdcc/size/run-command.json",
+    "sha256": "99314c0f1e31dfa9f9dabc00ed5f1652b5d05af0ecdbb397af63e0efc3802374",
+    "bytes": 1064
+  },
+  {
+    "path": "gcc-torture-execute-loop-11/sdcc/size/workload.json",
+    "sha256": "138cb91303cb947a41e5f9cdb205430585266861b727e6ef7f1caebafe74b87f",
+    "bytes": 1352
+  },
+  {
+    "path": "gcc-torture-execute-loop-11/sdcc/speed/build-command.json",
+    "sha256": "25606f4d75489fdb18d9d04576995af9d22212e63a2afb9d359f6e091043e23e",
+    "bytes": 578
+  },
+  {
+    "path": "gcc-torture-execute-loop-11/sdcc/speed/build-info.json",
+    "sha256": "5c5461d6f82437a15070e284681934dcfcf65c61b2d5e70892aaad3c4f71bb43",
+    "bytes": 264
+  },
+  {
+    "path": "gcc-torture-execute-loop-11/sdcc/speed/initial-observer-error/build-info.json",
+    "sha256": "72332882eb0e807863448999623663214ddb382c1d39054cd750850cbc2f542a",
+    "bytes": 264
+  },
+  {
+    "path": "gcc-torture-execute-loop-11/sdcc/speed/observer-alias.json",
+    "sha256": "5e15305a25ef00cde1c102c912ba5313d8aef2c67fa26f43dfe941aec2363529",
+    "bytes": 405
+  },
+  {
+    "path": "gcc-torture-execute-loop-11/sdcc/speed/program.asm",
+    "sha256": "98d4231ecc5ec8088c85a1a61c95b66366f3d06637c50d01f282a3955692de7a",
+    "bytes": 5396
+  },
+  {
+    "path": "gcc-torture-execute-loop-11/sdcc/speed/run-command.json",
+    "sha256": "8d61384e715f66e4a6c35dd0f47b22ced156e19ad8bab13c59926730788dcbaf",
+    "bytes": 1069
+  },
+  {
+    "path": "gcc-torture-execute-loop-11/sdcc/speed/workload.json",
+    "sha256": "138cb91303cb947a41e5f9cdb205430585266861b727e6ef7f1caebafe74b87f",
+    "bytes": 1352
+  },
+  {
+    "path": "gcc-torture-execute-loop-11/testfwk.h",
+    "sha256": "19197da200057a6873d05101f54fd4d80473193568ae2a76a63fe358ea68d703",
+    "bytes": 150
+  },
+  {
+    "path": "gcc-torture-execute-loop-11/workload.json",
+    "sha256": "8cbb9ba3bee1b6e38aa6a19cdf731f7f779a1f4157c95b41608cdb698ea5a936",
+    "bytes": 1505
+  },
+  {
+    "path": "initial-summary.json",
+    "sha256": "90a93c0c5af824f98ca05f79a11f927dede6c39e678f5ab6961ddc30d9d2c702",
+    "bytes": 4116
+  },
+  {
+    "path": "method.json",
+    "sha256": "ff0bb89ffa7ca19dd7aee166b85ae306913c961a70cfe562ab97bc601bc81141",
+    "bytes": 1420
+  },
+  {
+    "path": "summary.json",
+    "sha256": "163833ec664da51dda1dcdf829bd1ea920856c9ea5e12a474435048af594c073",
+    "bytes": 4054
+  }
+]

@@ -1,4 +1,4 @@
-; MIR2 module: /home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-z80/research/copy-fat12-validation/copy_xor
+; MIR2 module: /home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-main-audit/research/copy-fat12-validation/copy_xor
 global @source : [256]u8
 global @target : [256]u8
 global @n : u8

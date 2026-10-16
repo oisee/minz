@@ -1,0 +1,56 @@
+{
+  "main_commit": "4c79b1f8e04a9fa6c1388b3cceb619236d500ad2",
+  "compiler_tree": "3cd5c7bb68658373a6f461cfad8508c33cc770f8",
+  "clean_checkout": "/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-main-audit",
+  "measurements": {
+    "full-main": {
+      "rows": 69,
+      "passed": 66,
+      "retained_errors": 3,
+      "all_frozen_inputs_and_metrics_unchanged": true,
+      "summary_sha256": "d27df807a127f3eee68859de8162a407cd2b0c3fb38fa67040d9f904804e9c31"
+    },
+    "heldout-main": {
+      "rows": 56,
+      "passed": 56,
+      "retained_errors": 0,
+      "all_frozen_inputs_and_metrics_unchanged": true,
+      "summary_sha256": "b74eeb84aa2a155a3c07491f368f241e5c2437c5d65d6b098777a77f602ad837"
+    }
+  },
+  "ci_run": 38951316281,
+  "ci_log_sha256": "a1ed89a8e97b1d4e736d83dd1dc8339a547bf6a7e325e15027909cf6ac88e8ef",
+  "fresh_main_logs": {
+    "minz-copy-fat12-full-main.log": "9f1433b53b8f83a9c0386f6d2ed0aa9d3fe685b1a16726fd52bb579d87565bb7",
+    "minz-copy-fat12-heldout-main.log": "dac75ac24a0c82889d5b2447e47aff8b109cbefd3c0c01c2107739a1fb5d746a"
+  },
+  "ci_jobs": {
+    "Advisory Go lint": "success",
+    "PR gate": "success",
+    "Compiler checks / Build judge compilers": "success",
+    "Compiler checks / Short fuzz": "success",
+    "Compiler checks / Default output sweep": "failure",
+    "Compiler checks / Assert matrix": "success",
+    "Compiler checks / Judge self-tests": "success",
+    "Compiler checks / Direct-call fuzz findings": "success",
+    "PR test report": "success"
+  },
+  "pipeline_shards": [
+    {
+      "shard": 1,
+      "exit_code": 0,
+      "log": "/home/runner/work/_temp/stable-pipeline/shard-1.log"
+    },
+    {
+      "shard": 2,
+      "exit_code": 0,
+      "log": "/home/runner/work/_temp/stable-pipeline/shard-2.log"
+    },
+    {
+      "shard": 3,
+      "exit_code": 0,
+      "log": "/home/runner/work/_temp/stable-pipeline/shard-3.log"
+    }
+  ],
+  "pipeline_statuses_sha256": "a93ae109041b47fbf502fda18e1195bc6100549720647b801b2e9c05be198b70"
+}

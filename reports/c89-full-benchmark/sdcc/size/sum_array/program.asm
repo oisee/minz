@@ -50,7 +50,7 @@ _result::
 ; code
 ;--------------------------------------------------------
 	.area _CODE
-;/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-z80/research/c89-benchmark/cases/sum_array.c:3: unsigned short sum_array(unsigned char *p, unsigned char count) {
+;/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-main-audit/research/c89-benchmark/cases/sum_array.c:3: unsigned short sum_array(unsigned char *p, unsigned char count) {
 ;	---------------------------------
 ; Function sum_array
 ; ---------------------------------
@@ -60,9 +60,9 @@ _sum_array::
 	add	ix,sp
 	dec	sp
 	ex	de, hl
-;/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-z80/research/c89-benchmark/cases/sum_array.c:4: unsigned short sum = 0;
+;/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-main-audit/research/c89-benchmark/cases/sum_array.c:4: unsigned short sum = 0;
 	ld	bc, #0x0000
-;/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-z80/research/c89-benchmark/cases/sum_array.c:6: for (i = 0; i < count; i++) sum += p[i];
+;/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-main-audit/research/c89-benchmark/cases/sum_array.c:6: for (i = 0; i < count; i++) sum += p[i];
 	ld	-1 (ix), #0x00
 00103$:
 	ld	a, -1 (ix)
@@ -82,16 +82,16 @@ _sum_array::
 	inc	-1 (ix)
 	jr	00103$
 00101$:
-;/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-z80/research/c89-benchmark/cases/sum_array.c:7: return sum;
+;/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-main-audit/research/c89-benchmark/cases/sum_array.c:7: return sum;
 	ld	e, c
 	ld	d, b
-;/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-z80/research/c89-benchmark/cases/sum_array.c:8: }
+;/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-main-audit/research/c89-benchmark/cases/sum_array.c:8: }
 	inc	sp
 	pop	ix
 	pop	hl
 	inc	sp
 	jp	(hl)
-;/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-z80/research/c89-benchmark/cases/sum_array.c:9: void execute(void) { result = sum_array(values, n); }
+;/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-main-audit/research/c89-benchmark/cases/sum_array.c:9: void execute(void) { result = sum_array(values, n); }
 ;	---------------------------------
 ; Function execute
 ; ---------------------------------

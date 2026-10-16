@@ -1,0 +1,232 @@
+; MIR2 module: /home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/sdcc-upstream-pilot/bitwise8reg/case
+global @regression_failures : u16
+global @regression_checks : u16
+global @result : u16
+global @c0 : u8
+global @c1 : u8
+global @c2 : u8
+global @c3 : u8
+
+fun @and8() -> u8 [acc]
+  block @entry:
+    %r1 = const 0 : u8 [general]
+    %r2 = const 0 : u8 [general]
+    %r3 = const 0 : u8 [general]
+    %r4 = const 0 : u8 [general]
+    %r5 = const 0 : u8 [general]
+    %r6 = const 0 : u8 [general]
+    %r7 = addr_of @c0 : ptr [pointer]
+    %r8 = load %r7 : u8 [general]
+    %r9 = ext %r8 : u8 -> i16 [pointer]
+    %r10 = const 1 : i16 [pointer]
+    %r11 = add %r9, %r10 : i16 [pointer]
+    %r12 = trunc %r11 : i16 -> u8 [general]
+    %r13 = addr_of @c1 : ptr [pointer]
+    %r14 = load %r13 : u8 [general]
+    %r15 = ext %r14 : u8 -> i16 [pointer]
+    %r16 = const 1 : i16 [pointer]
+    %r17 = add %r15, %r16 : i16 [pointer]
+    %r18 = trunc %r17 : i16 -> u8 [general]
+    %r19 = addr_of @c2 : ptr [pointer]
+    %r20 = load %r19 : u8 [general]
+    %r21 = ext %r20 : u8 -> i16 [pointer]
+    %r22 = const 1 : i16 [pointer]
+    %r23 = add %r21, %r22 : i16 [pointer]
+    %r24 = trunc %r23 : i16 -> u8 [general]
+    %r25 = addr_of @c3 : ptr [pointer]
+    %r26 = load %r25 : u8 [general]
+    %r27 = ext %r26 : u8 -> i16 [pointer]
+    %r28 = const 1 : i16 [pointer]
+    %r29 = add %r27, %r28 : i16 [pointer]
+    %r30 = trunc %r29 : i16 -> u8 [general]
+    %r31 = ext %r12 : u8 -> i16 [pointer]
+    %r32 = ext %r18 : u8 -> i16 [pointer]
+    %r33 = and %r31, %r32 : i16 [pointer]
+    %r34 = trunc %r33 : i16 -> u8 [general]
+    %r35 = ext %r24 : u8 -> i16 [pointer]
+    %r36 = ext %r30 : u8 -> i16 [pointer]
+    %r37 = and %r35, %r36 : i16 [pointer]
+    %r38 = trunc %r37 : i16 -> u8 [general]
+    %r39 = ext %r34 : u8 -> i16 [pointer]
+    %r40 = ext %r38 : u8 -> i16 [pointer]
+    %r41 = add %r39, %r40 : i16 [pointer]
+    %r42 = trunc %r41 : i16 -> u8 [general]
+    ret %r42
+
+fun @or8() -> u8 [acc]
+  block @entry:
+    %r43 = const 0 : u8 [general]
+    %r44 = const 0 : u8 [general]
+    %r45 = const 0 : u8 [general]
+    %r46 = const 0 : u8 [general]
+    %r47 = const 0 : u8 [general]
+    %r48 = const 0 : u8 [general]
+    %r49 = addr_of @c0 : ptr [pointer]
+    %r50 = load %r49 : u8 [general]
+    %r51 = ext %r50 : u8 -> i16 [pointer]
+    %r52 = const 1 : i16 [pointer]
+    %r53 = add %r51, %r52 : i16 [pointer]
+    %r54 = trunc %r53 : i16 -> u8 [general]
+    %r55 = addr_of @c1 : ptr [pointer]
+    %r56 = load %r55 : u8 [general]
+    %r57 = ext %r56 : u8 -> i16 [pointer]
+    %r58 = const 1 : i16 [pointer]
+    %r59 = add %r57, %r58 : i16 [pointer]
+    %r60 = trunc %r59 : i16 -> u8 [general]
+    %r61 = addr_of @c2 : ptr [pointer]
+    %r62 = load %r61 : u8 [general]
+    %r63 = ext %r62 : u8 -> i16 [pointer]
+    %r64 = const 1 : i16 [pointer]
+    %r65 = add %r63, %r64 : i16 [pointer]
+    %r66 = trunc %r65 : i16 -> u8 [general]
+    %r67 = addr_of @c3 : ptr [pointer]
+    %r68 = load %r67 : u8 [general]
+    %r69 = ext %r68 : u8 -> i16 [pointer]
+    %r70 = const 1 : i16 [pointer]
+    %r71 = add %r69, %r70 : i16 [pointer]
+    %r72 = trunc %r71 : i16 -> u8 [general]
+    %r73 = ext %r54 : u8 -> i16 [pointer]
+    %r74 = ext %r60 : u8 -> i16 [pointer]
+    %r75 = or %r73, %r74 : i16 [pointer]
+    %r76 = trunc %r75 : i16 -> u8 [general]
+    %r77 = ext %r66 : u8 -> i16 [pointer]
+    %r78 = ext %r72 : u8 -> i16 [pointer]
+    %r79 = or %r77, %r78 : i16 [pointer]
+    %r80 = trunc %r79 : i16 -> u8 [general]
+    %r81 = ext %r76 : u8 -> i16 [pointer]
+    %r82 = ext %r80 : u8 -> i16 [pointer]
+    %r83 = add %r81, %r82 : i16 [pointer]
+    %r84 = trunc %r83 : i16 -> u8 [general]
+    ret %r84
+
+fun @test8()
+  block @entry:
+    %r85 = const 2 : i16 [pointer]
+    %r86 = trunc %r85 : i16 -> u8 [general]
+    %r87 = addr_of @c0 : ptr [pointer]
+    store %r87, %r86 : u8
+    %r88 = const 2 : i16 [pointer]
+    %r89 = trunc %r88 : i16 -> u8 [general]
+    %r90 = addr_of @c1 : ptr [pointer]
+    store %r90, %r89 : u8
+    %r91 = const 4 : i16 [pointer]
+    %r92 = trunc %r91 : i16 -> u8 [general]
+    %r93 = addr_of @c2 : ptr [pointer]
+    store %r93, %r92 : u8
+    %r94 = const 4 : i16 [pointer]
+    %r95 = trunc %r94 : i16 -> u8 [general]
+    %r96 = addr_of @c3 : ptr [pointer]
+    store %r96, %r95 : u8
+    jmp @loop_head1()
+  block @loop_head1:
+    %r97 = const 1 : bool [general]
+    %r98 = const 0 : bool [general]
+    %r99 = cmp.ne %r97, %r98 : bool [flag]
+    br_if %r99, @loop_body2(), @loop_exit3()
+  block @loop_body2:
+    %r100 = addr_of @regression_checks : ptr [pointer]
+    %r101 = load %r100 : u16 [pointer]
+    %r102 = const 1 : u16 [pointer]
+    %r103 = add %r101, %r102 : u16 [pointer]
+    %r104 = addr_of @regression_checks : ptr [pointer]
+    store %r104, %r103 : u16
+    %r105 = call @and8() : u8 [acc]
+    %r106 = ext %r105 : u8 -> i16 [pointer]
+    %r107 = const 8 : i16 [pointer]
+    %r108 = cmp.eq %r106, %r107 : bool [flag]
+    %r109 = const 0 : bool [general]
+    %r110 = cmp.eq %r108, %r109 : bool [flag]
+    %r111 = const 0 : bool [general]
+    %r112 = cmp.ne %r110, %r111 : bool [flag]
+    br_if %r112, @if_then4(), @if_join5()
+  block @if_then4:
+    %r113 = addr_of @regression_failures : ptr [pointer]
+    %r114 = load %r113 : u16 [pointer]
+    %r115 = const 1 : u16 [pointer]
+    %r116 = add %r114, %r115 : u16 [pointer]
+    %r117 = addr_of @regression_failures : ptr [pointer]
+    store %r117, %r116 : u16
+    jmp @if_join5()
+  block @if_join5:
+    %r118 = const 0 : i16 [pointer]
+    %r119 = const 0 : bool [general]
+    %r120 = cmp.eq %r118, %r119 : bool [flag]
+    %r121 = const 0 : bool [general]
+    %r122 = cmp.ne %r120, %r121 : bool [flag]
+    br_if %r122, @if_then6(), @if_join7()
+  block @if_then6:
+    jmp @loop_exit3()
+  block @if_join7:
+    jmp @loop_head1()
+  block @loop_exit3:
+    jmp @loop_head8()
+  block @loop_head8:
+    %r123 = const 1 : bool [general]
+    %r124 = const 0 : bool [general]
+    %r125 = cmp.ne %r123, %r124 : bool [flag]
+    br_if %r125, @loop_body9(), @loop_exit10()
+  block @loop_body9:
+    %r126 = addr_of @regression_checks : ptr [pointer]
+    %r127 = load %r126 : u16 [pointer]
+    %r128 = const 1 : u16 [pointer]
+    %r129 = add %r127, %r128 : u16 [pointer]
+    %r130 = addr_of @regression_checks : ptr [pointer]
+    store %r130, %r129 : u16
+    %r131 = call @or8() : u8 [acc]
+    %r132 = ext %r131 : u8 -> i16 [pointer]
+    %r133 = const 8 : i16 [pointer]
+    %r134 = cmp.eq %r132, %r133 : bool [flag]
+    %r135 = const 0 : bool [general]
+    %r136 = cmp.eq %r134, %r135 : bool [flag]
+    %r137 = const 0 : bool [general]
+    %r138 = cmp.ne %r136, %r137 : bool [flag]
+    br_if %r138, @if_then11(), @if_join12()
+  block @if_then11:
+    %r139 = addr_of @regression_failures : ptr [pointer]
+    %r140 = load %r139 : u16 [pointer]
+    %r141 = const 1 : u16 [pointer]
+    %r142 = add %r140, %r141 : u16 [pointer]
+    %r143 = addr_of @regression_failures : ptr [pointer]
+    store %r143, %r142 : u16
+    jmp @if_join12()
+  block @if_join12:
+    %r144 = const 0 : i16 [pointer]
+    %r145 = const 0 : bool [general]
+    %r146 = cmp.eq %r144, %r145 : bool [flag]
+    %r147 = const 0 : bool [general]
+    %r148 = cmp.ne %r146, %r147 : bool [flag]
+    br_if %r148, @if_then13(), @if_join14()
+  block @if_then13:
+    jmp @loop_exit10()
+  block @if_join14:
+    jmp @loop_head8()
+  block @loop_exit10:
+    ret void
+
+fun @execute()
+  block @entry:
+    %r149 = const 0 : i16 [pointer]
+    %r150 = addr_of @regression_failures : ptr [pointer]
+    store %r150, %r149 : u16
+    %r151 = const 0 : i16 [pointer]
+    %r152 = addr_of @regression_checks : ptr [pointer]
+    store %r152, %r151 : u16
+    call @test8()
+    %r153 = addr_of @regression_failures : ptr [pointer]
+    %r154 = load %r153 : u16 [pointer]
+    %r155 = const 0 : u16 [general]
+    %r156 = cmp.ne %r154, %r155 : bool [flag]
+    br_if %r156, @cond_then1(), @cond_else2()
+  block @cond_then1:
+    %r157 = const 65535 : i32 [general]
+    jmp @cond_join3(%r157)
+  block @cond_else2:
+    %r158 = addr_of @regression_checks : ptr [pointer]
+    %r159 = load %r158 : u16 [pointer]
+    jmp @cond_join3(%r159)
+  block @cond_join3(%r160: i32 [general]):
+    %r161 = trunc %r160 : i32 -> u16 [pointer]
+    %r162 = addr_of @result : ptr [pointer]
+    store %r162, %r161 : u16
+    ret void
+

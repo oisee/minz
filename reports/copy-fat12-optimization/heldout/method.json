@@ -2,14 +2,14 @@
   "baseline_main": "df50290c52958771ea2fbea9fd269f346ac03a09",
   "baseline_checkout": "/home/alice/dev/minz-artifacts/grace-workspaces/c89-benchmark-green",
   "baseline_compiler_tree": "76beedd4cb240214fc51b214248831e353548819",
-  "candidate_commit": "2b2eef69b83cb17c1823e984c74a565ea3fc3a05",
-  "candidate_compiler_tree": "78d00762e8a9a6880ec6a863489c730252f3b600",
+  "candidate_commit": "4c79b1f8e04a9fa6c1388b3cceb619236d500ad2",
+  "candidate_compiler_tree": "3cd5c7bb68658373a6f461cfad8508c33cc770f8",
   "sdcc_version": "SDCC : z80 TD- 4.5.0 #15242 (Linux)\npublished under GNU General Public License (GPL)",
   "sources_manifest_sha256": "8327ca09d347e3d6254bfe9a140ba225fb978755af1835ee17c1bbf7c12a6e32",
   "driver_sha256": "9ed82132e2459f1f42f86675de6b6f0813d48586bbe47e70e8330d4f16c4b8f3",
   "runner_sha256": "7c63f828b8dc999e3156a97b5d73ba702c678af11f71234c803ba2a87d64a734",
   "measure_binary_sha256": {
     "baseline": "d596cd3f6730a7305b373a5062e351afe4a463aa9f9fbfc3aeb0ab5161e83144",
-    "candidate": "4d55ea892f3cd819899a013c6e5155c5a8ac1524ef6e7e80748e838e1e36fb23"
+    "candidate": "a5a0b420147aae936b35dfc43690a4e235ab97ab59f97a8ff509b2c0d0ec1275"
   }
 }

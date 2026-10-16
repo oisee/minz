@@ -1,5 +1,5 @@
-/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-z80/research/c89-benchmark/cases/struct_roundtrip.c:4:22: warning: Can't define a function returning an struct, converting to a pointer [-Wconversion]
-/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-z80/research/c89-benchmark/cases/struct_roundtrip.c:9:30: error: Dodgy declaration (not pointer)
-/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-z80/research/c89-benchmark/cases/struct_roundtrip.c:9:31: error: Missing token, expecting ; got x
-/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-z80/research/c89-benchmark/cases/struct_roundtrip.c:9:32: fatal error: Expected ';'
+/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-main-audit/research/c89-benchmark/cases/struct_roundtrip.c:4:22: warning: Can't define a function returning an struct, converting to a pointer [-Wconversion]
+/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-main-audit/research/c89-benchmark/cases/struct_roundtrip.c:9:30: error: Dodgy declaration (not pointer)
+/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-main-audit/research/c89-benchmark/cases/struct_roundtrip.c:9:31: error: Missing token, expecting ; got x
+/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-main-audit/research/c89-benchmark/cases/struct_roundtrip.c:9:32: fatal error: Expected ';'
 Compilation aborted

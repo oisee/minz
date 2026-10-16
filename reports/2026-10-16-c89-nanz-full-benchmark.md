@@ -237,9 +237,10 @@ GCC независимо подтвердил 6656 ожиданий. [Аудит
 Проверка перечисленных областей памяти и PC/SP не заменяет такие проверки.
 Чистый Speed остаётся допустимой целью, даже если размер увеличивается.
 
-Измеренный compiler checkpoint: **2b2eef69** (полный SHA и compiler tree в toolchains.json).
-Последние counted-pointer/bit-mask изменения пока находятся в feat/copy-fat12-z80;
-эта матрица не означает их интеграцию в main.
+Измеренный compiler checkpoint: **main 4c79b1f8** (полный SHA и compiler tree в toolchains.json).
+Counted-pointer/bit-mask изменения интегрированы через [PR #184](https://github.com/oisee/minz/pull/184).
+Матрица повторена отдельной сборкой из чистого main; все прежние исходники,
+входы, результаты и проигрыши сохранены. [Аудит](copy-fat12-optimization/validation/main-audit.json).
 SDCC 4.2.0 #13081; SDCC 4.5.0 #15242; z88dk/sccz80 checkout
 83383009c0e221e6d6fe955591058280510391c8. Это два разных C-компилятора:
 SDCC и sccz80; z88dk предоставляет frontend/toolchain для последнего.
@@ -250,7 +251,7 @@ SDCC и sccz80; z88dk предоставляет frontend/toolchain для по�
 команды, исходник и ASM, для MinZ также raw/final MIR. Costs содержит число наблюдений
 и SHA полного measurements.json. Подробные наблюдения, бинарники и полный исходный
 набор сохранены локально в
-/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/full-refined/.
+/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/full-main/.
 SHA всех 69 подробных measurements.json сверен с опубликованными costs.json;
 дополнительный совмещённый повтор и предыдущие этапы сохранены в copy-fat12/.
 

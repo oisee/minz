@@ -1,0 +1,22 @@
+[
+  {
+    "id": "upstream-test8",
+    "inputs": {
+      "c0": "pQ==",
+      "c1": "pQ==",
+      "c2": "pQ==",
+      "c3": "pQ==",
+      "regression_checks": "paU=",
+      "regression_failures": "paU="
+    },
+    "expected": 2,
+    "after": {
+      "c0": "Ag==",
+      "c1": "Ag==",
+      "c2": "BA==",
+      "c3": "BA==",
+      "regression_checks": "AgA=",
+      "regression_failures": "AAA="
+    }
+  }
+]
