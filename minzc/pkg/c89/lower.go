@@ -419,14 +419,16 @@ func (l *lowerer) lowerStructDecl(tag string, st *cc.StructType) {
 					if isAnonymous {
 						// C11 anonymous: promote fields directly (no prefix)
 						mst.Fields = append(mst.Fields, mir2.StructField{
-							Name: sf.Name,
-							Ty:   sf.Ty,
+							Name:     sf.Name,
+							Ty:       sf.Ty,
+							Volatile: sf.Volatile || fty.Attributes().IsVolatile(),
 						})
 					} else {
 						// Named embedded: prefix with field name
 						mst.Fields = append(mst.Fields, mir2.StructField{
-							Name: fname + "." + sf.Name,
-							Ty:   sf.Ty,
+							Name:     fname + "." + sf.Name,
+							Ty:       sf.Ty,
+							Volatile: sf.Volatile || fty.Attributes().IsVolatile(),
 						})
 					}
 				}
@@ -434,8 +436,9 @@ func (l *lowerer) lowerStructDecl(tag string, st *cc.StructType) {
 			}
 		}
 		mst.Fields = append(mst.Fields, mir2.StructField{
-			Name: fname,
-			Ty:   l.storageFieldType(f),
+			Name:     fname,
+			Ty:       l.storageFieldType(f),
+			Volatile: f.Type().Attributes().IsVolatile(),
 		})
 		offsets = append(offsets, int(f.Offset()))
 	}
@@ -464,8 +467,9 @@ func (l *lowerer) lowerUnionDecl(tag string, ut *cc.UnionType) {
 	maxWidth := 0
 	nf := ut.NumFields()
 	type fieldInfo struct {
-		name string
-		ty   mir2.Ty
+		name     string
+		ty       mir2.Ty
+		volatile bool
 	}
 	var fields []fieldInfo
 	for i := 0; i < nf; i++ {
@@ -482,13 +486,13 @@ func (l *lowerer) lowerUnionDecl(tag string, ut *cc.UnionType) {
 		if w > maxWidth {
 			maxWidth = w
 		}
-		fields = append(fields, fieldInfo{name: fname, ty: mty})
+		fields = append(fields, fieldInfo{name: fname, ty: mty, volatile: f.Type().Attributes().IsVolatile()})
 	}
 	// All fields share offset 0 — store as single-field struct with largest type,
 	// then register each field name mapping to offset 0.
 	// For simplicity, store ALL field names but use largest type for width.
 	for _, fi := range fields {
-		mst.Fields = append(mst.Fields, mir2.StructField{Name: fi.name, Ty: fi.ty})
+		mst.Fields = append(mst.Fields, mir2.StructField{Name: fi.name, Ty: fi.ty, Volatile: fi.volatile})
 	}
 	mst.IsUnion = true // mark as union so ByteOffset returns 0 for all fields
 	l.structs[tag] = mst
@@ -766,32 +770,12 @@ func (fl *funcLow) lowerLocalDecl(d *cc.Declaration) ([]hir.Stmt, error) {
 			switch id.Initializer.Case {
 			case cc.InitializerExpr:
 				if id.Initializer.AssignmentExpression != nil {
-					r, err := fl.lowerExpr(id.Initializer.AssignmentExpression)
+					value, err := fl.lowerExprAsExpr(id.Initializer.AssignmentExpression)
 					if err != nil {
 						return nil, err
 					}
-					// If the init has side effects (++x, a=b=c), drain them first.
-					if r.isAssign() {
-						fl.drainPending(&stmts)
-						stmts = append(stmts, r.toStmt())
-						if r.isPostfix {
-							// x++: init gets old value via temp
-							ty := r.target.ExprTy()
-							tmp := fmt.Sprintf("__post_%d", fl.tmpCounter())
-							fl.locals[tmp] = ty
-							// Insert temp decl BEFORE the assignment
-							last := stmts[len(stmts)-1]
-							stmts[len(stmts)-1] = &hir.VarDeclStmt{Name: tmp, Ty: ty, Init: r.target}
-							stmts = append(stmts, last)
-							init = &hir.VarRefExpr{Name: tmp, Ty: ty}
-						} else {
-							// ++x, a=b: init gets target (variable after assignment)
-							init = r.target
-						}
-					} else {
-						fl.drainPending(&stmts)
-						init = r.toExpr()
-					}
+					fl.drainPending(&stmts)
+					init = value
 					// _Bool normalization: any non-zero value becomes 1.
 					if decl.Type() != nil && decl.Type().Kind() == cc.Bool {
 						init = boolNormalize(init)
@@ -1288,6 +1272,7 @@ func (fl *funcLow) lowerJump(js *cc.JumpStatement) ([]hir.Stmt, error) {
 			if err != nil {
 				return nil, err
 			}
+			val = fl.snapshotVolatileAggregate(val, js.ExpressionList.Type())
 			if fl.retCType != nil {
 				val = fl.low.convertType(val, fl.retCType)
 			} else {
@@ -1397,7 +1382,7 @@ func (fl *funcLow) lowerExpr(e cc.ExpressionNode) (*exprResult, error) {
 	}
 	switch x := r.expr.(type) {
 	case *hir.VarRefExpr:
-		if e.Type().Kind() != cc.Array && e.Type().Kind() != cc.Struct && e.Type().Kind() != cc.Union {
+		if e.Type().Kind() != cc.Array {
 			x.Volatile = true
 		}
 	case *hir.FieldExpr:
@@ -1831,6 +1816,20 @@ func (fl *funcLow) extractCalleeName(expr cc.ExpressionNode) string {
 	return ""
 }
 
+// Physical aggregate ABI values are addresses. Materialize a qualified source
+// before it crosses that ABI, so callee copies cannot lose source effects.
+func (fl *funcLow) snapshotVolatileAggregate(value hir.Expr, cType cc.Type) hir.Expr {
+	if cType == nil || (cType.Kind() != cc.Struct && cType.Kind() != cc.Union) || !cType.Attributes().IsVolatile() {
+		return value
+	}
+	pointer := value
+	if !mir2.IsPointer(value.ExprTy()) {
+		pointer = hir.AddrExpr(value)
+	}
+	object := &hir.DerefExpr{Ptr: pointer, Ty: fl.low.storageType(cType), Volatile: true}
+	return fl.cacheExpression("volatile_value", object)
+}
+
 func (fl *funcLow) lowerCall(pf *cc.PostfixExpression) (*exprResult, error) {
 	calleeTy := pf.PostfixExpression.Type()
 	if ptr, ok := calleeTy.(*cc.PointerType); ok {
@@ -1845,6 +1844,7 @@ func (fl *funcLow) lowerCall(pf *cc.PostfixExpression) (*exprResult, error) {
 		if err != nil {
 			return nil, err
 		}
+		arg = fl.snapshotVolatileAggregate(arg, al.AssignmentExpression.Type())
 		if ft != nil && len(args) < len(ft.Parameters()) {
 			arg = fl.low.convertType(arg, ft.Parameters()[len(args)].Type())
 		} else if cc.IsIntegerType(al.AssignmentExpression.Type()) {
@@ -2436,7 +2436,7 @@ func (fl *funcLow) lowerAutomaticAggregateInitializer(name string, storage mir2.
 	var stmts []hir.Stmt
 	for off, explicit := range written {
 		if !explicit {
-			stmts = append(stmts, &hir.StoreStmt{Ptr: address(off), Val: hir.U8(0), Volatile: volatile})
+			stmts = append(stmts, &hir.StoreStmt{Ptr: address(off), Val: hir.U8(0), Volatile: volatile || mir2.VolatileStorageByte(storage, off)})
 		}
 	}
 	for _, leaf := range leaves {
@@ -2445,7 +2445,7 @@ func (fl *funcLow) lowerAutomaticAggregateInitializer(name string, storage mir2.
 			data := make([]byte, int(leaf.Type().Size()))
 			copy(data, []byte(str))
 			for i, value := range data {
-				stmts = append(stmts, &hir.StoreStmt{Ptr: address(off + i), Val: hir.U8(int64(value)), Volatile: volatile})
+				stmts = append(stmts, &hir.StoreStmt{Ptr: address(off + i), Val: hir.U8(int64(value)), Volatile: volatile || mir2.VolatileStorageByte(storage, off+i)})
 			}
 			continue
 		}
@@ -2458,7 +2458,7 @@ func (fl *funcLow) lowerAutomaticAggregateInitializer(name string, storage mir2.
 		}
 		fl.drainPending(&stmts)
 		value = fl.low.convertType(value, leaf.Type())
-		stmts = append(stmts, &hir.StoreStmt{Ptr: address(off), Val: value, Volatile: volatile})
+		stmts = append(stmts, &hir.StoreStmt{Ptr: address(off), Val: value, Volatile: volatile || mir2.VolatileStorageByte(storage, off)})
 	}
 	return stmts, nil
 }

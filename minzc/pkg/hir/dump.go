@@ -41,7 +41,11 @@ func (m *Module) Dump() string {
 			if i > 0 {
 				sb.WriteString(", ")
 			}
-			fmt.Fprintf(&sb, "%s: %s", f.Name, f.Ty)
+			qual := ""
+			if f.Volatile {
+				qual = "volatile "
+			}
+			fmt.Fprintf(&sb, "%s: %s%s", f.Name, qual, f.Ty)
 		}
 		sb.WriteString(" }")
 		if s.IsUnion {

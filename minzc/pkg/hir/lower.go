@@ -1138,7 +1138,7 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 			addr := l.fixedStructStorage(storage)
 			if st.Init != nil {
 				source := l.lowerExpr(st.Init)
-				l.copyStructValue(addr, source, storage)
+				l.copyStructValueEffects(addr, source, storage, l.volatileObject(st.Init), st.Volatile)
 			}
 			l.bind(st.Name, addr, mir2.TyPtr)
 			l.localArrays[st.Name] = true
@@ -1150,10 +1150,10 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 			// temporary and can be reused by the next loop iteration.
 			dest := l.fixedStructStorage(ty)
 			if lit, ok := st.Init.(*StructLitExpr); ok {
-				l.emitStructLitFields(lit, func() mir2.Reg { return dest })
+				l.emitStructLitFields(lit, func() mir2.Reg { return dest }, st.Volatile)
 			} else if st.Init != nil {
 				src := l.lowerExpr(st.Init)
-				l.copyStructValue(dest, src, ty)
+				l.copyStructValueEffects(dest, src, ty, l.volatileObject(st.Init), st.Volatile)
 			}
 			delete(l.fnAliases, st.Name)
 			l.bind(st.Name, dest, st.Ty)
@@ -1295,7 +1295,7 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 				// PREVIOUS field address + diff, so no base reg stays live across
 				// multiple Field ops — all can share HL.
 				ptrReg := l.lowerExpr(tgt.Ptr)
-				l.emitStructLitFieldsChained(lit, ptrReg)
+				l.emitStructLitFieldsChained(lit, ptrReg, l.volatileObject(tgt))
 				return false
 			case *VarRefExpr:
 				// global_struct = Color{...}
@@ -1304,7 +1304,7 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 				//   LD HL,sym ; LD (HL),n ; INC HL ; LD (HL),n ; ...
 				if _, found := l.findGlobal(tgt.Name); found {
 					name := tgt.Name
-					l.emitStructLitFields(lit, func() mir2.Reg { return l.globalAddr(name) })
+					l.emitStructLitFields(lit, func() mir2.Reg { return l.globalAddr(name) }, l.volatileObject(tgt))
 					return false
 				}
 			}
@@ -1325,7 +1325,7 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 			} else {
 				dest = l.lowerExprAddr(st.Target)
 			}
-			l.copyStructValue(dest, val, ty)
+			l.copyStructValueEffects(dest, val, ty, l.volatileObject(st.Val), l.volatileObject(st.Target))
 			return false
 		}
 		switch tgt := st.Target.(type) {
@@ -4251,24 +4251,29 @@ func (l *lowerer) fixedStructStorage(ty *mir2.StructTy) mir2.Reg {
 }
 
 func (l *lowerer) copyStructValue(dest, source mir2.Reg, ty *mir2.StructTy) {
+	l.copyStructValueEffects(dest, source, ty, false, false)
+}
+
+func (l *lowerer) copyStructValueEffects(dest, source mir2.Reg, ty *mir2.StructTy, sourceVolatile, destVolatile bool) {
 	values := make([]mir2.Reg, mir2.ByteWidth(ty))
 	for off := range values {
 		addr := source
 		if off != 0 {
 			addr = l.bld.Field(source, int64(off), mir2.ClassPointer)
 		}
-		values[off] = l.bld.Load(addr, mir2.TyU8, mir2.ClassGeneral)
+		values[off] = l.loadMemory(addr, mir2.TyU8, mir2.ClassGeneral, sourceVolatile || mir2.VolatileStorageByte(ty, off))
 	}
 	for off, value := range values {
 		addr := dest
 		if off != 0 {
 			addr = l.bld.Field(dest, int64(off), mir2.ClassPointer)
 		}
-		l.bld.Store(addr, value, mir2.TyU8)
+		l.storeMemory(addr, value, mir2.TyU8, destVolatile || mir2.VolatileStorageByte(ty, off))
 	}
 }
 
-func (l *lowerer) emitStructLitFields(lit *StructLitExpr, baseProvider func() mir2.Reg) {
+func (l *lowerer) emitStructLitFields(lit *StructLitExpr, baseProvider func() mir2.Reg, inherited ...bool) {
+	volatile := len(inherited) != 0 && inherited[0]
 	for _, fi := range lit.Fields {
 		// Find the matching struct field to get its type and byte offset.
 		var fieldTy mir2.Ty
@@ -4291,7 +4296,7 @@ func (l *lowerer) emitStructLitFields(lit *StructLitExpr, baseProvider func() mi
 					return base
 				}
 				return l.bld.Field(base, int64(off), mir2.ClassPointer)
-			})
+			}, volatile || mir2.VolatileStorageByte(lit.St, byteOff))
 			continue
 		}
 		val := l.lowerExpr(fi.Val)
@@ -4303,9 +4308,9 @@ func (l *lowerer) emitStructLitFields(lit *StructLitExpr, baseProvider func() mi
 			addr = l.bld.Field(base, int64(byteOff), mir2.ClassPointer)
 		}
 		if ty, ok := mir2.BaseOf(fieldTy).(*mir2.StructTy); ok {
-			l.copyStructValue(addr, val, ty)
+			l.copyStructValueEffects(addr, val, ty, l.volatileObject(fi.Val), volatile || mir2.VolatileStorageByte(lit.St, byteOff))
 		} else {
-			l.bld.Store(addr, val, fieldTy)
+			l.storeMemory(addr, val, fieldTy, volatile || mir2.VolatileStorageByte(lit.St, byteOff))
 		}
 	}
 }
@@ -4319,12 +4324,13 @@ func (l *lowerer) emitStructLitFields(lit *StructLitExpr, baseProvider func() mi
 // all values in advance would put two ClassAcc (A) vregs live simultaneously,
 // causing the allocator to spill to alloca instead of keeping everything in
 // registers.
-func (l *lowerer) emitStructLitFieldsChained(lit *StructLitExpr, startAddr mir2.Reg) {
+func (l *lowerer) emitStructLitFieldsChained(lit *StructLitExpr, startAddr mir2.Reg, inherited ...bool) {
+	volatile := len(inherited) != 0 && inherited[0]
 	for _, field := range lit.St.Fields {
 		if _, aggregate := mir2.BaseOf(field.Ty).(*mir2.StructTy); aggregate {
 			// Inline subobjects require a value copy (or recursive literal
 			// initialization), never an address-sized scalar store.
-			l.emitStructLitFields(lit, func() mir2.Reg { return startAddr })
+			l.emitStructLitFields(lit, func() mir2.Reg { return startAddr }, volatile)
 			return
 		}
 	}
@@ -4372,7 +4378,7 @@ func (l *lowerer) emitStructLitFieldsChained(lit *StructLitExpr, startAddr mir2.
 			addr = l.bld.Field(prevAddr, int64(diff), mir2.ClassPointer)
 		}
 		val := l.lowerExpr(e.valExpr) // lower just before Store — short live range
-		l.bld.Store(addr, val, e.ty)
+		l.storeMemory(addr, val, e.ty, volatile || mir2.VolatileStorageByte(lit.St, e.byteOff))
 		prevAddr = addr
 		prevOff = e.byteOff
 	}
@@ -4558,6 +4564,24 @@ func (l *lowerer) loadMemory(ptr mir2.Reg, ty mir2.Ty, cls mir2.RegClass, volati
 func (l *lowerer) storeMemory(ptr, val mir2.Reg, ty mir2.Ty, volatile bool) {
 	l.bld.Store(ptr, val, ty)
 	l.bld.Cur.Insts[len(l.bld.Cur.Insts)-1].Volatile = volatile
+}
+
+func (l *lowerer) volatileObject(e Expr) bool {
+	switch x := e.(type) {
+	case *VarRefExpr:
+		return x.Volatile || l.volatileAddress(e)
+	case *DerefExpr:
+		return x.Volatile || l.volatileAddress(x.Ptr)
+	case *LoadExpr:
+		return x.Volatile || l.volatileAddress(x.Ptr)
+	case *FieldExpr:
+		return x.Volatile || l.volatileObject(x.X)
+	case *IndexExpr:
+		return x.Volatile || l.volatileObject(x.Base)
+	case *CastExpr:
+		return l.volatileObject(x.X)
+	}
+	return l.volatileAddress(e)
 }
 
 // A C volatile aggregate imported into another frontend keeps its storage

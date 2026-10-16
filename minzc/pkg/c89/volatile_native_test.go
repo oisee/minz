@@ -73,6 +73,24 @@ func TestCVolatileAccessNativeVM(t *testing.T) {
 		{"predecrement_value", `void execute(void){result=--device;}`, 0, []volatileEvent{{Value: 1}, {Write: true, Value: 0}}},
 		{"postdecrement_value", `void execute(void){result=device--;}`, 1, []volatileEvent{{Value: 1}, {Write: true, Value: 0}}},
 
+		{"aggregate_read", `void execute(void){struct Reg a=device;struct Reg b=device;result=a.a+b.a;}`, 2, []volatileEvent{{Value: 1}, {Value: 3, Offset: 1}, {Value: 2, Offset: 2}, {Value: 4, Offset: 3}, {Value: 1}, {Value: 3, Offset: 1}, {Value: 2, Offset: 2}, {Value: 4, Offset: 3}}},
+		{"aggregate_write", `void execute(void){struct Reg a={5,0x0607,8};device=a;device=a;result=7;}`, 7, []volatileEvent{{Write: true, Value: 5}, {Write: true, Value: 7, Offset: 1}, {Write: true, Value: 6, Offset: 2}, {Write: true, Value: 8, Offset: 3}, {Write: true, Value: 5}, {Write: true, Value: 7, Offset: 1}, {Write: true, Value: 6, Offset: 2}, {Write: true, Value: 8, Offset: 3}}},
+
+		{"aggregate_argument", `unsigned char consume(struct Reg v){return v.a;}void execute(void){result=consume(device)+consume(device);}`, 2, []volatileEvent{{Value: 1}, {Value: 3, Offset: 1}, {Value: 2, Offset: 2}, {Value: 4, Offset: 3}, {Value: 1}, {Value: 3, Offset: 1}, {Value: 2, Offset: 2}, {Value: 4, Offset: 3}}},
+		{"aggregate_return", `struct Reg get(void){return device;}void execute(void){struct Reg a=get();struct Reg b=get();result=a.a+b.a;}`, 2, []volatileEvent{{Value: 1}, {Value: 3, Offset: 1}, {Value: 2, Offset: 2}, {Value: 4, Offset: 3}, {Value: 1}, {Value: 3, Offset: 1}, {Value: 2, Offset: 2}, {Value: 4, Offset: 3}}},
+
+		{"member_read", `void execute(void){struct Reg a=device;struct Reg b=device;result=7;}`, 7, []volatileEvent{{Value: 1}, {Value: 1}}},
+		{"member_write", `void execute(void){struct Reg a={5,0x0607,8};device=a;device=a;result=7;}`, 7, []volatileEvent{{Write: true, Value: 5}, {Write: true, Value: 5}}},
+		{"member_array_read", `void execute(void){struct Reg a=device;struct Reg b=device;result=7;}`, 7, []volatileEvent{{Value: 1}, {Value: 2, Offset: 1}, {Value: 1}, {Value: 2, Offset: 1}}},
+		{"member_nested_read", `void execute(void){struct Reg a=device;struct Reg b=device;result=7;}`, 7, []volatileEvent{{Value: 1}, {Value: 1}}},
+		{"member_union_read", `void execute(void){union Reg a=device;union Reg b=device;result=7;}`, 7, []volatileEvent{{Value: 1}, {Value: 2, Offset: 1}, {Value: 1}, {Value: 2, Offset: 1}}},
+		{"decl_assignment", `void execute(void){unsigned char x=(device=3);result=x;}`, 3, []volatileEvent{{Write: true, Value: 3}}},
+		{"decl_compound", `void execute(void){unsigned char x=(device+=2);result=x;}`, 3, []volatileEvent{{Value: 1}, {Write: true, Value: 3}}},
+		{"decl_preinc", `void execute(void){unsigned char x=++device;result=x;}`, 2, []volatileEvent{{Value: 1}, {Write: true, Value: 2}}},
+		{"decl_postinc", `void execute(void){unsigned char x=device++;result=x;}`, 1, []volatileEvent{{Value: 1}, {Write: true, Value: 2}}},
+		{"decl_predec", `void execute(void){unsigned char x=--device;result=x;}`, 0, []volatileEvent{{Value: 1}, {Write: true, Value: 0}}},
+		{"decl_postdec", `void execute(void){unsigned char x=device--;result=x;}`, 1, []volatileEvent{{Value: 1}, {Write: true, Value: 0}}},
+
 		{"volatile_pointer", `void execute(void){volatile unsigned char *volatile p=&device;result=*p;}`, 1, []volatileEvent{{Value: 1}}},
 		{"local_address", `void execute(void){volatile unsigned char x=3;volatile unsigned char *p=&x;*p=5;result=x;}`, 5, nil},
 
@@ -98,6 +116,23 @@ func TestCVolatileAccessNativeVM(t *testing.T) {
 				if strings.HasPrefix(c.name, "long_") {
 					prefix, width = "volatile unsigned long device=0x12345678UL; unsigned int result;", 4
 				}
+				if strings.HasPrefix(c.name, "aggregate_") {
+					prefix, width = "struct Reg{unsigned char a;unsigned int b;unsigned char c;};volatile struct Reg device={1,0x0203,4};unsigned int result;", 4
+				}
+
+				if strings.HasPrefix(c.name, "member_") {
+					prefix, width = "struct Reg{volatile unsigned char a;unsigned int b;unsigned char c;};struct Reg device={1,0x0203,4};unsigned int result;", 1
+				}
+				if c.name == "member_array_read" {
+					prefix, width = "struct Reg{volatile unsigned char a[2];unsigned int b;};struct Reg device={{1,2},0x0304};unsigned int result;", 2
+				}
+				if c.name == "member_nested_read" {
+					prefix, width = "struct Inner{volatile unsigned char a;unsigned int b;};struct Reg{struct Inner inner;unsigned char tail;};struct Reg device={{1,0x0203},4};unsigned int result;", 1
+				}
+				if c.name == "member_union_read" {
+					prefix, width = "union Reg{volatile unsigned int a;unsigned char b[4];};union Reg device={.b={1,2,3,4}};unsigned int result;", 2
+				}
+
 				if c.name == "ordinary_bit_test" {
 					prefix, width = "unsigned int device=0x1235;unsigned int result;", 2
 				}

@@ -1,0 +1,9 @@
+// Nanz imports the C source and its local header through the common backend.
+import arith { step }
+
+fun main() -> u32 {
+    return step(65535)
+}
+
+assert main() == 65536 via z80
+assert step(4294967295) == 0 via z80

@@ -202,8 +202,10 @@ func (p *hirParser) parseStruct(line string) (*mir2.StructTy, error) {
 			}
 			fname := strings.TrimSpace(part[:colon])
 			ftypeStr := strings.TrimSpace(part[colon+1:])
+			volatile := strings.HasPrefix(ftypeStr, "volatile ")
+			ftypeStr = strings.TrimPrefix(ftypeStr, "volatile ")
 			fty := p.parseType(ftypeStr)
-			st.Fields = append(st.Fields, mir2.StructField{Name: fname, Ty: fty})
+			st.Fields = append(st.Fields, mir2.StructField{Name: fname, Ty: fty, Volatile: volatile})
 		}
 	}
 	for _, option := range strings.Fields(rest[end+1:]) {

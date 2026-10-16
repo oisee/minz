@@ -4,6 +4,7 @@ import (
 	_ "embed"
 	"fmt"
 
+	"github.com/minz/minzc/pkg/mir2"
 	"github.com/minz/minzc/pkg/rewrite"
 	"github.com/minz/minzc/pkg/rewrite/grace"
 )
@@ -474,13 +475,13 @@ func graceMayInlineCallback(fn string) bool {
 func hasVolatileAccess(m *Module, body *Block) bool {
 	globals := map[string]bool{}
 	for _, g := range m.Globals {
-		globals[g.Name] = g.Volatile
+		globals[g.Name] = g.Volatile || mir2.HasVolatileStorage(g.Ty)
 	}
 	found := false
 	walkGraceBlocks(body, "", func(_ string, b *Block) {
 		for _, s := range b.Body {
-			if d, ok := s.(*VarDeclStmt); ok && d.Volatile {
-				found = true
+			if d, ok := s.(*VarDeclStmt); ok {
+				found = found || d.Volatile || mir2.HasVolatileStorage(d.Ty)
 			}
 			if d, ok := s.(*StoreStmt); ok && d.Volatile {
 				found = true

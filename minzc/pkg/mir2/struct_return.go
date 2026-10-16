@@ -102,6 +102,7 @@ func LowerStructReturnBuffers(m *Module) error {
 			type pendingCopy struct {
 				dest   Reg
 				values []Reg
+				ty     Ty
 			}
 			copies := make([]pendingCopy, 0, len(f.Contract.StructReturnBuffers))
 			address := func(base Reg, off int) Reg {
@@ -124,16 +125,16 @@ func LowerStructReturnBuffers(m *Module) error {
 				for off := range values {
 					addr := address(source, off)
 					r := f.AllocReg()
-					b.Insts = append(b.Insts, &Inst{Op: OpLoad, Dst: r, Src: [2]Reg{addr}, Ty: TyU8, Cls: ClassGeneral})
+					b.Insts = append(b.Insts, &Inst{Op: OpLoad, Dst: r, Src: [2]Reg{addr}, Ty: TyU8, Cls: ClassGeneral, Volatile: VolatileStorageByte(slot.Ty, off)})
 					values[off] = r
 				}
-				copies = append(copies, pendingCopy{dest, values})
+				copies = append(copies, pendingCopy{dest, values, slot.Ty})
 				ret.Vals[slot.ReturnIndex] = dest
 			}
 			for _, copy := range copies {
 				for off, r := range copy.values {
 					addr := address(copy.dest, off)
-					b.Insts = append(b.Insts, &Inst{Op: OpStore, Src: [2]Reg{addr, r}, Ty: TyU8})
+					b.Insts = append(b.Insts, &Inst{Op: OpStore, Src: [2]Reg{addr, r}, Ty: TyU8, Volatile: VolatileStorageByte(copy.ty, off)})
 				}
 			}
 

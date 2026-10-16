@@ -1974,6 +1974,22 @@ func (p *parser) parseAssert() (hir.Assert, error) {
 	if err != nil {
 		return hir.Assert{}, fmt.Errorf("line %d: assert: expected function name", line)
 	}
+	assertName := nameTok.val
+	for p.l.is(tokDot) {
+		p.l.next()
+		part, err := p.l.eat(tokIdent)
+		if err != nil {
+			return hir.Assert{}, fmt.Errorf("line %d: assert: expected qualified function name", line)
+		}
+		assertName += "." + part.val
+	}
+	functionName := assertName
+	if resolved, ok := p.funcAliases[assertName]; ok {
+		functionName = resolved
+	} else if strings.Contains(assertName, ".") {
+		functionName = strings.ReplaceAll(assertName, ".", "__")
+	}
+
 	if _, err2 := p.l.eat(tokLParen); err2 != nil {
 		return hir.Assert{}, fmt.Errorf("line %d: assert: expected '(' after function name", line)
 	}
@@ -2007,12 +2023,12 @@ func (p *parser) parseAssert() (hir.Assert, error) {
 		if negated {
 			prefix = "assert not "
 		}
-		src := fmt.Sprintf("%s%s(%s)", prefix, nameTok.val, intSliceStr(args))
+		src := fmt.Sprintf("%s%s(%s)", prefix, assertName, intSliceStr(args))
 		if via != "" {
 			src += " via " + via
 		}
 		return hir.Assert{
-			FuncName: nameTok.val,
+			FuncName: functionName,
 			Args:     args,
 			Expected: expected,
 			Source:   src,
@@ -2046,12 +2062,12 @@ func (p *parser) parseAssert() (hir.Assert, error) {
 			return hir.Assert{}, fmt.Errorf("line %d: assert: expected ')' after tuple", line)
 		}
 		via := p.parseAssertVia()
-		src := fmt.Sprintf("assert %s(%s) == (%s)", nameTok.val, intSliceStr(args), intSliceStr(multi))
+		src := fmt.Sprintf("assert %s(%s) == (%s)", assertName, intSliceStr(args), intSliceStr(multi))
 		if via != "" {
 			src += " via " + via
 		}
 		return hir.Assert{
-			FuncName:      nameTok.val,
+			FuncName:      functionName,
 			Args:          args,
 			ExpectedMulti: multi,
 			Source:        src,
@@ -2067,12 +2083,12 @@ func (p *parser) parseAssert() (hir.Assert, error) {
 	}
 
 	via := p.parseAssertVia()
-	src := fmt.Sprintf("assert %s(%s) == %d", nameTok.val, intSliceStr(args), expected)
+	src := fmt.Sprintf("assert %s(%s) == %d", assertName, intSliceStr(args), expected)
 	if via != "" {
 		src += " via " + via
 	}
 	return hir.Assert{
-		FuncName: nameTok.val,
+		FuncName: functionName,
 		Args:     args,
 		Expected: expected,
 		Source:   src,
@@ -5965,6 +5981,7 @@ func (p *parser) parseLambda() (hir.Expr, error) {
 func (p *parser) makeFieldExpr(base hir.Expr, fieldName string) *hir.FieldExpr {
 	fieldTy := mir2.Ty(mir2.TyU8)
 	fieldOffset := 0
+	volatile := false
 
 	// Find the struct type: either the base is directly a struct, or a ^Struct pointer.
 	var st *mir2.StructTy
@@ -5978,13 +5995,14 @@ func (p *parser) makeFieldExpr(base hir.Expr, fieldName string) *hir.FieldExpr {
 		for index, f := range st.Fields {
 			if f.Name == fieldName {
 				fieldTy = f.Ty
+				volatile = f.Volatile
 				fieldOffset = st.ByteOffset(index)
 				break
 			}
 		}
 	}
 
-	return &hir.FieldExpr{X: base, Field: fieldName, Offset: fieldOffset, Ty: fieldTy}
+	return &hir.FieldExpr{X: base, Field: fieldName, Offset: fieldOffset, Ty: fieldTy, Volatile: volatile}
 }
 
 // matchOpOverload finds the best matching overload for (lhsTy, rhsTy).

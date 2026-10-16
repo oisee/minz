@@ -368,8 +368,9 @@ func NewArraySoA256(elem Ty, length int) *ArrayTy {
 
 // StructField is one named field within a StructTy.
 type StructField struct {
-	Name string
-	Ty   Ty
+	Name     string
+	Ty       Ty
+	Volatile bool `json:",omitempty"` // field bytes remain observable in aggregate copies
 }
 
 // StructTy is a product type with named, packed fields.
@@ -536,6 +537,40 @@ func IsInt(ty Ty) bool {
 func IsSigned(ty Ty) bool {
 	if it, ok := ty.(*intTy); ok {
 		return it.signed
+	}
+	return false
+}
+
+// HasVolatileStorage identifies qualified bytes without walking object sizes.
+func HasVolatileStorage(ty Ty) bool {
+	switch t := BaseOf(ty).(type) {
+	case *StructTy:
+		for _, f := range t.Fields {
+			if f.Volatile || HasVolatileStorage(f.Ty) {
+				return true
+			}
+		}
+	case *ArrayTy:
+		return HasVolatileStorage(t.Elem)
+	}
+	return false
+}
+
+// A field qualifier affects its bytes, including nested arrays and overlaps.
+func VolatileStorageByte(ty Ty, off int) bool {
+	switch t := BaseOf(ty).(type) {
+	case *StructTy:
+		for i, field := range t.Fields {
+			rel := off - t.ByteOffset(i)
+			if rel >= 0 && rel < ByteWidth(field.Ty) && (field.Volatile || VolatileStorageByte(field.Ty, rel)) {
+				return true
+			}
+		}
+	case *ArrayTy:
+		width := ByteWidth(t.Elem)
+		if width > 0 && off >= 0 && off < ByteWidth(t) {
+			return VolatileStorageByte(t.Elem, off%width)
+		}
 	}
 	return false
 }
