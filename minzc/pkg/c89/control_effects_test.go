@@ -1,6 +1,7 @@
-package c89
+package c89_test
 
 import (
+	c89 "github.com/minz/minzc/pkg/c89"
 	"github.com/minz/minzc/pkg/hir"
 	"github.com/minz/minzc/pkg/mir2"
 	"github.com/minz/minzc/pkg/pipeline"
@@ -13,7 +14,7 @@ func TestControlEffectsRawVM(t *testing.T) {
 	if e != nil {
 		t.Fatal(e)
 	}
-	h, e := CompileWithOpts(string(src), "control-effects.c", CompileOpts{NoLibc: true})
+	h, e := c89.CompileWithOpts(string(src), "control-effects.c", c89.CompileOpts{NoLibc: true})
 	if e != nil {
 		t.Fatal(e)
 	}
@@ -104,7 +105,7 @@ func TestControlEffectsNestedAndBreak(t *testing.T) {
 		panic("unknown")
 	}
 	parse := func() *hir.Module {
-		h, e := CompileWithOpts(source, "nested-controls.c", CompileOpts{NoLibc: true})
+		h, e := c89.CompileWithOpts(source, "nested-controls.c", c89.CompileOpts{NoLibc: true})
 		if e != nil {
 			t.Fatal(e)
 		}

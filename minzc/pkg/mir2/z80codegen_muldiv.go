@@ -444,130 +444,11 @@ func (g *z80cg) genMul16(inst *Inst) {
 	g.invalidate("BC")
 }
 
-// genMul32 emits 24/32-bit multiply by a constant via SHL-and-add.
-//
-// Power-of-2 constants: log2(cv) × SHL32 (ADD HL,HL / EXX / ADC HL,HL / EXX per bit).
-// Small constants (3,5,6,9): LD+saves using emitMov32 for the partial product.
-// General constants: decompose into Σ 2^k terms (binary method).
-// Variable multiplier: TODO (software loop).
+// genMul32 handles constants and variables with the same complete,
+// alias-safe kernel. Specialized constant recipes can be added after they
+// prove equivalence and register preservation against this implementation.
 func (g *z80cg) genMul32(inst *Inst) {
-	dst := g.loc(inst.Dst)
-	lhs := g.loc(inst.Src[0])
-
-	// Emit one 32-bit left-shift-by-1 on the register pair p.
-	// Z80 only has ADD HL,HL — route through HL if p != HL.
-	shl1 := func(p string) {
-		if p != "HL" {
-			g.emitMov("HL", p, 16)
-		}
-		g.emit("    ADD HL, HL")
-		g.emit("    EXX")
-		g.emit("    ADC HL, HL")
-		g.emit("    EXX")
-		if p != "HL" {
-			g.emitMov(p, "HL", 16)
-			g.invalidate("HL")
-		}
-	}
-
-	cv, isConst := g.constVals[inst.Src[1]]
-
-	if !isConst {
-		rhs := g.loc(inst.Src[1])
-		g.comment(fmt.Sprintf("TODO: 32-bit variable mul %s * %s → %s", lhs, rhs, dst))
-		return
-	}
-
-	// Ensure lhs is in dst before operating.
-	if dst != lhs {
-		g.emitMov32(dst, lhs)
-	}
-
-	switch cv {
-	case 0:
-		// dst = 0: load zero constant.
-		if isSpill(dst) {
-			g.emit("    LD HL, 0")
-			g.storeSpill16(dst, "HL")
-			g.invalidate("HL")
-		} else {
-			g.emitf("    LD %s, 0", dst)
-			g.emit("    EXX")
-			g.emitf("    LD %s, 0", dst)
-			g.emit("    EXX")
-		}
-		g.invalidate(dst)
-		return
-	case 1:
-		// dst = lhs — already done by move above.
-		return
-	}
-
-	// Power-of-2: log2(cv) left shifts.
-	if cv > 0 && cv&(cv-1) == 0 {
-		shifts := 0
-		for n := cv; n > 1; n >>= 1 {
-			shifts++
-		}
-		for i := 0; i < shifts; i++ {
-			shl1(dst)
-		}
-		g.invalidate(dst)
-		return
-	}
-
-	// Binary decomposition: dst = Σ (dst_orig << k) for each set bit k in cv.
-	// Uses a saved copy of the original value to accumulate.
-	// Only valid when dst is HL (has ADD/ADC). For others, fall through to TODO.
-	if dst == "HL" && cv > 0 {
-		// Save original in DE (push to stack if DE is occupied).
-		g.emit("    PUSH DE") // save main DE
-		g.emit("    EXX")
-		g.emit("    PUSH DE") // save shadow DE
-		g.emit("    EXX")
-		// Copy lhs (already in HL/H'L') to DE/D'E'.
-		g.emitMov32("DE", "HL")
-		// Accumulate: acc = 0, then for each set bit k add (orig << k).
-		// Clear HL for accumulation.
-		g.emitf("    LD HL, 0")
-		g.emit("    EXX")
-		g.emitf("    LD HL, 0")
-		g.emit("    EXX")
-		shift := 0
-		for bit := int64(0); bit < 32; bit++ {
-			if cv&(1<<bit) != 0 {
-				// Shift DE/D'E' to the current bit position (relative to prev shift).
-				for i := shift; i < int(bit); i++ {
-					// SHL DE by 1: ADD HL,DE / ... — no, we shift DE itself.
-					// Use: EXX / SLA E / RL D / EXX / SLA E / RL D
-					// Wait, that shifts D'E'. Let's use ADD DE,DE — Z80 has no ADD DE,DE.
-					// Instead: shift DE using SLA/RL pattern.
-					g.emit("    EXX")
-					g.emit("    SLA E")
-					g.emit("    RL  D")
-					g.emit("    EXX")
-					g.emit("    SLA E")
-					g.emit("    RL  D")
-				}
-				shift = int(bit)
-				// acc (HL/H'L') += DE/D'E'.
-				g.emitf("    ADD HL, DE")
-				g.emit("    EXX")
-				g.emitf("    ADC HL, DE")
-				g.emit("    EXX")
-			}
-		}
-		// Restore DE.
-		g.emit("    EXX")
-		g.emit("    POP DE")
-		g.emit("    EXX")
-		g.emit("    POP DE")
-		g.invalidate(dst)
-		return
-	}
-
-	// Fallback for non-HL dst or complex constants.
-	g.comment(fmt.Sprintf("TODO: 32-bit mul by %d in %s", cv, dst))
+	g.genWideArithmetic(inst)
 }
 
 // ── Division / Modulo ─────────────────────────────────────────────────────────
@@ -599,7 +480,7 @@ func (g *z80cg) genDivMod(inst *Inst) {
 	} else if w <= 16 {
 		g.genDivMod16(inst)
 	} else {
-		g.comment(fmt.Sprintf("TODO: %d-bit div/mod", w))
+		g.genWideArithmetic(inst)
 	}
 }
 

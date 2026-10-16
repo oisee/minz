@@ -1,6 +1,7 @@
-package c89
+package c89_test
 
 import (
+	c89 "github.com/minz/minzc/pkg/c89"
 	"github.com/minz/minzc/pkg/hir"
 	"github.com/minz/minzc/pkg/mir2"
 	"github.com/minz/minzc/pkg/pipeline"
@@ -13,12 +14,12 @@ func TestControlContinueShadowProbe(t *testing.T) {
 		`unsigned int probe(void) { unsigned char i=0,total=0; do { { unsigned char i=99; total+=i; continue; } } while(i++<2); return (unsigned int)i*256+total; }`,
 		`unsigned int probe(void) { unsigned char i=0,total=0; while(i<3) { { unsigned char i=99; total+=i; } i++; } return (unsigned int)i*256+total; }`,
 	} {
-		h, e := CompileWithOpts(source, "shadow.c", CompileOpts{NoLibc: true})
+		h, e := c89.CompileWithOpts(source, "shadow.c", c89.CompileOpts{NoLibc: true})
 		if e != nil {
 			t.Fatal(e)
 		}
 		for _, o := range []pipeline.Options{{}, {UseHIRGrace: true, UseGrace: true}, {UseHIRGrace: true, UseGrace: true, OptSize: true}} {
-			compiled, err := CompileWithOpts(source, "shadow.c", CompileOpts{NoLibc: true})
+			compiled, err := c89.CompileWithOpts(source, "shadow.c", c89.CompileOpts{NoLibc: true})
 			if err != nil {
 				t.Fatal(err)
 			}

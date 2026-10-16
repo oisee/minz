@@ -48,7 +48,9 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/minz/minzc/pkg/c89"
 	"github.com/minz/minzc/pkg/hir"
+	"github.com/minz/minzc/pkg/interop"
 	"github.com/minz/minzc/pkg/lanz"
 	"github.com/minz/minzc/pkg/lizp"
 	"github.com/minz/minzc/pkg/mir2"
@@ -1660,6 +1662,8 @@ func (p *parser) parseImport() error {
 	var importedMetaFuncs map[string]string
 	ext := filepath.Ext(filePath)
 	switch ext {
+	case ".c":
+		imported, err = c89.CompileWithOpts(string(src), filePath, c89.CompileOpts{BaseDir: filepath.Dir(filePath), IncludePaths: []string{filepath.Dir(filePath)}, Resolver: p.cSourceResolver(filePath)})
 	case ".lanz":
 		imported, err = lanz.Compile(string(src), modPath)
 	case ".lizp":
@@ -1921,7 +1925,7 @@ func (p *parser) childTypeAliases(_ *hir.Module) map[string]mir2.Ty {
 // Tries extensions in priority order: .nanz, .lanz, .plm.
 func (p *parser) resolveModulePath(modPath string, line int) (string, error) {
 	basePath := strings.ReplaceAll(modPath, ".", string(filepath.Separator))
-	exts := []string{".nanz", ".minz", ".lanz", ".lizp", ".plm", ".pas"}
+	exts := []string{".nanz", ".minz", ".lanz", ".lizp", ".plm", ".pas", ".c"}
 	dirs := []string{}
 	if p.opts.BaseDir != "" {
 		dirs = append(dirs, p.opts.BaseDir)
@@ -1970,6 +1974,22 @@ func (p *parser) parseAssert() (hir.Assert, error) {
 	if err != nil {
 		return hir.Assert{}, fmt.Errorf("line %d: assert: expected function name", line)
 	}
+	assertName := nameTok.val
+	for p.l.is(tokDot) {
+		p.l.next()
+		part, err := p.l.eat(tokIdent)
+		if err != nil {
+			return hir.Assert{}, fmt.Errorf("line %d: assert: expected qualified function name", line)
+		}
+		assertName += "." + part.val
+	}
+	functionName := assertName
+	if resolved, ok := p.funcAliases[assertName]; ok {
+		functionName = resolved
+	} else if strings.Contains(assertName, ".") {
+		functionName = strings.ReplaceAll(assertName, ".", "__")
+	}
+
 	if _, err2 := p.l.eat(tokLParen); err2 != nil {
 		return hir.Assert{}, fmt.Errorf("line %d: assert: expected '(' after function name", line)
 	}
@@ -2003,12 +2023,12 @@ func (p *parser) parseAssert() (hir.Assert, error) {
 		if negated {
 			prefix = "assert not "
 		}
-		src := fmt.Sprintf("%s%s(%s)", prefix, nameTok.val, intSliceStr(args))
+		src := fmt.Sprintf("%s%s(%s)", prefix, assertName, intSliceStr(args))
 		if via != "" {
 			src += " via " + via
 		}
 		return hir.Assert{
-			FuncName: nameTok.val,
+			FuncName: functionName,
 			Args:     args,
 			Expected: expected,
 			Source:   src,
@@ -2042,12 +2062,12 @@ func (p *parser) parseAssert() (hir.Assert, error) {
 			return hir.Assert{}, fmt.Errorf("line %d: assert: expected ')' after tuple", line)
 		}
 		via := p.parseAssertVia()
-		src := fmt.Sprintf("assert %s(%s) == (%s)", nameTok.val, intSliceStr(args), intSliceStr(multi))
+		src := fmt.Sprintf("assert %s(%s) == (%s)", assertName, intSliceStr(args), intSliceStr(multi))
 		if via != "" {
 			src += " via " + via
 		}
 		return hir.Assert{
-			FuncName:      nameTok.val,
+			FuncName:      functionName,
 			Args:          args,
 			ExpectedMulti: multi,
 			Source:        src,
@@ -2063,12 +2083,12 @@ func (p *parser) parseAssert() (hir.Assert, error) {
 	}
 
 	via := p.parseAssertVia()
-	src := fmt.Sprintf("assert %s(%s) == %d", nameTok.val, intSliceStr(args), expected)
+	src := fmt.Sprintf("assert %s(%s) == %d", assertName, intSliceStr(args), expected)
 	if via != "" {
 		src += " via " + via
 	}
 	return hir.Assert{
-		FuncName: nameTok.val,
+		FuncName: functionName,
 		Args:     args,
 		Expected: expected,
 		Source:   src,
@@ -2602,9 +2622,8 @@ func literalInitializer(e hir.Expr, ty mir2.Ty) ([]byte, bool, error) {
 		}
 		data := make([]byte, mir2.ByteWidth(st))
 		for _, value := range lit.Fields {
-			offset := 0
 			found := false
-			for _, field := range st.Fields {
+			for index, field := range st.Fields {
 				if field.Name == value.Name {
 					bytes, constant, err := literalInitializer(value.Val, field.Ty)
 					if err != nil {
@@ -2613,11 +2632,10 @@ func literalInitializer(e hir.Expr, ty mir2.Ty) ([]byte, bool, error) {
 					if !constant {
 						return nil, false, fmt.Errorf("global initializer: field %s requires a constant literal", value.Name)
 					}
-					copy(data[offset:], bytes)
+					copy(data[st.ByteOffset(index):], bytes)
 					found = true
 					break
 				}
-				offset += mir2.ByteWidth(field.Ty)
 			}
 			if !found {
 				return nil, false, fmt.Errorf("global initializer: unknown field %s", value.Name)
@@ -5963,6 +5981,7 @@ func (p *parser) parseLambda() (hir.Expr, error) {
 func (p *parser) makeFieldExpr(base hir.Expr, fieldName string) *hir.FieldExpr {
 	fieldTy := mir2.Ty(mir2.TyU8)
 	fieldOffset := 0
+	volatile := false
 
 	// Find the struct type: either the base is directly a struct, or a ^Struct pointer.
 	var st *mir2.StructTy
@@ -5973,18 +5992,17 @@ func (p *parser) makeFieldExpr(base hir.Expr, fieldName string) *hir.FieldExpr {
 	}
 
 	if st != nil {
-		byteOffset := 0
-		for _, f := range st.Fields {
+		for index, f := range st.Fields {
 			if f.Name == fieldName {
 				fieldTy = f.Ty
-				fieldOffset = byteOffset
+				volatile = f.Volatile
+				fieldOffset = st.ByteOffset(index)
 				break
 			}
-			byteOffset += mir2.ByteWidth(f.Ty)
 		}
 	}
 
-	return &hir.FieldExpr{X: base, Field: fieldName, Offset: fieldOffset, Ty: fieldTy}
+	return &hir.FieldExpr{X: base, Field: fieldName, Offset: fieldOffset, Ty: fieldTy, Volatile: volatile}
 }
 
 // matchOpOverload finds the best matching overload for (lhsTy, rhsTy).
@@ -6580,4 +6598,33 @@ func mergeGeneratedDeclarations(dst, src *hir.Module) error {
 		dst.Structs = append(dst.Structs, st)
 	}
 	return nil
+}
+
+// CSourceResolver provides the same mixed C/Nanz loader used by Nanz imports
+// to standalone C entry points. opts carries stdlib, policy and cycle context.
+// C callers must still declare imported functions in C prototypes/headers.
+func CSourceResolver(sourceFile string, opts ParseOpts) *interop.Resolver {
+	return (&parser{opts: opts}).cSourceResolver(sourceFile)
+}
+
+// C #import modules join the same HIR before the outer Nanz import receives
+// its namespace. Pass absolute source identities so nested includes/imports
+// resolve relative to the actual file, not the current process directory.
+func (p *parser) cSourceResolver(sourceFile string) *interop.Resolver {
+	compilers := map[string]interop.CompileFunc{}
+	compilers[".nanz"] = func(src, name string) (*hir.Module, error) {
+		loaded := map[string]bool{}
+		for k, v := range p.opts.Loaded {
+			loaded[k] = v
+		}
+		abs, _ := filepath.Abs(sourceFile)
+		loaded[abs] = true
+		return ParseWithOpts(src, name, ParseOpts{BaseDir: filepath.Dir(name), StdlibDir: p.opts.StdlibDir, OptSize: p.opts.OptSize, Loaded: loaded})
+	}
+	compilers[".minz"] = compilers[".nanz"]
+	compilers[".c"] = func(src, name string) (*hir.Module, error) {
+		identity := sha256.Sum256([]byte(name))
+		return c89.CompileWithOpts(src, name, c89.CompileOpts{BaseDir: filepath.Dir(name), IncludePaths: []string{filepath.Dir(name)}, PrivatePrefix: fmt.Sprintf("__c_%x__", identity[:16])})
+	}
+	return &interop.Resolver{BaseDir: filepath.Dir(sourceFile), Compilers: compilers}
 }

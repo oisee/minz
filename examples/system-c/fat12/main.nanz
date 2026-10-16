@@ -1,0 +1,26 @@
+import fat12 {fat_mount,fat_find,fat_read,fat_error,fat_size}
+global filename:[u8;11]=[72,69,76,76,79,32,32,32,84,88,84]
+global chunk:[u8;512]
+global status:u8
+global bytes_read:u32
+global checksum:u16
+fun run() {
+ bytes_read=0
+ checksum=0
+ status=fat_mount()
+ if status!=0 {return}
+ status=fat_find(&filename)
+ if status!=0 {return}
+ var n:u16=fat_read(&chunk)
+ while n!=0 {
+  var i:u16=0
+  while i<n {
+   checksum=checksum*33+u16(chunk[i])
+   @console_log(chunk[i])
+   i=i+1
+  }
+  bytes_read=bytes_read+u32(n)
+  n=fat_read(&chunk)
+ }
+ status=fat_error
+}

@@ -14,6 +14,10 @@ MinZ is an experimental compiler toolchain for writing programs for Z80 machines
 
 The project is active research: examples and targets have different levels of maturity. Start with a runnable program below; use the [current handover](docs/project/HANDOVER-2026-10-01.md), [ranked backlog](docs/project/BACKLOG.md), and [dated technical audit](reports/2026-09-19-Deep-Technical-Audit-RU.md) for measured status.
 
+## Nanz + C for system code
+
+[Source imports, target ABI, supported subset and runnable examples](docs/Nanz_C_Interop.md) · [FAT12 disk-image reader](examples/system-c/fat12/README.md). Implementation, supported scope and verification are recorded in [PR #162](https://github.com/oisee/minz/pull/162) and the [integration report](reports/system-c-z80/integration-readiness.md).
+
 ## 🎉 Zork, compiled from Nanz to banked Z80!
 
 **The Spectrum 128K milestone is reached.** Our Z-machine V3 interpreter,

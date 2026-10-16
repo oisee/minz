@@ -169,6 +169,7 @@ func (*Block) hirStmt() {}
 // VarDeclStmt declares a new local variable.
 // In HIR, variables are mutable (assignments create new bindings in lowering).
 type VarDeclStmt struct {
+	Volatile bool `json:",omitempty"` // observable memory access; preserve count and order
 	Name     string
 	Ty       mir2.Ty // element type (for arrays) or scalar type
 	ArrayLen int     // if > 0: this is a [ArrayLen]Ty array; Ty is the element type
@@ -306,8 +307,9 @@ func (*SwitchStmt) hirStmt() {}
 
 // StoreStmt writes through a pointer: *Ptr = Val
 type StoreStmt struct {
-	Ptr Expr // must have type mir2.TyPtr
-	Val Expr
+	Volatile bool `json:",omitempty"` // observable memory access; preserve count and order
+	Ptr      Expr // must have type mir2.TyPtr
+	Val      Expr
 }
 
 func (*StoreStmt) hirStmt() {}
@@ -372,8 +374,9 @@ func (*BoolLitExpr) ExprTy() mir2.Ty { return mir2.TyBool }
 
 // VarRefExpr references a named variable or parameter.
 type VarRefExpr struct {
-	Name string
-	Ty   mir2.Ty
+	Volatile bool `json:",omitempty"` // observable memory access; preserve count and order
+	Name     string
+	Ty       mir2.Ty
 }
 
 func (*VarRefExpr) hirExpr()          {}
@@ -468,10 +471,11 @@ func (e *CallIndirectExpr) ExprTy() mir2.Ty { return e.Ty }
 
 // FieldExpr accesses a struct field.  Offset is the byte offset from the base.
 type FieldExpr struct {
-	X      Expr
-	Field  string
-	Offset int
-	Ty     mir2.Ty
+	Volatile bool `json:",omitempty"` // observable memory access; preserve count and order
+	X        Expr
+	Field    string
+	Offset   int
+	Ty       mir2.Ty
 }
 
 func (*FieldExpr) hirExpr()          {}
@@ -506,8 +510,9 @@ func (e *AddrOfExpr) ExprTy() mir2.Ty {
 
 // LoadExpr dereferences a pointer: *Ptr
 type LoadExpr struct {
-	Ptr Expr // must have type TyPtr
-	Ty  mir2.Ty
+	Volatile bool `json:",omitempty"` // observable memory access; preserve count and order
+	Ptr      Expr // must have type TyPtr
+	Ty       mir2.Ty
 }
 
 func (*LoadExpr) hirExpr()          {}
@@ -516,8 +521,9 @@ func (e *LoadExpr) ExprTy() mir2.Ty { return e.Ty }
 // DerefExpr is an lvalue dereference (used as AssignStmt.Target).
 // Same as LoadExpr but semantically marks "write target".
 type DerefExpr struct {
-	Ptr Expr
-	Ty  mir2.Ty
+	Volatile bool `json:",omitempty"` // observable memory access; preserve count and order
+	Ptr      Expr
+	Ty       mir2.Ty
 }
 
 func (*DerefExpr) hirExpr()          {}
@@ -547,6 +553,7 @@ func (*ConstPtrExpr) ExprTy() mir2.Ty { return mir2.TyPtr }
 // Base must have type TyPtr (pointing to element type ElemTy).
 // ElemStride is the byte size of each element (1 for u8, 2 for u16, etc.).
 type IndexExpr struct {
+	Volatile   bool `json:",omitempty"` // observable memory access; preserve count and order
 	Base       Expr // TyPtr — pointer to first element
 	Idx        Expr // TyU8 or TyU16 — index
 	ElemTy     mir2.Ty

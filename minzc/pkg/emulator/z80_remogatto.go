@@ -556,6 +556,18 @@ func (z *RemogattoZ80) GetRegisters() Registers {
 	}
 }
 
+// ShadowRegisters is the alternate AF/BC/DE/HL register bank.
+type ShadowRegisters struct {
+	A, F       uint8
+	BC, DE, HL uint16
+}
+
+// GetShadowRegisters observes the alternate bank without executing EXX or
+// changing flags, interrupt state, PC or SP.
+func (z *RemogattoZ80) GetShadowRegisters() ShadowRegisters {
+	return ShadowRegisters{A: z.cpu.A_, F: z.cpu.F_, BC: z.cpu.BC_(), DE: z.cpu.DE_(), HL: z.cpu.HL_()}
+}
+
 // SetRegisters loads the main register file (A, F, BC, DE, HL, IX, IY, SP, PC).
 // Shadow registers, I/R and interrupt state are left untouched.
 func (z *RemogattoZ80) SetRegisters(r Registers) {

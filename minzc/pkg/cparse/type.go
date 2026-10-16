@@ -2502,10 +2502,8 @@ func UsualArithmeticConversions(a, b Type) (r Type) {
 	ast := a.(*PredefinedType).c.ast
 	abi := ast.ABI
 
-	ak = integerPromotionKind(ak)
-	bk = integerPromotionKind(bk)
-	a = ast.kinds[ak]
-	b = ast.kinds[bk]
+	a, b = IntegerPromotion(a), IntegerPromotion(b)
+	ak, bk = a.Kind(), b.Kind()
 
 	// Then the following rules are applied to the promoted operands:
 
@@ -2582,15 +2580,6 @@ func UsualArithmeticConversions(a, b Type) (r Type) {
 	panic(todo(""))
 }
 
-func integerPromotionKind(k Kind) Kind {
-	switch k {
-	case Bool, Char, SChar, UChar, Short, UShort:
-		return Int
-	default:
-		return k
-	}
-}
-
 // IntegerPromotion performs the type conversion defined in [0]6.3.1.1-2.
 //
 // If an int can represent all values of the original type, the value is
@@ -2600,7 +2589,12 @@ func integerPromotionKind(k Kind) Kind {
 func IntegerPromotion(t Type) Type {
 	switch t.Kind() {
 	case Bool, Char, SChar, UChar, Short, UShort:
-		return t.(*PredefinedType).c.ast.kinds[Int]
+		ast := t.(*PredefinedType).c.ast
+		// On a 16-bit-int target unsigned short cannot fit into signed int.
+		if !IsSignedInteger(t) && t.Size() >= ast.kinds[Int].Size() && t.Kind() != Bool {
+			return ast.kinds[UInt]
+		}
+		return ast.kinds[Int]
 	default:
 		return t
 	}

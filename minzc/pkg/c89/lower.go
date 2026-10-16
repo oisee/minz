@@ -12,12 +12,14 @@ import (
 )
 
 type lowerer struct {
-	ast      *cc.AST
-	hm       *hir.Module
-	globals  map[string]mir2.Ty
-	typedefs map[string]mir2.Ty
-	structs  map[string]*mir2.StructTy
-	cStructs map[cc.Type]string // C struct type → MIR2 struct name
+	privateSymbols map[string]string
+	typeError      error // unsupported mapped types must never produce an executable
+	ast            *cc.AST
+	hm             *hir.Module
+	globals        map[string]mir2.Ty
+	typedefs       map[string]mir2.Ty
+	structs        map[string]*mir2.StructTy
+	cStructs       map[cc.Type]string // C struct type → MIR2 struct name
 
 	// ObjC: class info from @interface declarations.
 	objcClasses   map[string]*objcClassInfo
@@ -53,7 +55,7 @@ func (l *lowerer) lower() error {
 			l.lowerObjCProtocol(ed.ObjCProtocol)
 		}
 	}
-	return nil
+	return l.typeError
 }
 
 // ── Type mapping ────────────────────────────────────────────────────────────
@@ -66,21 +68,27 @@ func (l *lowerer) mapType(t cc.Type) mir2.Ty {
 	case cc.Void:
 		return mir2.TyVoid
 	case cc.Bool, cc.Char, cc.SChar, cc.UChar:
-		if t.Kind() == cc.SChar {
+		if cc.IsSignedInteger(t) {
 			return mir2.TyI8
 		}
 		return mir2.TyU8
-	case cc.Short, cc.UShort, cc.Int, cc.UInt, cc.Enum:
-		if t.Kind() == cc.Short || t.Kind() == cc.Int {
+	case cc.Enum:
+		return l.mapType(t.(*cc.EnumType).UnderlyingType())
+	case cc.Short, cc.UShort, cc.Int, cc.UInt:
+		if cc.IsSignedInteger(t) {
 			return mir2.TyI16
 		}
 		return mir2.TyU16
-	case cc.Long, cc.ULong, cc.LongLong, cc.ULongLong:
-		// 32-bit not natively supported; use i16 for now
-		if t.Kind() == cc.Long || t.Kind() == cc.LongLong {
-			return mir2.TyI16
+	case cc.Long, cc.ULong:
+		if cc.IsSignedInteger(t) {
+			return mir2.TyI32
 		}
-		return mir2.TyU16
+		return mir2.TyU32
+	case cc.LongLong, cc.ULongLong:
+		if l.typeError == nil {
+			l.typeError = fmt.Errorf("c89: 64-bit %s is not supported by the Z80 frontend", t)
+		}
+		return mir2.TyU32 // error returned by lower; never emit narrowed code
 	case cc.Ptr, cc.Function:
 		return mir2.TyPtr
 	case cc.Array:
@@ -88,7 +96,15 @@ func (l *lowerer) mapType(t cc.Type) mir2.Ty {
 	case cc.Struct, cc.Union:
 		return mir2.TyPtr // structs/unions lowered to pointer (address) on Z80
 	default:
-		return mir2.TyU16 // conservative fallback
+		// ObjC message expressions use parser placeholders; selector types
+		// are supplied separately by objc_lower. They are not C scalar types.
+		if t.Kind() == cc.InvalidKind && len(l.objcClasses) > 0 {
+			return mir2.TyU16
+		}
+		if l.typeError == nil {
+			l.typeError = fmt.Errorf("c89: unsupported Z80 type %s", t)
+		}
+		return mir2.TyU16 // only retained while collecting the diagnostic
 	}
 }
 
@@ -102,10 +118,34 @@ func (l *lowerer) unionTag(ut *cc.UnionType) string {
 	return t.SrcStr()
 }
 
+// cConvert leaves already matching values structurally intact, including
+// aggregate literals needed by struct-return promotion.
+func cConvert(e hir.Expr, ty mir2.Ty) hir.Expr {
+	if e.ExprTy() == ty {
+		return e
+	}
+	return hir.Cast(e, ty)
+}
+
+// Conversion to C _Bool tests the complete scalar before narrowing to its
+// one-byte ABI representation (C99 6.3.1.2).
+func (l *lowerer) convertType(e hir.Expr, ty cc.Type) hir.Expr {
+	if ty != nil && (ty.Kind() == cc.Struct || ty.Kind() == cc.Union) {
+		if _, aggregate := mir2.BaseOf(e.ExprTy()).(*mir2.StructTy); aggregate {
+			return hir.AddrExpr(e)
+		}
+		return e // aggregate values already represented by an address
+	}
+	if ty != nil && ty.Kind() == cc.Bool {
+		return boolNormalize(e)
+	}
+	return cConvert(e, l.mapType(ty))
+}
+
 // boolNormalize wraps an expression so that any non-zero value becomes 1.
 // Implements C99 _Bool semantics: `_Bool b = 42` → `b = 1`.
 func boolNormalize(e hir.Expr) hir.Expr {
-	return &hir.BinExpr{Op: "!=", L: e, R: &hir.IntLitExpr{Val: 0, Ty: e.ExprTy()}, Ty: mir2.TyU8}
+	return hir.Cast(&hir.BinExpr{Op: "!=", L: e, R: &hir.IntLitExpr{Val: 0, Ty: e.ExprTy()}, Ty: mir2.TyBool}, mir2.TyU8)
 }
 
 // isFunction checks if name is a known function in the module.
@@ -205,63 +245,16 @@ func (l *lowerer) lowerTopDecl(d *cc.Declaration) error {
 		// Global variable.
 		// For arrays, preserve ArrayTy so HIR lowerer returns address
 		// (array decay) instead of loading the value as a pointer.
-		var mty mir2.Ty
-		if ty.Kind() == cc.Array {
-			at := ty.(*cc.ArrayType)
-			elemTy := l.mapType(at.Elem())
-			length := int(at.Len())
-			if length < 1 {
-				length = 1
-			}
-			mty = mir2.NewArray(elemTy, length)
-		} else {
-			mty = l.mapType(ty)
+		mty := l.storageType(ty)
+		if decl.IsExtern() && id.Initializer == nil {
+			l.globals[name] = mty
+			continue // a declaration supplies a type, not another storage object
 		}
-		g := mir2.Global{Name: name, Ty: mty}
-
-		// Initial value.
+		g := mir2.Global{Name: l.symbolName(name), Ty: mty, Volatile: ty.Attributes().IsVolatile()}
 		if id.Initializer != nil {
-			if id.Initializer.Case == cc.InitializerInitList && ty.Kind() == cc.Array {
-				// Array initializer: populate Init bytes from brace list.
-				at := ty.(*cc.ArrayType)
-				length := int(at.Len())
-				elemSize := int(at.Elem().Size())
-				if elemSize <= 0 {
-					elemSize = 1
-				}
-				initBytes := make([]byte, length*elemSize)
-				idx := 0
-				for il := id.Initializer.InitializerList; il != nil; il = il.InitializerList {
-					init := il.Initializer
-					if init == nil {
-						continue
-					}
-					// Check for [index] designator
-					if il.Designation != nil {
-						if dl := il.Designation.DesignatorList; dl != nil && dl.Designator != nil {
-							d := dl.Designator
-							if d.Case == cc.DesignatorIndex {
-								idx = int(constToInt64(d.ConstantExpression.Value()))
-							}
-						}
-					}
-					if init.Case == cc.InitializerExpr {
-						if v := init.Value(); v != nil {
-							val := constToInt64(v)
-							off := idx * elemSize
-							if off >= 0 && off < len(initBytes) {
-								initBytes[off] = byte(val)
-								if elemSize >= 2 && off+1 < len(initBytes) {
-									initBytes[off+1] = byte(val >> 8)
-								}
-							}
-						}
-					}
-					idx++
-				}
-				g.Init = initBytes
-			} else if val, ok := l.evalConstInit(id.Initializer); ok {
-				g.Init = []byte{byte(val)}
+			g.Init = make([]byte, mty.Width()/8)
+			if err := l.writeGlobalInitializer(g.Init, id.Initializer); err != nil {
+				return fmt.Errorf("global %s: %w", name, err)
 			}
 		}
 
@@ -271,8 +264,111 @@ func (l *lowerer) lowerTopDecl(d *cc.Declaration) error {
 	return nil
 }
 
+// Storage preserves aggregate layout; expression types may still decay to pointers.
+func (l *lowerer) storageType(t cc.Type) mir2.Ty {
+	switch t := t.(type) {
+	case *cc.ArrayType:
+		if t.Len() < 0 {
+			if l.typeError == nil {
+				l.typeError = fmt.Errorf("variable-length array storage is not supported")
+			}
+			return mir2.NewArray(mir2.TyU8, 1)
+		}
+		return mir2.NewArray(l.storageType(t.Elem()), int(t.Len()))
+	case *cc.StructType:
+		if name, ok := l.cStructs[t]; ok {
+			return l.structs[name]
+		}
+		tag := l.structTag(t)
+		if tag != "" && l.structs[tag] != nil {
+			return l.structs[tag]
+		}
+		if tag == "" {
+			tag = fmt.Sprintf("__anonymous_struct_%d", len(l.structs))
+		}
+		l.lowerStructDecl(tag, t)
+		return l.structs[tag]
+	case *cc.UnionType:
+		if name, ok := l.cStructs[t]; ok {
+			return l.structs[name]
+		}
+		tag := l.unionTag(t)
+		if tag == "" {
+			tag = fmt.Sprintf("__anonymous_union_%d", len(l.structs))
+		}
+		if l.structs[tag] == nil {
+			l.lowerUnionDecl(tag, t)
+		}
+		return l.structs[tag]
+	default:
+		return l.mapType(t)
+	}
+}
+
+// A flexible array member contributes no inline bytes to sizeof. Its element
+// type still determines accesses into caller-provided trailing storage.
+func (l *lowerer) storageFieldType(field *cc.Field) mir2.Ty {
+	if field.IsBitfield() && l.typeError == nil {
+		l.typeError = fmt.Errorf("c89: bit-field storage and access are not supported on Z80")
+	}
+	if field.IsFlexibleArrayMember() {
+		array := field.Type().(*cc.ArrayType)
+		return mir2.NewArray(l.storageType(array.Elem()), 0)
+	}
+	return l.storageType(field.Type())
+}
+
+// The typed parser already resolves nested braces and designators to byte
+// offsets. Traverse all scalar leaves in source order so later designators win.
+func (l *lowerer) writeGlobalInitializer(data []byte, init *cc.Initializer) error {
+	if init == nil {
+		return nil
+	}
+	if init.Case == cc.InitializerInitList {
+		for list := init.InitializerList; list != nil; list = list.InitializerList {
+			if err := l.writeGlobalInitializer(data, list.Initializer); err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+	if f := init.Field(); f != nil && f.IsBitfield() {
+		return fmt.Errorf("bit-field initializer is not supported")
+	}
+	off, width := int(init.Offset()), int(init.Type().Size())
+	if off < 0 || width < 1 || off+width > len(data) {
+		return fmt.Errorf("initializer layout exceeds storage: offset %d width %d size %d", off, width, len(data))
+	}
+	if str, ok := init.Value().(cc.StringValue); ok {
+		if init.Type().Kind() != cc.Array {
+			return fmt.Errorf("string pointer initializer requires a relocation")
+		}
+		copy(data[off:off+width], []byte(str))
+		return nil
+	}
+	var value uint64
+	switch v := init.Value().(type) {
+	case cc.Int64Value:
+		value = uint64(v)
+	case cc.UInt64Value:
+		value = uint64(v)
+	case *cc.ZeroValue:
+		value = 0
+	default:
+		return fmt.Errorf("unsupported global initializer value %T", v)
+	}
+	if init.Type().Kind() == cc.Bool && value != 0 {
+		value = 1
+	}
+	for i := 0; i < width; i++ {
+		data[off+i] = byte(value >> (8 * i))
+	}
+	return nil
+}
+
 func (l *lowerer) lowerStructDecl(tag string, st *cc.StructType) {
 	mst := &mir2.StructTy{Name: tag}
+	var offsets []int
 	nf := st.NumFields()
 	for i := 0; i < nf; i++ {
 		f := st.FieldByIndex(i)
@@ -290,6 +386,7 @@ func (l *lowerer) lowerStructDecl(tag string, st *cc.StructType) {
 		// Anonymous (C11): `struct { uint8_t x; uint8_t y; };` → `x`, `y` (no prefix)
 		if fty != nil && (fty.Kind() == cc.Struct || fty.Kind() == cc.Union) {
 			var innerFields []mir2.StructField
+			var innerLayout *mir2.StructTy
 			if fty.Kind() == cc.Struct {
 				innerSt, ok := fty.(*cc.StructType)
 				if ok {
@@ -302,6 +399,7 @@ func (l *lowerer) lowerStructDecl(tag string, st *cc.StructType) {
 					}
 					if inner := l.structs[innerTag]; inner != nil {
 						innerFields = inner.Fields
+						innerLayout = inner
 					}
 				}
 			} else {
@@ -316,22 +414,26 @@ func (l *lowerer) lowerStructDecl(tag string, st *cc.StructType) {
 					}
 					if inner := l.structs[innerTag]; inner != nil {
 						innerFields = inner.Fields
+						innerLayout = inner
 					}
 				}
 			}
 			if innerFields != nil {
-				for _, sf := range innerFields {
+				for index, sf := range innerFields {
+					offsets = append(offsets, int(f.Offset())+innerLayout.ByteOffset(index))
 					if isAnonymous {
 						// C11 anonymous: promote fields directly (no prefix)
 						mst.Fields = append(mst.Fields, mir2.StructField{
-							Name: sf.Name,
-							Ty:   sf.Ty,
+							Name:     sf.Name,
+							Ty:       sf.Ty,
+							Volatile: sf.Volatile || fty.Attributes().IsVolatile(),
 						})
 					} else {
 						// Named embedded: prefix with field name
 						mst.Fields = append(mst.Fields, mir2.StructField{
-							Name: fname + "." + sf.Name,
-							Ty:   sf.Ty,
+							Name:     fname + "." + sf.Name,
+							Ty:       sf.Ty,
+							Volatile: sf.Volatile || fty.Attributes().IsVolatile(),
 						})
 					}
 				}
@@ -339,9 +441,23 @@ func (l *lowerer) lowerStructDecl(tag string, st *cc.StructType) {
 			}
 		}
 		mst.Fields = append(mst.Fields, mir2.StructField{
-			Name: fname,
-			Ty:   l.mapType(fty),
+			Name:     fname,
+			Ty:       l.storageFieldType(f),
+			Volatile: f.Type().Attributes().IsVolatile(),
 		})
+		offsets = append(offsets, int(f.Offset()))
+	}
+	// Flattening retains field names while explicit offsets preserve overlaps.
+	packed := 0
+	for i, field := range mst.Fields {
+		if offsets[i] != packed {
+			mst.FieldOffsets = offsets
+		}
+		packed += mir2.ByteWidth(field.Ty)
+	}
+	if packed != int(st.Size()) || len(mst.FieldOffsets) != 0 {
+		mst.FieldOffsets = offsets
+		mst.StorageBytes = int(st.Size())
 	}
 	l.structs[tag] = mst
 	l.cStructs[st] = tag
@@ -356,8 +472,9 @@ func (l *lowerer) lowerUnionDecl(tag string, ut *cc.UnionType) {
 	maxWidth := 0
 	nf := ut.NumFields()
 	type fieldInfo struct {
-		name string
-		ty   mir2.Ty
+		name     string
+		ty       mir2.Ty
+		volatile bool
 	}
 	var fields []fieldInfo
 	for i := 0; i < nf; i++ {
@@ -369,21 +486,22 @@ func (l *lowerer) lowerUnionDecl(tag string, ut *cc.UnionType) {
 		if fname == "" {
 			fname = fmt.Sprintf("_f%d", i)
 		}
-		mty := l.mapType(f.Type())
+		mty := l.storageFieldType(f)
 		w := mir2.ByteWidth(mty)
 		if w > maxWidth {
 			maxWidth = w
 		}
-		fields = append(fields, fieldInfo{name: fname, ty: mty})
+		fields = append(fields, fieldInfo{name: fname, ty: mty, volatile: f.Type().Attributes().IsVolatile()})
 	}
 	// All fields share offset 0 — store as single-field struct with largest type,
 	// then register each field name mapping to offset 0.
 	// For simplicity, store ALL field names but use largest type for width.
 	for _, fi := range fields {
-		mst.Fields = append(mst.Fields, mir2.StructField{Name: fi.name, Ty: fi.ty})
+		mst.Fields = append(mst.Fields, mir2.StructField{Name: fi.name, Ty: fi.ty, Volatile: fi.volatile})
 	}
 	mst.IsUnion = true // mark as union so ByteOffset returns 0 for all fields
 	l.structs[tag] = mst
+	l.cStructs[ut] = tag
 	l.hm.Structs = append(l.hm.Structs, mst)
 }
 
@@ -427,10 +545,11 @@ func (l *lowerer) lowerFunc(fd *cc.FunctionDefinition) (*hir.Func, error) {
 	}
 
 	fl := &funcLow{
-		low:    l,
-		name:   name,
-		retTy:  retTy,
-		locals: make(map[string]mir2.Ty),
+		low:      l,
+		name:     l.symbolName(name),
+		retTy:    retTy,
+		retCType: ft.Result(),
+		locals:   make(map[string]mir2.Ty),
 	}
 
 	// Register params as locals.
@@ -443,6 +562,21 @@ func (l *lowerer) lowerFunc(fd *cc.FunctionDefinition) (*hir.Func, error) {
 		return nil, fmt.Errorf("function %s: %w", name, err)
 	}
 
+	var prologue []hir.Stmt
+	for i, p := range ft.Parameters() {
+		if p.Type() != nil && (p.Type().Kind() == cc.Struct || p.Type().Kind() == cc.Union) && i < len(params) {
+			// C99 6.9.1: each by-value parameter owns an independent object.
+			// The physical ABI carries its source address, then the callee copies
+			// all bytes into its private frame before executing the body.
+			prologue = append(prologue, &hir.VarDeclStmt{Name: params[i].Name, Ty: l.storageType(p.Type()), Init: hir.Var(params[i].Name, mir2.TyPtr), Volatile: p.Type().Attributes().IsVolatile()})
+			continue
+		}
+		if p.Type() != nil && p.Type().Attributes().IsVolatile() && i < len(params) {
+			prologue = append(prologue, &hir.VarDeclStmt{Name: params[i].Name, Ty: params[i].Ty, Init: hir.Var(params[i].Name, params[i].Ty), Volatile: true})
+		}
+	}
+	body = append(prologue, body...)
+
 	// Ensure function ends with a return.
 	if len(body) == 0 || !isReturn(body[len(body)-1]) {
 		if retTy == mir2.TyVoid {
@@ -451,7 +585,7 @@ func (l *lowerer) lowerFunc(fd *cc.FunctionDefinition) (*hir.Func, error) {
 	}
 
 	return &hir.Func{
-		Name:   name,
+		Name:   l.symbolName(name),
 		Params: params,
 		RetTy:  retTy,
 		Body:   hir.Blk(body...),
@@ -466,10 +600,11 @@ func isReturn(s hir.Stmt) bool {
 // ── Function body lowering ──────────────────────────────────────────────────
 
 type funcLow struct {
-	low    *lowerer
-	name   string
-	retTy  mir2.Ty
-	locals map[string]mir2.Ty
+	low      *lowerer
+	name     string
+	retTy    mir2.Ty
+	retCType cc.Type
+	locals   map[string]mir2.Ty
 
 	// static locals: original name → mangled global name.
 	staticRenames map[string]string
@@ -555,25 +690,31 @@ func (fl *funcLow) lowerLocalDecl(d *cc.Declaration) ([]hir.Stmt, error) {
 		if name == "" {
 			continue
 		}
+		// C99 6.4.2.2: __func__ is a predefined static character array.
+		// Its unused declaration has no effects and needs no runtime storage.
+		if name == "__func__" && decl.ReadCount() == 0 {
+			continue
+		}
 		ty := fl.low.mapType(decl.Type())
+		declarationTy := ty
+		if decl.Type().Kind() == cc.Struct || decl.Type().Kind() == cc.Union {
+			declarationTy = fl.low.storageType(decl.Type())
+		}
 		if !decl.IsStatic() {
 			delete(fl.staticRenames, name)
 		}
 
 		// static local → emit as mangled global, reference by mangled name.
-		// Skip __func__ (implicitly static, not a real user variable).
-		if decl.IsStatic() && name != "__func__" {
+		// This also preserves the static lifetime of referenced __func__.
+		if decl.IsStatic() {
 			mangled := fl.name + "__" + name
+			ty = fl.low.storageType(decl.Type())
 			fl.locals[name] = ty
-			g := mir2.Global{Name: mangled, Ty: ty}
+			g := mir2.Global{Name: mangled, Ty: ty, Volatile: decl.Type().Attributes().IsVolatile()}
 			if id.Initializer != nil {
-				if val, ok := fl.low.evalConstInit(id.Initializer); ok {
-					w := mir2.ByteWidth(ty)
-					if w <= 1 {
-						g.Init = []byte{byte(val)}
-					} else {
-						g.Init = []byte{byte(val), byte(val >> 8)}
-					}
+				g.Init = make([]byte, mir2.ByteWidth(ty))
+				if err := fl.low.writeGlobalInitializer(g.Init, id.Initializer); err != nil {
+					return nil, fmt.Errorf("static local %s: %w", name, err)
 				}
 			}
 			fl.low.hm.Globals = append(fl.low.hm.Globals, g)
@@ -603,37 +744,43 @@ func (fl *funcLow) lowerLocalDecl(d *cc.Declaration) ([]hir.Stmt, error) {
 		fl.locals[sourceName] = ty
 		fl.locals[name] = ty
 
+		if array, ok := decl.Type().(*cc.ArrayType); ok {
+			if array.Len() < 1 {
+				return nil, fmt.Errorf("automatic array %s requires a constant positive bound", sourceName)
+			}
+			storage := fl.low.storageType(array)
+			stmts = append(stmts, &hir.VarDeclStmt{Name: name, Ty: storage, Volatile: decl.Type().Attributes().IsVolatile()})
+			if id.Initializer != nil {
+				initializers, err := fl.lowerAutomaticAggregateInitializer(name, storage, id.Initializer, decl.Type().Attributes().IsVolatile())
+				if err != nil {
+					return nil, fmt.Errorf("automatic array %s: %w", sourceName, err)
+				}
+				stmts = append(stmts, initializers...)
+			}
+			continue
+		}
+
+		if (decl.Type().Kind() == cc.Struct || decl.Type().Kind() == cc.Union) && (cStorageContainsArray(declarationTy) || len(declarationTy.(*mir2.StructTy).FieldOffsets) != 0) && id.Initializer != nil && id.Initializer.Case == cc.InitializerInitList {
+			stmts = append(stmts, &hir.VarDeclStmt{Name: name, Ty: declarationTy, Volatile: decl.Type().Attributes().IsVolatile()})
+			initializers, err := fl.lowerAutomaticAggregateInitializer(name, declarationTy, id.Initializer, decl.Type().Attributes().IsVolatile())
+			if err != nil {
+				return nil, fmt.Errorf("automatic aggregate %s: %w", sourceName, err)
+			}
+			stmts = append(stmts, initializers...)
+			continue
+		}
+
 		var init hir.Expr
 		if id.Initializer != nil {
 			switch id.Initializer.Case {
 			case cc.InitializerExpr:
 				if id.Initializer.AssignmentExpression != nil {
-					r, err := fl.lowerExpr(id.Initializer.AssignmentExpression)
+					value, err := fl.lowerExprAsExpr(id.Initializer.AssignmentExpression)
 					if err != nil {
 						return nil, err
 					}
-					// If the init has side effects (++x, a=b=c), drain them first.
-					if r.isAssign() {
-						fl.drainPending(&stmts)
-						stmts = append(stmts, r.toStmt())
-						if r.isPostfix {
-							// x++: init gets old value via temp
-							ty := r.target.ExprTy()
-							tmp := fmt.Sprintf("__post_%d", fl.tmpCounter())
-							fl.locals[tmp] = ty
-							// Insert temp decl BEFORE the assignment
-							last := stmts[len(stmts)-1]
-							stmts[len(stmts)-1] = &hir.VarDeclStmt{Name: tmp, Ty: ty, Init: r.target}
-							stmts = append(stmts, last)
-							init = &hir.VarRefExpr{Name: tmp, Ty: ty}
-						} else {
-							// ++x, a=b: init gets target (variable after assignment)
-							init = r.target
-						}
-					} else {
-						fl.drainPending(&stmts)
-						init = r.toExpr()
-					}
+					fl.drainPending(&stmts)
+					init = value
 					// _Bool normalization: any non-zero value becomes 1.
 					if decl.Type() != nil && decl.Type().Kind() == cc.Bool {
 						init = boolNormalize(init)
@@ -648,27 +795,11 @@ func (fl *funcLow) lowerLocalDecl(d *cc.Declaration) ([]hir.Stmt, error) {
 						return nil, err
 					}
 					init = lit
-				} else if decl.Type() != nil && decl.Type().Kind() == cc.Array {
-					// Array initializer: {1, 2, 3} or {[2]=10, [4]=20}
-					at := decl.Type().(*cc.ArrayType)
-					elemTy := fl.low.mapType(at.Elem())
-					length := int(at.Len())
-					if length < 1 {
-						length = 1
-					}
-					arrInit, err := fl.lowerArrayInit(elemTy, length, id.Initializer.InitializerList)
-					if err != nil {
-						return nil, err
-					}
-					stmts = append(stmts, &hir.VarDeclStmt{
-						Name: name, Ty: elemTy, ArrayLen: length, Initial: arrInit,
-					})
-					continue
 				}
 			}
 		}
 
-		stmts = append(stmts, &hir.VarDeclStmt{Name: name, Ty: ty, Init: init})
+		stmts = append(stmts, &hir.VarDeclStmt{Name: name, Ty: declarationTy, Init: init, Volatile: decl.Type().Attributes().IsVolatile()})
 	}
 	return stmts, nil
 }
@@ -1146,6 +1277,12 @@ func (fl *funcLow) lowerJump(js *cc.JumpStatement) ([]hir.Stmt, error) {
 			if err != nil {
 				return nil, err
 			}
+			val = fl.snapshotVolatileAggregate(val, js.ExpressionList.Type())
+			if fl.retCType != nil {
+				val = fl.low.convertType(val, fl.retCType)
+			} else {
+				val = cConvert(val, fl.retTy)
+			}
 			return []hir.Stmt{hir.Ret(val)}, nil
 		}
 		return []hir.Stmt{hir.RetVoid()}, nil
@@ -1184,7 +1321,8 @@ type exprResult struct {
 	expr      hir.Expr // non-nil for normal expressions
 	target    hir.Expr // non-nil for assignments
 	val       hir.Expr // non-nil for assignments
-	isPostfix bool     // true for x++/x-- (expression value is old target, not val)
+	isPostfix bool     // true for x++/x--
+	oldValue  hir.Expr // the single cached read before a postfix update
 }
 
 func (r *exprResult) isAssign() bool { return r != nil && r.target != nil }
@@ -1229,24 +1367,42 @@ func (fl *funcLow) lowerExprAsExpr(e cc.ExpressionNode) (hir.Expr, error) {
 	}
 	if r != nil && r.isAssign() {
 		if r.isPostfix {
-			// x++/x--: save old value in temp, then assign new value.
-			ty := r.target.ExprTy()
-			tmp := fmt.Sprintf("__post_%d", fl.tmpCounter())
-			fl.locals[tmp] = ty
-			fl.pendingStmts = append(fl.pendingStmts,
-				&hir.VarDeclStmt{Name: tmp, Ty: ty, Init: r.target},
-				r.toStmt())
-			return &hir.VarRefExpr{Name: tmp, Ty: ty}, nil
+			fl.pendingStmts = append(fl.pendingStmts, r.toStmt())
+			return r.oldValue, nil
 		}
-		// ++x, --x: emit assignment, return target (which now holds new value).
-		// a=b=c: emit assignment, return val (the assigned value).
+		// Assignment expressions yield the converted assigned value, without
+		// reading the destination again (particularly important for volatile).
+		value := fl.cacheExpression("assigned", r.val)
+		r.val = value
 		fl.pendingStmts = append(fl.pendingStmts, r.toStmt())
-		return r.target, nil
+		return value, nil
 	}
 	return r.toExpr(), nil
 }
 
 func (fl *funcLow) lowerExpr(e cc.ExpressionNode) (*exprResult, error) {
+	r, err := fl.lowerExprNode(e)
+	if err != nil || r == nil || e == nil || e.Type() == nil || !e.Type().Attributes().IsVolatile() {
+		return r, err
+	}
+	switch x := r.expr.(type) {
+	case *hir.VarRefExpr:
+		if e.Type().Kind() != cc.Array {
+			x.Volatile = true
+		}
+	case *hir.FieldExpr:
+		x.Volatile = true
+	case *hir.LoadExpr:
+		x.Volatile = true
+	case *hir.DerefExpr:
+		x.Volatile = true
+	case *hir.IndexExpr:
+		x.Volatile = true
+	}
+	return r, nil
+}
+
+func (fl *funcLow) lowerExprNode(e cc.ExpressionNode) (*exprResult, error) {
 	if e == nil {
 		return nil, nil
 	}
@@ -1270,7 +1426,7 @@ func (fl *funcLow) lowerExpr(e cc.ExpressionNode) (*exprResult, error) {
 			if err != nil {
 				return nil, err
 			}
-			return wrapExpr(hir.Cast(inner, fl.low.mapType(x.Type()))), nil
+			return wrapExpr(fl.low.convertType(inner, x.Type())), nil
 		}
 		return nil, nil
 
@@ -1409,11 +1565,20 @@ func (fl *funcLow) lowerPrimary(pe *cc.PrimaryExpression) (*exprResult, error) {
 		if _, isLocal := fl.locals[resolvedName]; !isLocal {
 			if _, isGlobal := fl.low.globals[resolvedName]; !isGlobal {
 				if fl.low.isFunction(resolvedName) {
-					return wrapExpr(hir.Addr(resolvedName)), nil
+					return wrapExpr(hir.Addr(fl.low.symbolName(resolvedName))), nil
 				}
 			}
 		}
 		ty := fl.typeOf(name)
+		// Array storage retains its aggregate width, but the expression decays
+		// to a pointer (C99 6.3.2.1). Casting the storage width to a pointer
+		// otherwise makes native truncation throw away address bits.
+		if _, array := ty.(*mir2.ArrayTy); array {
+			ty = mir2.TyPtr
+		}
+		if _, local := fl.locals[resolvedName]; !local {
+			resolvedName = fl.low.symbolName(resolvedName)
+		}
 		return wrapExpr(hir.Var(resolvedName, ty)), nil
 
 	case cc.PrimaryExpressionInt:
@@ -1433,6 +1598,9 @@ func (fl *funcLow) lowerPrimary(pe *cc.PrimaryExpression) (*exprResult, error) {
 		default:
 			return wrapExpr(&hir.IntLitExpr{Val: constToInt64(v), Ty: ty}), nil
 		}
+
+	case cc.PrimaryExpressionFloat:
+		return nil, fmt.Errorf("c89: unsupported floating-point expression at %s", pe.Position())
 
 	case cc.PrimaryExpressionChar:
 		v := pe.Value()
@@ -1515,16 +1683,34 @@ func (fl *funcLow) lowerPostfix(pf *cc.PostfixExpression) (*exprResult, error) {
 		if err != nil {
 			return nil, err
 		}
-		elemTy := fl.low.mapType(pf.Type())
-		return wrapExpr(hir.Index(base, idx, elemTy)), nil
+		elementType := pf.Type()
+		if pointer, ok := pf.PostfixExpression.Type().(*cc.PointerType); ok {
+			elementType = pointer.Elem()
+		} else if pointer, ok := pf.ExpressionList.Type().(*cc.PointerType); ok {
+			base, idx = idx, base
+			elementType = pointer.Elem()
+		}
+		elemTy := fl.low.storageType(elementType)
+		indexed := &hir.IndexExpr{Base: base, Idx: idx, ElemTy: elemTy, ElemStride: int(elementType.Size())}
+		if elementType.Kind() == cc.Array {
+			return wrapExpr(hir.AddrExpr(indexed)), nil
+		}
+		return wrapExpr(indexed), nil
 
 	case cc.PostfixExpressionSelect: // struct.field
+		if field := pf.Field(); field != nil && field.IsBitfield() {
+			return nil, fmt.Errorf("bit-field access is not supported on Z80")
+		}
+
 		base, err := fl.lowerExprAsExpr(pf.PostfixExpression)
 		if err != nil {
 			return nil, err
 		}
 		field := pf.Token2.SrcStr()
 		ty := fl.low.mapType(pf.Type())
+		if field := pf.Field(); field != nil && (field.Type().Kind() == cc.Array || field.Type().Kind() == cc.Struct || field.Type().Kind() == cc.Union) {
+			ty = fl.low.storageFieldType(field)
+		}
 		// Prefer cc parser's field offset (handles anonymous structs/unions correctly).
 		offset := int(pf.FieldOffset())
 		if offset < 0 {
@@ -1534,42 +1720,44 @@ func (fl *funcLow) lowerPostfix(pf *cc.PostfixExpression) (*exprResult, error) {
 		// combine offsets instead of nesting (FieldExpr always does Load, which is wrong
 		// for embedded struct intermediate access).
 		if fe, ok := base.(*hir.FieldExpr); ok {
-			return wrapExpr(&hir.FieldExpr{X: fe.X, Field: field, Offset: fe.Offset + offset, Ty: ty}), nil
+			return wrapExpr(cFieldValue(&hir.FieldExpr{X: fe.X, Field: field, Offset: fe.Offset + offset, Ty: ty})), nil
 		}
-		return wrapExpr(&hir.FieldExpr{X: base, Field: field, Offset: offset, Ty: ty}), nil
+		return wrapExpr(cFieldValue(&hir.FieldExpr{X: base, Field: field, Offset: offset, Ty: ty})), nil
 
 	case cc.PostfixExpressionPSelect: // struct->field
+		if field := pf.Field(); field != nil && field.IsBitfield() {
+			return nil, fmt.Errorf("bit-field access is not supported on Z80")
+		}
+
 		base, err := fl.lowerExprAsExpr(pf.PostfixExpression)
 		if err != nil {
 			return nil, err
 		}
 		field := pf.Token2.SrcStr()
 		ty := fl.low.mapType(pf.Type())
+		if field := pf.Field(); field != nil && (field.Type().Kind() == cc.Array || field.Type().Kind() == cc.Struct || field.Type().Kind() == cc.Union) {
+			ty = fl.low.storageFieldType(field)
+		}
 		offset := int(pf.FieldOffset())
 		if offset < 0 {
 			offset = fl.resolveFieldOffset(pf.PostfixExpression.Type(), field)
 		}
 		// Flatten: ptr->inner.field where inner is embedded.
 		if fe, ok := base.(*hir.FieldExpr); ok {
-			return wrapExpr(&hir.FieldExpr{X: fe.X, Field: field, Offset: fe.Offset + offset, Ty: ty}), nil
+			return wrapExpr(cFieldValue(&hir.FieldExpr{X: fe.X, Field: field, Offset: fe.Offset + offset, Ty: ty})), nil
 		}
-		return wrapExpr(&hir.FieldExpr{X: base, Field: field, Offset: offset, Ty: ty}), nil
+		return wrapExpr(cFieldValue(&hir.FieldExpr{X: base, Field: field, Offset: offset, Ty: ty})), nil
 
-	case cc.PostfixExpressionInc: // x++
+	case cc.PostfixExpressionInc, cc.PostfixExpressionDec:
 		base, err := fl.lowerExprAsExpr(pf.PostfixExpression)
 		if err != nil {
 			return nil, err
 		}
-		ty := base.ExprTy()
-		return &exprResult{target: base, val: hir.Add(base, &hir.IntLitExpr{Val: 1, Ty: ty}, ty), isPostfix: true}, nil
-
-	case cc.PostfixExpressionDec: // x--
-		base, err := fl.lowerExprAsExpr(pf.PostfixExpression)
-		if err != nil {
-			return nil, err
+		step := fl.incrementStep(pf.PostfixExpression.Type())
+		if pf.Case == cc.PostfixExpressionDec {
+			step = -step
 		}
-		ty := base.ExprTy()
-		return &exprResult{target: base, val: hir.Sub(base, &hir.IntLitExpr{Val: 1, Ty: ty}, ty), isPostfix: true}, nil
+		return fl.lowerIncrement(base, pf.PostfixExpression.Type(), step, true), nil
 
 	case cc.PostfixExpressionComplit: // (Type){init-list} — compound literal
 		ty := pf.Type()
@@ -1592,6 +1780,16 @@ func (fl *funcLow) lowerPostfix(pf *cc.PostfixExpression) (*exprResult, error) {
 	default:
 		return fl.lowerExpr(pf.PrimaryExpression)
 	}
+}
+
+// C99 6.3.2.1: an array field designates inline storage, and ordinary
+// value use decays to a pointer to its first element. AddrExpr keeps the
+// pointer width independent of the full aggregate width.
+func cFieldValue(field *hir.FieldExpr) hir.Expr {
+	if _, array := mir2.BaseOf(field.Ty).(*mir2.ArrayTy); array {
+		return hir.AddrExpr(field)
+	}
+	return field
 }
 
 // extractCalleeName tries to extract a simple identifier from a C expression node.
@@ -1626,13 +1824,39 @@ func (fl *funcLow) extractCalleeName(expr cc.ExpressionNode) string {
 	return ""
 }
 
+// Physical aggregate ABI values are addresses. Materialize a qualified source
+// before it crosses that ABI, so callee copies cannot lose source effects.
+func (fl *funcLow) snapshotVolatileAggregate(value hir.Expr, cType cc.Type) hir.Expr {
+	if cType == nil || (cType.Kind() != cc.Struct && cType.Kind() != cc.Union) || !cType.Attributes().IsVolatile() {
+		return value
+	}
+	pointer := value
+	if !mir2.IsPointer(value.ExprTy()) {
+		pointer = hir.AddrExpr(value)
+	}
+	object := &hir.DerefExpr{Ptr: pointer, Ty: fl.low.storageType(cType), Volatile: true}
+	return fl.cacheExpression("volatile_value", object)
+}
+
 func (fl *funcLow) lowerCall(pf *cc.PostfixExpression) (*exprResult, error) {
-	// Lower arguments.
+	calleeTy := pf.PostfixExpression.Type()
+	if ptr, ok := calleeTy.(*cc.PointerType); ok {
+		calleeTy = ptr.Elem()
+	}
+	ft, _ := calleeTy.(*cc.FunctionType)
+	// Lower arguments using the declared parameter type, not their original
+	// expression width. This also defines the ABI for cross-language calls.
 	var args []hir.Expr
 	for al := pf.ArgumentExpressionList; al != nil; al = al.ArgumentExpressionList {
 		arg, err := fl.lowerExprAsExpr(al.AssignmentExpression)
 		if err != nil {
 			return nil, err
+		}
+		arg = fl.snapshotVolatileAggregate(arg, al.AssignmentExpression.Type())
+		if ft != nil && len(args) < len(ft.Parameters()) {
+			arg = fl.low.convertType(arg, ft.Parameters()[len(args)].Type())
+		} else if cc.IsIntegerType(al.AssignmentExpression.Type()) {
+			arg = cConvert(arg, fl.low.mapType(cc.IntegerPromotion(al.AssignmentExpression.Type())))
 		}
 		args = append(args, arg)
 	}
@@ -1648,7 +1872,7 @@ func (fl *funcLow) lowerCall(pf *cc.PostfixExpression) (*exprResult, error) {
 			return wrapExpr(&hir.CallIndirectExpr{FnPtr: fnPtr, Args: args, Ty: retTy}), nil
 		}
 		// Function name → direct call.
-		return wrapExpr(hir.Call(name, retTy, args...)), nil
+		return wrapExpr(hir.Call(fl.low.symbolName(name), retTy, args...)), nil
 	}
 
 	// Callee is a complex expression → lower it and do indirect call.
@@ -1688,7 +1912,13 @@ func (fl *funcLow) lowerUnary(ue *cc.UnaryExpression) (*exprResult, error) {
 		if v, ok := inner.(*hir.VarRefExpr); ok {
 			return wrapExpr(hir.Addr(v.Name)), nil
 		}
-		return wrapExpr(inner), nil
+		if _, function := inner.(*hir.AddrOfExpr); function && ue.CastExpression.Type().Kind() == cc.Function {
+			return wrapExpr(inner), nil // function names already lower to their address
+		}
+		if deref, ok := inner.(*hir.DerefExpr); ok {
+			return wrapExpr(deref.Ptr), nil // &*p does not access the pointed-to object
+		}
+		return wrapExpr(hir.AddrExpr(inner)), nil
 
 	case cc.UnaryExpressionDeref: // *x
 		inner, err := fl.lowerExprAsExpr(ue.CastExpression)
@@ -1696,24 +1926,33 @@ func (fl *funcLow) lowerUnary(ue *cc.UnaryExpression) (*exprResult, error) {
 			return nil, err
 		}
 		ty := fl.low.mapType(ue.Type())
-		return wrapExpr(hir.Load(inner, ty)), nil
+		if ue.Type().Kind() == cc.Struct || ue.Type().Kind() == cc.Union {
+			ty = fl.low.storageType(ue.Type())
+		}
+		return wrapExpr(&hir.DerefExpr{Ptr: inner, Ty: ty}), nil
 
 	case cc.UnaryExpressionMinus:
 		inner, err := fl.lowerExprAsExpr(ue.CastExpression)
 		if err != nil {
 			return nil, err
 		}
-		return wrapExpr(&hir.UnaryExpr{Op: "-", X: inner, Ty: inner.ExprTy()}), nil
+		ty := fl.low.mapType(ue.Type())
+		return wrapExpr(&hir.UnaryExpr{Op: "-", X: cConvert(inner, ty), Ty: ty}), nil
 
 	case cc.UnaryExpressionPlus:
-		return fl.lowerExpr(ue.CastExpression)
+		inner, err := fl.lowerExprAsExpr(ue.CastExpression)
+		if err != nil {
+			return nil, err
+		}
+		return wrapExpr(cConvert(inner, fl.low.mapType(ue.Type()))), nil
 
 	case cc.UnaryExpressionCpl:
 		inner, err := fl.lowerExprAsExpr(ue.CastExpression)
 		if err != nil {
 			return nil, err
 		}
-		return wrapExpr(&hir.UnaryExpr{Op: "~", X: inner, Ty: inner.ExprTy()}), nil
+		ty := fl.low.mapType(ue.Type())
+		return wrapExpr(&hir.UnaryExpr{Op: "~", X: cConvert(inner, ty), Ty: ty}), nil
 
 	case cc.UnaryExpressionNot:
 		inner, err := fl.lowerExprAsExpr(ue.CastExpression)
@@ -1722,25 +1961,59 @@ func (fl *funcLow) lowerUnary(ue *cc.UnaryExpression) (*exprResult, error) {
 		}
 		return wrapExpr(&hir.UnaryExpr{Op: "!", X: inner, Ty: mir2.TyBool}), nil
 
-	case cc.UnaryExpressionInc: // ++x
+	case cc.UnaryExpressionInc, cc.UnaryExpressionDec:
 		inner, err := fl.lowerExprAsExpr(ue.UnaryExpression)
 		if err != nil {
 			return nil, err
 		}
-		ty := inner.ExprTy()
-		return wrapAssign(inner, hir.Add(inner, &hir.IntLitExpr{Val: 1, Ty: ty}, ty)), nil
-
-	case cc.UnaryExpressionDec: // --x
-		inner, err := fl.lowerExprAsExpr(ue.UnaryExpression)
-		if err != nil {
-			return nil, err
+		step := fl.incrementStep(ue.UnaryExpression.Type())
+		if ue.Case == cc.UnaryExpressionDec {
+			step = -step
 		}
-		ty := inner.ExprTy()
-		return wrapAssign(inner, hir.Sub(inner, &hir.IntLitExpr{Val: 1, Ty: ty}, ty)), nil
+		return fl.lowerIncrement(inner, ue.UnaryExpression.Type(), step, false), nil
 
 	default:
 		return fl.lowerExpr(ue.CastExpression)
 	}
+}
+
+// Cache the object address separately from its value: C compound assignment
+// and increment evaluate their lvalue once, even when it contains a call.
+func (fl *funcLow) stabilizeLvalue(target hir.Expr) hir.Expr {
+	var address hir.Expr
+	volatile := false
+	switch x := target.(type) {
+	case *hir.VarRefExpr:
+		return target
+	case *hir.DerefExpr:
+		address, volatile = x.Ptr, x.Volatile
+	case *hir.LoadExpr:
+		address, volatile = x.Ptr, x.Volatile
+	case *hir.FieldExpr:
+		address, volatile = hir.AddrExpr(x), x.Volatile
+	case *hir.IndexExpr:
+		address, volatile = hir.AddrExpr(x), x.Volatile
+	default:
+		return target
+	}
+	pointer := fl.cacheExpression("lvalue", address)
+	return &hir.DerefExpr{Ptr: pointer, Ty: target.ExprTy(), Volatile: volatile}
+}
+
+func (fl *funcLow) cacheExpression(kind string, value hir.Expr) hir.Expr {
+	name := fmt.Sprintf("__%s_%d", kind, fl.tmpCounter())
+	ty := value.ExprTy()
+	fl.locals[name] = ty
+	fl.pendingStmts = append(fl.pendingStmts, &hir.VarDeclStmt{Name: name, Ty: ty, Init: value})
+	return hir.Var(name, ty)
+}
+
+func (fl *funcLow) lowerIncrement(target hir.Expr, cType cc.Type, step int64, postfix bool) *exprResult {
+	target = fl.stabilizeLvalue(target)
+	old := fl.cacheExpression("before_update", target)
+	ty := target.ExprTy()
+	value := fl.low.convertType(hir.Add(old, &hir.IntLitExpr{Val: step, Ty: ty}, ty), cType)
+	return &exprResult{target: target, val: value, isPostfix: postfix, oldValue: old}
 }
 
 func (fl *funcLow) lowerAssignment(ae *cc.AssignmentExpression) (*exprResult, error) {
@@ -1752,36 +2025,51 @@ func (fl *funcLow) lowerAssignment(ae *cc.AssignmentExpression) (*exprResult, er
 	if err != nil {
 		return nil, err
 	}
+	target = fl.stabilizeLvalue(target)
 	val, err := fl.lowerExprAsExpr(ae.AssignmentExpression)
 	if err != nil {
 		return nil, err
 	}
 
 	ty := fl.low.mapType(ae.Type())
+	operand, opTy := target, ty
+	if ae.Case != cc.AssignmentExpressionAssign && cc.IsIntegerType(ae.UnaryExpression.Type()) && cc.IsIntegerType(ae.AssignmentExpression.Type()) {
+		if ae.Case == cc.AssignmentExpressionLsh || ae.Case == cc.AssignmentExpressionRsh {
+			opTy = fl.low.mapType(cc.IntegerPromotion(ae.UnaryExpression.Type()))
+			operand = cConvert(target, opTy)
+			val = cConvert(val, fl.low.mapType(cc.IntegerPromotion(ae.AssignmentExpression.Type())))
+		} else {
+			opTy = fl.low.mapType(cc.UsualArithmeticConversions(ae.UnaryExpression.Type(), ae.AssignmentExpression.Type()))
+			operand, val = cConvert(target, opTy), cConvert(val, opTy)
+		}
+	}
+	if stride, pointer := fl.pointerStride(ae.UnaryExpression.Type()); pointer && (ae.Case == cc.AssignmentExpressionAdd || ae.Case == cc.AssignmentExpressionSub) {
+		val = fl.pointerOffset(val, stride)
+	}
 	switch ae.Case {
 	case cc.AssignmentExpressionAdd:
-		val = hir.Add(target, val, ty)
+		val = hir.Add(operand, val, opTy)
 	case cc.AssignmentExpressionSub:
-		val = hir.Sub(target, val, ty)
+		val = hir.Sub(operand, val, opTy)
 	case cc.AssignmentExpressionMul:
-		val = hir.Mul(target, val, ty)
+		val = hir.Mul(operand, val, opTy)
 	case cc.AssignmentExpressionAnd:
-		val = &hir.BinExpr{Op: "&", L: target, R: val, Ty: ty}
+		val = &hir.BinExpr{Op: "&", L: operand, R: val, Ty: opTy}
 	case cc.AssignmentExpressionOr:
-		val = &hir.BinExpr{Op: "|", L: target, R: val, Ty: ty}
+		val = &hir.BinExpr{Op: "|", L: operand, R: val, Ty: opTy}
 	case cc.AssignmentExpressionXor:
-		val = &hir.BinExpr{Op: "^", L: target, R: val, Ty: ty}
+		val = &hir.BinExpr{Op: "^", L: operand, R: val, Ty: opTy}
 	case cc.AssignmentExpressionLsh:
-		val = &hir.BinExpr{Op: "<<", L: target, R: val, Ty: ty}
+		val = &hir.BinExpr{Op: "<<", L: operand, R: val, Ty: opTy}
 	case cc.AssignmentExpressionRsh:
-		val = &hir.BinExpr{Op: ">>", L: target, R: val, Ty: ty}
+		val = &hir.BinExpr{Op: ">>", L: operand, R: val, Ty: opTy}
 	case cc.AssignmentExpressionDiv:
-		val = &hir.BinExpr{Op: "/", L: target, R: val, Ty: ty}
+		val = &hir.BinExpr{Op: "/", L: operand, R: val, Ty: opTy}
 	case cc.AssignmentExpressionMod:
-		val = &hir.BinExpr{Op: "%", L: target, R: val, Ty: ty}
+		val = &hir.BinExpr{Op: "%", L: operand, R: val, Ty: opTy}
 	}
 
-	return wrapAssign(target, val), nil
+	return wrapAssign(target, fl.low.convertType(val, ae.Type())), nil
 }
 
 // lowerBinaryOp handles all binary expression types via the cc.Case value.
@@ -1800,15 +2088,6 @@ func (fl *funcLow) lowerBinaryOp(left, right cc.ExpressionNode, caseVal interfac
 	}
 
 	mty := fl.low.mapType(ty)
-
-	// Selectively undo C integer promotion for 8-bit operations.
-	// Only narrow for ops where u8 overflow doesn't lose information:
-	// subtraction, division, bitwise ops. Do NOT narrow addition or
-	// multiplication — those can legitimately overflow u8 (e.g. 200+200).
-	lty, rty := l.ExprTy(), r.ExprTy()
-	narrow8 := (lty == mir2.TyU8 || lty == mir2.TyI8) && lty == rty
-	// For shifts: narrow based on left operand only (shift count type is irrelevant)
-	narrow8Shift := lty == mir2.TyU8 || lty == mir2.TyI8
 
 	op := ""
 	switch v := caseVal.(type) {
@@ -1867,21 +2146,89 @@ func (fl *funcLow) lowerBinaryOp(left, right cc.ExpressionNode, caseVal interfac
 		return wrapExpr(l), nil
 	}
 
-	// Apply u8 narrowing only for safe operators.
-	if narrow8 {
-		switch op {
-		case "-", "/", "%", "&", "|", "^": // safe: result fits in u8
-			mty = lty
-			// "+", "*" — do NOT narrow, overflow loses information
+	// C99 6.5.6: pointer offsets and differences use the pointed-to size.
+	if op == "+" || op == "-" {
+		leftStride, leftPointer := fl.pointerStride(left.Type())
+		rightStride, rightPointer := fl.pointerStride(right.Type())
+		if leftPointer && rightPointer && op == "-" {
+			return wrapExpr(fl.pointerDifference(l, r, leftStride)), nil
+		}
+		if leftPointer && cc.IsIntegerType(right.Type()) {
+			r = fl.pointerOffset(r, leftStride)
+		} else if rightPointer && cc.IsIntegerType(left.Type()) && op == "+" {
+			l = fl.pointerOffset(l, rightStride)
 		}
 	}
-	// Shifts: narrow based on LEFT operand only (shift count type is irrelevant).
-	// C promotes shift count to int, but u8 << N should stay u8 on Z80.
-	if narrow8Shift && (op == "<<" || op == ">>") {
-		mty = lty
+
+	// C integer promotions and usual arithmetic conversions belong to the
+	// operands, including comparisons whose result type is only bool.
+	// C99 6.3.1.1, 6.3.1.8 and 6.5.7: shifts promote each operand separately.
+	if cc.IsIntegerType(left.Type()) && cc.IsIntegerType(right.Type()) {
+		if op == "<<" || op == ">>" {
+			l = hir.Cast(l, fl.low.mapType(cc.IntegerPromotion(left.Type())))
+			r = hir.Cast(r, fl.low.mapType(cc.IntegerPromotion(right.Type())))
+		} else {
+			common := fl.low.mapType(cc.UsualArithmeticConversions(left.Type(), right.Type()))
+			l, r = hir.Cast(l, common), hir.Cast(r, common)
+		}
 	}
 
 	return wrapExpr(&hir.BinExpr{Op: op, L: l, R: r, Ty: mty}), nil
+}
+
+// pointerStride also accepts arrays before the parser's decay conversion.
+func (fl *funcLow) pointerStride(ty cc.Type) (int64, bool) {
+	var elem cc.Type
+	switch t := ty.(type) {
+	case *cc.PointerType:
+		elem = t.Elem()
+	case *cc.ArrayType:
+		elem = t.Elem()
+	default:
+		return 0, false
+	}
+	if elem.Size() <= 0 {
+		if fl.low.typeError == nil {
+			fl.low.typeError = fmt.Errorf("c89: pointer arithmetic requires a complete object type, got %s", ty)
+		}
+		return 1, true
+	}
+	return elem.Size(), true
+}
+
+func (fl *funcLow) incrementStep(ty cc.Type) int64 {
+	if stride, pointer := fl.pointerStride(ty); pointer {
+		return stride
+	}
+	return 1
+}
+
+// The byte distance can exceed signed int even when the element distance
+// fits ptrdiff_t. Divide an unsigned magnitude, then apply the direction.
+func (fl *funcLow) pointerDifference(left, right hir.Expr, stride int64) hir.Expr {
+	if stride == 1 {
+		return hir.Sub(cConvert(left, mir2.TyI16), cConvert(right, mir2.TyI16), mir2.TyI16)
+	}
+	values := []hir.Expr{left, right}
+	for i, value := range values {
+		name := fmt.Sprintf("__ptrdiff_%d", fl.tmpCounter())
+		fl.locals[name] = mir2.TyU16
+		fl.pendingStmts = append(fl.pendingStmts, &hir.VarDeclStmt{Name: name, Ty: mir2.TyU16, Init: cConvert(value, mir2.TyU16)})
+		values[i] = hir.Var(name, mir2.TyU16)
+	}
+	left, right = values[0], values[1]
+	quotient := func(a, b hir.Expr) hir.Expr {
+		return cConvert(&hir.BinExpr{Op: "/", L: hir.Sub(a, b, mir2.TyU16), R: &hir.IntLitExpr{Val: stride, Ty: mir2.TyU16}, Ty: mir2.TyU16}, mir2.TyI16)
+	}
+	return &hir.CondExpr{Cond: &hir.BinExpr{Op: ">=", L: left, R: right, Ty: mir2.TyBool}, Then: quotient(left, right), Else: &hir.UnaryExpr{Op: "-", X: quotient(right, left), Ty: mir2.TyI16}, Ty: mir2.TyI16}
+}
+
+func (fl *funcLow) pointerOffset(offset hir.Expr, stride int64) hir.Expr {
+	offset = cConvert(offset, mir2.TyI16)
+	if stride > 1 {
+		return hir.Mul(offset, &hir.IntLitExpr{Val: stride, Ty: mir2.TyI16}, mir2.TyI16)
+	}
+	return offset
 }
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
@@ -1909,58 +2256,11 @@ func (l *lowerer) evalConst(e cc.ExpressionNode) (int64, bool) {
 
 // resolveStructType returns the mir2.StructTy for a cc.Type if it's a known struct.
 func (l *lowerer) resolveStructType(t cc.Type) *mir2.StructTy {
-	if t == nil {
+	if t == nil || (t.Kind() != cc.Struct && t.Kind() != cc.Union) {
 		return nil
 	}
-	switch t.Kind() {
-	case cc.Struct:
-		st, ok := t.(*cc.StructType)
-		if !ok {
-			return nil
-		}
-		tag := l.structTag(st)
-		if tag != "" {
-			if mst := l.structs[tag]; mst != nil {
-				return mst
-			}
-		}
-		// Try C type identity mapping (handles typedef'd anonymous structs).
-		if name, ok := l.cStructs[t]; ok {
-			if mst := l.structs[name]; mst != nil {
-				return mst
-			}
-		}
-		// Last resort: try all known structs by field count/layout match.
-		nf := st.NumFields()
-		// Declaration order keeps the usual first-inserted fallback while
-		// making ties between compatible layouts reproducible.
-		for _, mst := range l.hm.Structs {
-			if len(mst.Fields) == nf {
-				return mst
-			}
-		}
-	case cc.Union:
-		ut, ok := t.(*cc.UnionType)
-		if !ok {
-			return nil
-		}
-		utTag := ut.Tag()
-		tag := utTag.SrcStr()
-		if tag != "" {
-			if mst := l.structs[tag]; mst != nil {
-				return mst
-			}
-		}
-		nf := ut.NumFields()
-		// Declaration order keeps the usual first-inserted fallback while
-		// making ties between compatible layouts reproducible.
-		for _, mst := range l.hm.Structs {
-			if mst.IsUnion && len(mst.Fields) == nf {
-				return mst
-			}
-		}
-	}
-	return nil
+	storage, _ := l.storageType(t).(*mir2.StructTy)
+	return storage
 }
 
 // resolveFieldOffset determines the byte offset of a named field within a struct.
@@ -2051,7 +2351,7 @@ func (fl *funcLow) lowerStructInit(st *mir2.StructTy, il *cc.InitializerList) (*
 				if err != nil {
 					return nil, err
 				}
-				val = r.toExpr()
+				val = fl.low.convertType(r.toExpr(), init.Type())
 			}
 		case cc.InitializerInitList:
 			// Nested brace init — flatten embedded struct fields into parent.
@@ -2075,7 +2375,7 @@ func (fl *funcLow) lowerStructInit(st *mir2.StructTy, il *cc.InitializerList) (*
 							}
 							lit.Fields = append(lit.Fields, hir.FieldInit{
 								Name: st.Fields[innerIdx].Name,
-								Val:  r.toExpr(),
+								Val:  fl.low.convertType(r.toExpr(), innerInit.Type()),
 							})
 						}
 						innerIdx++
@@ -2093,45 +2393,82 @@ func (fl *funcLow) lowerStructInit(st *mir2.StructTy, il *cc.InitializerList) (*
 	return lit, nil
 }
 
-// lowerArrayInit converts C array initializer list to HIR Initial slice.
-// Handles both positional {1, 2, 3} and designated {[2]=10, [4]=20} forms.
-func (fl *funcLow) lowerArrayInit(elemTy mir2.Ty, length int, il *cc.InitializerList) ([]hir.Expr, error) {
-	result := make([]hir.Expr, length)
-	// Fill with zeros
-	for i := range result {
-		result[i] = &hir.IntLitExpr{Val: 0, Ty: elemTy}
+func cStorageContainsArray(ty mir2.Ty) bool {
+	switch ty := mir2.BaseOf(ty).(type) {
+	case *mir2.ArrayTy:
+		return true
+	case *mir2.StructTy:
+		for _, field := range ty.Fields {
+			if cStorageContainsArray(field.Ty) {
+				return true
+			}
+		}
 	}
-	idx := 0
-	for ; il != nil; il = il.InitializerList {
-		init := il.Initializer
-		if init == nil {
+	return false
+}
+
+// Use the typed C initializer offsets for nested automatic aggregates.
+// Explicit leaves are stored once; only omitted bytes receive implicit zeros.
+func (fl *funcLow) lowerAutomaticAggregateInitializer(name string, storage mir2.Ty, initializer *cc.Initializer, volatile bool) ([]hir.Stmt, error) {
+	var leaves []*cc.Initializer
+	var collect func(*cc.Initializer)
+	collect = func(init *cc.Initializer) {
+		if init.Case == cc.InitializerInitList {
+			for list := init.InitializerList; list != nil; list = list.InitializerList {
+				if list.Initializer != nil {
+					collect(list.Initializer)
+				}
+			}
+		} else {
+			leaves = append(leaves, init)
+		}
+	}
+	collect(initializer)
+	size := mir2.ByteWidth(storage)
+	written := make([]bool, size)
+	for _, leaf := range leaves {
+		if field := leaf.Field(); field != nil && field.IsBitfield() {
+			return nil, fmt.Errorf("bit-field initializer is not supported")
+		}
+		off, width := int(leaf.Offset()), int(leaf.Type().Size())
+		if off < 0 || width < 1 || off+width > size {
+			return nil, fmt.Errorf("initializer layout exceeds storage: offset %d width %d size %d", off, width, size)
+		}
+		for i := off; i < off+width; i++ {
+			written[i] = true
+		}
+	}
+	address := func(offset int) hir.Expr {
+		return hir.AddrExpr(&hir.IndexExpr{Base: hir.Var(name, mir2.TyPtr), Idx: hir.U16(int64(offset)), ElemTy: mir2.TyU8, ElemStride: 1})
+	}
+	var stmts []hir.Stmt
+	for off, explicit := range written {
+		if !explicit {
+			stmts = append(stmts, &hir.StoreStmt{Ptr: address(off), Val: hir.U8(0), Volatile: volatile || mir2.VolatileStorageByte(storage, off)})
+		}
+	}
+	for _, leaf := range leaves {
+		off := int(leaf.Offset())
+		if str, ok := leaf.Value().(cc.StringValue); ok && leaf.Type().Kind() == cc.Array {
+			data := make([]byte, int(leaf.Type().Size()))
+			copy(data, []byte(str))
+			for i, value := range data {
+				stmts = append(stmts, &hir.StoreStmt{Ptr: address(off + i), Val: hir.U8(int64(value)), Volatile: volatile || mir2.VolatileStorageByte(storage, off+i)})
+			}
 			continue
 		}
-		// Check for [index] designator
-		if il.Designation != nil {
-			if dl := il.Designation.DesignatorList; dl != nil && dl.Designator != nil {
-				d := dl.Designator
-				if d.Case == cc.DesignatorIndex {
-					idx = int(constToInt64(d.ConstantExpression.Value()))
-				}
-			}
+		if leaf.AssignmentExpression == nil {
+			return nil, fmt.Errorf("unsupported array initializer leaf")
 		}
-		if idx < 0 || idx >= length {
-			idx = 0 // safety: skip out-of-bounds
+		value, err := fl.lowerExprAsExpr(leaf.AssignmentExpression)
+		if err != nil {
+			return nil, err
 		}
-		switch init.Case {
-		case cc.InitializerExpr:
-			if init.AssignmentExpression != nil {
-				r, err := fl.lowerExpr(init.AssignmentExpression)
-				if err != nil {
-					return nil, err
-				}
-				result[idx] = r.toExpr()
-			}
-		}
-		idx++
+		fl.drainPending(&stmts)
+		value = fl.low.convertType(value, leaf.Type())
+		stmts = append(stmts, &hir.StoreStmt{Ptr: address(off), Val: value, Volatile: volatile || mir2.VolatileStorageByte(storage, off)})
 	}
-	return result, nil
+	return stmts, nil
 }
 
 func constToInt64(v cc.Value) int64 {

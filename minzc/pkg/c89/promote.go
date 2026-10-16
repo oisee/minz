@@ -101,7 +101,7 @@ func buildStructIndex(m *hir.Module) structIndex {
 //   - No nested structs, no arrays
 //   - Total size ≤ 4 bytes (fits Z80 register file)
 func isShallowScalarStruct(st *mir2.StructTy) bool {
-	if st == nil || len(st.Fields) == 0 || len(st.Fields) > 4 {
+	if st == nil || mir2.HasVolatileStorage(st) || st.IsUnion || len(st.FieldOffsets) != 0 || len(st.Fields) == 0 || len(st.Fields) > 4 {
 		return false
 	}
 	totalBytes := 0

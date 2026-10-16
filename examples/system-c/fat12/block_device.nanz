@@ -1,0 +1,36 @@
+// Example sector controller, 16-bit port addresses and 512-byte sectors.
+// E0/E1: low/high LBA, E2: command(1=read)/status(0=ready), E3: data.
+// The runner backs it with a disk image; it is not a physical FDC driver.
+fun lba_low(@z80_a value:u8) {
+ asm z80 (in value) (clob BC) { LD BC,0x10e0
+ OUT (C),A }
+}
+fun lba_high(@z80_a value:u8) {
+ asm z80 (in value) (clob BC) { LD BC,0x10e1
+ OUT (C),A }
+}
+fun read_command() {
+ asm z80 (clob A,BC) { LD BC,0x10e2
+ LD A,1
+ OUT (C),A }
+}
+fun read_status()->u8 {
+ asm z80 (ret A) (clob BC) { LD BC,0x10e2
+ IN A,(C) }
+}
+fun read_data()->u8 {
+ asm z80 (ret A) (clob BC) { LD BC,0x10e3
+ IN A,(C) }
+}
+fun block_read(sector:u16, dst:^u8)->u8 {
+ lba_low(u8(sector))
+ lba_high(u8(sector>>8))
+ read_command()
+ if read_status()!=0 {return 1}
+ var i:u16=0
+ while i<512 {
+  dst[i]=read_data()
+  i=i+1
+ }
+ return 0
+}

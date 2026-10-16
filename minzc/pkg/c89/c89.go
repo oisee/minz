@@ -90,8 +90,8 @@ func z80ABI() *cc.ABI {
 			cc.UInt:       mkTy(2),
 			cc.Long:       mkTy(4),
 			cc.ULong:      mkTy(4),
-			cc.LongLong:   mkTy(4),
-			cc.ULongLong:  mkTy(4),
+			cc.LongLong:   mkTy(8),
+			cc.ULongLong:  mkTy(8),
 			cc.Float:      mkTy(4),
 			cc.Double:     mkTy(4),
 			cc.LongDouble: mkTy(4),
@@ -107,10 +107,12 @@ func z80ABI() *cc.ABI {
 
 // CompileOpts configures the C89 compiler.
 type CompileOpts struct {
+	// PrivatePrefix isolates file-local symbols when this translation unit joins a source-module graph.
+	PrivatePrefix string
 	// BaseDir is the source file directory for resolving #import paths.
 	BaseDir string
 	// Resolver handles cross-language #import directives.
-	// If nil, #import directives are ignored.
+	// If nil, source-module #import directives are rejected explicitly.
 	Resolver *interop.Resolver
 	// IncludePaths are additional directories for #include "file.h" resolution.
 	IncludePaths []string
@@ -129,6 +131,9 @@ func Compile(src, name string) (*hir.Module, error) {
 func CompileWithOpts(src, name string, opts CompileOpts) (*hir.Module, error) {
 	// Process #import directives before cc/v4 sees the source.
 	var importedModules []*hir.Module
+	if imports, _ := interop.ExtractImports(src); len(imports) != 0 && opts.Resolver == nil {
+		return nil, fmt.Errorf("c89 #import %q: source-module imports require CompileOpts.Resolver", imports[0])
+	}
 	if opts.Resolver != nil {
 		cleaned, mods, err := opts.Resolver.Resolve(src)
 		if err != nil {
@@ -186,16 +191,17 @@ func CompileWithOpts(src, name string, opts CompileOpts) (*hir.Module, error) {
 	modName := strings.TrimSuffix(name, ".c")
 	modName = strings.TrimSuffix(modName, ".m")
 	l := &lowerer{
-		ast:         ast,
-		hm:          &hir.Module{Name: modName},
-		globals:     make(map[string]mir2.Ty),
-		typedefs:    make(map[string]mir2.Ty),
-		structs:     make(map[string]*mir2.StructTy),
-		cStructs:    make(map[cc.Type]string),
+		ast:           ast,
+		hm:            &hir.Module{Name: modName},
+		globals:       make(map[string]mir2.Ty),
+		typedefs:      make(map[string]mir2.Ty),
+		structs:       make(map[string]*mir2.StructTy),
+		cStructs:      make(map[cc.Type]string),
 		objcClasses:   make(map[string]*objcClassInfo),
 		objcProtocols: make(map[string]*objcProtocolInfo),
 	}
 
+	l.initPrivateSymbols(opts.PrivatePrefix)
 	if err := l.lower(); err != nil {
 		return nil, fmt.Errorf("c89 lower: %w", err)
 	}
@@ -206,7 +212,9 @@ func CompileWithOpts(src, name string, opts CompileOpts) (*hir.Module, error) {
 
 	// Merge imported modules into this module.
 	if len(importedModules) > 0 {
-		interop.MergeInto(l.hm, importedModules)
+		if err := interop.MergeInto(l.hm, importedModules); err != nil {
+			return nil, fmt.Errorf("c89 link: %w", err)
+		}
 	}
 
 	// Parse comment-based asserts and sandboxes.
@@ -215,6 +223,9 @@ func CompileWithOpts(src, name string, opts CompileOpts) (*hir.Module, error) {
 		return nil, err
 	}
 	l.hm.Asserts, l.hm.Sandboxes = directives.Asserts, directives.Sandboxes
+	for i := range l.hm.Asserts {
+		l.hm.Asserts[i].FuncName = l.symbolName(l.hm.Asserts[i].FuncName)
+	}
 
 	// Parse and generate ObjC assert wrappers.
 	l.generateObjCAssertWrappers(src)

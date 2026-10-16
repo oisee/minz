@@ -1,8 +1,9 @@
-package c89
+package c89_test
 
 import (
 	"encoding/binary"
 	"fmt"
+	c89 "github.com/minz/minzc/pkg/c89"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -61,7 +62,7 @@ func TestFatFS_VM_Verify(t *testing.T) {
 	if err != nil {
 		t.Fatalf("read ff.c: %v", err)
 	}
-	hirMod, err := Compile(string(src), ffPath)
+	hirMod, err := c89.Compile(string(src), ffPath)
 	if err != nil {
 		t.Fatalf("C89→HIR: %v", err)
 	}
@@ -1149,11 +1150,11 @@ func TestNanzFAT12_API(t *testing.T) {
 
 		// Read file: file_read(pdrv, start_clst, file_size, buf, max_bytes)
 		res, err := vm.Call("file_read", []mir2.Value{
-			{I: 0},       // pdrv
-			{I: clst},    // start_clst
-			{I: 12},      // file_size (HELLO.TXT = 12 bytes)
+			{I: 0},         // pdrv
+			{I: clst},      // start_clst
+			{I: 12},        // file_size (HELLO.TXT = 12 bytes)
 			{I: bufAddr.I}, // buf
-			{I: 512},     // max_bytes
+			{I: 512},       // max_bytes
 		})
 		if err != nil {
 			t.Fatalf("file_read: %v", err)
@@ -1583,7 +1584,7 @@ func TestFatFS_VM_Write(t *testing.T) {
 	if err != nil {
 		t.Skipf("fatfs_lowlevel.c not found: %v", err)
 	}
-	hirMod, err := Compile(string(src), llPath)
+	hirMod, err := c89.Compile(string(src), llPath)
 	if err != nil {
 		t.Fatalf("C89→HIR: %v", err)
 	}
@@ -1723,7 +1724,7 @@ func TestFatFS_QBE_LowLevel(t *testing.T) {
 		t.Skipf("fatfs_lowlevel.c not found: %v", err)
 	}
 
-	hirMod, err := Compile(string(src), llPath)
+	hirMod, err := c89.Compile(string(src), llPath)
 	if err != nil {
 		t.Fatalf("C89→HIR: %v", err)
 	}
@@ -2646,7 +2647,7 @@ func TestFatFS_FullFF_Compile(t *testing.T) {
 	}
 
 	// Step 1: C89 → HIR
-	hirMod, err := Compile(string(src), ffPath)
+	hirMod, err := c89.Compile(string(src), ffPath)
 	if err != nil {
 		t.Fatalf("C89→HIR failed: %v", err)
 	}

@@ -14,9 +14,10 @@ func cloneSemanticType(ty Ty, memo map[Ty]Ty) Ty {
 	case *StructTy:
 		n := *t
 		n.Fields = make([]StructField, len(t.Fields))
+		n.FieldOffsets = append([]int(nil), t.FieldOffsets...)
 		memo[ty] = &n
 		for i, f := range t.Fields {
-			n.Fields[i] = StructField{Name: f.Name, Ty: cloneSemanticType(f.Ty, memo)}
+			n.Fields[i] = StructField{Name: f.Name, Ty: cloneSemanticType(f.Ty, memo), Volatile: f.Volatile}
 		}
 		return &n
 	case *ArrayTy:

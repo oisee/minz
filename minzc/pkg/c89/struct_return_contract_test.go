@@ -1,6 +1,7 @@
-package c89
+package c89_test
 
 import (
+	c89 "github.com/minz/minzc/pkg/c89"
 	"os"
 	"path/filepath"
 	"sort"
@@ -8,6 +9,7 @@ import (
 
 	"github.com/minz/minzc/pkg/hir"
 	"github.com/minz/minzc/pkg/mir2"
+	"github.com/minz/minzc/pkg/nanz"
 	"github.com/minz/minzc/pkg/pipeline"
 )
 
@@ -30,7 +32,7 @@ func TestDesignatedStructReturnContractVMZ80(t *testing.T) {
 	}
 	sort.Strings(names)
 	parse := func() *hir.Module {
-		h, err := CompileWithOpts(string(source), "c99_designated.c", CompileOpts{})
+		h, err := c89.CompileWithOpts(string(source), "c99_designated.c", c89.CompileOpts{})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -85,7 +87,7 @@ func TestMinmaxNestedStructReturnVMZ80(t *testing.T) {
 		t.Fatal(err)
 	}
 	parse := func() *hir.Module {
-		h, err := Compile(string(source), "minmax_pair.c")
+		h, err := c89.Compile(string(source), "minmax_pair.c")
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -144,7 +146,11 @@ func TestC89ExampleHIRContracts(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			h, err := CompileWithOpts(string(source), filepath.Base(path), CompileOpts{})
+			abs, err := filepath.Abs(path)
+			if err != nil {
+				t.Fatal(err)
+			}
+			h, err := c89.CompileWithOpts(string(source), abs, c89.CompileOpts{BaseDir: filepath.Dir(abs), IncludePaths: []string{filepath.Dir(abs)}, Resolver: nanz.CSourceResolver(abs, nanz.ParseOpts{})})
 			if err != nil {
 				t.Fatal(err)
 			}

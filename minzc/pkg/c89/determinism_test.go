@@ -9,7 +9,7 @@ import (
 	"github.com/minz/minzc/pkg/mir2"
 )
 
-func TestStructFallbackDeterministic(t *testing.T) {
+func TestStructResolutionKeepsCTypeIdentity(t *testing.T) {
 	ast, err := cc.Translate(&cc.Config{ABI: z80ABI()}, []cc.Source{{Name: "<predefined>", Value: z80Predefined}, {Name: "types.c", Value: "struct Unknown { unsigned char x; }; union UnknownUnion { unsigned char x; };"}})
 	if err != nil {
 		t.Fatal(err)
@@ -18,7 +18,7 @@ func TestStructFallbackDeterministic(t *testing.T) {
 		t.Run(fmt.Sprintf("union=%t", union), func(t *testing.T) {
 			a := &mir2.StructTy{Name: "ZFirst", IsUnion: union, Fields: []mir2.StructField{{Name: "x", Ty: mir2.TyU8}}}
 			b := &mir2.StructTy{Name: "ASecond", IsUnion: union, Fields: []mir2.StructField{{Name: "x", Ty: mir2.TyU16}}}
-			l := &lowerer{hm: &hir.Module{Structs: []*mir2.StructTy{a, b}}, structs: map[string]*mir2.StructTy{a.Name: a, b.Name: b}}
+			l := &lowerer{hm: &hir.Module{Structs: []*mir2.StructTy{a, b}}, structs: map[string]*mir2.StructTy{a.Name: a, b.Name: b}, cStructs: make(map[cc.Type]string)}
 			var ty cc.Type
 			if union {
 				for x := range ast.Unions {
@@ -33,8 +33,9 @@ func TestStructFallbackDeterministic(t *testing.T) {
 				t.Fatal("no C type")
 			}
 			for run := 0; run < 100; run++ {
-				if got := l.resolveStructType(ty); got != a {
-					t.Fatalf("fallback changed struct layout: %v", got)
+				got := l.resolveStructType(ty)
+				if got == a || got == b || mir2.ByteWidth(got) != 1 || got.IsUnion != union || got != l.resolveStructType(ty) {
+					t.Fatalf("C type must retain its own identity and byte layout: %#v", got)
 				}
 			}
 		})

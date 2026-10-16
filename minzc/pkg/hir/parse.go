@@ -202,8 +202,42 @@ func (p *hirParser) parseStruct(line string) (*mir2.StructTy, error) {
 			}
 			fname := strings.TrimSpace(part[:colon])
 			ftypeStr := strings.TrimSpace(part[colon+1:])
+			volatile := strings.HasPrefix(ftypeStr, "volatile ")
+			ftypeStr = strings.TrimPrefix(ftypeStr, "volatile ")
 			fty := p.parseType(ftypeStr)
-			st.Fields = append(st.Fields, mir2.StructField{Name: fname, Ty: fty})
+			st.Fields = append(st.Fields, mir2.StructField{Name: fname, Ty: fty, Volatile: volatile})
+		}
+	}
+	for _, option := range strings.Fields(rest[end+1:]) {
+		switch {
+		case option == "union":
+			st.IsUnion = true
+		case strings.HasPrefix(option, "size="):
+			value, err := strconv.Atoi(strings.TrimPrefix(option, "size="))
+			if err != nil || value <= 0 {
+				return nil, fmt.Errorf("invalid struct storage size")
+			}
+			st.StorageBytes = value
+		case strings.HasPrefix(option, "offsets="):
+			for _, text := range strings.Split(strings.TrimPrefix(option, "offsets="), ":") {
+				value, err := strconv.Atoi(text)
+				if err != nil || value < 0 {
+					return nil, fmt.Errorf("invalid struct field offset")
+				}
+				st.FieldOffsets = append(st.FieldOffsets, value)
+			}
+		default:
+			return nil, fmt.Errorf("unknown struct layout option %q", option)
+		}
+	}
+	if len(st.FieldOffsets) != 0 {
+		if len(st.FieldOffsets) != len(st.Fields) || st.StorageBytes == 0 {
+			return nil, fmt.Errorf("incomplete explicit struct layout")
+		}
+		for i, field := range st.Fields {
+			if st.FieldOffsets[i]+mir2.ByteWidth(field.Ty) > st.StorageBytes {
+				return nil, fmt.Errorf("struct field exceeds storage")
+			}
 		}
 	}
 	return st, nil
@@ -445,7 +479,8 @@ func (p *hirParser) parseStmt(indent int) (Stmt, error) {
 }
 
 // parseVarDecl parses: var name: type [= expr] [at 0xADDR]
-//                  or: var name: [N]type [= { exprs }]
+//
+//	or: var name: [N]type [= { exprs }]
 func (p *hirParser) parseVarDecl(content string) (Stmt, error) {
 	content = strings.TrimPrefix(content, "var ")
 	// Find the colon
@@ -1272,11 +1307,12 @@ func (p *hirParser) parseConstPtrExpr(s string) (Expr, error) {
 }
 
 // parseParenExpr handles parenthesized expressions:
-//   (varname:type)           → VarRefExpr
-//   ((L) op (R)):type        → BinExpr
-//   (op(X)):type             → UnaryExpr
-//   (expr).field[+N]:type    → FieldExpr
-//   (expr)[idx]:elemTy       → IndexExpr
+//
+//	(varname:type)           → VarRefExpr
+//	((L) op (R)):type        → BinExpr
+//	(op(X)):type             → UnaryExpr
+//	(expr).field[+N]:type    → FieldExpr
+//	(expr)[idx]:elemTy       → IndexExpr
 func (p *hirParser) parseParenExpr(s string) (Expr, error) {
 	if !strings.HasPrefix(s, "(") {
 		return nil, fmt.Errorf("expected '(' got %q", s)
@@ -1399,7 +1435,7 @@ func (p *hirParser) tryParseBinExpr(inner string, ty mir2.Ty) (*BinExpr, error) 
 	if lClose < 0 {
 		return nil, fmt.Errorf("bin expr: unmatched '('")
 	}
-	lClose++ // adjust for s[1:] offset
+	lClose++                                    // adjust for s[1:] offset
 	lStr := inner[:lClose+1]                    // "(L)"
 	rest := strings.TrimSpace(inner[lClose+1:]) // "op R"
 

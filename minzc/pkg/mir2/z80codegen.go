@@ -62,7 +62,7 @@ func emitTypedGlobalData(sb *strings.Builder, ty Ty, init []byte) {
 			}
 		}
 	case *StructTy:
-		if t.IsUnion {
+		if t.IsUnion || len(t.FieldOffsets) != 0 {
 			emitDBLine(sb, init)
 			return
 		}
@@ -191,8 +191,8 @@ func ValidateZ80Symbols(m *Module) error {
 	}
 	for _, g := range m.Globals {
 		if st, ok := g.Ty.(*StructTy); ok && ByteWidth(g.Ty) != 0 {
-			off := 0
-			for _, field := range st.Fields {
+			for index, field := range st.Fields {
+				off := st.ByteOffset(index)
 				sym := sanitizeIdent(g.Name) + "__" + field.Name
 				if field.Name == "" {
 					sym = fmt.Sprintf("%s__off%d", sanitizeIdent(g.Name), off)
@@ -200,7 +200,6 @@ func ValidateZ80Symbols(m *Module) error {
 				if err := reserve(sym, "generated field for "+g.Name); err != nil {
 					return err
 				}
-				off += ByteWidth(field.Ty)
 			}
 		}
 	}
@@ -374,8 +373,8 @@ func Z80Codegen(m *Module, ar *AllocResult, opts ...Z80CodegenOptions) (string, 
 			// addressing (LD A,(sym__field)) works without pointer arithmetic.
 			// Format: sanitizeIdent(sym)__fieldName  EQU  sym + byteOffset
 			if st, ok := g.Ty.(*StructTy); ok {
-				off := 0
-				for _, f := range st.Fields {
+				for index, f := range st.Fields {
+					off := st.ByteOffset(index)
 					var equLbl string
 					if f.Name != "" {
 						equLbl = sanitized + "__" + f.Name
@@ -387,7 +386,6 @@ func Z80Codegen(m *Module, ar *AllocResult, opts ...Z80CodegenOptions) (string, 
 					} else {
 						fmt.Fprintf(&sb, "%s    EQU  %s + %d\n", equLbl, sanitized, off)
 					}
-					off += ByteWidth(f.Ty)
 				}
 			}
 		}
@@ -1160,6 +1158,9 @@ func (g *z80cg) genBlock(f *Func, b *Block) {
 	// Ext + AddrOf + PtrAdd + Load into: LD HL,sym; LD L,src8; LD A,(HL).
 	g.scanLUTPatterns(b)
 
+	// Pre-scan: detect u8 bit-test compares against zero so Cmp can emit BIT.
+	g.scanBitCmpPatterns(b)
+
 	// Pre-scan: identify global struct field accesses so we can emit
 	// LD A,(sym__field) / LD (sym__field),A instead of LD HL,sym + INC HL… + LD A,(HL).
 	g.scanGlobalFieldPatterns(b)
@@ -1167,9 +1168,6 @@ func (g *z80cg) genBlock(f *Func, b *Block) {
 	// Pre-scan: detect u8 load-modify-store bit updates so Store can emit
 	// SET/RES directly on memory and skip the intermediate Load/ALU regs.
 	g.scanBitStorePatterns(b)
-
-	// Pre-scan: detect u8 bit-test compares against zero so Cmp can emit BIT.
-	g.scanBitCmpPatterns(b)
 
 	// Pre-scan: detect ptr_add+load patterns where the base (ptr) is in HL
 	// and must survive across the instruction (e.g. in a loop).  Arranges

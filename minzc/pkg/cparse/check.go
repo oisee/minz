@@ -381,7 +381,8 @@ func convert(v Value, t Type) (r Value) {
 	if t.Kind() == Enum {
 		t = t.(*EnumType).UnderlyingType()
 	}
-	if IsIntegerType(t) {
+	// C99 6.3.1.2: _Bool normalizes before any width truncation.
+	if IsIntegerType(t) && t.Kind() != Bool {
 		switch {
 		case t.Size() <= 0 || t.Size() > 8:
 			return Unknown
@@ -2957,44 +2958,44 @@ func (n *EnumSpecifier) check(c *ctx) (r Type) {
 				max = mathutil.MaxUint64(max, v)
 			}
 		}
-		switch {
-		case c.cfg.UnsignedEnums:
-			switch {
-			case min >= 0 && max <= math.MaxUint32:
-				t = c.ast.kinds[UInt]
-			case min >= math.MinInt32 && max <= math.MaxInt32:
-				// [0]6.4.4.3/2: An identifier declared as an enumeration constant has type int.
-				t = c.intT
-			case min >= 0 && max < math.MaxInt64:
-				t = c.ast.kinds[ULong]
-				if t.Size() < 8 {
-					t = c.ast.kinds[ULongLong]
-				}
-			default:
-				t = c.ast.kinds[Long]
-				if t.Size() < 8 {
-					t = c.ast.kinds[LongLong]
-				}
+		// Integer ranges come from the target ABI, not the host's 32-bit int.
+		// Prefer int/unsigned int, then larger ranks that represent the range.
+		order := []Kind{Int, UInt, Long, ULong, LongLong, ULongLong}
+		if c.cfg.UnsignedEnums {
+			order = []Kind{UInt, Int, ULong, Long, ULongLong, LongLong}
+		}
+		for _, kind := range order {
+			candidate := c.ast.kinds[kind]
+			if candidate == nil || candidate.Size() < 1 || candidate.Size() > 8 {
+				continue
 			}
-		default:
-			switch {
-			case min >= math.MinInt32 && max <= math.MaxInt32:
-				// [0]6.4.4.3/2: An identifier declared as an enumeration constant has type int.
-				t = c.intT
-			case min >= 0 && max <= math.MaxUint32:
-				t = c.ast.kinds[UInt]
-			case max < math.MaxInt64:
-				t = c.ast.kinds[Long]
-				if t.Size() < 8 {
-					t = c.ast.kinds[LongLong]
+			bits := uint(candidate.Size() * 8)
+			if IsSignedInteger(candidate) {
+				lower := int64(math.MinInt64)
+				if bits < 64 {
+					lower = -int64(uint64(1) << (bits - 1))
 				}
-			default:
-				t = c.ast.kinds[ULong]
-				if t.Size() < 8 {
-					t = c.ast.kinds[ULongLong]
+				upper := (uint64(1) << (bits - 1)) - 1
+				if min >= lower && max <= upper {
+					t = candidate
+					break
+				}
+			} else {
+				upper := uint64(math.MaxUint64)
+				if bits < 64 {
+					upper = (uint64(1) << bits) - 1
+				}
+				if min >= 0 && max <= upper {
+					t = candidate
+					break
 				}
 			}
 		}
+		if t == nil {
+			c.errors.add(errorf("%v: enum range cannot be represented by a target integer type", n.Position()))
+			t = c.intT
+		}
+
 		if ts != nil {
 			t = ts
 		}

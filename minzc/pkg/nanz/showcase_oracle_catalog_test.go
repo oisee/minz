@@ -223,6 +223,13 @@ func TestShowcaseExecutableOracleCatalog(t *testing.T) {
 			row.Model = "Independent CP/M 53 OK LF output and persistent result54; PC/SP and stack guard"
 			row.Requirement = "cmd/minzc TestCPMRuntimeOrdinaryCLI; native CALL5 hook only, no raw VM or actual OS claim"
 		}
+		if row.Path == "examples/system-c/interop/main.nanz" {
+			row.NativeBehavior = "executed-independent-vm-z80"
+			row.Workload = "main and imported step(4294967295); default/Grace/Size"
+			row.Model = "C target unsigned long32: 65535+1=65536, maximum+1=0; independent expected values replace source asserts"
+			row.Requirement = "pkg/nanz TestSystemCInteropExampleNativeVM; local C source/header, native plus raw/final VM"
+		}
+
 		applyReviewedCatalogEvidence(t, root, &row)
 		if len(row.Entries) == 0 {
 			row.Intent = "declaration-only/library; importing caller required"
@@ -231,7 +238,7 @@ func TestShowcaseExecutableOracleCatalog(t *testing.T) {
 		counts[row.NativeBehavior]++
 		catalog = append(catalog, row)
 	}
-	if len(catalog) != 196 {
+	if len(catalog) != 199 {
 		t.Fatalf("corpus changed: %d paths; refresh catalog intentionally", len(catalog))
 	}
 	for name, count := range counts {
@@ -242,7 +249,7 @@ func TestShowcaseExecutableOracleCatalog(t *testing.T) {
 			Base    string               `json:"base_commit"`
 			Scope   string               `json:"scope"`
 			Entries []oracleCatalogEntry `json:"entries"`
-		}{"ee21cae8", "All 196 paths retained (193 original paths, the explicit CP/M leaf demo, the banked Z-machine host template, and the playable Spectrum Tetris variant). Reviewed evidence proves only named entries/workloads; discovered test references, source assertions and main declarations are not native execution proofs. Derived CP/M main is separate evidence, never transferred to original source.", catalog}, "", "  ")
+		}{"ee21cae8", "All 199 paths retained (the previous 198 paths plus the system-C source/header import example). Reviewed evidence proves only named entries/workloads; discovered test references, source assertions and main declarations are not native execution proofs. Derived CP/M main is separate evidence, never transferred to original source.", catalog}, "", "  ")
 		if e != nil {
 			t.Fatal(e)
 		}

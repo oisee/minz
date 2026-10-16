@@ -1,6 +1,7 @@
-package c89
+package c89_test
 
 import (
+	c89 "github.com/minz/minzc/pkg/c89"
 	"os"
 	"path/filepath"
 	"strings"
@@ -13,7 +14,7 @@ import (
 )
 
 func TestCompile_VoidFunc(t *testing.T) {
-	m, err := Compile("void noop(void) {}", "test.c")
+	m, err := c89.Compile("void noop(void) {}", "test.c")
 	if err != nil {
 		t.Fatalf("Compile: %v", err)
 	}
@@ -38,7 +39,7 @@ int add(int a, int b) {
     return a + b;
 }
 `
-	m, err := Compile(src, "add.c")
+	m, err := c89.Compile(src, "add.c")
 	if err != nil {
 		t.Fatalf("Compile: %v", err)
 	}
@@ -62,7 +63,7 @@ func TestCompile_Global(t *testing.T) {
 int counter = 0;
 void inc(void) { counter = counter + 1; }
 `
-	m, err := Compile(src, "glob.c")
+	m, err := c89.Compile(src, "glob.c")
 	if err != nil {
 		t.Fatalf("Compile: %v", err)
 	}
@@ -87,7 +88,7 @@ int max(int a, int b) {
     }
 }
 `
-	m, err := Compile(src, "max.c")
+	m, err := c89.Compile(src, "max.c")
 	if err != nil {
 		t.Fatalf("Compile: %v", err)
 	}
@@ -111,7 +112,7 @@ int sum_to(int n) {
     return total;
 }
 `
-	m, err := Compile(src, "loop.c")
+	m, err := c89.Compile(src, "loop.c")
 	if err != nil {
 		t.Fatalf("Compile: %v", err)
 	}
@@ -130,7 +131,7 @@ int sum_for(int n) {
     return total;
 }
 `
-	m, err := Compile(src, "forloop.c")
+	m, err := c89.Compile(src, "forloop.c")
 	if err != nil {
 		t.Fatalf("Compile: %v", err)
 	}
@@ -145,7 +146,7 @@ void store(int *p, int val) {
     *p = val;
 }
 `
-	m, err := Compile(src, "ptr.c")
+	m, err := c89.Compile(src, "ptr.c")
 	if err != nil {
 		t.Fatalf("Compile: %v", err)
 	}
@@ -166,7 +167,7 @@ func TestCompile_TypeMapping(t *testing.T) {
 unsigned char byte_fn(unsigned char a) { return a; }
 int word_fn(int a) { return a; }
 `
-	m, err := Compile(src, "types.c")
+	m, err := c89.Compile(src, "types.c")
 	if err != nil {
 		t.Fatalf("Compile: %v", err)
 	}
@@ -188,7 +189,7 @@ int abs(int x) {
     return x;
 }
 `
-	_, err := Compile(src, "abs.c")
+	_, err := c89.Compile(src, "abs.c")
 	if err != nil {
 		t.Fatalf("Compile: %v", err)
 	}
@@ -202,7 +203,7 @@ int add(int a, int b) { return a + b; }
 // assert add(3, 4) == 7
 // assert twice(0) == 0
 `
-	m, err := Compile(src, "assert.c")
+	m, err := c89.Compile(src, "assert.c")
 	if err != nil {
 		t.Fatalf("Compile: %v", err)
 	}
@@ -230,7 +231,7 @@ func TestCompile_AssertVia(t *testing.T) {
 int f(int x) { return x; }
 // assert f(42) == 42 via mir2
 `
-	m, err := Compile(src, "via.c")
+	m, err := c89.Compile(src, "via.c")
 	if err != nil {
 		t.Fatalf("Compile: %v", err)
 	}
@@ -254,7 +255,7 @@ int get(void) { return counter; }
 // end sandbox
 // assert inc() == 1
 `
-	m, err := Compile(src, "sandbox.c")
+	m, err := c89.Compile(src, "sandbox.c")
 	if err != nil {
 		t.Fatalf("Compile: %v", err)
 	}
@@ -287,7 +288,7 @@ int add(int a, int b) { return a + b; }
 // assert add(3, 4) == 7 via mir2
 // assert add(0, 0) == 0 via mir2
 `
-	hm, err := Compile(src, "e2e.c")
+	hm, err := c89.Compile(src, "e2e.c")
 	if err != nil {
 		t.Fatalf("Compile: %v", err)
 	}
@@ -320,7 +321,7 @@ int identity(int x) { return x; }
 // assert-objc Box{value:42}.get() == 42
 // assert-objc Box{value:10}.addN(5) == 15
 `
-	hm, err := Compile(src, "objc_test.m")
+	hm, err := c89.Compile(src, "objc_test.m")
 	if err != nil {
 		t.Fatalf("Compile: %v", err)
 	}
@@ -395,7 +396,7 @@ int id(int x) { return x; }
 // assert-objc Counter{count:5}.addAndGet(10) == 15
 // assert-objc Counter{count:0}.incTwiceAndGet() == 2
 `
-	hm, err := Compile(src, "chain_test.m")
+	hm, err := c89.Compile(src, "chain_test.m")
 	if err != nil {
 		t.Fatalf("Compile: %v", err)
 	}
@@ -427,7 +428,7 @@ func TestCorpus_AllExamples(t *testing.T) {
 			}
 			var hm *hir.Module
 			absDir, _ := filepath.Abs(corpusDir)
-			copts := CompileOpts{
+			copts := c89.CompileOpts{
 				BaseDir:      absDir,
 				IncludePaths: []string{absDir},
 			}
@@ -435,11 +436,11 @@ func TestCorpus_AllExamples(t *testing.T) {
 				copts.Resolver = &interop.Resolver{
 					BaseDir: absDir,
 					Compilers: map[string]interop.CompileFunc{
-						".c": Compile,
+						".c": c89.Compile,
 					},
 				}
 			}
-			hm, err = CompileWithOpts(string(src), e.Name(), copts)
+			hm, err = c89.CompileWithOpts(string(src), e.Name(), copts)
 			if err != nil {
 				t.Fatalf("Compile: %v", err)
 			}
@@ -488,7 +489,7 @@ func TestCorpus_C99Examples(t *testing.T) {
 				t.Fatalf("read: %v", err)
 			}
 			absDir, _ := filepath.Abs(corpusDir)
-			hm, err := CompileWithOpts(string(src), e.Name(), CompileOpts{
+			hm, err := c89.CompileWithOpts(string(src), e.Name(), c89.CompileOpts{
 				BaseDir:      absDir,
 				IncludePaths: []string{absDir},
 			})
@@ -539,7 +540,7 @@ func TestInclude_LocalAndSysHeaders(t *testing.T) {
 		t.Skipf("include_test not found: %v", err)
 	}
 	absDir, _ := filepath.Abs(testDir)
-	hm, err := CompileWithOpts(string(src), "main.c", CompileOpts{
+	hm, err := c89.CompileWithOpts(string(src), "main.c", c89.CompileOpts{
 		IncludePaths: []string{absDir},
 	})
 	if err != nil {
@@ -571,7 +572,7 @@ func TestCorpus_ObjCExamples(t *testing.T) {
 			if err != nil {
 				t.Fatalf("read: %v", err)
 			}
-			hm, err := Compile(string(src), e.Name())
+			hm, err := c89.Compile(string(src), e.Name())
 			if err != nil {
 				t.Fatalf("Compile: %v", err)
 			}
@@ -594,11 +595,11 @@ func TestEmbedPreservesAssertLines(t *testing.T) {
 		t.Fatal(err)
 	}
 	src := "unsigned char data[] = {\n#embed \"data.bin\"\n};\nunsigned char answer(void) { return 42; }\n// assert answer() == 42\n"
-	listing, err := ListAsserts(src)
+	listing, err := c89.ListAsserts(src)
 	if err != nil {
 		t.Fatal(err)
 	}
-	compiled, err := CompileWithOpts(src, "embed.c", CompileOpts{BaseDir: dir})
+	compiled, err := c89.CompileWithOpts(src, "embed.c", c89.CompileOpts{BaseDir: dir})
 	if err != nil {
 		t.Fatal(err)
 	}

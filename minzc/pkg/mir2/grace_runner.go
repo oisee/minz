@@ -2438,7 +2438,7 @@ func canForwardLoad(f *Func, pred, succ *Block) bool {
 	}
 	for _, b := range []*Block{pred, succ} {
 		for _, inst := range b.Insts {
-			if inst.Op != OpLoad && !isDSEPure(inst.Op) {
+			if inst.Volatile || (inst.Op != OpLoad && !isDSEPure(inst.Op)) {
 				return false
 			}
 		}
