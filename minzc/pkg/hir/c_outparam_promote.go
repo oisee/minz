@@ -212,6 +212,11 @@ func promoteCOutParameters(m *Module) bool {
 			switch e.(type) {
 			case *CallExpr, *CallIndirectExpr:
 				return e, false
+			// An unrelated pointer can still designate out via an integer-derived
+			// address. Nonescape alone does not prove such memory disjoint. Only
+			// the matched output stores above have a memory-effect proof here.
+			case *LoadExpr, *DerefExpr, *IndexExpr, *FieldExpr:
+				return e, false
 			}
 			return e, true
 		}) {
