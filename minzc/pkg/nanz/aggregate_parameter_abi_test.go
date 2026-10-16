@@ -1,8 +1,10 @@
 package nanz_test
 
 import (
+	"crypto/sha256"
 	"encoding/binary"
 	"encoding/json"
+	"fmt"
 	"github.com/minz/minzc/pkg/c89"
 	"github.com/minz/minzc/pkg/emulator"
 	"github.com/minz/minzc/pkg/hir"
@@ -19,6 +21,25 @@ import (
 // current observable shared-object behavior; Book v7 chapter 4 specifies
 // field access but does not promise C's aggregate parameter copy semantics.
 func TestAggregateParameterWriteABI(t *testing.T) {
+	var manifest struct {
+		Cases []struct {
+			File   string `json:"file"`
+			SHA256 string `json:"sha256"`
+		} `json:"cases"`
+	}
+	frozen, err := os.ReadFile("testdata/aggregate_abi/manifest.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := json.Unmarshal(frozen, &manifest); err != nil {
+		t.Fatal(err)
+	}
+	for _, c := range manifest.Cases {
+		data, err := os.ReadFile(filepath.Join("testdata/aggregate_abi", c.File))
+		if err != nil || fmt.Sprintf("%x", sha256.Sum256(data)) != c.SHA256 {
+			t.Fatal("frozen aggregate fixture changed", c.File, err)
+		}
+	}
 	rows := []map[string]any{}
 	for _, language := range []string{"c", "nanz"} {
 		for _, mode := range []string{"default", "grace", "size"} {
