@@ -1,0 +1,51 @@
+; MIR2 module: /home/alice/dev/minz-artifacts/grace-workspaces/c89-final-validation/research/c89-benchmark/heldout/count_less
+global @values : [256]u8
+global @n : u8
+global @b : u8
+global @result : u16
+
+fun @count_less(%r1: ptr [pointer], %r2: u8 [general], %r3: u8 [counter]) -> u16 [pointer]
+  block @entry:
+    %r4 = const 0 : i16 [pointer]
+    %r5 = const 0 : u8 [general]
+    %r6 = const 0 : i16 [pointer]
+    %r7 = trunc %r6 : i16 -> u8 [general]
+    jmp @loop_head1(%r4, %r7, %r2, %r1, %r3)
+  block @loop_head1(%r8: u16 [pointer], %r9: u8 [general], %r10: u8 [general], %r11: ptr [general], %r12: u8 [general]):
+    %r13 = ext %r9 : u8 -> i16 [pointer]
+    %r14 = ext %r10 : u8 -> i16 [pointer]
+    %r15 = cmp.lt %r13, %r14 : bool [flag]
+    br_if %r15, @loop_body2(), @loop_exit3(%r8, %r9, %r10, %r11, %r12)
+  block @loop_body2:
+    %r16 = ext %r9 : u8 -> u16 [index]
+    %r17 = ptr_add %r11, %r16 : ptr [pointer]
+    %r18 = load %r17 : u8 [general]
+    %r19 = ext %r18 : u8 -> i16 [pointer]
+    %r20 = ext %r12 : u8 -> i16 [pointer]
+    %r21 = cmp.lt %r19, %r20 : bool [flag]
+    br_if %r21, @if_then4(), @if_join5(%r8)
+  block @if_then4:
+    %r22 = const 1 : u16 [pointer]
+    %r23 = add %r8, %r22 : u16 [pointer]
+    jmp @if_join5(%r23)
+  block @if_join5(%r24: u16 [pointer]):
+    %r25 = const 1 : u8 [general]
+    %r26 = add %r9, %r25 : u8 [general]
+    jmp @loop_head1(%r24, %r26, %r10, %r11, %r12)
+  block @loop_exit3(%r27: u16 [pointer], %r28: u8 [general], %r29: u8 [general], %r30: ptr [general], %r31: u8 [general]):
+    ret %r27
+
+fun @execute()
+  block @entry:
+    %r32 = addr_of @values : ptr [pointer]
+    %r33 = move %r32 : ptr [pointer]
+    %r34 = addr_of @n : ptr [pointer]
+    %r35 = load %r34 : u8 [general]
+    %r36 = addr_of @b : ptr [pointer]
+    %r37 = load %r36 : u8 [general]
+    %r38 = move %r37 : u8 [counter]
+    %r39 = call @count_less(%r33, %r35, %r38) : u16 [pointer]
+    %r40 = addr_of @result : ptr [pointer]
+    store %r40, %r39 : u16
+    ret void
+

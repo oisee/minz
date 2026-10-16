@@ -1,0 +1,108 @@
+{
+  "version": "gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+  "results": [
+    {
+      "case": "abs_diff",
+      "calls": 2048,
+      "status": "PASS",
+      "source_sha256": "797200976ad2f54c936f593b225328d084ee435e5e91136ba06632103ff28aeb",
+      "command": [
+        "gcc",
+        "-std=c89",
+        "-pedantic-errors",
+        "-O2",
+        "-shared",
+        "-fPIC",
+        "/home/alice/dev/minz-artifacts/grace-workspaces/c89-final-validation/research/c89-benchmark/cases/abs_diff.c",
+        "-o",
+        "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c89-nanz-sdcc45/final-union-full/host-oracle/abs_diff.so"
+      ]
+    },
+    {
+      "case": "copy_bytes",
+      "calls": 130,
+      "status": "PASS",
+      "source_sha256": "f86ef9fea5e75ee7360505f1c7c8fb65099907aede479fb67c1949d0b483d2c9",
+      "command": [
+        "gcc",
+        "-std=c89",
+        "-pedantic-errors",
+        "-O2",
+        "-shared",
+        "-fPIC",
+        "/home/alice/dev/minz-artifacts/grace-workspaces/c89-final-validation/research/c89-benchmark/cases/copy_bytes.c",
+        "-o",
+        "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c89-nanz-sdcc45/final-union-full/host-oracle/copy_bytes.so"
+      ]
+    },
+    {
+      "case": "fat12_decode",
+      "calls": 64,
+      "status": "PASS",
+      "source_sha256": "4a7338748721cbacb1766df589a1374358f8e209265a9a64cc43561d72dae050",
+      "command": [
+        "gcc",
+        "-std=c89",
+        "-pedantic-errors",
+        "-O2",
+        "-shared",
+        "-fPIC",
+        "/home/alice/dev/minz-artifacts/grace-workspaces/c89-final-validation/research/c89-benchmark/cases/fat12_decode.c",
+        "-o",
+        "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c89-nanz-sdcc45/final-union-full/host-oracle/fat12_decode.so"
+      ]
+    },
+    {
+      "case": "gcd",
+      "calls": 2048,
+      "status": "PASS",
+      "source_sha256": "34cc83bcd467c8d5008df94c60371a3b7bdf16ecab65e5a38ea655878fbc2fdb",
+      "command": [
+        "gcc",
+        "-std=c89",
+        "-pedantic-errors",
+        "-O2",
+        "-shared",
+        "-fPIC",
+        "/home/alice/dev/minz-artifacts/grace-workspaces/c89-final-validation/research/c89-benchmark/cases/gcd.c",
+        "-o",
+        "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c89-nanz-sdcc45/final-union-full/host-oracle/gcd.so"
+      ]
+    },
+    {
+      "case": "struct_roundtrip",
+      "calls": 2048,
+      "status": "PASS",
+      "source_sha256": "719ab06cf429dd76e1bcca42e837ec2a64cf7b494ce958a3dae0135074f46689",
+      "command": [
+        "gcc",
+        "-std=c89",
+        "-pedantic-errors",
+        "-O2",
+        "-shared",
+        "-fPIC",
+        "/home/alice/dev/minz-artifacts/grace-workspaces/c89-final-validation/research/c89-benchmark/cases/struct_roundtrip.c",
+        "-o",
+        "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c89-nanz-sdcc45/final-union-full/host-oracle/struct_roundtrip.so"
+      ]
+    },
+    {
+      "case": "sum_array",
+      "calls": 512,
+      "status": "PASS",
+      "source_sha256": "38c71b12b18062652cbdc3d21d0a9b6a83d55940d5e8b99b7047390e265647bb",
+      "command": [
+        "gcc",
+        "-std=c89",
+        "-pedantic-errors",
+        "-O2",
+        "-shared",
+        "-fPIC",
+        "/home/alice/dev/minz-artifacts/grace-workspaces/c89-final-validation/research/c89-benchmark/cases/sum_array.c",
+        "-o",
+        "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c89-nanz-sdcc45/final-union-full/host-oracle/sum_array.so"
+      ]
+    }
+  ],
+  "total_calls": 6850
+}
