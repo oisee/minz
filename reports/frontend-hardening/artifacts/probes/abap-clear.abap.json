@@ -1,0 +1,15 @@
+{
+  "expected": 0,
+  "final": {
+    "value": 7
+  },
+  "native": {
+    "pc": 61696,
+    "sp": 61440,
+    "value": 7
+  },
+  "raw": {
+    "value": 7
+  },
+  "source": "abap-clear.abap"
+}

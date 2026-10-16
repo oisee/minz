@@ -1,0 +1,214 @@
+{"Time":"2026-10-16T21:49:20.727313761Z","Action":"start","Package":"github.com/minz/minzc/pkg/c89"}
+{"Time":"2026-10-16T21:49:20.748577721Z","Action":"run","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples"}
+{"Time":"2026-10-16T21:49:20.748642261Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples","Output":"=== RUN   TestCorpus_C99Examples\n"}
+{"Time":"2026-10-16T21:49:20.74878825Z","Action":"run","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/array_desig.c"}
+{"Time":"2026-10-16T21:49:20.74879443Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/array_desig.c","Output":"=== RUN   TestCorpus_C99Examples/array_desig.c\n"}
+{"Time":"2026-10-16T21:49:20.75057339Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/array_desig.c","Output":"    c89_test.go:529:   6 funcs, 6 asserts (dual=0, mir2=6, z80=0)\n"}
+{"Time":"2026-10-16T21:49:20.789070853Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/array_desig.c","Output":"    c89_test.go:541:   6 mir2 + 0 z80 asserts passed\n"}
+{"Time":"2026-10-16T21:49:20.789124693Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/array_desig.c","Output":"--- PASS: TestCorpus_C99Examples/array_desig.c (0.04s)\n"}
+{"Time":"2026-10-16T21:49:20.789149853Z","Action":"pass","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/array_desig.c","Elapsed":0.04}
+{"Time":"2026-10-16T21:49:20.789176043Z","Action":"run","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c11_anon_struct.c"}
+{"Time":"2026-10-16T21:49:20.789179043Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c11_anon_struct.c","Output":"=== RUN   TestCorpus_C99Examples/c11_anon_struct.c\n"}
+{"Time":"2026-10-16T21:49:20.790376126Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c11_anon_struct.c","Output":"    c89_test.go:529:   6 funcs, 6 asserts (dual=0, mir2=6, z80=0)\n"}
+{"Time":"2026-10-16T21:49:20.793541938Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c11_anon_struct.c","Output":"    c89_test.go:541:   6 mir2 + 0 z80 asserts passed\n"}
+{"Time":"2026-10-16T21:49:20.793552058Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c11_anon_struct.c","Output":"--- PASS: TestCorpus_C99Examples/c11_anon_struct.c (0.00s)\n"}
+{"Time":"2026-10-16T21:49:20.793555438Z","Action":"pass","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c11_anon_struct.c","Elapsed":0}
+{"Time":"2026-10-16T21:49:20.793563628Z","Action":"run","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c11_features.c"}
+{"Time":"2026-10-16T21:49:20.793566038Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c11_features.c","Output":"=== RUN   TestCorpus_C99Examples/c11_features.c\n"}
+{"Time":"2026-10-16T21:49:20.794175225Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c11_features.c","Output":"    c89_test.go:529:   7 funcs, 9 asserts (dual=0, mir2=9, z80=0)\n"}
+{"Time":"2026-10-16T21:49:20.803637401Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c11_features.c","Output":"    c89_test.go:541:   9 mir2 + 0 z80 asserts passed\n"}
+{"Time":"2026-10-16T21:49:20.803667291Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c11_features.c","Output":"--- PASS: TestCorpus_C99Examples/c11_features.c (0.01s)\n"}
+{"Time":"2026-10-16T21:49:20.803671031Z","Action":"pass","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c11_features.c","Elapsed":0.01}
+{"Time":"2026-10-16T21:49:20.803677081Z","Action":"run","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c23_attributes.c"}
+{"Time":"2026-10-16T21:49:20.803688561Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c23_attributes.c","Output":"=== RUN   TestCorpus_C99Examples/c23_attributes.c\n"}
+{"Time":"2026-10-16T21:49:20.804450197Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c23_attributes.c","Output":"    c89_test.go:529:   7 funcs, 9 asserts (dual=0, mir2=9, z80=0)\n"}
+{"Time":"2026-10-16T21:49:20.808322985Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c23_attributes.c","Output":"    c89_test.go:541:   9 mir2 + 0 z80 asserts passed\n"}
+{"Time":"2026-10-16T21:49:20.808338085Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c23_attributes.c","Output":"--- PASS: TestCorpus_C99Examples/c23_attributes.c (0.00s)\n"}
+{"Time":"2026-10-16T21:49:20.808342395Z","Action":"pass","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c23_attributes.c","Elapsed":0}
+{"Time":"2026-10-16T21:49:20.808350275Z","Action":"run","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c23_bitint.c"}
+{"Time":"2026-10-16T21:49:20.808353255Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c23_bitint.c","Output":"=== RUN   TestCorpus_C99Examples/c23_bitint.c\n"}
+{"Time":"2026-10-16T21:49:20.80927181Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c23_bitint.c","Output":"    c89_test.go:507: explicit rejection: _BitInt\n"}
+{"Time":"2026-10-16T21:49:20.8092784Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c23_bitint.c","Output":"--- PASS: TestCorpus_C99Examples/c23_bitint.c (0.00s)\n"}
+{"Time":"2026-10-16T21:49:20.80928282Z","Action":"pass","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c23_bitint.c","Elapsed":0}
+{"Time":"2026-10-16T21:49:20.80928591Z","Action":"run","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c23_constexpr_enum.c"}
+{"Time":"2026-10-16T21:49:20.80928872Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c23_constexpr_enum.c","Output":"=== RUN   TestCorpus_C99Examples/c23_constexpr_enum.c\n"}
+{"Time":"2026-10-16T21:49:20.809931396Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c23_constexpr_enum.c","Output":"    c89_test.go:507: explicit rejection: constexpr\n"}
+{"Time":"2026-10-16T21:49:20.809935186Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c23_constexpr_enum.c","Output":"--- PASS: TestCorpus_C99Examples/c23_constexpr_enum.c (0.00s)\n"}
+{"Time":"2026-10-16T21:49:20.809939506Z","Action":"pass","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c23_constexpr_enum.c","Elapsed":0}
+{"Time":"2026-10-16T21:49:20.809943776Z","Action":"run","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c23_digit_sep.c"}
+{"Time":"2026-10-16T21:49:20.809946396Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c23_digit_sep.c","Output":"=== RUN   TestCorpus_C99Examples/c23_digit_sep.c\n"}
+{"Time":"2026-10-16T21:49:20.810840621Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c23_digit_sep.c","Output":"    c89_test.go:529:   9 funcs, 9 asserts (dual=0, mir2=9, z80=0)\n"}
+{"Time":"2026-10-16T21:49:20.812544571Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c23_digit_sep.c","Output":"    c89_test.go:541:   9 mir2 + 0 z80 asserts passed\n"}
+{"Time":"2026-10-16T21:49:20.812551661Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c23_digit_sep.c","Output":"--- PASS: TestCorpus_C99Examples/c23_digit_sep.c (0.00s)\n"}
+{"Time":"2026-10-16T21:49:20.812556131Z","Action":"pass","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c23_digit_sep.c","Elapsed":0}
+{"Time":"2026-10-16T21:49:20.812567161Z","Action":"run","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c23_embed.c"}
+{"Time":"2026-10-16T21:49:20.812569961Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c23_embed.c","Output":"=== RUN   TestCorpus_C99Examples/c23_embed.c\n"}
+{"Time":"2026-10-16T21:49:20.813194528Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c23_embed.c","Output":"    c89_test.go:529:   5 funcs, 10 asserts (dual=0, mir2=10, z80=0)\n"}
+{"Time":"2026-10-16T21:49:20.815472575Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c23_embed.c","Output":"    c89_test.go:541:   10 mir2 + 0 z80 asserts passed\n"}
+{"Time":"2026-10-16T21:49:20.815478635Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c23_embed.c","Output":"--- PASS: TestCorpus_C99Examples/c23_embed.c (0.00s)\n"}
+{"Time":"2026-10-16T21:49:20.815482975Z","Action":"pass","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c23_embed.c","Elapsed":0}
+{"Time":"2026-10-16T21:49:20.815486945Z","Action":"run","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c23_misc.c"}
+{"Time":"2026-10-16T21:49:20.815489455Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c23_misc.c","Output":"=== RUN   TestCorpus_C99Examples/c23_misc.c\n"}
+{"Time":"2026-10-16T21:49:20.816207931Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c23_misc.c","Output":"    c89_test.go:507: explicit rejection: constexpr\n"}
+{"Time":"2026-10-16T21:49:20.816221881Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c23_misc.c","Output":"--- PASS: TestCorpus_C99Examples/c23_misc.c (0.00s)\n"}
+{"Time":"2026-10-16T21:49:20.816229961Z","Action":"pass","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c23_misc.c","Elapsed":0}
+{"Time":"2026-10-16T21:49:20.816234391Z","Action":"run","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c23_preview.c"}
+{"Time":"2026-10-16T21:49:20.816239471Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c23_preview.c","Output":"=== RUN   TestCorpus_C99Examples/c23_preview.c\n"}
+{"Time":"2026-10-16T21:49:20.816897107Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c23_preview.c","Output":"    c89_test.go:529:   4 funcs, 10 asserts (dual=0, mir2=10, z80=0)\n"}
+{"Time":"2026-10-16T21:49:20.822754124Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c23_preview.c","Output":"    c89_test.go:541:   10 mir2 + 0 z80 asserts passed\n"}
+{"Time":"2026-10-16T21:49:20.822769184Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c23_preview.c","Output":"--- PASS: TestCorpus_C99Examples/c23_preview.c (0.01s)\n"}
+{"Time":"2026-10-16T21:49:20.822772764Z","Action":"pass","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c23_preview.c","Elapsed":0.01}
+{"Time":"2026-10-16T21:49:20.822778884Z","Action":"run","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c23_stdbit.c"}
+{"Time":"2026-10-16T21:49:20.822781414Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c23_stdbit.c","Output":"=== RUN   TestCorpus_C99Examples/c23_stdbit.c\n"}
+{"Time":"2026-10-16T21:49:20.824432464Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c23_stdbit.c","Output":"    c89_test.go:529:   50 funcs, 34 asserts (dual=0, mir2=34, z80=0)\n"}
+{"Time":"2026-10-16T21:49:20.859459997Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c23_stdbit.c","Output":"    c89_test.go:541:   34 mir2 + 0 z80 asserts passed\n"}
+{"Time":"2026-10-16T21:49:20.859486217Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c23_stdbit.c","Output":"--- PASS: TestCorpus_C99Examples/c23_stdbit.c (0.04s)\n"}
+{"Time":"2026-10-16T21:49:20.859497557Z","Action":"pass","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c23_stdbit.c","Elapsed":0.04}
+{"Time":"2026-10-16T21:49:20.859502137Z","Action":"run","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c99_bitops.c"}
+{"Time":"2026-10-16T21:49:20.859504447Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c99_bitops.c","Output":"=== RUN   TestCorpus_C99Examples/c99_bitops.c\n"}
+{"Time":"2026-10-16T21:49:20.860287963Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c99_bitops.c","Output":"    c89_test.go:529:   15 funcs, 27 asserts (dual=0, mir2=27, z80=0)\n"}
+{"Time":"2026-10-16T21:49:20.877414876Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c99_bitops.c","Output":"    c89_test.go:541:   27 mir2 + 0 z80 asserts passed\n"}
+{"Time":"2026-10-16T21:49:20.877444146Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c99_bitops.c","Output":"--- PASS: TestCorpus_C99Examples/c99_bitops.c (0.02s)\n"}
+{"Time":"2026-10-16T21:49:20.877447836Z","Action":"pass","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c99_bitops.c","Elapsed":0.02}
+{"Time":"2026-10-16T21:49:20.877454216Z","Action":"run","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c99_control_flow.c"}
+{"Time":"2026-10-16T21:49:20.877456616Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c99_control_flow.c","Output":"=== RUN   TestCorpus_C99Examples/c99_control_flow.c\n"}
+{"Time":"2026-10-16T21:49:20.8785268Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c99_control_flow.c","Output":"    c89_test.go:529:   10 funcs, 21 asserts (dual=0, mir2=21, z80=0)\n"}
+{"Time":"2026-10-16T21:49:20.896026182Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c99_control_flow.c","Output":"    c89_test.go:541:   21 mir2 + 0 z80 asserts passed\n"}
+{"Time":"2026-10-16T21:49:20.896051001Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c99_control_flow.c","Output":"--- PASS: TestCorpus_C99Examples/c99_control_flow.c (0.02s)\n"}
+{"Time":"2026-10-16T21:49:20.896055591Z","Action":"pass","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c99_control_flow.c","Elapsed":0.02}
+{"Time":"2026-10-16T21:49:20.896061691Z","Action":"run","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c99_ctype.c"}
+{"Time":"2026-10-16T21:49:20.896064251Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c99_ctype.c","Output":"=== RUN   TestCorpus_C99Examples/c99_ctype.c\n"}
+{"Time":"2026-10-16T21:49:20.897297174Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c99_ctype.c","Output":"    c89_test.go:529:   21 funcs, 17 asserts (dual=0, mir2=17, z80=0)\n"}
+{"Time":"2026-10-16T21:49:20.932140958Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c99_ctype.c","Output":"    c89_test.go:541:   17 mir2 + 0 z80 asserts passed\n"}
+{"Time":"2026-10-16T21:49:20.932175748Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c99_ctype.c","Output":"--- PASS: TestCorpus_C99Examples/c99_ctype.c (0.04s)\n"}
+{"Time":"2026-10-16T21:49:20.932181088Z","Action":"pass","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c99_ctype.c","Elapsed":0.04}
+{"Time":"2026-10-16T21:49:20.932189078Z","Action":"run","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c99_enum_typedef.c"}
+{"Time":"2026-10-16T21:49:20.932192378Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c99_enum_typedef.c","Output":"=== RUN   TestCorpus_C99Examples/c99_enum_typedef.c\n"}
+{"Time":"2026-10-16T21:49:20.932986224Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c99_enum_typedef.c","Output":"    c89_test.go:529:   12 funcs, 15 asserts (dual=0, mir2=15, z80=0)\n"}
+{"Time":"2026-10-16T21:49:20.938103495Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c99_enum_typedef.c","Output":"    c89_test.go:541:   15 mir2 + 0 z80 asserts passed\n"}
+{"Time":"2026-10-16T21:49:20.938116705Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c99_enum_typedef.c","Output":"--- PASS: TestCorpus_C99Examples/c99_enum_typedef.c (0.01s)\n"}
+{"Time":"2026-10-16T21:49:20.938121495Z","Action":"pass","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c99_enum_typedef.c","Elapsed":0.01}
+{"Time":"2026-10-16T21:49:20.938127385Z","Action":"run","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c99_math8.c"}
+{"Time":"2026-10-16T21:49:20.938131035Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c99_math8.c","Output":"=== RUN   TestCorpus_C99Examples/c99_math8.c\n"}
+{"Time":"2026-10-16T21:49:20.939375407Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c99_math8.c","Output":"    c89_test.go:529:   15 funcs, 31 asserts (dual=0, mir2=31, z80=0)\n"}
+{"Time":"2026-10-16T21:49:20.953488048Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c99_math8.c","Output":"    c89_test.go:541:   31 mir2 + 0 z80 asserts passed\n"}
+{"Time":"2026-10-16T21:49:20.953508968Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c99_math8.c","Output":"--- PASS: TestCorpus_C99Examples/c99_math8.c (0.02s)\n"}
+{"Time":"2026-10-16T21:49:20.953513818Z","Action":"pass","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c99_math8.c","Elapsed":0.02}
+{"Time":"2026-10-16T21:49:20.953520638Z","Action":"run","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c99_pointers.c"}
+{"Time":"2026-10-16T21:49:20.953524178Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c99_pointers.c","Output":"=== RUN   TestCorpus_C99Examples/c99_pointers.c\n"}
+{"Time":"2026-10-16T21:49:20.954279953Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c99_pointers.c","Output":"    c89_test.go:529:   11 funcs, 8 asserts (dual=0, mir2=0, z80=8)\n"}
+{"Time":"2026-10-16T21:49:20.998882652Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c99_pointers.c","Output":"    c89_test.go:541:   0 mir2 + 8 z80 asserts passed\n"}
+{"Time":"2026-10-16T21:49:20.998917532Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c99_pointers.c","Output":"--- PASS: TestCorpus_C99Examples/c99_pointers.c (0.05s)\n"}
+{"Time":"2026-10-16T21:49:20.998927332Z","Action":"pass","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c99_pointers.c","Elapsed":0.05}
+{"Time":"2026-10-16T21:49:20.998936012Z","Action":"run","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c99_stdbool.c"}
+{"Time":"2026-10-16T21:49:20.998942492Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c99_stdbool.c","Output":"=== RUN   TestCorpus_C99Examples/c99_stdbool.c\n"}
+{"Time":"2026-10-16T21:49:20.999522289Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c99_stdbool.c","Output":"    c89_test.go:529:   6 funcs, 12 asserts (dual=0, mir2=12, z80=0)\n"}
+{"Time":"2026-10-16T21:49:21.003580656Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c99_stdbool.c","Output":"    c89_test.go:541:   12 mir2 + 0 z80 asserts passed\n"}
+{"Time":"2026-10-16T21:49:21.003600586Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c99_stdbool.c","Output":"--- PASS: TestCorpus_C99Examples/c99_stdbool.c (0.00s)\n"}
+{"Time":"2026-10-16T21:49:21.003606496Z","Action":"pass","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c99_stdbool.c","Elapsed":0}
+{"Time":"2026-10-16T21:49:21.003610746Z","Action":"run","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c99_structs.c"}
+{"Time":"2026-10-16T21:49:21.003614156Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c99_structs.c","Output":"=== RUN   TestCorpus_C99Examples/c99_structs.c\n"}
+{"Time":"2026-10-16T21:49:21.004962648Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c99_structs.c","Output":"    c89_test.go:529:   11 funcs, 10 asserts (dual=0, mir2=10, z80=0)\n"}
+{"Time":"2026-10-16T21:49:21.007844882Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c99_structs.c","Output":"    c89_test.go:541:   10 mir2 + 0 z80 asserts passed\n"}
+{"Time":"2026-10-16T21:49:21.007856372Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c99_structs.c","Output":"--- PASS: TestCorpus_C99Examples/c99_structs.c (0.00s)\n"}
+{"Time":"2026-10-16T21:49:21.007860852Z","Action":"pass","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c99_structs.c","Elapsed":0}
+{"Time":"2026-10-16T21:49:21.007866512Z","Action":"run","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c_edge_cases.c"}
+{"Time":"2026-10-16T21:49:21.007869872Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c_edge_cases.c","Output":"=== RUN   TestCorpus_C99Examples/c_edge_cases.c\n"}
+{"Time":"2026-10-16T21:49:21.008431969Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c_edge_cases.c","Output":"    c89_test.go:529:   15 funcs, 36 asserts (dual=0, mir2=36, z80=0)\n"}
+{"Time":"2026-10-16T21:49:21.016251175Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c_edge_cases.c","Output":"    c89_test.go:541:   36 mir2 + 0 z80 asserts passed\n"}
+{"Time":"2026-10-16T21:49:21.016268165Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c_edge_cases.c","Output":"--- PASS: TestCorpus_C99Examples/c_edge_cases.c (0.01s)\n"}
+{"Time":"2026-10-16T21:49:21.016272485Z","Action":"pass","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/c_edge_cases.c","Elapsed":0.01}
+{"Time":"2026-10-16T21:49:21.016278655Z","Action":"run","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/mul_const.c"}
+{"Time":"2026-10-16T21:49:21.016282034Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/mul_const.c","Output":"=== RUN   TestCorpus_C99Examples/mul_const.c\n"}
+{"Time":"2026-10-16T21:49:21.016519603Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/mul_const.c","Output":"    c89_test.go:529:   1 funcs, 4 asserts (dual=0, mir2=2, z80=2)\n"}
+{"Time":"2026-10-16T21:49:21.017352418Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/mul_const.c","Output":"    c89_test.go:541:   2 mir2 + 2 z80 asserts passed\n"}
+{"Time":"2026-10-16T21:49:21.017360748Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/mul_const.c","Output":"--- PASS: TestCorpus_C99Examples/mul_const.c (0.00s)\n"}
+{"Time":"2026-10-16T21:49:21.017365678Z","Action":"pass","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/mul_const.c","Elapsed":0}
+{"Time":"2026-10-16T21:49:21.017369708Z","Action":"run","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/promoted_arithmetic.c"}
+{"Time":"2026-10-16T21:49:21.017379978Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/promoted_arithmetic.c","Output":"=== RUN   TestCorpus_C99Examples/promoted_arithmetic.c\n"}
+{"Time":"2026-10-16T21:49:21.018103464Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/promoted_arithmetic.c","Output":"    c89_test.go:529:   9 funcs, 24 asserts (dual=0, mir2=12, z80=12)\n"}
+{"Time":"2026-10-16T21:49:21.096224355Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/promoted_arithmetic.c","Output":"    c89_test.go:541:   12 mir2 + 12 z80 asserts passed\n"}
+{"Time":"2026-10-16T21:49:21.096257384Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/promoted_arithmetic.c","Output":"--- PASS: TestCorpus_C99Examples/promoted_arithmetic.c (0.08s)\n"}
+{"Time":"2026-10-16T21:49:21.096262464Z","Action":"pass","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/promoted_arithmetic.c","Elapsed":0.08}
+{"Time":"2026-10-16T21:49:21.096269424Z","Action":"run","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/signed_arithmetic.c"}
+{"Time":"2026-10-16T21:49:21.096272574Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/signed_arithmetic.c","Output":"=== RUN   TestCorpus_C99Examples/signed_arithmetic.c\n"}
+{"Time":"2026-10-16T21:49:21.097304619Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/signed_arithmetic.c","Output":"    c89_test.go:529:   9 funcs, 36 asserts (dual=0, mir2=18, z80=18)\n"}
+{"Time":"2026-10-16T21:49:21.456597987Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/signed_arithmetic.c","Output":"    c89_test.go:541:   18 mir2 + 18 z80 asserts passed\n"}
+{"Time":"2026-10-16T21:49:21.456631786Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/signed_arithmetic.c","Output":"--- PASS: TestCorpus_C99Examples/signed_arithmetic.c (0.36s)\n"}
+{"Time":"2026-10-16T21:49:21.456636146Z","Action":"pass","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples/signed_arithmetic.c","Elapsed":0.36}
+{"Time":"2026-10-16T21:49:21.456642246Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples","Output":"    c89_test.go:545: TOTAL: mir2=294/294 z80=40/40 combined=334/334 across C99+ corpus\n"}
+{"Time":"2026-10-16T21:49:21.456645376Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples","Output":"--- PASS: TestCorpus_C99Examples (0.71s)\n"}
+{"Time":"2026-10-16T21:49:21.456648036Z","Action":"pass","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_C99Examples","Elapsed":0.71}
+{"Time":"2026-10-16T21:49:21.456651156Z","Action":"run","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_ObjCExamples"}
+{"Time":"2026-10-16T21:49:21.456653456Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_ObjCExamples","Output":"=== RUN   TestCorpus_ObjCExamples\n"}
+{"Time":"2026-10-16T21:49:21.456683856Z","Action":"run","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_ObjCExamples/canvas_shapes.m"}
+{"Time":"2026-10-16T21:49:21.456687926Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_ObjCExamples/canvas_shapes.m","Output":"=== RUN   TestCorpus_ObjCExamples/canvas_shapes.m\n"}
+{"Time":"2026-10-16T21:49:21.457381912Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_ObjCExamples/canvas_shapes.m","Output":"    c89_test.go:593:   14 funcs, 6 asserts\n"}
+{"Time":"2026-10-16T21:49:21.509419309Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_ObjCExamples/canvas_shapes.m","Output":"    c89_test.go:601:   all 6 asserts passed\n"}
+{"Time":"2026-10-16T21:49:21.509452879Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_ObjCExamples/canvas_shapes.m","Output":"--- PASS: TestCorpus_ObjCExamples/canvas_shapes.m (0.05s)\n"}
+{"Time":"2026-10-16T21:49:21.509466529Z","Action":"pass","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_ObjCExamples/canvas_shapes.m","Elapsed":0.05}
+{"Time":"2026-10-16T21:49:21.509474909Z","Action":"run","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_ObjCExamples/counter.m"}
+{"Time":"2026-10-16T21:49:21.509478799Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_ObjCExamples/counter.m","Output":"=== RUN   TestCorpus_ObjCExamples/counter.m\n"}
+{"Time":"2026-10-16T21:49:21.509972196Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_ObjCExamples/counter.m","Output":"    c89_test.go:593:   9 funcs, 5 asserts\n"}
+{"Time":"2026-10-16T21:49:21.523920368Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_ObjCExamples/counter.m","Output":"    c89_test.go:601:   all 5 asserts passed\n"}
+{"Time":"2026-10-16T21:49:21.523944318Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_ObjCExamples/counter.m","Output":"--- PASS: TestCorpus_ObjCExamples/counter.m (0.01s)\n"}
+{"Time":"2026-10-16T21:49:21.523948608Z","Action":"pass","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_ObjCExamples/counter.m","Elapsed":0.01}
+{"Time":"2026-10-16T21:49:21.523954768Z","Action":"run","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_ObjCExamples/dynamic.m"}
+{"Time":"2026-10-16T21:49:21.523957227Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_ObjCExamples/dynamic.m","Output":"=== RUN   TestCorpus_ObjCExamples/dynamic.m\n"}
+{"Time":"2026-10-16T21:49:21.524321305Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_ObjCExamples/dynamic.m","Output":"    c89_test.go:593:   13 funcs, 8 asserts\n"}
+{"Time":"2026-10-16T21:49:21.538865794Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_ObjCExamples/dynamic.m","Output":"    c89_test.go:601:   all 8 asserts passed\n"}
+{"Time":"2026-10-16T21:49:21.538881894Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_ObjCExamples/dynamic.m","Output":"--- PASS: TestCorpus_ObjCExamples/dynamic.m (0.01s)\n"}
+{"Time":"2026-10-16T21:49:21.538885963Z","Action":"pass","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_ObjCExamples/dynamic.m","Elapsed":0.01}
+{"Time":"2026-10-16T21:49:21.538891233Z","Action":"run","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_ObjCExamples/foundation.m"}
+{"Time":"2026-10-16T21:49:21.538894083Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_ObjCExamples/foundation.m","Output":"=== RUN   TestCorpus_ObjCExamples/foundation.m\n"}
+{"Time":"2026-10-16T21:49:21.540258776Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_ObjCExamples/foundation.m","Output":"    c89_test.go:593:   57 funcs, 22 asserts\n"}
+{"Time":"2026-10-16T21:49:21.614651297Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_ObjCExamples/foundation.m","Output":"    c89_test.go:601:   all 22 asserts passed\n"}
+{"Time":"2026-10-16T21:49:21.639838915Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_ObjCExamples/foundation.m","Output":"--- PASS: TestCorpus_ObjCExamples/foundation.m (0.08s)\n"}
+{"Time":"2026-10-16T21:49:21.639868175Z","Action":"pass","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_ObjCExamples/foundation.m","Elapsed":0.08}
+{"Time":"2026-10-16T21:49:21.639880935Z","Action":"run","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_ObjCExamples/game_ecs.m"}
+{"Time":"2026-10-16T21:49:21.639884845Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_ObjCExamples/game_ecs.m","Output":"=== RUN   TestCorpus_ObjCExamples/game_ecs.m\n"}
+{"Time":"2026-10-16T21:49:21.646870126Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_ObjCExamples/game_ecs.m","Output":"    c89_test.go:593:   21 funcs, 11 asserts\n"}
+{"Time":"2026-10-16T21:49:21.7136855Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_ObjCExamples/game_ecs.m","Output":"    c89_test.go:601:   all 11 asserts passed\n"}
+{"Time":"2026-10-16T21:49:21.71371249Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_ObjCExamples/game_ecs.m","Output":"--- PASS: TestCorpus_ObjCExamples/game_ecs.m (0.10s)\n"}
+{"Time":"2026-10-16T21:49:21.71371737Z","Action":"pass","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_ObjCExamples/game_ecs.m","Elapsed":0.1}
+{"Time":"2026-10-16T21:49:21.71372418Z","Action":"run","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_ObjCExamples/inherit.m"}
+{"Time":"2026-10-16T21:49:21.71372717Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_ObjCExamples/inherit.m","Output":"=== RUN   TestCorpus_ObjCExamples/inherit.m\n"}
+{"Time":"2026-10-16T21:49:21.714478855Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_ObjCExamples/inherit.m","Output":"    c89_test.go:593:   16 funcs, 8 asserts\n"}
+{"Time":"2026-10-16T21:49:21.72782544Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_ObjCExamples/inherit.m","Output":"    c89_test.go:601:   all 8 asserts passed\n"}
+{"Time":"2026-10-16T21:49:21.72784391Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_ObjCExamples/inherit.m","Output":"--- PASS: TestCorpus_ObjCExamples/inherit.m (0.01s)\n"}
+{"Time":"2026-10-16T21:49:21.7278487Z","Action":"pass","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_ObjCExamples/inherit.m","Elapsed":0.01}
+{"Time":"2026-10-16T21:49:21.72785463Z","Action":"run","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_ObjCExamples/math_objc.m"}
+{"Time":"2026-10-16T21:49:21.72785784Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_ObjCExamples/math_objc.m","Output":"=== RUN   TestCorpus_ObjCExamples/math_objc.m\n"}
+{"Time":"2026-10-16T21:49:21.728545516Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_ObjCExamples/math_objc.m","Output":"    c89_test.go:593:   28 funcs, 11 asserts\n"}
+{"Time":"2026-10-16T21:49:21.754720819Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_ObjCExamples/math_objc.m","Output":"    c89_test.go:601:   all 11 asserts passed\n"}
+{"Time":"2026-10-16T21:49:21.754746059Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_ObjCExamples/math_objc.m","Output":"--- PASS: TestCorpus_ObjCExamples/math_objc.m (0.03s)\n"}
+{"Time":"2026-10-16T21:49:21.754752849Z","Action":"pass","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_ObjCExamples/math_objc.m","Elapsed":0.03}
+{"Time":"2026-10-16T21:49:21.754761119Z","Action":"run","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_ObjCExamples/message.m"}
+{"Time":"2026-10-16T21:49:21.754765399Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_ObjCExamples/message.m","Output":"=== RUN   TestCorpus_ObjCExamples/message.m\n"}
+{"Time":"2026-10-16T21:49:21.755167737Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_ObjCExamples/message.m","Output":"    c89_test.go:593:   9 funcs, 5 asserts\n"}
+{"Time":"2026-10-16T21:49:21.767918244Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_ObjCExamples/message.m","Output":"    c89_test.go:601:   all 5 asserts passed\n"}
+{"Time":"2026-10-16T21:49:21.767941694Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_ObjCExamples/message.m","Output":"--- PASS: TestCorpus_ObjCExamples/message.m (0.01s)\n"}
+{"Time":"2026-10-16T21:49:21.767947014Z","Action":"pass","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_ObjCExamples/message.m","Elapsed":0.01}
+{"Time":"2026-10-16T21:49:21.767951134Z","Action":"run","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_ObjCExamples/pipeline.m"}
+{"Time":"2026-10-16T21:49:21.767958014Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_ObjCExamples/pipeline.m","Output":"=== RUN   TestCorpus_ObjCExamples/pipeline.m\n"}
+{"Time":"2026-10-16T21:49:21.769189467Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_ObjCExamples/pipeline.m","Output":"    c89_test.go:593:   22 funcs, 7 asserts\n"}
+{"Time":"2026-10-16T21:49:21.796708022Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_ObjCExamples/pipeline.m","Output":"    c89_test.go:601:   all 7 asserts passed\n"}
+{"Time":"2026-10-16T21:49:21.796734162Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_ObjCExamples/pipeline.m","Output":"--- PASS: TestCorpus_ObjCExamples/pipeline.m (0.03s)\n"}
+{"Time":"2026-10-16T21:49:21.796740262Z","Action":"pass","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_ObjCExamples/pipeline.m","Elapsed":0.03}
+{"Time":"2026-10-16T21:49:21.796744832Z","Action":"run","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_ObjCExamples/plasma.m"}
+{"Time":"2026-10-16T21:49:21.796747282Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_ObjCExamples/plasma.m","Output":"=== RUN   TestCorpus_ObjCExamples/plasma.m\n"}
+{"Time":"2026-10-16T21:49:21.798611492Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_ObjCExamples/plasma.m","Output":"    c89_test.go:593:   13 funcs, 11 asserts\n"}
+{"Time":"2026-10-16T21:49:21.874454875Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_ObjCExamples/plasma.m","Output":"    c89_test.go:601:   all 11 asserts passed\n"}
+{"Time":"2026-10-16T21:49:21.874497925Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_ObjCExamples/plasma.m","Output":"--- PASS: TestCorpus_ObjCExamples/plasma.m (0.08s)\n"}
+{"Time":"2026-10-16T21:49:21.874502175Z","Action":"pass","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_ObjCExamples/plasma.m","Elapsed":0.08}
+{"Time":"2026-10-16T21:49:21.874515465Z","Action":"run","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_ObjCExamples/simple.m"}
+{"Time":"2026-10-16T21:49:21.874518015Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_ObjCExamples/simple.m","Output":"=== RUN   TestCorpus_ObjCExamples/simple.m\n"}
+{"Time":"2026-10-16T21:49:21.874771263Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_ObjCExamples/simple.m","Output":"    c89_test.go:593:   6 funcs, 4 asserts\n"}
+{"Time":"2026-10-16T21:49:21.881203987Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_ObjCExamples/simple.m","Output":"    c89_test.go:601:   all 4 asserts passed\n"}
+{"Time":"2026-10-16T21:49:21.881217857Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_ObjCExamples/simple.m","Output":"--- PASS: TestCorpus_ObjCExamples/simple.m (0.01s)\n"}
+{"Time":"2026-10-16T21:49:21.881221287Z","Action":"pass","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_ObjCExamples/simple.m","Elapsed":0.01}
+{"Time":"2026-10-16T21:49:21.881226527Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_ObjCExamples","Output":"--- PASS: TestCorpus_ObjCExamples (0.42s)\n"}
+{"Time":"2026-10-16T21:49:21.881230277Z","Action":"pass","Package":"github.com/minz/minzc/pkg/c89","Test":"TestCorpus_ObjCExamples","Elapsed":0.42}
+{"Time":"2026-10-16T21:49:21.881233987Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Output":"PASS\n"}
+{"Time":"2026-10-16T21:49:21.882769938Z","Action":"output","Package":"github.com/minz/minzc/pkg/c89","Output":"ok  \tgithub.com/minz/minzc/pkg/c89\t1.155s\n"}
+{"Time":"2026-10-16T21:49:21.882782988Z","Action":"pass","Package":"github.com/minz/minzc/pkg/c89","Elapsed":1.155}

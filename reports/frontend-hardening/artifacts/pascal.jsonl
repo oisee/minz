@@ -1,0 +1,162 @@
+{"Time":"2026-10-16T21:49:20.335655055Z","Action":"start","Package":"github.com/minz/minzc/pkg/pascal"}
+{"Time":"2026-10-16T21:49:20.342605116Z","Action":"run","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestDecimalSignedUnsignedTypedSelection"}
+{"Time":"2026-10-16T21:49:20.342623326Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestDecimalSignedUnsignedTypedSelection","Output":"=== RUN   TestDecimalSignedUnsignedTypedSelection\n"}
+{"Time":"2026-10-16T21:49:20.342728075Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestDecimalSignedUnsignedTypedSelection","Output":"--- PASS: TestDecimalSignedUnsignedTypedSelection (0.00s)\n"}
+{"Time":"2026-10-16T21:49:20.342732345Z","Action":"pass","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestDecimalSignedUnsignedTypedSelection","Elapsed":0}
+{"Time":"2026-10-16T21:49:20.342737475Z","Action":"run","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestPascalProfileSourceAndLoopOrigins"}
+{"Time":"2026-10-16T21:49:20.342739775Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestPascalProfileSourceAndLoopOrigins","Output":"=== RUN   TestPascalProfileSourceAndLoopOrigins\n"}
+{"Time":"2026-10-16T21:49:20.342876124Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestPascalProfileSourceAndLoopOrigins","Output":"--- PASS: TestPascalProfileSourceAndLoopOrigins (0.00s)\n"}
+{"Time":"2026-10-16T21:49:20.342878774Z","Action":"pass","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestPascalProfileSourceAndLoopOrigins","Elapsed":0}
+{"Time":"2026-10-16T21:49:20.342882184Z","Action":"run","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestRecordFieldOffsetsAndArrayStoreVMZ80"}
+{"Time":"2026-10-16T21:49:20.342884314Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestRecordFieldOffsetsAndArrayStoreVMZ80","Output":"=== RUN   TestRecordFieldOffsetsAndArrayStoreVMZ80\n"}
+{"Time":"2026-10-16T21:49:20.352411591Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestRecordFieldOffsetsAndArrayStoreVMZ80","Output":"--- PASS: TestRecordFieldOffsetsAndArrayStoreVMZ80 (0.01s)\n"}
+{"Time":"2026-10-16T21:49:20.352432971Z","Action":"pass","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestRecordFieldOffsetsAndArrayStoreVMZ80","Elapsed":0.01}
+{"Time":"2026-10-16T21:49:20.352440041Z","Action":"run","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestParseMinimal"}
+{"Time":"2026-10-16T21:49:20.352443621Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestParseMinimal","Output":"=== RUN   TestParseMinimal\n"}
+{"Time":"2026-10-16T21:49:20.352450151Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestParseMinimal","Output":"--- PASS: TestParseMinimal (0.00s)\n"}
+{"Time":"2026-10-16T21:49:20.352455311Z","Action":"pass","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestParseMinimal","Elapsed":0}
+{"Time":"2026-10-16T21:49:20.352459741Z","Action":"run","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestParseConst"}
+{"Time":"2026-10-16T21:49:20.352463361Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestParseConst","Output":"=== RUN   TestParseConst\n"}
+{"Time":"2026-10-16T21:49:20.35246744Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestParseConst","Output":"--- PASS: TestParseConst (0.00s)\n"}
+{"Time":"2026-10-16T21:49:20.35247092Z","Action":"pass","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestParseConst","Elapsed":0}
+{"Time":"2026-10-16T21:49:20.35247456Z","Action":"run","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestParseVar"}
+{"Time":"2026-10-16T21:49:20.35247775Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestParseVar","Output":"=== RUN   TestParseVar\n"}
+{"Time":"2026-10-16T21:49:20.35248396Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestParseVar","Output":"--- PASS: TestParseVar (0.00s)\n"}
+{"Time":"2026-10-16T21:49:20.35248798Z","Action":"pass","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestParseVar","Elapsed":0}
+{"Time":"2026-10-16T21:49:20.35249839Z","Action":"run","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestParseArrayType"}
+{"Time":"2026-10-16T21:49:20.35250212Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestParseArrayType","Output":"=== RUN   TestParseArrayType\n"}
+{"Time":"2026-10-16T21:49:20.35250634Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestParseArrayType","Output":"--- PASS: TestParseArrayType (0.00s)\n"}
+{"Time":"2026-10-16T21:49:20.35251016Z","Action":"pass","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestParseArrayType","Elapsed":0}
+{"Time":"2026-10-16T21:49:20.35251544Z","Action":"run","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestParseRecord"}
+{"Time":"2026-10-16T21:49:20.35251867Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestParseRecord","Output":"=== RUN   TestParseRecord\n"}
+{"Time":"2026-10-16T21:49:20.35252264Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestParseRecord","Output":"--- PASS: TestParseRecord (0.00s)\n"}
+{"Time":"2026-10-16T21:49:20.35252622Z","Action":"pass","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestParseRecord","Elapsed":0}
+{"Time":"2026-10-16T21:49:20.35252965Z","Action":"run","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestParseProcedure"}
+{"Time":"2026-10-16T21:49:20.35253311Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestParseProcedure","Output":"=== RUN   TestParseProcedure\n"}
+{"Time":"2026-10-16T21:49:20.35254588Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestParseProcedure","Output":"--- PASS: TestParseProcedure (0.00s)\n"}
+{"Time":"2026-10-16T21:49:20.3525496Z","Action":"pass","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestParseProcedure","Elapsed":0}
+{"Time":"2026-10-16T21:49:20.3525532Z","Action":"run","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestParseFunction"}
+{"Time":"2026-10-16T21:49:20.35255712Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestParseFunction","Output":"=== RUN   TestParseFunction\n"}
+{"Time":"2026-10-16T21:49:20.35256092Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestParseFunction","Output":"--- PASS: TestParseFunction (0.00s)\n"}
+{"Time":"2026-10-16T21:49:20.35256446Z","Action":"pass","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestParseFunction","Elapsed":0}
+{"Time":"2026-10-16T21:49:20.35256902Z","Action":"run","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestParseForLoop"}
+{"Time":"2026-10-16T21:49:20.35257219Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestParseForLoop","Output":"=== RUN   TestParseForLoop\n"}
+{"Time":"2026-10-16T21:49:20.35257632Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestParseForLoop","Output":"--- PASS: TestParseForLoop (0.00s)\n"}
+{"Time":"2026-10-16T21:49:20.35258001Z","Action":"pass","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestParseForLoop","Elapsed":0}
+{"Time":"2026-10-16T21:49:20.35258352Z","Action":"run","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestParseWhileRepeat"}
+{"Time":"2026-10-16T21:49:20.35258665Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestParseWhileRepeat","Output":"=== RUN   TestParseWhileRepeat\n"}
+{"Time":"2026-10-16T21:49:20.35259185Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestParseWhileRepeat","Output":"--- PASS: TestParseWhileRepeat (0.00s)\n"}
+{"Time":"2026-10-16T21:49:20.35259556Z","Action":"pass","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestParseWhileRepeat","Elapsed":0}
+{"Time":"2026-10-16T21:49:20.35259923Z","Action":"run","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestParseCaseStmt"}
+{"Time":"2026-10-16T21:49:20.35260251Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestParseCaseStmt","Output":"=== RUN   TestParseCaseStmt\n"}
+{"Time":"2026-10-16T21:49:20.35261031Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestParseCaseStmt","Output":"--- PASS: TestParseCaseStmt (0.00s)\n"}
+{"Time":"2026-10-16T21:49:20.35261854Z","Action":"pass","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestParseCaseStmt","Elapsed":0}
+{"Time":"2026-10-16T21:49:20.35262214Z","Action":"run","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestParseNestedProc"}
+{"Time":"2026-10-16T21:49:20.3526256Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestParseNestedProc","Output":"=== RUN   TestParseNestedProc\n"}
+{"Time":"2026-10-16T21:49:20.35262976Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestParseNestedProc","Output":"--- PASS: TestParseNestedProc (0.00s)\n"}
+{"Time":"2026-10-16T21:49:20.35263462Z","Action":"pass","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestParseNestedProc","Elapsed":0}
+{"Time":"2026-10-16T21:49:20.35263794Z","Action":"run","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestCompileMinimal"}
+{"Time":"2026-10-16T21:49:20.35264124Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestCompileMinimal","Output":"=== RUN   TestCompileMinimal\n"}
+{"Time":"2026-10-16T21:49:20.352671319Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestCompileMinimal","Output":"--- PASS: TestCompileMinimal (0.00s)\n"}
+{"Time":"2026-10-16T21:49:20.352676219Z","Action":"pass","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestCompileMinimal","Elapsed":0}
+{"Time":"2026-10-16T21:49:20.352680139Z","Action":"run","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestCompileWithVarsAndFor"}
+{"Time":"2026-10-16T21:49:20.352683389Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestCompileWithVarsAndFor","Output":"=== RUN   TestCompileWithVarsAndFor\n"}
+{"Time":"2026-10-16T21:49:20.352724549Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestCompileWithVarsAndFor","Output":"--- PASS: TestCompileWithVarsAndFor (0.00s)\n"}
+{"Time":"2026-10-16T21:49:20.352730499Z","Action":"pass","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestCompileWithVarsAndFor","Elapsed":0}
+{"Time":"2026-10-16T21:49:20.352735719Z","Action":"run","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestCompileProcedure"}
+{"Time":"2026-10-16T21:49:20.352738969Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestCompileProcedure","Output":"=== RUN   TestCompileProcedure\n"}
+{"Time":"2026-10-16T21:49:20.352772429Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestCompileProcedure","Output":"--- PASS: TestCompileProcedure (0.00s)\n"}
+{"Time":"2026-10-16T21:49:20.352777529Z","Action":"pass","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestCompileProcedure","Elapsed":0}
+{"Time":"2026-10-16T21:49:20.352781489Z","Action":"run","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestCompileFunction"}
+{"Time":"2026-10-16T21:49:20.352784699Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestCompileFunction","Output":"=== RUN   TestCompileFunction\n"}
+{"Time":"2026-10-16T21:49:20.352828678Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestCompileFunction","Output":"--- PASS: TestCompileFunction (0.00s)\n"}
+{"Time":"2026-10-16T21:49:20.352833328Z","Action":"pass","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestCompileFunction","Elapsed":0}
+{"Time":"2026-10-16T21:49:20.352838468Z","Action":"run","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestCompileIfElse"}
+{"Time":"2026-10-16T21:49:20.352842008Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestCompileIfElse","Output":"=== RUN   TestCompileIfElse\n"}
+{"Time":"2026-10-16T21:49:20.352862718Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestCompileIfElse","Output":"--- PASS: TestCompileIfElse (0.00s)\n"}
+{"Time":"2026-10-16T21:49:20.352867618Z","Action":"pass","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestCompileIfElse","Elapsed":0}
+{"Time":"2026-10-16T21:49:20.352875898Z","Action":"run","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestCompileCase"}
+{"Time":"2026-10-16T21:49:20.352879238Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestCompileCase","Output":"=== RUN   TestCompileCase\n"}
+{"Time":"2026-10-16T21:49:20.352903548Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestCompileCase","Output":"--- PASS: TestCompileCase (0.00s)\n"}
+{"Time":"2026-10-16T21:49:20.352908438Z","Action":"pass","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestCompileCase","Elapsed":0}
+{"Time":"2026-10-16T21:49:20.352913528Z","Action":"run","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestCompileRepeat"}
+{"Time":"2026-10-16T21:49:20.352917018Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestCompileRepeat","Output":"=== RUN   TestCompileRepeat\n"}
+{"Time":"2026-10-16T21:49:20.352936678Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestCompileRepeat","Output":"--- PASS: TestCompileRepeat (0.00s)\n"}
+{"Time":"2026-10-16T21:49:20.352940578Z","Action":"pass","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestCompileRepeat","Elapsed":0}
+{"Time":"2026-10-16T21:49:20.352945498Z","Action":"run","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestCompileTypedConst"}
+{"Time":"2026-10-16T21:49:20.352948878Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestCompileTypedConst","Output":"=== RUN   TestCompileTypedConst\n"}
+{"Time":"2026-10-16T21:49:20.352975238Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestCompileTypedConst","Output":"--- PASS: TestCompileTypedConst (0.00s)\n"}
+{"Time":"2026-10-16T21:49:20.352979808Z","Action":"pass","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestCompileTypedConst","Elapsed":0}
+{"Time":"2026-10-16T21:49:20.352991118Z","Action":"run","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestCompileRecord"}
+{"Time":"2026-10-16T21:49:20.352994668Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestCompileRecord","Output":"=== RUN   TestCompileRecord\n"}
+{"Time":"2026-10-16T21:49:20.353012217Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestCompileRecord","Output":"--- PASS: TestCompileRecord (0.00s)\n"}
+{"Time":"2026-10-16T21:49:20.353017627Z","Action":"pass","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestCompileRecord","Elapsed":0}
+{"Time":"2026-10-16T21:49:20.353021527Z","Action":"run","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestCompileComments"}
+{"Time":"2026-10-16T21:49:20.353024857Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestCompileComments","Output":"=== RUN   TestCompileComments\n"}
+{"Time":"2026-10-16T21:49:20.353043537Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestCompileComments","Output":"--- PASS: TestCompileComments (0.00s)\n"}
+{"Time":"2026-10-16T21:49:20.353047647Z","Action":"pass","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestCompileComments","Elapsed":0}
+{"Time":"2026-10-16T21:49:20.353051327Z","Action":"run","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestCompileExpressions"}
+{"Time":"2026-10-16T21:49:20.353054697Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestCompileExpressions","Output":"=== RUN   TestCompileExpressions\n"}
+{"Time":"2026-10-16T21:49:20.353082067Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestCompileExpressions","Output":"--- PASS: TestCompileExpressions (0.00s)\n"}
+{"Time":"2026-10-16T21:49:20.353087117Z","Action":"pass","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestCompileExpressions","Elapsed":0}
+{"Time":"2026-10-16T21:49:20.353091077Z","Action":"run","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestCompileStringType"}
+{"Time":"2026-10-16T21:49:20.353094367Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestCompileStringType","Output":"=== RUN   TestCompileStringType\n"}
+{"Time":"2026-10-16T21:49:20.353103977Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestCompileStringType","Output":"--- PASS: TestCompileStringType (0.00s)\n"}
+{"Time":"2026-10-16T21:49:20.353107957Z","Action":"pass","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestCompileStringType","Elapsed":0}
+{"Time":"2026-10-16T21:49:20.353111627Z","Action":"run","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestCompileForDownto"}
+{"Time":"2026-10-16T21:49:20.353114887Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestCompileForDownto","Output":"=== RUN   TestCompileForDownto\n"}
+{"Time":"2026-10-16T21:49:20.353124837Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestCompileForDownto","Output":"--- PASS: TestCompileForDownto (0.00s)\n"}
+{"Time":"2026-10-16T21:49:20.353129777Z","Action":"pass","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestCompileForDownto","Elapsed":0}
+{"Time":"2026-10-16T21:49:20.353133587Z","Action":"run","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestCompileWriteLn"}
+{"Time":"2026-10-16T21:49:20.353136817Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestCompileWriteLn","Output":"=== RUN   TestCompileWriteLn\n"}
+{"Time":"2026-10-16T21:49:20.353166367Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestCompileWriteLn","Output":"--- PASS: TestCompileWriteLn (0.00s)\n"}
+{"Time":"2026-10-16T21:49:20.353170877Z","Action":"pass","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestCompileWriteLn","Elapsed":0}
+{"Time":"2026-10-16T21:49:20.353175337Z","Action":"run","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestCompileUsesClause"}
+{"Time":"2026-10-16T21:49:20.353178516Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestCompileUsesClause","Output":"=== RUN   TestCompileUsesClause\n"}
+{"Time":"2026-10-16T21:49:20.353183916Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestCompileUsesClause","Output":"--- PASS: TestCompileUsesClause (0.00s)\n"}
+{"Time":"2026-10-16T21:49:20.353187546Z","Action":"pass","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestCompileUsesClause","Elapsed":0}
+{"Time":"2026-10-16T21:49:20.353191326Z","Action":"run","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestCompileAssert"}
+{"Time":"2026-10-16T21:49:20.353194586Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestCompileAssert","Output":"=== RUN   TestCompileAssert\n"}
+{"Time":"2026-10-16T21:49:20.353211186Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestCompileAssert","Output":"--- PASS: TestCompileAssert (0.00s)\n"}
+{"Time":"2026-10-16T21:49:20.353215316Z","Action":"pass","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestCompileAssert","Elapsed":0}
+{"Time":"2026-10-16T21:49:20.353219086Z","Action":"run","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestParseHexAndChar"}
+{"Time":"2026-10-16T21:49:20.353222286Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestParseHexAndChar","Output":"=== RUN   TestParseHexAndChar\n"}
+{"Time":"2026-10-16T21:49:20.353231936Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestParseHexAndChar","Output":"--- PASS: TestParseHexAndChar (0.00s)\n"}
+{"Time":"2026-10-16T21:49:20.353236946Z","Action":"pass","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestParseHexAndChar","Elapsed":0}
+{"Time":"2026-10-16T21:49:20.353240646Z","Action":"run","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestAssertE2E"}
+{"Time":"2026-10-16T21:49:20.353243846Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestAssertE2E","Output":"=== RUN   TestAssertE2E\n"}
+{"Time":"2026-10-16T21:49:20.353932332Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestAssertE2E","Output":"--- PASS: TestAssertE2E (0.00s)\n"}
+{"Time":"2026-10-16T21:49:20.353943182Z","Action":"pass","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestAssertE2E","Elapsed":0}
+{"Time":"2026-10-16T21:49:20.353947022Z","Action":"run","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestFunctionPointer"}
+{"Time":"2026-10-16T21:49:20.353950482Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestFunctionPointer","Output":"=== RUN   TestFunctionPointer\n"}
+{"Time":"2026-10-16T21:49:20.354037132Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestFunctionPointer","Output":"    pascal_test.go:650: APPLY body: \u0026{Body:[0x1a18752b8840 0x1a1875683d80 0x1a18755b05a0]}\n"}
+{"Time":"2026-10-16T21:49:20.354046022Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestFunctionPointer","Output":"--- PASS: TestFunctionPointer (0.00s)\n"}
+{"Time":"2026-10-16T21:49:20.354049852Z","Action":"pass","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestFunctionPointer","Elapsed":0}
+{"Time":"2026-10-16T21:49:20.354055152Z","Action":"run","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestMaxE2E"}
+{"Time":"2026-10-16T21:49:20.354058592Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestMaxE2E","Output":"=== RUN   TestMaxE2E\n"}
+{"Time":"2026-10-16T21:49:20.356721627Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestMaxE2E","Output":"    pascal_test.go:679: \n"}
+{"Time":"2026-10-16T21:49:20.356730767Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestMaxE2E","Output":"        ; generated by MIR2 Z80 codegen\n"}
+{"Time":"2026-10-16T21:49:20.356734436Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestMaxE2E","Output":"        \n"}
+{"Time":"2026-10-16T21:49:20.356737896Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestMaxE2E","Output":"        ; fun main() ; clobbers: A, B, BC, C, D, DE, E, F, H, HL, IX, IXH, IXL, IY, IYH, IYL, L\n"}
+{"Time":"2026-10-16T21:49:20.356741446Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestMaxE2E","Output":"        main:\n"}
+{"Time":"2026-10-16T21:49:20.356744906Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestMaxE2E","Output":"            XOR A\n"}
+{"Time":"2026-10-16T21:49:20.356748486Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestMaxE2E","Output":"            DI\n"}
+{"Time":"2026-10-16T21:49:20.356751936Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestMaxE2E","Output":"            HALT\n"}
+{"Time":"2026-10-16T21:49:20.356755226Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestMaxE2E","Output":"        \n"}
+{"Time":"2026-10-16T21:49:20.356758566Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestMaxE2E","Output":"        ; fun MAX(A: u8 = A, B: u8 = B) -\u003e u8 = A ; clobbers: A, B, BC, C, D, DE, E, F, H, HL, IX, IXH, IXL, IY, IYH, IYL, L\n"}
+{"Time":"2026-10-16T21:49:20.356763636Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestMaxE2E","Output":"        MAX:\n"}
+{"Time":"2026-10-16T21:49:20.356766916Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestMaxE2E","Output":"            CP B\n"}
+{"Time":"2026-10-16T21:49:20.356770066Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestMaxE2E","Output":"            JRS Z, .MAX_cret0\n"}
+{"Time":"2026-10-16T21:49:20.356773386Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestMaxE2E","Output":"            JRS C, .MAX_cret0\n"}
+{"Time":"2026-10-16T21:49:20.356776696Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestMaxE2E","Output":"        .MAX_if_then1:\n"}
+{"Time":"2026-10-16T21:49:20.356781486Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestMaxE2E","Output":"            RET\n"}
+{"Time":"2026-10-16T21:49:20.356784856Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestMaxE2E","Output":"        .MAX_cret0:\n"}
+{"Time":"2026-10-16T21:49:20.356793246Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestMaxE2E","Output":"            LD A, B\n"}
+{"Time":"2026-10-16T21:49:20.356796356Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestMaxE2E","Output":"            RET\n"}
+{"Time":"2026-10-16T21:49:20.356799736Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestMaxE2E","Output":"        \n"}
+{"Time":"2026-10-16T21:49:20.356802846Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestMaxE2E","Output":"        \n"}
+{"Time":"2026-10-16T21:49:20.356812986Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestMaxE2E","Output":"--- PASS: TestMaxE2E (0.00s)\n"}
+{"Time":"2026-10-16T21:49:20.356816906Z","Action":"pass","Package":"github.com/minz/minzc/pkg/pascal","Test":"TestMaxE2E","Elapsed":0}
+{"Time":"2026-10-16T21:49:20.356820896Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Output":"PASS\n"}
+{"Time":"2026-10-16T21:49:20.358026469Z","Action":"output","Package":"github.com/minz/minzc/pkg/pascal","Output":"ok  \tgithub.com/minz/minzc/pkg/pascal\t0.022s\n"}
+{"Time":"2026-10-16T21:49:20.358041809Z","Action":"pass","Package":"github.com/minz/minzc/pkg/pascal","Elapsed":0.022}

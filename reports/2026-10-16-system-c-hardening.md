@@ -79,12 +79,14 @@ performance comparison with another target compiler is claimed here.
 
 ## Integration status
 
-The required PR gate and assertion matrix passed on checkpoint `e58847d3e`.
-The final compiler checkpoint `7f109d361` adds the data-only import regression
-and a lint readability fix; its [C/HIR/Nanz/Lizp/interop/assembler checks](system-c-hardening/artifacts/data-only-core.log)
-and all six real-library builds pass. CI reruns the required gate before merging.
-The changes are on `feat/system-c-hardening`; this report does not yet claim
-that the fixes are in main.
+The fixes and evidence are integrated in main through [PR #187](https://github.com/oisee/minz/pull/187),
+merge commit `936749f61`. Main compiler tree `7fe5805c` matches the tested final
+checkpoint. [Final CI](https://github.com/oisee/minz/actions/runs/38966952582)
+passed all required checks, lint, 435 fast pipeline tests in three shards,
+and the real-library matrix. The preserved final local CI artifacts confirm
+435 unique entries with three zero-exit shards and PASS for all six library builds.
+[Current C/frontends status and next hardening](2026-10-16-c-and-frontends-hardening.md)
+adds fresh frontend checks and explicitly preserves remaining limitations.
 
 The informational [default-output sweep](system-c-hardening/artifacts/reviewed-sweep.json)
 reported five changes across 844 files. Three former C23 examples now give the

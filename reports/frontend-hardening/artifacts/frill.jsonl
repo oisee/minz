@@ -1,0 +1,142 @@
+{"Time":"2026-10-16T21:49:21.840786724Z","Action":"start","Package":"github.com/minz/minzc/pkg/frill"}
+{"Time":"2026-10-16T21:49:21.847655716Z","Action":"run","Package":"github.com/minz/minzc/pkg/frill","Test":"TestAdoptedFunctionsEmittedOnce"}
+{"Time":"2026-10-16T21:49:21.847682106Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestAdoptedFunctionsEmittedOnce","Output":"=== RUN   TestAdoptedFunctionsEmittedOnce\n"}
+{"Time":"2026-10-16T21:49:21.847702355Z","Action":"run","Package":"github.com/minz/minzc/pkg/frill","Test":"TestAdoptedFunctionsEmittedOnce/functional_demo"}
+{"Time":"2026-10-16T21:49:21.847704995Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestAdoptedFunctionsEmittedOnce/functional_demo","Output":"=== RUN   TestAdoptedFunctionsEmittedOnce/functional_demo\n"}
+{"Time":"2026-10-16T21:49:21.886876435Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestAdoptedFunctionsEmittedOnce/functional_demo","Output":"--- PASS: TestAdoptedFunctionsEmittedOnce/functional_demo (0.04s)\n"}
+{"Time":"2026-10-16T21:49:21.886893665Z","Action":"pass","Package":"github.com/minz/minzc/pkg/frill","Test":"TestAdoptedFunctionsEmittedOnce/functional_demo","Elapsed":0.04}
+{"Time":"2026-10-16T21:49:21.886900475Z","Action":"run","Package":"github.com/minz/minzc/pkg/frill","Test":"TestAdoptedFunctionsEmittedOnce/pipe"}
+{"Time":"2026-10-16T21:49:21.886903655Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestAdoptedFunctionsEmittedOnce/pipe","Output":"=== RUN   TestAdoptedFunctionsEmittedOnce/pipe\n"}
+{"Time":"2026-10-16T21:49:21.889393531Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestAdoptedFunctionsEmittedOnce/pipe","Output":"--- PASS: TestAdoptedFunctionsEmittedOnce/pipe (0.00s)\n"}
+{"Time":"2026-10-16T21:49:21.889402721Z","Action":"pass","Package":"github.com/minz/minzc/pkg/frill","Test":"TestAdoptedFunctionsEmittedOnce/pipe","Elapsed":0}
+{"Time":"2026-10-16T21:49:21.889406631Z","Action":"run","Package":"github.com/minz/minzc/pkg/frill","Test":"TestAdoptedFunctionsEmittedOnce/showcase"}
+{"Time":"2026-10-16T21:49:21.889408741Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestAdoptedFunctionsEmittedOnce/showcase","Output":"=== RUN   TestAdoptedFunctionsEmittedOnce/showcase\n"}
+{"Time":"2026-10-16T21:49:21.920655665Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestAdoptedFunctionsEmittedOnce/showcase","Output":"--- PASS: TestAdoptedFunctionsEmittedOnce/showcase (0.03s)\n"}
+{"Time":"2026-10-16T21:49:21.920678295Z","Action":"pass","Package":"github.com/minz/minzc/pkg/frill","Test":"TestAdoptedFunctionsEmittedOnce/showcase","Elapsed":0.03}
+{"Time":"2026-10-16T21:49:21.920684815Z","Action":"run","Package":"github.com/minz/minzc/pkg/frill","Test":"TestAdoptedFunctionsEmittedOnce/stdlib_demo"}
+{"Time":"2026-10-16T21:49:21.920687425Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestAdoptedFunctionsEmittedOnce/stdlib_demo","Output":"=== RUN   TestAdoptedFunctionsEmittedOnce/stdlib_demo\n"}
+{"Time":"2026-10-16T21:49:21.951481531Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestAdoptedFunctionsEmittedOnce/stdlib_demo","Output":"--- PASS: TestAdoptedFunctionsEmittedOnce/stdlib_demo (0.03s)\n"}
+{"Time":"2026-10-16T21:49:21.951501541Z","Action":"pass","Package":"github.com/minz/minzc/pkg/frill","Test":"TestAdoptedFunctionsEmittedOnce/stdlib_demo","Elapsed":0.03}
+{"Time":"2026-10-16T21:49:21.951506901Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestAdoptedFunctionsEmittedOnce","Output":"--- PASS: TestAdoptedFunctionsEmittedOnce (0.10s)\n"}
+{"Time":"2026-10-16T21:49:21.951512031Z","Action":"pass","Package":"github.com/minz/minzc/pkg/frill","Test":"TestAdoptedFunctionsEmittedOnce","Elapsed":0.1}
+{"Time":"2026-10-16T21:49:21.951516361Z","Action":"run","Package":"github.com/minz/minzc/pkg/frill","Test":"TestImportsKeepFirstFunctionBinding"}
+{"Time":"2026-10-16T21:49:21.951518591Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestImportsKeepFirstFunctionBinding","Output":"=== RUN   TestImportsKeepFirstFunctionBinding\n"}
+{"Time":"2026-10-16T21:49:21.952036068Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestImportsKeepFirstFunctionBinding","Output":"--- PASS: TestImportsKeepFirstFunctionBinding (0.00s)\n"}
+{"Time":"2026-10-16T21:49:21.952042868Z","Action":"pass","Package":"github.com/minz/minzc/pkg/frill","Test":"TestImportsKeepFirstFunctionBinding","Elapsed":0}
+{"Time":"2026-10-16T21:49:21.952047118Z","Action":"run","Package":"github.com/minz/minzc/pkg/frill","Test":"TestBasicAdd"}
+{"Time":"2026-10-16T21:49:21.952051468Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestBasicAdd","Output":"=== RUN   TestBasicAdd\n"}
+{"Time":"2026-10-16T21:49:21.952065288Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestBasicAdd","Output":"--- PASS: TestBasicAdd (0.00s)\n"}
+{"Time":"2026-10-16T21:49:21.952068458Z","Action":"pass","Package":"github.com/minz/minzc/pkg/frill","Test":"TestBasicAdd","Elapsed":0}
+{"Time":"2026-10-16T21:49:21.952072688Z","Action":"run","Package":"github.com/minz/minzc/pkg/frill","Test":"TestIfExpr"}
+{"Time":"2026-10-16T21:49:21.952075248Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestIfExpr","Output":"=== RUN   TestIfExpr\n"}
+{"Time":"2026-10-16T21:49:21.952090468Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestIfExpr","Output":"--- PASS: TestIfExpr (0.00s)\n"}
+{"Time":"2026-10-16T21:49:21.952093478Z","Action":"pass","Package":"github.com/minz/minzc/pkg/frill","Test":"TestIfExpr","Elapsed":0}
+{"Time":"2026-10-16T21:49:21.952097348Z","Action":"run","Package":"github.com/minz/minzc/pkg/frill","Test":"TestAssert"}
+{"Time":"2026-10-16T21:49:21.952099868Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestAssert","Output":"=== RUN   TestAssert\n"}
+{"Time":"2026-10-16T21:49:21.952103878Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestAssert","Output":"--- PASS: TestAssert (0.00s)\n"}
+{"Time":"2026-10-16T21:49:21.952111738Z","Action":"pass","Package":"github.com/minz/minzc/pkg/frill","Test":"TestAssert","Elapsed":0}
+{"Time":"2026-10-16T21:49:21.952116598Z","Action":"run","Package":"github.com/minz/minzc/pkg/frill","Test":"TestMultipleFuncs"}
+{"Time":"2026-10-16T21:49:21.952120178Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestMultipleFuncs","Output":"=== RUN   TestMultipleFuncs\n"}
+{"Time":"2026-10-16T21:49:21.952124418Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestMultipleFuncs","Output":"--- PASS: TestMultipleFuncs (0.00s)\n"}
+{"Time":"2026-10-16T21:49:21.952127478Z","Action":"pass","Package":"github.com/minz/minzc/pkg/frill","Test":"TestMultipleFuncs","Elapsed":0}
+{"Time":"2026-10-16T21:49:21.952131568Z","Action":"run","Package":"github.com/minz/minzc/pkg/frill","Test":"TestPipe"}
+{"Time":"2026-10-16T21:49:21.952134138Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestPipe","Output":"=== RUN   TestPipe\n"}
+{"Time":"2026-10-16T21:49:21.952204077Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestPipe","Output":"--- PASS: TestPipe (0.00s)\n"}
+{"Time":"2026-10-16T21:49:21.952208507Z","Action":"pass","Package":"github.com/minz/minzc/pkg/frill","Test":"TestPipe","Elapsed":0}
+{"Time":"2026-10-16T21:49:21.952211517Z","Action":"run","Package":"github.com/minz/minzc/pkg/frill","Test":"TestLetIn"}
+{"Time":"2026-10-16T21:49:21.952214347Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestLetIn","Output":"=== RUN   TestLetIn\n"}
+{"Time":"2026-10-16T21:49:21.952240597Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestLetIn","Output":"--- PASS: TestLetIn (0.00s)\n"}
+{"Time":"2026-10-16T21:49:21.952243667Z","Action":"pass","Package":"github.com/minz/minzc/pkg/frill","Test":"TestLetIn","Elapsed":0}
+{"Time":"2026-10-16T21:49:21.952247537Z","Action":"run","Package":"github.com/minz/minzc/pkg/frill","Test":"TestDo"}
+{"Time":"2026-10-16T21:49:21.952253857Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestDo","Output":"=== RUN   TestDo\n"}
+{"Time":"2026-10-16T21:49:21.952285197Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestDo","Output":"--- PASS: TestDo (0.00s)\n"}
+{"Time":"2026-10-16T21:49:21.952290067Z","Action":"pass","Package":"github.com/minz/minzc/pkg/frill","Test":"TestDo","Elapsed":0}
+{"Time":"2026-10-16T21:49:21.952293797Z","Action":"run","Package":"github.com/minz/minzc/pkg/frill","Test":"TestCompose"}
+{"Time":"2026-10-16T21:49:21.952296707Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestCompose","Output":"=== RUN   TestCompose\n"}
+{"Time":"2026-10-16T21:49:21.952327777Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestCompose","Output":"--- PASS: TestCompose (0.00s)\n"}
+{"Time":"2026-10-16T21:49:21.952330907Z","Action":"pass","Package":"github.com/minz/minzc/pkg/frill","Test":"TestCompose","Elapsed":0}
+{"Time":"2026-10-16T21:49:21.952334757Z","Action":"run","Package":"github.com/minz/minzc/pkg/frill","Test":"TestRecursion"}
+{"Time":"2026-10-16T21:49:21.952337257Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestRecursion","Output":"=== RUN   TestRecursion\n"}
+{"Time":"2026-10-16T21:49:21.952377336Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestRecursion","Output":"--- PASS: TestRecursion (0.00s)\n"}
+{"Time":"2026-10-16T21:49:21.952382156Z","Action":"pass","Package":"github.com/minz/minzc/pkg/frill","Test":"TestRecursion","Elapsed":0}
+{"Time":"2026-10-16T21:49:21.952386776Z","Action":"run","Package":"github.com/minz/minzc/pkg/frill","Test":"TestMatch"}
+{"Time":"2026-10-16T21:49:21.952389366Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestMatch","Output":"=== RUN   TestMatch\n"}
+{"Time":"2026-10-16T21:49:21.952419176Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestMatch","Output":"--- PASS: TestMatch (0.00s)\n"}
+{"Time":"2026-10-16T21:49:21.952422066Z","Action":"pass","Package":"github.com/minz/minzc/pkg/frill","Test":"TestMatch","Elapsed":0}
+{"Time":"2026-10-16T21:49:21.952425856Z","Action":"run","Package":"github.com/minz/minzc/pkg/frill","Test":"TestTupleReturn"}
+{"Time":"2026-10-16T21:49:21.952428446Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestTupleReturn","Output":"=== RUN   TestTupleReturn\n"}
+{"Time":"2026-10-16T21:49:21.952443686Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestTupleReturn","Output":"--- PASS: TestTupleReturn (0.00s)\n"}
+{"Time":"2026-10-16T21:49:21.952446686Z","Action":"pass","Package":"github.com/minz/minzc/pkg/frill","Test":"TestTupleReturn","Elapsed":0}
+{"Time":"2026-10-16T21:49:21.952451136Z","Action":"run","Package":"github.com/minz/minzc/pkg/frill","Test":"TestMathLib"}
+{"Time":"2026-10-16T21:49:21.952455086Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestMathLib","Output":"=== RUN   TestMathLib\n"}
+{"Time":"2026-10-16T21:49:21.952548235Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestMathLib","Output":"--- PASS: TestMathLib (0.00s)\n"}
+{"Time":"2026-10-16T21:49:21.952552895Z","Action":"pass","Package":"github.com/minz/minzc/pkg/frill","Test":"TestMathLib","Elapsed":0}
+{"Time":"2026-10-16T21:49:21.952557605Z","Action":"run","Package":"github.com/minz/minzc/pkg/frill","Test":"TestE2E_MIR2"}
+{"Time":"2026-10-16T21:49:21.952560175Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestE2E_MIR2","Output":"=== RUN   TestE2E_MIR2\n"}
+{"Time":"2026-10-16T21:49:21.952589765Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestE2E_MIR2","Output":"--- PASS: TestE2E_MIR2 (0.00s)\n"}
+{"Time":"2026-10-16T21:49:21.952592715Z","Action":"pass","Package":"github.com/minz/minzc/pkg/frill","Test":"TestE2E_MIR2","Elapsed":0}
+{"Time":"2026-10-16T21:49:21.952596495Z","Action":"run","Package":"github.com/minz/minzc/pkg/frill","Test":"TestGcdE2E"}
+{"Time":"2026-10-16T21:49:21.952603545Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestGcdE2E","Output":"=== RUN   TestGcdE2E\n"}
+{"Time":"2026-10-16T21:49:21.953862988Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestGcdE2E","Output":"    frill_test.go:278: \n"}
+{"Time":"2026-10-16T21:49:21.953873048Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestGcdE2E","Output":"        ; generated by MIR2 Z80 codegen\n"}
+{"Time":"2026-10-16T21:49:21.953876808Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestGcdE2E","Output":"        \n"}
+{"Time":"2026-10-16T21:49:21.953879358Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestGcdE2E","Output":"        ; fun gcd(a: u8 = A, b: u8 = C) -\u003e u8 = A [recursive] ; clobbers: A, B, BC, C, D, DE, E, F, H, HL, IX, IXH, IXL, IY, IYH, IYL, L\n"}
+{"Time":"2026-10-16T21:49:21.953882748Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestGcdE2E","Output":"        gcd:\n"}
+{"Time":"2026-10-16T21:49:21.953885038Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestGcdE2E","Output":"            LD E, A    ; preserve live accumulator before CMP\n"}
+{"Time":"2026-10-16T21:49:21.953887378Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestGcdE2E","Output":"            LD A, C\n"}
+{"Time":"2026-10-16T21:49:21.953889458Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestGcdE2E","Output":"            AND A\n"}
+{"Time":"2026-10-16T21:49:21.953891568Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestGcdE2E","Output":"            LD A, E\n"}
+{"Time":"2026-10-16T21:49:21.953895838Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestGcdE2E","Output":"            ; restore live-out r1 from scratch\n"}
+{"Time":"2026-10-16T21:49:21.953898368Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestGcdE2E","Output":"            JRS NZ, .gcd_cret_else2\n"}
+{"Time":"2026-10-16T21:49:21.953900738Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestGcdE2E","Output":"        .gcd_cret_then1:\n"}
+{"Time":"2026-10-16T21:49:21.953902828Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestGcdE2E","Output":"            RET\n"}
+{"Time":"2026-10-16T21:49:21.953904968Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestGcdE2E","Output":"        .gcd_cret_else2:\n"}
+{"Time":"2026-10-16T21:49:21.953907098Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestGcdE2E","Output":"            LD B, C\n"}
+{"Time":"2026-10-16T21:49:21.953916218Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestGcdE2E","Output":"            PUSH BC\n"}
+{"Time":"2026-10-16T21:49:21.953920008Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestGcdE2E","Output":"            LD B, A\n"}
+{"Time":"2026-10-16T21:49:21.953923458Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestGcdE2E","Output":"            XOR A\n"}
+{"Time":"2026-10-16T21:49:21.953926988Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestGcdE2E","Output":"            LD D, 8\n"}
+{"Time":"2026-10-16T21:49:21.953930568Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestGcdE2E","Output":"        .div8_0:\n"}
+{"Time":"2026-10-16T21:49:21.953933988Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestGcdE2E","Output":"            SLA B\n"}
+{"Time":"2026-10-16T21:49:21.953937268Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestGcdE2E","Output":"            RLA\n"}
+{"Time":"2026-10-16T21:49:21.953941108Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestGcdE2E","Output":"            CP C\n"}
+{"Time":"2026-10-16T21:49:21.953944618Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestGcdE2E","Output":"            JR C, .div8_skip_0\n"}
+{"Time":"2026-10-16T21:49:21.953953538Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestGcdE2E","Output":"            SUB C\n"}
+{"Time":"2026-10-16T21:49:21.953957128Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestGcdE2E","Output":"            INC B\n"}
+{"Time":"2026-10-16T21:49:21.953960508Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestGcdE2E","Output":"        .div8_skip_0:\n"}
+{"Time":"2026-10-16T21:49:21.953964058Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestGcdE2E","Output":"            DEC D\n"}
+{"Time":"2026-10-16T21:49:21.953967528Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestGcdE2E","Output":"            JR NZ, .div8_0\n"}
+{"Time":"2026-10-16T21:49:21.953970997Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestGcdE2E","Output":"            LD C, A\n"}
+{"Time":"2026-10-16T21:49:21.953974157Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestGcdE2E","Output":"            LD A, C\n"}
+{"Time":"2026-10-16T21:49:21.953977287Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestGcdE2E","Output":"            POP BC\n"}
+{"Time":"2026-10-16T21:49:21.953980367Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestGcdE2E","Output":"            LD C, A\n"}
+{"Time":"2026-10-16T21:49:21.953983487Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestGcdE2E","Output":"            ; genCall: gcd dst=7\n"}
+{"Time":"2026-10-16T21:49:21.953986537Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestGcdE2E","Output":"            LD A, B\n"}
+{"Time":"2026-10-16T21:49:21.953989547Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestGcdE2E","Output":"            JP gcd\n"}
+{"Time":"2026-10-16T21:49:21.953992807Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestGcdE2E","Output":"        \n"}
+{"Time":"2026-10-16T21:49:21.953996017Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestGcdE2E","Output":"        \n"}
+{"Time":"2026-10-16T21:49:21.954013907Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestGcdE2E","Output":"--- PASS: TestGcdE2E (0.00s)\n"}
+{"Time":"2026-10-16T21:49:21.954018027Z","Action":"pass","Package":"github.com/minz/minzc/pkg/frill","Test":"TestGcdE2E","Elapsed":0}
+{"Time":"2026-10-16T21:49:21.954023717Z","Action":"run","Package":"github.com/minz/minzc/pkg/frill","Test":"TestCallUsesDeclaredReturnAndArgumentWidths"}
+{"Time":"2026-10-16T21:49:21.954027637Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestCallUsesDeclaredReturnAndArgumentWidths","Output":"=== RUN   TestCallUsesDeclaredReturnAndArgumentWidths\n"}
+{"Time":"2026-10-16T21:49:21.954714493Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestCallUsesDeclaredReturnAndArgumentWidths","Output":"--- PASS: TestCallUsesDeclaredReturnAndArgumentWidths (0.00s)\n"}
+{"Time":"2026-10-16T21:49:21.954722733Z","Action":"pass","Package":"github.com/minz/minzc/pkg/frill","Test":"TestCallUsesDeclaredReturnAndArgumentWidths","Elapsed":0}
+{"Time":"2026-10-16T21:49:21.954726763Z","Action":"run","Package":"github.com/minz/minzc/pkg/frill","Test":"TestVoidExternCallIsEffectNotByteValue"}
+{"Time":"2026-10-16T21:49:21.954730243Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestVoidExternCallIsEffectNotByteValue","Output":"=== RUN   TestVoidExternCallIsEffectNotByteValue\n"}
+{"Time":"2026-10-16T21:49:21.954734783Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestVoidExternCallIsEffectNotByteValue","Output":"--- PASS: TestVoidExternCallIsEffectNotByteValue (0.00s)\n"}
+{"Time":"2026-10-16T21:49:21.954738363Z","Action":"pass","Package":"github.com/minz/minzc/pkg/frill","Test":"TestVoidExternCallIsEffectNotByteValue","Elapsed":0}
+{"Time":"2026-10-16T21:49:21.954746163Z","Action":"run","Package":"github.com/minz/minzc/pkg/frill","Test":"TestCPMExamplesImportActualSignatures"}
+{"Time":"2026-10-16T21:49:21.954753813Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestCPMExamplesImportActualSignatures","Output":"=== RUN   TestCPMExamplesImportActualSignatures\n"}
+{"Time":"2026-10-16T21:49:21.954757633Z","Action":"run","Package":"github.com/minz/minzc/pkg/frill","Test":"TestCPMExamplesImportActualSignatures/hello_cpm"}
+{"Time":"2026-10-16T21:49:21.954760673Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestCPMExamplesImportActualSignatures/hello_cpm","Output":"=== RUN   TestCPMExamplesImportActualSignatures/hello_cpm\n"}
+{"Time":"2026-10-16T21:49:21.992308872Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestCPMExamplesImportActualSignatures/hello_cpm","Output":"--- PASS: TestCPMExamplesImportActualSignatures/hello_cpm (0.04s)\n"}
+{"Time":"2026-10-16T21:49:21.992342742Z","Action":"pass","Package":"github.com/minz/minzc/pkg/frill","Test":"TestCPMExamplesImportActualSignatures/hello_cpm","Elapsed":0.04}
+{"Time":"2026-10-16T21:49:21.992351232Z","Action":"run","Package":"github.com/minz/minzc/pkg/frill","Test":"TestCPMExamplesImportActualSignatures/interactive"}
+{"Time":"2026-10-16T21:49:21.992354492Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestCPMExamplesImportActualSignatures/interactive","Output":"=== RUN   TestCPMExamplesImportActualSignatures/interactive\n"}
+{"Time":"2026-10-16T21:49:22.024812679Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestCPMExamplesImportActualSignatures/interactive","Output":"--- PASS: TestCPMExamplesImportActualSignatures/interactive (0.03s)\n"}
+{"Time":"2026-10-16T21:49:22.024841129Z","Action":"pass","Package":"github.com/minz/minzc/pkg/frill","Test":"TestCPMExamplesImportActualSignatures/interactive","Elapsed":0.03}
+{"Time":"2026-10-16T21:49:22.024850209Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Test":"TestCPMExamplesImportActualSignatures","Output":"--- PASS: TestCPMExamplesImportActualSignatures (0.07s)\n"}
+{"Time":"2026-10-16T21:49:22.024856179Z","Action":"pass","Package":"github.com/minz/minzc/pkg/frill","Test":"TestCPMExamplesImportActualSignatures","Elapsed":0.07}
+{"Time":"2026-10-16T21:49:22.024859399Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Output":"PASS\n"}
+{"Time":"2026-10-16T21:49:22.026899687Z","Action":"output","Package":"github.com/minz/minzc/pkg/frill","Output":"ok  \tgithub.com/minz/minzc/pkg/frill\t0.186s\n"}
+{"Time":"2026-10-16T21:49:22.026927827Z","Action":"pass","Package":"github.com/minz/minzc/pkg/frill","Elapsed":0.186}

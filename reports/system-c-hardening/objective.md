@@ -24,10 +24,12 @@ Baseline main — `0711d683`, compiler tree `3cd5c7bb`.
 6. Пройти подходящие core/integration проверки, опубликовать фактическую матрицу
    поддержки и ограничения, интегрировать исправления и доказательства в main.
 
-Статус: пункты 1–5 реализованы и проверены. Неизменённые inih и heatshrink
-прошли default/Size/Grace: 45 native и 90 raw/final VM проверок. Финальный
-checkpoint `7f109d361` проверяет и data-only C import из Nanz. Пункт 6 остаётся
-активным до успешного финального CI и фактического слияния PR #187 в main.
+Статус: цель завершена. Пункты 1–6 интегрированы через PR #187 в main
+`936749f61`. Compiler tree `7fe5805c` совпадает с проверенным финальным checkpoint.
+Неизменённые inih и heatshrink прошли default/Size/Grace: 45 native и 90 raw/final
+VM проверок. Финальный CI: все required checks и lint PASS, 435 fast pipeline
+entries в трёх успешных shards. Проверен data-only C import из Nanz.
 Пять прежних CLI profile/selector failures воспроизведены на baseline и текущем
 коде с одинаковыми результатами; они перечислены в отчёте и здесь не исправляются.
-Исследование новых C#/TS frontend и полного ObjC runtime оставлено отдельным направлением.
+Следующие frontend hardening предложения, включая ABAP native Go parser seam,
+собраны в [новом отчёте](../2026-10-16-c-and-frontends-hardening.md).

@@ -1,0 +1,153 @@
+{
+  "baseline": "936749f61eacce9886b892f53460fc8802b40142",
+  "groups": [
+    {
+      "name": "c-objc-corpus",
+      "command": [
+        "/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/bin/go",
+        "test",
+        "-json",
+        "-short",
+        "-count=1",
+        "./pkg/c89",
+        "-run",
+        "^(TestCorpus_C99Examples|TestCorpus_ObjCExamples)$"
+      ],
+      "exit_code": 0,
+      "seconds": 8.784,
+      "passed_roots": 2,
+      "failed_roots": [],
+      "skipped_roots": [],
+      "packages": [
+        {
+          "Package": "github.com/minz/minzc/pkg/c89",
+          "Action": "pass",
+          "Elapsed": 1.155
+        }
+      ]
+    },
+    {
+      "name": "pascal",
+      "command": [
+        "/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/bin/go",
+        "test",
+        "-json",
+        "-short",
+        "-count=1",
+        "./pkg/pascal"
+      ],
+      "exit_code": 0,
+      "seconds": 7.256,
+      "passed_roots": 34,
+      "failed_roots": [],
+      "skipped_roots": [],
+      "packages": [
+        {
+          "Package": "github.com/minz/minzc/pkg/pascal",
+          "Action": "pass",
+          "Elapsed": 0.022
+        }
+      ]
+    },
+    {
+      "name": "plm",
+      "command": [
+        "/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/bin/go",
+        "test",
+        "-json",
+        "-short",
+        "-count=1",
+        "./pkg/plm"
+      ],
+      "exit_code": 0,
+      "seconds": 7.071,
+      "passed_roots": 27,
+      "failed_roots": [],
+      "skipped_roots": [
+        "TestCorpus_Parse"
+      ],
+      "packages": [
+        {
+          "Package": "github.com/minz/minzc/pkg/plm",
+          "Action": "pass",
+          "Elapsed": 0.028
+        }
+      ]
+    },
+    {
+      "name": "frill",
+      "command": [
+        "/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/bin/go",
+        "test",
+        "-json",
+        "-short",
+        "-count=1",
+        "./pkg/frill"
+      ],
+      "exit_code": 0,
+      "seconds": 1.848,
+      "passed_roots": 19,
+      "failed_roots": [],
+      "skipped_roots": [],
+      "packages": [
+        {
+          "Package": "github.com/minz/minzc/pkg/frill",
+          "Action": "pass",
+          "Elapsed": 0.186
+        }
+      ]
+    },
+    {
+      "name": "abap",
+      "command": [
+        "/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/bin/go",
+        "test",
+        "-json",
+        "-short",
+        "-count=1",
+        "./pkg/abap"
+      ],
+      "exit_code": 0,
+      "seconds": 7.488,
+      "passed_roots": 9,
+      "failed_roots": [],
+      "skipped_roots": [],
+      "packages": [
+        {
+          "Package": "github.com/minz/minzc/pkg/abap",
+          "Action": "pass",
+          "Elapsed": 5.758
+        }
+      ]
+    },
+    {
+      "name": "lanz-lizp",
+      "command": [
+        "/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/bin/go",
+        "test",
+        "-json",
+        "-short",
+        "-count=1",
+        "./pkg/lanz",
+        "./pkg/lizp"
+      ],
+      "exit_code": 0,
+      "seconds": 3.788,
+      "passed_roots": 79,
+      "failed_roots": [],
+      "skipped_roots": [],
+      "packages": [
+        {
+          "Package": "github.com/minz/minzc/pkg/lanz",
+          "Action": "pass",
+          "Elapsed": 0.012
+        },
+        {
+          "Package": "github.com/minz/minzc/pkg/lizp",
+          "Action": "pass",
+          "Elapsed": 2.258
+        }
+      ]
+    }
+  ]
+}

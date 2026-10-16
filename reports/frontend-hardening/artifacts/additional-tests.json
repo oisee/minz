@@ -1,0 +1,39 @@
+{
+  "command": [
+    "/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/bin/go",
+    "test",
+    "-json",
+    "-short",
+    "-count=1",
+    "./pkg/nanz",
+    "./pkg/objc",
+    "./pkg/interop"
+  ],
+  "exit_code": 0,
+  "seconds": 41.358,
+  "packages": {
+    "github.com/minz/minzc/pkg/nanz": {
+      "passed_roots": 262,
+      "failed_roots": [],
+      "skipped_roots": [
+        "TestFunImportFixtureSelfAddRegression"
+      ],
+      "result": "pass",
+      "elapsed": 39.748
+    },
+    "github.com/minz/minzc/pkg/objc": {
+      "passed_roots": 5,
+      "failed_roots": [],
+      "skipped_roots": [],
+      "result": "pass",
+      "elapsed": 0.003
+    },
+    "github.com/minz/minzc/pkg/interop": {
+      "passed_roots": 3,
+      "failed_roots": [],
+      "skipped_roots": [],
+      "result": "pass",
+      "elapsed": 0.002
+    }
+  }
+}
