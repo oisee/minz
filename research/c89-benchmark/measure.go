@@ -73,6 +73,46 @@ func writeJSON(path string, v any) {
 func fixtures(name string) ([]sample, map[string]int) {
 	sizes := map[string]int{"result": 2}
 	samples := []sample{}
+	if name == "in_interval" {
+		sizes["a"] = 1
+		sizes["b"] = 1
+		for x := 0; x < 256; x++ {
+			for _, y := range []int{3, 7, 17, 33, 65, 129, 193, 251} {
+				want := uint16(0)
+				if x >= y && x <= int(byte(y+31)) {
+					want = 1
+				}
+				in := map[string][]byte{"a": {byte(x)}, "b": {byte(y)}}
+				samples = append(samples, sample{fmt.Sprintf("%d,%d", x, y), in, want, in})
+			}
+		}
+		return samples, sizes
+	}
+	if name == "count_less" {
+		sizes["values"] = 256
+		sizes["n"] = 1
+		sizes["b"] = 1
+		for dataset := 0; dataset < 3; dataset++ {
+			data := make([]byte, 256)
+			for i := range data {
+				data[i] = byte((i*(97+dataset*2) + (i >> 2)) ^ 0x6d)
+			}
+			for _, b := range []int{0, 17, 65, 127, 193, 255} {
+				for n := 0; n < 256; n++ {
+					want := uint16(0)
+					for _, v := range data[:n] {
+						if int(v) < b {
+							want++
+						}
+					}
+					in := map[string][]byte{"values": data, "n": {byte(n)}, "b": {byte(b)}}
+					samples = append(samples, sample{fmt.Sprintf("dataset=%d,b=%d,n=%d", dataset, b, n), in, want, in})
+				}
+			}
+		}
+		return samples, sizes
+	}
+
 	if name == "abs_diff" || name == "gcd" || name == "struct_roundtrip" {
 		sizes["a"] = 1
 		sizes["b"] = 1
