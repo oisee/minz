@@ -18,6 +18,10 @@ Runtime sizeof дополнительно не имеет fallback в конст
 constant-expression случаи, VLA sizeof и указатели на VLA. Две положительные
 функции проверяют sizeof(char[65535]), global initializer и отсутствие эффекта
 x++ внутри sizeof. Raw/final VM и Z80 default/Grace/Size: 6 native / 8 VM.
+Native assert вызывает короткое C-имя `f` через ASM-метку `v_f`.
+Запускатель теперь применяет ту же label sanitization, что backend: раньше
+проверка ошибочно пыталась вызвать регистровое имя `f`.
+
 ISO C90 6.3.3.4 задаёт sizeof; это проверка выбранного target limit,
 не заявление о всей области ISO C90 и не гарантия места для code/data/stack.
 

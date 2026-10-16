@@ -50,7 +50,7 @@ func TestC89TargetObjectLimits(t *testing.T) {
 }
 
 func TestC89SizeofTargetBoundaryVMZ80(t *testing.T) {
-	src := "unsigned int size=sizeof(char[65535]); unsigned int boundary_check(void){unsigned int x=7;return sizeof(char[65535])+sizeof(x++)+x;} unsigned int global_check(void){return size;}"
+	src := "unsigned int size=sizeof(char[65535]); unsigned int f(void){unsigned int x=7;return sizeof(char[65535])+sizeof(x++)+x;} unsigned int global_check(void){return size;}"
 	parse := func() *hir.Module {
 		m, err := c89.Compile(src, "sizeof-boundary.c")
 		if err != nil {
@@ -59,7 +59,7 @@ func TestC89SizeofTargetBoundaryVMZ80(t *testing.T) {
 		return m
 	}
 	check := func(m *mir2.Module) {
-		for name, want := range map[string]int64{"boundary_check": 8, "global_check": 65535} {
+		for name, want := range map[string]int64{"f": 8, "global_check": 65535} {
 			v, err := mir2.NewVM(m).Call(name, nil)
 			if err != nil || len(v) != 1 || v[0].I != want {
 				t.Fatalf("%s=%v err=%v want=%d", name, v, err, want)
@@ -70,7 +70,7 @@ func TestC89SizeofTargetBoundaryVMZ80(t *testing.T) {
 	for _, mode := range []string{"default", "grace", "size"} {
 		t.Run(mode, func(t *testing.T) {
 			m := parse()
-			m.Asserts = append(m.Asserts, hir.Assert{FuncName: "boundary_check", Expected: 8, Via: "z80", Source: "boundary_check()"}, hir.Assert{FuncName: "global_check", Expected: 65535, Via: "z80", Source: "global_check()"})
+			m.Asserts = append(m.Asserts, hir.Assert{FuncName: "f", Expected: 8, Via: "z80", Source: "f()"}, hir.Assert{FuncName: "global_check", Expected: 65535, Via: "z80", Source: "global_check()"})
 			s, err := pipeline.CompileHIRSteps(m, pipeline.Options{ContractOpt: true, UseGrace: mode != "default", UseHIRGrace: mode != "default", OptSize: mode == "size"})
 			if err != nil {
 				t.Fatal(err)

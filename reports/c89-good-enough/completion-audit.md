@@ -4,7 +4,8 @@
 [170](https://github.com/oisee/minz/pull/170) интегрированы в main d43e8559.
 Этот checkpoint добавляет полную небольшую width matrix, forwarding и volatile
 проверки, исправление MUL с удалённой загрузкой константы и target-size/VLA
-diagnostics. Финальное слияние checkpoint требует строгого CI на его head.
+diagnostics. [PR #171](https://github.com/oisee/minz/pull/171) проходит
+строгий CI на финальном head перед слиянием.
 
 C89 теперь полезен для выбранного embedded/system подмножества: integer,
 control, pointers, arrays, aggregate storage и реальные вызовы. Это не ISO
@@ -51,7 +52,11 @@ HIR 29.536 s, MIR2 107.443 s, Nanz 26.107 s, interop 0.002 s — PASS.
 oracle проверяет 986112 native и 1972224 raw/final VM случаев с памятью и
 порядком событий. Target-limit changes отдельно прошли native sizeof и полный
 C89 корпус, включающий FAT12; они не меняют admission проверенной expression
-программы. Старые и новые runs не складываются в процент уникального покрытия.
+программы. Проверка короткого C-имени `f` также исправила assert bootstrap:
+он теперь вызывает ту же sanitized ASM-метку `v_f`, которую создаёт backend.
+Это ошибка harness; production call lowering уже использовал верную метку.
+Native sizeof и spill-bootstrap regression после исправления — PASS.
+Старые и новые runs не складываются в процент уникального покрытия.
 
 ```sh
 cd minzc
