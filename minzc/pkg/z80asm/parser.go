@@ -38,11 +38,15 @@ func assemblyCommentIndex(line string) int {
 		if c == ';' {
 			return i
 		}
-		if c == '"' || c == '\'' && (i == 0 || !(line[i-1] >= 'A' && line[i-1] <= 'Z' || line[i-1] >= 'a' && line[i-1] <= 'z' || line[i-1] >= '0' && line[i-1] <= '9' || line[i-1] == '_')) {
+		if c == '"' || c == '\'' && (i == 0 || !assemblyIdentifierByte(line[i-1])) {
 			quote = c
 		}
 	}
 	return -1
+}
+
+func assemblyIdentifierByte(c byte) bool {
+	return c >= 'A' && c <= 'Z' || c >= 'a' && c <= 'z' || c >= '0' && c <= '9' || c == '_'
 }
 
 // ParseLine parses a single line of assembly

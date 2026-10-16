@@ -138,6 +138,7 @@ func MergeInto(target *hir.Module, imports []*hir.Module) error {
 		seen[f.Name] = f
 	}
 	for _, m := range imports {
+		target.NonNullObjects = target.NonNullObjects || m.NonNullObjects
 		if err := hir.MergeImportedStrings(target, m); err != nil {
 			return err
 		}

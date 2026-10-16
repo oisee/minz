@@ -194,7 +194,7 @@ func CompileWithOpts(src, name string, opts CompileOpts) (*hir.Module, error) {
 	modName = strings.TrimSuffix(modName, ".m")
 	l := &lowerer{
 		ast:           ast,
-		hm:            &hir.Module{Name: modName},
+		hm:            &hir.Module{Name: modName, NonNullObjects: true},
 		globals:       make(map[string]mir2.Ty),
 		typedefs:      make(map[string]mir2.Ty),
 		structs:       make(map[string]*mir2.StructTy),

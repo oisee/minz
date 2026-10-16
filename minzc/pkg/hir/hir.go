@@ -96,17 +96,18 @@ func TargetFromString(s string) uint8 {
 
 // Module is the top-level HIR unit.
 type Module struct {
-	OrderedByteRWPolicy map[string]FunctionChoice `json:"-"` // typed opt-in read/write function choices
-	OrderedBytePolicy   map[string]bool           `json:"-"` // opt-in ordered-byte function choices; distinct from loop sites
-	RegionComparePolicy map[string]bool           `json:"-"` // explicit measured region-site allowlist; nil never enables the rule
-	InvariantBasePolicy map[string]bool           `json:"-"` // nil defaults; source-site allowlist requires seeded lineage
-	GraceRulePolicy     map[string]bool           `json:"-"` // nil: defaults; explicit common-rule choices for measured variants
-	ForwardCopyPolicy   map[string]bool           `json:"-"` // explicit measured copy-site allowlist; nil only for manual rule opt-in
-	PointerWalkPolicy   map[string]bool           `json:"-"` // opt-in sticky PGO choice, independent of legality
-	LoopLineage         map[Stmt]LoopLineage      `json:"-"` // attribution after explicit seeding
-	SourceUnits         map[string]string         `json:"-"` // hashes of actual frontend inputs, including loop-free units
-	SourceUnitsComplete bool                      `json:"-"` // frontend recorded its transitive source dependencies
-	SourceLocations     map[Stmt]SourceLocation   `json:"-"` // optional frontend origins; not semantic evidence
+	NonNullObjects      bool                      `json:",omitempty"` // C objects must not occupy the VM null address, even in data-only imports
+	OrderedByteRWPolicy map[string]FunctionChoice `json:"-"`          // typed opt-in read/write function choices
+	OrderedBytePolicy   map[string]bool           `json:"-"`          // opt-in ordered-byte function choices; distinct from loop sites
+	RegionComparePolicy map[string]bool           `json:"-"`          // explicit measured region-site allowlist; nil never enables the rule
+	InvariantBasePolicy map[string]bool           `json:"-"`          // nil defaults; source-site allowlist requires seeded lineage
+	GraceRulePolicy     map[string]bool           `json:"-"`          // nil: defaults; explicit common-rule choices for measured variants
+	ForwardCopyPolicy   map[string]bool           `json:"-"`          // explicit measured copy-site allowlist; nil only for manual rule opt-in
+	PointerWalkPolicy   map[string]bool           `json:"-"`          // opt-in sticky PGO choice, independent of legality
+	LoopLineage         map[Stmt]LoopLineage      `json:"-"`          // attribution after explicit seeding
+	SourceUnits         map[string]string         `json:"-"`          // hashes of actual frontend inputs, including loop-free units
+	SourceUnitsComplete bool                      `json:"-"`          // frontend recorded its transitive source dependencies
+	SourceLocations     map[Stmt]SourceLocation   `json:"-"`          // optional frontend origins; not semantic evidence
 	AssertStats         *AssertStats              // optional invocation-local execution accounting
 	Name                string
 	Target              uint8 // platform target (TargetCPM, TargetZXSpectrum, etc.)

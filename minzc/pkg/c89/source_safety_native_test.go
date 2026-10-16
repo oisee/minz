@@ -10,7 +10,9 @@ import (
 	"github.com/minz/minzc/pkg/c89"
 	"github.com/minz/minzc/pkg/emulator"
 	"github.com/minz/minzc/pkg/hir"
+	"github.com/minz/minzc/pkg/interop"
 	"github.com/minz/minzc/pkg/mir2"
+	"github.com/minz/minzc/pkg/nanz"
 	"github.com/minz/minzc/pkg/pipeline"
 	"github.com/minz/minzc/pkg/z80asm"
 )
@@ -162,5 +164,60 @@ func TestUnsupportedC23DiagnosticsAfterPreprocessing(t *testing.T) {
 	_, err := c89.CompileWithOpts("#include \"unsupported.h\"\nTYPE x;", "header.c", c89.CompileOpts{IncludePaths: []string{dir}})
 	if err == nil || !strings.Contains(err.Error(), "unsupported _BitInt") {
 		t.Fatal(err)
+	}
+}
+
+// C99 6.3.2.3: a null pointer compares unequal to a pointer to an object.
+// A data-only C import must retain this rule without any C-ABI functions.
+func TestCDataOnlyImportRetainsNonNullObjects(t *testing.T) {
+	parse := func() *hir.Module {
+		data, err := c89.Compile("unsigned char payload=73;", "data.c")
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(data.Funcs) != 0 {
+			t.Fatal("fixture must have no C functions")
+		}
+		target, err := nanz.Parse("global payload:u8\nfun probe()->^u8 { return &payload }", "caller.nanz")
+		if err != nil {
+			t.Fatal(err)
+		}
+		// The declaration gives the standalone parser the imported object's type.
+		target.Globals = nil
+		if err := interop.MergeInto(target, []*hir.Module{data}); err != nil {
+			t.Fatal(err)
+		}
+		return target
+	}
+	raw := hir.LowerModule(parse())
+	steps, err := pipeline.CompileHIRSteps(parse(), pipeline.Options{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, m := range []*mir2.Module{raw, steps.MIR2Module} {
+		vm := mir2.NewVM(m)
+		values, err := vm.Call("probe", nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(values) != 1 || values[0].I == 0 || vm.ReadHeap(values[0].I, 1)[0] != 73 {
+			t.Fatalf("imported C object lost its non-null address: %v", values)
+		}
+	}
+	a, err := z80asm.NewAssembler().AssembleString("ORG 0x8000\n" + steps.Assembly)
+	if err != nil || len(a.Errors) != 0 {
+		t.Fatal(err, a.Errors)
+	}
+	z := emulator.NewRemogattoZ80()
+	mem := z.Memory()
+	copy(mem[0x8000:], a.Binary)
+	mem[0xeffe], mem[0xefff] = 0, 0xf1
+	z.SetRegisters(emulator.Registers{PC: uint16(a.Symbols["probe"]), SP: 0xeffe})
+	for i := 0; i < 1000 && z.GetPC() != 0xf100; i++ {
+		z.Step()
+	}
+	regs := z.GetRegisters()
+	if regs.HL != uint16(a.Symbols["payload"]) || mem[regs.HL] != 73 || regs.PC != 0xf100 || regs.SP != 0xf000 {
+		t.Fatalf("native imported address/PC/SP: %+v", regs)
 	}
 }
