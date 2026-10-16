@@ -1,0 +1,46 @@
+; MIR2 module: /home/alice/dev/minz-artifacts/grace-workspaces/c89-absdiff-cfg/research/c89-benchmark/nanz-tuple/struct_roundtrip.nanz
+global @a : u8
+global @b : u8
+global @result : u16
+
+fun @make_pair(%r1: u8 [acc]) -> (u8 [acc], u8 [counter])
+  block @entry:
+    %r2 = move %r1 : u8 [acc]
+    %r3 = const 1 : u8 [general]
+    %r4 = add %r1, %r3 : u8 [acc]
+    %r5 = move %r4 : u8 [counter]
+    ret %r2, %r5
+
+fun @consume(%r6: u8 [acc], %r7: u8 [general]) -> u16 [pointer]
+  block @entry:
+    %r8 = ext %r6 : u8 -> u16 [pointer]
+    %r9 = const 256 : u16 [pointer]
+    %r10 = mul %r8, %r9 : u16 [pointer]
+    %r11 = ext %r7 : u8 -> u16 [pointer]
+    %r12 = add %r10, %r11 : u16 [pointer]
+    ret %r12
+
+fun @caller(%r13: u8 [acc], %r14: u8 [general]) -> u16 [pointer]
+  block @entry:
+    %r15 = move %r13 : u8 [acc]
+    %r16 = call @make_pair(%r15) : u8 [acc]
+    %r18 = move %r16 : u8 [acc]
+    %r19 = call @consume(%r18, %r17) : u16 [pointer]
+    %r20 = ext %r13 : u8 -> u16 [pointer]
+    %r21 = add %r19, %r20 : u16 [pointer]
+    %r22 = ext %r14 : u8 -> u16 [pointer]
+    %r23 = xor %r21, %r22 : u16 [pointer]
+    ret %r23
+
+fun @execute()
+  block @entry:
+    %r24 = addr_of @a : ptr [pointer]
+    %r25 = load %r24 : u8 [general]
+    %r26 = move %r25 : u8 [acc]
+    %r27 = addr_of @b : ptr [pointer]
+    %r28 = load %r27 : u8 [general]
+    %r29 = call @caller(%r26, %r28) : u16 [pointer]
+    %r30 = addr_of @result : ptr [pointer]
+    store %r30, %r29 : u16
+    ret void
+
