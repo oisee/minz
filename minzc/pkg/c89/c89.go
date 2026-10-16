@@ -174,6 +174,8 @@ func CompileWithOpts(src, name string, opts CompileOpts) (*hir.Module, error) {
 	sysIncPaths = append(sysIncPaths, opts.SysIncludePaths...)
 
 	cfg := &cc.Config{
+		MaxObjectSize:   65535,
+		RejectVLA:       true,
 		ABI:             z80ABI(),
 		IncludePaths:    incPaths,
 		SysIncludePaths: sysIncPaths,

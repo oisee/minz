@@ -1225,6 +1225,16 @@ func (n *StaticAssertDeclaration) check(c *ctx) {
 	}
 }
 
+// checkObjectSize applies an optional target bound after type checking.
+func (c *ctx) checkObjectSize(n Node, t Type) {
+	if t == nil || t.Kind() == Function || t.IsIncomplete() || c.cfg.MaxObjectSize <= 0 {
+		return
+	}
+	if size := t.Size(); size > c.cfg.MaxObjectSize {
+		c.errors.add(errorf("%v: object size %d exceeds target limit %d bytes", n.Position(), size, c.cfg.MaxObjectSize))
+	}
+}
+
 // InitDeclarator:
 //
 //	Declarator Asm                  // Case InitDeclaratorDecl
@@ -1267,6 +1277,9 @@ func (n *InitDeclarator) check(c *ctx, t Type, isExtern, isStatic, isAtomic, isT
 			n.Declarator.typ = u
 		}
 		n.Declarator.write++
+	}
+	if !n.Declarator.isTypename {
+		c.checkObjectSize(n, n.Declarator.Type())
 	}
 }
 
@@ -2229,6 +2242,7 @@ func (n *ParameterList) check(c *ctx) (fp []*ParameterDeclaration) {
 //
 // |       DeclarationSpecifiers AbstractDeclarator  // Case ParameterDeclarationAbstract
 func (n *ParameterDeclaration) check(c *ctx) {
+	defer func() { c.checkObjectSize(n, n.Type()) }()
 	var isExtern, isStatic, isAtomic, isThreadLocal, isConst, isVolatile, isInline, isRegister, isAuto, isNoreturn, isRestrict bool
 	var alignas int
 	switch n.Case {
@@ -4505,6 +4519,7 @@ func (n *UnaryExpression) check(c *ctx, mode flags) (r Type) {
 
 			c.errors.add(errorf("%v: sizeof incomplete type: %s", n.UnaryExpression.Position(), t))
 		}
+		c.checkObjectSize(n, t)
 		n.val = UInt64Value(t.Size())
 	case UnaryExpressionSizeofType: // "sizeof" '(' TypeName ')'
 		n.setPure(true)
@@ -4517,6 +4532,7 @@ func (n *UnaryExpression) check(c *ctx, mode flags) (r Type) {
 
 			c.errors.add(errorf("%v: sizeof incomplete type: %s", n.TypeName.Position(), t))
 		}
+		c.checkObjectSize(n, t)
 		n.val = UInt64Value(t.Size())
 	case UnaryExpressionLabelAddr: // "&&" IDENTIFIER
 		n.setPure(true)
@@ -4823,6 +4839,7 @@ out:
 		}
 	case PostfixExpressionComplit: // '(' TypeName ')' '{' InitializerList ',' '}'
 		n.typ = n.TypeName.check(c)
+		c.checkObjectSize(n, n.Type())
 		if n.InitializerList == nil {
 			n.val = Zero
 			break
