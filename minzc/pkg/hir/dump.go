@@ -43,7 +43,23 @@ func (m *Module) Dump() string {
 			}
 			fmt.Fprintf(&sb, "%s: %s", f.Name, f.Ty)
 		}
-		sb.WriteString(" }\n")
+		sb.WriteString(" }")
+		if s.IsUnion {
+			sb.WriteString(" union")
+		}
+		if s.StorageBytes != 0 {
+			fmt.Fprintf(&sb, " size=%d", s.StorageBytes)
+		}
+		if len(s.FieldOffsets) != 0 {
+			sb.WriteString(" offsets=")
+			for i, offset := range s.FieldOffsets {
+				if i != 0 {
+					sb.WriteByte(':')
+				}
+				fmt.Fprintf(&sb, "%d", offset)
+			}
+		}
+		sb.WriteByte('\n')
 	}
 	for _, g := range m.Globals {
 		qual := ""

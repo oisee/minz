@@ -2606,9 +2606,8 @@ func literalInitializer(e hir.Expr, ty mir2.Ty) ([]byte, bool, error) {
 		}
 		data := make([]byte, mir2.ByteWidth(st))
 		for _, value := range lit.Fields {
-			offset := 0
 			found := false
-			for _, field := range st.Fields {
+			for index, field := range st.Fields {
 				if field.Name == value.Name {
 					bytes, constant, err := literalInitializer(value.Val, field.Ty)
 					if err != nil {
@@ -2617,11 +2616,10 @@ func literalInitializer(e hir.Expr, ty mir2.Ty) ([]byte, bool, error) {
 					if !constant {
 						return nil, false, fmt.Errorf("global initializer: field %s requires a constant literal", value.Name)
 					}
-					copy(data[offset:], bytes)
+					copy(data[st.ByteOffset(index):], bytes)
 					found = true
 					break
 				}
-				offset += mir2.ByteWidth(field.Ty)
 			}
 			if !found {
 				return nil, false, fmt.Errorf("global initializer: unknown field %s", value.Name)
@@ -5977,14 +5975,12 @@ func (p *parser) makeFieldExpr(base hir.Expr, fieldName string) *hir.FieldExpr {
 	}
 
 	if st != nil {
-		byteOffset := 0
-		for _, f := range st.Fields {
+		for index, f := range st.Fields {
 			if f.Name == fieldName {
 				fieldTy = f.Ty
-				fieldOffset = byteOffset
+				fieldOffset = st.ByteOffset(index)
 				break
 			}
-			byteOffset += mir2.ByteWidth(f.Ty)
 		}
 	}
 

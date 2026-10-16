@@ -609,12 +609,10 @@ func (g *z80cg) globalStructField(sym string, offset int64) (fieldName string, f
 			return "", false
 		}
 		// Find field by byte offset.
-		off := int64(0)
-		for _, f := range st.Fields {
-			if off == offset {
+		for index, f := range st.Fields {
+			if int64(st.ByteOffset(index)) == offset {
 				return f.Name, true
 			}
-			off += int64(ByteWidth(f.Ty))
 		}
 		// Offset is valid but doesn't align with a named field boundary — still use it.
 		return "", false

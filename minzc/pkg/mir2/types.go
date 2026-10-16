@@ -381,9 +381,16 @@ type StructTy struct {
 	Name    string
 	Fields  []StructField
 	IsUnion bool // union: all fields at offset 0, width = max field
+	// Explicit layout preserves flattened C fields that overlap or have padding.
+	// Empty offsets and zero storage retain the ordinary packed representation.
+	FieldOffsets []int `json:",omitempty"`
+	StorageBytes int   `json:",omitempty"`
 }
 
 func (t *StructTy) Width() int {
+	if t.StorageBytes > 0 {
+		return t.StorageBytes * 8
+	}
 	if t.IsUnion {
 		max := 0
 		for _, f := range t.Fields {
@@ -412,6 +419,9 @@ func (t *StructTy) isTy() {}
 // ByteOffset returns the byte offset of field i in a packed AoS layout.
 // For unions, all fields are at offset 0.
 func (t *StructTy) ByteOffset(i int) int {
+	if i >= 0 && i < len(t.FieldOffsets) {
+		return t.FieldOffsets[i]
+	}
 	if t.IsUnion {
 		return 0
 	}

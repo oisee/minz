@@ -282,6 +282,9 @@ func (l *lowerer) storageType(t cc.Type) mir2.Ty {
 		l.lowerStructDecl(tag, t)
 		return l.structs[tag]
 	case *cc.UnionType:
+		if name, ok := l.cStructs[t]; ok {
+			return l.structs[name]
+		}
 		tag := l.unionTag(t)
 		if tag == "" {
 			tag = fmt.Sprintf("__anonymous_union_%d", len(l.structs))
@@ -355,6 +358,7 @@ func (l *lowerer) writeGlobalInitializer(data []byte, init *cc.Initializer) erro
 
 func (l *lowerer) lowerStructDecl(tag string, st *cc.StructType) {
 	mst := &mir2.StructTy{Name: tag}
+	var offsets []int
 	nf := st.NumFields()
 	for i := 0; i < nf; i++ {
 		f := st.FieldByIndex(i)
@@ -372,6 +376,7 @@ func (l *lowerer) lowerStructDecl(tag string, st *cc.StructType) {
 		// Anonymous (C11): `struct { uint8_t x; uint8_t y; };` → `x`, `y` (no prefix)
 		if fty != nil && (fty.Kind() == cc.Struct || fty.Kind() == cc.Union) {
 			var innerFields []mir2.StructField
+			var innerLayout *mir2.StructTy
 			if fty.Kind() == cc.Struct {
 				innerSt, ok := fty.(*cc.StructType)
 				if ok {
@@ -384,6 +389,7 @@ func (l *lowerer) lowerStructDecl(tag string, st *cc.StructType) {
 					}
 					if inner := l.structs[innerTag]; inner != nil {
 						innerFields = inner.Fields
+						innerLayout = inner
 					}
 				}
 			} else {
@@ -398,11 +404,13 @@ func (l *lowerer) lowerStructDecl(tag string, st *cc.StructType) {
 					}
 					if inner := l.structs[innerTag]; inner != nil {
 						innerFields = inner.Fields
+						innerLayout = inner
 					}
 				}
 			}
 			if innerFields != nil {
-				for _, sf := range innerFields {
+				for index, sf := range innerFields {
+					offsets = append(offsets, int(f.Offset())+innerLayout.ByteOffset(index))
 					if isAnonymous {
 						// C11 anonymous: promote fields directly (no prefix)
 						mst.Fields = append(mst.Fields, mir2.StructField{
@@ -424,6 +432,19 @@ func (l *lowerer) lowerStructDecl(tag string, st *cc.StructType) {
 			Name: fname,
 			Ty:   l.storageFieldType(f),
 		})
+		offsets = append(offsets, int(f.Offset()))
+	}
+	// Flattening retains field names while explicit offsets preserve overlaps.
+	packed := 0
+	for i, field := range mst.Fields {
+		if offsets[i] != packed {
+			mst.FieldOffsets = offsets
+		}
+		packed += mir2.ByteWidth(field.Ty)
+	}
+	if packed != int(st.Size()) || len(mst.FieldOffsets) != 0 {
+		mst.FieldOffsets = offsets
+		mst.StorageBytes = int(st.Size())
 	}
 	l.structs[tag] = mst
 	l.cStructs[st] = tag
@@ -466,6 +487,7 @@ func (l *lowerer) lowerUnionDecl(tag string, ut *cc.UnionType) {
 	}
 	mst.IsUnion = true // mark as union so ByteOffset returns 0 for all fields
 	l.structs[tag] = mst
+	l.cStructs[ut] = tag
 	l.hm.Structs = append(l.hm.Structs, mst)
 }
 
@@ -724,7 +746,7 @@ func (fl *funcLow) lowerLocalDecl(d *cc.Declaration) ([]hir.Stmt, error) {
 			continue
 		}
 
-		if (decl.Type().Kind() == cc.Struct || decl.Type().Kind() == cc.Union) && cStorageContainsArray(declarationTy) && id.Initializer != nil && id.Initializer.Case == cc.InitializerInitList {
+		if (decl.Type().Kind() == cc.Struct || decl.Type().Kind() == cc.Union) && (cStorageContainsArray(declarationTy) || len(declarationTy.(*mir2.StructTy).FieldOffsets) != 0) && id.Initializer != nil && id.Initializer.Case == cc.InitializerInitList {
 			stmts = append(stmts, &hir.VarDeclStmt{Name: name, Ty: declarationTy, Volatile: decl.Type().Attributes().IsVolatile()})
 			initializers, err := fl.lowerAutomaticAggregateInitializer(name, declarationTy, id.Initializer, decl.Type().Attributes().IsVolatile())
 			if err != nil {
@@ -2186,58 +2208,11 @@ func (l *lowerer) evalConst(e cc.ExpressionNode) (int64, bool) {
 
 // resolveStructType returns the mir2.StructTy for a cc.Type if it's a known struct.
 func (l *lowerer) resolveStructType(t cc.Type) *mir2.StructTy {
-	if t == nil {
+	if t == nil || (t.Kind() != cc.Struct && t.Kind() != cc.Union) {
 		return nil
 	}
-	switch t.Kind() {
-	case cc.Struct:
-		st, ok := t.(*cc.StructType)
-		if !ok {
-			return nil
-		}
-		tag := l.structTag(st)
-		if tag != "" {
-			if mst := l.structs[tag]; mst != nil {
-				return mst
-			}
-		}
-		// Try C type identity mapping (handles typedef'd anonymous structs).
-		if name, ok := l.cStructs[t]; ok {
-			if mst := l.structs[name]; mst != nil {
-				return mst
-			}
-		}
-		// Last resort: try all known structs by field count/layout match.
-		nf := st.NumFields()
-		// Declaration order keeps the usual first-inserted fallback while
-		// making ties between compatible layouts reproducible.
-		for _, mst := range l.hm.Structs {
-			if len(mst.Fields) == nf {
-				return mst
-			}
-		}
-	case cc.Union:
-		ut, ok := t.(*cc.UnionType)
-		if !ok {
-			return nil
-		}
-		utTag := ut.Tag()
-		tag := utTag.SrcStr()
-		if tag != "" {
-			if mst := l.structs[tag]; mst != nil {
-				return mst
-			}
-		}
-		nf := ut.NumFields()
-		// Declaration order keeps the usual first-inserted fallback while
-		// making ties between compatible layouts reproducible.
-		for _, mst := range l.hm.Structs {
-			if mst.IsUnion && len(mst.Fields) == nf {
-				return mst
-			}
-		}
-	}
-	return nil
+	storage, _ := l.storageType(t).(*mir2.StructTy)
+	return storage
 }
 
 // resolveFieldOffset determines the byte offset of a named field within a struct.
