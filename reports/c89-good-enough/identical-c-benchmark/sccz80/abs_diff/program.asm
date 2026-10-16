@@ -19,7 +19,7 @@
 	C_LINE	3,"/home/alice/dev/minz-artifacts/grace-workspaces/c89-measured-benchmark/research/c89-benchmark/cases/abs_diff.c"
 	SECTION	code_compiler
 
-; Function abs_diff flags 0x00000200 __smallc 
+; Function abs_diff flags 0x00000200 __smallc
 ; unsigned char abs_diff(unsigned char x, unsigned char y)
 ; parameter 'unsigned char y' at sp+2 size(1)
 ; parameter 'unsigned char x' at sp+4 size(1)
@@ -69,7 +69,7 @@
 
 	C_LINE	7,"/home/alice/dev/minz-artifacts/grace-workspaces/c89-measured-benchmark/research/c89-benchmark/cases/abs_diff.c::abs_diff::0::1"
 
-; Function execute flags 0x00000200 __smallc 
+; Function execute flags 0x00000200 __smallc
 ; void execute()
 	C_LINE	7,"/home/alice/dev/minz-artifacts/grace-workspaces/c89-measured-benchmark/research/c89-benchmark/cases/abs_diff.c::execute::0::1"
 ._execute

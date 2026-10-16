@@ -46,6 +46,8 @@ C89 practical-good-enough уже интегрирован в main через
 
 Точные ревизии, команды и хеш архива находятся в
 [toolchains.json](c89-good-enough/identical-c-benchmark/toolchains.json).
+В текстовых копиях ASM и диагностик в репозитории убраны пробелы в конце строк;
+оригинальные файлы и бинарные артефакты сохранены локально без изменения.
 Стенд: [инструкция](../research/c89-benchmark/README.md),
 [driver](../research/c89-benchmark/run.py), [runner](../research/c89-benchmark/measure.go).
 
