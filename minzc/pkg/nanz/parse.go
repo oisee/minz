@@ -1702,6 +1702,9 @@ func (p *parser) parseImport() error {
 		p.module.SourceLocations[node] = origin
 	}
 	// Merge imported module into current module.
+	if err := hir.MergeImportedStrings(p.module, imported); err != nil {
+		return err
+	}
 	// Module prefix for name mangling: "tui.render" → "tui__render__"
 	// Uses __ instead of $ for Z80 assembler label compatibility.
 	modPrefix := strings.ReplaceAll(modPath, ".", "__") + "__"
@@ -1851,9 +1854,6 @@ func (p *parser) parseImport() error {
 			}
 		}
 	}
-
-	// Merge string literals
-	p.module.Strings = append(p.module.Strings, imported.Strings...)
 
 	// Merge enums
 	for eName, variants := range p.childEnums(imported) {

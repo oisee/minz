@@ -1,4 +1,7 @@
-/* MinZ minimal stdarg.h for Z80 targets */
+/* Compatibility declarations only: runtime Z80 varargs ABI is unsupported.
+ * The C frontend rejects variadic definitions and calls. These historical
+ * pointer-based macros do not establish a stack ABI for register parameters.
+ */
 #ifndef _MINZ_STDARG_H
 #define _MINZ_STDARG_H
 
