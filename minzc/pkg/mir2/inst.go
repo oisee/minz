@@ -31,7 +31,8 @@ import (
 // Join-point values are expressed as BlockParam entries on the target Block
 // and as Args slices on TermJmp / TermBrIf.
 type Inst struct {
-	Op Op
+	Volatile bool `json:",omitempty"` // OpLoad/OpStore: externally observable access
+	Op       Op
 	// SequentialBytes preserves a fused low-to-high byte sequence, including
 	// partial observations/writes before a later byte fails bounds or authority.
 	SequentialBytes bool `json:",omitempty"`

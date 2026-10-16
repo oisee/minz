@@ -220,7 +220,7 @@ func (l *lowerer) lowerTopDecl(d *cc.Declaration) error {
 		// For arrays, preserve ArrayTy so HIR lowerer returns address
 		// (array decay) instead of loading the value as a pointer.
 		mty := l.storageType(ty)
-		g := mir2.Global{Name: name, Ty: mty}
+		g := mir2.Global{Name: name, Ty: mty, Volatile: ty.Attributes().IsVolatile()}
 		if id.Initializer != nil {
 			g.Init = make([]byte, mty.Width()/8)
 			if err := l.writeGlobalInitializer(g.Init, id.Initializer); err != nil {
@@ -465,6 +465,14 @@ func (l *lowerer) lowerFunc(fd *cc.FunctionDefinition) (*hir.Func, error) {
 		return nil, fmt.Errorf("function %s: %w", name, err)
 	}
 
+	var prologue []hir.Stmt
+	for i, p := range ft.Parameters() {
+		if p.Type() != nil && p.Type().Attributes().IsVolatile() && i < len(params) {
+			prologue = append(prologue, &hir.VarDeclStmt{Name: params[i].Name, Ty: params[i].Ty, Init: hir.Var(params[i].Name, params[i].Ty), Volatile: true})
+		}
+	}
+	body = append(prologue, body...)
+
 	// Ensure function ends with a return.
 	if len(body) == 0 || !isReturn(body[len(body)-1]) {
 		if retTy == mir2.TyVoid {
@@ -587,7 +595,7 @@ func (fl *funcLow) lowerLocalDecl(d *cc.Declaration) ([]hir.Stmt, error) {
 		if decl.IsStatic() && name != "__func__" {
 			mangled := fl.name + "__" + name
 			fl.locals[name] = ty
-			g := mir2.Global{Name: mangled, Ty: ty}
+			g := mir2.Global{Name: mangled, Ty: ty, Volatile: decl.Type().Attributes().IsVolatile()}
 			if id.Initializer != nil {
 				if val, ok := fl.low.evalConstInit(id.Initializer); ok {
 					w := mir2.ByteWidth(ty)
@@ -690,7 +698,7 @@ func (fl *funcLow) lowerLocalDecl(d *cc.Declaration) ([]hir.Stmt, error) {
 			}
 		}
 
-		stmts = append(stmts, &hir.VarDeclStmt{Name: name, Ty: ty, Init: init})
+		stmts = append(stmts, &hir.VarDeclStmt{Name: name, Ty: ty, Init: init, Volatile: decl.Type().Attributes().IsVolatile()})
 	}
 	return stmts, nil
 }
@@ -1269,6 +1277,28 @@ func (fl *funcLow) lowerExprAsExpr(e cc.ExpressionNode) (hir.Expr, error) {
 }
 
 func (fl *funcLow) lowerExpr(e cc.ExpressionNode) (*exprResult, error) {
+	r, err := fl.lowerExprNode(e)
+	if err != nil || r == nil || e == nil || e.Type() == nil || !e.Type().Attributes().IsVolatile() {
+		return r, err
+	}
+	switch x := r.expr.(type) {
+	case *hir.VarRefExpr:
+		if e.Type().Kind() != cc.Array && e.Type().Kind() != cc.Struct && e.Type().Kind() != cc.Union {
+			x.Volatile = true
+		}
+	case *hir.FieldExpr:
+		x.Volatile = true
+	case *hir.LoadExpr:
+		x.Volatile = true
+	case *hir.DerefExpr:
+		x.Volatile = true
+	case *hir.IndexExpr:
+		x.Volatile = true
+	}
+	return r, nil
+}
+
+func (fl *funcLow) lowerExprNode(e cc.ExpressionNode) (*exprResult, error) {
 	if e == nil {
 		return nil, nil
 	}
@@ -1729,7 +1759,7 @@ func (fl *funcLow) lowerUnary(ue *cc.UnaryExpression) (*exprResult, error) {
 			return nil, err
 		}
 		ty := fl.low.mapType(ue.Type())
-		return wrapExpr(hir.Load(inner, ty)), nil
+		return wrapExpr(&hir.DerefExpr{Ptr: inner, Ty: ty}), nil
 
 	case cc.UnaryExpressionMinus:
 		inner, err := fl.lowerExprAsExpr(ue.CastExpression)

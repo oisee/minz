@@ -1160,6 +1160,9 @@ func (g *z80cg) genBlock(f *Func, b *Block) {
 	// Ext + AddrOf + PtrAdd + Load into: LD HL,sym; LD L,src8; LD A,(HL).
 	g.scanLUTPatterns(b)
 
+	// Pre-scan: detect u8 bit-test compares against zero so Cmp can emit BIT.
+	g.scanBitCmpPatterns(b)
+
 	// Pre-scan: identify global struct field accesses so we can emit
 	// LD A,(sym__field) / LD (sym__field),A instead of LD HL,sym + INC HL… + LD A,(HL).
 	g.scanGlobalFieldPatterns(b)
@@ -1167,9 +1170,6 @@ func (g *z80cg) genBlock(f *Func, b *Block) {
 	// Pre-scan: detect u8 load-modify-store bit updates so Store can emit
 	// SET/RES directly on memory and skip the intermediate Load/ALU regs.
 	g.scanBitStorePatterns(b)
-
-	// Pre-scan: detect u8 bit-test compares against zero so Cmp can emit BIT.
-	g.scanBitCmpPatterns(b)
 
 	// Pre-scan: detect ptr_add+load patterns where the base (ptr) is in HL
 	// and must survive across the instruction (e.g. in a loop).  Arranges

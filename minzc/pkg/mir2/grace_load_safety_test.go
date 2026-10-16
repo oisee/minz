@@ -3,7 +3,7 @@ package mir2
 import "testing"
 
 func TestGraceRedundantLoadPreservesWritesAndWidth(t *testing.T) {
-	for _, kind := range []string{"safe", "store", "width"} {
+	for _, kind := range []string{"safe", "store", "width", "volatile"} {
 		t.Run(kind, func(t *testing.T) {
 			m := &Module{}
 			f := m.AddFunc("loads")
@@ -11,6 +11,9 @@ func TestGraceRedundantLoadPreservesWritesAndWidth(t *testing.T) {
 			b.SwitchToNewBlock("entry")
 			p := b.Param("p", TyPtr, ClassPointer)
 			a := b.Load(p, TyU8, ClassGeneral)
+			if kind == "volatile" {
+				b.Cur.Insts[len(b.Cur.Insts)-1].Volatile = true
+			}
 			if kind == "store" {
 				b.Store(p, b.Const(7, TyU8, ClassGeneral), TyU8)
 			}
@@ -58,6 +61,9 @@ func TestGraceRedundantLoadPreservesWritesAndWidth(t *testing.T) {
 			}
 			if got := run(); got != want {
 				t.Fatalf("after=%d want%d", got, want)
+			}
+			if kind == "volatile" && stats.ByRule["redundant-load"] != 0 {
+				t.Fatal("volatile load forwarded")
 			}
 			if kind == "safe" && stats.ByRule["redundant-load"] == 0 {
 				t.Fatal("safe forwarding stopped firing")

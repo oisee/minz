@@ -11,7 +11,7 @@ func FuseSequentialByteWords(f *Func) int {
 	// from SSA use counts. Such functions stay outside this pass.
 	for _, b := range f.Blocks {
 		for _, x := range b.Insts {
-			if x.Op == OpAsm {
+			if x.Op == OpAsm || x.Volatile {
 				return 0
 			}
 		}

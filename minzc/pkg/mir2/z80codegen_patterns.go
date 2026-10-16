@@ -72,7 +72,7 @@ func (g *z80cg) scanLUTPatterns(b *Block) {
 	chains := make(map[Reg][3]Reg)
 	for _, inst := range b.Insts {
 		// Looking for: dst = Load(ptr, u8)
-		if inst.Op != OpLoad || inst.Ty.Width() != 8 || inst.Dst == NoReg {
+		if inst.Volatile || inst.Op != OpLoad || inst.Ty.Width() != 8 || inst.Dst == NoReg {
 			continue
 		}
 		ptrReg := inst.Src[0]
@@ -229,7 +229,7 @@ func (g *z80cg) scanBitStorePatterns(b *Block) {
 	}
 
 	for _, inst := range b.Insts {
-		if inst.Op != OpStore || (inst.Ty.Width() != 8 && inst.Ty.Width() != 16) {
+		if inst.Volatile || inst.Op != OpStore || (inst.Ty.Width() != 8 && inst.Ty.Width() != 16) {
 			continue
 		}
 		valReg := inst.Src[1]
@@ -245,7 +245,7 @@ func (g *z80cg) scanBitStorePatterns(b *Block) {
 		var mask byte
 		width := inst.Ty.Width()
 		for _, src := range valInst.Src {
-			if def, ok := defInst[src]; ok && def.Op == OpLoad && def.Ty.Width() == width && def.Src[0] == inst.Src[0] {
+			if def, ok := defInst[src]; ok && !def.Volatile && def.Op == OpLoad && def.Ty.Width() == width && def.Src[0] == inst.Src[0] {
 				loadReg = src
 			} else if def, ok := defInst[src]; ok && def.Op == OpConst {
 				mask = byte(def.Imm)
@@ -256,7 +256,7 @@ func (g *z80cg) scanBitStorePatterns(b *Block) {
 				continue
 			}
 			loadReg = valInst.Src[0]
-			if def, ok := defInst[loadReg]; !ok || def.Op != OpLoad || def.Ty.Width() != width || def.Src[0] != inst.Src[0] || useCount[loadReg] != 1 {
+			if def, ok := defInst[loadReg]; !ok || def.Volatile || def.Op != OpLoad || def.Ty.Width() != width || def.Src[0] != inst.Src[0] || useCount[loadReg] != 1 {
 				continue
 			}
 		}
@@ -376,7 +376,7 @@ func (g *z80cg) scanBitCmpPatterns(b *Block) {
 			pat.bit = totalBit % 8
 			pat.byteOffset = totalBit / 8
 			baseReg := testInst.Src[0]
-			if loadInst, ok := defInst[baseReg]; ok && loadInst.Op == OpLoad && (loadInst.Ty.Width() == 8 || loadInst.Ty.Width() == 16) && useCount[baseReg] == 1 {
+			if loadInst, ok := defInst[baseReg]; ok && !loadInst.Volatile && loadInst.Op == OpLoad && (loadInst.Ty.Width() == 8 || loadInst.Ty.Width() == 16) && useCount[baseReg] == 1 {
 				pat.ptrReg = loadInst.Src[0]
 				pat.useMem = true
 				skipRegs = []Reg{baseReg, testReg}
@@ -416,7 +416,7 @@ func (g *z80cg) scanBitCmpPatterns(b *Block) {
 					pat.bit = totalBit % 8
 					pat.byteOffset = totalBit / 8
 					baseReg := shrInst.Src[0]
-					if loadInst, ok := defInst[baseReg]; ok && loadInst.Op == OpLoad && (loadInst.Ty.Width() == 8 || loadInst.Ty.Width() == 16) && useCount[baseReg] == 1 {
+					if loadInst, ok := defInst[baseReg]; ok && !loadInst.Volatile && loadInst.Op == OpLoad && (loadInst.Ty.Width() == 8 || loadInst.Ty.Width() == 16) && useCount[baseReg] == 1 {
 						pat.ptrReg = loadInst.Src[0]
 						pat.useMem = true
 						skipRegs = []Reg{baseReg, otherReg, testReg}
@@ -434,7 +434,7 @@ func (g *z80cg) scanBitCmpPatterns(b *Block) {
 			totalBit := bits.TrailingZeros16(maskConst)
 			pat.bit = totalBit % 8
 			pat.byteOffset = totalBit / 8
-			if loadInst, ok := defInst[otherReg]; ok && loadInst.Op == OpLoad && (loadInst.Ty.Width() == 8 || loadInst.Ty.Width() == 16) && useCount[otherReg] == 1 {
+			if loadInst, ok := defInst[otherReg]; ok && !loadInst.Volatile && loadInst.Op == OpLoad && (loadInst.Ty.Width() == 8 || loadInst.Ty.Width() == 16) && useCount[otherReg] == 1 {
 				pat.ptrReg = loadInst.Src[0]
 				pat.useMem = true
 				skipRegs = []Reg{otherReg, testReg}
@@ -707,6 +707,9 @@ func (g *z80cg) scanGlobalFieldPatterns(b *Block) {
 	//      we must not skip it or the other consumer will see a dead register.
 	for _, inst := range b.Insts {
 		if inst.Op == OpLoad && inst.Ty.Width() == 8 && inst.Dst != NoReg {
+			if g.bitCmpSkip[inst.Dst] {
+				continue
+			} // BIT (HL) still needs its pointer materialized
 			// Only apply when the allocated destination is the A register.
 			if g.ar.Loc(inst.Dst).Name != "A" {
 				continue
@@ -842,7 +845,7 @@ func (g *z80cg) scanGlobalFieldPatterns(b *Block) {
 	// Both the base and derived address must have one use across the entire
 	// function; otherwise skipping their materialization would lose a live pointer.
 	for _, inst := range b.Insts {
-		if inst.Op != OpLoad || inst.Ty.Width() != 16 || inst.Dst == NoReg {
+		if inst.Op != OpLoad || inst.Ty.Width() != 16 || inst.Dst == NoReg || g.bitCmpSkip[inst.Dst] {
 			continue
 		}
 		dst := g.ar.Loc(inst.Dst).Name
@@ -930,7 +933,7 @@ func (g *z80cg) scanGlobalFieldPatterns(b *Block) {
 	// Only fires when addrReg is used solely by this load (useCount==1) so we
 	// can safely skip the AddrOf instruction (suppress LD HL,sym).
 	for _, inst := range b.Insts {
-		if inst.Op != OpLoad || inst.Ty.Width() != 16 || inst.Dst == NoReg {
+		if inst.Op != OpLoad || inst.Ty.Width() != 16 || inst.Dst == NoReg || g.bitCmpSkip[inst.Dst] {
 			continue
 		}
 		dst := g.ar.Loc(inst.Dst).Name

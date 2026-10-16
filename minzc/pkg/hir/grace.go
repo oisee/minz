@@ -319,7 +319,7 @@ func newHIRGraceGraph(m *Module) *hirGraceGraph {
 		g.globals[v.Name] = true
 	}
 	for i, f := range m.Funcs {
-		if f.IsExtern || f.Body == nil {
+		if f.IsExtern || f.Body == nil || hasVolatileAccess(m, f.Body) {
 			continue
 		}
 		unsafe := false
@@ -467,4 +467,39 @@ func graceMayInlineCallback(fn string) bool {
 		return true
 	}
 	return false
+}
+
+// Structured memory rewrites need a separate ordering proof for volatile
+// accesses. Keep these functions in the normal MIR optimization path instead.
+func hasVolatileAccess(m *Module, body *Block) bool {
+	globals := map[string]bool{}
+	for _, g := range m.Globals {
+		globals[g.Name] = g.Volatile
+	}
+	found := false
+	walkGraceBlocks(body, "", func(_ string, b *Block) {
+		for _, s := range b.Body {
+			if d, ok := s.(*VarDeclStmt); ok && d.Volatile {
+				found = true
+			}
+			if d, ok := s.(*StoreStmt); ok && d.Volatile {
+				found = true
+			}
+			visitStmtExprs(s, func(e Expr) {
+				switch x := e.(type) {
+				case *VarRefExpr:
+					found = found || x.Volatile || globals[x.Name]
+				case *LoadExpr:
+					found = found || x.Volatile
+				case *DerefExpr:
+					found = found || x.Volatile
+				case *FieldExpr:
+					found = found || x.Volatile
+				case *IndexExpr:
+					found = found || x.Volatile
+				}
+			})
+		}
+	})
+	return found
 }

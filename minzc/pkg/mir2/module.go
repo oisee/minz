@@ -51,6 +51,7 @@ const (
 
 // Global is a module-level variable or constant.
 type Global struct {
+	Volatile   bool   `json:",omitempty"` // all source reads/writes are observable
 	Name       string // linker symbol name
 	Ty         Ty
 	Init       []byte       // initial bytes; shorter initializers are zero-padded to ByteWidth(Ty)
