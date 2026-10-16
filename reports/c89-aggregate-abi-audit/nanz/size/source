@@ -1,0 +1,8 @@
+global a:u8=0
+global result:u16=0
+struct Pair { hi:u8, lo:u8 }
+fun touch(p:Pair)->u8 {p.hi=p.hi+1 return p.hi}
+fun execute(){var p:Pair=Pair{hi:a,lo:0xa5}
+ let got:u8=touch(p)
+ result=u16(p.hi)*256+u16(got)
+}

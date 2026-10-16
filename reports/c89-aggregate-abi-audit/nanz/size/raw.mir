@@ -1,0 +1,33 @@
+; MIR2 module: parameter_write.nanz
+global @a : u8
+global @result : u16
+
+fun @touch(%r1: Pair [pointer]) -> u8 [acc]
+  block @entry:
+    %r2 = load %r1 : u8 [general]
+    %r3 = const 1 : u8 [general]
+    %r4 = add %r2, %r3 : u8 [acc]
+    store %r1, %r4 : u8
+    %r5 = load %r1 : u8 [acc]
+    ret %r5
+
+fun @execute()
+  block @entry:
+    %r6 = alloca 2 : ptr
+    %r7 = addr_of @a : ptr [pointer]
+    %r8 = load %r7 : u8 [general]
+    store %r6, %r8 : u8
+    %r9 = const 165 : u8 [general]
+    %r10 = field %r6, +1 : ptr [pointer]
+    store %r10, %r9 : u8
+    %r11 = call @touch(%r6) : u8 [acc]
+    %r12 = load %r6 : u8 [general]
+    %r13 = ext %r12 : u8 -> u16 [pointer]
+    %r14 = const 256 : u16 [pointer]
+    %r15 = mul %r13, %r14 : u16 [pointer]
+    %r16 = ext %r11 : u8 -> u16 [pointer]
+    %r17 = add %r15, %r16 : u16 [pointer]
+    %r18 = addr_of @result : ptr [pointer]
+    store %r18, %r17 : u16
+    ret void
+

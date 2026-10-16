@@ -147,7 +147,8 @@ func isShallowScalarStruct(st *mir2.StructTy) bool {
 		if !isScalarTy(f.Ty) {
 			return false
 		}
-		totalBytes += w / 8
+		// bool has one value bit but occupies a full byte in aggregate storage.
+		totalBytes += mir2.ByteWidth(f.Ty)
 	}
 	return totalBytes <= 4
 }
