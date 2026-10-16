@@ -35,7 +35,7 @@ relocations — в main 548d6135 через PR #168. Дополнительна�
 | Возврат большой структуры и косвенный aggregate return | `TestC89AggregateReturnLifetimeVMZ80` | Буфер caller и копирование до освобождения frame; интегрировано через PR #166 |
 | Глобальные address initializers | `TestC89GlobalRelocationsVMZ80`, `TestC89GlobalRelocationImportVMZ80` | Строки, поля, массивы, static local, function pointers, C/C и Nanz/C; 231 native / 308 VM вызовов, интегрировано через PR #168 |
 | Косвенный вызов с живым out-pointer | `TestC89IndirectOutPointerAdmission` | Typed void CALL с живым адресом локальной структуры: 15 native / 20 VM, исправлен admission, интегрировано через PR #168 |
-| Enum width/value | `TestCEnumWidthsNativeVM` | VM/Z80; конкретный ABI для крайних значений |
+| Enum width/value | `TestCEnumWidthsNativeVM` | VM/Z80; ordinary signed16 enum плюс wide-constant GNU/C23 extension. Значения за пределами target int не являются ISO C89 enum coverage |
 | sizeof/layout | integer/storage cases + `TestC89LanguageAdmissionVMZ80` | Target layout и sizeof без вычисления x++/вызова; source-level набор интегрирован через PR #167 |
 | Arrays/string/byte initializers | storage/string8 + language admission/string import suites | Escapes, соседние literals, NUL, C/Nanz linking, CString/SString identity; literal linkage интегрирован через PR #167; global pointer relocation интегрирована через PR #168 |
 | Function pointers | `TestCStructParametersNativeVM`, aggregate indirect case | VM/Z80 на typed signatures; varargs ABI не следует из этого |
@@ -48,7 +48,8 @@ relocations — в main 548d6135 через PR #168. Дополнительна�
 
 Расширения C99 `_Bool`, designated initialization, long long и VLA не являются
 доказательством C89. `_Bool` имеет отдельные semantic tests; unavailable long
-long/VLA отклоняются. Их наличие в прежнем C-корпусе не увеличивает оценку C89.
+long/VLA отклоняются: `TestCRejectsNarrowedLongLong` и
+`TestCRejectsVariableLengthArrayStorage`. Их наличие в прежнем C-корпусе не увеличивает оценку C89.
 
 Новые доказательства: [wide CALL и стоимость scalar ABI](call-abi-and-cost.md),
 [глобальные адресные инициализаторы](global-address-initializers.md),
