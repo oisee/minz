@@ -11,14 +11,19 @@
       "sha256": "4d1057b338c0b61f0c69007b494d3fb64a992c952410ee0bc371ba8ff70f72d7"
     },
     {
+      "path": "compiler.json",
+      "bytes": 119,
+      "sha256": "1bb211211a57a4668476caf9c4dce06127ab86b1d0b0948d44f6c137d299d258"
+    },
+    {
       "path": "core.log",
       "bytes": 177,
       "sha256": "65302e8c033b91f5643d0187acd7df485345be2c7a82423717888ac90a2e2cb5"
     },
     {
       "path": "default/heatshrink/final.mir",
-      "bytes": 35267,
-      "sha256": "c0ddf30e04aa58738a1466b6987328bd0a866ab16d4ffbca00d591011dbf3b27"
+      "bytes": 35323,
+      "sha256": "0401eb2cc91f6ea5e8faaf7ca42ad2e29d3c5926715cf8dc6dfcf3e23a8767d3"
     },
     {
       "path": "default/heatshrink/measurements.json",
@@ -37,8 +42,8 @@
     },
     {
       "path": "default/heatshrink/raw.mir",
-      "bytes": 40913,
-      "sha256": "b77bcb10a7087949164074e3f4d515549c378495b10d1a5135b87a4cc7561616"
+      "bytes": 40969,
+      "sha256": "69b3f46ab8f8a2ec5e64f5d5cbea6aa4fb3d653bcce45bdb2697891de9a3e3da"
     },
     {
       "path": "default/heatshrink/run.log",
@@ -52,8 +57,8 @@
     },
     {
       "path": "default/inih/final.mir",
-      "bytes": 57816,
-      "sha256": "a32dcac75f421d9888d0082ff2efa2eaf1f6f8981a4aabf657a967375ae358dc"
+      "bytes": 57872,
+      "sha256": "ee13212a4ff07a0f485b7f44acbdd68fbdb1f1cec5d65a87d6c433ee65c49a4a"
     },
     {
       "path": "default/inih/measurements.json",
@@ -72,8 +77,8 @@
     },
     {
       "path": "default/inih/raw.mir",
-      "bytes": 64416,
-      "sha256": "a413e6d4d8317540a01023dbdad3c028c996c05c47153dcb16fae046a768e609"
+      "bytes": 64472,
+      "sha256": "bf822a74872f5310c62cf66e04d43aa805d588a725b325f454a6f529dc8224aa"
     },
     {
       "path": "default/inih/run.log",
@@ -92,8 +97,8 @@
     },
     {
       "path": "grace/heatshrink/final.mir",
-      "bytes": 31750,
-      "sha256": "54a165549a1cd315d93cfcc9ba9297fe79f502e980dd69460f3eb7cf68362d1f"
+      "bytes": 31806,
+      "sha256": "363fc1f5d9739543e80e5f2f8bd603d09c621d35d3eede33eb9433c0a723edc6"
     },
     {
       "path": "grace/heatshrink/measurements.json",
@@ -112,8 +117,8 @@
     },
     {
       "path": "grace/heatshrink/raw.mir",
-      "bytes": 40913,
-      "sha256": "b77bcb10a7087949164074e3f4d515549c378495b10d1a5135b87a4cc7561616"
+      "bytes": 40969,
+      "sha256": "69b3f46ab8f8a2ec5e64f5d5cbea6aa4fb3d653bcce45bdb2697891de9a3e3da"
     },
     {
       "path": "grace/heatshrink/run.log",
@@ -127,8 +132,8 @@
     },
     {
       "path": "grace/inih/final.mir",
-      "bytes": 57215,
-      "sha256": "4c759fd834ab9c2489b17a368693c0c01d3a318c7b011ce16e3b88960c6f2546"
+      "bytes": 57271,
+      "sha256": "fc9587975d3c0a262584cfe259de74fd5f0e8bbaa1353a1fa95413244fe4a2b5"
     },
     {
       "path": "grace/inih/measurements.json",
@@ -147,8 +152,8 @@
     },
     {
       "path": "grace/inih/raw.mir",
-      "bytes": 64416,
-      "sha256": "a413e6d4d8317540a01023dbdad3c028c996c05c47153dcb16fae046a768e609"
+      "bytes": 64472,
+      "sha256": "bf822a74872f5310c62cf66e04d43aa805d588a725b325f454a6f529dc8224aa"
     },
     {
       "path": "grace/inih/run.log",
@@ -182,8 +187,8 @@
     },
     {
       "path": "size/heatshrink/final.mir",
-      "bytes": 35123,
-      "sha256": "4835b5fa452a22821611038da7cb32bd463485897491a21b8a2059746cefc86d"
+      "bytes": 35179,
+      "sha256": "bbf991da10938cbd2f233d2e07a88334e7ce1bd4dd9b7ece4e44e54cf2dd4785"
     },
     {
       "path": "size/heatshrink/measurements.json",
@@ -202,8 +207,8 @@
     },
     {
       "path": "size/heatshrink/raw.mir",
-      "bytes": 40913,
-      "sha256": "b77bcb10a7087949164074e3f4d515549c378495b10d1a5135b87a4cc7561616"
+      "bytes": 40969,
+      "sha256": "69b3f46ab8f8a2ec5e64f5d5cbea6aa4fb3d653bcce45bdb2697891de9a3e3da"
     },
     {
       "path": "size/heatshrink/run.log",
@@ -217,8 +222,8 @@
     },
     {
       "path": "size/inih/final.mir",
-      "bytes": 57816,
-      "sha256": "a32dcac75f421d9888d0082ff2efa2eaf1f6f8981a4aabf657a967375ae358dc"
+      "bytes": 57872,
+      "sha256": "ee13212a4ff07a0f485b7f44acbdd68fbdb1f1cec5d65a87d6c433ee65c49a4a"
     },
     {
       "path": "size/inih/measurements.json",
@@ -237,8 +242,8 @@
     },
     {
       "path": "size/inih/raw.mir",
-      "bytes": 64416,
-      "sha256": "a413e6d4d8317540a01023dbdad3c028c996c05c47153dcb16fae046a768e609"
+      "bytes": 64472,
+      "sha256": "bf822a74872f5310c62cf66e04d43aa805d588a725b325f454a6f529dc8224aa"
     },
     {
       "path": "size/inih/run.log",

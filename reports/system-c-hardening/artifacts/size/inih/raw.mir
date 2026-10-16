@@ -1,4 +1,5 @@
 ; MIR2 module: /home/alice/dev/minz-artifacts/grace-workspaces/system-c-hardening/research/system-c-validation/adapters/inih
+; object addresses: non-null (VM reserves address zero)
 string @mir2.str.0 = ";"
 string @mir2.str.1 = ";#"
 string @mir2.str.2 = "]"

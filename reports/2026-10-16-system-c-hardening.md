@@ -47,6 +47,8 @@ and Z80 totals.
 ## What was measured
 
 [Sources, configuration, workloads and reproduction instructions](../research/system-c-validation/README.md).
+The published matrix was collected on committed compiler `398142f2f`,
+compiler tree `aff23878`, recorded in [compiler.json](system-c-hardening/artifacts/compiler.json).
 Upstream sources and licenses are unchanged; target headers/runtime shims and
 workload adapters are separate and hashed. The selected versions are inih r62
 (commit `26254ee9`) and heatshrink v0.4.1 (commit `b9ac05e9`).

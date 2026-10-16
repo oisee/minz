@@ -1,4 +1,5 @@
 ; MIR2 module: /home/alice/dev/minz-artifacts/grace-workspaces/system-c-hardening/research/system-c-validation/adapters/heatshrink
+; object addresses: non-null (VM reserves address zero)
 global @input : [32]u8
 global @output : [256]u8
 global @input_length : u16
