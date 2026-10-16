@@ -15,10 +15,10 @@ relocations проверены в следующей ветке, пока не �
 | 32-bit multiply/divide/mod | `TestCIntegerSemanticsNativeVM` | C→raw/final VM/Z80 на граничных значениях; wide CALL с живыми caller значениями: `TestC89WideCallLiveVMZ80`, 2025 native / 2700 VM вызовов, пока в ветке |
 | Pointer stride, difference, arithmetic | `TestCPointerArithmeticNativeVM` | VM/Z80; complete object types, target адреса 16-bit |
 | Lvalue, postfix, compound: вычислить адрес один раз | `TestCLvalueSingleEvaluationNativeVM` | VM/Z80; побочные эффекты и адреса |
-| if/while/for/do, continue и shadowing | `TestControlContinueShadowProbe` | raw/final VM/Z80; требуется расширить независимые семейства |
+| if/while/for/do, continue и shadowing | `TestControlContinueShadowProbe` | raw/final VM/Z80; дополнительно `TestC89ControlClosureVMZ80`, пять семейств с точными trace-записями, пока в ветке |
 | switch fallthrough/default/labels/nearest break | `TestC89ControlMatrixVMZ80` | VM/Z80; 10 семейств, интегрировано через PR #164 |
-| goto и join пути | `TestC89ControlMatrixVMZ80`, HIR goto suite | Простой C goto и регрессия join подтверждены; сложные C переходы требуют дополнительной матрицы |
-| logical/conditional/comma effects | `TestC89ExpressionEffectsNative`, `TestC89ControlEffectsNative` | C source + GCC frozen oracle; raw/final VM/Z80, порядок событий, память и PC/SP; deep profile |
+| goto и join пути | `TestC89ControlMatrixVMZ80`, HIR goto suite | Простой C goto/join интегрирован; новая cleanup/multi-entry/nested-scope матрица: 225 native / 300 VM, пока в ветке |
+| logical/conditional/comma effects | `TestC89ExpressionEffectsNative`, `TestC89ControlEffectsNative` | C source + GCC frozen oracle; raw/final VM/Z80, порядок событий, память и PC/SP; expression suite — deep, control suite — fast |
 | Local/static storage, initialization | `TestCScalarConversionsNativeVM`, `TestCLocalAddressesNativeVM` | VM/Z80; отдельные адресуемые объекты, static long/array/struct |
 | Private symbols, extern, separate imports | `TestCSourcePrivateSymbolsNativeVM`, `TestCSourceImportNativeVM`, `TestC89AggregateImportVMZ80` | Mixed C/Nanz VM/Z80; aggregate ABI после связывания интегрирован через PR #165 |
 | volatile scalar/global/field/local | `TestCVolatileAccessNativeVM`, `TestCLocalVolatileTrafficNativeVM` | VM/Z80, observable access count/order |
@@ -48,7 +48,8 @@ relocations проверены в следующей ветке, пока не �
 long/VLA отклоняются. Их наличие в прежнем C-корпусе не увеличивает оценку C89.
 
 Новые доказательства: [wide CALL и стоимость scalar ABI](call-abi-and-cost.md),
-[глобальные адресные инициализаторы](global-address-initializers.md).
+[глобальные адресные инициализаторы](global-address-initializers.md),
+[cleanup, вложенные переходы и сохранность аргумента](control-closure.md).
 Следующие работы: завершить строгую интеграцию новых ABI/relocation
 проверок, воспроизвести их на main и оценить оставшиеся пробелы в матрице.
 Runtime varargs и неизвестные indirect parameter ABI с живыми caller значениями явно
