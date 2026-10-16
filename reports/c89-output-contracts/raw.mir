@@ -1,0 +1,70 @@
+; MIR2 module: local_pair
+global @left : u8
+global @right : u8
+global @events : u8
+global @result : u16
+
+fun @fill(%r1: u8 [acc], %r2: u8 [general]) -> (u8 [acc], u8 [counter])
+  block @entry:
+    %r3 = const 0 : u8 [general]
+    %r4 = const 0 : u8 [general]
+    %r5 = ext %r1 : u8 -> i16 [pointer]
+    %r6 = ext %r2 : u8 -> i16 [pointer]
+    %r7 = add %r5, %r6 : i16 [pointer]
+    %r8 = trunc %r7 : i16 -> u8 [general]
+    %r9 = ext %r1 : u8 -> i16 [pointer]
+    %r10 = const 3 : i16 [pointer]
+    %r11 = add %r9, %r10 : i16 [pointer]
+    %r12 = trunc %r11 : i16 -> u8 [general]
+    %r13 = addr_of @events : ptr [pointer]
+    %r14 = load %r13 : u8 [general]
+    %r15 = ext %r14 : u8 -> i16 [pointer]
+    %r16 = const 3 : i16 [pointer]
+    %r17 = mul %r15, %r16 : i16 [pointer]
+    %r18 = const 1 : i16 [pointer]
+    %r19 = add %r17, %r18 : i16 [pointer]
+    %r20 = trunc %r19 : i16 -> u8 [general]
+    %r21 = addr_of @events : ptr [pointer]
+    store %r21, %r20 : u8
+    %r22 = ext %r12 : u8 -> i16 [pointer]
+    %r23 = const 128 : i16 [pointer]
+    %r24 = cmp.ge %r22, %r23 : bool [flag]
+    br_if %r24, @if_then1(), @if_join2(%r4)
+  block @if_then1:
+    %r25 = ext %r12 : u8 -> i16 [pointer]
+    %r26 = ext %r2 : u8 -> i16 [pointer]
+    %r27 = xor %r25, %r26 : i16 [pointer]
+    %r28 = trunc %r27 : i16 -> u8 [general]
+    %r29 = move %r8 : u8 [acc]
+    %r30 = move %r28 : u8 [counter]
+    ret %r29, %r30
+  block @if_join2(%r31: u8 [general]):
+    %r32 = ext %r12 : u8 -> i16 [pointer]
+    %r33 = const 7 : i16 [pointer]
+    %r34 = add %r32, %r33 : i16 [pointer]
+    %r35 = trunc %r34 : i16 -> u8 [general]
+    %r36 = move %r8 : u8 [acc]
+    %r37 = move %r35 : u8 [counter]
+    ret %r36, %r37
+
+fun @execute()
+  block @entry:
+    %r38 = const 0 : i16 [pointer]
+    %r39 = trunc %r38 : i16 -> u8 [general]
+    %r40 = const 0 : i16 [pointer]
+    %r41 = trunc %r40 : i16 -> u8 [general]
+    %r42 = addr_of @left : ptr [pointer]
+    %r43 = load %r42 : u8 [general]
+    %r44 = move %r43 : u8 [acc]
+    %r45 = addr_of @right : ptr [pointer]
+    %r46 = load %r45 : u8 [general]
+    %r47 = call @fill(%r44, %r46) : u8 [acc]
+    %r49 = ext %r47 : u8 -> u16 [pointer]
+    %r50 = const 8 : i16 [pointer]
+    %r51 = shl %r49, %r50 : u16 [pointer]
+    %r52 = ext %r48 : u8 -> u16 [pointer]
+    %r53 = or %r51, %r52 : u16 [pointer]
+    %r54 = addr_of @result : ptr [pointer]
+    store %r54, %r53 : u16
+    ret void
+

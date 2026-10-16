@@ -320,6 +320,11 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 				tr.FuseAbsDiff++
 			}
 		}
+		// Run after DSE exposes the byte subtractions in both returning arms.
+		// This whole-CFG proof is independent of the Go/Grace pass driver.
+		if mir2.FuseByteAbsDiffCFG(f) {
+			tr.FuseAbsDiff++
+		}
 		if opt.OptSize {
 			mir2.MergeConstantReturnTails(f)
 		}
@@ -598,6 +603,7 @@ func CompileHIRWithOptions(hm *hir.Module, opts Options) (string, error) {
 			mir2.EliminateDeadBlocks(f)
 		}
 		mir2.FuseAbsDiff(f)
+		mir2.FuseByteAbsDiffCFG(f)
 		if opts.FuseByteWords {
 			mir2.FuseSequentialByteWords(f)
 		}
