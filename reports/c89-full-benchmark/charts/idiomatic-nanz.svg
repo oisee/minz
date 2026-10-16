@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1080" height="870" viewBox="0 0 1080 870" role="img" aria-labelledby="title desc">
 <title id="title">Idiomatic Nanz / tuple: separate sources</title>
-<desc id="desc">Each cell is a percentage of SDCC 4.5 Size bytes or Speed T-states for the same workload. Lower is better. E means compilation error. A dash means no variant. Source SHA256: d966f4cc1026a037b490e451c9333ceb8f1fad3fe211c6ad5f4ec0e6c631ba30.</desc>
+<desc id="desc">Each cell is a percentage of SDCC 4.5 Size bytes or Speed T-states for the same workload. Lower is better. E means compilation error. A dash means no variant. Source SHA256: d27df807a127f3eee68859de8162a407cd2b0c3fb38fa67040d9f904804e9c31.</desc>
 <rect width="100%" height="100%" fill="white"/>
 <style>text{font-family:DejaVu Sans,Arial,sans-serif;fill:#172b3a} .cell{font-size:18px;font-weight:600} .small{font-size:14px} .label{font-size:17px}</style>
 <text x="20" y="32" font-size="23" font-weight="600">Idiomatic Nanz / tuple: separate sources</text>
@@ -16,22 +16,22 @@
 <g><title>27 / 33 = 81.818182%</title><rect x="240" y="137" width="132" height="40" rx="4" fill="#8acaa0"/><text x="306.0" y="164" text-anchor="middle" class="cell">81.8%</text></g>
 <g><title>57 / 54 = 105.555556%</title><rect x="376" y="137" width="132" height="40" rx="4" fill="#f7f2f2"/><text x="442.0" y="164" text-anchor="middle" class="cell">105.6%</text></g>
 <g><title>317 / 325 = 97.538462%</title><rect x="512" y="137" width="132" height="40" rx="4" fill="#99d1ac"/><text x="578.0" y="164" text-anchor="middle" class="cell">97.5%</text></g>
-<g><title>211 / 213 = 99.061033%</title><rect x="648" y="137" width="132" height="40" rx="4" fill="#9bd1ae"/><text x="714.0" y="164" text-anchor="middle" class="cell">99.1%</text></g>
-<g><title>185 / 140 = 132.142857%</title><rect x="784" y="137" width="132" height="40" rx="4" fill="#f4d9d7"/><text x="850.0" y="164" text-anchor="middle" class="cell">132.1%</text></g>
+<g><title>182 / 213 = 85.446009%</title><rect x="648" y="137" width="132" height="40" rx="4" fill="#8ecca3"/><text x="714.0" y="164" text-anchor="middle" class="cell">85.4%</text></g>
+<g><title>167 / 140 = 119.285714%</title><rect x="784" y="137" width="132" height="40" rx="4" fill="#f6e4e3"/><text x="850.0" y="164" text-anchor="middle" class="cell">119.3%</text></g>
 <g><title>154 / 153 = 100.653595%</title><rect x="920" y="137" width="132" height="40" rx="4" fill="#f8f7f7"/><text x="986.0" y="164" text-anchor="middle" class="cell">100.7%</text></g>
 <text x="20" y="209" class="label">Nanz size</text>
 <g><title>27 / 33 = 81.818182%</title><rect x="240" y="181" width="132" height="40" rx="4" fill="#8acaa0"/><text x="306.0" y="208" text-anchor="middle" class="cell">81.8%</text></g>
 <g><title>57 / 54 = 105.555556%</title><rect x="376" y="181" width="132" height="40" rx="4" fill="#f7f2f2"/><text x="442.0" y="208" text-anchor="middle" class="cell">105.6%</text></g>
 <g><title>317 / 325 = 97.538462%</title><rect x="512" y="181" width="132" height="40" rx="4" fill="#99d1ac"/><text x="578.0" y="208" text-anchor="middle" class="cell">97.5%</text></g>
-<g><title>211 / 213 = 99.061033%</title><rect x="648" y="181" width="132" height="40" rx="4" fill="#9bd1ae"/><text x="714.0" y="208" text-anchor="middle" class="cell">99.1%</text></g>
-<g><title>185 / 140 = 132.142857%</title><rect x="784" y="181" width="132" height="40" rx="4" fill="#f4d9d7"/><text x="850.0" y="208" text-anchor="middle" class="cell">132.1%</text></g>
+<g><title>182 / 213 = 85.446009%</title><rect x="648" y="181" width="132" height="40" rx="4" fill="#8ecca3"/><text x="714.0" y="208" text-anchor="middle" class="cell">85.4%</text></g>
+<g><title>167 / 140 = 119.285714%</title><rect x="784" y="181" width="132" height="40" rx="4" fill="#f6e4e3"/><text x="850.0" y="208" text-anchor="middle" class="cell">119.3%</text></g>
 <g><title>154 / 153 = 100.653595%</title><rect x="920" y="181" width="132" height="40" rx="4" fill="#f8f7f7"/><text x="986.0" y="208" text-anchor="middle" class="cell">100.7%</text></g>
 <text x="20" y="253" class="label">Nanz grace</text>
 <g><title>27 / 33 = 81.818182%</title><rect x="240" y="225" width="132" height="40" rx="4" fill="#8acaa0"/><text x="306.0" y="252" text-anchor="middle" class="cell">81.8%</text></g>
 <g><title>51 / 54 = 94.444444%</title><rect x="376" y="225" width="132" height="40" rx="4" fill="#97cfaa"/><text x="442.0" y="252" text-anchor="middle" class="cell">94.4%</text></g>
 <g><title>317 / 325 = 97.538462%</title><rect x="512" y="225" width="132" height="40" rx="4" fill="#99d1ac"/><text x="578.0" y="252" text-anchor="middle" class="cell">97.5%</text></g>
-<g><title>211 / 213 = 99.061033%</title><rect x="648" y="225" width="132" height="40" rx="4" fill="#9bd1ae"/><text x="714.0" y="252" text-anchor="middle" class="cell">99.1%</text></g>
-<g><title>185 / 140 = 132.142857%</title><rect x="784" y="225" width="132" height="40" rx="4" fill="#f4d9d7"/><text x="850.0" y="252" text-anchor="middle" class="cell">132.1%</text></g>
+<g><title>182 / 213 = 85.446009%</title><rect x="648" y="225" width="132" height="40" rx="4" fill="#8ecca3"/><text x="714.0" y="252" text-anchor="middle" class="cell">85.4%</text></g>
+<g><title>167 / 140 = 119.285714%</title><rect x="784" y="225" width="132" height="40" rx="4" fill="#f6e4e3"/><text x="850.0" y="252" text-anchor="middle" class="cell">119.3%</text></g>
 <g><title>154 / 153 = 100.653595%</title><rect x="920" y="225" width="132" height="40" rx="4" fill="#f8f7f7"/><text x="986.0" y="252" text-anchor="middle" class="cell">100.7%</text></g>
 <text x="20" y="297" class="label">Nanz tuple default</text>
 <g><title>Variant not present in this benchmark</title><rect x="240" y="269" width="132" height="40" rx="4" fill="#ededed"/><text x="306.0" y="296" text-anchor="middle" class="cell">—</text></g>
@@ -65,22 +65,22 @@
 <g><title>220,904 / 258,142 = 85.574606%</title><rect x="240" y="499" width="132" height="40" rx="4" fill="#8ecca3"/><text x="306.0" y="526" text-anchor="middle" class="cell">85.6%</text></g>
 <g><title>4,953,966 / 4,243,840 = 116.733100%</title><rect x="376" y="499" width="132" height="40" rx="4" fill="#f6e7e5"/><text x="442.0" y="526" text-anchor="middle" class="cell">116.7%</text></g>
 <g><title>8,308,684 / 7,433,216 = 111.777782%</title><rect x="512" y="499" width="132" height="40" rx="4" fill="#f7ebeb"/><text x="578.0" y="526" text-anchor="middle" class="cell">111.8%</text></g>
-<g><title>1,041,950 / 683,930 = 152.347462%</title><rect x="648" y="499" width="132" height="40" rx="4" fill="#f3c9c6"/><text x="714.0" y="526" text-anchor="middle" class="cell">152.3%</text></g>
-<g><title>37,088 / 25,152 = 147.455471%</title><rect x="784" y="499" width="132" height="40" rx="4" fill="#f3ccc9"/><text x="850.0" y="526" text-anchor="middle" class="cell">147.5%</text></g>
+<g><title>301,600 / 683,930 = 44.098080%</title><rect x="648" y="499" width="132" height="40" rx="4" fill="#5eb87d"/><text x="714.0" y="526" text-anchor="middle" class="cell">44.1%</text></g>
+<g><title>32,000 / 25,152 = 127.226463%</title><rect x="784" y="499" width="132" height="40" rx="4" fill="#f5dddb"/><text x="850.0" y="526" text-anchor="middle" class="cell">127.2%</text></g>
 <g><title>1,925,120 / 1,826,816 = 105.381166%</title><rect x="920" y="499" width="132" height="40" rx="4" fill="#f7f2f2"/><text x="986.0" y="526" text-anchor="middle" class="cell">105.4%</text></g>
 <text x="20" y="571" class="label">Nanz size</text>
 <g><title>220,904 / 258,142 = 85.574606%</title><rect x="240" y="543" width="132" height="40" rx="4" fill="#8ecca3"/><text x="306.0" y="570" text-anchor="middle" class="cell">85.6%</text></g>
 <g><title>4,953,966 / 4,243,840 = 116.733100%</title><rect x="376" y="543" width="132" height="40" rx="4" fill="#f6e7e5"/><text x="442.0" y="570" text-anchor="middle" class="cell">116.7%</text></g>
 <g><title>8,308,684 / 7,433,216 = 111.777782%</title><rect x="512" y="543" width="132" height="40" rx="4" fill="#f7ebeb"/><text x="578.0" y="570" text-anchor="middle" class="cell">111.8%</text></g>
-<g><title>1,041,950 / 683,930 = 152.347462%</title><rect x="648" y="543" width="132" height="40" rx="4" fill="#f3c9c6"/><text x="714.0" y="570" text-anchor="middle" class="cell">152.3%</text></g>
-<g><title>37,088 / 25,152 = 147.455471%</title><rect x="784" y="543" width="132" height="40" rx="4" fill="#f3ccc9"/><text x="850.0" y="570" text-anchor="middle" class="cell">147.5%</text></g>
+<g><title>301,600 / 683,930 = 44.098080%</title><rect x="648" y="543" width="132" height="40" rx="4" fill="#5eb87d"/><text x="714.0" y="570" text-anchor="middle" class="cell">44.1%</text></g>
+<g><title>32,000 / 25,152 = 127.226463%</title><rect x="784" y="543" width="132" height="40" rx="4" fill="#f5dddb"/><text x="850.0" y="570" text-anchor="middle" class="cell">127.2%</text></g>
 <g><title>1,925,120 / 1,826,816 = 105.381166%</title><rect x="920" y="543" width="132" height="40" rx="4" fill="#f7f2f2"/><text x="986.0" y="570" text-anchor="middle" class="cell">105.4%</text></g>
 <text x="20" y="615" class="label">Nanz grace</text>
 <g><title>220,904 / 258,142 = 85.574606%</title><rect x="240" y="587" width="132" height="40" rx="4" fill="#8ecca3"/><text x="306.0" y="614" text-anchor="middle" class="cell">85.6%</text></g>
 <g><title>3,067,013 / 4,243,840 = 72.269760%</title><rect x="376" y="587" width="132" height="40" rx="4" fill="#7fc697"/><text x="442.0" y="614" text-anchor="middle" class="cell">72.3%</text></g>
 <g><title>8,308,684 / 7,433,216 = 111.777782%</title><rect x="512" y="587" width="132" height="40" rx="4" fill="#f7ebeb"/><text x="578.0" y="614" text-anchor="middle" class="cell">111.8%</text></g>
-<g><title>1,041,950 / 683,930 = 152.347462%</title><rect x="648" y="587" width="132" height="40" rx="4" fill="#f3c9c6"/><text x="714.0" y="614" text-anchor="middle" class="cell">152.3%</text></g>
-<g><title>37,088 / 25,152 = 147.455471%</title><rect x="784" y="587" width="132" height="40" rx="4" fill="#f3ccc9"/><text x="850.0" y="614" text-anchor="middle" class="cell">147.5%</text></g>
+<g><title>301,600 / 683,930 = 44.098080%</title><rect x="648" y="587" width="132" height="40" rx="4" fill="#5eb87d"/><text x="714.0" y="614" text-anchor="middle" class="cell">44.1%</text></g>
+<g><title>32,000 / 25,152 = 127.226463%</title><rect x="784" y="587" width="132" height="40" rx="4" fill="#f5dddb"/><text x="850.0" y="614" text-anchor="middle" class="cell">127.2%</text></g>
 <g><title>1,925,120 / 1,826,816 = 105.381166%</title><rect x="920" y="587" width="132" height="40" rx="4" fill="#f7f2f2"/><text x="986.0" y="614" text-anchor="middle" class="cell">105.4%</text></g>
 <text x="20" y="659" class="label">Nanz tuple default</text>
 <g><title>Variant not present in this benchmark</title><rect x="240" y="631" width="132" height="40" rx="4" fill="#ededed"/><text x="306.0" y="658" text-anchor="middle" class="cell">—</text></g>

@@ -1,12 +1,14 @@
 # Полный C/Nanz benchmark: что уже выжали из Z80
 
-16 октября 2026 года. Актуальная матрица после byte narrowing, прямых byte loads
-слияния CFG абсолютной разности и прямых word stores. Все исходники и режимы сохранены.
+16 октября 2026 года. Актуальная матрица после byte narrowing, прямых byte loads,
+слияния CFG абсолютной разности, прямых word stores, counted pointer walk
+и сужения bit-mask tests. Все исходники и режимы сохранены.
 
 На неизменном C `abs_diff` MinZ теперь немного меньше и быстрее SDCC 4.5:
 **27 байт / 220 904 T против 33 / 258 142**. Идиоматичный Nanz даёт тот же результат.
 Grace заметно ускоряет gcd; C-декомпозиция маленькой структуры тоже полезна.
-У копирования, FAT12 и sum_array остаются проигрыши актуальному SDCC Speed.
+Копирование теперь меньше и быстрее обоих профилей SDCC 4.5. У FAT12
+и sum_array остаются проигрыши актуальному SDCC Speed.
 Это шесть небольших программ и фиксированные нагрузки, а не общий рейтинг компиляторов.
 
 ## Что именно улучшено
@@ -22,7 +24,8 @@ Grace заметно ускоряет gcd; C-декомпозиция мален
 | Сужение byte arithmetic | 38 / 305 750 | 79 / 5 158 510 | 317 / 9 356 800 |
 | Прямые byte loads | 36 / 289 366 | 77 / 5 142 126 | 317 / 9 356 800 |
 | Целый CFG abs_diff | 30 / 253 672 | 77 / 5 142 126 | 317 / 9 356 800 |
-| Прямая запись слова | **27 / 220 904** | 74 / 5 109 358 | 314 / 9 348 608 |
+| Прямая запись слова | 27 / 220 904 | 74 / 5 109 358 | 314 / 9 348 608 |
+| Counted pointer walk и bit-mask tests | **27 / 220 904** | 74 / 5 109 358 | **313 / 7 581 952** |
 
 [Byte comparisons](2026-10-16-c89-byte-compare-asm.md) используют доказанные
 диапазоны операндов после C integer promotions. [Byte arithmetic](2026-10-16-c89-byte-arithmetic.md)
@@ -111,9 +114,9 @@ SDCC запускался с явными --opt-code-size и --opt-code-speed; s
 
 | Компилятор и режим | Байты | T-states | Полученный код и замер |
 |---|---:|---:|---|
-| MinZ C default | 314 | 9 348 608 | [ASM](c89-full-benchmark/minz/default/sum_array/program.a80) · [замер](c89-full-benchmark/minz/default/sum_array/costs.json) · [raw](c89-full-benchmark/minz/default/sum_array/raw.mir) / [final MIR](c89-full-benchmark/minz/default/sum_array/final.mir) |
-| MinZ C size | 314 | 9 348 608 | [ASM](c89-full-benchmark/minz/size/sum_array/program.a80) · [замер](c89-full-benchmark/minz/size/sum_array/costs.json) · [raw](c89-full-benchmark/minz/size/sum_array/raw.mir) / [final MIR](c89-full-benchmark/minz/size/sum_array/final.mir) |
-| MinZ C grace | 314 | 9 348 608 | [ASM](c89-full-benchmark/minz/grace/sum_array/program.a80) · [замер](c89-full-benchmark/minz/grace/sum_array/costs.json) · [raw](c89-full-benchmark/minz/grace/sum_array/raw.mir) / [final MIR](c89-full-benchmark/minz/grace/sum_array/final.mir) |
+| MinZ C default | 313 | 7 581 952 | [ASM](c89-full-benchmark/minz/default/sum_array/program.a80) · [замер](c89-full-benchmark/minz/default/sum_array/costs.json) · [raw](c89-full-benchmark/minz/default/sum_array/raw.mir) / [final MIR](c89-full-benchmark/minz/default/sum_array/final.mir) |
+| MinZ C size | 313 | 7 581 952 | [ASM](c89-full-benchmark/minz/size/sum_array/program.a80) · [замер](c89-full-benchmark/minz/size/sum_array/costs.json) · [raw](c89-full-benchmark/minz/size/sum_array/raw.mir) / [final MIR](c89-full-benchmark/minz/size/sum_array/final.mir) |
+| MinZ C grace | 313 | 7 581 952 | [ASM](c89-full-benchmark/minz/grace/sum_array/program.a80) · [замер](c89-full-benchmark/minz/grace/sum_array/costs.json) · [raw](c89-full-benchmark/minz/grace/sum_array/raw.mir) / [final MIR](c89-full-benchmark/minz/grace/sum_array/final.mir) |
 | Nanz default | 317 | 8 308 684 | [ASM](c89-full-benchmark/nanz/default/sum_array/program.a80) · [замер](c89-full-benchmark/nanz/default/sum_array/costs.json) · [raw](c89-full-benchmark/nanz/default/sum_array/raw.mir) / [final MIR](c89-full-benchmark/nanz/default/sum_array/final.mir) |
 | Nanz size | 317 | 8 308 684 | [ASM](c89-full-benchmark/nanz/size/sum_array/program.a80) · [замер](c89-full-benchmark/nanz/size/sum_array/costs.json) · [raw](c89-full-benchmark/nanz/size/sum_array/raw.mir) / [final MIR](c89-full-benchmark/nanz/size/sum_array/final.mir) |
 | Nanz grace | 317 | 8 308 684 | [ASM](c89-full-benchmark/nanz/grace/sum_array/program.a80) · [замер](c89-full-benchmark/nanz/grace/sum_array/costs.json) · [raw](c89-full-benchmark/nanz/grace/sum_array/raw.mir) / [final MIR](c89-full-benchmark/nanz/grace/sum_array/final.mir) |
@@ -129,12 +132,12 @@ SDCC запускался с явными --opt-code-size и --opt-code-speed; s
 
 | Компилятор и режим | Байты | T-states | Полученный код и замер |
 |---|---:|---:|---|
-| MinZ C default | 210 | 1 119 040 | [ASM](c89-full-benchmark/minz/default/copy_bytes/program.a80) · [замер](c89-full-benchmark/minz/default/copy_bytes/costs.json) · [raw](c89-full-benchmark/minz/default/copy_bytes/raw.mir) / [final MIR](c89-full-benchmark/minz/default/copy_bytes/final.mir) |
-| MinZ C size | 210 | 1 119 040 | [ASM](c89-full-benchmark/minz/size/copy_bytes/program.a80) · [замер](c89-full-benchmark/minz/size/copy_bytes/costs.json) · [raw](c89-full-benchmark/minz/size/copy_bytes/raw.mir) / [final MIR](c89-full-benchmark/minz/size/copy_bytes/final.mir) |
-| MinZ C grace | 210 | 1 119 040 | [ASM](c89-full-benchmark/minz/grace/copy_bytes/program.a80) · [замер](c89-full-benchmark/minz/grace/copy_bytes/costs.json) · [raw](c89-full-benchmark/minz/grace/copy_bytes/raw.mir) / [final MIR](c89-full-benchmark/minz/grace/copy_bytes/final.mir) |
-| Nanz default | 211 | 1 041 950 | [ASM](c89-full-benchmark/nanz/default/copy_bytes/program.a80) · [замер](c89-full-benchmark/nanz/default/copy_bytes/costs.json) · [raw](c89-full-benchmark/nanz/default/copy_bytes/raw.mir) / [final MIR](c89-full-benchmark/nanz/default/copy_bytes/final.mir) |
-| Nanz size | 211 | 1 041 950 | [ASM](c89-full-benchmark/nanz/size/copy_bytes/program.a80) · [замер](c89-full-benchmark/nanz/size/copy_bytes/costs.json) · [raw](c89-full-benchmark/nanz/size/copy_bytes/raw.mir) / [final MIR](c89-full-benchmark/nanz/size/copy_bytes/final.mir) |
-| Nanz grace | 211 | 1 041 950 | [ASM](c89-full-benchmark/nanz/grace/copy_bytes/program.a80) · [замер](c89-full-benchmark/nanz/grace/copy_bytes/costs.json) · [raw](c89-full-benchmark/nanz/grace/copy_bytes/raw.mir) / [final MIR](c89-full-benchmark/nanz/grace/copy_bytes/final.mir) |
+| MinZ C default | 182 | 301 600 | [ASM](c89-full-benchmark/minz/default/copy_bytes/program.a80) · [замер](c89-full-benchmark/minz/default/copy_bytes/costs.json) · [raw](c89-full-benchmark/minz/default/copy_bytes/raw.mir) / [final MIR](c89-full-benchmark/minz/default/copy_bytes/final.mir) |
+| MinZ C size | 182 | 301 600 | [ASM](c89-full-benchmark/minz/size/copy_bytes/program.a80) · [замер](c89-full-benchmark/minz/size/copy_bytes/costs.json) · [raw](c89-full-benchmark/minz/size/copy_bytes/raw.mir) / [final MIR](c89-full-benchmark/minz/size/copy_bytes/final.mir) |
+| MinZ C grace | 182 | 301 600 | [ASM](c89-full-benchmark/minz/grace/copy_bytes/program.a80) · [замер](c89-full-benchmark/minz/grace/copy_bytes/costs.json) · [raw](c89-full-benchmark/minz/grace/copy_bytes/raw.mir) / [final MIR](c89-full-benchmark/minz/grace/copy_bytes/final.mir) |
+| Nanz default | 182 | 301 600 | [ASM](c89-full-benchmark/nanz/default/copy_bytes/program.a80) · [замер](c89-full-benchmark/nanz/default/copy_bytes/costs.json) · [raw](c89-full-benchmark/nanz/default/copy_bytes/raw.mir) / [final MIR](c89-full-benchmark/nanz/default/copy_bytes/final.mir) |
+| Nanz size | 182 | 301 600 | [ASM](c89-full-benchmark/nanz/size/copy_bytes/program.a80) · [замер](c89-full-benchmark/nanz/size/copy_bytes/costs.json) · [raw](c89-full-benchmark/nanz/size/copy_bytes/raw.mir) / [final MIR](c89-full-benchmark/nanz/size/copy_bytes/final.mir) |
+| Nanz grace | 182 | 301 600 | [ASM](c89-full-benchmark/nanz/grace/copy_bytes/program.a80) · [замер](c89-full-benchmark/nanz/grace/copy_bytes/costs.json) · [raw](c89-full-benchmark/nanz/grace/copy_bytes/raw.mir) / [final MIR](c89-full-benchmark/nanz/grace/copy_bytes/final.mir) |
 | SDCC 4.2 size | 214 | 831 090 | [ASM](c89-full-benchmark/sdcc/size/copy_bytes/program.asm) · [замер](c89-full-benchmark/sdcc/size/copy_bytes/costs.json) |
 | SDCC 4.2 speed | 215 | 822 770 | [ASM](c89-full-benchmark/sdcc/speed/copy_bytes/program.asm) · [замер](c89-full-benchmark/sdcc/speed/copy_bytes/costs.json) |
 | SDCC 4.5 size | 213 | 830 700 | [ASM](c89-full-benchmark/sdcc45/size/copy_bytes/program.asm) · [замер](c89-full-benchmark/sdcc45/size/copy_bytes/costs.json) |
@@ -147,12 +150,12 @@ SDCC запускался с явными --opt-code-size и --opt-code-speed; s
 
 | Компилятор и режим | Байты | T-states | Полученный код и замер |
 |---|---:|---:|---|
-| MinZ C default | 184 | 36 832 | [ASM](c89-full-benchmark/minz/default/fat12_decode/program.a80) · [замер](c89-full-benchmark/minz/default/fat12_decode/costs.json) · [raw](c89-full-benchmark/minz/default/fat12_decode/raw.mir) / [final MIR](c89-full-benchmark/minz/default/fat12_decode/final.mir) |
-| MinZ C size | 184 | 36 832 | [ASM](c89-full-benchmark/minz/size/fat12_decode/program.a80) · [замер](c89-full-benchmark/minz/size/fat12_decode/costs.json) · [raw](c89-full-benchmark/minz/size/fat12_decode/raw.mir) / [final MIR](c89-full-benchmark/minz/size/fat12_decode/final.mir) |
-| MinZ C grace | 184 | 36 832 | [ASM](c89-full-benchmark/minz/grace/fat12_decode/program.a80) · [замер](c89-full-benchmark/minz/grace/fat12_decode/costs.json) · [raw](c89-full-benchmark/minz/grace/fat12_decode/raw.mir) / [final MIR](c89-full-benchmark/minz/grace/fat12_decode/final.mir) |
-| Nanz default | 185 | 37 088 | [ASM](c89-full-benchmark/nanz/default/fat12_decode/program.a80) · [замер](c89-full-benchmark/nanz/default/fat12_decode/costs.json) · [raw](c89-full-benchmark/nanz/default/fat12_decode/raw.mir) / [final MIR](c89-full-benchmark/nanz/default/fat12_decode/final.mir) |
-| Nanz size | 185 | 37 088 | [ASM](c89-full-benchmark/nanz/size/fat12_decode/program.a80) · [замер](c89-full-benchmark/nanz/size/fat12_decode/costs.json) · [raw](c89-full-benchmark/nanz/size/fat12_decode/raw.mir) / [final MIR](c89-full-benchmark/nanz/size/fat12_decode/final.mir) |
-| Nanz grace | 185 | 37 088 | [ASM](c89-full-benchmark/nanz/grace/fat12_decode/program.a80) · [замер](c89-full-benchmark/nanz/grace/fat12_decode/costs.json) · [raw](c89-full-benchmark/nanz/grace/fat12_decode/raw.mir) / [final MIR](c89-full-benchmark/nanz/grace/fat12_decode/final.mir) |
+| MinZ C default | 167 | 32 000 | [ASM](c89-full-benchmark/minz/default/fat12_decode/program.a80) · [замер](c89-full-benchmark/minz/default/fat12_decode/costs.json) · [raw](c89-full-benchmark/minz/default/fat12_decode/raw.mir) / [final MIR](c89-full-benchmark/minz/default/fat12_decode/final.mir) |
+| MinZ C size | 167 | 32 000 | [ASM](c89-full-benchmark/minz/size/fat12_decode/program.a80) · [замер](c89-full-benchmark/minz/size/fat12_decode/costs.json) · [raw](c89-full-benchmark/minz/size/fat12_decode/raw.mir) / [final MIR](c89-full-benchmark/minz/size/fat12_decode/final.mir) |
+| MinZ C grace | 167 | 32 000 | [ASM](c89-full-benchmark/minz/grace/fat12_decode/program.a80) · [замер](c89-full-benchmark/minz/grace/fat12_decode/costs.json) · [raw](c89-full-benchmark/minz/grace/fat12_decode/raw.mir) / [final MIR](c89-full-benchmark/minz/grace/fat12_decode/final.mir) |
+| Nanz default | 167 | 32 000 | [ASM](c89-full-benchmark/nanz/default/fat12_decode/program.a80) · [замер](c89-full-benchmark/nanz/default/fat12_decode/costs.json) · [raw](c89-full-benchmark/nanz/default/fat12_decode/raw.mir) / [final MIR](c89-full-benchmark/nanz/default/fat12_decode/final.mir) |
+| Nanz size | 167 | 32 000 | [ASM](c89-full-benchmark/nanz/size/fat12_decode/program.a80) · [замер](c89-full-benchmark/nanz/size/fat12_decode/costs.json) · [raw](c89-full-benchmark/nanz/size/fat12_decode/raw.mir) / [final MIR](c89-full-benchmark/nanz/size/fat12_decode/final.mir) |
+| Nanz grace | 167 | 32 000 | [ASM](c89-full-benchmark/nanz/grace/fat12_decode/program.a80) · [замер](c89-full-benchmark/nanz/grace/fat12_decode/costs.json) · [raw](c89-full-benchmark/nanz/grace/fat12_decode/raw.mir) / [final MIR](c89-full-benchmark/nanz/grace/fat12_decode/final.mir) |
 | SDCC 4.2 size | 149 | 29 184 | [ASM](c89-full-benchmark/sdcc/size/fat12_decode/program.asm) · [замер](c89-full-benchmark/sdcc/size/fat12_decode/costs.json) |
 | SDCC 4.2 speed | 159 | 27 392 | [ASM](c89-full-benchmark/sdcc/speed/fat12_decode/program.asm) · [замер](c89-full-benchmark/sdcc/speed/fat12_decode/costs.json) |
 | SDCC 4.5 size | 140 | 26 944 | [ASM](c89-full-benchmark/sdcc45/size/fat12_decode/program.asm) · [замер](c89-full-benchmark/sdcc45/size/fat12_decode/costs.json) |
@@ -187,9 +190,14 @@ SDCC запускался с явными --opt-code-size и --opt-code-speed; s
 Nanz gcd с Grace выигрывает у его Speed по обоим критериям: 51 / 3 067 013 против
 56 / 4 243 840. Это конкретные измерения, а не обещание такого результата на любом gcd.
 
-C sum_array меньше SDCC 4.5 Size и быстрее его, но Speed-вариант SDCC быстрее
-но MinZ теперь на два байта меньше. Nanz sum_array быстрее нынешнего C, но тоже уступает
-SDCC 4.5 Speed. Copy и FAT12 остаются понятными следующими местами для работы.
+C sum_array меньше и быстрее SDCC 4.5 Size; против Speed он на три байта меньше,
+но примерно на 2% медленнее. Теперь C sum_array быстрее отдельного Nanz foreach:
+эти исходники выражают алгоритм разными способами.
+
+Copy C/Nanz: **182 B / 301 600 T** против SDCC 4.5 Speed **212 B / 683 930 T**.
+База указателя переносится через цикл вместо повторного сложения с индексом.
+FAT12 C/Nanz: **167 B / 32 000 T**, улучшение относительно main, но SDCC 4.5
+остаётся впереди. [Разбор, ограничения и heldout](2026-10-16-copy-fat12-results.md).
 
 C struct_roundtrip: 85 / 935 936 против SDCC 4.5 Speed 152 / 1 826 816.
 Существующая безопасная декомпозиция C aggregate ABI — основной источник выигрыша.
@@ -229,7 +237,9 @@ GCC независимо подтвердил 6656 ожиданий. [Аудит
 Проверка перечисленных областей памяти и PC/SP не заменяет такие проверки.
 Чистый Speed остаётся допустимой целью, даже если размер увеличивается.
 
-Измеренный compiler checkpoint: 3c097bcc (точный полный SHA в toolchains.json).
+Измеренный compiler checkpoint: **2b2eef69** (полный SHA и compiler tree в toolchains.json).
+Последние counted-pointer/bit-mask изменения пока находятся в feat/copy-fat12-z80;
+эта матрица не означает их интеграцию в main.
 SDCC 4.2.0 #13081; SDCC 4.5.0 #15242; z88dk/sccz80 checkout
 83383009c0e221e6d6fe955591058280510391c8. Это два разных C-компилятора:
 SDCC и sccz80; z88dk предоставляет frontend/toolchain для последнего.
@@ -240,9 +250,9 @@ SDCC и sccz80; z88dk предоставляет frontend/toolchain для по�
 команды, исходник и ASM, для MinZ также raw/final MIR. Costs содержит число наблюдений
 и SHA полного measurements.json. Подробные наблюдения, бинарники и полный исходный
 набор сохранены локально в
-/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c89-nanz-sdcc45/direct-word-store-full/.
+/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/full-refined/.
 SHA всех 69 подробных measurements.json сверен с опубликованными costs.json;
-дополнительный совмещённый повтор — в соседней папке final-union-full/.
+дополнительный совмещённый повтор и предыдущие этапы сохранены в copy-fat12/.
 
 [Инструкция сборки внешних toolchains](../research/c89-benchmark/README.md).
 После их установки из корня репозитория:
@@ -325,14 +335,15 @@ struct_roundtrip; `—` означает отсутствующий вариан
 |---|---|---|---|---|
 | abs_diff | MinZ C default/size/grace: **27** | MinZ C default/size/grace: **220 904** | Nanz default/size/grace: **27** | Nanz default/size/grace: **220 904** |
 | gcd | SDCC 4.5 size: **54** | MinZ C grace: **3 222 405** | Nanz grace: **51** | Nanz grace: **3 067 013** |
-| sum_array | MinZ C default/size/grace: **314** | SDCC 4.5 speed: **7 433 216** | Nanz default/size/grace: **317** | Nanz default/size/grace: **8 308 684** |
-| copy_bytes | MinZ C default/size/grace: **210** | SDCC 4.5 speed: **683 930** | Nanz default/size/grace: **211** | Nanz default/size/grace: **1 041 950** |
-| fat12_decode | SDCC 4.5 size: **140** | SDCC 4.5 speed: **25 152** | Nanz default/size/grace: **185** | Nanz default/size/grace: **37 088** |
+| sum_array | MinZ C default/size/grace: **313** | SDCC 4.5 speed: **7 433 216** | Nanz default/size/grace: **317** | Nanz default/size/grace: **8 308 684** |
+| copy_bytes | MinZ C default/size/grace: **182** | MinZ C default/size/grace: **301 600** | Nanz default/size/grace: **182** | Nanz default/size/grace: **301 600** |
+| fat12_decode | SDCC 4.5 size: **140** | SDCC 4.5 speed: **25 152** | Nanz default/size/grace: **167** | Nanz default/size/grace: **32 000** |
 | struct_roundtrip | MinZ C default/size/grace: **85** | MinZ C default/size/grace: **935 936** | Nanz tuple default/size/grace: **71** | Nanz tuple default/size/grace: **612 352** |
 
 Таким образом, MinZ C берёт оба минимума на abs_diff и struct_roundtrip;
 на gcd Grace выигрывает по тактам, SDCC 4.5 Size — по байтам. На sum_array
-MinZ C меньше, SDCC 4.5 Speed быстрее; такая же развилка у copy. FAT12 здесь
+MinZ C меньше, SDCC 4.5 Speed быстрее. На copy MinZ C выигрывает
+по обоим критериям. FAT12 здесь
 выигрывает SDCC 4.5 по обоим критериям, но с разными профилями. Это результаты
 этих шести программ.
 

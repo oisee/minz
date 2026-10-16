@@ -1,13 +1,13 @@
 [
   [
-    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c89-nanz-sdcc45/direct-word-store-full/measure",
+    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/full-refined/measure",
     "-compiler",
     "nanz",
     "-profile",
     "size",
     "-source",
-    "/home/alice/dev/minz-artifacts/grace-workspaces/c89-direct-word-store/research/c89-benchmark/nanz-cases/copy_bytes.nanz",
+    "/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-z80/research/c89-benchmark/nanz-cases/copy_bytes.nanz",
     "-out",
-    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c89-nanz-sdcc45/direct-word-store-full/nanz/size/copy_bytes"
+    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/full-refined/nanz/size/copy_bytes"
   ]
 ]

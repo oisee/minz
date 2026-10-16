@@ -1,4 +1,4 @@
-; MIR2 module: /home/alice/dev/minz-artifacts/grace-workspaces/c89-direct-word-store/research/c89-benchmark/cases/sum_array
+; MIR2 module: /home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-z80/research/c89-benchmark/cases/sum_array
 global @values : [256]u8
 global @n : u8
 global @result : u16
@@ -7,28 +7,27 @@ fun @sum_array(%r1: ptr [pointer], %r2: u8 [general]) -> u16 [pointer]
   block @entry:
     %r3 = const 0 : i16 [pointer]
     %r4 = const 0 : u8 [general]
-    jmp @loop_head1(%r2, %r4, %r1, %r3)
-  block @loop_head1(%r5: u8 [general], %r4: u8 [general], %r7: ptr [general], %r3: u16 [pointer]):
-    %r9 = cmp.ult %r4, %r5 : bool [flag]
-    cond_ret %r9, [%r3], @loop_body2()
+    jmp @loop_head1(%r4, %r3, %r1)
+  block @loop_head1(%r4: u8 [general], %r3: u16 [pointer], %r7: ptr [pointer]):
+    %r8 = cmp.ult %r4, %r2 : bool [flag]
+    cond_ret %r8, [%r3], @loop_body2()
   block @loop_body2:
-    %r10 = ext %r4 : u8 -> u16 [index]
-    %r11 = ptr_add %r7, %r10 : ptr [pointer]
-    %r12 = load %r11 : u8 [general]
-    %r13 = ext %r12 : u8 -> u16 [pointer]
-    %r14 = add %r3, %r13 : u16 [pointer]
-    %r15 = const 1 : u8 [general]
-    %r16 = add %r4, %r15 : u8 [general]
-    jmp @loop_head1(%r5, %r16, %r7, %r14)
+    %r9 = load %r7 : u8 [general]
+    %r10 = ext %r9 : u8 -> u16 [pointer]
+    %r11 = add %r3, %r10 : u16 [pointer]
+    %r12 = const 1 : u8 [general]
+    %r13 = add %r4, %r12 : u8 [general]
+    %r14 = ptr_bump %r7, +1 : ptr [pointer]
+    jmp @loop_head1(%r13, %r11, %r14)
 
 fun @execute()
   block @entry:
-    %r17 = addr_of @values : ptr [pointer]
-    %r18 = move %r17 : ptr [pointer]
-    %r19 = addr_of @n : ptr [pointer]
-    %r20 = load %r19 : u8 [general]
-    %r21 = call @sum_array(%r18, %r20) : u16 [pointer]
-    %r22 = addr_of @result : ptr [pointer]
-    store %r22, %r21 : u16
+    %r15 = addr_of @values : ptr [pointer]
+    %r16 = move %r15 : ptr [pointer]
+    %r17 = addr_of @n : ptr [pointer]
+    %r18 = load %r17 : u8 [general]
+    %r19 = call @sum_array(%r16, %r18) : u16 [pointer]
+    %r20 = addr_of @result : ptr [pointer]
+    store %r20, %r19 : u16
     ret void
 

@@ -1,0 +1,15 @@
+{
+  "Compiler": "minz",
+  "Profile": "default",
+  "Case": "copy_xor",
+  "SourceSHA256": "fc13f6683432bd93a6267123f766ea58eda2ddb5e9826d280bba2cfea7a9782f",
+  "WorkloadSHA256": "a07f875a564dd309015d2f6b88d1b7dad5c5e80201bc635ac6f6e91176f5f52b",
+  "Status": "PASS",
+  "InitializedBytes": 588,
+  "GlobalBytes": 515,
+  "ProgramBytes": 588,
+  "Calls": 768,
+  "TotalT": 19149312,
+  "ObservationCount": 768,
+  "DetailedMeasurementsSHA256": "ceb84ea8a0bfc0b5fa94f644f10a88fea990c4469c6fd042c948f8d07ff216ec"
+}

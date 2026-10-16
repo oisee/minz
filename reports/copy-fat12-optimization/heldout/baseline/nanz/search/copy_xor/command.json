@@ -1,0 +1,13 @@
+[
+  "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/heldout-refined/baseline-measure",
+  "-compiler",
+  "nanz",
+  "-profile",
+  "default",
+  "-source",
+  "/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-z80/research/copy-fat12-validation/copy_xor.nanz",
+  "-workload",
+  "/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-z80/research/copy-fat12-validation/copy_xor-search.json",
+  "-out",
+  "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/heldout-refined/baseline/nanz/default/search/copy_xor"
+]

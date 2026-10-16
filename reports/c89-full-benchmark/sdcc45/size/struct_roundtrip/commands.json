@@ -12,24 +12,24 @@
     "--lib-path",
     "/home/alice/dev/minz-artifacts/toolchains/sdcc-4.5/root/usr/share/sdcc/lib/z80",
     "-o",
-    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c89-nanz-sdcc45/direct-word-store-full/sdcc45/size/struct_roundtrip/program.ihx",
-    "/home/alice/dev/minz-artifacts/grace-workspaces/c89-direct-word-store/research/c89-benchmark/cases/struct_roundtrip.c"
+    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/full-refined/sdcc45/size/struct_roundtrip/program.ihx",
+    "/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-z80/research/c89-benchmark/cases/struct_roundtrip.c"
   ],
   [
-    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c89-nanz-sdcc45/direct-word-store-full/measure",
+    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/full-refined/measure",
     "-compiler",
     "sdcc",
     "-profile",
     "size",
     "-source",
-    "/home/alice/dev/minz-artifacts/grace-workspaces/c89-direct-word-store/research/c89-benchmark/cases/struct_roundtrip.c",
+    "/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-z80/research/c89-benchmark/cases/struct_roundtrip.c",
     "-out",
-    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c89-nanz-sdcc45/direct-word-store-full/sdcc45/size/struct_roundtrip",
+    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/full-refined/sdcc45/size/struct_roundtrip",
     "-image",
-    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c89-nanz-sdcc45/direct-word-store-full/sdcc45/size/struct_roundtrip/program.ihx",
+    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/full-refined/sdcc45/size/struct_roundtrip/program.ihx",
     "-symbols",
-    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c89-nanz-sdcc45/direct-word-store-full/sdcc45/size/struct_roundtrip/program.noi",
+    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/full-refined/sdcc45/size/struct_roundtrip/program.noi",
     "-build-info",
-    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c89-nanz-sdcc45/direct-word-store-full/sdcc45/size/struct_roundtrip/build-info.json"
+    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/full-refined/sdcc45/size/struct_roundtrip/build-info.json"
   ]
 ]

@@ -1,4 +1,4 @@
-; MIR2 module: /home/alice/dev/minz-artifacts/grace-workspaces/c89-direct-word-store/research/c89-benchmark/cases/copy_bytes
+; MIR2 module: /home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-z80/research/c89-benchmark/cases/copy_bytes
 global @source : [64]u8
 global @target : [64]u8
 global @n : u8
@@ -7,33 +7,32 @@ global @result : u16
 fun @copy_bytes(%r1: ptr [pointer], %r2: ptr [pointer], %r3: u8 [counter])
   block @entry:
     %r4 = const 0 : u8 [general]
-    jmp @loop_head1(%r3, %r4, %r2)
-  block @loop_head1(%r5: u8 [general], %r4: u8 [general], %r7: ptr [general]):
-    %r8 = cmp.ult %r4, %r5 : bool [flag]
+    jmp @loop_head1(%r4, %r1, %r2)
+  block @loop_head1(%r4: u8 [general], %r6: ptr [pointer], %r7: ptr [pointer]):
+    %r8 = cmp.ult %r4, %r3 : bool [flag]
     cond_ret %r8, [], @loop_body2()
   block @loop_body2:
-    %r9 = ptr_add %r1, %r4 : ptr [pointer]
-    %r10 = ext %r4 : u8 -> u16 [index]
-    %r11 = ptr_add %r7, %r10 : ptr [pointer]
-    %r12 = load %r11 : u8 [general]
-    store %r9, %r12 : u8
-    %r13 = const 1 : u8 [general]
-    %r14 = add %r4, %r13 : u8 [general]
-    jmp @loop_head1(%r5, %r14, %r7)
+    %r9 = load %r7 : u8 [general]
+    store %r6, %r9 : u8
+    %r10 = const 1 : u8 [general]
+    %r11 = add %r4, %r10 : u8 [general]
+    %r12 = ptr_bump %r6, +1 : ptr [pointer]
+    %r13 = ptr_bump %r7, +1 : ptr [pointer]
+    jmp @loop_head1(%r11, %r12, %r13)
 
 fun @execute()
   block @entry:
-    %r15 = addr_of @target : ptr [pointer]
-    %r16 = move %r15 : ptr [pointer]
-    %r17 = addr_of @source : ptr [pointer]
-    %r18 = move %r17 : ptr [pointer]
-    %r19 = addr_of @n : ptr [pointer]
-    %r20 = load %r19 : u8 [counter]
-    call @copy_bytes(%r16, %r18, %r20)
-    %r21 = addr_of @n : ptr [pointer]
-    %r22 = load %r21 : u8 [general]
-    %r23 = ext %r22 : u8 -> u16 [pointer]
-    %r24 = addr_of @result : ptr [pointer]
-    store %r24, %r23 : u16
+    %r14 = addr_of @target : ptr [pointer]
+    %r15 = move %r14 : ptr [pointer]
+    %r16 = addr_of @source : ptr [pointer]
+    %r17 = move %r16 : ptr [pointer]
+    %r18 = addr_of @n : ptr [pointer]
+    %r19 = load %r18 : u8 [counter]
+    call @copy_bytes(%r15, %r17, %r19)
+    %r20 = addr_of @n : ptr [pointer]
+    %r21 = load %r20 : u8 [general]
+    %r22 = ext %r21 : u8 -> u16 [pointer]
+    %r23 = addr_of @result : ptr [pointer]
+    store %r23, %r22 : u16
     ret void
 

@@ -1,0 +1,50 @@
+; MIR2 module: /home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-z80/research/copy-fat12-validation/packed_pair
+global @values : [512]u8
+global @n : u8
+global @result : u16
+
+fun @unpack_pair(%r1: ptr [pointer], %r2: u16 [index]) -> u16 [pointer]
+  block @entry:
+    %r3 = const 1 : i16 [pointer]
+    %r4 = shr %r2, %r3 : u16 [pointer]
+    %r5 = add %r2, %r4 : u16 [pointer]
+    %r6 = ptr_add %r1, %r5 : ptr [pointer]
+    %r7 = load %r6 : u8 [general]
+    %r8 = ext %r7 : u8 -> u16 [pointer]
+    %r9 = const 1 : i16 [pointer]
+    %r10 = add %r5, %r9 : u16 [pointer]
+    %r11 = ptr_add %r1, %r10 : ptr [pointer]
+    %r12 = load %r11 : u8 [general]
+    %r13 = ext %r12 : u8 -> u16 [pointer]
+    %r14 = const 8 : i16 [pointer]
+    %r15 = shl %r13, %r14 : u16 [pointer]
+    %r16 = or %r8, %r15 : u16 [pointer]
+    %r17 = const 1 : i16 [pointer]
+    %r18 = and %r2, %r17 : u16 [pointer]
+    %r19 = const 0 : i16 [pointer]
+    %r20 = cmp.eq %r18, %r19 : bool [flag]
+    br_if %r20, @if_then1(), @if_join2()
+  block @if_then1:
+    %r21 = const 4095 : i16 [pointer]
+    %r22 = and %r16, %r21 : u16 [pointer]
+    ret %r22
+  block @if_join2:
+    %r23 = const 4 : i16 [pointer]
+    %r24 = shr %r16, %r23 : u16 [pointer]
+    %r25 = const 4095 : i16 [pointer]
+    %r26 = and %r24, %r25 : u16 [pointer]
+    ret %r26
+
+fun @execute()
+  block @entry:
+    %r27 = addr_of @values : ptr [pointer]
+    %r28 = move %r27 : ptr [pointer]
+    %r29 = addr_of @n : ptr [pointer]
+    %r30 = load %r29 : u8 [general]
+    %r31 = ext %r30 : u8 -> u16 [pointer]
+    %r32 = move %r31 : u16 [index]
+    %r33 = call @unpack_pair(%r28, %r32) : u16 [pointer]
+    %r34 = addr_of @result : ptr [pointer]
+    store %r34, %r33 : u16
+    ret void
+

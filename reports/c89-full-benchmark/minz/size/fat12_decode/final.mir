@@ -1,4 +1,4 @@
-; MIR2 module: /home/alice/dev/minz-artifacts/grace-workspaces/c89-direct-word-store/research/c89-benchmark/cases/fat12_decode
+; MIR2 module: /home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-z80/research/c89-benchmark/cases/fat12_decode
 global @values : [64]u8
 global @n : u8
 global @result : u16
@@ -19,30 +19,31 @@ fun @fat12_decode(%r1: ptr [pointer], %r2: u16 [pair]) -> u16 [pointer]
     %r14 = const 8 : i16 [pointer]
     %r15 = shl %r13, %r14 : u16 [pointer]
     %r16 = or %r8, %r15 : u16 [pointer]
-    %r17 = const 1 : i16 [pointer]
-    %r18 = and %r2, %r17 : u16 [pointer]
-    %r19 = const 0 : u16 [general]
-    %r20 = cmp.ne %r18, %r19 : bool [flag]
-    br_if %r20, @if_then1(), @if_join2()
+    %r17 = trunc %r2 : u16 -> u8 [general]
+    %r18 = const 1 : u8 [general]
+    %r19 = and %r17, %r18 : u8 [general]
+    %r20 = const 0 : u8 [general]
+    %r21 = cmp.ne %r19, %r20 : bool [flag]
+    br_if %r21, @if_then1(), @if_join2()
   block @if_then1:
-    %r21 = const 4 : i16 [pointer]
-    %r22 = shr %r16, %r21 : u16 [pointer]
-    ret %r22
+    %r22 = const 4 : i16 [pointer]
+    %r23 = shr %r16, %r22 : u16 [pointer]
+    ret %r23
   block @if_join2:
-    %r23 = const 4095 : i16 [pointer]
-    %r24 = and %r16, %r23 : u16 [pointer]
-    ret %r24
+    %r24 = const 4095 : i16 [pointer]
+    %r25 = and %r16, %r24 : u16 [pointer]
+    ret %r25
 
 fun @execute()
   block @entry:
-    %r25 = addr_of @values : ptr [pointer]
-    %r26 = move %r25 : ptr [pointer]
-    %r27 = addr_of @n : ptr [pointer]
-    %r28 = load %r27 : u8 [general]
-    %r29 = ext %r28 : u8 -> u16 [pointer]
-    %r30 = move %r29 : u16 [index]
-    %r31 = call @fat12_decode(%r26, %r30) : u16 [pointer]
-    %r32 = addr_of @result : ptr [pointer]
-    store %r32, %r31 : u16
+    %r26 = addr_of @values : ptr [pointer]
+    %r27 = move %r26 : ptr [pointer]
+    %r28 = addr_of @n : ptr [pointer]
+    %r29 = load %r28 : u8 [general]
+    %r30 = ext %r29 : u8 -> u16 [pointer]
+    %r31 = move %r30 : u16 [index]
+    %r32 = call @fat12_decode(%r27, %r31) : u16 [pointer]
+    %r33 = addr_of @result : ptr [pointer]
+    store %r33, %r32 : u16
     ret void
 

@@ -1,0 +1,422 @@
+[
+  {
+    "path": "baseline/minz/heldout/copy_xor/command.json",
+    "sha256": "f2a74dbb57621f35a769b6705b3e6fd207dea659de4f6c5a4e51719f423155fa",
+    "bytes": 556
+  },
+  {
+    "path": "baseline/minz/heldout/copy_xor/costs.json",
+    "sha256": "2a80bf0ae346344a6bd9a8a0d259d5937d82023844831a2e03a51c8f29b9e586",
+    "bytes": 502
+  },
+  {
+    "path": "baseline/minz/heldout/copy_xor/final.mir",
+    "sha256": "7b6b0f3c816d9b4926ea9146323003cd1cf28fcea014fc0a6ebc235b4ca29297",
+    "bytes": 1477
+  },
+  {
+    "path": "baseline/minz/heldout/copy_xor/program.a80",
+    "sha256": "354310368f51313dfd793bcad2c03d945cf56ce0de86477ac718d969dfa3e9b4",
+    "bytes": 4044
+  },
+  {
+    "path": "baseline/minz/heldout/copy_xor/raw.mir",
+    "sha256": "db21dd90a6d152dd34ea1f58323147c7886429e69d2b8dd899c1b7a299560ae1",
+    "bytes": 1789
+  },
+  {
+    "path": "baseline/minz/heldout/packed_pair/command.json",
+    "sha256": "2e67cc8c1e928bf132ff2aa98ca4f877966e107bb9dcbfce24fa6a2bb040b177",
+    "bytes": 565
+  },
+  {
+    "path": "baseline/minz/heldout/packed_pair/costs.json",
+    "sha256": "de938744fd4a1e3108c57b5738f2062c77296e852f829abb838ca7b56876dfe9",
+    "bytes": 503
+  },
+  {
+    "path": "baseline/minz/heldout/packed_pair/final.mir",
+    "sha256": "4505621e9e6a3e26686a88d08527c97030afbe095dc95f09e5f661130ade24e0",
+    "bytes": 1713
+  },
+  {
+    "path": "baseline/minz/heldout/packed_pair/program.a80",
+    "sha256": "1abf15bfd3fa119f514007b0dd297fec1c9a424b7071826f0105bf0d7f4f65e3",
+    "bytes": 3557
+  },
+  {
+    "path": "baseline/minz/heldout/packed_pair/raw.mir",
+    "sha256": "180bc9bc03595f1c2210e12b8f79b9d04cdb74d645ad84e3ef61c4681311275b",
+    "bytes": 1714
+  },
+  {
+    "path": "baseline/minz/search/copy_xor/command.json",
+    "sha256": "6d4ca00ea36320a14c40c2546f60d072fe0e10e2d293d17ccc292cc1be612fc6",
+    "bytes": 554
+  },
+  {
+    "path": "baseline/minz/search/copy_xor/costs.json",
+    "sha256": "4874845f60ca330c9aaaa6aec86858d27046715caefae8fcb7e8f02abc9991a3",
+    "bytes": 502
+  },
+  {
+    "path": "baseline/minz/search/copy_xor/final.mir",
+    "sha256": "7b6b0f3c816d9b4926ea9146323003cd1cf28fcea014fc0a6ebc235b4ca29297",
+    "bytes": 1477
+  },
+  {
+    "path": "baseline/minz/search/copy_xor/program.a80",
+    "sha256": "354310368f51313dfd793bcad2c03d945cf56ce0de86477ac718d969dfa3e9b4",
+    "bytes": 4044
+  },
+  {
+    "path": "baseline/minz/search/copy_xor/raw.mir",
+    "sha256": "db21dd90a6d152dd34ea1f58323147c7886429e69d2b8dd899c1b7a299560ae1",
+    "bytes": 1789
+  },
+  {
+    "path": "baseline/minz/search/packed_pair/command.json",
+    "sha256": "a69fde1ad075eae090768a61d8c94b8a4d64e70a08f99bf4ddeb67845fda34df",
+    "bytes": 563
+  },
+  {
+    "path": "baseline/minz/search/packed_pair/costs.json",
+    "sha256": "838b7961472fc162af08ffeef476afedc1bb81d6890e8cc8ff616acca2dbba0e",
+    "bytes": 503
+  },
+  {
+    "path": "baseline/minz/search/packed_pair/final.mir",
+    "sha256": "4505621e9e6a3e26686a88d08527c97030afbe095dc95f09e5f661130ade24e0",
+    "bytes": 1713
+  },
+  {
+    "path": "baseline/minz/search/packed_pair/program.a80",
+    "sha256": "1abf15bfd3fa119f514007b0dd297fec1c9a424b7071826f0105bf0d7f4f65e3",
+    "bytes": 3557
+  },
+  {
+    "path": "baseline/minz/search/packed_pair/raw.mir",
+    "sha256": "180bc9bc03595f1c2210e12b8f79b9d04cdb74d645ad84e3ef61c4681311275b",
+    "bytes": 1714
+  },
+  {
+    "path": "baseline/nanz/heldout/copy_xor/command.json",
+    "sha256": "c48b59847e4b35e483feec5c32a2ccef2e0c6bbe12cd307afd87ac3f09a9a8c4",
+    "bytes": 559
+  },
+  {
+    "path": "baseline/nanz/heldout/copy_xor/costs.json",
+    "sha256": "df1d600dd53c8ed0b3cd0c5373b56e21d144201e0cdfafb8d29bab6c40fc76ae",
+    "bytes": 502
+  },
+  {
+    "path": "baseline/nanz/heldout/copy_xor/final.mir",
+    "sha256": "7989a6c8a1f2fa2809593251782748a0c7f2f12616659506b9648220a75e148d",
+    "bytes": 1394
+  },
+  {
+    "path": "baseline/nanz/heldout/copy_xor/program.a80",
+    "sha256": "18fcd106fd4ce6b039a8169a50619518e35d73e0da9a9169f535060e71a7497e",
+    "bytes": 3718
+  },
+  {
+    "path": "baseline/nanz/heldout/copy_xor/raw.mir",
+    "sha256": "3fdaaf82fbfc67b8605244e113200f5bf3bb14f84250bb3a7347de06c10fa091",
+    "bytes": 1543
+  },
+  {
+    "path": "baseline/nanz/heldout/packed_pair/command.json",
+    "sha256": "9eb582f46c9d5986c36a537f149e9b753adbfb70391ffaa3936d3867a19e349f",
+    "bytes": 568
+  },
+  {
+    "path": "baseline/nanz/heldout/packed_pair/costs.json",
+    "sha256": "a4586fc32f97fa64d7dff176d740c30acb3264f75cdbce8f2c4dc69fe826a404",
+    "bytes": 503
+  },
+  {
+    "path": "baseline/nanz/heldout/packed_pair/final.mir",
+    "sha256": "5eff8a34b019979f1f74ec9dfa587b6c4c944d1e536d5e345ea822df8be68989",
+    "bytes": 1717
+  },
+  {
+    "path": "baseline/nanz/heldout/packed_pair/program.a80",
+    "sha256": "5a79663bec23caf44dd0bcadcfea00d225fb99f8e60d5bcae833c4ce6afa4eff",
+    "bytes": 3569
+  },
+  {
+    "path": "baseline/nanz/heldout/packed_pair/raw.mir",
+    "sha256": "3552be3206c2aed3eb2f86c73a39f4216e8c46809db99577f4e2075257f695e8",
+    "bytes": 1718
+  },
+  {
+    "path": "baseline/nanz/search/copy_xor/command.json",
+    "sha256": "37e5e1acf237c793b1c6ae1b490836593ca55b778a824415d13fd66216b6d7bf",
+    "bytes": 557
+  },
+  {
+    "path": "baseline/nanz/search/copy_xor/costs.json",
+    "sha256": "8f24d8b16896417343a0ff6b5dcaac054891891243cc9ddc20d06a991aa92ddb",
+    "bytes": 502
+  },
+  {
+    "path": "baseline/nanz/search/copy_xor/final.mir",
+    "sha256": "7989a6c8a1f2fa2809593251782748a0c7f2f12616659506b9648220a75e148d",
+    "bytes": 1394
+  },
+  {
+    "path": "baseline/nanz/search/copy_xor/program.a80",
+    "sha256": "18fcd106fd4ce6b039a8169a50619518e35d73e0da9a9169f535060e71a7497e",
+    "bytes": 3718
+  },
+  {
+    "path": "baseline/nanz/search/copy_xor/raw.mir",
+    "sha256": "3fdaaf82fbfc67b8605244e113200f5bf3bb14f84250bb3a7347de06c10fa091",
+    "bytes": 1543
+  },
+  {
+    "path": "baseline/nanz/search/packed_pair/command.json",
+    "sha256": "58311cbfb8d782feab55ed5c0eb854f711647e6897d08b3924703c015a368cdb",
+    "bytes": 566
+  },
+  {
+    "path": "baseline/nanz/search/packed_pair/costs.json",
+    "sha256": "32c44d83a4c834bee2417dc35df9aaa7e9a5a8fce322dc8d49a1fa4c73f7c451",
+    "bytes": 503
+  },
+  {
+    "path": "baseline/nanz/search/packed_pair/final.mir",
+    "sha256": "5eff8a34b019979f1f74ec9dfa587b6c4c944d1e536d5e345ea822df8be68989",
+    "bytes": 1717
+  },
+  {
+    "path": "baseline/nanz/search/packed_pair/program.a80",
+    "sha256": "5a79663bec23caf44dd0bcadcfea00d225fb99f8e60d5bcae833c4ce6afa4eff",
+    "bytes": 3569
+  },
+  {
+    "path": "baseline/nanz/search/packed_pair/raw.mir",
+    "sha256": "3552be3206c2aed3eb2f86c73a39f4216e8c46809db99577f4e2075257f695e8",
+    "bytes": 1718
+  },
+  {
+    "path": "candidate/minz/heldout/copy_xor/command.json",
+    "sha256": "4191aacd91389a57df94df9fb5b28645716da8f5f64225cbff60558dc02d9f62",
+    "bytes": 558
+  },
+  {
+    "path": "candidate/minz/heldout/copy_xor/costs.json",
+    "sha256": "aa4a2105ea45d58db51f647720c7fcf5f19eb4e560c7a50d7a776d465fe0739a",
+    "bytes": 502
+  },
+  {
+    "path": "candidate/minz/heldout/copy_xor/final.mir",
+    "sha256": "fd18bb4c9bbd1cc1dac916abaf21caa653e05115afbee8a3e7c419f46c45acf4",
+    "bytes": 1438
+  },
+  {
+    "path": "candidate/minz/heldout/copy_xor/program.a80",
+    "sha256": "86eb0a4f282dbe5cd8a78fabe261d7f8031d78f9552a04e8f2c0cf2dd788f3b6",
+    "bytes": 3485
+  },
+  {
+    "path": "candidate/minz/heldout/copy_xor/raw.mir",
+    "sha256": "db21dd90a6d152dd34ea1f58323147c7886429e69d2b8dd899c1b7a299560ae1",
+    "bytes": 1789
+  },
+  {
+    "path": "candidate/minz/heldout/packed_pair/command.json",
+    "sha256": "81d32dc6429375caebc0c72778899e909ceb7e52af6534b6cc64775cbfa58bc9",
+    "bytes": 567
+  },
+  {
+    "path": "candidate/minz/heldout/packed_pair/costs.json",
+    "sha256": "c8a9a0b0e0f7ddc4a8a58dadd73d9302946f186aaf1df22d379df785eba95d01",
+    "bytes": 503
+  },
+  {
+    "path": "candidate/minz/heldout/packed_pair/final.mir",
+    "sha256": "b6e74c2d63ee2081fab8ee216f387f6b24a3f6c281f792328a516bf2c88fe156",
+    "bytes": 1754
+  },
+  {
+    "path": "candidate/minz/heldout/packed_pair/program.a80",
+    "sha256": "94b48efd376f642e7d588a7d251bd7a4f274b073bb968e5f916938b4a7ef51ee",
+    "bytes": 3398
+  },
+  {
+    "path": "candidate/minz/heldout/packed_pair/raw.mir",
+    "sha256": "180bc9bc03595f1c2210e12b8f79b9d04cdb74d645ad84e3ef61c4681311275b",
+    "bytes": 1714
+  },
+  {
+    "path": "candidate/minz/search/copy_xor/command.json",
+    "sha256": "6cf4031ef479bbd703d5c1d548dddadddf548b2090711a9143c45255dbd5e3c8",
+    "bytes": 556
+  },
+  {
+    "path": "candidate/minz/search/copy_xor/costs.json",
+    "sha256": "d08aae0b97c0b2e9ae8a40f299d8ad82ec364c2e9ea8f2257279338b6f48ca1e",
+    "bytes": 502
+  },
+  {
+    "path": "candidate/minz/search/copy_xor/final.mir",
+    "sha256": "fd18bb4c9bbd1cc1dac916abaf21caa653e05115afbee8a3e7c419f46c45acf4",
+    "bytes": 1438
+  },
+  {
+    "path": "candidate/minz/search/copy_xor/program.a80",
+    "sha256": "86eb0a4f282dbe5cd8a78fabe261d7f8031d78f9552a04e8f2c0cf2dd788f3b6",
+    "bytes": 3485
+  },
+  {
+    "path": "candidate/minz/search/copy_xor/raw.mir",
+    "sha256": "db21dd90a6d152dd34ea1f58323147c7886429e69d2b8dd899c1b7a299560ae1",
+    "bytes": 1789
+  },
+  {
+    "path": "candidate/minz/search/packed_pair/command.json",
+    "sha256": "31e1f824d0ebd3d6a171e86f8f235557f2c78053d06a6c99fa4c118f22b09b24",
+    "bytes": 565
+  },
+  {
+    "path": "candidate/minz/search/packed_pair/costs.json",
+    "sha256": "a62b280abe32c569b129f05596b3460f0a40ef6edbb48fa10faa8f5b2e87ebd6",
+    "bytes": 503
+  },
+  {
+    "path": "candidate/minz/search/packed_pair/final.mir",
+    "sha256": "b6e74c2d63ee2081fab8ee216f387f6b24a3f6c281f792328a516bf2c88fe156",
+    "bytes": 1754
+  },
+  {
+    "path": "candidate/minz/search/packed_pair/program.a80",
+    "sha256": "94b48efd376f642e7d588a7d251bd7a4f274b073bb968e5f916938b4a7ef51ee",
+    "bytes": 3398
+  },
+  {
+    "path": "candidate/minz/search/packed_pair/raw.mir",
+    "sha256": "180bc9bc03595f1c2210e12b8f79b9d04cdb74d645ad84e3ef61c4681311275b",
+    "bytes": 1714
+  },
+  {
+    "path": "candidate/nanz/heldout/copy_xor/command.json",
+    "sha256": "f92fd9636cd995b3971bdd999dfca381f8748e1e792c57236d3556e79a01be7c",
+    "bytes": 561
+  },
+  {
+    "path": "candidate/nanz/heldout/copy_xor/costs.json",
+    "sha256": "acd4956edfff91dd1b9d3fd170a10c90c1fc37a7e07dd1b94bac1901db670010",
+    "bytes": 502
+  },
+  {
+    "path": "candidate/nanz/heldout/copy_xor/final.mir",
+    "sha256": "16c0a09100d562402130115e1203cbe5b83db9a9a7d8b448dd32e0cf84f47d6f",
+    "bytes": 1355
+  },
+  {
+    "path": "candidate/nanz/heldout/copy_xor/program.a80",
+    "sha256": "b6c4a55f9b210a0a754b46f62cf23c48bef5363fe00df5751232a1d767386810",
+    "bytes": 3364
+  },
+  {
+    "path": "candidate/nanz/heldout/copy_xor/raw.mir",
+    "sha256": "3fdaaf82fbfc67b8605244e113200f5bf3bb14f84250bb3a7347de06c10fa091",
+    "bytes": 1543
+  },
+  {
+    "path": "candidate/nanz/heldout/packed_pair/command.json",
+    "sha256": "ca183f5f7e21a66e9f1a53619a1da6b80782daec2934cdbcb530d51f9f3f816c",
+    "bytes": 570
+  },
+  {
+    "path": "candidate/nanz/heldout/packed_pair/costs.json",
+    "sha256": "eb05b50216e33630071430c4f2a5fff433d0c25a96a964af7e4638c0a2017a69",
+    "bytes": 503
+  },
+  {
+    "path": "candidate/nanz/heldout/packed_pair/final.mir",
+    "sha256": "b6ee34e89810d79f31df289d2e8601c8f7757af7da63096d2df87d7602272de8",
+    "bytes": 1759
+  },
+  {
+    "path": "candidate/nanz/heldout/packed_pair/program.a80",
+    "sha256": "94b48efd376f642e7d588a7d251bd7a4f274b073bb968e5f916938b4a7ef51ee",
+    "bytes": 3398
+  },
+  {
+    "path": "candidate/nanz/heldout/packed_pair/raw.mir",
+    "sha256": "3552be3206c2aed3eb2f86c73a39f4216e8c46809db99577f4e2075257f695e8",
+    "bytes": 1718
+  },
+  {
+    "path": "candidate/nanz/search/copy_xor/command.json",
+    "sha256": "f4a3b73b5dcbdb0d1af5a7c4878145b082d9a96a5b63d11dab3f8c5b34867fd2",
+    "bytes": 559
+  },
+  {
+    "path": "candidate/nanz/search/copy_xor/costs.json",
+    "sha256": "17d51e70e925a620e9d30fc588fbea60575a0ebc7e188d766b4e6309240ff7ed",
+    "bytes": 501
+  },
+  {
+    "path": "candidate/nanz/search/copy_xor/final.mir",
+    "sha256": "16c0a09100d562402130115e1203cbe5b83db9a9a7d8b448dd32e0cf84f47d6f",
+    "bytes": 1355
+  },
+  {
+    "path": "candidate/nanz/search/copy_xor/program.a80",
+    "sha256": "b6c4a55f9b210a0a754b46f62cf23c48bef5363fe00df5751232a1d767386810",
+    "bytes": 3364
+  },
+  {
+    "path": "candidate/nanz/search/copy_xor/raw.mir",
+    "sha256": "3fdaaf82fbfc67b8605244e113200f5bf3bb14f84250bb3a7347de06c10fa091",
+    "bytes": 1543
+  },
+  {
+    "path": "candidate/nanz/search/packed_pair/command.json",
+    "sha256": "cb3e6bc015ec84fbe4797d92b4adaba092d7aa18ff7312567012b15439aa43b4",
+    "bytes": 568
+  },
+  {
+    "path": "candidate/nanz/search/packed_pair/costs.json",
+    "sha256": "55ede1b023cdb052014a888633aa7920e4794479a2f168d46db82f3ecd46500f",
+    "bytes": 503
+  },
+  {
+    "path": "candidate/nanz/search/packed_pair/final.mir",
+    "sha256": "b6ee34e89810d79f31df289d2e8601c8f7757af7da63096d2df87d7602272de8",
+    "bytes": 1759
+  },
+  {
+    "path": "candidate/nanz/search/packed_pair/program.a80",
+    "sha256": "94b48efd376f642e7d588a7d251bd7a4f274b073bb968e5f916938b4a7ef51ee",
+    "bytes": 3398
+  },
+  {
+    "path": "candidate/nanz/search/packed_pair/raw.mir",
+    "sha256": "3552be3206c2aed3eb2f86c73a39f4216e8c46809db99577f4e2075257f695e8",
+    "bytes": 1718
+  },
+  {
+    "path": "host-heldout.log",
+    "sha256": "afd16d61af8cfc8d13314879ef65ea93210cfd53233438120f58e92712e433c5",
+    "bytes": 1264
+  },
+  {
+    "path": "host-search.log",
+    "sha256": "5a0a9924a7cacf69f9c1bc860e3bd1afb7ba98c6738759ed056609e61d632c27",
+    "bytes": 1262
+  },
+  {
+    "path": "method.json",
+    "sha256": "90a4c98da301f9758c087fd71ed1364dee08811ae5534386210196113948c59a",
+    "bytes": 951
+  },
+  {
+    "path": "summary.json",
+    "sha256": "b74eeb84aa2a155a3c07491f368f241e5c2437c5d65d6b098777a77f602ad837",
+    "bytes": 30104
+  }
+]

@@ -50,30 +50,30 @@ _result::
 ; code
 ;--------------------------------------------------------
 	.area _CODE
-;/home/alice/dev/minz-artifacts/grace-workspaces/c89-direct-word-store/research/c89-benchmark/cases/gcd.c:3: unsigned char gcd(unsigned char x, unsigned char y) {
+;/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-z80/research/c89-benchmark/cases/gcd.c:3: unsigned char gcd(unsigned char x, unsigned char y) {
 ;	---------------------------------
 ; Function gcd
 ; ---------------------------------
 _gcd::
-;/home/alice/dev/minz-artifacts/grace-workspaces/c89-direct-word-store/research/c89-benchmark/cases/gcd.c:4: if (x == 0) return y;
+;/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-z80/research/c89-benchmark/cases/gcd.c:4: if (x == 0) return y;
 	ld	c, a
 	or	a, a
 	jr	NZ, 00102$
 	ld	a, l
 	ret
 00102$:
-;/home/alice/dev/minz-artifacts/grace-workspaces/c89-direct-word-store/research/c89-benchmark/cases/gcd.c:5: if (y == 0) return x;
+;/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-z80/research/c89-benchmark/cases/gcd.c:5: if (y == 0) return x;
 	ld	a, l
 	or	a, a
 	jr	NZ, 00108$
 	ld	a, c
 	ret
-;/home/alice/dev/minz-artifacts/grace-workspaces/c89-direct-word-store/research/c89-benchmark/cases/gcd.c:6: while (x != y) {
+;/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-z80/research/c89-benchmark/cases/gcd.c:6: while (x != y) {
 00108$:
 	ld	a, c
 	sub	a, l
 	jr	Z, 00110$
-;/home/alice/dev/minz-artifacts/grace-workspaces/c89-direct-word-store/research/c89-benchmark/cases/gcd.c:7: if (x > y) x -= y;
+;/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-z80/research/c89-benchmark/cases/gcd.c:7: if (x > y) x -= y;
 	ld	a, l
 	sub	a, c
 	jr	NC, 00106$
@@ -82,17 +82,17 @@ _gcd::
 	ld	c, a
 	jp	00108$
 00106$:
-;/home/alice/dev/minz-artifacts/grace-workspaces/c89-direct-word-store/research/c89-benchmark/cases/gcd.c:8: else y -= x;
+;/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-z80/research/c89-benchmark/cases/gcd.c:8: else y -= x;
 	ld	a, l
 	sub	a, c
 	ld	l, a
 	jp	00108$
 00110$:
-;/home/alice/dev/minz-artifacts/grace-workspaces/c89-direct-word-store/research/c89-benchmark/cases/gcd.c:10: return x;
+;/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-z80/research/c89-benchmark/cases/gcd.c:10: return x;
 	ld	a, c
-;/home/alice/dev/minz-artifacts/grace-workspaces/c89-direct-word-store/research/c89-benchmark/cases/gcd.c:11: }
+;/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-z80/research/c89-benchmark/cases/gcd.c:11: }
 	ret
-;/home/alice/dev/minz-artifacts/grace-workspaces/c89-direct-word-store/research/c89-benchmark/cases/gcd.c:12: void execute(void) { result = gcd(a, b); }
+;/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-z80/research/c89-benchmark/cases/gcd.c:12: void execute(void) { result = gcd(a, b); }
 ;	---------------------------------
 ; Function execute
 ; ---------------------------------
