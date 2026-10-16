@@ -1,0 +1,37 @@
+; MIR2 module: /home/alice/dev/minz-artifacts/grace-workspaces/c89-measured-benchmark/research/c89-benchmark/cases/abs_diff
+global @a : u8
+global @b : u8
+global @result : u16
+
+fun @abs_diff(%r1: u8 [acc], %r2: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r3 = ext %r1 : u8 -> i16 [pointer]
+    %r4 = ext %r2 : u8 -> i16 [pointer]
+    %r5 = cmp.gt %r3, %r4 : bool [flag]
+    br_if %r5, @if_then1(), @if_join2()
+  block @if_then1:
+    %r6 = ext %r1 : u8 -> i16 [pointer]
+    %r7 = ext %r2 : u8 -> i16 [pointer]
+    %r8 = sub %r6, %r7 : i16 [pointer]
+    %r9 = trunc %r8 : i16 -> u8 [general]
+    ret %r9
+  block @if_join2:
+    %r10 = ext %r2 : u8 -> i16 [pointer]
+    %r11 = ext %r1 : u8 -> i16 [pointer]
+    %r12 = sub %r10, %r11 : i16 [pointer]
+    %r13 = trunc %r12 : i16 -> u8 [general]
+    ret %r13
+
+fun @execute()
+  block @entry:
+    %r14 = addr_of @a : ptr [pointer]
+    %r15 = load %r14 : u8 [general]
+    %r16 = move %r15 : u8 [acc]
+    %r17 = addr_of @b : ptr [pointer]
+    %r18 = load %r17 : u8 [general]
+    %r19 = call @abs_diff(%r16, %r18) : u8 [acc]
+    %r20 = ext %r19 : u8 -> u16 [pointer]
+    %r21 = addr_of @result : ptr [pointer]
+    store %r21, %r20 : u16
+    ret void
+
