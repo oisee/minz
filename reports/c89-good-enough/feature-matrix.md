@@ -4,8 +4,8 @@
 проверяемое семейство и его пределы. «Проверено» означает конкретные независимые
 ожидания в исполняемых тестах; успешный разбор всего файла этого не заменяет.
 Aggregate scalarization интегрирована в main d6404fa4 через PR #163;
-switch/control-flow — в main 8fd960e5 через PR #164. Исправление ABI импортов
-пока в исследовательской ветке. Полная цель остаётся активной.
+switch/control-flow — в main 8fd960e5 через PR #164. Исправление ABI импортов — в main ce6d79ba через PR #165. Lifetime и
+language-admission изменения пока в следующих PR. Полная цель остаётся активной.
 
 | Семейство | Исполняемое доказательство | Состояние и граница |
 |---|---|---|
@@ -19,7 +19,7 @@ switch/control-flow — в main 8fd960e5 через PR #164. Исправлен�
 | goto и join пути | `TestC89ControlMatrixVMZ80`, HIR goto suite | Простой C goto и регрессия join подтверждены; сложные C переходы требуют дополнительной матрицы |
 | logical/conditional/comma effects | `TestC89ExpressionEffectsNative`, `TestC89ControlEffectsNative` | C source + GCC frozen oracle; raw/final VM/Z80, порядок событий, память и PC/SP; deep profile |
 | Local/static storage, initialization | `TestCScalarConversionsNativeVM`, `TestCLocalAddressesNativeVM` | VM/Z80; отдельные адресуемые объекты, static long/array/struct |
-| Private symbols, extern, separate imports | `TestCSourcePrivateSymbolsNativeVM`, `TestCSourceImportNativeVM`, `TestC89AggregateImportVMZ80` | Mixed C/Nanz VM/Z80; новое разложение aggregate ABI после связывания, пока в ветке |
+| Private symbols, extern, separate imports | `TestCSourcePrivateSymbolsNativeVM`, `TestCSourceImportNativeVM`, `TestC89AggregateImportVMZ80` | Mixed C/Nanz VM/Z80; aggregate ABI после связывания интегрирован через PR #165 |
 | volatile scalar/global/field/local | `TestCVolatileAccessNativeVM`, `TestCLocalVolatileTrafficNativeVM` | VM/Z80, observable access count/order |
 | volatile aggregate/by-value | `TestCStructParametersNativeVM`, `TestC89AggregateParameterMemoryFallback` | Copy semantics и память; раздельно проверять traffic и ABI |
 | Struct layout, array/struct initializer | `TestCAggregateStorageNativeVM` | VM/Z80, bytes/layout; C99 designated cases считать отдельно от C89 |
