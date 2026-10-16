@@ -1,0 +1,663 @@
+{
+  "files": 844,
+  "output_files_compared": 334,
+  "exit_changes": [],
+  "stdout_changes": [],
+  "stderr_changes": [],
+  "output_file_changes": [
+    {
+      "file": "examples/c/c11_features.c",
+      "baseline": {
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "",
+        "outputs": {
+          "output.a80": {
+            "bytes": 5715,
+            "sha256": "cf4e5732707ff0dcb6dec0f5bf963da9bb6e15ca7e713cc25d619348fc96631e"
+          }
+        }
+      },
+      "candidate": {
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "",
+        "outputs": {
+          "output.a80": {
+            "bytes": 5114,
+            "sha256": "1524089eb5e5f808f717efac95b62bcd6d0947fcdcdf4ba0ccf9ad9549aa4478"
+          }
+        }
+      },
+      "same_exit": true,
+      "same_stdout": true,
+      "same_stderr": true,
+      "same_files": false,
+      "output_files_compared": 1,
+      "same_output": false
+    },
+    {
+      "file": "examples/c/c23_preview.c",
+      "baseline": {
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "",
+        "outputs": {
+          "output.a80": {
+            "bytes": 5081,
+            "sha256": "ae45b7980f55f1e71dfdabbdc3fd404e2571fd8be70acc5e7c7315395635d181"
+          }
+        }
+      },
+      "candidate": {
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "",
+        "outputs": {
+          "output.a80": {
+            "bytes": 4476,
+            "sha256": "2128cc8cd106262abeb6b61ba84764633885b4f859eb24858ca9d0ba92025339"
+          }
+        }
+      },
+      "same_exit": true,
+      "same_stdout": true,
+      "same_stderr": true,
+      "same_files": false,
+      "output_files_compared": 1,
+      "same_output": false
+    },
+    {
+      "file": "examples/c/c99_math8.c",
+      "baseline": {
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "",
+        "outputs": {
+          "output.a80": {
+            "bytes": 10379,
+            "sha256": "59f1a8c50cb15067e012a43dd8ac2b97e6530e234e1510eb154afac09af1257d"
+          }
+        }
+      },
+      "candidate": {
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "",
+        "outputs": {
+          "output.a80": {
+            "bytes": 8733,
+            "sha256": "49927ec0f64e2a8ba3b81969e0e16c4f0c0477c51496ae31852226f8b6adaabd"
+          }
+        }
+      },
+      "same_exit": true,
+      "same_stdout": true,
+      "same_stderr": true,
+      "same_files": false,
+      "output_files_compared": 1,
+      "same_output": false
+    },
+    {
+      "file": "examples/c89/assert_test.c",
+      "baseline": {
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "",
+        "outputs": {
+          "output.a80": {
+            "bytes": 3267,
+            "sha256": "bcbaf4c6c2789d9c75056d3ea2710a39a0ad1dfaa8a31c474a959b3c85ffc2f6"
+          }
+        }
+      },
+      "candidate": {
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "",
+        "outputs": {
+          "output.a80": {
+            "bytes": 2209,
+            "sha256": "a581a25367ffe539e7e1d10a17bfd316b2ed2aa2ea4f5395ea56bf86051de11c"
+          }
+        }
+      },
+      "same_exit": true,
+      "same_stdout": true,
+      "same_stderr": true,
+      "same_files": false,
+      "output_files_compared": 1,
+      "same_output": false
+    },
+    {
+      "file": "examples/c89/bench.c",
+      "baseline": {
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "",
+        "outputs": {
+          "output.a80": {
+            "bytes": 3955,
+            "sha256": "edf5965b0d3790202dbc97940103de4566cb687142f9f922d7a21828961a99ff"
+          }
+        }
+      },
+      "candidate": {
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "",
+        "outputs": {
+          "output.a80": {
+            "bytes": 2897,
+            "sha256": "68066be26498347ad91b38652d68cd31f0b6857a03d06537a1033d2a484b8809"
+          }
+        }
+      },
+      "same_exit": true,
+      "same_stdout": true,
+      "same_stderr": true,
+      "same_files": false,
+      "output_files_compared": 1,
+      "same_output": false
+    },
+    {
+      "file": "examples/c89/bench_extended.c",
+      "baseline": {
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "",
+        "outputs": {
+          "output.a80": {
+            "bytes": 20552,
+            "sha256": "a2577d2341b5ac0f14b66c9ef0e6b7c3967efc10031f65d468f912cdd126cc93"
+          }
+        }
+      },
+      "candidate": {
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "",
+        "outputs": {
+          "output.a80": {
+            "bytes": 16423,
+            "sha256": "72096b49c6454d4baf1d91b7a0c0e7257186c695ad0f048cf9b00c964d4fe954"
+          }
+        }
+      },
+      "same_exit": true,
+      "same_stdout": true,
+      "same_stderr": true,
+      "same_files": false,
+      "output_files_compared": 1,
+      "same_output": false
+    },
+    {
+      "file": "examples/c89/c99_control.c",
+      "baseline": {
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "",
+        "outputs": {
+          "output.a80": {
+            "bytes": 6414,
+            "sha256": "c6f1e2f1d48a7a522ac079956bbcc0bc11cf2a180a4f89e50bc6a65439d7d5da"
+          }
+        }
+      },
+      "candidate": {
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "",
+        "outputs": {
+          "output.a80": {
+            "bytes": 4832,
+            "sha256": "7a8b9dcfd279f7c7061f29bdf5bc5547f1846d195f5afa10e404af82dddeefa2"
+          }
+        }
+      },
+      "same_exit": true,
+      "same_stdout": true,
+      "same_stderr": true,
+      "same_files": false,
+      "output_files_compared": 1,
+      "same_output": false
+    },
+    {
+      "file": "examples/c89/c99_preproc.c",
+      "baseline": {
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "",
+        "outputs": {
+          "output.a80": {
+            "bytes": 6971,
+            "sha256": "29a26012434fe4d54ac4ed53ecb83b1df7efd3d342ffe826d10a33efe1bad30c"
+          }
+        }
+      },
+      "candidate": {
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "",
+        "outputs": {
+          "output.a80": {
+            "bytes": 5567,
+            "sha256": "bde452fce46980c234b050dab29547df13cc9ef517129c766312cd783895c74a"
+          }
+        }
+      },
+      "same_exit": true,
+      "same_stdout": true,
+      "same_stderr": true,
+      "same_files": false,
+      "output_files_compared": 1,
+      "same_output": false
+    },
+    {
+      "file": "examples/c89/c99_types.c",
+      "baseline": {
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "",
+        "outputs": {
+          "output.a80": {
+            "bytes": 4775,
+            "sha256": "5b8f618ca27de5932cfab54595cdba5d4f0353a187a8774f581bb53248587b59"
+          }
+        }
+      },
+      "candidate": {
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "",
+        "outputs": {
+          "output.a80": {
+            "bytes": 4542,
+            "sha256": "a0209222a6ad41958a7bef4b61c05b7cfe60c0be9d2ba4c6345cf26fd814ec11"
+          }
+        }
+      },
+      "same_exit": true,
+      "same_stdout": true,
+      "same_stderr": true,
+      "same_files": false,
+      "output_files_compared": 1,
+      "same_output": false
+    },
+    {
+      "file": "examples/c89/dowhile_break.c",
+      "baseline": {
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "",
+        "outputs": {
+          "output.a80": {
+            "bytes": 18779,
+            "sha256": "2ff20a92286baf2a624ae50eabb73797256f59887fae523c4d961dab61567edf"
+          }
+        }
+      },
+      "candidate": {
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "",
+        "outputs": {
+          "output.a80": {
+            "bytes": 17393,
+            "sha256": "7c97bb4718ce4b58420063a764e4306bd900bed42be632ac164fe5907dfc5976"
+          }
+        }
+      },
+      "same_exit": true,
+      "same_stdout": true,
+      "same_stderr": true,
+      "same_files": false,
+      "output_files_compared": 1,
+      "same_output": false
+    },
+    {
+      "file": "examples/c89/fatfs/ff.c",
+      "baseline": {
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "[HIR-SPLIT] put_fat \u2192 put_fat$split_3 (1 inputs, pressure 14)\n[HIR-SPLIT] dir_next \u2192 dir_next$split_6 (3 inputs, pressure 12)\n[HIR-SPLIT] get_fileinfo \u2192 get_fileinfo$split_9 (3 inputs, pressure 10)\n[HIR-SPLIT] create_name \u2192 create_name$split_14 (6 inputs, pressure 17)\n[HIR-SPLIT] mount_volume \u2192 mount_volume$split_24 (2 inputs, pressure 26)\n[HIR-SPLIT] f_open \u2192 f_open$split_6 (2 inputs, pressure 30)\n[HIR-SPLIT] f_read \u2192 f_read$split_17 (0 inputs, pressure 23)\n[HIR-SPLIT] f_write \u2192 f_write$split_16 (1 inputs, pressure 28)\n[HIR-SPLIT] f_lseek \u2192 f_lseek$split_9 (1 inputs, pressure 29)\n[HIR-SPLIT] f_getfree \u2192 f_getfree$split_9 (1 inputs, pressure 24)\n[HIR-SPLIT] f_truncate \u2192 f_truncate$split_8 (1 inputs, pressure 9)\n[HIR-SPLIT] f_unlink \u2192 f_unlink$split_6 (1 inputs, pressure 9)\n[HIR-SPLIT] f_mkdir \u2192 f_mkdir$split_8 (1 inputs, pressure 16)\n[HIR-SPLIT] f_rename \u2192 f_rename$split_8 (1 inputs, pressure 14)\n[label-audit] 10 undefined labels:\n  disk_initialize\n  disk_ioctl\n  disk_read\n  disk_status\n  disk_write\n  get_fattime\n  memcmp\n  memcpy\n  memset\n  strchr\n",
+        "outputs": {
+          "output.a80": {
+            "bytes": 956075,
+            "sha256": "b30ce86657716b6ab9c93a3397bb7fd4828629c316294f931feccc8f1af85c05"
+          }
+        }
+      },
+      "candidate": {
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "[HIR-SPLIT] put_fat \u2192 put_fat$split_3 (1 inputs, pressure 14)\n[HIR-SPLIT] dir_next \u2192 dir_next$split_6 (3 inputs, pressure 12)\n[HIR-SPLIT] get_fileinfo \u2192 get_fileinfo$split_9 (3 inputs, pressure 10)\n[HIR-SPLIT] create_name \u2192 create_name$split_14 (6 inputs, pressure 17)\n[HIR-SPLIT] mount_volume \u2192 mount_volume$split_24 (2 inputs, pressure 26)\n[HIR-SPLIT] f_open \u2192 f_open$split_6 (2 inputs, pressure 30)\n[HIR-SPLIT] f_read \u2192 f_read$split_17 (0 inputs, pressure 23)\n[HIR-SPLIT] f_write \u2192 f_write$split_16 (1 inputs, pressure 28)\n[HIR-SPLIT] f_lseek \u2192 f_lseek$split_9 (1 inputs, pressure 29)\n[HIR-SPLIT] f_getfree \u2192 f_getfree$split_9 (1 inputs, pressure 24)\n[HIR-SPLIT] f_truncate \u2192 f_truncate$split_8 (1 inputs, pressure 9)\n[HIR-SPLIT] f_unlink \u2192 f_unlink$split_6 (1 inputs, pressure 9)\n[HIR-SPLIT] f_mkdir \u2192 f_mkdir$split_8 (1 inputs, pressure 16)\n[HIR-SPLIT] f_rename \u2192 f_rename$split_8 (1 inputs, pressure 14)\n[label-audit] 10 undefined labels:\n  disk_initialize\n  disk_ioctl\n  disk_read\n  disk_status\n  disk_write\n  get_fattime\n  memcmp\n  memcpy\n  memset\n  strchr\n",
+        "outputs": {
+          "output.a80": {
+            "bytes": 951359,
+            "sha256": "9e8c46f55b66e6c4a884ef673cd6e4e16a8a5f8d36e0e336e7ecdae4436f73c0"
+          }
+        }
+      },
+      "same_exit": true,
+      "same_stdout": true,
+      "same_stderr": true,
+      "same_files": false,
+      "output_files_compared": 1,
+      "same_output": false
+    },
+    {
+      "file": "examples/c89/fatfs_lowlevel.c",
+      "baseline": {
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "",
+        "outputs": {
+          "output.a80": {
+            "bytes": 17824,
+            "sha256": "ad1565ebc96f2e244ad0bd77b44d69cb821d4bb5619bc4df8abc5559ec0f76ba"
+          }
+        }
+      },
+      "candidate": {
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "",
+        "outputs": {
+          "output.a80": {
+            "bytes": 17355,
+            "sha256": "d9548910375936ba90af134696c6df733685eea53d634d94cab685c67feed2bc"
+          }
+        }
+      },
+      "same_exit": true,
+      "same_stdout": true,
+      "same_stderr": true,
+      "same_files": false,
+      "output_files_compared": 1,
+      "same_output": false
+    },
+    {
+      "file": "examples/c89/game_helpers.c",
+      "baseline": {
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "",
+        "outputs": {
+          "output.a80": {
+            "bytes": 6795,
+            "sha256": "817948a8656b7eb0c4a6596394661b3a1e89d02d314d433061c37a92faec2a08"
+          }
+        }
+      },
+      "candidate": {
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "",
+        "outputs": {
+          "output.a80": {
+            "bytes": 5649,
+            "sha256": "06d392572e99fcde7050757f050668acdc1ac13b2b836f5a2a2f712ece6a0aa8"
+          }
+        }
+      },
+      "same_exit": true,
+      "same_stdout": true,
+      "same_stderr": true,
+      "same_files": false,
+      "output_files_compared": 1,
+      "same_output": false
+    },
+    {
+      "file": "examples/c89/hello.c",
+      "baseline": {
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "",
+        "outputs": {
+          "output.a80": {
+            "bytes": 2173,
+            "sha256": "df9c86e2d6692bb9b03d6f165f7d5d81d2ab6cbc803a032e825de8e529fa64ae"
+          }
+        }
+      },
+      "candidate": {
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "",
+        "outputs": {
+          "output.a80": {
+            "bytes": 1826,
+            "sha256": "a3b2612066765c09b08374162a46b65cceacb49b2bdab7630bcaaeac8d80e5a1"
+          }
+        }
+      },
+      "same_exit": true,
+      "same_stdout": true,
+      "same_stderr": true,
+      "same_files": false,
+      "output_files_compared": 1,
+      "same_output": false
+    },
+    {
+      "file": "examples/c89/import_test.c",
+      "baseline": {
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "",
+        "outputs": {
+          "output.a80": {
+            "bytes": 5025,
+            "sha256": "0fe97c589036a889ab936b25e17fd4b691aaf9273f4638698dfb3b319d17a156"
+          }
+        }
+      },
+      "candidate": {
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "",
+        "outputs": {
+          "output.a80": {
+            "bytes": 4331,
+            "sha256": "9663c8f36563da351e4b63575291f6bf6fc4d8e2877cd858b92e7fef5536ef73"
+          }
+        }
+      },
+      "same_exit": true,
+      "same_stdout": true,
+      "same_stderr": true,
+      "same_files": false,
+      "output_files_compared": 1,
+      "same_output": false
+    },
+    {
+      "file": "examples/c89/imported_math.c",
+      "baseline": {
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "",
+        "outputs": {
+          "output.a80": {
+            "bytes": 3372,
+            "sha256": "ee1fa4ffb5d74c4fdb1e181f9eabb4e0eb4bb4f4292d586f61c8e6a2391d44e8"
+          }
+        }
+      },
+      "candidate": {
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "",
+        "outputs": {
+          "output.a80": {
+            "bytes": 2678,
+            "sha256": "0d17448b6e816d7912d7d10956c58815aa224c50c6fd09d6e33605b94370ad61"
+          }
+        }
+      },
+      "same_exit": true,
+      "same_stdout": true,
+      "same_stderr": true,
+      "same_files": false,
+      "output_files_compared": 1,
+      "same_output": false
+    },
+    {
+      "file": "examples/c89/math8.c",
+      "baseline": {
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "",
+        "outputs": {
+          "output.a80": {
+            "bytes": 4216,
+            "sha256": "3ee30d81d6d363dcef4017f9ce197e43db0087b0e0e4a9d385513d4e9592dd8f"
+          }
+        }
+      },
+      "candidate": {
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "",
+        "outputs": {
+          "output.a80": {
+            "bytes": 2466,
+            "sha256": "4186b91d8a3b0cf4c8bf997396ce12013c766cc7e164806899b1a129094c630b"
+          }
+        }
+      },
+      "same_exit": true,
+      "same_stdout": true,
+      "same_stderr": true,
+      "same_files": false,
+      "output_files_compared": 1,
+      "same_output": false
+    },
+    {
+      "file": "examples/c89/sdcc_benchmark.c",
+      "baseline": {
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "",
+        "outputs": {
+          "output.a80": {
+            "bytes": 7449,
+            "sha256": "d9b82e178627636504f3c38993b76c357d243d042277b5805988ea07bab02a0f"
+          }
+        }
+      },
+      "candidate": {
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "",
+        "outputs": {
+          "output.a80": {
+            "bytes": 6044,
+            "sha256": "2bcbbec117889c34710f23e29d8d8b817477b07e6faaf93018855076f03ab85e"
+          }
+        }
+      },
+      "same_exit": true,
+      "same_stdout": true,
+      "same_stderr": true,
+      "same_files": false,
+      "output_files_compared": 1,
+      "same_output": false
+    },
+    {
+      "file": "examples/c89/string8.c",
+      "baseline": {
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "",
+        "outputs": {
+          "output.a80": {
+            "bytes": 4147,
+            "sha256": "2d3e13c9ec72b6ab1d702255749de196e895e35daee9c7da7a38056fc0854699"
+          }
+        }
+      },
+      "candidate": {
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "",
+        "outputs": {
+          "output.a80": {
+            "bytes": 3498,
+            "sha256": "3e4a45fccbc06c7e87c50a88d7d93dc2cb4348c8c9702d5641cd92fab10e419d"
+          }
+        }
+      },
+      "same_exit": true,
+      "same_stdout": true,
+      "same_stderr": true,
+      "same_files": false,
+      "output_files_compared": 1,
+      "same_output": false
+    },
+    {
+      "file": "examples/system-c/fat12/fat12.c",
+      "baseline": {
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "[HIR-SPLIT] fat_mount \u2192 fat_mount$split_11 (5 inputs, pressure 9)\n[HIR-SPLIT] fat_find \u2192 fat_find$split_6 (0 inputs, pressure 16)\n",
+        "outputs": {
+          "output.a80": {
+            "bytes": 66029,
+            "sha256": "342a1dc28e6769bb717c7d77765776b2e28461766ec1a00aeff832ac3d6c891e"
+          }
+        }
+      },
+      "candidate": {
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "[HIR-SPLIT] fat_mount \u2192 fat_mount$split_11 (5 inputs, pressure 9)\n[HIR-SPLIT] fat_find \u2192 fat_find$split_6 (0 inputs, pressure 16)\n",
+        "outputs": {
+          "output.a80": {
+            "bytes": 65804,
+            "sha256": "3d31002cc113ba57458f71b266586aff8bb2e0fa812f2660e2d832ab5cd45cac"
+          }
+        }
+      },
+      "same_exit": true,
+      "same_stdout": true,
+      "same_stderr": true,
+      "same_files": false,
+      "output_files_compared": 1,
+      "same_output": false
+    },
+    {
+      "file": "examples/system-c/fat12/main.nanz",
+      "baseline": {
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "[HIR-SPLIT] fat12__fat_mount \u2192 fat12__fat_mount$split_11 (5 inputs, pressure 9)\n[HIR-SPLIT] fat12__fat_find \u2192 fat12__fat_find$split_6 (0 inputs, pressure 16)\n",
+        "outputs": {
+          "output.a80": {
+            "bytes": 76758,
+            "sha256": "f4a5abc7c7da819c0d8a99c04ab3f3e243f6b0f220977ec0711e1a7baf602d92"
+          }
+        }
+      },
+      "candidate": {
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "[HIR-SPLIT] fat12__fat_mount \u2192 fat12__fat_mount$split_11 (5 inputs, pressure 9)\n[HIR-SPLIT] fat12__fat_find \u2192 fat12__fat_find$split_6 (0 inputs, pressure 16)\n",
+        "outputs": {
+          "output.a80": {
+            "bytes": 76533,
+            "sha256": "8881a0203136296b55e8c0ff43a81b1569caeb14822339504d7f1d5144a84669"
+          }
+        }
+      },
+      "same_exit": true,
+      "same_stdout": true,
+      "same_stderr": true,
+      "same_files": false,
+      "output_files_compared": 1,
+      "same_output": false
+    }
+  ],
+  "wall_seconds": 69.0,
+  "run": "https://github.com/oisee/minz/actions/runs/38903664051",
+  "note": "Default output equality is advisory for PRs. These 21 changes are ASM text changes; this receipt alone is not a semantic oracle."
+}

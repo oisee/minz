@@ -1,0 +1,34 @@
+; MIR2 module: /home/alice/dev/minz-artifacts/grace-workspaces/c89-byte-narrow/research/c89-benchmark/cases/abs_diff
+global @a : u8
+global @b : u8
+global @result : u16
+
+fun @abs_diff(%r1: u8 [acc], %r2: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r3 = cmp.ugt %r1, %r2 : bool [flag]
+    br_if %r3, @if_then1(), @if_join2()
+  block @if_then1:
+    %r4 = ext %r1 : u8 -> i16 [pointer]
+    %r5 = ext %r2 : u8 -> i16 [pointer]
+    %r6 = sub %r4, %r5 : i16 [pointer]
+    %r7 = trunc %r6 : i16 -> u8 [general]
+    ret %r7
+  block @if_join2:
+    %r8 = ext %r2 : u8 -> i16 [pointer]
+    %r9 = ext %r1 : u8 -> i16 [pointer]
+    %r10 = sub %r8, %r9 : i16 [pointer]
+    %r11 = trunc %r10 : i16 -> u8 [general]
+    ret %r11
+
+fun @execute()
+  block @entry:
+    %r12 = addr_of @a : ptr [pointer]
+    %r13 = load %r12 : u8 [general]
+    %r14 = move %r13 : u8 [acc]
+    %r15 = addr_of @b : ptr [pointer]
+    %r16 = load %r15 : u8 [general]
+    %r17 = call @abs_diff(%r14, %r16) : u8 [acc]
+    %r18 = ext %r17 : u8 -> u16 [pointer]
+    %r19 = addr_of @result : ptr [pointer]
+    store %r19, %r18 : u16
+    ret void

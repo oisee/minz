@@ -15,8 +15,11 @@ def main():
     ap=argparse.ArgumentParser()
     ap.add_argument('--out',type=Path,required=True)
     ap.add_argument('--cc',default='gcc')
+    ap.add_argument('--cases',type=Path)
+    ap.add_argument('--workload-root',type=Path)
     args=ap.parse_args()
-    cases=Path(__file__).resolve().parent/'cases'
+    cases=args.cases.resolve() if args.cases else Path(__file__).resolve().parent/'cases'
+    workloads=args.workload_root.resolve() if args.workload_root else args.out/'minz/default'
     out=args.out.resolve()/'host-oracle'
     out.mkdir(parents=True,exist_ok=True)
     rows=[]
@@ -30,7 +33,7 @@ def main():
         lib=ctypes.CDLL(str(shared))
         lib.execute.argtypes=[]
         lib.execute.restype=None
-        workload=json.loads((args.out/'minz/default'/name/'workload.json').read_text())
+        workload=json.loads((workloads/name/'workload.json').read_text())
         for s in workload:
             for symbol,encoded in s['inputs'].items():
                 data=base64.b64decode(encoded)
