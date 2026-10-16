@@ -1,0 +1,10 @@
+global values: [u8; 64]
+global n: u8 = 0
+global result: u16 = 0
+fun fat12_decode(fat: ^u8, cluster: u16) -> u16 {
+    let offset: u16 = cluster + cluster / 2
+    let word: u16 = u16(fat[offset]) | (u16(fat[offset + 1]) << 8)
+    if (cluster & 1) != 0 { return word >> 4 }
+    return word & 4095
+}
+fun execute() { result = fat12_decode(&values, u16(n)) }

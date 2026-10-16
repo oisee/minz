@@ -1,0 +1,15 @@
+{
+  "Compiler": "sdcc45",
+  "Profile": "size",
+  "Case": "fat12_decode",
+  "SourceSHA256": "4a7338748721cbacb1766df589a1374358f8e209265a9a64cc43561d72dae050",
+  "WorkloadSHA256": "79b58d62a769018f93a7f89bfdf84af2518123abf5b479ff8f302ca4903f8cd7",
+  "Status": "PASS",
+  "InitializedBytes": 73,
+  "GlobalBytes": 67,
+  "ProgramBytes": 140,
+  "Calls": 64,
+  "TotalT": 26944,
+  "ObservationCount": 64,
+  "DetailedMeasurementsSHA256": "eab384c05c925e3472d8db6829c20e94621566fca379768c203df4667908e4b5"
+}

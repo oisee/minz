@@ -1,0 +1,8 @@
+global a: u8 = 0
+global b: u8 = 0
+global result: u16 = 0
+fun abs_diff(x: u8, y: u8) -> u8 {
+    if x > y { return x - y }
+    return y - x
+}
+fun execute() { result = u16(abs_diff(a, b)) }

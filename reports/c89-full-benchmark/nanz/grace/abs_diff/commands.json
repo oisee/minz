@@ -1,0 +1,13 @@
+[
+  [
+    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c89-nanz-sdcc45/absdiff-cfg-full/measure",
+    "-compiler",
+    "nanz",
+    "-profile",
+    "grace",
+    "-source",
+    "/home/alice/dev/minz-artifacts/grace-workspaces/c89-absdiff-cfg/research/c89-benchmark/nanz-cases/abs_diff.nanz",
+    "-out",
+    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c89-nanz-sdcc45/absdiff-cfg-full/nanz/grace/abs_diff"
+  ]
+]
