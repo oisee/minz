@@ -1,0 +1,18 @@
+{
+  "evidence_sha256": "1b94b147c9c808bd360c3cc291fc62289f0ef5d6a3ea816eaef4103c35be80e8",
+  "rows": 1022,
+  "original_bytes": 198,
+  "pointer_bytes": 277,
+  "costs": {
+    "original_entry": 41,
+    "original_iteration": 54,
+    "pointer_entry": 241,
+    "pointer_iteration": 37,
+    "pointer_zero": 232,
+    "equality_extra": 7,
+    "fallback_entry": 258,
+    "fallback_iteration": 191
+  },
+  "positive_fast_winner_from_n": 12,
+  "note": "Measured diagnostic executable before committing updated assertions; full evidence retained locally."
+}

@@ -82,7 +82,7 @@ func TestSumProfileCostFullU8Domain(t *testing.T) {
 				cycles, _ := measureProfileZ80(t, h, "sum_array", Options{AssertMode: "none"}, []int64{base, int64(n)}, mem, want, "")
 				measured = append(measured, cycles)
 			}
-			if measured[0] != 69+191*n {
+			if measured[0] != 41+54*n {
 				t.Fatalf("original model n=%d got=%d", n, measured[0])
 			}
 			expectedFast := 241 + 37*n

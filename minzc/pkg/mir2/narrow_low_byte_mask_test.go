@@ -108,3 +108,28 @@ func TestLowByteMaskRefusals(t *testing.T) {
 		})
 	}
 }
+
+func TestLowByteMaskKeepsExistingMemoryBitPattern(t *testing.T) {
+	for _, volatile := range []bool{false, true} {
+		m := &Module{}
+		f := m.AddFunc("read_bit")
+		b := NewBuilder(f)
+		b.SwitchToNewBlock("entry")
+		p := b.Param("pointer", TyPtr, ClassPointer)
+		value := b.Load(p, TyU16, ClassPair)
+		f.Blocks[0].Insts[0].Volatile = volatile
+		k := b.Const(1, TyU16, ClassPair)
+		r := b.And(value, k, TyU16, ClassPair)
+		z := b.Const(0, TyU16, ClassPair)
+		c := b.CmpWithSrcTy(CmpNe, r, z, ClassFlag, false, TyU16)
+		b.Ret(c)
+		before := m.Dump()
+		got := NarrowLowByteMaskTests(f)
+		if got != volatile {
+			t.Fatal("ordinary memory BIT must keep original form", volatile, got)
+		}
+		if !volatile && m.Dump() != before {
+			t.Fatal("refusal modified memory BIT")
+		}
+	}
+}

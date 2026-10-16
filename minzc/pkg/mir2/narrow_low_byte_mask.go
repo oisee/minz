@@ -46,6 +46,7 @@ func NarrowLowByteMaskTests(f *Func) bool {
 		}
 		return reflect.DeepEqual(y, Inst{})
 	}
+	uses := countRegUses(f)
 	changed := false
 	for _, b := range f.Blocks {
 		defs := map[Reg]*Inst{}
@@ -77,6 +78,12 @@ func NarrowLowByteMaskTests(f *Func) bool {
 						}
 					}
 					if k == nil || counts[value] != 1 || !word(types[value]) {
+						continue
+					}
+					// Preserve the existing single-use memory BIT pattern. Adding a
+					// trunc between Load and And would force a full word load and
+					// defeat its checked byte-only native access.
+					if load := defs[value]; load != nil && load.Op == OpLoad && !load.Volatile && uses[value] == 1 && uses[a.Dst] == 1 && k.Imm&(k.Imm-1) == 0 {
 						continue
 					}
 					low, mask, test, zero := f.AllocReg(), f.AllocReg(), f.AllocReg(), f.AllocReg()

@@ -41,7 +41,7 @@ func TestMeasureLoopCostModel(t *testing.T) {
 	// Current instruction costs were independently reconciled against the saved
 	// ASM delta; every row must satisfy these costs, not just the fitted samples.
 	for _, row := range evidence.Rows {
-		wantOriginal := 69 + 191*row.N
+		wantOriginal := 41 + 54*row.N
 		wantPointer := 241 + 37*row.N
 		if row.N == 0 {
 			wantPointer = 232
@@ -59,7 +59,7 @@ func TestMeasureLoopCostModel(t *testing.T) {
 			t.Fatal("execution binaries not bound to evidence")
 		}
 	}
-	if model.OriginalEntry != 69 || model.OriginalIteration != 191 || model.FastEntry != 241 || model.FastIteration != 37 || model.FastZeroEntry != 232 || !model.FastZeroMeasured || model.EqualEntryExtra != 7 || model.FallbackEntry != 258 || model.FallbackIteration != 191 || !model.FallbackMeasured {
+	if model.OriginalEntry != 41 || model.OriginalIteration != 54 || model.FastEntry != 241 || model.FastIteration != 37 || model.FastZeroEntry != 232 || !model.FastZeroMeasured || model.EqualEntryExtra != 7 || model.FallbackEntry != 258 || model.FallbackIteration != 191 || !model.FallbackMeasured {
 		t.Fatalf("unexpected measured coefficients: %+v", model)
 	}
 	if len(evidence.Rows) != 1022 || model.OriginalBytes != uint64(len(evidence.OriginalBinary)) || model.PointerBytes != uint64(len(evidence.PointerBinary)) {
