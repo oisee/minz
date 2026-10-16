@@ -17,7 +17,9 @@ import (
 // The source publishes its local address, then sets ready before the measured
 // accesses. Frame setup and parameter initialization precede this boundary:
 // they are not confused with source-level volatile traffic or return POPs.
-// C99 5.1.2.3/6.7.3 determine the observable accesses, not generated MIR counts.
+// C90 5.1.2.3/6.5.3 (C99 5.1.2.3/6.7.3) determine the observable
+// accesses, not generated MIR counts. Copying a volatile aggregate to an
+// ordinary result may use scalar result slots after the source accesses occur.
 func TestCLocalVolatileTrafficNativeVM(t *testing.T) {
 	read := func(v uint32, width int) []volatileEvent {
 		var out []volatileEvent
@@ -53,6 +55,9 @@ func TestCLocalVolatileTrafficNativeVM(t *testing.T) {
 		{"parameter_word", `unsigned long twice(volatile unsigned int x){published=(unsigned int)&x;ready=1;return (unsigned long)x*65536UL+x;}void execute(void){result=twice(0x1234);}`, 2, 0x12341234, join(read(0x1234, 2), read(0x1234, 2))},
 		{"long_update", `void execute(void){volatile unsigned long x;published=(unsigned int)&x;ready=1;x=0x89abcdefUL;result=x;x++;result^=x;}`, 4, 0x1f, join(write(0x89abcdef, 4), read(0x89abcdef, 4), read(0x89abcdef, 4), write(0x89abcdf0, 4), read(0x89abcdf0, 4))},
 		{"aggregate_fields", `struct Reg{unsigned char a;unsigned int b;};void execute(void){volatile struct Reg x;published=(unsigned int)&x;ready=1;x.a=3;x.b=0x1234;result=(unsigned long)x.a*65536UL+x.b;}`, 3, 0x31234, []volatileEvent{{Write: true, Value: 3}, {Write: true, Value: 0x34, Offset: 1}, {Write: true, Value: 0x12, Offset: 2}, {Value: 3}, {Value: 0x34, Offset: 1}, {Value: 0x12, Offset: 2}}},
+		// The ordinary return value may be scalar; the published volatile source
+		// must retain its storage and exactly one read of each initialized byte.
+		{"aggregate_return", `struct Pair{unsigned char a,b;};struct Pair make(void){volatile struct Pair p;published=(unsigned int)&p;ready=1;p.a=3;p.b=5;return p;}void execute(void){struct Pair p=make();result=(unsigned long)p.a*256+p.b;}`, 2, 773, []volatileEvent{{Write: true, Value: 3}, {Write: true, Value: 5, Offset: 1}, {Value: 3}, {Value: 5, Offset: 1}}},
 		{"pointer_alias", `void execute(void){volatile unsigned char x=3;volatile unsigned char *p=&x;published=(unsigned int)&x;ready=1;*p=5;result=x;}`, 1, 5, join(write(5, 1), read(5, 1))},
 	}
 	for _, c := range cases {
@@ -71,6 +76,20 @@ func TestCLocalVolatileTrafficNativeVM(t *testing.T) {
 					t.Fatal(err)
 				}
 				for _, m := range []*mir2.Module{hir.LowerModule(parse()), steps.MIR2Module} {
+					if c.name == "aggregate_return" {
+						f := m.FuncByName("make")
+						materialized := false
+						if f != nil {
+							for _, b := range f.Blocks {
+								for _, i := range b.Insts {
+									materialized = materialized || i.Op == mir2.OpAlloca
+								}
+							}
+						}
+						if !materialized {
+							t.Fatal("volatile source object lost its addressable storage")
+						}
+					}
 					vm := mir2.NewVM(m)
 					ready, pub := vm.GlobalAddr("ready"), vm.GlobalAddr("published")
 					var start int64
