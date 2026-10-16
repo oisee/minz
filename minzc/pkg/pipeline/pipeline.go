@@ -591,6 +591,7 @@ func CompileHIRWithOptions(hm *hir.Module, opts Options) (string, error) {
 				break
 			}
 		}
+		mir2.NarrowLowByteMaskTests(f)
 		mir2.DeadStoreElim(f)
 		mir2.DeadBlockArgElim(f)
 		if mir2.BranchEquiv(m, f) {
