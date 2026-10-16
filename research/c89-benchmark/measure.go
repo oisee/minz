@@ -1,0 +1,439 @@
+// Manual benchmark: identical C bytes, independent expectations, actual Z80.
+package main
+
+import (
+	"bufio"
+	"crypto/sha256"
+	"encoding/binary"
+	"encoding/hex"
+	"encoding/json"
+	"flag"
+	"fmt"
+	"os"
+	"path/filepath"
+	"regexp"
+	"strconv"
+	"strings"
+
+	"github.com/minz/minzc/pkg/c89"
+	"github.com/minz/minzc/pkg/emulator"
+	"github.com/minz/minzc/pkg/hir"
+	"github.com/minz/minzc/pkg/mir2"
+	"github.com/minz/minzc/pkg/pipeline"
+	"github.com/minz/minzc/pkg/z80asm"
+)
+
+type sample struct {
+	ID     string            `json:"id"`
+	Inputs map[string][]byte `json:"inputs"`
+	Want   uint16            `json:"expected"`
+	After  map[string][]byte `json:"after"`
+}
+type observation struct {
+	ID       string `json:"id"`
+	Expected uint16 `json:"expected"`
+	Result   uint16 `json:"result"`
+	T        uint64 `json:"t_states"`
+	Error    string `json:"error,omitempty"`
+}
+type report struct {
+	Compiler, Profile, Case, SourceSHA256, WorkloadSHA256, Status string
+	InitializedBytes, GlobalBytes, ProgramBytes                   int
+	Calls                                                         int
+	TotalT                                                        uint64
+	Observations                                                  []observation
+	Error                                                         string `json:",omitempty"`
+}
+type program struct {
+	image      map[int]byte
+	storage    map[int]bool
+	symbols    map[string]int
+	raw, final *mir2.Module
+}
+
+func read(path string) []byte {
+	b, e := os.ReadFile(path)
+	if e != nil {
+		panic(e)
+	}
+	return b
+}
+func save(path string, b []byte) {
+	if e := os.WriteFile(path, b, 0644); e != nil {
+		panic(e)
+	}
+}
+func writeJSON(path string, v any) {
+	b, e := json.MarshalIndent(v, "", "  ")
+	if e != nil {
+		panic(e)
+	}
+	save(path, append(b, '\n'))
+}
+func fixtures(name string) ([]sample, map[string]int) {
+	sizes := map[string]int{"result": 2}
+	samples := []sample{}
+	if name == "abs_diff" || name == "gcd" || name == "struct_roundtrip" {
+		sizes["a"] = 1
+		sizes["b"] = 1
+		for x := 0; x < 256; x++ {
+			for _, y := range []int{0, 1, 2, 63, 127, 128, 254, 255} {
+				var want uint16
+				switch name {
+				case "abs_diff":
+					v := x - y
+					if v < 0 {
+						v = -v
+					}
+					want = uint16(v)
+				case "gcd":
+					a, b := x, y
+					for b != 0 {
+						a, b = b, a%b
+					}
+					want = uint16(a)
+				case "struct_roundtrip":
+					want = (uint16(x)*256 + uint16(byte(x+1)) + uint16(x)) ^ uint16(y)
+				}
+				inputs := map[string][]byte{"a": {byte(x)}, "b": {byte(y)}}
+				samples = append(samples, sample{fmt.Sprintf("%d,%d", x, y), inputs, want, inputs})
+			}
+		}
+		return samples, sizes
+	}
+	length := 256
+	if name == "fat12_decode" {
+		length = 64
+	}
+	for dataset := 0; dataset < 2; dataset++ {
+		data := make([]byte, length)
+		for i := range data {
+			if dataset == 0 {
+				data[i] = byte(i*73 + 19)
+			} else {
+				data[i] = byte((i * 31) ^ 0xa5)
+			}
+		}
+		maxN := 255
+		switch name {
+		case "sum_array":
+			sizes["values"] = 256
+		case "fat12_decode":
+			sizes["values"] = 64
+			maxN = 31
+		case "copy_bytes":
+			data = data[:64]
+			sizes["source"] = 64
+			sizes["target"] = 64
+			maxN = 64
+		default:
+			panic("unknown benchmark " + name)
+		}
+		sizes["n"] = 1
+		for n := 0; n <= maxN; n++ {
+			inputs := map[string][]byte{"n": {byte(n)}}
+			after := map[string][]byte{"n": {byte(n)}}
+			var want uint16
+			switch name {
+			case "sum_array":
+				inputs["values"] = data
+				after["values"] = data
+				for _, v := range data[:n] {
+					want += uint16(v)
+				}
+			case "fat12_decode":
+				inputs["values"] = data
+				after["values"] = data
+				off := n + n/2
+				want = uint16(data[off]) | uint16(data[off+1])<<8
+				if n&1 != 0 {
+					want >>= 4
+				} else {
+					want &= 4095
+				}
+			case "copy_bytes":
+				inputs["source"] = data
+				after["source"] = data
+				dst := make([]byte, 64)
+				for i := range dst {
+					dst[i] = 0xcc
+				}
+				inputs["target"] = dst
+				expected := append([]byte(nil), dst...)
+				copy(expected[:n], data[:n])
+				after["target"] = expected
+				want = uint16(n)
+			}
+			samples = append(samples, sample{fmt.Sprintf("dataset=%d,n=%d", dataset, n), inputs, want, after})
+		}
+	}
+	return samples, sizes
+}
+
+func buildMinZ(source, out, profile string) (*program, error) {
+	m, e := c89.CompileWithOpts(string(read(source)), source, c89.CompileOpts{NoLibc: true})
+	if e != nil {
+		return nil, e
+	}
+	raw := hir.LowerModule(m)
+	opts := pipeline.Options{ContractOpt: true, OptSize: profile == "size", UseGrace: profile == "grace", UseHIRGrace: profile == "grace"}
+	s, e := pipeline.CompileHIRSteps(m, opts)
+	if e != nil {
+		return nil, e
+	}
+	a, e := z80asm.NewAssembler().AssembleString("ORG 0x8000\n" + s.Assembly)
+	if e != nil {
+		return nil, e
+	}
+	if len(a.Errors) != 0 {
+		return nil, fmt.Errorf("assemble: %v", a.Errors)
+	}
+	save(filepath.Join(out, "program.a80"), []byte(s.Assembly))
+	save(filepath.Join(out, "program.bin"), a.Binary)
+	save(filepath.Join(out, "raw.mir"), []byte(raw.Dump()))
+	save(filepath.Join(out, "final.mir"), []byte(s.MIR2Module.Dump()))
+	writeJSON(filepath.Join(out, "symbols.json"), a.Symbols)
+	p := &program{image: map[int]byte{}, symbols: a.Symbols, raw: raw, final: s.MIR2Module}
+	for i, b := range a.Binary {
+		p.image[0x8000+i] = b
+	}
+	return p, nil
+}
+func parseExternal(compiler, image, symbols string) (*program, error) {
+	p := &program{image: map[int]byte{}, storage: map[int]bool{}, symbols: map[string]int{}}
+	if compiler == "sdcc" {
+		high := 0
+		for _, line := range strings.Fields(string(read(image))) {
+			if !strings.HasPrefix(line, ":") {
+				return nil, fmt.Errorf("invalid Intel HEX")
+			}
+			b, e := hex.DecodeString(line[1:])
+			if e != nil || len(b) < 5 {
+				return nil, fmt.Errorf("bad HEX record")
+			}
+			sum := byte(0)
+			for _, v := range b {
+				sum += v
+			}
+			if sum != 0 || len(b) != int(b[0])+5 {
+				return nil, fmt.Errorf("bad HEX checksum/size")
+			}
+			addr := int(b[1])<<8 | int(b[2])
+			switch b[3] {
+			case 0:
+				for i, v := range b[4 : len(b)-1] {
+					p.image[high+addr+i] = v
+				}
+			case 1:
+			case 4:
+				high = (int(b[4])<<8 | int(b[5])) << 16
+			default:
+				return nil, fmt.Errorf("unsupported HEX record %d", b[3])
+			}
+		}
+		scanner := bufio.NewScanner(strings.NewReader(string(read(symbols))))
+		for scanner.Scan() {
+			f := strings.Fields(scanner.Text())
+			if len(f) == 3 && f[0] == "DEF" {
+				v, e := strconv.ParseInt(f[2], 0, 32)
+				if e == nil {
+					p.symbols[f[1]] = int(v)
+				}
+			}
+		}
+		for _, area := range []string{"DATA", "INITIALIZED"} {
+			base, length := p.symbols["s__"+area], p.symbols["l__"+area]
+			for i := 0; i < length; i++ {
+				p.storage[base+i] = true
+			}
+		}
+	} else if compiler == "sccz80" {
+		for i, v := range read(image) {
+			p.image[0x8000+i] = v
+		}
+		re := regexp.MustCompile(`(?m)^([A-Za-z_][A-Za-z0-9_]*)\s*=\s*\$([0-9A-Fa-f]+)`)
+		for _, m := range re.FindAllStringSubmatch(string(read(symbols)), -1) {
+			v, _ := strconv.ParseInt(m[2], 16, 32)
+			p.symbols[m[1]] = int(v)
+		}
+	} else {
+		return nil, fmt.Errorf("unknown compiler %s", compiler)
+	}
+	return p, nil
+}
+func (p *program) addr(name string) (int, error) {
+	for _, n := range []string{name, "v_" + name, "_" + name} {
+		if v, ok := p.symbols[n]; ok && v > 0 && v < 65536 {
+			return v, nil
+		}
+	}
+	return 0, fmt.Errorf("missing target symbol %s", name)
+}
+func same(a, b []byte) bool { return string(a) == string(b) }
+func vmCheck(m *mir2.Module, s sample) error {
+	vm := mir2.NewVM(m)
+	for name, data := range s.Inputs {
+		vm.WriteHeapSlice(vm.GlobalAddr(name), data)
+	}
+	vm.WriteHeapSlice(vm.GlobalAddr("result"), []byte{0xef, 0xbe})
+	if _, e := vm.Call("execute", nil); e != nil {
+		return e
+	}
+	v := binary.LittleEndian.Uint16(vm.ReadHeap(vm.GlobalAddr("result"), 2))
+	if v != s.Want {
+		return fmt.Errorf("VM result%d want%d", v, s.Want)
+	}
+	for name, want := range s.After {
+		if !same(vm.ReadHeap(vm.GlobalAddr(name), len(want)), want) {
+			return fmt.Errorf("VM memory %s", name)
+		}
+	}
+	return nil
+}
+func measure(p *program, samples []sample, sizes map[string]int, r *report) error {
+	addresses := map[string]int{}
+	for name, size := range sizes {
+		v, e := p.addr(name)
+		if e != nil {
+			return e
+		}
+		if v+size > 65536 {
+			return fmt.Errorf("global out of range")
+		}
+		addresses[name] = v
+		r.GlobalBytes += size
+	}
+	entry, e := p.addr("execute")
+	if e != nil {
+		return e
+	}
+	globals := map[int]bool{}
+	for name, size := range sizes {
+		for i := 0; i < size; i++ {
+			globals[addresses[name]+i] = true
+		}
+	}
+	r.InitializedBytes = len(p.image)
+	occupied := map[int]bool{}
+	for a := range globals {
+		occupied[a] = true
+	}
+	for a := range p.storage {
+		occupied[a] = true
+	}
+	for a := range p.image {
+		occupied[a] = true
+	}
+	for a := range occupied {
+		if a < 0x8000 || a >= 0xe000 {
+			return fmt.Errorf("image/storage overlaps benchmark stack/sentinel or is out of range")
+		}
+	}
+	r.ProgramBytes = len(occupied)
+	for _, s := range samples {
+		o := observation{ID: s.ID, Expected: s.Want}
+		if p.raw != nil {
+			for _, m := range []*mir2.Module{p.raw, p.final} {
+				if e := vmCheck(m, s); e != nil {
+					o.Error = e.Error()
+					break
+				}
+			}
+		}
+		z := emulator.NewRemogattoZ80()
+		mem := z.Memory()
+		for a, v := range p.image {
+			mem[a] = v
+		}
+		for name, data := range s.Inputs {
+			copy(mem[addresses[name]:], data)
+		}
+		mem[addresses["result"]] = 0xef
+		mem[addresses["result"]+1] = 0xbe
+		mem[0xeffe] = 0x00
+		mem[0xefff] = 0xf1
+		z.SetRegisters(emulator.Registers{PC: uint16(entry), SP: 0xeffe})
+		start := z.GetCycles()
+		for steps := 0; steps < 1000000 && z.GetPC() != 0xf100; steps++ {
+			z.Step()
+		}
+		regs := z.GetRegisters()
+		o.T = uint64(z.GetCycles() - start)
+		o.Result = binary.LittleEndian.Uint16(mem[addresses["result"] : addresses["result"]+2])
+		if regs.PC != 0xf100 || regs.SP != 0xf000 {
+			o.Error = fmt.Sprintf("return PC/SP %04x/%04x", regs.PC, regs.SP)
+		} else if o.Result != s.Want {
+			o.Error = fmt.Sprintf("native result%d want%d", o.Result, s.Want)
+		} else {
+			for name, want := range s.After {
+				if !same(mem[addresses[name]:addresses[name]+len(want)], want) {
+					o.Error = "native memory " + name
+					break
+				}
+			}
+		}
+		r.Observations = append(r.Observations, o)
+		r.TotalT += o.T
+		if o.Error != "" {
+			r.Status = "FAIL"
+		}
+	}
+	r.Calls = len(r.Observations)
+	if r.Status == "" {
+		r.Status = "PASS"
+	}
+	return nil
+}
+func main() {
+	compiler := flag.String("compiler", "minz", "minz, sdcc, sccz80")
+	profile := flag.String("profile", "default", "declared build profile")
+	source := flag.String("source", "", "identical C input")
+	out := flag.String("out", "", "artifact directory")
+	image := flag.String("image", "", "external linked image")
+	symbols := flag.String("symbols", "", "external linked symbol map")
+	buildInfo := flag.String("build-info", "", "external source/image/symbol hash attestation from driver")
+	flag.Parse()
+	if *source == "" || *out == "" {
+		panic("source/out required")
+	}
+	os.MkdirAll(*out, 0755)
+	name := strings.TrimSuffix(filepath.Base(*source), ".c")
+	r := report{Compiler: *compiler, Profile: *profile, Case: name, SourceSHA256: fmt.Sprintf("%x", sha256.Sum256(read(*source)))}
+	samples, sizes := fixtures(name)
+	workload, _ := json.Marshal(samples)
+	r.WorkloadSHA256 = fmt.Sprintf("%x", sha256.Sum256(workload))
+	writeJSON(filepath.Join(*out, "workload.json"), samples)
+	var p *program
+	var e error
+	if *compiler == "minz" {
+		p, e = buildMinZ(*source, *out, *profile)
+	} else {
+		var info map[string]string
+		if *buildInfo == "" {
+			panic("external build-info required")
+		}
+		if e = json.Unmarshal(read(*buildInfo), &info); e == nil {
+			for key, path := range map[string]string{"source": *source, "image": *image, "symbols": *symbols} {
+				if info[key+"_sha256"] != fmt.Sprintf("%x", sha256.Sum256(read(path))) {
+					e = fmt.Errorf("build-info hash mismatch: %s", key)
+					break
+				}
+			}
+		}
+		if e == nil {
+			p, e = parseExternal(*compiler, *image, *symbols)
+		}
+	}
+	if e == nil {
+		e = measure(p, samples, sizes, &r)
+	}
+	if e != nil {
+		r.Status = "ERROR"
+		r.Error = e.Error()
+	}
+	writeJSON(filepath.Join(*out, "measurements.json"), r)
+	fmt.Printf("%s %s %s: %s %d calls %d bytes %dT %s\n", r.Compiler, r.Profile, r.Case, r.Status, r.Calls, r.ProgramBytes, r.TotalT, r.Error)
+	if r.Status != "PASS" {
+		os.Exit(1)
+	}
+}
