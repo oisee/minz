@@ -24,6 +24,8 @@ The project is active research: examples and targets have different levels of ma
 
 [From C promotions to CP: before/after Z80 ASM](reports/2026-10-16-c89-byte-compare-asm.md): unchanged C abs_diff and sum_array, exact code and timing, safe byte-range proof and heldout verification.
 
+[Extended C/Nanz benchmark with SDCC 4.5](reports/c89-optimization/baseline.md): same frozen C, separate idiomatic Nanz and tuple variants, all profiles retained. SDCC 4.5 supports the tested aggregate ABI; MinZ C wins that case. The five other common C cases favor SDCC. [Optimization milestones](reports/c89-optimization/objective.md) track the next verified work.
+
 ## 🎉 Zork, compiled from Nanz to banked Z80!
 
 **The Spectrum 128K milestone is reached.** Our Z-machine V3 interpreter,

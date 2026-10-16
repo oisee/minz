@@ -19,6 +19,7 @@ import (
 	"github.com/minz/minzc/pkg/emulator"
 	"github.com/minz/minzc/pkg/hir"
 	"github.com/minz/minzc/pkg/mir2"
+	"github.com/minz/minzc/pkg/nanz"
 	"github.com/minz/minzc/pkg/pipeline"
 	"github.com/minz/minzc/pkg/z80asm"
 )
@@ -211,7 +212,13 @@ func fixtures(name string) ([]sample, map[string]int) {
 }
 
 func buildMinZ(source, out, profile string) (*program, error) {
-	m, e := c89.CompileWithOpts(string(read(source)), source, c89.CompileOpts{NoLibc: true})
+	var m *hir.Module
+	var e error
+	if filepath.Ext(source) == ".nanz" {
+		m, e = nanz.Parse(string(read(source)), source)
+	} else {
+		m, e = c89.CompileWithOpts(string(read(source)), source, c89.CompileOpts{NoLibc: true})
+	}
 	if e != nil {
 		return nil, e
 	}
@@ -437,7 +444,7 @@ func main() {
 		panic("source/out required")
 	}
 	os.MkdirAll(*out, 0755)
-	name := strings.TrimSuffix(filepath.Base(*source), ".c")
+	name := strings.TrimSuffix(filepath.Base(*source), filepath.Ext(*source))
 	r := report{Compiler: *compiler, Profile: *profile, Case: name, SourceSHA256: fmt.Sprintf("%x", sha256.Sum256(read(*source)))}
 	samples, sizes := fixtures(name)
 	workload, _ := json.Marshal(samples)
@@ -445,7 +452,7 @@ func main() {
 	writeJSON(filepath.Join(*out, "workload.json"), samples)
 	var p *program
 	var e error
-	if *compiler == "minz" {
+	if *compiler == "minz" || *compiler == "nanz" {
 		p, e = buildMinZ(*source, *out, *profile)
 	} else {
 		var info map[string]string
