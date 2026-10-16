@@ -1,0 +1,23 @@
+{
+  "compiler": "gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+  "cases": [
+    {
+      "case": "local_pair",
+      "status": "PASS",
+      "calls": 2048,
+      "source_sha256": "1b149a4013951fbaf54095b446a5c289e38dd6d378eace525c74973c5145155b"
+    },
+    {
+      "case": "mixed_pair",
+      "status": "PASS",
+      "calls": 2048,
+      "source_sha256": "1cc27c854ad4a5ac51cead7cbc84c9c19f36c97a50198edc0c45d302bdedbd25"
+    },
+    {
+      "case": "repeated_pair",
+      "status": "PASS",
+      "calls": 73,
+      "source_sha256": "775174486b72ce9e10f942d03b6bda2c00ecc7babe6460f37571165b6ca9c7df"
+    }
+  ]
+}
