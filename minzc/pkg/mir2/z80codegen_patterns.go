@@ -912,7 +912,8 @@ func (g *z80cg) scanGlobalFieldPatterns(b *Block) {
 
 	// ── u16 direct-address store detection ──────────────────────────────────────
 	// Pattern: OpStore(w=16, addrReg=AddrOf(sym), valReg)
-	// Enables LD (sym), HL (16T, no A clobber) when valReg is in HL.
+	// Enables LD (sym),HL (16T) or adjacent single-use LD (sym),DE/BC
+	// (20T). The latter suppresses AddrOf without changing any register or flags.
 	for i, inst := range b.Insts {
 		if inst.Op != OpStore || inst.Ty.Width() != 16 {
 			continue

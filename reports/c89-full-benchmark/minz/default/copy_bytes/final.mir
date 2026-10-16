@@ -1,4 +1,4 @@
-; MIR2 module: /home/alice/dev/minz-artifacts/grace-workspaces/c89-absdiff-cfg/research/c89-benchmark/cases/copy_bytes
+; MIR2 module: /home/alice/dev/minz-artifacts/grace-workspaces/c89-direct-word-store/research/c89-benchmark/cases/copy_bytes
 global @source : [64]u8
 global @target : [64]u8
 global @n : u8

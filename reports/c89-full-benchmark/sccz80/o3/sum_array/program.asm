@@ -3,27 +3,27 @@
 ;
 ;	Reconstructed for z80 Module Assembler
 ;
-;	Module compile time: Fri Oct 16 13:55:15 2026
+;	Module compile time: Fri Oct 16 14:24:50 2026
 
 
-	C_LINE	0,"/home/alice/dev/minz-artifacts/grace-workspaces/c89-absdiff-cfg/research/c89-benchmark/cases/sum_array.c"
+	C_LINE	0,"/home/alice/dev/minz-artifacts/grace-workspaces/c89-direct-word-store/research/c89-benchmark/cases/sum_array.c"
 
-	MODULE	X_home_alice_dev_minz_artifacts_grace_workspaces_c89_absdiff_cfg_research_c89_benchmark_cases_sum_array_c
+	MODULE	X_home_alice_dev_minz_artifacts_grace_workspaces_c89_direct_word_store_research_c89_benchmark_cases_sum_array_c
 
 
 	INCLUDE "z80_crt0.hdr"
 
 
-	C_LINE	1,"/home/alice/dev/minz-artifacts/grace-workspaces/c89-absdiff-cfg/research/c89-benchmark/cases/sum_array.c"
-	C_LINE	2,"/home/alice/dev/minz-artifacts/grace-workspaces/c89-absdiff-cfg/research/c89-benchmark/cases/sum_array.c"
-	C_LINE	3,"/home/alice/dev/minz-artifacts/grace-workspaces/c89-absdiff-cfg/research/c89-benchmark/cases/sum_array.c"
+	C_LINE	1,"/home/alice/dev/minz-artifacts/grace-workspaces/c89-direct-word-store/research/c89-benchmark/cases/sum_array.c"
+	C_LINE	2,"/home/alice/dev/minz-artifacts/grace-workspaces/c89-direct-word-store/research/c89-benchmark/cases/sum_array.c"
+	C_LINE	3,"/home/alice/dev/minz-artifacts/grace-workspaces/c89-direct-word-store/research/c89-benchmark/cases/sum_array.c"
 	SECTION	code_compiler
 
 ; Function sum_array flags 0x00000200 __smallc 
 ; unsigned int sum_array(unsigned char * p, unsigned char count)
 ; parameter 'unsigned char count' at sp+2 size(1)
 ; parameter 'unsigned char * p' at sp+4 size(2)
-	C_LINE	3,"/home/alice/dev/minz-artifacts/grace-workspaces/c89-absdiff-cfg/research/c89-benchmark/cases/sum_array.c::sum_array::0::0"
+	C_LINE	3,"/home/alice/dev/minz-artifacts/grace-workspaces/c89-direct-word-store/research/c89-benchmark/cases/sum_array.c::sum_array::0::0"
 ._sum_array
 	ld	hl,0	;const
 	push	hl
@@ -79,11 +79,11 @@
 	ret
 
 
-	C_LINE	9,"/home/alice/dev/minz-artifacts/grace-workspaces/c89-absdiff-cfg/research/c89-benchmark/cases/sum_array.c::sum_array::0::1"
+	C_LINE	9,"/home/alice/dev/minz-artifacts/grace-workspaces/c89-direct-word-store/research/c89-benchmark/cases/sum_array.c::sum_array::0::1"
 
 ; Function execute flags 0x00000200 __smallc 
 ; void execute()
-	C_LINE	9,"/home/alice/dev/minz-artifacts/grace-workspaces/c89-absdiff-cfg/research/c89-benchmark/cases/sum_array.c::execute::0::1"
+	C_LINE	9,"/home/alice/dev/minz-artifacts/grace-workspaces/c89-direct-word-store/research/c89-benchmark/cases/sum_array.c::execute::0::1"
 ._execute
 	ld	hl,_values
 	push	hl

@@ -1,0 +1,42 @@
+[
+  {
+    "path": "after.a80",
+    "bytes": 1100,
+    "sha256": "d014b12a98a7d46377ae0ff5176fb3e177230302fb43310d59d07d9c1e67b937"
+  },
+  {
+    "path": "before.a80",
+    "bytes": 1126,
+    "sha256": "f75dc35ae5f3820d3ef569be8dcc0ef87a9c964b55e7807ddb37edbbdaedb9b9"
+  },
+  {
+    "path": "core.log",
+    "bytes": 174,
+    "sha256": "ee029e22cd18800f1845735f80acbd447aef3add8a3dd1a300df63238edba491"
+  },
+  {
+    "path": "fast-statuses.json",
+    "bytes": 460,
+    "sha256": "4165d3a3d1cbce3bfdb3ff2dc1a04a3939d436ddf73f43354ace7c75e8c216c8"
+  },
+  {
+    "path": "old-claims-summary.json",
+    "bytes": 34863,
+    "sha256": "992aad6ffafb8fc2a0eab5e2e0e7701fe8358bd3390016680833878fc1d89e26"
+  },
+  {
+    "path": "pfcco.log",
+    "bytes": 1452,
+    "sha256": "a054b648446aea3e3d3f379009130c036ca9e0a2ca3c59e87e277df7270f5b30"
+  },
+  {
+    "path": "summary.json",
+    "bytes": 27057,
+    "sha256": "d966f4cc1026a037b490e451c9333ceb8f1fad3fe211c6ad5f4ec0e6c631ba30"
+  },
+  {
+    "path": "toolchains.json",
+    "bytes": 2544,
+    "sha256": "7ac7bf8d75f781c4a4dbecdf127ef451435ecdcacc3948af24b32b247e782cd4"
+  }
+]

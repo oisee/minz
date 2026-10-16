@@ -256,3 +256,12 @@ python3 research/c89-benchmark/old-claims/check_host.py --out /tmp/old-host.json
 python3 research/c89-benchmark/old-claims/run.py \
   --out /tmp/minz-old-claims --toolchains /path/to/toolchains --go /path/to/go
 ```
+
+
+## Следующий checkpoint: прямые stores
+
+Повтор на новом backend сохраняет все 88 PASS; [свежий отчёт](2026-10-16-c89-direct-word-store.md)
+показывает C/Nanz abs_diff 27 / 220 904 и выигрыш остальных пяти C-семейств.
+Историческая таблица выше оставлена для checkpoint 78e10200; новые цифры
+не подставлены задним числом. Важное взаимодействие: улучшенный Off baseline
+отменяет прежний greedy PFCCO-win; measured selector корректно выбирает baseline.

@@ -1,4 +1,4 @@
-; MIR2 module: /home/alice/dev/minz-artifacts/grace-workspaces/c89-absdiff-cfg/research/c89-benchmark/cases/struct_roundtrip
+; MIR2 module: /home/alice/dev/minz-artifacts/grace-workspaces/c89-direct-word-store/research/c89-benchmark/cases/struct_roundtrip
 global @a : u8
 global @b : u8
 global @result : u16

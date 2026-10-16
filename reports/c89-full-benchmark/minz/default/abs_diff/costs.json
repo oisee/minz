@@ -5,11 +5,11 @@
   "SourceSHA256": "797200976ad2f54c936f593b225328d084ee435e5e91136ba06632103ff28aeb",
   "WorkloadSHA256": "50e4f8522d9fb49811756bd3c262262bddf484847601fd070531ce72f2f3dc9c",
   "Status": "PASS",
-  "InitializedBytes": 30,
+  "InitializedBytes": 27,
   "GlobalBytes": 4,
-  "ProgramBytes": 30,
+  "ProgramBytes": 27,
   "Calls": 2048,
-  "TotalT": 253672,
+  "TotalT": 220904,
   "ObservationCount": 2048,
-  "DetailedMeasurementsSHA256": "1a81d3c5ffd9b990cbc183eacf1828a002f701b0a2d91dfa5d2b860777905a91"
+  "DetailedMeasurementsSHA256": "da1349792584778f365213316e8349c44e0c13adc9de471aa8cc384cc6e6bf76"
 }

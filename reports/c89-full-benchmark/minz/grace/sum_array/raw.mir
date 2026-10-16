@@ -1,4 +1,4 @@
-; MIR2 module: /home/alice/dev/minz-artifacts/grace-workspaces/c89-absdiff-cfg/research/c89-benchmark/cases/sum_array
+; MIR2 module: /home/alice/dev/minz-artifacts/grace-workspaces/c89-direct-word-store/research/c89-benchmark/cases/sum_array
 global @values : [256]u8
 global @n : u8
 global @result : u16

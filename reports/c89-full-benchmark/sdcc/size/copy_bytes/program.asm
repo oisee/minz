@@ -53,7 +53,7 @@ _result::
 ; code
 ;--------------------------------------------------------
 	.area _CODE
-;/home/alice/dev/minz-artifacts/grace-workspaces/c89-absdiff-cfg/research/c89-benchmark/cases/copy_bytes.c:3: void copy_bytes(unsigned char *dst, unsigned char *src, unsigned char count) {
+;/home/alice/dev/minz-artifacts/grace-workspaces/c89-direct-word-store/research/c89-benchmark/cases/copy_bytes.c:3: void copy_bytes(unsigned char *dst, unsigned char *src, unsigned char count) {
 ;	---------------------------------
 ; Function copy_bytes
 ; ---------------------------------
@@ -65,7 +65,7 @@ _copy_bytes::
 	push	af
 	ld	-2 (ix), l
 	ld	-1 (ix), h
-;/home/alice/dev/minz-artifacts/grace-workspaces/c89-absdiff-cfg/research/c89-benchmark/cases/copy_bytes.c:5: for (i = 0; i < count; i++) dst[i] = src[i];
+;/home/alice/dev/minz-artifacts/grace-workspaces/c89-direct-word-store/research/c89-benchmark/cases/copy_bytes.c:5: for (i = 0; i < count; i++) dst[i] = src[i];
 	ld	c, #0x00
 00103$:
 	ld	a, c
@@ -87,13 +87,13 @@ _copy_bytes::
 	inc	c
 	jr	00103$
 00105$:
-;/home/alice/dev/minz-artifacts/grace-workspaces/c89-absdiff-cfg/research/c89-benchmark/cases/copy_bytes.c:6: }
+;/home/alice/dev/minz-artifacts/grace-workspaces/c89-direct-word-store/research/c89-benchmark/cases/copy_bytes.c:6: }
 	ld	sp, ix
 	pop	ix
 	pop	hl
 	inc	sp
 	jp	(hl)
-;/home/alice/dev/minz-artifacts/grace-workspaces/c89-absdiff-cfg/research/c89-benchmark/cases/copy_bytes.c:7: void execute(void) { copy_bytes(target, source, n); result = n; }
+;/home/alice/dev/minz-artifacts/grace-workspaces/c89-direct-word-store/research/c89-benchmark/cases/copy_bytes.c:7: void execute(void) { copy_bytes(target, source, n); result = n; }
 ;	---------------------------------
 ; Function execute
 ; ---------------------------------

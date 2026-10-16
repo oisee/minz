@@ -847,7 +847,8 @@ func (g *z80cg) genInst(inst *Inst) {
 		}
 		// u16 direct-address store: LD (sym), HL — 16T, no A clobber.
 		// Fires when the address register traces back to OpAddrOf(global) and the
-		// value is allocated to HL.  Avoids the byte-by-byte DE path that clobbers A.
+		// value is allocated to HL, or an admitted DE/BC adjacent single-use pair.
+		// Avoids byte-by-byte stores and their scratch registers.
 		if inst.Ty.Width() == 16 {
 			if sym, ok := g.globalU16StoreSym[inst.Src[0]]; ok {
 				value := g.loc(inst.Src[1])

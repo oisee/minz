@@ -3,27 +3,27 @@
 ;
 ;	Reconstructed for z80 Module Assembler
 ;
-;	Module compile time: Fri Oct 16 13:55:15 2026
+;	Module compile time: Fri Oct 16 14:24:50 2026
 
 
-	C_LINE	0,"/home/alice/dev/minz-artifacts/grace-workspaces/c89-absdiff-cfg/research/c89-benchmark/cases/gcd.c"
+	C_LINE	0,"/home/alice/dev/minz-artifacts/grace-workspaces/c89-direct-word-store/research/c89-benchmark/cases/gcd.c"
 
-	MODULE	X_home_alice_dev_minz_artifacts_grace_workspaces_c89_absdiff_cfg_research_c89_benchmark_cases_gcd_c
+	MODULE	X_home_alice_dev_minz_artifacts_grace_workspaces_c89_direct_word_store_research_c89_benchmark_cases_gcd_c
 
 
 	INCLUDE "z80_crt0.hdr"
 
 
-	C_LINE	1,"/home/alice/dev/minz-artifacts/grace-workspaces/c89-absdiff-cfg/research/c89-benchmark/cases/gcd.c"
-	C_LINE	2,"/home/alice/dev/minz-artifacts/grace-workspaces/c89-absdiff-cfg/research/c89-benchmark/cases/gcd.c"
-	C_LINE	3,"/home/alice/dev/minz-artifacts/grace-workspaces/c89-absdiff-cfg/research/c89-benchmark/cases/gcd.c"
+	C_LINE	1,"/home/alice/dev/minz-artifacts/grace-workspaces/c89-direct-word-store/research/c89-benchmark/cases/gcd.c"
+	C_LINE	2,"/home/alice/dev/minz-artifacts/grace-workspaces/c89-direct-word-store/research/c89-benchmark/cases/gcd.c"
+	C_LINE	3,"/home/alice/dev/minz-artifacts/grace-workspaces/c89-direct-word-store/research/c89-benchmark/cases/gcd.c"
 	SECTION	code_compiler
 
 ; Function gcd flags 0x00000200 __smallc 
 ; unsigned char gcd(unsigned char x, unsigned char y)
 ; parameter 'unsigned char y' at sp+2 size(1)
 ; parameter 'unsigned char x' at sp+4 size(1)
-	C_LINE	3,"/home/alice/dev/minz-artifacts/grace-workspaces/c89-absdiff-cfg/research/c89-benchmark/cases/gcd.c::gcd::0::0"
+	C_LINE	3,"/home/alice/dev/minz-artifacts/grace-workspaces/c89-direct-word-store/research/c89-benchmark/cases/gcd.c::gcd::0::0"
 ._gcd
 	ld	hl,4	;const
 	add	hl,sp
@@ -113,11 +113,11 @@
 	ret
 
 
-	C_LINE	12,"/home/alice/dev/minz-artifacts/grace-workspaces/c89-absdiff-cfg/research/c89-benchmark/cases/gcd.c::gcd::0::2"
+	C_LINE	12,"/home/alice/dev/minz-artifacts/grace-workspaces/c89-direct-word-store/research/c89-benchmark/cases/gcd.c::gcd::0::2"
 
 ; Function execute flags 0x00000200 __smallc 
 ; void execute()
-	C_LINE	12,"/home/alice/dev/minz-artifacts/grace-workspaces/c89-absdiff-cfg/research/c89-benchmark/cases/gcd.c::execute::0::2"
+	C_LINE	12,"/home/alice/dev/minz-artifacts/grace-workspaces/c89-direct-word-store/research/c89-benchmark/cases/gcd.c::execute::0::2"
 ._execute
 	ld	hl,(_a)
 	ld	h,0

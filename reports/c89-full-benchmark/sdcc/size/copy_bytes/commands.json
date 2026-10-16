@@ -12,24 +12,24 @@
     "--lib-path",
     "/home/alice/dev/minz-artifacts/toolchains/sdcc-4.2/root/usr/share/sdcc/lib/z80",
     "-o",
-    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c89-nanz-sdcc45/absdiff-cfg-full/sdcc/size/copy_bytes/program.ihx",
-    "/home/alice/dev/minz-artifacts/grace-workspaces/c89-absdiff-cfg/research/c89-benchmark/cases/copy_bytes.c"
+    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c89-nanz-sdcc45/direct-word-store-full/sdcc/size/copy_bytes/program.ihx",
+    "/home/alice/dev/minz-artifacts/grace-workspaces/c89-direct-word-store/research/c89-benchmark/cases/copy_bytes.c"
   ],
   [
-    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c89-nanz-sdcc45/absdiff-cfg-full/measure",
+    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c89-nanz-sdcc45/direct-word-store-full/measure",
     "-compiler",
     "sdcc",
     "-profile",
     "size",
     "-source",
-    "/home/alice/dev/minz-artifacts/grace-workspaces/c89-absdiff-cfg/research/c89-benchmark/cases/copy_bytes.c",
+    "/home/alice/dev/minz-artifacts/grace-workspaces/c89-direct-word-store/research/c89-benchmark/cases/copy_bytes.c",
     "-out",
-    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c89-nanz-sdcc45/absdiff-cfg-full/sdcc/size/copy_bytes",
+    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c89-nanz-sdcc45/direct-word-store-full/sdcc/size/copy_bytes",
     "-image",
-    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c89-nanz-sdcc45/absdiff-cfg-full/sdcc/size/copy_bytes/program.ihx",
+    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c89-nanz-sdcc45/direct-word-store-full/sdcc/size/copy_bytes/program.ihx",
     "-symbols",
-    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c89-nanz-sdcc45/absdiff-cfg-full/sdcc/size/copy_bytes/program.noi",
+    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c89-nanz-sdcc45/direct-word-store-full/sdcc/size/copy_bytes/program.noi",
     "-build-info",
-    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c89-nanz-sdcc45/absdiff-cfg-full/sdcc/size/copy_bytes/build-info.json"
+    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c89-nanz-sdcc45/direct-word-store-full/sdcc/size/copy_bytes/build-info.json"
   ]
 ]

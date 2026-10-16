@@ -1,0 +1,21 @@
+=== RUN   TestPFCCOMeasuredNativePacket
+    pfcco_native_workload_test.go:153: off: 7769T/46B choices=map[]
+    pfcco_native_workload_test.go:144: greedy has no Speed benefit: 7888 T against 7769 T
+    pfcco_native_workload_test.go:153: greedy: 7888T/52B choices=map[displacement:0x9c325751260 weighted_packet:0x9c325751290]
+    pfcco_native_workload_test.go:153: pbqp: 7735T/53B choices=map[displacement:0x9c32566dcb0 weighted_packet:0x9c32566dce0]
+    pfcco_native_workload_test.go:155: independent displacement arithmetic and global state verified
+--- PASS: TestPFCCOMeasuredNativePacket (0.12s)
+=== RUN   TestPFCCOProspectiveHeldout
+    pfcco_prospective_heldout_test.go:119: speed mask0: 2285 T / 46 B
+    pfcco_prospective_heldout_test.go:119: speed mask1: 2320 T / 52 B
+    pfcco_prospective_heldout_test.go:119: speed mask2: 2285 T / 46 B
+    pfcco_prospective_heldout_test.go:119: speed mask3: 2320 T / 52 B
+    pfcco_prospective_heldout_test.go:155: speed selected0 heldout 5484 T / 46 B
+    pfcco_prospective_heldout_test.go:119: size mask0: 2285 T / 46 B
+    pfcco_prospective_heldout_test.go:119: size mask1: 2320 T / 52 B
+    pfcco_prospective_heldout_test.go:119: size mask2: 2285 T / 46 B
+    pfcco_prospective_heldout_test.go:119: size mask3: 2320 T / 52 B
+    pfcco_prospective_heldout_test.go:155: size selected0 heldout 5484 T / 46 B
+--- PASS: TestPFCCOProspectiveHeldout (1.80s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	1.928s

@@ -20,6 +20,8 @@ The project is active research: examples and targets have different levels of ma
 
 [C89 practical coverage matrix](reports/c89-good-enough/feature-matrix.md): small struct input/return decomposition, linked aggregate ABI, switch lowering and caller-owned struct-return buffers are integrated. The four-byte scalar ABI is integrated through [PR #170](https://github.com/oisee/minz/pull/170). Independent raw/final VM and assembled Z80 tests cover field order, signed values, copying, volatile accesses and live caller values. [Completion audit](reports/c89-good-enough/completion-audit.md) records the practical scope, measured call costs and integration checks; full ISO C89 conformance is not claimed.
 
+[Direct word stores on Z80](reports/2026-10-16-c89-direct-word-store.md): unchanged C/Nanz abs_diff reaches 27 bytes / 220,904 T. All six C families improve; measured PFCCO interactions and remaining losses are recorded. Integration is pending.
+
 [Current full C/Nanz Z80 benchmark — all sources and ASM](reports/2026-10-16-c89-nanz-full-benchmark.md): all 69 builds, MinZ C and idiomatic Nanz, SDCC 4.2/4.5 Size and Speed, sccz80. Every result links to its source, generated ASM and measurements; optimization milestones and remaining losses are retained.
 
 [Original identical-C Z80 baseline](reports/2026-10-16-c89-identical-c-benchmark.md): six frozen C inputs, MinZ / SDCC / sccz80, real T-states and independent oracles. SDCC wins speed and size on the five common examples; MinZ also supports the tested struct-by-value case. No overall compiler superiority is claimed.
