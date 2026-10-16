@@ -17,8 +17,16 @@ The SAP runtime is outside this goal. No success criterion is replaced by a narr
 
 The semantic adapter previously discarded errors at report, FORM, function, method and control-flow boundaries. These errors now propagate. Regression tests cover flat and nested trees and procedure-lowering failures. Single-object numeric CLEAR and PERFORM calls are parsed; CLEAR is checked on the actual global memory after an explicit call in raw/final VM and native Z80, with initial memory and PC/SP verified. The existing ABAP package tests pass.
 
-This is an intermediate checkpoint. The old type mapping is still approximate, the old CHANGING promotion loses incoming values, expression parsing still needs hardening, and two unchanged programs still need independent semantic reference results. These are required follow-up work, not accepted limitations of the completed goal.
+This is an intermediate checkpoint. The old type mapping is still approximate, expression parsing still needs hardening, and the complete two-program admission gate still needs full-width numeric and string reference coverage. These are required follow-up work, not accepted limitations of the completed goal.
 
 A full, unpruned abapiti Go generation at commit 17ed93a9c60c8e0854f66b545ff33f8f92e8cdc7 produced 2055 classes and 75 interfaces from abaplint 2.120.56 (577f875ebec44cfaf64841cfe71c8ab8dc32622e). An experimental native adapter returns the CLEAR tree. The native library is now integrated into the ordinary Parse/Compile path, without Node/Wasm fallback. Ten same-version fixtures match the complete tree, token positions and upstream ParserError diagnostics, including three malformed sources. The generated source, both licenses, exact input hashes and a reproduction installer are included. These are parser parity checks, not yet the two-program semantic reference gate.
 
 The CLEAR fixture without PERFORM is a function-boundary test: its global remains 7 before the harness invokes probe, and must become 0 after the call. A standalone report that only declares the FORM must retain 7.
+
+## Reference-parameter checkpoint
+
+Real PERFORM calls now pass actual-object addresses for fully typed reference-mode USING and CHANGING. Tests cover incoming values, writable USING, shared USING/CHANGING objects, two CHANGING aliases, forwarding through a nested FORM, a global alias and early RETURN. Six unchanged sources match independent `@abaplint/transpiler`/runtime 2.14.8 results, raw/final VM and assembled Z80 observable globals and PC/SP. The integer values in this checkpoint fit the old representation; this does not establish full ABAP integer semantics.
+
+Main and event lowering errors now propagate too. Untyped FORM parameters and VALUE/LIKE modes are explicit refusals. Literal USING arguments require a conservative transitive no-write proof. Native CP/M output is checked with addressable locals and live references, without frontend PUSH/POP workarounds. HIR address-taking now respects local-parameter shadowing of globals.
+
+The plain-name scalar FORM wrapper remains available for existing compiler assertion comments; real PERFORM uses the reference entry. That wrapper convention is documented in the research README. Numeric widths, generic character storage/copy semantics, complete expression admission, broader unchanged-program reference evidence and main integration remain required.

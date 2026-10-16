@@ -41,7 +41,7 @@ func TestUnsupportedStatementsAreNeverDropped(t *testing.T) {
 }
 
 func TestLoweringFailureDoesNotDropProcedure(t *testing.T) {
-	for _, kind := range []string{"form", "function", "method"} {
+	for _, kind := range []string{"form", "function", "method", "main", "event"} {
 		t.Run(kind, func(t *testing.T) {
 			body := []Stmt_{&ClearStmt{Target: "missing"}}
 			var d Decl
@@ -50,10 +50,18 @@ func TestLoweringFailureDoesNotDropProcedure(t *testing.T) {
 				d = &FormDecl{Name: "probe", Body: body}
 			case "function":
 				d = &FunctionDecl{Name: "probe", Body: body}
+			case "main":
+				d = &formBodyDecl{stmt: body[0]}
+			case "event":
+				d = &EventDecl{Event: "START-OF-SELECTION", Body: body}
 			case "method":
 				d = &ClassDecl{Name: "test", Methods: []*MethodDecl{{Name: "probe", Body: body}}}
 			}
-			_, err := LowerProgram(&Program{Name: "bad", Decls: []Decl{d}})
+			prog := &Program{Name: "bad", Decls: []Decl{d}}
+			if kind == "event" {
+				prog.Events = map[string][]Stmt_{"START-OF-SELECTION": body}
+			}
+			_, err := LowerProgram(prog)
 			if err == nil || !strings.Contains(err.Error(), "unknown target") {
 				t.Fatalf("procedure silently omitted: %v", err)
 			}

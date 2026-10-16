@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "@abaplint/runtime": "2.14.8",
+    "@abaplint/transpiler": "2.14.8",
+    "node": "22.23.3"
+  }
+}

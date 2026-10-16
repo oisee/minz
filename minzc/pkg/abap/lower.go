@@ -205,6 +205,8 @@ type lowerer struct {
 	prog               *Program
 	hm                 *hir.Module
 	varTypes           map[string]mir2.Ty
+	referenceParams    map[string]hir.Expr
+	actualCounter      int
 	paramRegistrations []*ParamDecl              // collected during lowering
 	stringInits        []stringInit              // DATA x TYPE string VALUE '...' → deferred init
 	strCache           map[string]int            // dedup cache: content → index in hm.Strings
@@ -373,21 +375,23 @@ func (l *lowerer) lower() (*hir.Module, error) {
 		} else if p.Default != nil {
 			// Integer param: just set the default value
 			val, err := l.lowerExpr(*p.Default)
-			if err == nil {
-				mainStmts = append(mainStmts, &hir.AssignStmt{
-					Target: &hir.VarRefExpr{Name: p.Name, Ty: ty},
-					Val:    val,
-				})
+			if err != nil {
+				return nil, err
 			}
+			mainStmts = append(mainStmts, &hir.AssignStmt{
+				Target: &hir.VarRefExpr{Name: p.Name, Ty: ty},
+				Val:    val,
+			})
 		}
 	}
 
 	// INITIALIZATION
 	if body, ok := l.prog.Events["INITIALIZATION"]; ok {
 		stmts, err := l.lowerStmts(body)
-		if err == nil {
-			mainStmts = append(mainStmts, stmts.Body...)
+		if err != nil {
+			return nil, err
 		}
+		mainStmts = append(mainStmts, stmts.Body...)
 	}
 
 	// Selection screen — register fields, then sel_show for input.
@@ -571,33 +575,37 @@ func (l *lowerer) lower() (*hir.Module, error) {
 	// AT-SELECTION-SCREEN — runs after screen, SY-UCOMM is set
 	if body, ok := l.prog.Events["AT-SELECTION-SCREEN"]; ok {
 		stmts, err := l.lowerStmts(body)
-		if err == nil {
-			mainStmts = append(mainStmts, stmts.Body...)
+		if err != nil {
+			return nil, err
 		}
+		mainStmts = append(mainStmts, stmts.Body...)
 	}
 
 	// START-OF-SELECTION
 	if body, ok := l.prog.Events["START-OF-SELECTION"]; ok {
 		stmts, err := l.lowerStmts(body)
-		if err == nil {
-			mainStmts = append(mainStmts, stmts.Body...)
+		if err != nil {
+			return nil, err
 		}
+		mainStmts = append(mainStmts, stmts.Body...)
 	}
 
 	// Top-level statements (non-event code)
 	if len(mainBody) > 0 {
 		stmts, err := l.lowerStmts(mainBody)
-		if err == nil {
-			mainStmts = append(mainStmts, stmts.Body...)
+		if err != nil {
+			return nil, err
 		}
+		mainStmts = append(mainStmts, stmts.Body...)
 	}
 
 	// END-OF-SELECTION
 	if body, ok := l.prog.Events["END-OF-SELECTION"]; ok {
 		stmts, err := l.lowerStmts(body)
-		if err == nil {
-			mainStmts = append(mainStmts, stmts.Body...)
+		if err != nil {
+			return nil, err
 		}
+		mainStmts = append(mainStmts, stmts.Body...)
 	}
 
 	// If any SELECT was used or SeedSQL exists, set up SQLite
@@ -810,11 +818,13 @@ func (l *lowerer) lowerGlobal(d *DataDecl) {
 // The outer map contains report globals and is restored even on lowering errors.
 func (l *lowerer) enterProcedure() func() {
 	outer := l.varTypes
+	outerRefs := l.referenceParams
+	l.referenceParams = make(map[string]hir.Expr)
 	l.varTypes = make(map[string]mir2.Ty, len(outer))
 	for name, ty := range outer {
 		l.varTypes[name] = ty
 	}
-	return func() { l.varTypes = outer }
+	return func() { l.varTypes = outer; l.referenceParams = outerRefs }
 }
 
 func (l *lowerer) lowerLocalData(d *DataDecl) (hir.Stmt, error) {
@@ -833,57 +843,46 @@ func (l *lowerer) lowerLocalData(d *DataDecl) (hir.Stmt, error) {
 
 // ── FORM → hir.Func ─────────────────────────────────────────────────────────
 
+// formEntry names the actual ABAP reference-parameter entry. The plain-name
+// single-output wrapper is only a convenience for direct compiler assertions.
+func formEntry(d *FormDecl) string {
+	if len(d.Changing) == 1 {
+		return d.Name + "$ref"
+	}
+	return d.Name
+}
 func (l *lowerer) lowerForm(d *FormDecl) error {
 	defer l.enterProcedure()()
-	params := make([]hir.Param, 0, len(d.Using)+len(d.Changing))
-	for _, p := range d.Using {
-		ty := l.abapTypeToHIR(p.AbapTy, 0)
-		params = append(params, hir.Param{Name: p.Name, Ty: ty})
-		l.varTypes[p.Name] = ty
-	}
-	for _, p := range d.Changing {
-		ty := l.abapTypeToHIR(p.AbapTy, 0)
-		params = append(params, hir.Param{Name: p.Name, Ty: ty})
-		l.varTypes[p.Name] = ty
-	}
-
-	var resultDecl hir.Stmt
-	if len(d.Changing) == 1 {
-		p := d.Changing[0]
-		resultDecl, _ = l.lowerLocalData(&DataDecl{Name: p.Name, AbapTy: p.AbapTy})
+	params := []hir.Param{}
+	all := append(append([]FormParam{}, d.Using...), d.Changing...)
+	for _, p := range all {
+		if _, exists := l.referenceParams[p.Name]; exists {
+			return fmt.Errorf("FORM %s: duplicate parameter %s", d.Name, p.Name)
+		}
+		l.varTypes[p.Name] = l.formParameterType(p)
+		params = append(params, hir.Param{Name: p.Name, Ty: mir2.TyPtr})
+		l.referenceParams[p.Name] = &hir.VarRefExpr{Name: p.Name, Ty: mir2.TyPtr}
 	}
 	body, err := l.lowerStmts(d.Body)
 	if err != nil {
 		return fmt.Errorf("FORM %s: %w", d.Name, err)
 	}
-
-	// If the FORM has exactly one CHANGING parameter, emit it as a function
-	// that returns the CHANGING value. This enables compile-time asserts and
-	// matches the semantic intent of "compute and return via CHANGING".
+	l.hm.Funcs = append(l.hm.Funcs, &hir.Func{Name: formEntry(d), Params: params, RetTy: mir2.TyVoid, Body: body})
 	if len(d.Changing) == 1 {
-		changingName := d.Changing[0].Name
-		changingTy := l.abapTypeToHIR(d.Changing[0].AbapTy, 0)
-		// Remove the CHANGING param from the param list (it's now the return value)
-		usingOnly := make([]hir.Param, len(d.Using))
-		copy(usingOnly, params[:len(d.Using)])
-		retStmt := &hir.ReturnStmt{
-			Val: &hir.VarRefExpr{Name: changingName, Ty: changingTy},
+		resultTy := l.formParameterType(d.Changing[0])
+		resultName := "$abap_result"
+		wrapper := &hir.Block{Body: []hir.Stmt{&hir.VarDeclStmt{Name: resultName, Ty: resultTy, Init: &hir.IntLitExpr{Val: 0, Ty: resultTy}}}}
+		values := []hir.Param{}
+		args := []hir.Expr{}
+		for _, p := range d.Using {
+			ty := l.formParameterType(p)
+			values = append(values, hir.Param{Name: p.Name, Ty: ty})
+			args = append(args, &hir.AddrOfExpr{X: &hir.VarRefExpr{Name: p.Name, Ty: ty}})
 		}
-		body.Body = append([]hir.Stmt{resultDecl}, body.Body...)
-		body.Body = append(body.Body, retStmt)
-		l.hm.Funcs = append(l.hm.Funcs, &hir.Func{
-			Name:   d.Name,
-			Params: usingOnly,
-			RetTy:  changingTy,
-			Body:   body,
-		})
-	} else {
-		l.hm.Funcs = append(l.hm.Funcs, &hir.Func{
-			Name:   d.Name,
-			Params: params,
-			RetTy:  mir2.TyVoid,
-			Body:   body,
-		})
+		result := &hir.VarRefExpr{Name: resultName, Ty: resultTy}
+		args = append(args, &hir.AddrOfExpr{X: result})
+		wrapper.Body = append(wrapper.Body, &hir.ExprStmt{Expr: &hir.CallExpr{Fn: formEntry(d), Args: args, Ty: mir2.TyVoid}}, &hir.ReturnStmt{Val: result})
+		l.hm.Funcs = append(l.hm.Funcs, &hir.Func{Name: d.Name, Params: values, RetTy: resultTy, Body: wrapper})
 	}
 	return nil
 }
@@ -1058,7 +1057,7 @@ func (l *lowerer) lowerStmt(s Stmt_) (hir.Stmt, error) {
 		if ty != mir2.TyU16 {
 			return nil, fmt.Errorf("CLEAR %s: type-specific initial value is not implemented for %s", s.Target, ty)
 		}
-		return &hir.AssignStmt{Target: &hir.VarRefExpr{Name: s.Target, Ty: ty}, Val: &hir.IntLitExpr{Val: 0, Ty: ty}}, nil
+		return &hir.AssignStmt{Target: l.variableTarget(s.Target, ty), Val: &hir.IntLitExpr{Val: 0, Ty: ty}}, nil
 	case *AssignStmt:
 		return l.lowerAssign(s)
 	case *IfStmt:
@@ -1093,8 +1092,7 @@ func (l *lowerer) lowerWrite(s *WriteStmt) (hir.Stmt, error) {
 	if len(s.Exprs) == 0 {
 		return nil, nil
 	}
-	// Emit PUSH HL/DE before each WRITE, POP after.
-	// This preserves loop-carried variables across function calls.
+	// Normal CALL liveness and runtime clobber contracts preserve live values.
 	var stmts []hir.Stmt
 	for _, e := range s.Exprs {
 		he, err := l.lowerExpr(e)
@@ -1107,11 +1105,6 @@ func (l *lowerer) lowerWrite(s *WriteStmt) (hir.Stmt, error) {
 		} else if he.ExprTy() == mir2.TyPtr {
 			fnName = "abap_write_str"
 		}
-		// Save all register pairs before call
-		stmts = append(stmts, &hir.AsmStmt{
-			Target: "z80",
-			Code:   "PUSH IX / PUSH DE / PUSH HL",
-		})
 		stmts = append(stmts, &hir.ExprStmt{
 			Expr: &hir.CallExpr{
 				Fn:   fnName,
@@ -1119,11 +1112,7 @@ func (l *lowerer) lowerWrite(s *WriteStmt) (hir.Stmt, error) {
 				Ty:   mir2.TyVoid,
 			},
 		})
-		// Restore all register pairs after call
-		stmts = append(stmts, &hir.AsmStmt{
-			Target: "z80",
-			Code:   "POP HL / POP DE / POP IX",
-		})
+
 	}
 	if len(stmts) == 1 {
 		return stmts[0], nil
@@ -1146,7 +1135,7 @@ func (l *lowerer) lowerAssign(s *AssignStmt) (hir.Stmt, error) {
 		}, nil
 	}
 	return &hir.AssignStmt{
-		Target: &hir.VarRefExpr{Name: s.Target, Ty: l.varTypes[s.Target]},
+		Target: l.variableTarget(s.Target, l.varTypes[s.Target]),
 		Val:    val,
 	}, nil
 }
@@ -1252,38 +1241,60 @@ func (l *lowerer) lowerWhile(s *WhileStmt) (hir.Stmt, error) {
 	return &hir.WhileStmt{Cond: cond, Body: body}, nil
 }
 
+func (l *lowerer) variableTarget(name string, ty mir2.Ty) hir.Expr {
+	if ptr := l.referenceParams[name]; ptr != nil {
+		return &hir.DerefExpr{Ptr: ptr, Ty: ty}
+	}
+	return &hir.VarRefExpr{Name: name, Ty: ty}
+}
 func (l *lowerer) lowerPerform(s *PerformStmt) (hir.Stmt, error) {
-	args := make([]hir.Expr, 0, len(s.Using)+len(s.Changing))
-	for _, u := range s.Using {
-		e, err := l.lowerExpr(u)
-		if err != nil {
-			return nil, err
+	var form *FormDecl
+	for _, d := range l.prog.Decls {
+		if f, ok := d.(*FormDecl); ok && f.Name == s.FormName {
+			form = f
+			break
 		}
-		args = append(args, e)
 	}
-	if len(s.Changing) == 1 {
-		for _, decl := range l.prog.Decls {
-			if form, ok := decl.(*FormDecl); ok && form.Name == s.FormName && len(form.Changing) == 1 {
-				target, ok := s.Changing[0].(*VarRef)
-				if !ok {
-					return nil, fmt.Errorf("PERFORM %s CHANGING requires a variable", s.FormName)
-				}
-				ty := l.abapTypeToHIR(form.Changing[0].AbapTy, 0)
-				call := &hir.CallExpr{Fn: s.FormName, Args: args, Ty: ty}
-				return &hir.AssignStmt{Target: &hir.VarRefExpr{Name: target.Name, Ty: l.varTypes[target.Name]}, Val: call}, nil
+	if form == nil {
+		return nil, fmt.Errorf("PERFORM: unknown FORM %s", s.FormName)
+	}
+	if len(s.Using) != len(form.Using) || len(s.Changing) != len(form.Changing) {
+		return nil, fmt.Errorf("PERFORM %s: argument count does not match FORM", s.FormName)
+	}
+	args := []hir.Expr{}
+	block := &hir.Block{}
+	actuals := append(append([]Expr_{}, s.Using...), s.Changing...)
+	params := append(append([]FormParam{}, form.Using...), form.Changing...)
+	for i, a := range actuals {
+		ty := l.formParameterType(params[i])
+		if v, ok := a.(*VarRef); ok {
+			if actualTy, exists := l.varTypes[v.Name]; !exists || actualTy != ty {
+				return nil, fmt.Errorf("PERFORM %s: %s has incompatible or undeclared type", s.FormName, v.Name)
 			}
+			if ptr := l.referenceParams[v.Name]; ptr != nil {
+				args = append(args, ptr)
+			} else {
+				args = append(args, &hir.AddrOfExpr{X: &hir.VarRefExpr{Name: v.Name, Ty: ty}})
+			}
+		} else {
+			if i >= len(s.Using) {
+				return nil, fmt.Errorf("PERFORM %s: CHANGING needs a variable", s.FormName)
+			}
+			if l.formMayWrite(form, params[i].Name, map[string]bool{}) {
+				return nil, fmt.Errorf("PERFORM %s: literal passed to writable USING parameter %s", s.FormName, params[i].Name)
+			}
+			lit, ok := a.(*IntLit)
+			if !ok {
+				return nil, fmt.Errorf("PERFORM %s: unsupported literal argument", s.FormName)
+			}
+			l.actualCounter++
+			name := fmt.Sprintf("$abap_actual_%d", l.actualCounter)
+			block.Body = append(block.Body, &hir.VarDeclStmt{Name: name, Ty: ty, Init: &hir.IntLitExpr{Val: lit.Val, Ty: ty}})
+			args = append(args, &hir.AddrOfExpr{X: &hir.VarRefExpr{Name: name, Ty: ty}})
 		}
 	}
-	for _, c := range s.Changing {
-		e, err := l.lowerExpr(c)
-		if err != nil {
-			return nil, err
-		}
-		args = append(args, e)
-	}
-	return &hir.ExprStmt{
-		Expr: &hir.CallExpr{Fn: s.FormName, Args: args, Ty: mir2.TyVoid},
-	}, nil
+	block.Body = append(block.Body, &hir.ExprStmt{Expr: &hir.CallExpr{Fn: formEntry(form), Args: args, Ty: mir2.TyVoid}})
+	return block, nil
 }
 
 func (l *lowerer) lowerCase(s *CaseStmt) (hir.Stmt, error) {
@@ -1937,6 +1948,9 @@ func (l *lowerer) lowerExpr(e Expr_) (hir.Expr, error) {
 		ty, ok := l.varTypes[e.Name]
 		if !ok {
 			ty = mir2.TyU16
+		}
+		if ptr := l.referenceParams[e.Name]; ptr != nil {
+			return &hir.LoadExpr{Ptr: ptr, Ty: ty}, nil
 		}
 		return &hir.VarRefExpr{Name: e.Name, Ty: ty}, nil
 
@@ -2851,4 +2865,81 @@ func emitZXRuntimeFuncs(hm *hir.Module, names map[string]bool) {
 		})
 		names["abap_read_int"] = true
 	}
+}
+
+// formMayWrite is conservative and follows actual-to-formal bindings through
+// nested PERFORM calls. Unknown effects and recursion refuse literal arguments.
+func (l *lowerer) formMayWrite(form *FormDecl, name string, seen map[string]bool) bool {
+	key := form.Name + ":" + name
+	if seen[key] {
+		return true
+	}
+	seen[key] = true
+	defer delete(seen, key)
+	var writes func([]Stmt_) bool
+	writes = func(body []Stmt_) bool {
+		for _, s := range body {
+			switch x := s.(type) {
+			case *AssignStmt:
+				if x.Target == name {
+					return true
+				}
+			case *ClearStmt:
+				if x.Target == name {
+					return true
+				}
+			case *IfStmt:
+				if writes(x.Then) || writes(x.Else) {
+					return true
+				}
+				for _, b := range x.ElseIf {
+					if writes(b.Body) {
+						return true
+					}
+				}
+			case *DoStmt:
+				if writes(x.Body) {
+					return true
+				}
+			case *WhileStmt:
+				if writes(x.Body) {
+					return true
+				}
+			case *PerformStmt:
+				var callee *FormDecl
+				for _, d := range l.prog.Decls {
+					if f, ok := d.(*FormDecl); ok && f.Name == x.FormName {
+						callee = f
+						break
+					}
+				}
+				if callee == nil {
+					return true
+				}
+				actual := append(append([]Expr_{}, x.Using...), x.Changing...)
+				formal := append(append([]FormParam{}, callee.Using...), callee.Changing...)
+				if len(actual) != len(formal) {
+					return true
+				}
+				for i, a := range actual {
+					if v, ok := a.(*VarRef); ok && v.Name == name && l.formMayWrite(callee, formal[i].Name, seen) {
+						return true
+					}
+				}
+			case *DataDecl, *WriteStmt, *ReturnStmt, *ExitStmt, *ContinueStmt:
+			default:
+				return true
+			}
+		}
+		return false
+	}
+	return writes(form.Body)
+}
+
+func (l *lowerer) formParameterType(p FormParam) mir2.Ty {
+	// TYPE c on FORM is generic character data, not an implicit one-byte DATA.
+	if p.AbapTy == "c" {
+		return mir2.TyPtr
+	}
+	return l.abapTypeToHIR(p.AbapTy, 0)
 }

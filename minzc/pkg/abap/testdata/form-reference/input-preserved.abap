@@ -1,0 +1,8 @@
+REPORT zref.
+DATA x TYPE i VALUE 5.
+DATA y TYPE i VALUE 9.
+DATA seen TYPE i.
+FORM bump CHANGING p TYPE i. p = p + 1. ENDFORM.
+FORM probe.
+PERFORM bump CHANGING x.
+ENDFORM.

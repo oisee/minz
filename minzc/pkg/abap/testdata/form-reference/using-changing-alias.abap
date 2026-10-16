@@ -1,0 +1,8 @@
+REPORT zref.
+DATA x TYPE i VALUE 5.
+DATA y TYPE i VALUE 9.
+DATA seen TYPE i.
+FORM mix USING a TYPE i CHANGING b TYPE i c TYPE i. b = 10. c = a + 1. a = a + 2. ENDFORM.
+FORM probe.
+PERFORM mix USING x CHANGING x y.
+ENDFORM.

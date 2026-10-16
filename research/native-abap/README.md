@@ -13,3 +13,13 @@ go test ./pkg/abap/...
 ```
 
 The CLEAR regression sets PATH to an empty directory, explicitly calls the FORM, and checks the actual global object in raw/final VM and assembled Z80. It also checks initial memory and native PC/SP. The complete objective is in `reports/native-abap/objective.md`; numeric, string and CHANGING semantics and two independent full-program references are still required.
+
+## Independent FORM semantics reference
+
+The six source/result pairs in `minzc/pkg/abap/testdata/form-reference` use the independent `@abaplint/transpiler` and `@abaplint/runtime` 2.14.8. They are not executed by MinZ to obtain expected values. Each JSON records the source SHA256, provider version, Node version and observed globals. Tests refuse a modified source.
+
+To reproduce in an isolated directory, copy `reference.mjs`, `semantic-package.json` as `package.json`, and `semantic-package-lock.json` as `package-lock.json`; run `npm ci`, then `node_modules/node/bin/node reference.mjs SOURCE.abap`. Node is a reference-generation dependency only. The harness calls the registered ABAP FORM probe after loading the unchanged source and snapshots the global objects.
+
+Real PERFORM calls use the reference entry. For compatibility with compiler assertion comments, a FORM with exactly one CHANGING parameter also has a plain-name scalar wrapper: its USING arguments are separate local objects, its output starts at zero, and the wrapper calls the same reference implementation. This wrapper is an external test convention; it is not the semantics of PERFORM.
+
+Untyped FORM parameters and VALUE/LIKE modes are explicitly refused until implemented. Literal USING arguments are admitted only when a conservative, transitive effect check proves the corresponding formal cannot be written. CHANGING and writable USING require actual variables.

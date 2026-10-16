@@ -418,6 +418,10 @@ func (l *lowerer) globalAddr(name string) mir2.Reg {
 func (l *lowerer) lowerExprAddr(ex Expr) mir2.Reg {
 	switch e := ex.(type) {
 	case *VarRefExpr:
+		// Addressable locals and parameters shadow globals just as value reads do.
+		if reg, ok := l.env[e.Name]; ok && (l.localCells[e.Name] || l.localArrays[e.Name]) {
+			return reg
+		}
 		if _, ok := l.findGlobal(e.Name); ok {
 			return l.globalAddr(e.Name)
 		}

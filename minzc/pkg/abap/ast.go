@@ -1,16 +1,8 @@
 // Package abap implements an ABAP→HIR frontend for the MinZ compiler.
 //
-// It uses Lars Hvam Petersen's abaplint (TypeScript) as an external parser
-// via a JSON bridge, then lowers the resulting AST to HIR for compilation
-// through the standard MIR2→Z80 pipeline.
-//
-// Architecture:
-//
-//	ABAP source
-//	    → abaplint (Node.js)  → JSON AST
-//	    → Go deserializer     → abap.Program (this package)
-//	    → Lowerer             → *hir.Module
-//	    → MIR2 pipeline       → Z80 assembly
+// It embeds a pinned Go translation of Lars Hvam Petersen's abaplint parser,
+// produced by abapiti, and lowers the admitted semantic AST through HIR and
+// the standard MIR2-to-Z80 pipeline. Node is used only for research references.
 package abap
 
 // ── JSON AST types (deserialized from abaplint bridge output) ────────────────

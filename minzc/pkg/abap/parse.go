@@ -229,9 +229,17 @@ func convertFormStructure(node *ASTChild) (*FormDecl, error) {
 						fd.Name = strings.ToLower(sub.Tokens[0].Str)
 					}
 				case "FormUsing":
-					fd.Using = parseFormParams(sub.Tokens)
+					var err error
+					fd.Using, err = parseReferenceFormParams(sub.Tokens)
+					if err != nil {
+						return nil, childError(sub, err)
+					}
 				case "FormChanging":
-					fd.Changing = parseFormParams(sub.Tokens)
+					var err error
+					fd.Changing, err = parseReferenceFormParams(sub.Tokens)
+					if err != nil {
+						return nil, childError(sub, err)
+					}
 				}
 			}
 			// Fallback: parse name from header tokens directly
@@ -984,6 +992,20 @@ func convertStmt(s *StmtNode) (Decl, error) {
 		return parseWriteStmt(tokens)
 	case upper == "PARAMETER" || upper == "PARAMETERS" || s.Type == "Parameter":
 		return parseParamStmt(tokens)
+	case upper == "RETURN" || upper == "EXIT" || upper == "CONTINUE":
+		if len(tokens) != 2 || tokens[1] != "." {
+			return nil, fmt.Errorf("%s: unsupported addition", upper)
+		}
+		var statement Stmt_
+		switch upper {
+		case "RETURN":
+			statement = &ReturnStmt{}
+		case "EXIT":
+			statement = &ExitStmt{}
+		case "CONTINUE":
+			statement = &ContinueStmt{}
+		}
+		return &formBodyDecl{stmt: statement}, nil
 	case upper == "CLEAR":
 		if len(tokens) != 3 || tokens[2] != "." {
 			return nil, fmt.Errorf("CLEAR: only a single declared scalar target is supported")
@@ -1602,4 +1624,31 @@ func parsePerformStmt(tokens []string) (Decl, error) {
 		}
 	}
 	return &formBodyDecl{stmt: p}, nil
+}
+
+// parseReferenceFormParams admits fully typed, reference-mode FORM parameters.
+// VALUE/LIKE are rejected explicitly until their distinct semantics are implemented.
+func parseReferenceFormParams(tokens []*Token) ([]FormParam, error) {
+	if len(tokens) == 0 {
+		return nil, nil
+	}
+	i := 1
+	params := []FormParam{}
+	for i < len(tokens) {
+		if tokens[i].Str == "." {
+			if i != len(tokens)-1 {
+				return nil, fmt.Errorf("FORM: tokens after period")
+			}
+			break
+		}
+		if i+1 < len(tokens) && strings.EqualFold(tokens[i].Str, "VALUE") && tokens[i+1].Str == "(" {
+			return nil, fmt.Errorf("FORM VALUE copy semantics are not yet admitted")
+		}
+		if i+2 >= len(tokens) || !strings.EqualFold(tokens[i+1].Str, "TYPE") {
+			return nil, fmt.Errorf("FORM: parameter %s needs an explicit supported TYPE", tokens[i].Str)
+		}
+		params = append(params, FormParam{Name: strings.ToLower(tokens[i].Str), AbapTy: strings.ToLower(tokens[i+2].Str)})
+		i += 3
+	}
+	return params, nil
 }
