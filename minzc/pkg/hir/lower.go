@@ -424,7 +424,7 @@ func (l *lowerer) lowerExprAddr(ex Expr) mir2.Reg {
 		}
 		panic(fmt.Sprintf("hir/lower: cannot take address of local variable %q", e.Name))
 	case *FieldExpr:
-		baseAddr := l.lowerExprAddr(e.X)
+		baseAddr := l.lowerExpr(e.X)
 		if e.Offset > 0 {
 			return l.bld.Field(baseAddr, int64(e.Offset), mir2.ClassPointer)
 		}
@@ -1127,6 +1127,20 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 				return false
 			}
 		}
+		if ty, ok := mir2.BaseOf(st.Ty).(*mir2.ArrayTy); ok && st.ArrayLen == 0 {
+			// Array-typed declarations own automatic storage. Legacy ArrayLen
+			// declarations retain their existing frontend representation.
+			storage := &mir2.StructTy{Fields: []mir2.StructField{{Name: "elements", Ty: ty}}}
+			addr := l.fixedStructStorage(storage)
+			if st.Init != nil {
+				source := l.lowerExpr(st.Init)
+				l.copyStructValue(addr, source, storage)
+			}
+			l.bind(st.Name, addr, mir2.TyPtr)
+			l.localArrays[st.Name] = true
+			return false
+		}
+
 		if ty, ok := mir2.BaseOf(st.Ty).(*mir2.StructTy); ok && st.ArrayLen == 0 {
 			// Source struct locals own their bytes; a call-site result buffer is
 			// temporary and can be reused by the next loop iteration.
@@ -2613,7 +2627,8 @@ func (l *lowerer) lowerExpr(e Expr) mir2.Reg {
 		}
 		// Embedded struct field: return address, don't load.
 		// The outer FieldExpr/IndexExpr will do the final scalar Load.
-		if _, isStruct := ex.Ty.(*mir2.StructTy); isStruct {
+		switch mir2.BaseOf(ex.Ty).(type) {
+		case *mir2.StructTy, *mir2.ArrayTy:
 			return base
 		}
 		return l.loadMemory(base, ex.Ty, classForExpr(ex.Ty), ex.Volatile || l.volatileAddress(ex.X))
@@ -2812,7 +2827,8 @@ func (l *lowerer) lowerIndex(ex *IndexExpr) mir2.Reg {
 	ptr := l.lowerIndexAddr(ex)
 	// Struct element: return address, don't load.
 	// The outer FieldExpr will do the final scalar Load.
-	if _, isStruct := ex.ElemTy.(*mir2.StructTy); isStruct {
+	switch mir2.BaseOf(ex.ElemTy).(type) {
+	case *mir2.StructTy, *mir2.ArrayTy:
 		return ptr
 	}
 	return l.loadMemory(ptr, ex.ElemTy, classForExpr(ex.ElemTy), ex.Volatile || l.volatileAddress(ex.Base))

@@ -255,6 +255,12 @@ func (l *lowerer) lowerTopDecl(d *cc.Declaration) error {
 func (l *lowerer) storageType(t cc.Type) mir2.Ty {
 	switch t := t.(type) {
 	case *cc.ArrayType:
+		if t.Len() < 0 {
+			if l.typeError == nil {
+				l.typeError = fmt.Errorf("variable-length array storage is not supported")
+			}
+			return mir2.NewArray(mir2.TyU8, 1)
+		}
 		return mir2.NewArray(l.storageType(t.Elem()), int(t.Len()))
 	case *cc.StructType:
 		if name, ok := l.cStructs[t]; ok {
@@ -281,6 +287,16 @@ func (l *lowerer) storageType(t cc.Type) mir2.Ty {
 	default:
 		return l.mapType(t)
 	}
+}
+
+// A flexible array member contributes no inline bytes to sizeof. Its element
+// type still determines accesses into caller-provided trailing storage.
+func (l *lowerer) storageFieldType(field *cc.Field) mir2.Ty {
+	if field.IsFlexibleArrayMember() {
+		array := field.Type().(*cc.ArrayType)
+		return mir2.NewArray(l.storageType(array.Elem()), 0)
+	}
+	return l.storageType(field.Type())
 }
 
 // The typed parser already resolves nested braces and designators to byte
@@ -400,7 +416,7 @@ func (l *lowerer) lowerStructDecl(tag string, st *cc.StructType) {
 		}
 		mst.Fields = append(mst.Fields, mir2.StructField{
 			Name: fname,
-			Ty:   l.mapType(fty),
+			Ty:   l.storageFieldType(f),
 		})
 	}
 	l.structs[tag] = mst
@@ -429,7 +445,7 @@ func (l *lowerer) lowerUnionDecl(tag string, ut *cc.UnionType) {
 		if fname == "" {
 			fname = fmt.Sprintf("_f%d", i)
 		}
-		mty := l.mapType(f.Type())
+		mty := l.storageFieldType(f)
 		w := mir2.ByteWidth(mty)
 		if w > maxWidth {
 			maxWidth = w
@@ -625,6 +641,11 @@ func (fl *funcLow) lowerLocalDecl(d *cc.Declaration) ([]hir.Stmt, error) {
 		if name == "" {
 			continue
 		}
+		// C99 6.4.2.2: __func__ is a predefined static character array.
+		// Its unused declaration has no effects and needs no runtime storage.
+		if name == "__func__" && decl.ReadCount() == 0 {
+			continue
+		}
 		ty := fl.low.mapType(decl.Type())
 		declarationTy := ty
 		if decl.Type().Kind() == cc.Struct || decl.Type().Kind() == cc.Union {
@@ -635,8 +656,8 @@ func (fl *funcLow) lowerLocalDecl(d *cc.Declaration) ([]hir.Stmt, error) {
 		}
 
 		// static local → emit as mangled global, reference by mangled name.
-		// Skip __func__ (implicitly static, not a real user variable).
-		if decl.IsStatic() && name != "__func__" {
+		// This also preserves the static lifetime of referenced __func__.
+		if decl.IsStatic() {
 			mangled := fl.name + "__" + name
 			ty = fl.low.storageType(decl.Type())
 			fl.locals[name] = ty
@@ -673,6 +694,32 @@ func (fl *funcLow) lowerLocalDecl(d *cc.Declaration) ([]hir.Stmt, error) {
 		}
 		fl.locals[sourceName] = ty
 		fl.locals[name] = ty
+
+		if array, ok := decl.Type().(*cc.ArrayType); ok {
+			if array.Len() < 1 {
+				return nil, fmt.Errorf("automatic array %s requires a constant positive bound", sourceName)
+			}
+			storage := fl.low.storageType(array)
+			stmts = append(stmts, &hir.VarDeclStmt{Name: name, Ty: storage, Volatile: decl.Type().Attributes().IsVolatile()})
+			if id.Initializer != nil {
+				initializers, err := fl.lowerAutomaticAggregateInitializer(name, storage, id.Initializer, decl.Type().Attributes().IsVolatile())
+				if err != nil {
+					return nil, fmt.Errorf("automatic array %s: %w", sourceName, err)
+				}
+				stmts = append(stmts, initializers...)
+			}
+			continue
+		}
+
+		if (decl.Type().Kind() == cc.Struct || decl.Type().Kind() == cc.Union) && cStorageContainsArray(declarationTy) && id.Initializer != nil && id.Initializer.Case == cc.InitializerInitList {
+			stmts = append(stmts, &hir.VarDeclStmt{Name: name, Ty: declarationTy, Volatile: decl.Type().Attributes().IsVolatile()})
+			initializers, err := fl.lowerAutomaticAggregateInitializer(name, declarationTy, id.Initializer, decl.Type().Attributes().IsVolatile())
+			if err != nil {
+				return nil, fmt.Errorf("automatic aggregate %s: %w", sourceName, err)
+			}
+			stmts = append(stmts, initializers...)
+			continue
+		}
 
 		var init hir.Expr
 		if id.Initializer != nil {
@@ -719,22 +766,6 @@ func (fl *funcLow) lowerLocalDecl(d *cc.Declaration) ([]hir.Stmt, error) {
 						return nil, err
 					}
 					init = lit
-				} else if decl.Type() != nil && decl.Type().Kind() == cc.Array {
-					// Array initializer: {1, 2, 3} or {[2]=10, [4]=20}
-					at := decl.Type().(*cc.ArrayType)
-					elemTy := fl.low.mapType(at.Elem())
-					length := int(at.Len())
-					if length < 1 {
-						length = 1
-					}
-					arrInit, err := fl.lowerArrayInit(elemTy, length, id.Initializer.InitializerList)
-					if err != nil {
-						return nil, err
-					}
-					stmts = append(stmts, &hir.VarDeclStmt{
-						Name: name, Ty: elemTy, ArrayLen: length, Initial: arrInit,
-					})
-					continue
 				}
 			}
 		}
@@ -1622,8 +1653,19 @@ func (fl *funcLow) lowerPostfix(pf *cc.PostfixExpression) (*exprResult, error) {
 		if err != nil {
 			return nil, err
 		}
-		elemTy := fl.low.mapType(pf.Type())
-		return wrapExpr(&hir.IndexExpr{Base: base, Idx: idx, ElemTy: elemTy, ElemStride: int(pf.Type().Size())}), nil
+		elementType := pf.Type()
+		if pointer, ok := pf.PostfixExpression.Type().(*cc.PointerType); ok {
+			elementType = pointer.Elem()
+		} else if pointer, ok := pf.ExpressionList.Type().(*cc.PointerType); ok {
+			base, idx = idx, base
+			elementType = pointer.Elem()
+		}
+		elemTy := fl.low.storageType(elementType)
+		indexed := &hir.IndexExpr{Base: base, Idx: idx, ElemTy: elemTy, ElemStride: int(elementType.Size())}
+		if elementType.Kind() == cc.Array {
+			return wrapExpr(hir.AddrExpr(indexed)), nil
+		}
+		return wrapExpr(indexed), nil
 
 	case cc.PostfixExpressionSelect: // struct.field
 		base, err := fl.lowerExprAsExpr(pf.PostfixExpression)
@@ -1632,6 +1674,9 @@ func (fl *funcLow) lowerPostfix(pf *cc.PostfixExpression) (*exprResult, error) {
 		}
 		field := pf.Token2.SrcStr()
 		ty := fl.low.mapType(pf.Type())
+		if field := pf.Field(); field != nil && field.Type().Kind() == cc.Array {
+			ty = fl.low.storageFieldType(field)
+		}
 		// Prefer cc parser's field offset (handles anonymous structs/unions correctly).
 		offset := int(pf.FieldOffset())
 		if offset < 0 {
@@ -1641,9 +1686,9 @@ func (fl *funcLow) lowerPostfix(pf *cc.PostfixExpression) (*exprResult, error) {
 		// combine offsets instead of nesting (FieldExpr always does Load, which is wrong
 		// for embedded struct intermediate access).
 		if fe, ok := base.(*hir.FieldExpr); ok {
-			return wrapExpr(&hir.FieldExpr{X: fe.X, Field: field, Offset: fe.Offset + offset, Ty: ty}), nil
+			return wrapExpr(cFieldValue(&hir.FieldExpr{X: fe.X, Field: field, Offset: fe.Offset + offset, Ty: ty})), nil
 		}
-		return wrapExpr(&hir.FieldExpr{X: base, Field: field, Offset: offset, Ty: ty}), nil
+		return wrapExpr(cFieldValue(&hir.FieldExpr{X: base, Field: field, Offset: offset, Ty: ty})), nil
 
 	case cc.PostfixExpressionPSelect: // struct->field
 		base, err := fl.lowerExprAsExpr(pf.PostfixExpression)
@@ -1652,15 +1697,18 @@ func (fl *funcLow) lowerPostfix(pf *cc.PostfixExpression) (*exprResult, error) {
 		}
 		field := pf.Token2.SrcStr()
 		ty := fl.low.mapType(pf.Type())
+		if field := pf.Field(); field != nil && field.Type().Kind() == cc.Array {
+			ty = fl.low.storageFieldType(field)
+		}
 		offset := int(pf.FieldOffset())
 		if offset < 0 {
 			offset = fl.resolveFieldOffset(pf.PostfixExpression.Type(), field)
 		}
 		// Flatten: ptr->inner.field where inner is embedded.
 		if fe, ok := base.(*hir.FieldExpr); ok {
-			return wrapExpr(&hir.FieldExpr{X: fe.X, Field: field, Offset: fe.Offset + offset, Ty: ty}), nil
+			return wrapExpr(cFieldValue(&hir.FieldExpr{X: fe.X, Field: field, Offset: fe.Offset + offset, Ty: ty})), nil
 		}
-		return wrapExpr(&hir.FieldExpr{X: base, Field: field, Offset: offset, Ty: ty}), nil
+		return wrapExpr(cFieldValue(&hir.FieldExpr{X: base, Field: field, Offset: offset, Ty: ty})), nil
 
 	case cc.PostfixExpressionInc: // x++
 		base, err := fl.lowerExprAsExpr(pf.PostfixExpression)
@@ -1699,6 +1747,16 @@ func (fl *funcLow) lowerPostfix(pf *cc.PostfixExpression) (*exprResult, error) {
 	default:
 		return fl.lowerExpr(pf.PrimaryExpression)
 	}
+}
+
+// C99 6.3.2.1: an array field designates inline storage, and ordinary
+// value use decays to a pointer to its first element. AddrExpr keeps the
+// pointer width independent of the full aggregate width.
+func cFieldValue(field *hir.FieldExpr) hir.Expr {
+	if _, array := mir2.BaseOf(field.Ty).(*mir2.ArrayTy); array {
+		return hir.AddrExpr(field)
+	}
+	return field
 }
 
 // extractCalleeName tries to extract a simple identifier from a C expression node.
@@ -2296,45 +2354,82 @@ func (fl *funcLow) lowerStructInit(st *mir2.StructTy, il *cc.InitializerList) (*
 	return lit, nil
 }
 
-// lowerArrayInit converts C array initializer list to HIR Initial slice.
-// Handles both positional {1, 2, 3} and designated {[2]=10, [4]=20} forms.
-func (fl *funcLow) lowerArrayInit(elemTy mir2.Ty, length int, il *cc.InitializerList) ([]hir.Expr, error) {
-	result := make([]hir.Expr, length)
-	// Fill with zeros
-	for i := range result {
-		result[i] = &hir.IntLitExpr{Val: 0, Ty: elemTy}
+func cStorageContainsArray(ty mir2.Ty) bool {
+	switch ty := mir2.BaseOf(ty).(type) {
+	case *mir2.ArrayTy:
+		return true
+	case *mir2.StructTy:
+		for _, field := range ty.Fields {
+			if cStorageContainsArray(field.Ty) {
+				return true
+			}
+		}
 	}
-	idx := 0
-	for ; il != nil; il = il.InitializerList {
-		init := il.Initializer
-		if init == nil {
+	return false
+}
+
+// Use the typed C initializer offsets for nested automatic aggregates.
+// Explicit leaves are stored once; only omitted bytes receive implicit zeros.
+func (fl *funcLow) lowerAutomaticAggregateInitializer(name string, storage mir2.Ty, initializer *cc.Initializer, volatile bool) ([]hir.Stmt, error) {
+	var leaves []*cc.Initializer
+	var collect func(*cc.Initializer)
+	collect = func(init *cc.Initializer) {
+		if init.Case == cc.InitializerInitList {
+			for list := init.InitializerList; list != nil; list = list.InitializerList {
+				if list.Initializer != nil {
+					collect(list.Initializer)
+				}
+			}
+		} else {
+			leaves = append(leaves, init)
+		}
+	}
+	collect(initializer)
+	size := mir2.ByteWidth(storage)
+	written := make([]bool, size)
+	for _, leaf := range leaves {
+		if field := leaf.Field(); field != nil && field.IsBitfield() {
+			return nil, fmt.Errorf("bit-field initializer is not supported")
+		}
+		off, width := int(leaf.Offset()), int(leaf.Type().Size())
+		if off < 0 || width < 1 || off+width > size {
+			return nil, fmt.Errorf("initializer layout exceeds storage: offset %d width %d size %d", off, width, size)
+		}
+		for i := off; i < off+width; i++ {
+			written[i] = true
+		}
+	}
+	address := func(offset int) hir.Expr {
+		return hir.AddrExpr(&hir.IndexExpr{Base: hir.Var(name, mir2.TyPtr), Idx: hir.U16(int64(offset)), ElemTy: mir2.TyU8, ElemStride: 1})
+	}
+	var stmts []hir.Stmt
+	for off, explicit := range written {
+		if !explicit {
+			stmts = append(stmts, &hir.StoreStmt{Ptr: address(off), Val: hir.U8(0), Volatile: volatile})
+		}
+	}
+	for _, leaf := range leaves {
+		off := int(leaf.Offset())
+		if str, ok := leaf.Value().(cc.StringValue); ok && leaf.Type().Kind() == cc.Array {
+			data := make([]byte, int(leaf.Type().Size()))
+			copy(data, []byte(str))
+			for i, value := range data {
+				stmts = append(stmts, &hir.StoreStmt{Ptr: address(off + i), Val: hir.U8(int64(value)), Volatile: volatile})
+			}
 			continue
 		}
-		// Check for [index] designator
-		if il.Designation != nil {
-			if dl := il.Designation.DesignatorList; dl != nil && dl.Designator != nil {
-				d := dl.Designator
-				if d.Case == cc.DesignatorIndex {
-					idx = int(constToInt64(d.ConstantExpression.Value()))
-				}
-			}
+		if leaf.AssignmentExpression == nil {
+			return nil, fmt.Errorf("unsupported array initializer leaf")
 		}
-		if idx < 0 || idx >= length {
-			idx = 0 // safety: skip out-of-bounds
+		value, err := fl.lowerExprAsExpr(leaf.AssignmentExpression)
+		if err != nil {
+			return nil, err
 		}
-		switch init.Case {
-		case cc.InitializerExpr:
-			if init.AssignmentExpression != nil {
-				r, err := fl.lowerExpr(init.AssignmentExpression)
-				if err != nil {
-					return nil, err
-				}
-				result[idx] = fl.low.convertType(r.toExpr(), init.Type())
-			}
-		}
-		idx++
+		fl.drainPending(&stmts)
+		value = fl.low.convertType(value, leaf.Type())
+		stmts = append(stmts, &hir.StoreStmt{Ptr: address(off), Val: value, Volatile: volatile})
 	}
-	return result, nil
+	return stmts, nil
 }
 
 func constToInt64(v cc.Value) int64 {
