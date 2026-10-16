@@ -171,6 +171,10 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 	if opt.CheckedLocalTablePath != "" && (!opt.OptSize || opt.Backend != "" && opt.Backend != "z80" || opt.SkipZ80Emission || opt.ProfileSelection != nil && opt.CheckedLocalTableSHA256 == "") {
 		return s, fmt.Errorf("checked local tables require emitted Z80 OptSize and a content pin for PGO")
 	}
+	hir.OptimizeCAggregateABI(hm)
+	if err := hir.Verify(hm); err != nil {
+		return Steps{}, fmt.Errorf("C aggregate ABI: %w", err)
+	}
 	s.UnsignedPairComparePolicy = policy
 	s.Traces = make(map[string]*FuncTrace)
 
