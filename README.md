@@ -18,7 +18,7 @@ The project is active research: examples and targets have different levels of ma
 
 [Source imports, target ABI, supported subset and runnable examples](docs/Nanz_C_Interop.md) · [FAT12 disk-image reader](examples/system-c/fat12/README.md). Implementation, supported scope and verification are recorded in [PR #162](https://github.com/oisee/minz/pull/162) and the [integration report](reports/system-c-z80/integration-readiness.md).
 
-[C89 practical coverage matrix](reports/c89-good-enough/feature-matrix.md): small struct input/return decomposition, linked aggregate ABI, switch lowering and caller-owned struct-return buffers are integrated. Wide-call, transfer-cost and global-address coverage is also integrated through [PR #168](https://github.com/oisee/minz/pull/168); [Completion audit](reports/c89-good-enough/completion-audit.md) tracks the remaining four-byte aggregate boundary and final integration checks; full ISO C89 conformance is not claimed.
+[C89 practical coverage matrix](reports/c89-good-enough/feature-matrix.md): small struct input/return decomposition, linked aggregate ABI, switch lowering and caller-owned struct-return buffers are integrated. The four-byte scalar ABI is integrated through [PR #170](https://github.com/oisee/minz/pull/170). Independent raw/final VM and assembled Z80 tests cover field order, signed values, copying, volatile accesses and live caller values. [Completion audit](reports/c89-good-enough/completion-audit.md) records the practical scope, measured call costs and integration checks; full ISO C89 conformance is not claimed.
 
 ## 🎉 Zork, compiled from Nanz to banked Z80!
 

@@ -1,10 +1,10 @@
 # C89: декомпозиция до четырёх байт
 
-16 октября 2026 года, `feat/c89-aggregate-widths`. Этап пока не интегрирован
-в main; проверяет границу обещанного shallow scalar ABI, дополняя Pair.
+16 октября 2026 года. Основной механизм интегрирован в main d43e8559
+через PR #170. Этот checkpoint расширяет проверки границы shallow scalar ABI.
 
-Четыре строгие C89 формы: три byte-поля; четыре byte-поля; два word-поля;
-word плюс два byte-поля. Factory заполняет объект присваиваниями полям,
+Все 11 порядков полей шириной 1/2 байта с суммой до четырёх байт,
+плюс signed word/byte/byte и byte/byte/word. Factory заполняет объект присваиваниями полям,
 consumer получает его по значению, caller использует исходный x после CALL.
 Triple и Mixed намеренно имеют одинаковые имена полей при разных типах.
 
@@ -34,15 +34,22 @@ caller и callee используют согласованную четвёрк�
 
 `TestC89AggregateScalarWidthVMZ80` проверяет число и типы реальных MIR argument
 и result slots, отсутствие alloca, независимую unsigned-модель и native PC/SP.
-4 формы × 12 входов × 3 режима — 144 native запуска; raw плюс три final VM —
-192 вызова. Все прошли. GCC `-std=c89 -pedantic-errors` независимо подтвердил
-1024 результата на всех 256 входах четырёх форм.
+13 форм × 12 входов × 4 режима (default, Grace, Size, без contract optimization)
+дают 624 native запуска; raw плюс четыре final VM — 780 вызовов. GCC
+`-std=c89 -pedantic-errors` независимо подтвердил 3328 результатов на всех
+256 входах 13 форм. Signed arithmetic остаётся в определённом диапазоне C int.
 
-Полный core до последних marker/volatile уточнений: C89 37.991 s,
-HIR 28.799 s, MIR2 104.044 s, Nanz 25.774 s, interop 0.003 s, PASS.
-После marker уточнения aggregate/promotion tests — C89 4.127 s и HIR 0.011 s,
-PASS. После volatile guard: C89 4.765 s и HIR 0.010 s, PASS.
-Полные C89/HIR на итоговом коде guard и marker: 46.983 s / 39.100 s, PASS.
+Режим без contract optimization нашёл отдельный сбой Z80: RHS-константа 32
+имела номинальный HL, но её загрузка была удалена как ненужная для immediate.
+Перестановка операндов MUL принимала старое содержимое HL за значение константы.
+Теперь константа остаётся справа. Forced-allocation матрица проверяет 3400
+произведений с 17 константами; прежние 2000 случаев переменного HL/DE умножения
+сохраняются. Это обычный backend fix, не требование включать Grace/PFCCO.
+
+Forwarding проверяется отдельно: nested/assignment calls сохраняют буферный ABI,
+вызывают factory ровно один раз и не изменяют исходный объект при передаче копии.
+`TestC89AggregateForwardingVMZ80`: 81 native / 108 VM. Наличие этой проверки
+не означает, что все формы aggregate expressions уже scalarize.
 
 ```sh
 cd minzc

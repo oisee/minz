@@ -8,7 +8,9 @@ switch/control-flow — в main 8fd960e5 через PR #164. Исправлен�
 Language-admission интегрирован в main 1247c19d через PR #167; wide CALL, стоимость scalar ABI и глобальные
 relocations — в main 548d6135 через PR #168. Дополнительная control-closure
 матрица и её backend fix интегрированы в main c69f2197 через PR #169.
-Граница scalar ABI до четырёх байт ожидает PR #170. Полная цель остаётся активной.
+Граница scalar ABI до четырёх байт интегрирована в main d43e8559 через PR #170.
+Этот checkpoint дополняет её всеми порядками полей, signed и no-contract режимом,
+проверками forwarding/volatile и явными target-size/VLA diagnostics.
 
 | Семейство | Исполняемое доказательство | Состояние и граница |
 |---|---|---|
@@ -25,18 +27,20 @@ relocations — в main 548d6135 через PR #168. Дополнительна�
 | Private symbols, extern, separate imports | `TestCSourcePrivateSymbolsNativeVM`, `TestCSourceImportNativeVM`, `TestC89AggregateImportVMZ80` | Mixed C/Nanz VM/Z80; aggregate ABI после связывания интегрирован через PR #165 |
 | volatile scalar/global/field/local | `TestCVolatileAccessNativeVM`, `TestCLocalVolatileTrafficNativeVM` | VM/Z80, observable access count/order |
 | volatile aggregate/by-value | `TestCStructParametersNativeVM`, `TestC89AggregateParameterMemoryFallback` | Copy semantics и память; раздельно проверять traffic и ABI |
-| Возврат локального volatile aggregate | `TestCLocalVolatileTrafficNativeVM/aggregate_return` | Source storage/точные byte events сохранены; обычный result может быть tuple. [Дополнительная проверка](volatile-return-boundary.md) пока в следующей ветке |
+| Возврат локального volatile aggregate | `TestCLocalVolatileTrafficNativeVM/aggregate_return` | Source storage/точные byte events сохранены; обычный result может быть tuple. [Дополнительная проверка](volatile-return-boundary.md): 6 native / 6 VM |
 | Struct layout, array/struct initializer | `TestCAggregateStorageNativeVM` | VM/Z80, bytes/layout; C99 designated cases считать отдельно от C89 |
 | Nested struct/union/overlapping bytes | `TestCNestedUnionLayoutNativeVM` | VM/Z80; memory fallback, не shallow scalar optimization |
 | By-value struct input | `TestCStructParametersNativeVM`, `TestC89AggregateScalarizationBehavior` | Copy semantics direct/indirect/recursive и изменение копии |
-| Small struct return → multiple values | `TestC89AggregateScalarizationABI`, `TestC89AggregateScalarizationBehavior` | Pair интегрирован; граница 3/4 byte, 2 word и mixed: `TestC89AggregateScalarWidthVMZ80`, 144 native / 192 VM, пока в следующей ветке |
+| Small struct return → multiple values | `TestC89AggregateScalarizationABI`, `TestC89AggregateScalarizationBehavior` | `TestC89AggregateScalarWidthVMZ80`: все 11 порядков полей шириной 1/2 байта до четырёх байт плюс две signed формы; default/Grace/Size/no-contract — 624 native / 780 VM |
 | Small struct input → multiple arguments | Те же aggregate tests | Pair интегрирован; новая width matrix подтверждает количество/типы argument slots и no alloca; адрес/indirect/volatile сохраняют memory ABI |
+| Forwarding и преобразование aggregate | `TestC89AggregateForwardingVMZ80` | Nested calls, assignment calls, single evaluation и неизменность исходной копии: 81 native / 108 VM; эти формы пока сохраняют буферный ABI |
 | Цена aggregate scalar ABI | `TestC89AggregateTransferCostVMZ80` | Пара primary/heldout, реальные буферы против tuple slots; 732 native / 1464 VM вызовов, интегрировано через PR #168 |
 | Возврат большой структуры и косвенный aggregate return | `TestC89AggregateReturnLifetimeVMZ80` | Буфер caller и копирование до освобождения frame; интегрировано через PR #166 |
 | Глобальные address initializers | `TestC89GlobalRelocationsVMZ80`, `TestC89GlobalRelocationImportVMZ80` | Строки, поля, массивы, static local, function pointers, C/C и Nanz/C; 231 native / 308 VM вызовов, интегрировано через PR #168 |
 | Косвенный вызов с живым out-pointer | `TestC89IndirectOutPointerAdmission` | Typed void CALL с живым адресом локальной структуры: 15 native / 20 VM, исправлен admission, интегрировано через PR #168 |
 | Enum width/value | `TestCEnumWidthsNativeVM` | VM/Z80; ordinary signed16 enum плюс wide-constant GNU/C23 extension. Значения за пределами target int не являются ISO C89 enum coverage |
 | sizeof/layout | integer/storage cases + `TestC89LanguageAdmissionVMZ80` | Target layout и sizeof без вычисления x++/вызова; source-level набор интегрирован через PR #167 |
+| Target object size и runtime sizeof | `TestC89TargetObjectLimits`, `TestC89SizeofTargetBoundaryVMZ80` | Объект/sizeof >65535 байт и VLA types явно отклоняются; sizeof(65535) и unevaluated operand: 6 native / 8 VM. Это предел представимости, а не обещание вместить объект вместе с кодом/стеком |
 | Arrays/string/byte initializers | storage/string8 + language admission/string import suites | Escapes, соседние literals, NUL, C/Nanz linking, CString/SString identity; literal linkage интегрирован через PR #167; global pointer relocation интегрирована через PR #168 |
 | Function pointers | `TestCStructParametersNativeVM`, aggregate indirect case | VM/Z80 на typed signatures; varargs ABI не следует из этого |
 | Includes/preprocessor | include/FatFS + `TestC89LanguageAdmissionVMZ80` | #if/#/## имеют raw/final VM/Z80 оракулы в новом наборе; не все варианты preprocessing |
@@ -55,14 +59,14 @@ long/VLA отклоняются: `TestCRejectsNarrowedLongLong` и
 [глобальные адресные инициализаторы](global-address-initializers.md),
 [cleanup, вложенные переходы и сохранность аргумента](control-closure.md),
 [граница scalar ABI в четыре байта](aggregate-width-boundary.md).
-Следующие работы: завершить строгую интеграцию PR #170, воспроизвести
-декомпозицию на main и завершить [аудит условий цели](completion-audit.md).
+[Аудит условий цели](completion-audit.md) связывает матрицу с текущими проверками
+и строгой интеграцией. Полное ISO-соответствие не заявляется.
 Runtime varargs и неизвестные indirect parameter ABI с живыми caller значениями явно
 не входят в заявленный Z80 допуск. Матрица сохраняет открытые строки.
 
 ## Синтаксис новых исходников и проверка расширений
 
-В `minzc/pkg/c89/testdata` сейчас 23 новых C-файла. 20 принимаются непосредственно
+В `minzc/pkg/c89/testdata` сейчас 24 C-файла. 21 принимается непосредственно
 `cc -std=c89 -pedantic-errors -fsyntax-only`. Три entry-файла используют MinZ
 `#import`: это отдельное расширение для связывания модулей, не ISO C89 directive.
 После удаления только строки `#import` их отдельные C translation-unit тела
@@ -75,5 +79,4 @@ Advisory sweep PR170 поверх main c69f2197 меняет ASM только у
 exit/stdout/stderr одинаковы. Дополнительный
 `TestCAggregateExampleStorageNativeVM` проверяет десять независимых ожидаемых
 результатов на raw/final VM и native Z80 в трёх режимах — 30 native / 40 VM.
-Этот extension regression пока в `feat/c89-completion-evidence`;
-в семантическое покрытие C89 он не включается.
+Этот extension regression не включается в семантическое покрытие C89.
