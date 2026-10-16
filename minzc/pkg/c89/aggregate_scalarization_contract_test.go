@@ -14,7 +14,7 @@ import (
 // ISO C89 aggregate return and parameter values include the current field
 // values; the by-value callee receives the value, not an erased caller object.
 func TestC89AggregateScalarizationBehavior(t *testing.T) {
-	for _, name := range []string{"mutated_return", "struct_roundtrip"} {
+	for _, name := range []string{"mutated_return", "struct_roundtrip", "parameter_mutation", "address_escape", "indirect_parameter", "volatile_parameter"} {
 		t.Run(name, func(t *testing.T) {
 			src, err := os.ReadFile(filepath.Join("testdata", "aggregate_scalarization", name+".c"))
 			if err != nil {
@@ -32,10 +32,14 @@ func TestC89AggregateScalarizationBehavior(t *testing.T) {
 			}
 			want := func(x int64) int64 {
 				hi := byte(x)
-				if name == "mutated_return" {
+				if name != "struct_roundtrip" {
 					hi += 2
 				}
-				return int64(uint16(hi)*256 + uint16(byte(x+1)))
+				result := uint16(hi)*256 + uint16(byte(x+1))
+				if name == "parameter_mutation" || name == "address_escape" || name == "indirect_parameter" || name == "volatile_parameter" {
+					result += uint16(byte(x))
+				}
+				return int64(result)
 			}
 			inputs := []int64{0, 1, 2, 10, 127, 128, 253, 254, 255}
 			raw := mir2.NewVM(hir.LowerModule(parse()))
@@ -93,5 +97,49 @@ func TestC89AggregateScalarizationABI(t *testing.T) {
 	}
 	if consumer == nil || len(consumer.Params) != 2 || consumer.Params[0].Ty != mir2.TyU8 || consumer.Params[1].Ty != mir2.TyU8 {
 		t.Fatal("eligible by-value Pair input not decomposed into scalar arguments")
+	}
+	checkMIR := func(stage string, mm *mir2.Module) {
+		for _, f := range mm.Funcs {
+			if f.Name == "make_pair" && len(f.Contract.Returns) != 2 {
+				t.Fatalf("%s: return tuple lost before code generation", stage)
+			}
+			if f.Name == "consume" && len(f.Contract.Params) != 2 {
+				t.Fatalf("%s: scalar parameters lost before code generation", stage)
+			}
+			for _, b := range f.Blocks {
+				for _, inst := range b.Insts {
+					if inst.Op == mir2.OpAlloca {
+						t.Fatalf("%s %s: eligible aggregate still allocates memory", stage, f.Name)
+					}
+				}
+			}
+		}
+	}
+	checkMIR("raw", hir.LowerModule(m))
+	steps, err := pipeline.CompileHIRSteps(m, pipeline.Options{ContractOpt: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	checkMIR("final", steps.MIR2Module)
+
+}
+
+func TestC89AggregateParameterMemoryFallback(t *testing.T) {
+	for _, name := range []string{"address_escape", "indirect_parameter", "volatile_parameter"} {
+		src, err := os.ReadFile(filepath.Join("testdata", "aggregate_scalarization", name+".c"))
+		if err != nil {
+			t.Fatal(err)
+		}
+		m, err := c89.Compile(string(src), name+".c")
+		if err != nil {
+			t.Fatal(err)
+		}
+		for _, f := range m.Funcs {
+			if f.Name == "consume" {
+				if len(f.Params) != 1 || f.Params[0].Ty != mir2.TyPtr {
+					t.Fatalf("%s: incompatible scalar ABI at address/indirect boundary", name)
+				}
+			}
+		}
 	}
 }

@@ -41,3 +41,9 @@ objects at escape/volatile/indirect boundaries and fixing repeated-call lifetime
 
 Artifacts, failed probes and corrected syntax checks are saved locally under
 /home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c89-good-enough/.
+
+## Следующий checkpoint
+
+Декомпозиция параметров и безопасных локальных объектов реализована; см.
+[aggregate scalarization](aggregate-scalarization.md). Ранее описанное исчерпание
+памяти minmax устранено без изменения оракула. Цель C89 остаётся активной.

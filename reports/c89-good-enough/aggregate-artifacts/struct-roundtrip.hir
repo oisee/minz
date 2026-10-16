@@ -1,0 +1,17 @@
+; HIR module: struct_roundtrip
+struct @Pair { hi: u8, lo: u8 }
+
+fun @make_pair(x: u8)
+  var __c89_scalar_p_0: u8 = cast(0:i16):u8
+  var __c89_scalar_p_1: u8 = cast(0:i16):u8
+  (__c89_scalar_p_0:u8) = (x:u8)
+  (__c89_scalar_p_1:u8) = cast((cast((x:u8)):i16 + cast(1:i16):i16):i16):u8
+  return ((__c89_scalar_p_0:u8), (__c89_scalar_p_1:u8))
+
+fun @consume(__c89_scalar_p_0: u8, __c89_scalar_p_1: u8) -> u16
+  return (cast((cast(cast((__c89_scalar_p_0:u8)):u16):u16 * cast(256:i16):u16):u16):u16 + cast((__c89_scalar_p_1:u8)):u16):u16
+
+fun @check(x: u8) -> u16
+  let (p_hi, p_lo) = make_pair(...)
+  return call @consume((p_hi:u8), (p_lo:u8)):u16
+
