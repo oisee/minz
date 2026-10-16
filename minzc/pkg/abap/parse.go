@@ -610,6 +610,7 @@ func convertWhile(node *ASTChild) (Stmt_, error) {
 func convertIf(node *ASTChild) (Stmt_, error) {
 	var cond Expr_
 	var thenBody, elseBody []Stmt_
+	elseTail := &elseBody
 
 	for _, child := range node.Children {
 		switch child.Type {
@@ -622,13 +623,24 @@ func convertIf(node *ASTChild) (Stmt_, error) {
 				return nil, err
 			}
 			thenBody = collectStmtsFromDecls(decls)
+		case "ElseIf":
+			if node.Type == "ElseIf" {
+				cond = extractCondFromStmt(child)
+				continue
+			}
+			nested, err := convertIf(child)
+			if err != nil {
+				return nil, err
+			}
+			*elseTail = []Stmt_{nested}
+			elseTail = &nested.(*IfStmt).Else
 		case "Else":
 			sub := &StructNode{Type: "Else", Children: child.Children}
 			decls, err := walkStructure(sub)
 			if err != nil {
 				return nil, err
 			}
-			elseBody = collectStmtsFromDecls(decls)
+			*elseTail = collectStmtsFromDecls(decls)
 		}
 	}
 
@@ -645,22 +657,22 @@ func convertDo(node *ASTChild) (Stmt_, error) {
 	for _, child := range node.Children {
 		switch child.Type {
 		case "Do":
-			// Merge node's own tokens with child tokens (Wasm parser
-			// puts keywords like TIMES on the node, values in children)
-			var tokens []string
-			for _, t := range child.Tokens {
-				tokens = append(tokens, t.Str)
+			tokens := expressionTokens(child)
+			if len(tokens) > 0 && strings.EqualFold(tokens[0], "DO") {
+				tokens = tokens[1:]
 			}
-			childToks := collectChildTokens(child.Children)
-			tokens = append(tokens, childToks...)
-			// Filter out DO keyword and period
-			tokens = filterTokens(tokens, "DO", ".")
-			// Look for "TIMES" keyword
-			for i, t := range tokens {
-				if strings.ToUpper(t) == "TIMES" && i > 0 {
-					expr := parseTokenExpr(tokens[i-1])
-					times = &expr
+			if len(tokens) > 0 && tokens[len(tokens)-1] == "." {
+				tokens = tokens[:len(tokens)-1]
+			}
+			if len(tokens) > 0 {
+				if !strings.EqualFold(tokens[len(tokens)-1], "TIMES") {
+					return nil, childError(child, fmt.Errorf("unsupported DO additions"))
 				}
+				expr, err := parseExpression(tokens[:len(tokens)-1])
+				if err != nil {
+					return nil, childError(child, err)
+				}
+				times = &expr
 			}
 		case "Body":
 			sub := &StructNode{Type: "Body", Children: child.Children}
@@ -726,124 +738,48 @@ func convertSelect(node *ASTChild) (Stmt_, error) {
 // It looks for Compare/Cond children with structured Source + CompareOperator,
 // falling back to flat token parsing.
 func extractCondFromStmt(stmtNode *ASTChild) Expr_ {
-	// Look for a Cond or Compare child with structured operands
-	for _, child := range stmtNode.Children {
-		if child.Type == "Cond" || child.Type == "Compare" {
-			return extractCompare(child)
+	tokens := expressionTokens(stmtNode)
+	if len(tokens) > 0 {
+		switch strings.ToUpper(tokens[0]) {
+		case "WHILE", "IF", "ELSEIF":
+			tokens = tokens[1:]
 		}
 	}
-	// Recurse into children — Wasm parser may nest deeper
-	for _, child := range stmtNode.Children {
-		for _, grandchild := range child.Children {
-			if grandchild.Type == "Cond" || grandchild.Type == "Compare" {
-				return extractCompare(grandchild)
-			}
-		}
+	if len(tokens) > 0 && tokens[len(tokens)-1] == "." {
+		tokens = tokens[:len(tokens)-1]
 	}
-	// Fallback: use top-level tokens, skip keyword and period
-	tokens := collectLeafTokens(stmtNode)
-	condTokens := filterTokens(tokens, "WHILE", "IF", "ELSEIF", ".")
-	return parseCondition(condTokens)
+	e := parseCondition(tokens)
+	if bad, ok := e.(*InvalidExpr); ok {
+		bad.Message = childError(stmtNode, fmt.Errorf("%s", bad.Message)).Error()
+	}
+	return e
 }
 
-// extractCompare builds an Expr_ from a Compare node with Source + CompareOperator children.
-func extractCompare(node *ASTChild) Expr_ {
-	var sources []Expr_
-	var op string
-
+// A node's token list already covers its descendants. Never concatenate both:
+// doing so duplicates operands in the native parser's full AST.
+func expressionTokens(node *ASTChild) []string {
+	if len(node.Tokens) > 0 {
+		out := make([]string, len(node.Tokens))
+		for i, t := range node.Tokens {
+			out[i] = t.Str
+		}
+		return out
+	}
+	if len(node.Children) == 0 {
+		if node.Str != "" {
+			return []string{node.Str}
+		}
+		return nil
+	}
+	var out []string
 	for _, child := range node.Children {
-		switch child.Type {
-		case "Source":
-			sources = append(sources, extractSource(child))
-		case "CompareOperator":
-			// Get the operator token
-			for _, t := range child.Tokens {
-				op = t.Str
-			}
-			if op == "" {
-				toks := collectLeafTokens(child)
-				if len(toks) > 0 {
-					op = toks[0]
-				}
-			}
-		case "Compare":
-			// Nested compare (AND/OR chains)
-			return extractCompare(child)
-		}
+		out = append(out, expressionTokens(child)...)
 	}
-
-	if len(sources) >= 2 && op != "" {
-		return &BinOp{Op: op, LHS: sources[0], RHS: sources[1]}
-	}
-	if len(sources) == 1 {
-		return sources[0]
-	}
-	// Fallback: try node's own tokens first (Wasm parser puts tokens on Cond/Compare)
-	if len(node.Tokens) >= 3 {
-		var toks []string
-		for _, t := range node.Tokens {
-			toks = append(toks, t.Str)
-		}
-		cond := parseCondition(toks)
-		if _, isInt := cond.(*IntLit); !isInt {
-			return cond
-		}
-	}
-	// Last resort: collect all leaf tokens
-	tokens := collectLeafTokens(node)
-	return parseCondition(tokens)
+	return out
 }
 
-// extractSource extracts a value expression from a Source node.
-// Source nodes have nested structure: Source → FieldChain → SourceField → Field → Identifier
-// or: Source → Constant → Integer → Identifier
-// Tokens live on intermediate nodes (FieldChain, Constant, Integer), not on Identifier leaves.
-func extractSource(node *ASTChild) Expr_ {
-	var parts []interface{} // alternating: Expr_, string (operator)
-
-	for _, child := range node.Children {
-		switch child.Type {
-		case "FieldChain", "SourceField", "Field":
-			toks := getAllTokens(child)
-			if len(toks) > 0 {
-				parts = append(parts, parseTokenExpr(toks[0]))
-			}
-		case "Constant", "Integer", "ConstantString":
-			toks := getAllTokens(child)
-			if len(toks) > 0 {
-				parts = append(parts, parseTokenExpr(toks[0]))
-			}
-		case "ArithOperator":
-			toks := getAllTokens(child)
-			if len(toks) > 0 {
-				parts = append(parts, toks[0]) // operator string
-			}
-		case "Source":
-			parts = append(parts, extractSource(child))
-		}
-	}
-
-	if len(parts) == 1 {
-		if e, ok := parts[0].(Expr_); ok {
-			return e
-		}
-	}
-	if len(parts) >= 3 {
-		lhs, _ := parts[0].(Expr_)
-		op, _ := parts[1].(string)
-		rhs, _ := parts[2].(Expr_)
-		if lhs != nil && rhs != nil && op != "" {
-			return &BinOp{Op: op, LHS: lhs, RHS: rhs}
-		}
-	}
-
-	// Fallback: try Tokens on the node itself
-	toks := getAllTokens(node)
-	if len(toks) > 0 {
-		return parseTokenExpr(toks[0])
-	}
-	return &IntLit{Val: 0}
-}
+func extractCompare(node *ASTChild) Expr_ { return parseCondition(expressionTokens(node)) }
+func extractSource(node *ASTChild) Expr_  { return parseCondition(expressionTokens(node)) }
 
 // getAllTokens collects all Token.Str from a node and ALL descendants (breadth-first).
 // Unlike collectLeafTokens, this includes tokens on intermediate nodes too.
@@ -883,35 +819,11 @@ func collectLeafTokens(node *ASTChild) []string {
 // parseCondition parses condition tokens into an Expr_.
 // e.g. ["lv_i", "<=", "5"] → BinOp{Op:"<=", LHS:VarRef, RHS:IntLit}
 func parseCondition(tokens []string) Expr_ {
-	if len(tokens) == 0 {
-		return &IntLit{Val: 1}
+	e, err := parseExpression(tokens)
+	if err != nil {
+		return &InvalidExpr{Message: err.Error()}
 	}
-	if len(tokens) == 1 {
-		return parseTokenExpr(tokens[0])
-	}
-	// Find operator
-	for i, t := range tokens {
-		upper := strings.ToUpper(t)
-		switch upper {
-		case "=", "<>", "<", ">", "<=", ">=",
-			"EQ", "NE", "LT", "GT", "LE", "GE",
-			"AND", "OR":
-			lhs := parseCondition(tokens[:i])
-			rhs := parseCondition(tokens[i+1:])
-			return &BinOp{Op: t, LHS: lhs, RHS: rhs}
-		}
-	}
-	// No operator found — might be arithmetic like "lv_i + 1"
-	for i, t := range tokens {
-		if t == "+" || t == "-" || t == "*" || t == "/" {
-			lhs := parseTokenExpr(tokens[0])
-			if i+1 < len(tokens) {
-				rhs := parseTokenExpr(tokens[i+1])
-				return &BinOp{Op: t, LHS: lhs, RHS: rhs}
-			}
-		}
-	}
-	return parseTokenExpr(tokens[0])
+	return e
 }
 
 func filterTokens(tokens []string, skip ...string) []string {
@@ -1550,15 +1462,12 @@ func parseMoveStmt(tokens []string) (Decl, error) {
 		return nil, fmt.Errorf("MOVE: no source value")
 	}
 
-	// Build expression: simple case = single token, complex = binary op
-	var val Expr_
-	if len(srcTokens) == 1 {
-		val = parseTokenExpr(srcTokens[0])
-	} else if len(srcTokens) == 3 {
-		// a OP b
-		val = &BinOp{Op: srcTokens[1], LHS: parseTokenExpr(srcTokens[0]), RHS: parseTokenExpr(srcTokens[2])}
-	} else {
-		val = parseTokenExpr(srcTokens[0]) // fallback: first token
+	if eqIdx != 1 {
+		return nil, fmt.Errorf("MOVE: unsupported target %v", tokens[:eqIdx])
+	}
+	val, err := parseExpression(srcTokens)
+	if err != nil {
+		return nil, fmt.Errorf("MOVE: %w", err)
 	}
 
 	return &formBodyDecl{stmt: &AssignStmt{Target: target, Val: val}}, nil
@@ -1566,24 +1475,11 @@ func parseMoveStmt(tokens []string) (Decl, error) {
 
 // parseTokenExpr converts a single token string to an Expr_.
 func parseTokenExpr(s string) Expr_ {
-	// SY-FIELD references
-	upper := strings.ToUpper(s)
-	if strings.HasPrefix(upper, "SY-") {
-		return &SYField{Field: upper[3:]} // "SY-INDEX" → "INDEX"
+	e, err := expressionAtom(s)
+	if err != nil {
+		return &InvalidExpr{Message: err.Error()}
 	}
-	// Remove surrounding quotes for strings
-	if len(s) >= 2 && s[0] == '\'' && s[len(s)-1] == '\'' {
-		return &StringLit{Val: s[1 : len(s)-1]}
-	}
-	if len(s) >= 2 && s[0] == '`' && s[len(s)-1] == '`' {
-		return &StringLit{Val: s[1 : len(s)-1]}
-	}
-	// Try integer
-	if n, err := strconv.ParseInt(s, 10, 64); err == nil {
-		return &IntLit{Val: n}
-	}
-	// Variable reference
-	return &VarRef{Name: s}
+	return e
 }
 
 // statementError keeps admission failures tied to the offending source token.

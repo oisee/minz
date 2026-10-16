@@ -303,6 +303,12 @@ func (*ExecSQLStmt) abapStmt() {}
 // Expr_ is a semantic ABAP expression.
 type Expr_ interface{ abapExpr() }
 
+// InvalidExpr carries an admission failure through legacy expression APIs.
+// Lowering must reject it; it never denotes a default value.
+type InvalidExpr struct{ Message string }
+
+func (*InvalidExpr) abapExpr() {}
+
 type IntLit struct{ Val int64 }
 
 func (*IntLit) abapExpr() {}

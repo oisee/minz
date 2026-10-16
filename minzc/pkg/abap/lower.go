@@ -1932,6 +1932,8 @@ func (l *lowerer) emitSQLiteExterns() {
 
 func (l *lowerer) lowerExpr(e Expr_) (hir.Expr, error) {
 	switch e := e.(type) {
+	case *InvalidExpr:
+		return nil, fmt.Errorf("ABAP expression: %s", e.Message)
 	case *IntLit:
 		ty := mir2.TyU16
 		if e.Val >= 0 && e.Val <= 255 {
@@ -1962,11 +1964,17 @@ func (l *lowerer) lowerExpr(e Expr_) (hir.Expr, error) {
 		if err != nil {
 			return nil, err
 		}
-		op := "-"
-		if e.Op == "NOT" {
-			op = "!"
+		op, ty := "-", val.ExprTy()
+		switch strings.ToUpper(e.Op) {
+		case "+":
+			return val, nil
+		case "-":
+		case "NOT":
+			op, ty = "!", mir2.TyBool
+		default:
+			return nil, fmt.Errorf("unsupported ABAP unary operator %q", e.Op)
 		}
-		return &hir.UnaryExpr{Op: op, X: val, Ty: val.ExprTy()}, nil
+		return &hir.UnaryExpr{Op: op, X: val, Ty: ty}, nil
 
 	case *SYField:
 		// SY-INDEX etc. → host function call sy_get_FIELD()
@@ -1985,7 +1993,7 @@ func (l *lowerer) lowerExpr(e Expr_) (hir.Expr, error) {
 		return &hir.CallExpr{Fn: e.Name, Args: args, Ty: mir2.TyU16}, nil
 
 	default:
-		return &hir.IntLitExpr{Val: 0, Ty: mir2.TyU8}, nil
+		return nil, fmt.Errorf("unsupported ABAP expression %T", e)
 	}
 }
 
@@ -2001,7 +2009,7 @@ func (l *lowerer) lowerBinOp(e *BinOp) (hir.Expr, error) {
 
 	// Map ABAP operators to HIR string operators
 	var op string
-	switch e.Op {
+	switch strings.ToUpper(e.Op) {
 	case "+":
 		op = "+"
 	case "-":
@@ -2025,17 +2033,17 @@ func (l *lowerer) lowerBinOp(e *BinOp) (hir.Expr, error) {
 	case ">=", "GE", "ge":
 		op = ">="
 	case "AND", "and":
-		op = "&"
+		op = "&&"
 	case "OR", "or":
-		op = "|"
+		op = "||"
 	default:
-		op = "+"
+		return nil, fmt.Errorf("unsupported ABAP binary operator %q", e.Op)
 	}
 
 	// Result type: comparisons → bool, arithmetic → promoted type
 	ty := lhs.ExprTy()
 	switch op {
-	case "==", "!=", "<", ">", "<=", ">=":
+	case "==", "!=", "<", ">", "<=", ">=", "&&", "||":
 		ty = mir2.TyBool
 	default:
 		if lhs.ExprTy() == mir2.TyU16 || rhs.ExprTy() == mir2.TyU16 {
@@ -2055,17 +2063,34 @@ func emitRuntimeFuncs(hm *hir.Module, target uint8) {
 		names[f.Name] = true
 	}
 
+	// DO updates must have a real implementation in raw VM and native Z80.
+	// Previously sy_set_index was called but never defined.
+	hm.Globals = append(hm.Globals, mir2.Global{Name: "_abap_index_value", Ty: mir2.TyU16})
+	if !names["sy_set_index"] {
+		hm.Funcs = append(hm.Funcs, &hir.Func{
+			Name: "sy_set_index", Params: []hir.Param{{Name: "value", Ty: mir2.TyU16}}, RetTy: mir2.TyVoid,
+			Body: &hir.Block{Body: []hir.Stmt{&hir.AssignStmt{
+				Target: &hir.VarRefExpr{Name: "_abap_index_value", Ty: mir2.TyU16},
+				Val:    &hir.VarRefExpr{Name: "value", Ty: mir2.TyU16},
+			}}},
+		})
+		names["sy_set_index"] = true
+	}
 	// SY-* getter stubs (return 0 on Z80, overridden by MZV host functions)
 	syFields := []string{"subrc", "index", "tabix", "ucomm", "datum", "uzeit"}
 	for _, field := range syFields {
 		fnName := "sy_get_" + field
 		if !names[fnName] {
+			var value hir.Expr = &hir.IntLitExpr{Val: 0, Ty: mir2.TyU16}
+			if field == "index" {
+				value = &hir.VarRefExpr{Name: "_abap_index_value", Ty: mir2.TyU16}
+			}
 			hm.Funcs = append(hm.Funcs, &hir.Func{
 				Name:  fnName,
 				RetTy: mir2.TyU16,
 				Body: &hir.Block{
 					Body: []hir.Stmt{
-						&hir.ReturnStmt{Val: &hir.IntLitExpr{Val: 0, Ty: mir2.TyU16}},
+						&hir.ReturnStmt{Val: value},
 					},
 				},
 			})

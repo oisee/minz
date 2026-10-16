@@ -34,3 +34,14 @@ Real PERFORM calls now pass actual-object addresses for fully typed reference-mo
 Main and event lowering errors now propagate too. Untyped FORM parameters and VALUE/LIKE modes are explicit refusals. Literal USING arguments require a conservative transitive no-write proof. Native CP/M output is checked with addressable locals and live references, without frontend PUSH/POP workarounds. HIR address-taking now respects local-parameter shadowing of globals.
 
 The plain-name scalar FORM wrapper remains available for existing compiler assertion comments; real PERFORM uses the reference entry. That wrapper convention is documented in the research README. Numeric widths, generic character storage/copy semantics, complete expression admission, broader unchanged-program reference evidence and main integration remain required.
+
+## Expression checkpoint
+
+[Whole-expression admission](2026-10-16-expression-admission.md) now preserves
+precedence, parentheses, unary signs/NOT, AND/OR short-circuit behavior,
+ELSEIF chains and counted-DO expressions. Unsupported expression kinds and
+operators are explicit errors. Two additional independent reference fixtures
+match raw/final VM and native Z80 global memory and PC/SP. The DO probes also
+close the missing native SY-INDEX setter/getter path. Numeric widths,
+rounding/overflow, strings, remaining syntax/system-field admission and main
+integration are still required; these small-value probes do not complete them.
