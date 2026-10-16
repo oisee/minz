@@ -292,7 +292,18 @@ FORM probe CHANGING result TYPE i.
 ENDFORM.
 ```
 
-Ожидаем `lv_x=0` после вызова. **Raw VM, final VM и assembled Z80 оставляют 7**;
+Сам этот REPORT не вызывает FORM: без `PERFORM probe` или внешнего вызова
+`lv_x` должен оставаться **7**. Это fixture функции, а не самостоятельный
+report-level сценарий исполнения.
+
+В данной проверке вызов делает **Go runner**: для raw/final VM он явно выполняет
+`vm.Call("probe", nil)`. На Z80 runner устанавливает PC на
+`asm.Symbols["probe"]` и кладёт адрес возврата `F100` в стек — то есть запускает
+FORM как внешний вызывающий код. Вызов не зависит от наличия PERFORM в исходнике.
+[Выбор entry и вызов VM](../research/frontend-hardening/probe.go).
+
+Поэтому ожидание **после этого внешнего вызова** — `lv_x=0`.
+**Raw VM, final VM и assembled Z80 оставляют 7**;
 native вызов вернулся с PC `F100`, SP `F000`. Проба смотрит значение глобального
 объекта, не только return register. Здесь используется маленькое значение,
 поэтому проблема не объясняется различием 16/32-bit integer ranges.
