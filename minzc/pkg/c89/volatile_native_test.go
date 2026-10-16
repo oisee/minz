@@ -2,7 +2,6 @@ package c89_test
 
 import (
 	"encoding/binary"
-	"fmt"
 	"github.com/minz/minzc/pkg/nanz"
 	"os"
 	"path/filepath"
@@ -32,20 +31,26 @@ type volatileMemory struct {
 }
 
 func (m *volatileMemory) read(a uint16) byte {
-	v := m.Memory.Data()[a]
+	v := m.Data()[a]
 	if int(a) >= int(m.start) && int(a) < int(m.start)+m.width {
 		m.events = append(m.events, volatileEvent{Value: v, Offset: int(a - m.start)})
 	}
 	return v
 }
 func (m *volatileMemory) write(a uint16, v byte) {
-	m.Memory.Data()[a] = v
+	m.Data()[a] = v
 	if int(a) >= int(m.start) && int(a) < int(m.start)+m.width {
 		m.events = append(m.events, volatileEvent{Write: true, Value: v, Offset: int(a - m.start)})
 	}
 }
-func (m *volatileMemory) ReadByte(a uint16) byte             { return m.read(a) }
-func (m *volatileMemory) ReadByteInternal(a uint16) byte     { return m.read(a) }
+
+// ReadByte and WriteByte implement the Z80 emulator memory interface.
+//
+//nolint:govet // CPU memory methods intentionally differ from io.ByteReader.
+func (m *volatileMemory) ReadByte(a uint16) byte         { return m.read(a) }
+func (m *volatileMemory) ReadByteInternal(a uint16) byte { return m.read(a) }
+
+//nolint:govet // CPU memory methods intentionally differ from io.ByteWriter.
 func (m *volatileMemory) WriteByte(a uint16, v byte)         { m.write(a, v) }
 func (m *volatileMemory) WriteByteInternal(a uint16, v byte) { m.write(a, v) }
 
@@ -217,7 +222,7 @@ func TestCVolatileAccessNativeVM(t *testing.T) {
 					t.Fatalf("Z80 got%d PC%04x SP%04x events%v want%d %v\n%s", got, cpu.PC(), cpu.SP(), mem.events, c.want, c.events, steps.Assembly)
 				}
 				exportVolatile(t, c.name+"-"+mode, "c", source, steps.Assembly, bin.Binary)
-				t.Log(fmt.Sprintf("native/raw/final ordered events %v", c.events))
+				t.Logf("native/raw/final ordered events %v", c.events)
 			})
 		}
 	}

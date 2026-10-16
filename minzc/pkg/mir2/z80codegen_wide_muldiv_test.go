@@ -123,7 +123,9 @@ func TestNativeWideArithmeticBanksAndSpills(t *testing.T) {
 										setup[rhs] = b
 									}
 									z := emulator.NewRemogattoZ80()
-									z.LoadMemory(0x8000, bin.Binary)
+									if err := z.LoadMemory(0x8000, bin.Binary); err != nil {
+										t.Fatal(err)
+									}
 									for i, pair := range pairs {
 										binary.LittleEndian.PutUint32(z.Memory()[0x6200+4*i:0x6204+4*i], setup[pair])
 									}

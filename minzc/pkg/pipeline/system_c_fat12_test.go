@@ -178,8 +178,12 @@ func TestSystemCFAT12ImageNativeVM(t *testing.T) {
 					return v
 				}
 				z := emulator.NewRemogattoZ80()
-				z.LoadMemory(0x8000, bin.Binary)
-				z.LoadMemory(0xeffe, []byte{0, 0xf1})
+				if err := z.LoadMemory(0x8000, bin.Binary); err != nil {
+					t.Fatal(err)
+				}
+				if err := z.LoadMemory(0xeffe, []byte{0, 0xf1}); err != nil {
+					t.Fatal(err)
+				}
 				d := &fatImageDevice{image: tc.image, failSector: tc.failSector}
 				var output []byte
 				z.SetIOHandlers(d.ReadPort, func(port uint16, v byte) {
@@ -201,7 +205,9 @@ func TestSystemCFAT12ImageNativeVM(t *testing.T) {
 				n := binary.LittleEndian.Uint32(z.Memory()[symbol("bytes_read") : symbol("bytes_read")+4])
 				sum := binary.LittleEndian.Uint16(z.Memory()[symbol("checksum") : symbol("checksum")+2])
 				if status != tc.status || n != uint32(len(tc.payload)) || sum != checksum || !bytes.Equal(output, tc.payload) || r.PC != 0xf100 || r.SP != 0xf000 {
-					os.WriteFile("/tmp/minz-system-fat12-failure.a80", []byte(steps.Assembly), 0644)
+					if err := os.WriteFile("/tmp/minz-system-fat12-failure.a80", []byte(steps.Assembly), 0644); err != nil {
+						t.Logf("saving failure assembly: %v", err)
+					}
 					a := symbol("fat12__fat_sector")
 					t.Fatalf("native status%d bytes%d checksum%04x want%d %04x regs%v reads%v BPB%x", status, n, sum, len(tc.payload), checksum, r, d.reads, z.Memory()[a:a+32])
 				}

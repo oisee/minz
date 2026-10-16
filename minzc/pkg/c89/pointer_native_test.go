@@ -84,8 +84,12 @@ func TestCPointerArithmeticNativeVM(t *testing.T) {
 						return v
 					}
 					z := emulator.NewRemogattoZ80()
-					z.LoadMemory(0x4000, bin.Binary)
-					z.LoadMemory(0xeffe, []byte{0, 0xf1})
+					if err := z.LoadMemory(0x4000, bin.Binary); err != nil {
+						t.Fatal(err)
+					}
+					if err := z.LoadMemory(0xeffe, []byte{0, 0xf1}); err != nil {
+						t.Fatal(err)
+					}
 					for n := -4; n <= 4; n++ {
 						var want uint16
 						if op.want != nil {

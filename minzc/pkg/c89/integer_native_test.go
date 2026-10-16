@@ -105,8 +105,12 @@ func TestCIntegerSemanticsNativeVM(t *testing.T) {
 				return v
 			}
 			z := emulator.NewRemogattoZ80()
-			z.LoadMemory(0x8000, bin.Binary)
-			z.LoadMemory(0xeffe, []byte{0, 0xf1})
+			if err := z.LoadMemory(0x8000, bin.Binary); err != nil {
+				t.Fatal(err)
+			}
+			if err := z.LoadMemory(0xeffe, []byte{0, 0xf1}); err != nil {
+				t.Fatal(err)
+			}
 			if got := binary.LittleEndian.Uint32(z.Memory()[symbol("initial") : symbol("initial")+4]); got != 0x12345678 {
 				t.Fatalf("initializer %08x", got)
 			}

@@ -1,9 +1,9 @@
 # Nanz + C for Z80 system code
 
 Implementation checkpoint: 16 October 2026, PR [#162](https://github.com/oisee/minz/pull/162).
-The system-code changes are still on `feat/system-c-z80`; publication of this
-page does not mean integration into main is finished. This is a supported
-subset with executable examples, not a claim of full C89/C99/C17 conformance.
+Implementation and integration evidence is tracked in that PR and the linked
+reports. This is a supported subset with executable examples, not a claim of
+full C89/C99/C17 conformance.
 
 ## Import a C source module
 

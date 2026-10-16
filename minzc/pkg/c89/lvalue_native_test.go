@@ -98,8 +98,12 @@ unsigned int index(void){calls++;return 1;}
 					return p
 				}
 				z := emulator.NewRemogattoZ80()
-				z.LoadMemory(0x8000, bin.Binary)
-				z.LoadMemory(0xeffe, []byte{0, 0xf1})
+				if err := z.LoadMemory(0x8000, bin.Binary); err != nil {
+					t.Fatal(err)
+				}
+				if err := z.LoadMemory(0xeffe, []byte{0, 0xf1}); err != nil {
+					t.Fatal(err)
+				}
 				for _, v := range values {
 					want := c.want(v)
 					var data [4]byte
