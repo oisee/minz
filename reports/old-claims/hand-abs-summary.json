@@ -1,0 +1,34 @@
+[
+  {
+    "all_domain_calls": 262144,
+    "assembly_sha256": "3a74c845557b6c6b1de29b899a0691b4d74e0a3062231b6997007f753f4da3d8",
+    "entry_flags": [
+      0,
+      1,
+      128,
+      255
+    ],
+    "frozen_subset_T": 289366,
+    "frozen_subset_calls": 2048,
+    "function_bytes": 11,
+    "module_bytes": 36,
+    "status": "PASS",
+    "variant": "generated"
+  },
+  {
+    "all_domain_calls": 262144,
+    "assembly_sha256": "4091c5e3d73cd8eca3085ae4d1fb149c1575b1ada1b6b432e1a137ed1afb6911",
+    "entry_flags": [
+      0,
+      1,
+      128,
+      255
+    ],
+    "frozen_subset_T": 253672,
+    "frozen_subset_calls": 2048,
+    "function_bytes": 5,
+    "module_bytes": 30,
+    "status": "PASS",
+    "variant": "hand-body"
+  }
+]
