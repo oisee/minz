@@ -475,6 +475,9 @@ func PropagateConstants(f *Func) bool {
 func SimplifyIdentities(f *Func) bool {
 	consts := collectKnownConsts(f)
 	changed := simplifyTypedZeroIdentities(f)
+	if narrowZeroExtendedByteComparisons(f) {
+		changed = true
+	}
 	for _, b := range f.Blocks {
 		defs := map[Reg]*Inst{}
 		for i, inst := range b.Insts {
