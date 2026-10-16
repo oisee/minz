@@ -1,0 +1,1546 @@
+; MIR2 module: /home/alice/dev/minz-artifacts/grace-workspaces/system-c-hardening/research/system-c-validation/adapters/inih
+string @mir2.str.0 = ";"
+string @mir2.str.1 = ";#"
+string @mir2.str.2 = "]"
+string @mir2.str.3 = "=:"
+string @mir2.str.4 = "r"
+string @mir2.str.5 = "/"
+string @mir2.str.6 = "="
+global @input : [256]u8
+global @output : [256]u8
+global @result : u16
+global @used : u16
+
+fun @isdigit(%r1: i16 [pointer]) -> i16 [pointer]
+  block @entry:
+    %r2 = const 48 : i16 [pointer]
+    %r3 = cmp.ge %r1, %r2 : bool [flag]
+    br_if %r3, @cond_then1(), @cond_else2()
+  block @cond_then1:
+    %r4 = const 57 : i16 [pointer]
+    %r5 = cmp.le %r1, %r4 : bool [flag]
+    %r6 = const 0 : bool [general]
+    %r7 = cmp.ne %r5, %r6 : bool [flag]
+    jmp @cond_join3(%r7)
+  block @cond_join3(%r8: bool [general]):
+    %r9 = ext %r8 : bool -> i16 [pointer]
+    ret %r9
+  block @cond_else2:
+    %r10 = const 0 : bool [general]
+    jmp @cond_join3(%r10)
+
+fun @isxdigit(%r11: i16 [pointer]) -> i16 [pointer]
+  block @entry:
+    %r12 = call @isdigit(%r11) : i16 [pointer]
+    %r13 = const 0 : i16 [general]
+    %r14 = cmp.ne %r12, %r13 : bool [flag]
+    br_if %r14, @cond_then1(), @cond_else2()
+  block @cond_then1:
+    %r15 = const 1 : bool [general]
+    jmp @cond_join3(%r15)
+  block @cond_join3(%r15: bool [general]):
+    %r17 = const 0 : bool [general]
+    %r18 = cmp.ne %r15, %r17 : bool [flag]
+    br_if %r18, @cond_then7(), @cond_else8()
+  block @cond_then7:
+    %r19 = const 1 : bool [general]
+    jmp @cond_join9(%r19)
+  block @cond_join9(%r19: bool [general]):
+    %r21 = ext %r19 : bool -> i16 [pointer]
+    ret %r21
+  block @cond_else8:
+    %r22 = const 65 : i16 [pointer]
+    %r23 = cmp.ge %r11, %r22 : bool [flag]
+    br_if %r23, @cond_then10(), @cond_else11()
+  block @cond_then10:
+    %r24 = const 70 : i16 [pointer]
+    %r25 = cmp.le %r11, %r24 : bool [flag]
+    %r26 = const 0 : bool [general]
+    %r27 = cmp.ne %r25, %r26 : bool [flag]
+    jmp @cond_join12(%r27)
+  block @cond_join12(%r28: bool [general]):
+    %r29 = const 0 : bool [general]
+    %r30 = cmp.ne %r28, %r29 : bool [flag]
+    jmp @cond_join9(%r30)
+  block @cond_else11:
+    %r31 = const 0 : bool [general]
+    jmp @cond_join12(%r31)
+  block @cond_else2:
+    %r32 = const 97 : i16 [pointer]
+    %r33 = cmp.ge %r11, %r32 : bool [flag]
+    br_if %r33, @cond_then4(), @cond_else5()
+  block @cond_then4:
+    %r34 = const 102 : i16 [pointer]
+    %r35 = cmp.le %r11, %r34 : bool [flag]
+    %r36 = const 0 : bool [general]
+    %r37 = cmp.ne %r35, %r36 : bool [flag]
+    jmp @cond_join6(%r37)
+  block @cond_join6(%r38: bool [general]):
+    %r39 = const 0 : bool [general]
+    %r40 = cmp.ne %r38, %r39 : bool [flag]
+    jmp @cond_join3(%r40)
+  block @cond_else5:
+    %r41 = const 0 : bool [general]
+    jmp @cond_join6(%r41)
+
+fun @islower(%r42: i16 [pointer]) -> i16 [pointer]
+  block @entry:
+    %r43 = const 97 : i16 [pointer]
+    %r44 = cmp.ge %r42, %r43 : bool [flag]
+    br_if %r44, @cond_then1(), @cond_else2()
+  block @cond_then1:
+    %r45 = const 122 : i16 [pointer]
+    %r46 = cmp.le %r42, %r45 : bool [flag]
+    %r47 = const 0 : bool [general]
+    %r48 = cmp.ne %r46, %r47 : bool [flag]
+    jmp @cond_join3(%r48)
+  block @cond_join3(%r49: bool [general]):
+    %r50 = ext %r49 : bool -> i16 [pointer]
+    ret %r50
+  block @cond_else2:
+    %r51 = const 0 : bool [general]
+    jmp @cond_join3(%r51)
+
+fun @isupper(%r52: i16 [pointer]) -> i16 [pointer]
+  block @entry:
+    %r53 = const 65 : i16 [pointer]
+    %r54 = cmp.ge %r52, %r53 : bool [flag]
+    br_if %r54, @cond_then1(), @cond_else2()
+  block @cond_then1:
+    %r55 = const 90 : i16 [pointer]
+    %r56 = cmp.le %r52, %r55 : bool [flag]
+    %r57 = const 0 : bool [general]
+    %r58 = cmp.ne %r56, %r57 : bool [flag]
+    jmp @cond_join3(%r58)
+  block @cond_join3(%r59: bool [general]):
+    %r60 = ext %r59 : bool -> i16 [pointer]
+    ret %r60
+  block @cond_else2:
+    %r61 = const 0 : bool [general]
+    jmp @cond_join3(%r61)
+
+fun @isalpha(%r62: i16 [pointer]) -> i16 [pointer]
+  block @entry:
+    %r63 = call @islower(%r62) : i16 [pointer]
+    %r64 = const 0 : i16 [general]
+    %r65 = cmp.ne %r63, %r64 : bool [flag]
+    br_if %r65, @cond_then1(), @cond_else2()
+  block @cond_then1:
+    %r66 = const 1 : bool [general]
+    jmp @cond_join3(%r66)
+  block @cond_join3(%r66: bool [general]):
+    %r68 = ext %r66 : bool -> i16 [pointer]
+    ret %r68
+  block @cond_else2:
+    %r69 = call @isupper(%r62) : i16 [pointer]
+    %r70 = const 0 : i16 [pointer]
+    %r71 = cmp.ne %r69, %r70 : bool [flag]
+    jmp @cond_join3(%r71)
+
+fun @isalnum(%r72: i16 [pointer]) -> i16 [pointer]
+  block @entry:
+    %r73 = call @isalpha(%r72) : i16 [pointer]
+    %r74 = const 0 : i16 [general]
+    %r75 = cmp.ne %r73, %r74 : bool [flag]
+    br_if %r75, @cond_then1(), @cond_else2()
+  block @cond_then1:
+    %r76 = const 1 : bool [general]
+    jmp @cond_join3(%r76)
+  block @cond_join3(%r76: bool [general]):
+    %r78 = ext %r76 : bool -> i16 [pointer]
+    ret %r78
+  block @cond_else2:
+    %r79 = call @isdigit(%r72) : i16 [pointer]
+    %r80 = const 0 : i16 [pointer]
+    %r81 = cmp.ne %r79, %r80 : bool [flag]
+    jmp @cond_join3(%r81)
+
+fun @isspace(%r82: i16 [pointer]) -> i16 [pointer]
+  block @entry:
+    %r83 = const 32 : i16 [pointer]
+    %r84 = cmp.eq %r82, %r83 : bool [flag]
+    br_if %r84, @cond_then1(), @cond_else2()
+  block @cond_then1:
+    %r85 = const 1 : bool [general]
+    jmp @cond_join3(%r85)
+  block @cond_join3(%r85: bool [general]):
+    %r87 = const 0 : bool [general]
+    %r88 = cmp.ne %r85, %r87 : bool [flag]
+    br_if %r88, @cond_then4(), @cond_else5()
+  block @cond_then4:
+    %r89 = const 1 : bool [general]
+    jmp @cond_join6(%r89)
+  block @cond_join6(%r89: bool [general]):
+    %r91 = const 0 : bool [general]
+    %r92 = cmp.ne %r89, %r91 : bool [flag]
+    br_if %r92, @cond_then7(), @cond_else8()
+  block @cond_then7:
+    %r93 = const 1 : bool [general]
+    jmp @cond_join9(%r93)
+  block @cond_join9(%r93: bool [general]):
+    %r95 = const 0 : bool [general]
+    %r96 = cmp.ne %r93, %r95 : bool [flag]
+    br_if %r96, @cond_then10(), @cond_else11()
+  block @cond_then10:
+    %r97 = const 1 : bool [general]
+    jmp @cond_join12(%r97)
+  block @cond_join12(%r97: bool [general]):
+    %r99 = const 0 : bool [general]
+    %r100 = cmp.ne %r97, %r99 : bool [flag]
+    br_if %r100, @cond_then13(), @cond_else14()
+  block @cond_then13:
+    %r101 = const 1 : bool [general]
+    jmp @cond_join15(%r101)
+  block @cond_join15(%r101: bool [general]):
+    %r103 = ext %r101 : bool -> i16 [pointer]
+    ret %r103
+  block @cond_else14:
+    %r104 = const 11 : i16 [pointer]
+    %r105 = cmp.eq %r82, %r104 : bool [flag]
+    %r106 = const 0 : bool [general]
+    %r107 = cmp.ne %r105, %r106 : bool [flag]
+    jmp @cond_join15(%r107)
+  block @cond_else11:
+    %r108 = const 12 : i16 [pointer]
+    %r109 = cmp.eq %r82, %r108 : bool [flag]
+    %r110 = const 0 : bool [general]
+    %r111 = cmp.ne %r109, %r110 : bool [flag]
+    jmp @cond_join12(%r111)
+  block @cond_else8:
+    %r112 = const 13 : i16 [pointer]
+    %r113 = cmp.eq %r82, %r112 : bool [flag]
+    %r114 = const 0 : bool [general]
+    %r115 = cmp.ne %r113, %r114 : bool [flag]
+    jmp @cond_join9(%r115)
+  block @cond_else5:
+    %r116 = const 10 : i16 [pointer]
+    %r117 = cmp.eq %r82, %r116 : bool [flag]
+    %r118 = const 0 : bool [general]
+    %r119 = cmp.ne %r117, %r118 : bool [flag]
+    jmp @cond_join6(%r119)
+  block @cond_else2:
+    %r120 = const 9 : i16 [pointer]
+    %r121 = cmp.eq %r82, %r120 : bool [flag]
+    %r122 = const 0 : bool [general]
+    %r123 = cmp.ne %r121, %r122 : bool [flag]
+    jmp @cond_join3(%r123)
+
+fun @isprint(%r124: i16 [pointer]) -> i16 [pointer]
+  block @entry:
+    %r125 = const 32 : i16 [pointer]
+    %r126 = cmp.ge %r124, %r125 : bool [flag]
+    br_if %r126, @cond_then1(), @cond_else2()
+  block @cond_then1:
+    %r127 = const 126 : i16 [pointer]
+    %r128 = cmp.le %r124, %r127 : bool [flag]
+    %r129 = const 0 : bool [general]
+    %r130 = cmp.ne %r128, %r129 : bool [flag]
+    jmp @cond_join3(%r130)
+  block @cond_join3(%r131: bool [general]):
+    %r132 = ext %r131 : bool -> i16 [pointer]
+    ret %r132
+  block @cond_else2:
+    %r133 = const 0 : bool [general]
+    jmp @cond_join3(%r133)
+
+fun @isgraph(%r134: i16 [pointer]) -> i16 [pointer]
+  block @entry:
+    %r135 = const 32 : i16 [pointer]
+    %r136 = cmp.gt %r134, %r135 : bool [flag]
+    br_if %r136, @cond_then1(), @cond_else2()
+  block @cond_then1:
+    %r137 = const 126 : i16 [pointer]
+    %r138 = cmp.le %r134, %r137 : bool [flag]
+    %r139 = const 0 : bool [general]
+    %r140 = cmp.ne %r138, %r139 : bool [flag]
+    jmp @cond_join3(%r140)
+  block @cond_join3(%r141: bool [general]):
+    %r142 = ext %r141 : bool -> i16 [pointer]
+    ret %r142
+  block @cond_else2:
+    %r143 = const 0 : bool [general]
+    jmp @cond_join3(%r143)
+
+fun @ispunct(%r144: i16 [pointer]) -> i16 [pointer]
+  block @entry:
+    %r145 = call @isgraph(%r144) : i16 [pointer]
+    %r146 = const 0 : i16 [general]
+    %r147 = cmp.ne %r145, %r146 : bool [flag]
+    br_if %r147, @cond_then1(), @cond_else2()
+  block @cond_then1:
+    %r148 = call @isalnum(%r144) : i16 [pointer]
+    %r149 = const 0 : bool [general]
+    %r150 = cmp.eq %r148, %r149 : bool [flag]
+    %r151 = const 0 : bool [general]
+    %r152 = cmp.ne %r150, %r151 : bool [flag]
+    jmp @cond_join3(%r152)
+  block @cond_join3(%r153: bool [general]):
+    %r154 = ext %r153 : bool -> i16 [pointer]
+    ret %r154
+  block @cond_else2:
+    %r155 = const 0 : bool [general]
+    jmp @cond_join3(%r155)
+
+fun @iscntrl(%r156: i16 [pointer]) -> i16 [pointer]
+  block @entry:
+    %r157 = const 0 : i16 [pointer]
+    %r158 = cmp.ge %r156, %r157 : bool [flag]
+    br_if %r158, @cond_then1(), @cond_else2()
+  block @cond_then1:
+    %r159 = const 32 : i16 [pointer]
+    %r160 = cmp.lt %r156, %r159 : bool [flag]
+    %r161 = const 0 : bool [general]
+    %r162 = cmp.ne %r160, %r161 : bool [flag]
+    jmp @cond_join3(%r162)
+  block @cond_join3(%r163: bool [general]):
+    %r164 = const 0 : bool [general]
+    %r165 = cmp.ne %r163, %r164 : bool [flag]
+    br_if %r165, @cond_then4(), @cond_else5()
+  block @cond_then4:
+    %r166 = const 1 : bool [general]
+    jmp @cond_join6(%r166)
+  block @cond_join6(%r166: bool [general]):
+    %r168 = ext %r166 : bool -> i16 [pointer]
+    ret %r168
+  block @cond_else5:
+    %r169 = const 127 : i16 [pointer]
+    %r170 = cmp.eq %r156, %r169 : bool [flag]
+    %r171 = const 0 : bool [general]
+    %r172 = cmp.ne %r170, %r171 : bool [flag]
+    jmp @cond_join6(%r172)
+  block @cond_else2:
+    %r173 = const 0 : bool [general]
+    jmp @cond_join3(%r173)
+
+fun @tolower(%r174: i16 [pointer]) -> i16 [pointer]
+  block @entry:
+    %r175 = call @isupper(%r174) : i16 [pointer]
+    %r176 = const 0 : i16 [general]
+    %r177 = cmp.ne %r175, %r176 : bool [flag]
+    cond_ret %r177, [%r174], @cret_then1()
+  block @cret_then1:
+    %r178 = const 32 : i16 [pointer]
+    %r179 = add %r174, %r178 : i16 [pointer]
+    ret %r179
+
+fun @toupper(%r180: i16 [pointer]) -> i16 [pointer]
+  block @entry:
+    %r181 = call @islower(%r180) : i16 [pointer]
+    %r182 = const 0 : i16 [general]
+    %r183 = cmp.ne %r181, %r182 : bool [flag]
+    cond_ret %r183, [%r180], @cret_then1()
+  block @cret_then1:
+    %r184 = const 32 : i16 [pointer]
+    %r185 = sub %r180, %r184 : i16 [pointer]
+    ret %r185
+
+fun @ini_rstrip(%r186: ptr [pointer], %r187: ptr [pointer]) -> ptr [pointer]
+  block @entry:
+    jmp @loop_head1(%r187, %r186)
+  block @loop_head1(%r188: ptr [general], %r189: ptr [general]):
+    jmp @loop_body2()
+  block @loop_body2:
+    %r190 = cmp.ugt %r188, %r189 : bool [flag]
+    br_if %r190, @if_then4(), @if_else6()
+  block @if_then4:
+    %r191 = const -1 : ptr [general]
+    %r192 = add %r188, %r191 : ptr [general]
+    %r193 = load %r192 : i8 [general]
+    %r194 = ext %r193 : u8 -> i16 [pointer]
+    %r195 = call @isspace(%r194) : i16 [pointer]
+    %r196 = const 0 : i16 [pointer]
+    %r197 = cmp.ne %r195, %r196 : bool [flag]
+    jmp @if_join5(%r197, %r192)
+  block @if_join5(%r198: bool [general], %r192: ptr [general]):
+    %r200 = const 0 : bool [general]
+    %r201 = cmp.eq %r198, %r200 : bool [flag]
+    %r202 = const 0 : bool [general]
+    %r203 = cmp.ne %r201, %r202 : bool [flag]
+    br_if %r203, @if_then7(), @if_join8()
+  block @if_then7:
+    ret %r189
+  block @if_join8:
+    %r204 = const 0 : u8 [general]
+    store %r192, %r204 : i8
+    jmp @loop_head1(%r192, %r189)
+  block @if_else6:
+    %r205 = const 0 : bool [general]
+    jmp @if_join5(%r205, %r188)
+
+fun @ini_lskip(%r206: ptr [pointer]) -> ptr [pointer]
+  block @entry:
+    jmp @loop_head1(%r206)
+  block @loop_head1(%r207: ptr [general]):
+    %r208 = load %r207 : i8 [general]
+    %r209 = const 0 : i8 [general]
+    %r210 = cmp.ne %r208, %r209 : bool [flag]
+    br_if %r210, @cond_then4(), @cond_else5()
+  block @cond_then4:
+    %r211 = load %r207 : i8 [general]
+    %r212 = ext %r211 : u8 -> i16 [pointer]
+    %r213 = call @isspace(%r212) : i16 [pointer]
+    %r214 = const 0 : i16 [pointer]
+    %r215 = cmp.ne %r213, %r214 : bool [flag]
+    jmp @cond_join6(%r215)
+  block @cond_join6(%r216: bool [general]):
+    %r217 = const 0 : bool [general]
+    %r218 = cmp.ne %r216, %r217 : bool [flag]
+    cond_ret %r218, [%r207], @loop_body2()
+  block @loop_body2:
+    %r219 = const 1 : ptr [general]
+    %r220 = add %r207, %r219 : ptr [general]
+    jmp @loop_head1(%r220)
+  block @cond_else5:
+    %r221 = const 0 : bool [general]
+    jmp @cond_join6(%r221)
+
+fun @ini_find_chars_or_comment(%r222: ptr [pointer], %r223: ptr [pointer]) -> ptr [pointer]
+  block @entry:
+    %r224 = const 0 : i16 [pointer]
+    jmp @loop_head1(%r222, %r224)
+  block @loop_head1(%r225: ptr [general], %r224: i16 [pointer]):
+    %r227 = load %r225 : i8 [general]
+    %r228 = const 0 : i8 [general]
+    %r229 = cmp.ne %r227, %r228 : bool [flag]
+    br_if %r229, @cond_then4(), @cond_else5()
+  block @cond_then4:
+    %r230 = const 0 : bool [general]
+    %r231 = cmp.eq %r223, %r230 : bool [flag]
+    %r232 = const 0 : bool [general]
+    %r233 = cmp.ne %r231, %r232 : bool [flag]
+    br_if %r233, @cond_then7(), @cond_else8()
+  block @cond_then7:
+    %r234 = const 1 : bool [general]
+    jmp @cond_join9(%r234)
+  block @cond_join9(%r234: bool [general]):
+    %r236 = const 0 : bool [general]
+    %r237 = cmp.ne %r234, %r236 : bool [flag]
+    jmp @cond_join6(%r237)
+  block @cond_join6(%r238: bool [general]):
+    %r239 = const 0 : bool [general]
+    %r240 = cmp.ne %r238, %r239 : bool [flag]
+    br_if %r240, @cond_then10(), @cond_else11()
+  block @cond_then10:
+    %r241 = const 0 : i16 [general]
+    %r242 = cmp.ne %r224, %r241 : bool [flag]
+    br_if %r242, @cond_then13(), @cond_else14()
+  block @cond_then13:
+    %r243 = addr_of @@mir2.str.0 : ptr [pointer]
+    %r244 = load %r225 : i8 [general]
+    %r245 = sext %r244 : i8 -> i16 [pointer]
+    %r246 = call @strchr(%r243, %r245) : ptr [pointer]
+    %r247 = const 0 : ptr [general]
+    %r248 = cmp.ne %r246, %r247 : bool [flag]
+    jmp @cond_join15(%r248)
+  block @cond_join15(%r249: bool [general]):
+    %r250 = const 0 : bool [general]
+    %r251 = cmp.eq %r249, %r250 : bool [flag]
+    %r252 = const 0 : bool [general]
+    %r253 = cmp.ne %r251, %r252 : bool [flag]
+    jmp @cond_join12(%r253)
+  block @cond_join12(%r254: bool [general]):
+    %r255 = const 0 : bool [general]
+    %r256 = cmp.ne %r254, %r255 : bool [flag]
+    cond_ret %r256, [%r225], @loop_body2()
+  block @loop_body2:
+    %r257 = load %r225 : i8 [general]
+    %r258 = ext %r257 : u8 -> i16 [pointer]
+    %r259 = call @isspace(%r258) : i16 [pointer]
+    %r260 = const 1 : ptr [general]
+    %r261 = add %r225, %r260 : ptr [general]
+    jmp @loop_head1(%r261, %r259)
+  block @cond_else14:
+    %r262 = const 0 : bool [general]
+    jmp @cond_join15(%r262)
+  block @cond_else11:
+    %r263 = const 0 : bool [general]
+    jmp @cond_join12(%r263)
+  block @cond_else8:
+    %r264 = load %r225 : i8 [general]
+    %r265 = sext %r264 : i8 -> i16 [pointer]
+    %r266 = call @strchr(%r223, %r265) : ptr [pointer]
+    %r267 = const 0 : bool [general]
+    %r268 = cmp.eq %r266, %r267 : bool [flag]
+    %r269 = const 0 : bool [general]
+    %r270 = cmp.ne %r268, %r269 : bool [flag]
+    jmp @cond_join9(%r270)
+  block @cond_else5:
+    %r271 = const 0 : bool [general]
+    jmp @cond_join6(%r271)
+
+fun @ini_strncpy0(%r272: ptr [pointer], %r273: ptr [pointer], %r274: u16 [index]) -> ptr [pointer]
+  block @entry:
+    %r275 = const 0 : i16 [pointer]
+    jmp @loop_head1(%r275, %r273)
+  block @loop_head1(%r275: u16 [pointer], %r277: ptr [general]):
+    %r278 = const 1 : i16 [pointer]
+    %r279 = sub %r274, %r278 : u16 [pointer]
+    %r280 = cmp.ult %r275, %r279 : bool [flag]
+    br_if %r280, @cond_then4(), @cond_else5()
+  block @cond_then4:
+    %r281 = ptr_add %r277, %r275 : ptr [pointer]
+    %r282 = load %r281 : i8 [general]
+    %r283 = const 0 : i8 [general]
+    %r284 = cmp.ne %r282, %r283 : bool [flag]
+    jmp @cond_join6(%r284)
+  block @cond_join6(%r285: bool [general]):
+    %r286 = const 0 : bool [general]
+    %r287 = cmp.ne %r285, %r286 : bool [flag]
+    br_if %r287, @loop_body2(), @loop_exit3(%r275)
+  block @loop_body2:
+    %r288 = ptr_add %r272, %r275 : ptr [pointer]
+    %r289 = ptr_add %r277, %r275 : ptr [pointer]
+    %r290 = load %r289 : i8 [general]
+    store %r288, %r290 : i8
+    %r291 = const 1 : u16 [pointer]
+    %r292 = add %r275, %r291 : u16 [pointer]
+    jmp @loop_head1(%r292, %r277)
+  block @loop_exit3(%r293: u16 [pointer]):
+    %r294 = ptr_add %r272, %r293 : ptr [pointer]
+    %r295 = const 0 : u8 [general]
+    store %r294, %r295 : i8
+    ret %r272
+  block @cond_else5:
+    %r296 = const 0 : bool [general]
+    jmp @cond_join6(%r296)
+
+fun @ini_parse_stream(%r297: ptr [pointer], %r298: ptr [pointer], %r299: ptr [pointer], %r300: ptr [pointer]) -> i16 [pointer]
+  block @entry:
+    %r301 = alloca 16 : ptr
+    %r302 = alloca 50 : ptr
+    %r303 = alloca 50 : ptr
+    %r304 = alloca 128 : ptr
+    %r305 = const 128 : i16 [pointer]
+    %r306 = const 0 : u8 [general]
+    store %r303, %r306 : u8
+    %r307 = const 1 : u16 [pointer]
+    %r308 = ptr_add %r303, %r307 : ptr [pointer]
+    %r309 = const 0 : u8 [general]
+    store %r308, %r309 : u8
+    %r310 = const 2 : u16 [pointer]
+    %r311 = ptr_add %r303, %r310 : ptr [pointer]
+    %r312 = const 0 : u8 [general]
+    store %r311, %r312 : u8
+    %r313 = const 3 : u16 [pointer]
+    %r314 = ptr_add %r303, %r313 : ptr [pointer]
+    %r315 = const 0 : u8 [general]
+    store %r314, %r315 : u8
+    %r316 = const 4 : u16 [pointer]
+    %r317 = ptr_add %r303, %r316 : ptr [pointer]
+    %r318 = const 0 : u8 [general]
+    store %r317, %r318 : u8
+    %r319 = const 5 : u16 [pointer]
+    %r320 = ptr_add %r303, %r319 : ptr [pointer]
+    %r321 = const 0 : u8 [general]
+    store %r320, %r321 : u8
+    %r322 = const 6 : u16 [pointer]
+    %r323 = ptr_add %r303, %r322 : ptr [pointer]
+    %r324 = const 0 : u8 [general]
+    store %r323, %r324 : u8
+    %r325 = const 7 : u16 [pointer]
+    %r326 = ptr_add %r303, %r325 : ptr [pointer]
+    %r327 = const 0 : u8 [general]
+    store %r326, %r327 : u8
+    %r328 = const 8 : u16 [pointer]
+    %r329 = ptr_add %r303, %r328 : ptr [pointer]
+    %r330 = const 0 : u8 [general]
+    store %r329, %r330 : u8
+    %r331 = const 9 : u16 [pointer]
+    %r332 = ptr_add %r303, %r331 : ptr [pointer]
+    %r333 = const 0 : u8 [general]
+    store %r332, %r333 : u8
+    %r334 = const 10 : u16 [pointer]
+    %r335 = ptr_add %r303, %r334 : ptr [pointer]
+    %r336 = const 0 : u8 [general]
+    store %r335, %r336 : u8
+    %r337 = const 11 : u16 [pointer]
+    %r338 = ptr_add %r303, %r337 : ptr [pointer]
+    %r339 = const 0 : u8 [general]
+    store %r338, %r339 : u8
+    %r340 = const 12 : u16 [pointer]
+    %r341 = ptr_add %r303, %r340 : ptr [pointer]
+    %r342 = const 0 : u8 [general]
+    store %r341, %r342 : u8
+    %r343 = const 13 : u16 [pointer]
+    %r344 = ptr_add %r303, %r343 : ptr [pointer]
+    %r345 = const 0 : u8 [general]
+    store %r344, %r345 : u8
+    %r346 = const 14 : u16 [pointer]
+    %r347 = ptr_add %r303, %r346 : ptr [pointer]
+    %r348 = const 0 : u8 [general]
+    store %r347, %r348 : u8
+    %r349 = const 15 : u16 [pointer]
+    %r350 = ptr_add %r303, %r349 : ptr [pointer]
+    %r351 = const 0 : u8 [general]
+    store %r350, %r351 : u8
+    %r352 = const 16 : u16 [pointer]
+    %r353 = ptr_add %r303, %r352 : ptr [pointer]
+    %r354 = const 0 : u8 [general]
+    store %r353, %r354 : u8
+    %r355 = const 17 : u16 [pointer]
+    %r356 = ptr_add %r303, %r355 : ptr [pointer]
+    %r357 = const 0 : u8 [general]
+    store %r356, %r357 : u8
+    %r358 = const 18 : u16 [pointer]
+    %r359 = ptr_add %r303, %r358 : ptr [pointer]
+    %r360 = const 0 : u8 [general]
+    store %r359, %r360 : u8
+    %r361 = const 19 : u16 [pointer]
+    %r362 = ptr_add %r303, %r361 : ptr [pointer]
+    %r363 = const 0 : u8 [general]
+    store %r362, %r363 : u8
+    %r364 = const 20 : u16 [pointer]
+    %r365 = ptr_add %r303, %r364 : ptr [pointer]
+    %r366 = const 0 : u8 [general]
+    store %r365, %r366 : u8
+    %r367 = const 21 : u16 [pointer]
+    %r368 = ptr_add %r303, %r367 : ptr [pointer]
+    %r369 = const 0 : u8 [general]
+    store %r368, %r369 : u8
+    %r370 = const 22 : u16 [pointer]
+    %r371 = ptr_add %r303, %r370 : ptr [pointer]
+    %r372 = const 0 : u8 [general]
+    store %r371, %r372 : u8
+    %r373 = const 23 : u16 [pointer]
+    %r374 = ptr_add %r303, %r373 : ptr [pointer]
+    %r375 = const 0 : u8 [general]
+    store %r374, %r375 : u8
+    %r376 = const 24 : u16 [pointer]
+    %r377 = ptr_add %r303, %r376 : ptr [pointer]
+    %r378 = const 0 : u8 [general]
+    store %r377, %r378 : u8
+    %r379 = const 25 : u16 [pointer]
+    %r380 = ptr_add %r303, %r379 : ptr [pointer]
+    %r381 = const 0 : u8 [general]
+    store %r380, %r381 : u8
+    %r382 = const 26 : u16 [pointer]
+    %r383 = ptr_add %r303, %r382 : ptr [pointer]
+    %r384 = const 0 : u8 [general]
+    store %r383, %r384 : u8
+    %r385 = const 27 : u16 [pointer]
+    %r386 = ptr_add %r303, %r385 : ptr [pointer]
+    %r387 = const 0 : u8 [general]
+    store %r386, %r387 : u8
+    %r388 = const 28 : u16 [pointer]
+    %r389 = ptr_add %r303, %r388 : ptr [pointer]
+    %r390 = const 0 : u8 [general]
+    store %r389, %r390 : u8
+    %r391 = const 29 : u16 [pointer]
+    %r392 = ptr_add %r303, %r391 : ptr [pointer]
+    %r393 = const 0 : u8 [general]
+    store %r392, %r393 : u8
+    %r394 = const 30 : u16 [pointer]
+    %r395 = ptr_add %r303, %r394 : ptr [pointer]
+    %r396 = const 0 : u8 [general]
+    store %r395, %r396 : u8
+    %r397 = const 31 : u16 [pointer]
+    %r398 = ptr_add %r303, %r397 : ptr [pointer]
+    %r399 = const 0 : u8 [general]
+    store %r398, %r399 : u8
+    %r400 = const 32 : u16 [pointer]
+    %r401 = ptr_add %r303, %r400 : ptr [pointer]
+    %r402 = const 0 : u8 [general]
+    store %r401, %r402 : u8
+    %r403 = const 33 : u16 [pointer]
+    %r404 = ptr_add %r303, %r403 : ptr [pointer]
+    %r405 = const 0 : u8 [general]
+    store %r404, %r405 : u8
+    %r406 = const 34 : u16 [pointer]
+    %r407 = ptr_add %r303, %r406 : ptr [pointer]
+    %r408 = const 0 : u8 [general]
+    store %r407, %r408 : u8
+    %r409 = const 35 : u16 [pointer]
+    %r410 = ptr_add %r303, %r409 : ptr [pointer]
+    %r411 = const 0 : u8 [general]
+    store %r410, %r411 : u8
+    %r412 = const 36 : u16 [pointer]
+    %r413 = ptr_add %r303, %r412 : ptr [pointer]
+    %r414 = const 0 : u8 [general]
+    store %r413, %r414 : u8
+    %r415 = const 37 : u16 [pointer]
+    %r416 = ptr_add %r303, %r415 : ptr [pointer]
+    %r417 = const 0 : u8 [general]
+    store %r416, %r417 : u8
+    %r418 = const 38 : u16 [pointer]
+    %r419 = ptr_add %r303, %r418 : ptr [pointer]
+    %r420 = const 0 : u8 [general]
+    store %r419, %r420 : u8
+    %r421 = const 39 : u16 [pointer]
+    %r422 = ptr_add %r303, %r421 : ptr [pointer]
+    %r423 = const 0 : u8 [general]
+    store %r422, %r423 : u8
+    %r424 = const 40 : u16 [pointer]
+    %r425 = ptr_add %r303, %r424 : ptr [pointer]
+    %r426 = const 0 : u8 [general]
+    store %r425, %r426 : u8
+    %r427 = const 41 : u16 [pointer]
+    %r428 = ptr_add %r303, %r427 : ptr [pointer]
+    %r429 = const 0 : u8 [general]
+    store %r428, %r429 : u8
+    %r430 = const 42 : u16 [pointer]
+    %r431 = ptr_add %r303, %r430 : ptr [pointer]
+    %r432 = const 0 : u8 [general]
+    store %r431, %r432 : u8
+    %r433 = const 43 : u16 [pointer]
+    %r434 = ptr_add %r303, %r433 : ptr [pointer]
+    %r435 = const 0 : u8 [general]
+    store %r434, %r435 : u8
+    %r436 = const 44 : u16 [pointer]
+    %r437 = ptr_add %r303, %r436 : ptr [pointer]
+    %r438 = const 0 : u8 [general]
+    store %r437, %r438 : u8
+    %r439 = const 45 : u16 [pointer]
+    %r440 = ptr_add %r303, %r439 : ptr [pointer]
+    %r441 = const 0 : u8 [general]
+    store %r440, %r441 : u8
+    %r442 = const 46 : u16 [pointer]
+    %r443 = ptr_add %r303, %r442 : ptr [pointer]
+    %r444 = const 0 : u8 [general]
+    store %r443, %r444 : u8
+    %r445 = const 47 : u16 [pointer]
+    %r446 = ptr_add %r303, %r445 : ptr [pointer]
+    %r447 = const 0 : u8 [general]
+    store %r446, %r447 : u8
+    %r448 = const 48 : u16 [pointer]
+    %r449 = ptr_add %r303, %r448 : ptr [pointer]
+    %r450 = const 0 : u8 [general]
+    store %r449, %r450 : u8
+    %r451 = const 49 : u16 [pointer]
+    %r452 = ptr_add %r303, %r451 : ptr [pointer]
+    %r453 = const 0 : u8 [general]
+    store %r452, %r453 : u8
+    %r454 = const 0 : u8 [general]
+    store %r302, %r454 : u8
+    %r455 = const 1 : u16 [pointer]
+    %r456 = ptr_add %r302, %r455 : ptr [pointer]
+    %r457 = const 0 : u8 [general]
+    store %r456, %r457 : u8
+    %r458 = const 2 : u16 [pointer]
+    %r459 = ptr_add %r302, %r458 : ptr [pointer]
+    %r460 = const 0 : u8 [general]
+    store %r459, %r460 : u8
+    %r461 = const 3 : u16 [pointer]
+    %r462 = ptr_add %r302, %r461 : ptr [pointer]
+    %r463 = const 0 : u8 [general]
+    store %r462, %r463 : u8
+    %r464 = const 4 : u16 [pointer]
+    %r465 = ptr_add %r302, %r464 : ptr [pointer]
+    %r466 = const 0 : u8 [general]
+    store %r465, %r466 : u8
+    %r467 = const 5 : u16 [pointer]
+    %r468 = ptr_add %r302, %r467 : ptr [pointer]
+    %r469 = const 0 : u8 [general]
+    store %r468, %r469 : u8
+    %r470 = const 6 : u16 [pointer]
+    %r471 = ptr_add %r302, %r470 : ptr [pointer]
+    %r472 = const 0 : u8 [general]
+    store %r471, %r472 : u8
+    %r473 = const 7 : u16 [pointer]
+    %r474 = ptr_add %r302, %r473 : ptr [pointer]
+    %r475 = const 0 : u8 [general]
+    store %r474, %r475 : u8
+    %r476 = const 8 : u16 [pointer]
+    %r477 = ptr_add %r302, %r476 : ptr [pointer]
+    %r478 = const 0 : u8 [general]
+    store %r477, %r478 : u8
+    %r479 = const 9 : u16 [pointer]
+    %r480 = ptr_add %r302, %r479 : ptr [pointer]
+    %r481 = const 0 : u8 [general]
+    store %r480, %r481 : u8
+    %r482 = const 10 : u16 [pointer]
+    %r483 = ptr_add %r302, %r482 : ptr [pointer]
+    %r484 = const 0 : u8 [general]
+    store %r483, %r484 : u8
+    %r485 = const 11 : u16 [pointer]
+    %r486 = ptr_add %r302, %r485 : ptr [pointer]
+    %r487 = const 0 : u8 [general]
+    store %r486, %r487 : u8
+    %r488 = const 12 : u16 [pointer]
+    %r489 = ptr_add %r302, %r488 : ptr [pointer]
+    %r490 = const 0 : u8 [general]
+    store %r489, %r490 : u8
+    %r491 = const 13 : u16 [pointer]
+    %r492 = ptr_add %r302, %r491 : ptr [pointer]
+    %r493 = const 0 : u8 [general]
+    store %r492, %r493 : u8
+    %r494 = const 14 : u16 [pointer]
+    %r495 = ptr_add %r302, %r494 : ptr [pointer]
+    %r496 = const 0 : u8 [general]
+    store %r495, %r496 : u8
+    %r497 = const 15 : u16 [pointer]
+    %r498 = ptr_add %r302, %r497 : ptr [pointer]
+    %r499 = const 0 : u8 [general]
+    store %r498, %r499 : u8
+    %r500 = const 16 : u16 [pointer]
+    %r501 = ptr_add %r302, %r500 : ptr [pointer]
+    %r502 = const 0 : u8 [general]
+    store %r501, %r502 : u8
+    %r503 = const 17 : u16 [pointer]
+    %r504 = ptr_add %r302, %r503 : ptr [pointer]
+    %r505 = const 0 : u8 [general]
+    store %r504, %r505 : u8
+    %r506 = const 18 : u16 [pointer]
+    %r507 = ptr_add %r302, %r506 : ptr [pointer]
+    %r508 = const 0 : u8 [general]
+    store %r507, %r508 : u8
+    %r509 = const 19 : u16 [pointer]
+    %r510 = ptr_add %r302, %r509 : ptr [pointer]
+    %r511 = const 0 : u8 [general]
+    store %r510, %r511 : u8
+    %r512 = const 20 : u16 [pointer]
+    %r513 = ptr_add %r302, %r512 : ptr [pointer]
+    %r514 = const 0 : u8 [general]
+    store %r513, %r514 : u8
+    %r515 = const 21 : u16 [pointer]
+    %r516 = ptr_add %r302, %r515 : ptr [pointer]
+    %r517 = const 0 : u8 [general]
+    store %r516, %r517 : u8
+    %r518 = const 22 : u16 [pointer]
+    %r519 = ptr_add %r302, %r518 : ptr [pointer]
+    %r520 = const 0 : u8 [general]
+    store %r519, %r520 : u8
+    %r521 = const 23 : u16 [pointer]
+    %r522 = ptr_add %r302, %r521 : ptr [pointer]
+    %r523 = const 0 : u8 [general]
+    store %r522, %r523 : u8
+    %r524 = const 24 : u16 [pointer]
+    %r525 = ptr_add %r302, %r524 : ptr [pointer]
+    %r526 = const 0 : u8 [general]
+    store %r525, %r526 : u8
+    %r527 = const 25 : u16 [pointer]
+    %r528 = ptr_add %r302, %r527 : ptr [pointer]
+    %r529 = const 0 : u8 [general]
+    store %r528, %r529 : u8
+    %r530 = const 26 : u16 [pointer]
+    %r531 = ptr_add %r302, %r530 : ptr [pointer]
+    %r532 = const 0 : u8 [general]
+    store %r531, %r532 : u8
+    %r533 = const 27 : u16 [pointer]
+    %r534 = ptr_add %r302, %r533 : ptr [pointer]
+    %r535 = const 0 : u8 [general]
+    store %r534, %r535 : u8
+    %r536 = const 28 : u16 [pointer]
+    %r537 = ptr_add %r302, %r536 : ptr [pointer]
+    %r538 = const 0 : u8 [general]
+    store %r537, %r538 : u8
+    %r539 = const 29 : u16 [pointer]
+    %r540 = ptr_add %r302, %r539 : ptr [pointer]
+    %r541 = const 0 : u8 [general]
+    store %r540, %r541 : u8
+    %r542 = const 30 : u16 [pointer]
+    %r543 = ptr_add %r302, %r542 : ptr [pointer]
+    %r544 = const 0 : u8 [general]
+    store %r543, %r544 : u8
+    %r545 = const 31 : u16 [pointer]
+    %r546 = ptr_add %r302, %r545 : ptr [pointer]
+    %r547 = const 0 : u8 [general]
+    store %r546, %r547 : u8
+    %r548 = const 32 : u16 [pointer]
+    %r549 = ptr_add %r302, %r548 : ptr [pointer]
+    %r550 = const 0 : u8 [general]
+    store %r549, %r550 : u8
+    %r551 = const 33 : u16 [pointer]
+    %r552 = ptr_add %r302, %r551 : ptr [pointer]
+    %r553 = const 0 : u8 [general]
+    store %r552, %r553 : u8
+    %r554 = const 34 : u16 [pointer]
+    %r555 = ptr_add %r302, %r554 : ptr [pointer]
+    %r556 = const 0 : u8 [general]
+    store %r555, %r556 : u8
+    %r557 = const 35 : u16 [pointer]
+    %r558 = ptr_add %r302, %r557 : ptr [pointer]
+    %r559 = const 0 : u8 [general]
+    store %r558, %r559 : u8
+    %r560 = const 36 : u16 [pointer]
+    %r561 = ptr_add %r302, %r560 : ptr [pointer]
+    %r562 = const 0 : u8 [general]
+    store %r561, %r562 : u8
+    %r563 = const 37 : u16 [pointer]
+    %r564 = ptr_add %r302, %r563 : ptr [pointer]
+    %r565 = const 0 : u8 [general]
+    store %r564, %r565 : u8
+    %r566 = const 38 : u16 [pointer]
+    %r567 = ptr_add %r302, %r566 : ptr [pointer]
+    %r568 = const 0 : u8 [general]
+    store %r567, %r568 : u8
+    %r569 = const 39 : u16 [pointer]
+    %r570 = ptr_add %r302, %r569 : ptr [pointer]
+    %r571 = const 0 : u8 [general]
+    store %r570, %r571 : u8
+    %r572 = const 40 : u16 [pointer]
+    %r573 = ptr_add %r302, %r572 : ptr [pointer]
+    %r574 = const 0 : u8 [general]
+    store %r573, %r574 : u8
+    %r575 = const 41 : u16 [pointer]
+    %r576 = ptr_add %r302, %r575 : ptr [pointer]
+    %r577 = const 0 : u8 [general]
+    store %r576, %r577 : u8
+    %r578 = const 42 : u16 [pointer]
+    %r579 = ptr_add %r302, %r578 : ptr [pointer]
+    %r580 = const 0 : u8 [general]
+    store %r579, %r580 : u8
+    %r581 = const 43 : u16 [pointer]
+    %r582 = ptr_add %r302, %r581 : ptr [pointer]
+    %r583 = const 0 : u8 [general]
+    store %r582, %r583 : u8
+    %r584 = const 44 : u16 [pointer]
+    %r585 = ptr_add %r302, %r584 : ptr [pointer]
+    %r586 = const 0 : u8 [general]
+    store %r585, %r586 : u8
+    %r587 = const 45 : u16 [pointer]
+    %r588 = ptr_add %r302, %r587 : ptr [pointer]
+    %r589 = const 0 : u8 [general]
+    store %r588, %r589 : u8
+    %r590 = const 46 : u16 [pointer]
+    %r591 = ptr_add %r302, %r590 : ptr [pointer]
+    %r592 = const 0 : u8 [general]
+    store %r591, %r592 : u8
+    %r593 = const 47 : u16 [pointer]
+    %r594 = ptr_add %r302, %r593 : ptr [pointer]
+    %r595 = const 0 : u8 [general]
+    store %r594, %r595 : u8
+    %r596 = const 48 : u16 [pointer]
+    %r597 = ptr_add %r302, %r596 : ptr [pointer]
+    %r598 = const 0 : u8 [general]
+    store %r597, %r598 : u8
+    %r599 = const 49 : u16 [pointer]
+    %r600 = ptr_add %r302, %r599 : ptr [pointer]
+    %r601 = const 0 : u8 [general]
+    store %r600, %r601 : u8
+    %r602 = const 0 : u16 [pointer]
+    %r603 = const 0 : ptr [general]
+    %r604 = const 0 : ptr [general]
+    %r605 = const 0 : ptr [general]
+    %r606 = const 0 : ptr [general]
+    %r607 = const 0 : i16 [pointer]
+    %r608 = const 0 : i16 [pointer]
+    jmp @loop_head1(%r301, %r604, %r608, %r304, %r607, %r305, %r605, %r602, %r302, %r297, %r303, %r603, %r298, %r606)
+  block @loop_head1(%r609: ptr [general], %r604: ptr [general], %r608: i16 [pointer], %r612: ptr [general], %r607: i16 [pointer], %r305: u16 [pointer], %r605: ptr [general], %r602: u16 [pointer], %r617: ptr [general], %r618: ptr [general], %r619: ptr [general], %r603: ptr [general], %r621: ptr [general], %r606: ptr [general]):
+    %r623 = call_indirect %r618(%r612, %r305, %r621) : ptr [pointer] [indirect-abi [ptr i16 ptr] -> [ptr]]
+    %r624 = const 0 : i16 [pointer]
+    %r625 = cmp.ne %r623, %r624 : bool [flag]
+    br_if %r625, @loop_body2(), @loop_exit3(%r608)
+  block @loop_body2:
+    %r626 = call @strlen(%r612) : u16 [pointer]
+    %r627 = const 1 : i16 [pointer]
+    %r628 = add %r607, %r627 : i16 [pointer]
+    %r629 = const 1 : i16 [pointer]
+    %r630 = sub %r305, %r629 : u16 [pointer]
+    %r631 = cmp.eq %r626, %r630 : bool [flag]
+    br_if %r631, @cond_then6(), @cond_else7()
+  block @cond_then6:
+    %r632 = const 1 : i16 [pointer]
+    %r633 = sub %r626, %r632 : u16 [pointer]
+    %r634 = ptr_add %r612, %r633 : ptr [pointer]
+    %r635 = load %r634 : i8 [general]
+    %r636 = sext %r635 : i8 -> i16 [pointer]
+    %r637 = const 10 : i16 [pointer]
+    %r638 = cmp.ne %r636, %r637 : bool [flag]
+    %r639 = const 0 : bool [general]
+    %r640 = cmp.ne %r638, %r639 : bool [flag]
+    jmp @cond_join8(%r640)
+  block @cond_join8(%r641: bool [general]):
+    %r642 = const 0 : bool [general]
+    %r643 = cmp.ne %r641, %r642 : bool [flag]
+    br_if %r643, @if_then4(), @if_join5(%r608)
+  block @if_then4:
+    jmp @loop_head9(%r609, %r608, %r628, %r618, %r621)
+  block @loop_head9(%r644: ptr [general], %r608: i16 [pointer], %r646: i16 [pointer], %r647: ptr [general], %r648: ptr [general]):
+    %r649 = const 16 : i16 [index]
+    %r650 = call_indirect %r647(%r644, %r649, %r648) : ptr [pointer] [indirect-abi [ptr i16 ptr] -> [ptr]]
+    %r651 = const 0 : i16 [pointer]
+    %r652 = cmp.ne %r650, %r651 : bool [flag]
+    br_if %r652, @loop_body10(), @loop_exit11(%r608)
+  block @loop_body10:
+    %r653 = const 0 : bool [general]
+    %r654 = cmp.eq %r608, %r653 : bool [flag]
+    %r655 = const 0 : bool [general]
+    %r656 = cmp.ne %r654, %r655 : bool [flag]
+    br_if %r656, @if_then12(), @if_join13(%r608)
+  block @if_then12:
+    jmp @if_join13(%r646)
+  block @if_join13(%r657: i16 [pointer]):
+    %r658 = call @strlen(%r644) : u16 [pointer]
+    %r659 = const 1 : i16 [pointer]
+    %r660 = sub %r658, %r659 : u16 [pointer]
+    %r661 = ptr_add %r644, %r660 : ptr [pointer]
+    %r662 = load %r661 : i8 [general]
+    %r663 = sext %r662 : i8 -> i16 [pointer]
+    %r664 = const 10 : i16 [pointer]
+    %r665 = cmp.eq %r663, %r664 : bool [flag]
+    br_if %r665, @if_then14(), @if_join15()
+  block @if_then14:
+    jmp @loop_exit11(%r657)
+  block @loop_exit11(%r657: i16 [pointer]):
+    jmp @if_join5(%r657)
+  block @if_join5(%r657: i16 [pointer]):
+    %r668 = const 1 : i16 [pointer]
+    %r669 = cmp.eq %r628, %r668 : bool [flag]
+    br_if %r669, @cond_then18(), @cond_else19()
+  block @cond_then18:
+    %r670 = load %r612 : i8 [general]
+    %r671 = ext %r670 : u8 -> i16 [pointer]
+    %r672 = const 239 : i16 [pointer]
+    %r673 = cmp.eq %r671, %r672 : bool [flag]
+    %r674 = const 0 : bool [general]
+    %r675 = cmp.ne %r673, %r674 : bool [flag]
+    jmp @cond_join20(%r675)
+  block @cond_join20(%r676: bool [general]):
+    %r677 = const 0 : bool [general]
+    %r678 = cmp.ne %r676, %r677 : bool [flag]
+    br_if %r678, @cond_then21(), @cond_else22()
+  block @cond_then21:
+    %r679 = const 1 : i16 [pointer]
+    %r680 = ptr_add %r612, %r679 : ptr [pointer]
+    %r681 = load %r680 : i8 [general]
+    %r682 = ext %r681 : u8 -> i16 [pointer]
+    %r683 = const 187 : i16 [pointer]
+    %r684 = cmp.eq %r682, %r683 : bool [flag]
+    %r685 = const 0 : bool [general]
+    %r686 = cmp.ne %r684, %r685 : bool [flag]
+    jmp @cond_join23(%r686)
+  block @cond_join23(%r687: bool [general]):
+    %r688 = const 0 : bool [general]
+    %r689 = cmp.ne %r687, %r688 : bool [flag]
+    br_if %r689, @cond_then24(), @cond_else25()
+  block @cond_then24:
+    %r690 = const 2 : i16 [pointer]
+    %r691 = ptr_add %r612, %r690 : ptr [pointer]
+    %r692 = load %r691 : i8 [general]
+    %r693 = ext %r692 : u8 -> i16 [pointer]
+    %r694 = const 191 : i16 [pointer]
+    %r695 = cmp.eq %r693, %r694 : bool [flag]
+    %r696 = const 0 : bool [general]
+    %r697 = cmp.ne %r695, %r696 : bool [flag]
+    jmp @cond_join26(%r697)
+  block @cond_join26(%r698: bool [general]):
+    %r699 = const 0 : bool [general]
+    %r700 = cmp.ne %r698, %r699 : bool [flag]
+    br_if %r700, @if_then16(), @if_join17(%r612)
+  block @if_then16:
+    %r701 = const 3 : i16 [pointer]
+    %r702 = add %r612, %r701 : ptr [general]
+    jmp @if_join17(%r702)
+  block @if_join17(%r702: ptr [general]):
+    %r704 = call @ini_lskip(%r702) : ptr [pointer]
+    %r705 = add %r612, %r626 : ptr [general]
+    %r706 = call @ini_rstrip(%r704, %r705) : ptr [pointer]
+    %r707 = addr_of @@mir2.str.1 : ptr [pointer]
+    %r708 = load %r706 : i8 [general]
+    %r709 = sext %r708 : i8 -> i16 [pointer]
+    %r710 = call @strchr(%r707, %r709) : ptr [pointer]
+    %r711 = const 0 : ptr [general]
+    %r712 = cmp.ne %r710, %r711 : bool [flag]
+    br_if %r712, @if_then27(), @if_else29()
+  block @if_then27:
+    jmp @if_join28(%r604, %r657, %r605, %r606)
+  block @if_join28(%r604: ptr [general], %r657: i16 [pointer], %r605: ptr [general], %r606: ptr [general]):
+    %r717 = const 0 : i16 [general]
+    %r718 = cmp.ne %r657, %r717 : bool [flag]
+    br_if %r718, @if_then67(), @if_join68()
+  block @if_then67:
+    jmp @loop_exit3(%r657)
+  block @loop_exit3(%r657: i16 [pointer]):
+    ret %r657
+  block @if_join68:
+    jmp @loop_head1(%r609, %r604, %r657, %r612, %r628, %r305, %r605, %r626, %r617, %r618, %r619, %r706, %r621, %r606)
+  block @if_else29:
+    %r720 = load %r617 : i8 [general]
+    %r721 = const 0 : i8 [general]
+    %r722 = cmp.ne %r720, %r721 : bool [flag]
+    br_if %r722, @cond_then33(), @cond_else34()
+  block @cond_then33:
+    %r723 = load %r706 : i8 [general]
+    %r724 = const 0 : i8 [general]
+    %r725 = cmp.ne %r723, %r724 : bool [flag]
+    jmp @cond_join35(%r725)
+  block @cond_join35(%r726: bool [general]):
+    %r727 = const 0 : bool [general]
+    %r728 = cmp.ne %r726, %r727 : bool [flag]
+    br_if %r728, @cond_then36(), @cond_else37()
+  block @cond_then36:
+    %r729 = cmp.ugt %r706, %r612 : bool [flag]
+    %r730 = const 0 : bool [general]
+    %r731 = cmp.ne %r729, %r730 : bool [flag]
+    jmp @cond_join38(%r731)
+  block @cond_join38(%r732: bool [general]):
+    %r733 = const 0 : bool [general]
+    %r734 = cmp.ne %r732, %r733 : bool [flag]
+    br_if %r734, @if_then30(), @if_else32()
+  block @if_then30:
+    %r735 = const 0 : ptr [pointer]
+    %r736 = call @ini_find_chars_or_comment(%r706, %r735) : ptr [pointer]
+    %r737 = const 0 : u8 [general]
+    store %r736, %r737 : i8
+    %r738 = call @ini_rstrip(%r706, %r736) : ptr [pointer]
+    %r739 = call_indirect %r299(%r300, %r619, %r617, %r706) : i16 [pointer] [indirect-abi [ptr ptr ptr ptr] -> [i16]]
+    %r740 = const 0 : bool [general]
+    %r741 = cmp.eq %r739, %r740 : bool [flag]
+    %r742 = const 0 : bool [general]
+    %r743 = cmp.ne %r741, %r742 : bool [flag]
+    br_if %r743, @cond_then41(), @cond_else42()
+  block @cond_then41:
+    %r744 = const 0 : bool [general]
+    %r745 = cmp.eq %r657, %r744 : bool [flag]
+    %r746 = const 0 : bool [general]
+    %r747 = cmp.ne %r745, %r746 : bool [flag]
+    jmp @cond_join43(%r747)
+  block @cond_join43(%r748: bool [general]):
+    %r749 = const 0 : bool [general]
+    %r750 = cmp.ne %r748, %r749 : bool [flag]
+    br_if %r750, @if_then39(), @if_join40(%r657)
+  block @if_then39:
+    jmp @if_join40(%r628)
+  block @if_join40(%r751: i16 [pointer]):
+    jmp @if_join31(%r736, %r751, %r605, %r606)
+  block @if_join31(%r752: ptr [general], %r751: i16 [pointer], %r605: ptr [general], %r606: ptr [general]):
+    jmp @if_join28(%r752, %r751, %r605, %r606)
+  block @cond_else42:
+    %r756 = const 0 : bool [general]
+    jmp @cond_join43(%r756)
+  block @if_else32:
+    %r757 = load %r706 : i8 [general]
+    %r758 = sext %r757 : i8 -> i16 [pointer]
+    %r759 = const 91 : i16 [pointer]
+    %r760 = cmp.eq %r758, %r759 : bool [flag]
+    br_if %r760, @if_then44(), @if_else46()
+  block @if_then44:
+    %r761 = const 1 : i16 [pointer]
+    %r762 = add %r706, %r761 : ptr [general]
+    %r763 = addr_of @@mir2.str.2 : ptr [pointer]
+    %r764 = call @ini_find_chars_or_comment(%r762, %r763) : ptr [pointer]
+    %r765 = load %r764 : i8 [general]
+    %r766 = sext %r765 : i8 -> i16 [pointer]
+    %r767 = const 93 : i16 [pointer]
+    %r768 = cmp.eq %r766, %r767 : bool [flag]
+    br_if %r768, @if_then47(), @if_else49()
+  block @if_then47:
+    %r769 = const 0 : u8 [general]
+    store %r764, %r769 : i8
+    %r770 = const 1 : i16 [pointer]
+    %r771 = add %r706, %r770 : ptr [general]
+    %r772 = const 50 : u16 [index]
+    %r773 = call @ini_strncpy0(%r619, %r771, %r772) : ptr [pointer]
+    %r774 = const 0 : u8 [general]
+    store %r617, %r774 : i8
+    jmp @if_join48(%r657)
+  block @if_join48(%r657: i16 [pointer]):
+    jmp @if_join45(%r764, %r657, %r605, %r606)
+  block @if_join45(%r776: ptr [general], %r657: i16 [pointer], %r605: ptr [general], %r606: ptr [general]):
+    jmp @if_join31(%r776, %r657, %r605, %r606)
+  block @if_else49:
+    %r780 = const 0 : bool [general]
+    %r781 = cmp.eq %r657, %r780 : bool [flag]
+    %r782 = const 0 : bool [general]
+    %r783 = cmp.ne %r781, %r782 : bool [flag]
+    br_if %r783, @if_then50(), @if_join51(%r657)
+  block @if_then50:
+    jmp @if_join51(%r628)
+  block @if_join51(%r784: i16 [pointer]):
+    jmp @if_join48(%r784)
+  block @if_else46:
+    %r785 = load %r706 : i8 [general]
+    %r786 = const 0 : i8 [general]
+    %r787 = cmp.ne %r785, %r786 : bool [flag]
+    br_if %r787, @if_then52(), @if_join53(%r604, %r657, %r605, %r606)
+  block @if_then52:
+    %r788 = addr_of @@mir2.str.3 : ptr [pointer]
+    %r789 = call @ini_find_chars_or_comment(%r706, %r788) : ptr [pointer]
+    %r790 = load %r789 : i8 [general]
+    %r791 = sext %r790 : i8 -> i16 [pointer]
+    %r792 = const 61 : i16 [pointer]
+    %r793 = cmp.eq %r791, %r792 : bool [flag]
+    br_if %r793, @cond_then57(), @cond_else58()
+  block @cond_then57:
+    %r794 = const 1 : bool [general]
+    jmp @cond_join59(%r794)
+  block @cond_join59(%r794: bool [general]):
+    %r796 = const 0 : bool [general]
+    %r797 = cmp.ne %r794, %r796 : bool [flag]
+    br_if %r797, @if_then54(), @if_else56()
+  block @if_then54:
+    %r798 = const 0 : u8 [general]
+    store %r789, %r798 : i8
+    %r799 = call @ini_rstrip(%r706, %r789) : ptr [pointer]
+    %r800 = const 1 : i16 [pointer]
+    %r801 = add %r789, %r800 : ptr [general]
+    %r802 = const 0 : ptr [pointer]
+    %r803 = call @ini_find_chars_or_comment(%r801, %r802) : ptr [pointer]
+    %r804 = const 0 : u8 [general]
+    store %r803, %r804 : i8
+    %r805 = call @ini_lskip(%r801) : ptr [pointer]
+    %r806 = call @ini_rstrip(%r805, %r803) : ptr [pointer]
+    %r807 = const 50 : u16 [index]
+    %r808 = call @ini_strncpy0(%r617, %r799, %r807) : ptr [pointer]
+    %r809 = call_indirect %r299(%r300, %r619, %r799, %r805) : i16 [pointer] [indirect-abi [ptr ptr ptr ptr] -> [i16]]
+    %r810 = const 0 : bool [general]
+    %r811 = cmp.eq %r809, %r810 : bool [flag]
+    %r812 = const 0 : bool [general]
+    %r813 = cmp.ne %r811, %r812 : bool [flag]
+    br_if %r813, @cond_then62(), @cond_else63()
+  block @cond_then62:
+    %r814 = const 0 : bool [general]
+    %r815 = cmp.eq %r657, %r814 : bool [flag]
+    %r816 = const 0 : bool [general]
+    %r817 = cmp.ne %r815, %r816 : bool [flag]
+    jmp @cond_join64(%r817)
+  block @cond_join64(%r818: bool [general]):
+    %r819 = const 0 : bool [general]
+    %r820 = cmp.ne %r818, %r819 : bool [flag]
+    br_if %r820, @if_then60(), @if_join61(%r657)
+  block @if_then60:
+    jmp @if_join61(%r628)
+  block @if_join61(%r821: i16 [pointer]):
+    jmp @if_join55(%r803, %r821, %r799, %r805)
+  block @if_join55(%r822: ptr [general], %r821: i16 [pointer], %r824: ptr [general], %r825: ptr [general]):
+    jmp @if_join53(%r822, %r821, %r824, %r825)
+  block @if_join53(%r822: ptr [general], %r821: i16 [pointer], %r824: ptr [general], %r825: ptr [general]):
+    jmp @if_join45(%r822, %r821, %r824, %r825)
+  block @cond_else63:
+    %r830 = const 0 : bool [general]
+    jmp @cond_join64(%r830)
+  block @if_else56:
+    %r831 = const 0 : bool [general]
+    %r832 = cmp.eq %r657, %r831 : bool [flag]
+    %r833 = const 0 : bool [general]
+    %r834 = cmp.ne %r832, %r833 : bool [flag]
+    br_if %r834, @if_then65(), @if_join66(%r657)
+  block @if_then65:
+    jmp @if_join66(%r628)
+  block @if_join66(%r835: i16 [pointer]):
+    jmp @if_join55(%r789, %r835, %r605, %r606)
+  block @cond_else58:
+    %r836 = load %r789 : i8 [general]
+    %r837 = sext %r836 : i8 -> i16 [pointer]
+    %r838 = const 58 : i16 [pointer]
+    %r839 = cmp.eq %r837, %r838 : bool [flag]
+    %r840 = const 0 : bool [general]
+    %r841 = cmp.ne %r839, %r840 : bool [flag]
+    jmp @cond_join59(%r841)
+  block @cond_else37:
+    %r842 = const 0 : bool [general]
+    jmp @cond_join38(%r842)
+  block @cond_else34:
+    %r843 = const 0 : bool [general]
+    jmp @cond_join35(%r843)
+  block @cond_else25:
+    %r844 = const 0 : bool [general]
+    jmp @cond_join26(%r844)
+  block @cond_else22:
+    %r845 = const 0 : bool [general]
+    jmp @cond_join23(%r845)
+  block @cond_else19:
+    %r846 = const 0 : bool [general]
+    jmp @cond_join20(%r846)
+  block @if_join15:
+    jmp @loop_head9(%r644, %r657, %r646, %r647, %r648)
+  block @cond_else7:
+    %r847 = const 0 : bool [general]
+    jmp @cond_join8(%r847)
+
+fun @ini_parse_file(%r848: ptr [pointer], %r849: ptr [pointer], %r850: ptr [pointer]) -> i16 [pointer]
+  block @entry:
+    %r851 = addr_of @fgets : ptr [pointer]
+    %r852 = call @ini_parse_stream(%r851, %r848, %r849, %r850) : i16 [pointer]
+    ret %r852
+
+fun @ini_parse(%r853: ptr [pointer], %r854: ptr [pointer], %r855: ptr [pointer]) -> i16 [pointer]
+  block @entry:
+    %r856 = const 0 : i16 [pointer]
+    %r857 = const 0 : bool [general]
+    %r858 = cmp.eq %r856, %r857 : bool [flag]
+    %r859 = const 0 : bool [general]
+    %r860 = cmp.ne %r858, %r859 : bool [flag]
+    br_if %r860, @if_then1(), @if_join2()
+  block @if_then1:
+    %r861 = const 65535 : i16 [pointer]
+    ret %r861
+  block @if_join2:
+    %r862 = call @ini_parse_file(%r856, %r854, %r855) : i16 [pointer]
+    ret %r862
+
+fun @ini_reader_string(%r863: ptr [pointer], %r864: i16 [index], %r865: ptr [iy]) -> ptr [pointer]
+  block @entry:
+    %r866 = load %r865 : ptr [general]
+    %r867 = field %r865, +2 : ptr [pointer]
+    %r868 = load %r867 : u16 [pointer]
+    %r869 = const 0 : i8 [general]
+    %r870 = const 0 : i16 [pointer]
+    %r871 = cmp.eq %r868, %r870 : bool [flag]
+    br_if %r871, @cond_then3(), @cond_else4()
+  block @cond_then3:
+    %r872 = const 1 : bool [general]
+    jmp @cond_join5(%r872)
+  block @cond_join5(%r872: bool [general]):
+    %r874 = const 0 : bool [general]
+    %r875 = cmp.ne %r872, %r874 : bool [flag]
+    br_if %r875, @if_then1(), @if_join2()
+  block @if_then1:
+    %r876 = const 0 : i16 [pointer]
+    ret %r876
+  block @if_join2:
+    jmp @loop_head6(%r869, %r868, %r866, %r864, %r863)
+  block @loop_head6(%r869: i8 [general], %r868: u16 [pointer], %r866: ptr [general], %r880: i16 [pointer], %r881: ptr [general]):
+    %r882 = const 1 : i16 [pointer]
+    %r883 = cmp.gt %r880, %r882 : bool [flag]
+    br_if %r883, @cond_then9(), @cond_else10()
+  block @cond_then9:
+    %r884 = const 0 : i16 [pointer]
+    %r885 = cmp.ne %r868, %r884 : bool [flag]
+    %r886 = const 0 : bool [general]
+    %r887 = cmp.ne %r885, %r886 : bool [flag]
+    jmp @cond_join11(%r887)
+  block @cond_join11(%r888: bool [general]):
+    %r889 = const 0 : bool [general]
+    %r890 = cmp.ne %r888, %r889 : bool [flag]
+    br_if %r890, @loop_body7(), @loop_exit8(%r868, %r866, %r881)
+  block @loop_body7:
+    %r891 = const 1 : ptr [general]
+    %r892 = add %r866, %r891 : ptr [general]
+    %r893 = load %r866 : i8 [general]
+    %r894 = const -1 : u16 [pointer]
+    %r895 = add %r868, %r894 : u16 [pointer]
+    %r896 = const 1 : ptr [general]
+    %r897 = add %r881, %r896 : ptr [general]
+    store %r881, %r893 : i8
+    %r898 = sext %r893 : i8 -> i16 [pointer]
+    %r899 = const 10 : i16 [pointer]
+    %r900 = cmp.eq %r898, %r899 : bool [flag]
+    br_if %r900, @if_then12(), @if_join13()
+  block @if_then12:
+    jmp @loop_exit8(%r895, %r892, %r897)
+  block @loop_exit8(%r895: u16 [pointer], %r892: ptr [general], %r897: ptr [general]):
+    %r904 = call @ini_reader_string$split_6(%r865, %r895, %r892, %r863, %r897) : ptr [pointer]
+    ret %r904
+  block @if_join13:
+    %r905 = const -1 : i16 [pointer]
+    %r906 = add %r880, %r905 : i16 [pointer]
+    jmp @loop_head6(%r893, %r895, %r892, %r906, %r897)
+  block @cond_else10:
+    %r907 = const 0 : bool [general]
+    jmp @cond_join11(%r907)
+  block @cond_else4:
+    %r908 = const 2 : i16 [pointer]
+    %r909 = cmp.lt %r864, %r908 : bool [flag]
+    %r910 = const 0 : bool [general]
+    %r911 = cmp.ne %r909, %r910 : bool [flag]
+    jmp @cond_join5(%r911)
+
+fun @ini_parse_string(%r912: ptr [pointer], %r913: ptr [pointer], %r914: ptr [pointer]) -> i16 [pointer]
+  block @entry:
+    %r915 = call @strlen(%r912) : u16 [pointer]
+    %r916 = call @ini_parse_string_length(%r912, %r915, %r913, %r914) : i16 [pointer]
+    ret %r916
+
+fun @ini_parse_string_length(%r917: ptr [pointer], %r918: u16 [index], %r919: ptr [pointer], %r920: ptr [pointer]) -> i16 [pointer]
+  block @entry:
+    %r921 = alloca 4 : ptr
+    store %r921, %r917 : ptr
+    %r922 = field %r921, +2 : ptr [pointer]
+    store %r922, %r918 : u16
+    %r923 = addr_of @ini_reader_string : ptr [pointer]
+    %r924 = call @ini_parse_stream(%r923, %r921, %r919, %r920) : i16 [pointer]
+    ret %r924
+
+fun @fopen(%r925: ptr [pointer], %r926: ptr [pointer]) -> ptr [pointer]
+  block @entry:
+    %r927 = const 0 : i16 [pointer]
+    ret %r927
+
+fun @fclose(%r928: ptr [pointer]) -> i16 [pointer]
+  block @entry:
+    %r929 = const 65535 : i16 [pointer]
+    ret %r929
+
+fun @fgets(%r930: ptr [pointer], %r931: i16 [index], %r932: ptr [iy]) -> ptr [pointer]
+  block @entry:
+    %r933 = const 0 : i16 [pointer]
+    ret %r933
+
+fun @append(%r934: ptr [pointer])
+  block @entry:
+    jmp @loop_head1(%r934)
+  block @loop_head1(%r935: ptr [general]):
+    %r936 = load %r935 : i8 [general]
+    %r937 = const 0 : i8 [general]
+    %r938 = cmp.ne %r936, %r937 : bool [flag]
+    br_if %r938, @cond_then4(), @cond_else5()
+  block @cond_then4:
+    %r939 = addr_of @used : ptr [pointer]
+    %r940 = load %r939 : u16 [pointer]
+    %r941 = const 255 : i16 [pointer]
+    %r942 = cmp.ult %r940, %r941 : bool [flag]
+    %r943 = const 0 : bool [general]
+    %r944 = cmp.ne %r942, %r943 : bool [flag]
+    jmp @cond_join6(%r944)
+  block @cond_join6(%r945: bool [general]):
+    %r946 = const 0 : bool [general]
+    %r947 = cmp.ne %r945, %r946 : bool [flag]
+    cond_ret %r947, [], @loop_body2()
+  block @loop_body2:
+    %r948 = addr_of @used : ptr [pointer]
+    %r949 = load %r948 : u16 [pointer]
+    %r950 = const 1 : u16 [pointer]
+    %r951 = add %r949, %r950 : u16 [pointer]
+    %r952 = addr_of @used : ptr [pointer]
+    store %r952, %r951 : u16
+    %r953 = addr_of @output : ptr [pointer]
+    %r954 = ptr_add %r953, %r949 : ptr [pointer]
+    %r955 = const 1 : ptr [general]
+    %r956 = add %r935, %r955 : ptr [general]
+    %r957 = load %r935 : i8 [general]
+    store %r954, %r957 : u8
+    jmp @loop_head1(%r956)
+  block @cond_else5:
+    %r958 = const 0 : bool [general]
+    jmp @cond_join6(%r958)
+
+fun @record(%r959: ptr [pointer], %r960: ptr [index], %r961: ptr [iy], %r962: ptr [ix]) -> i16 [pointer]
+  block @entry:
+    call @append(%r960)
+    %r963 = addr_of @@mir2.str.5 : ptr [pointer]
+    call @append(%r963)
+    call @append(%r961)
+    %r964 = addr_of @@mir2.str.6 : ptr [pointer]
+    call @append(%r964)
+    call @append(%r962)
+    %r965 = addr_of @@mir2.str.0 : ptr [pointer]
+    call @append(%r965)
+    %r966 = const 1 : i16 [pointer]
+    ret %r966
+
+fun @execute()
+  block @entry:
+    %r967 = const 0 : i16 [pointer]
+    jmp @loop_head1(%r967)
+  block @loop_head1(%r967: u16 [pointer]):
+    %r969 = const 256 : i16 [pointer]
+    %r970 = cmp.ult %r967, %r969 : bool [flag]
+    br_if %r970, @loop_body2(), @loop_exit3()
+  block @loop_body2:
+    %r971 = addr_of @output : ptr [pointer]
+    %r972 = ptr_add %r971, %r967 : ptr [pointer]
+    %r973 = const 0 : u8 [general]
+    store %r972, %r973 : u8
+    %r974 = const 1 : u16 [pointer]
+    %r975 = add %r967, %r974 : u16 [pointer]
+    jmp @loop_head1(%r975)
+  block @loop_exit3:
+    %r976 = const 0 : i16 [pointer]
+    %r977 = addr_of @used : ptr [pointer]
+    store %r977, %r976 : u16
+    %r978 = addr_of @input : ptr [pointer]
+    %r979 = addr_of @record : ptr [pointer]
+    %r980 = const 0 : ptr [pointer]
+    %r981 = call @ini_parse_string(%r978, %r979, %r980) : i16 [pointer]
+    %r982 = addr_of @result : ptr [pointer]
+    store %r982, %r981 : u16
+    ret void
+
+fun @memcpy(%r983: ptr [pointer], %r984: ptr [pointer], %r985: u16 [index]) -> ptr [pointer]
+  block @entry:
+    jmp @loop_head1(%r983, %r985, %r984)
+  block @loop_head1(%r986: ptr [general], %r987: u16 [pointer], %r988: ptr [general]):
+    jmp @loop_body2()
+  block @loop_body2:
+    %r989 = const -1 : u16 [pointer]
+    %r990 = add %r987, %r989 : u16 [pointer]
+    %r991 = const 0 : bool [general]
+    %r992 = cmp.eq %r987, %r991 : bool [flag]
+    %r993 = const 0 : bool [general]
+    %r994 = cmp.ne %r992, %r993 : bool [flag]
+    br_if %r994, @if_then4(), @if_join5()
+  block @if_then4:
+    jmp @loop_exit3()
+  block @loop_exit3:
+    ret %r983
+  block @if_join5:
+    %r995 = const 1 : ptr [general]
+    %r996 = add %r986, %r995 : ptr [general]
+    %r997 = const 1 : ptr [general]
+    %r998 = add %r988, %r997 : ptr [general]
+    %r999 = load %r988 : u8 [general]
+    store %r986, %r999 : u8
+    jmp @loop_head1(%r996, %r990, %r998)
+
+fun @memset(%r1000: ptr [pointer], %r1001: i16 [index], %r1002: u16 [index]) -> ptr [pointer]
+  block @entry:
+    jmp @loop_head1(%r1001, %r1000, %r1002)
+  block @loop_head1(%r1003: i16 [pointer], %r1004: ptr [general], %r1005: u16 [pointer]):
+    jmp @loop_body2()
+  block @loop_body2:
+    %r1006 = const -1 : u16 [pointer]
+    %r1007 = add %r1005, %r1006 : u16 [pointer]
+    %r1008 = const 0 : bool [general]
+    %r1009 = cmp.eq %r1005, %r1008 : bool [flag]
+    %r1010 = const 0 : bool [general]
+    %r1011 = cmp.ne %r1009, %r1010 : bool [flag]
+    br_if %r1011, @if_then4(), @if_join5()
+  block @if_then4:
+    jmp @loop_exit3()
+  block @loop_exit3:
+    ret %r1000
+  block @if_join5:
+    %r1012 = const 1 : ptr [general]
+    %r1013 = add %r1004, %r1012 : ptr [general]
+    %r1014 = trunc %r1003 : i16 -> u8 [general]
+    store %r1004, %r1014 : u8
+    jmp @loop_head1(%r1003, %r1013, %r1007)
+
+fun @strlen(%r1015: ptr [pointer]) -> u16 [pointer]
+  block @entry:
+    %r1016 = const 0 : i16 [pointer]
+    jmp @loop_head1(%r1016, %r1015)
+  block @loop_head1(%r1016: u16 [pointer], %r1018: ptr [general]):
+    %r1019 = ptr_add %r1018, %r1016 : ptr [pointer]
+    %r1020 = load %r1019 : i8 [general]
+    %r1021 = const 0 : i8 [general]
+    %r1022 = cmp.ne %r1020, %r1021 : bool [flag]
+    cond_ret %r1022, [%r1016], @loop_body2()
+  block @loop_body2:
+    %r1023 = const 1 : u16 [pointer]
+    %r1024 = add %r1016, %r1023 : u16 [pointer]
+    jmp @loop_head1(%r1024, %r1018)
+
+fun @strchr(%r1025: ptr [pointer], %r1026: i16 [pair]) -> ptr [pointer]
+  block @entry:
+    jmp @loop_head1(%r1026, %r1025)
+  block @loop_head1(%r1027: i16 [pointer], %r1028: ptr [general]):
+    jmp @loop_body2()
+  block @loop_body2:
+    %r1029 = load %r1028 : i8 [general]
+    %r1030 = sext %r1029 : i8 -> i16 [pointer]
+    %r1031 = trunc %r1027 : i16 -> i8 [general]
+    %r1032 = sext %r1031 : i8 -> i16 [pointer]
+    %r1033 = cmp.eq %r1030, %r1032 : bool [flag]
+    br_if %r1033, @if_then4(), @if_join5()
+  block @if_then4:
+    ret %r1028
+  block @if_join5:
+    %r1034 = load %r1028 : i8 [general]
+    %r1035 = const 0 : bool [general]
+    %r1036 = cmp.eq %r1034, %r1035 : bool [flag]
+    %r1037 = const 0 : bool [general]
+    %r1038 = cmp.ne %r1036, %r1037 : bool [flag]
+    br_if %r1038, @if_then6(), @if_join7()
+  block @if_then6:
+    %r1039 = const 0 : i16 [pointer]
+    ret %r1039
+  block @if_join7:
+    %r1040 = const 1 : ptr [general]
+    %r1041 = add %r1028, %r1040 : ptr [general]
+    jmp @loop_head1(%r1027, %r1041)
+
+fun @ini_parse_stream$split_112(%r1042: i16 [pointer]) -> i16 [pointer]
+  block @entry:
+    ret %r1042
+
+fun @ini_reader_string$split_6(%r1043: ptr [pointer], %r1044: u16 [index], %r1045: ptr [pointer], %r1046: ptr [pointer], %r1047: ptr [pointer]) -> ptr [pointer]
+  block @entry:
+    %r1048 = const 0 : u8 [general]
+    store %r1047, %r1048 : i8
+    store %r1043, %r1045 : ptr
+    %r1049 = field %r1043, +2 : ptr [pointer]
+    store %r1049, %r1044 : u16
+    ret %r1046
+

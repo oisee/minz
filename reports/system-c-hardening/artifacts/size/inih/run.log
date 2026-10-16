@@ -1,0 +1,3 @@
+[HIR-SPLIT] ini_parse_stream → ini_parse_stream$split_112 (1 inputs, pressure 22)
+[HIR-SPLIT] ini_reader_string → ini_reader_string$split_6 (5 inputs, pressure 12)
+minz size inih: PASS 8 calls 9758 bytes 1157940T 
