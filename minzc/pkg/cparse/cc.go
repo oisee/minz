@@ -640,6 +640,9 @@ type Source struct {
 //
 // If FS is nil, os.Open is used to open named files.
 type Config struct {
+	// UnsupportedIdentifiers reports target-specific unsupported constructs on
+	// expanded identifier tokens, excluding inactive branches and unused macros.
+	UnsupportedIdentifiers map[string]string
 	// MaxObjectSize limits representable object and sizeof sizes; zero disables the limit.
 	MaxObjectSize int64
 	// RejectVLA rejects variable-length array types for targets without runtime support.

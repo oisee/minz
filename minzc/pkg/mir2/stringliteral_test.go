@@ -1,6 +1,8 @@
 package mir2
 
 import (
+	"bytes"
+	"github.com/minz/minzc/pkg/z80asm"
 	"strings"
 	"testing"
 	"time"
@@ -42,5 +44,23 @@ func TestEmitStringLiteral(t *testing.T) {
 				t.Errorf("emitStringLiteral(%q) = %s, want %s", tc.in, got, tc.want)
 			}
 		})
+	}
+}
+
+func TestStringLiteralAssembledBytes(t *testing.T) {
+	all := make([]byte, 256)
+	for i := range all {
+		all[i] = byte(i)
+	}
+	for _, data := range [][]byte{all, []byte(";#"), []byte(`\n\r\t\0\\`), []byte(`tail\`)} {
+		var text strings.Builder
+		emitStringLiteral(&text, data)
+		result, err := z80asm.NewAssembler().AssembleString("ORG 0x8000\nDB " + text.String())
+		if err != nil || len(result.Errors) > 0 {
+			t.Fatal(err, result.Errors)
+		}
+		if !bytes.Equal(result.Binary, data) {
+			t.Fatalf("string bytes changed: got %x want %x ASM %s", result.Binary, data, text.String())
+		}
 	}
 }

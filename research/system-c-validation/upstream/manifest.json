@@ -1,0 +1,68 @@
+[
+  {
+    "library": "inih",
+    "repository": "https://github.com/benhoyt/inih",
+    "tag": "r62",
+    "commit": "26254ee9de7681f8825433415443e7116ff24b98",
+    "files": [
+      {
+        "path": "ini.c",
+        "sha256": "cdba16f9e826d2c692efaecbbe010c17b417315db8261fbd48b66aaab8a9d46f",
+        "bytes": 9191
+      },
+      {
+        "path": "ini.h",
+        "sha256": "154b56f8437ec3e08d19f9c455a409ddccd4462cff33babe5f2713269d6dd64e",
+        "bytes": 6425
+      },
+      {
+        "path": "LICENSE.txt",
+        "sha256": "9ae3b39e83e9158e44b67733baa3bb2d84e80efdcfb14a5820210a42c7abdf7f",
+        "bytes": 1510
+      }
+    ]
+  },
+  {
+    "library": "heatshrink",
+    "repository": "https://github.com/atomicobject/heatshrink",
+    "tag": "v0.4.1",
+    "commit": "b9ac05e912e1184b55c5d815b280486de10f331f",
+    "files": [
+      {
+        "path": "heatshrink_decoder.c",
+        "sha256": "5ced6bb057741a5772edaf46f7c8466b5da1751d7e704ffdb79eedd5aadf7821",
+        "bytes": 13337
+      },
+      {
+        "path": "heatshrink_decoder.h",
+        "sha256": "2678f67add847b08b5debd234e2435135f3b83c8e5cee565789cf9f8c4887096",
+        "bytes": 3849
+      },
+      {
+        "path": "heatshrink_encoder.c",
+        "sha256": "67ec42bb911790cab8e2c2ec5f8d5f81d6feb3a121609d8e8fd1381706e5484c",
+        "bytes": 20498
+      },
+      {
+        "path": "heatshrink_encoder.h",
+        "sha256": "941a4f89e29a774faf2d2ce3ef86a23e3fb7c42fb04dd9e68d0abb207ba9e950",
+        "bytes": 3615
+      },
+      {
+        "path": "heatshrink_common.h",
+        "sha256": "bedf2a51b6e0d7febd537b96dbb3ef372c3d911440d2740397e9fdf8b796181f",
+        "bytes": 512
+      },
+      {
+        "path": "heatshrink_config.h",
+        "sha256": "7e91307108451351dfe5631410c7344466ff153f3d2a2454dcf8d003325512ff",
+        "bytes": 761
+      },
+      {
+        "path": "LICENSE",
+        "sha256": "f41cc7241aea5951c2834ca86050c6bf094b223597830ab6e7b040d0dbd131df",
+        "bytes": 789
+      }
+    ]
+  }
+]

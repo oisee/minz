@@ -1,0 +1,107 @@
+{
+  "run": 38964918076,
+  "files": 844,
+  "informational": true,
+  "changes": [
+    {
+      "file": "examples/c/c23_bitint.c",
+      "same_exit": false,
+      "same_stdout": true,
+      "same_stderr": false,
+      "same_files": false,
+      "baseline": {
+        "exit_code": 0,
+        "outputs": {
+          "output.a80": {
+            "bytes": 3223,
+            "sha256": "57bd53c53e815da148b9e3d5392dfbde782efc5304f6ba40a0d671425d7272d8"
+          }
+        }
+      },
+      "candidate": {
+        "exit_code": 1,
+        "outputs": {}
+      }
+    },
+    {
+      "file": "examples/c/c23_constexpr_enum.c",
+      "same_exit": false,
+      "same_stdout": true,
+      "same_stderr": false,
+      "same_files": false,
+      "baseline": {
+        "exit_code": 0,
+        "outputs": {
+          "output.a80": {
+            "bytes": 5015,
+            "sha256": "8852eab5ca74dbadb9b5e19c87cfb84059becb053d6b3067d17118f78a628288"
+          }
+        }
+      },
+      "candidate": {
+        "exit_code": 1,
+        "outputs": {}
+      }
+    },
+    {
+      "file": "examples/c/c23_misc.c",
+      "same_exit": false,
+      "same_stdout": true,
+      "same_stderr": false,
+      "same_files": false,
+      "baseline": {
+        "exit_code": 0,
+        "outputs": {
+          "output.a80": {
+            "bytes": 3491,
+            "sha256": "76e97d8f8477c1af66dfa7dd4e14e75f42367ac8ec34c1a7072033beec2435f7"
+          }
+        }
+      },
+      "candidate": {
+        "exit_code": 1,
+        "outputs": {}
+      }
+    },
+    {
+      "file": "examples/c89/fatfs/ff.asm",
+      "same_exit": true,
+      "same_stdout": true,
+      "same_stderr": false,
+      "same_files": true,
+      "baseline": {
+        "exit_code": 1,
+        "outputs": {}
+      },
+      "candidate": {
+        "exit_code": 1,
+        "outputs": {}
+      }
+    },
+    {
+      "file": "examples/c89/fatfs/ff.c",
+      "same_exit": true,
+      "same_stdout": true,
+      "same_stderr": true,
+      "same_files": false,
+      "baseline": {
+        "exit_code": 0,
+        "outputs": {
+          "output.a80": {
+            "bytes": 944087,
+            "sha256": "a6c9eb788d8c71b165965015271b4ab9ba4dff763585c12603db357ec893845f"
+          }
+        }
+      },
+      "candidate": {
+        "exit_code": 0,
+        "outputs": {
+          "output.a80": {
+            "bytes": 944294,
+            "sha256": "55c5997891dd7f0e2948f8ecb4be7c465d896683d6675584fb4da57bb81d5330"
+          }
+        }
+      }
+    }
+  ]
+}

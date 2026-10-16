@@ -1,0 +1,16 @@
+--- FAIL: TestHIRProfileAutoMeasuredCompilation (23.66s)
+    hir_profile_auto_test.go:57: [{0x2ba4c06be120 20b97faa3637c5e7629b73b4ea518df95f79b0dcb237635c6a08212773f8be6c original setup/guard outweigh iteration savings 311 426 {executable-sha256:a4ede6ea9a6dc8767dbb37285055b49f97fab0d484e2da3838f93397cb76c713 minz.unoptimised-mir2-vm-loop-events/v2 sum_array 3bda8a17bb9faa327b505ef2dfa8186012974970faab9119807d1a0c187508b0 module-target:0/model:cpm-z80-v1 4cb0cc6deb75d7e64dbeb4fbb28c6efdf71449f4f380a989a897ed595c73a1c8 sha256:b6e272ed7935b853677cba02d470347f551809cce248dd720dfdf58e52d70dfd 198 277 41 54 7 241 232 true 258 191 true 37}}]
+--- FAIL: TestHIRProfileForwardCopyCompilation (0.27s)
+    hir_profile_forward_copy_test.go:111: copyCLIwinner false 0
+--- FAIL: TestHIRProfileMixedCopyWeightedCompilation (1.03s)
+    hir_profile_forward_copy_test.go:255: mixed winner false 3
+[compiler-modes] speed selected mode 0: 2285 T / 46 B; artifacts /tmp/TestCompilerModeReplayActualFrozenHeldout1225004149/002/training
+[compiler-modes replay] fixed mode 0: 5484 T / 46 B; saved BIN 7eab4eb900b5c44e417cedb4dbecfad26e4eef4e4018eceedcf15d72954b1565
+--- FAIL: TestCompilerModeReplayActualFrozenHeldout (1.15s)
+    hir_profile_modes_replay_test.go:63: frozen heldout metrics 5484
+[compiler-modes] speed selected mode 0: 2285 T / 46 B; artifacts /tmp/TestCompilerModeCLIActualSelectedArtifacts2504119296/002/evidence
+--- FAIL: TestCompilerModeCLIActualSelectedArtifacts (0.96s)
+    hir_profile_modes_test.go:90: actual goal mismatch
+FAIL
+FAIL	github.com/minz/minzc/cmd/minzc	27.081s
+FAIL

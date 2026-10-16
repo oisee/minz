@@ -1,0 +1,71 @@
+{
+  "Compiler": "minz",
+  "Profile": "grace",
+  "Case": "heatshrink",
+  "SourceSHA256": "a07ba8da1a55a1ab2cd16102057a8e382eb6767c430794fec4f2440c3b95ee37",
+  "WorkloadSHA256": "104d85ed2aa7b139e314f5616f740301ce4a6a3deab8fd81b3f45172c1d14374",
+  "Status": "PASS",
+  "InitializedBytes": 5464,
+  "GlobalBytes": 302,
+  "ProgramBytes": 5464,
+  "Calls": 7,
+  "TotalT": 2037596,
+  "Observations": [
+    {
+      "id": "empty",
+      "expected": 0,
+      "result": 0,
+      "t_states": 194063,
+      "native_pc": 61696,
+      "native_sp": 61440
+    },
+    {
+      "id": "literal-a",
+      "expected": 1,
+      "result": 1,
+      "t_states": 219055,
+      "native_pc": 61696,
+      "native_sp": 61440
+    },
+    {
+      "id": "binary-literals",
+      "expected": 6,
+      "result": 6,
+      "t_states": 309569,
+      "native_pc": 61696,
+      "native_sp": 61440
+    },
+    {
+      "id": "text-literals",
+      "expected": 12,
+      "result": 12,
+      "t_states": 420061,
+      "native_pc": 61696,
+      "native_sp": 61440
+    },
+    {
+      "id": "overlap-backref",
+      "expected": 17,
+      "result": 17,
+      "t_states": 278319,
+      "native_pc": 61696,
+      "native_sp": 61440
+    },
+    {
+      "id": "pattern-backref",
+      "expected": 34,
+      "result": 34,
+      "t_states": 356311,
+      "native_pc": 61696,
+      "native_sp": 61440
+    },
+    {
+      "id": "zero-window-backref",
+      "expected": 16,
+      "result": 16,
+      "t_states": 260218,
+      "native_pc": 61696,
+      "native_sp": 61440
+    }
+  ]
+}

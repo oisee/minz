@@ -48,7 +48,10 @@ func LowerModule(hm *Module) *mir2.Module {
 	if err := ResolveErrorABI(hm); err != nil {
 		panic(err)
 	}
-	m := &mir2.Module{Name: hm.Name, Target: hm.Target}
+	m := &mir2.Module{Name: hm.Name, Target: hm.Target, NonNullObjects: hm.NonNullObjects}
+	for _, f := range hm.Funcs {
+		m.NonNullObjects = m.NonNullObjects || f.CValueABI
+	}
 	for _, g := range hm.Globals {
 		m.AddGlobal(g)
 	}

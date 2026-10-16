@@ -19,12 +19,42 @@ type Line struct {
 	FromJRS   bool // true when expanded from JRS pseudo-instruction; pass 1 reserves 3 bytes
 }
 
+// assemblyCommentIndex distinguishes comment delimiters from data bytes in
+// quoted operands. Register primes (AF') are not string delimiters.
+func assemblyCommentIndex(line string) int {
+	var quote byte
+	for i := 0; i < len(line); i++ {
+		c := line[i]
+		if quote != 0 {
+			if c == '\\' && i+1 < len(line) {
+				i++
+				continue
+			}
+			if c == quote {
+				quote = 0
+			}
+			continue
+		}
+		if c == ';' {
+			return i
+		}
+		if c == '"' || c == '\'' && (i == 0 || !assemblyIdentifierByte(line[i-1])) {
+			quote = c
+		}
+	}
+	return -1
+}
+
+func assemblyIdentifierByte(c byte) bool {
+	return c >= 'A' && c <= 'Z' || c >= 'a' && c <= 'z' || c >= '0' && c <= '9' || c == '_'
+}
+
 // ParseLine parses a single line of assembly
 func ParseLine(line string, lineNum int) (*Line, error) {
 	result := &Line{Number: lineNum}
 
 	// Remove comments
-	if idx := strings.Index(line, ";"); idx >= 0 {
+	if idx := assemblyCommentIndex(line); idx >= 0 {
 		result.Comment = strings.TrimSpace(line[idx+1:])
 		line = line[:idx]
 	}

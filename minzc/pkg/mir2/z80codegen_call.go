@@ -176,6 +176,7 @@ func (g *z80cg) genCall(inst *Inst) error {
 	sym := sanitizeIdent(inst.Sym)
 
 	var callee *Func
+	stackIndirect := false
 	indirect := inst.Op == OpCallIndirect
 	if indirect {
 		callee = &Func{}
@@ -203,6 +204,7 @@ func (g *z80cg) genCall(inst *Inst) error {
 		}
 		for i := range callee.Contract.Params {
 			callee.Contract.Params[i].Class = classes[i]
+			stackIndirect = stackIndirect || classes[i] == ClassIX
 		}
 		callee.Contract.StructReturnBuffers = inst.StructReturnBuffers
 		returns := inst.IndirectReturnTys
@@ -260,14 +262,14 @@ func (g *z80cg) genCall(inst *Inst) error {
 		}
 	}
 	if indirect {
-		// Snapshot the pointer before argument setup. IX keeps the target
-		// separate from the standard ABI's HL word argument.
+		// Snapshot the target before argument setup. Usually it moves to IX;
+		// if IX is an argument slot, the stack trampoline consumes the target.
 		g.pushWord(g.loc(inst.Src[0]))
 	}
 	if len(inst.Args) > 0 && callee != nil {
 		g.emitCallArgsForInst(inst.Args, callee, inst)
 	}
-	if indirect {
+	if indirect && !stackIndirect {
 		g.emit("    POP IX")
 	}
 
@@ -284,8 +286,13 @@ func (g *z80cg) genCall(inst *Inst) error {
 
 	// Check if callee has a fixed address (ExternAddr)
 	if indirect {
-		g.emit("    CALL __call_ix")
-		g.needsCallIX = true
+		if stackIndirect {
+			g.emit("    CALL __call_stack")
+			g.needsCallStack = true
+		} else {
+			g.emit("    CALL __call_ix")
+			g.needsCallIX = true
+		}
 	} else if callee != nil && callee.Attrs.ExternAddr != 0 {
 		addr := callee.Attrs.ExternAddr
 		// RST addresses on Z80: 0x00, 0x08, 0x10, 0x18, 0x20, 0x28, 0x30, 0x38

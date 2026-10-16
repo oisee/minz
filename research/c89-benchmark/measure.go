@@ -31,11 +31,17 @@ type sample struct {
 	After  map[string][]byte `json:"after"`
 }
 type observation struct {
-	ID       string `json:"id"`
-	Expected uint16 `json:"expected"`
-	Result   uint16 `json:"result"`
-	T        uint64 `json:"t_states"`
-	Error    string `json:"error,omitempty"`
+	ID           string            `json:"id"`
+	Expected     uint16            `json:"expected"`
+	Result       uint16            `json:"result"`
+	T            uint64            `json:"t_states"`
+	Error        string            `json:"error,omitempty"`
+	RawVMError   string            `json:"raw_vm_error,omitempty"`
+	FinalVMError string            `json:"final_vm_error,omitempty"`
+	NativeError  string            `json:"native_error,omitempty"`
+	NativeAfter  map[string][]byte `json:"native_after,omitempty"`
+	NativePC     uint16            `json:"native_pc"`
+	NativeSP     uint16            `json:"native_sp"`
 }
 type report struct {
 	Compiler, Profile, Case, SourceSHA256, WorkloadSHA256, Status string
@@ -211,13 +217,15 @@ func fixtures(name string) ([]sample, map[string]int) {
 	return samples, sizes
 }
 
+var cBuildOpts = c89.CompileOpts{NoLibc: true}
+
 func buildMinZ(source, out, profile string) (*program, error) {
 	var m *hir.Module
 	var e error
 	if filepath.Ext(source) == ".nanz" {
 		m, e = nanz.Parse(string(read(source)), source)
 	} else {
-		m, e = c89.CompileWithOpts(string(read(source)), source, c89.CompileOpts{NoLibc: true})
+		m, e = c89.CompileWithOpts(string(read(source)), source, cBuildOpts)
 	}
 	if e != nil {
 		return nil, e
@@ -228,6 +236,9 @@ func buildMinZ(source, out, profile string) (*program, error) {
 	if e != nil {
 		return nil, e
 	}
+	save(filepath.Join(out, "program.a80"), []byte(s.Assembly))
+	save(filepath.Join(out, "raw.mir"), []byte(raw.Dump()))
+	save(filepath.Join(out, "final.mir"), []byte(s.MIR2Module.Dump()))
 	a, e := z80asm.NewAssembler().AssembleString("ORG 0x8000\n" + s.Assembly)
 	if e != nil {
 		return nil, e
@@ -235,10 +246,7 @@ func buildMinZ(source, out, profile string) (*program, error) {
 	if len(a.Errors) != 0 {
 		return nil, fmt.Errorf("assemble: %v", a.Errors)
 	}
-	save(filepath.Join(out, "program.a80"), []byte(s.Assembly))
 	save(filepath.Join(out, "program.bin"), a.Binary)
-	save(filepath.Join(out, "raw.mir"), []byte(raw.Dump()))
-	save(filepath.Join(out, "final.mir"), []byte(s.MIR2Module.Dump()))
 	writeJSON(filepath.Join(out, "symbols.json"), a.Symbols)
 	p := &program{image: map[int]byte{}, symbols: a.Symbols, raw: raw, final: s.MIR2Module}
 	for i, b := range a.Binary {
@@ -380,11 +388,11 @@ func measure(p *program, samples []sample, sizes map[string]int, r *report) erro
 	for _, s := range samples {
 		o := observation{ID: s.ID, Expected: s.Want}
 		if p.raw != nil {
-			for _, m := range []*mir2.Module{p.raw, p.final} {
-				if e := vmCheck(m, s); e != nil {
-					o.Error = e.Error()
-					break
-				}
+			if e := vmCheck(p.raw, s); e != nil {
+				o.RawVMError = e.Error()
+			}
+			if e := vmCheck(p.final, s); e != nil {
+				o.FinalVMError = e.Error()
 			}
 		}
 		z := emulator.NewRemogattoZ80()
@@ -408,15 +416,30 @@ func measure(p *program, samples []sample, sizes map[string]int, r *report) erro
 		o.T = uint64(z.GetCycles() - start)
 		o.Result = binary.LittleEndian.Uint16(mem[addresses["result"] : addresses["result"]+2])
 		if regs.PC != 0xf100 || regs.SP != 0xf000 {
-			o.Error = fmt.Sprintf("return PC/SP %04x/%04x", regs.PC, regs.SP)
+			o.NativeError = fmt.Sprintf("return PC/SP %04x/%04x", regs.PC, regs.SP)
 		} else if o.Result != s.Want {
-			o.Error = fmt.Sprintf("native result%d want%d", o.Result, s.Want)
+			o.NativeError = fmt.Sprintf("native result%d want%d", o.Result, s.Want)
 		} else {
 			for name, want := range s.After {
 				if !same(mem[addresses[name]:addresses[name]+len(want)], want) {
-					o.Error = "native memory " + name
+					o.NativeError = "native memory " + name
 					break
 				}
+			}
+		}
+		o.NativePC, o.NativeSP = regs.PC, regs.SP
+		if o.NativeError != "" {
+			o.NativeAfter = map[string][]byte{}
+			for name, count := range sizes {
+				o.NativeAfter[name] = append([]byte(nil), mem[addresses[name]:addresses[name]+count]...)
+			}
+		}
+		for _, failure := range []string{o.RawVMError, o.FinalVMError, o.NativeError} {
+			if failure != "" {
+				if o.Error != "" {
+					o.Error += "; "
+				}
+				o.Error += failure
 			}
 		}
 		r.Observations = append(r.Observations, o)
@@ -440,7 +463,15 @@ func main() {
 	symbols := flag.String("symbols", "", "external linked symbol map")
 	workloadFile := flag.String("workload", "", "optional frozen JSON workload: samples and sizes")
 	buildInfo := flag.String("build-info", "", "external source/image/symbol hash attestation from driver")
+	withLibc := flag.Bool("with-libc", false, "use MinZ minimal target libc headers")
+	include := flag.String("include", "", "additional quoted/system include directory")
 	flag.Parse()
+	cBuildOpts.NoLibc = !*withLibc
+	cBuildOpts.BaseDir = filepath.Dir(*source)
+	if *include != "" {
+		cBuildOpts.IncludePaths = []string{*include}
+		cBuildOpts.SysIncludePaths = []string{*include}
+	}
 	if *source == "" || *out == "" {
 		panic("source/out required")
 	}

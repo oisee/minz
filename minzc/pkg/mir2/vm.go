@@ -222,6 +222,11 @@ func NewVM(m *Module) *VM {
 		globalSyms: make(map[string]int64),
 	}
 	vm.heap = make([]byte, 0, 4096)
+	if m.NonNullObjects {
+		// C object addresses must differ from NULL. Explicit address-zero
+		// accesses remain available; raw-address MIR keeps its default layout.
+		vm.heap = append(vm.heap, 0)
+	}
 	if err := VerifyGlobalRelocations(m); err != nil {
 		vm.initErr = err
 		return vm

@@ -47,6 +47,15 @@ jobs:
           go test -short -timeout 30m ./pkg/z80effects/... ./pkg/hir/... ./pkg/mir2/... ./pkg/z80asm/... ./pkg/c89/... ./pkg/codegen/... ./pkg/parser/... ./pkg/plm/... ./pkg/lanz/... ./pkg/lizp/...
           python3 ../scripts/ci/test_stable_pipeline.py
           python3 ../scripts/ci/run_stable_pipeline.py --output "$RUNNER_TEMP/stable-pipeline" --profile fast --shards 3 --workers 3
+      - name: Verify frozen upstream system C on VM and Z80
+        run: python3 ../research/system-c-validation/validate.py --out "$RUNNER_TEMP/system-c-validation"
+      - name: Preserve system C inputs and execution evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: system-c-validation
+          path: ${{ runner.temp }}/system-c-validation/
+          if-no-files-found: ignore
       - name: Verify embedded demos and Tetris difficulty
         run: go test -tags mzx_headless ./cmd/mzx -run '^(TestEmbeddedDemoBoots|TestEmbeddedTetrisDifficulty|TestDemoDiskSurvivesRelaunch|TestDemoSessionResumes)$' -count=1
       - name: Preserve complete pipeline inventory and shard logs

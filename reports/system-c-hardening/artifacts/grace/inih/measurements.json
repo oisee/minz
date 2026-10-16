@@ -1,0 +1,79 @@
+{
+  "Compiler": "minz",
+  "Profile": "grace",
+  "Case": "inih",
+  "SourceSHA256": "1fab43a386c351fbea1df26d007f755d808f830688bc11e0abaf5c5b26100126",
+  "WorkloadSHA256": "b04c6a7fb936f32099f8d808d95ff2e7010ff13cf7ee2d44ee2e2e453c45d920",
+  "Status": "PASS",
+  "InitializedBytes": 9610,
+  "GlobalBytes": 514,
+  "ProgramBytes": 9610,
+  "Calls": 8,
+  "TotalT": 1138678,
+  "Observations": [
+    {
+      "id": "basic",
+      "expected": 0,
+      "result": 0,
+      "t_states": 231854,
+      "native_pc": 61696,
+      "native_sp": 61440
+    },
+    {
+      "id": "comments",
+      "expected": 0,
+      "result": 0,
+      "t_states": 183013,
+      "native_pc": 61696,
+      "native_sp": 61440
+    },
+    {
+      "id": "multiline",
+      "expected": 0,
+      "result": 0,
+      "t_states": 220988,
+      "native_pc": 61696,
+      "native_sp": 61440
+    },
+    {
+      "id": "bad-section",
+      "expected": 1,
+      "result": 1,
+      "t_states": 81408,
+      "native_pc": 61696,
+      "native_sp": 61440
+    },
+    {
+      "id": "missing-equals",
+      "expected": 1,
+      "result": 1,
+      "t_states": 95796,
+      "native_pc": 61696,
+      "native_sp": 61440
+    },
+    {
+      "id": "empty",
+      "expected": 0,
+      "result": 0,
+      "t_states": 51936,
+      "native_pc": 61696,
+      "native_sp": 61440
+    },
+    {
+      "id": "bom-crlf",
+      "expected": 0,
+      "result": 0,
+      "t_states": 136939,
+      "native_pc": 61696,
+      "native_sp": 61440
+    },
+    {
+      "id": "duplicates",
+      "expected": 0,
+      "result": 0,
+      "t_states": 136744,
+      "native_pc": 61696,
+      "native_sp": 61440
+    }
+  ]
+}

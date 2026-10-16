@@ -4,6 +4,7 @@ import (
 	"github.com/minz/minzc/pkg/hir"
 	"github.com/minz/minzc/pkg/mir2"
 	"github.com/minz/minzc/pkg/nanz"
+	"github.com/minz/minzc/pkg/z80spec"
 	"testing"
 )
 
@@ -115,23 +116,23 @@ return r.v}`, "target-contract.nanz")
 }
 
 func TestStructReturnCanonicalIndirectSlotsDoNotOverlap(t *testing.T) {
-	for _, tys := range [][]mir2.Ty{{mir2.TyU16, mir2.TyPtr}, {mir2.TyPtr, mir2.TyPtr}, {mir2.TyU8, mir2.TyPtr, mir2.TyU16}, {mir2.TyPtr, mir2.TyPtr, mir2.TyPtr}} {
+	for _, tys := range [][]mir2.Ty{{mir2.TyU16, mir2.TyPtr}, {mir2.TyPtr, mir2.TyPtr}, {mir2.TyU8, mir2.TyPtr, mir2.TyU16}, {mir2.TyPtr, mir2.TyPtr, mir2.TyPtr}, {mir2.TyPtr, mir2.TyPtr, mir2.TyPtr, mir2.TyPtr}} {
 		classes, e := mir2.CanonicalIndirectParamClasses(tys)
 		if e != nil {
 			t.Fatal(e)
 		}
-		occupied := map[byte]bool{}
+		var occupied []string
 		for i, cls := range classes {
 			loc := mir2.ReturnLocation(cls, tys[i])
-			for j := range loc {
-				if occupied[loc[j]] {
+			for _, previous := range occupied {
+				if z80spec.Overlaps(previous, loc) {
 					t.Fatal("overlapping ABI", tys, classes)
 				}
-				occupied[loc[j]] = true
 			}
+			occupied = append(occupied, loc)
 		}
 	}
-	if _, e := mir2.CanonicalIndirectParamClasses([]mir2.Ty{mir2.TyPtr, mir2.TyPtr, mir2.TyPtr, mir2.TyPtr}); e == nil {
+	if _, e := mir2.CanonicalIndirectParamClasses([]mir2.Ty{mir2.TyPtr, mir2.TyPtr, mir2.TyPtr, mir2.TyPtr, mir2.TyPtr}); e == nil {
 		t.Fatal("exhausted ABI accepted")
 	}
 }

@@ -19,6 +19,11 @@ some valid newer-language programs are rejected. Examples below describe
 individual mechanisms and historical demonstrations, rather than a standard
 compliance guarantee.
 
+The subsequent [system-C hardening](../reports/2026-10-16-system-c-hardening.md)
+fixes lexical handling and `_Generic`, and explicitly rejects active `_BitInt`,
+`constexpr` and `nullptr` uses. Their alias-based examples below are historical
+and are now tested for explicit diagnostics, not executable support.
+
 SDCC support must be stated for a particular version and target; no measured
 percentage of ISO language coverage is supplied here.
 

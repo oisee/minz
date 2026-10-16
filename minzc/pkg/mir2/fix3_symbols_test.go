@@ -3,7 +3,7 @@ package mir2
 import "testing"
 
 func TestZ80RuntimeSymbolsReserved(t *testing.T) {
-	for _, name := range []string{"__mul8", "__mul16", "__call_ix", "__rotate_0", "__rotate_4", "__rotate_7", "_mir2_str_0", "_mir2_str_999", "@mir2.str.0", "_spill_main_r1", "_tsmc_main_r1_0"} {
+	for _, name := range []string{"__mul8", "__mul16", "__call_ix", "__call_stack", "__rotate_0", "__rotate_4", "__rotate_7", "_mir2_str_0", "_mir2_str_999", "@mir2.str.0", "_spill_main_r1", "_tsmc_main_r1_0"} {
 		for _, global := range []bool{false, true} {
 			t.Run(name, func(t *testing.T) {
 				m := &Module{}

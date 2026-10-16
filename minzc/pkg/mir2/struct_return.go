@@ -3,6 +3,8 @@ package mir2
 import (
 	"fmt"
 	"reflect"
+
+	"github.com/minz/minzc/pkg/z80spec"
 )
 
 // StructReturnBuffer is part of the calling ABI, not a source parameter.
@@ -327,10 +329,10 @@ func CanonicalIndirectParamClasses(types []Ty) ([]RegClass, error) {
 
 func canonicalIndirectClasses(types []Ty, preferred func(Ty, int) RegClass) ([]RegClass, error) {
 	classes := make([]RegClass, len(types))
-	used := map[byte]bool{}
+	var used []string
 	overlap := func(name string) bool {
-		for i := range name {
-			if used[name[i]] {
+		for _, occupied := range used {
+			if z80spec.Overlaps(name, occupied) {
 				return true
 			}
 		}
@@ -342,7 +344,7 @@ func canonicalIndirectClasses(types []Ty, preferred func(Ty, int) RegClass) ([]R
 		}
 		choices := []RegClass{preferred(ty, i)}
 		if z80ValueWidth(ty) > 8 {
-			choices = append(choices, ClassPointer, ClassIndex, ClassIY)
+			choices = append(choices, ClassPointer, ClassIndex, ClassIY, ClassIX)
 		} else {
 			choices = append(choices, ClassAcc, ClassRegC, ClassCounter, ClassRegE, ClassRegD, ClassRegL, ClassRegH)
 		}
@@ -351,9 +353,7 @@ func canonicalIndirectClasses(types []Ty, preferred func(Ty, int) RegClass) ([]R
 			name := canonicalReturnLoc(cls, ty)
 			if !overlap(name) {
 				classes[i] = cls
-				for j := range name {
-					used[name[j]] = true
-				}
+				used = append(used, name)
 				found = true
 				break
 			}

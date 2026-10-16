@@ -1,0 +1,166 @@
+--- baseline
+
++++ candidate
+
+@@ -18933,6 +18933,7 @@
+
+ dir_read:
+     LD HL, 4
+     PUSH AF          ; preserve word-load scratch
++    PUSH HL
+     LD A, (DE)     ; lo
+     LD L, A
+     INC DE
+@@ -18940,6 +18941,7 @@
+
+     LD H, A
+     DEC DE
+     LD (_spill_dir_read_r1106), HL
++    POP HL
+     POP AF           ; restore word-load scratch
+     PUSH AF
+     LD A, 0
+@@ -20063,6 +20065,7 @@
+
+     POP DE
+     POP HL
+     PUSH AF          ; preserve word-load scratch
++    PUSH HL
+     LD A, (BC)     ; lo
+     LD L, A
+     INC BC
+@@ -20070,6 +20073,7 @@
+
+     LD H, A
+     DEC BC
+     LD (_spill_dir_register_r1263), HL
++    POP HL
+     POP AF           ; restore word-load scratch
+     LD BC, 0
+     LD IX, 32
+@@ -30127,6 +30131,7 @@
+
+     POP BC
+     POP AF
+     PUSH AF          ; preserve word-load scratch
++    PUSH HL
+     LD A, (BC)     ; lo
+     LD L, A
+     INC BC
+@@ -30134,6 +30139,7 @@
+
+     LD H, A
+     DEC BC
+     LD (_spill_f_open_r2430), HL
++    POP HL
+     POP AF           ; restore word-load scratch
+     PUSH HL
+     POP IY
+@@ -30213,6 +30219,7 @@
+
+     POP HL
+     LD (IY+0), 32
+     PUSH AF          ; preserve word-load scratch
++    PUSH HL
+     LD A, (BC)     ; lo
+     LD L, A
+     INC BC
+@@ -30220,6 +30227,7 @@
+
+     LD H, A
+     DEC BC
+     LD (_spill_f_open_r2439), HL
++    POP HL
+     POP AF           ; restore word-load scratch
+     PUSH HL
+     POP IY
+@@ -30823,6 +30831,7 @@
+
+     POP BC
+     POP HL
+     PUSH AF          ; preserve word-load scratch
++    PUSH HL
+     LD A, (BC)     ; lo
+     LD L, A
+     INC BC
+@@ -30830,6 +30839,7 @@
+
+     LD H, A
+     DEC BC
+     LD (_spill_f_open_r2485), HL
++    POP HL
+     POP AF           ; restore word-load scratch
+     PUSH HL
+     LD HL, (_spill_f_open_r2485)
+@@ -30949,6 +30959,7 @@
+
+     POP BC
+     POP HL
+     PUSH AF          ; preserve word-load scratch
++    PUSH HL
+     LD A, (BC)     ; lo
+     LD L, A
+     INC BC
+@@ -30956,6 +30967,7 @@
+
+     LD H, A
+     DEC BC
+     LD (_spill_f_open_r2495), HL
++    POP HL
+     POP AF           ; restore word-load scratch
+     LD (_spill_f_open_r2496), HL
+     PUSH HL
+@@ -41229,6 +41241,7 @@
+
+     POP DE
+     POP HL
+     PUSH AF          ; preserve word-load scratch
++    PUSH HL
+     LD A, (BC)     ; lo
+     LD L, A
+     INC BC
+@@ -41236,6 +41249,7 @@
+
+     LD H, A
+     DEC BC
+     LD (_spill_f_sync_r3264), HL
++    POP HL
+     POP AF           ; restore word-load scratch
+     LD BC, 11
+     PUSH HL
+@@ -46158,6 +46172,7 @@
+
+     POP BC
+     POP HL
+     PUSH AF          ; preserve word-load scratch
++    PUSH HL
+     LD A, (BC)     ; lo
+     LD L, A
+     INC BC
+@@ -46165,6 +46180,7 @@
+
+     LD H, A
+     DEC BC
+     LD (_spill_f_opendir_r3585), HL
++    POP HL
+     POP AF           ; restore word-load scratch
+     PUSH HL
+     POP IY
+@@ -50954,6 +50970,7 @@
+
+     JRS NZ, .f_unlink_trmp0
+ .f_unlink_if_then10:
+     PUSH AF          ; preserve word-load scratch
++    PUSH HL
+     LD A, (BC)     ; lo
+     LD L, A
+     INC BC
+@@ -50961,6 +50978,7 @@
+
+     LD H, A
+     DEC BC
+     LD (_spill_f_unlink_r4008), HL
++    POP HL
+     POP AF           ; restore word-load scratch
+     LD IYH, D
+     LD IYL, E

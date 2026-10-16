@@ -11,11 +11,14 @@ import "fmt"
 // every Func in the same module has globally unique reg IDs.  This allows a
 // single AllocResult to cover all functions without key collisions.
 type Module struct {
-	Name    string
-	Target  uint8 // platform target (propagated from hir.Module.Target)
-	Funcs   []*Func
-	Globals []Global
-	Strings StringPool
+	// NonNullObjects reserves VM address zero for null when C object semantics
+	// are present. Raw-address MIR modules retain their original memory layout.
+	NonNullObjects bool `json:",omitempty"`
+	Name           string
+	Target         uint8 // platform target (propagated from hir.Module.Target)
+	Funcs          []*Func
+	Globals        []Global
+	Strings        StringPool
 
 	nextReg Reg // module-wide counter; shared by all AddFunc-created Funcs
 }
