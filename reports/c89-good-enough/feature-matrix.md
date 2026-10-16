@@ -7,7 +7,8 @@ Aggregate scalarization интегрирована в main d6404fa4 через P
 switch/control-flow — в main 8fd960e5 через PR #164. Исправление ABI импортов — в main ce6d79ba через PR #165. Lifetime интегрирован в main 97e78d71 через PR #166.
 Language-admission интегрирован в main 1247c19d через PR #167; wide CALL, стоимость scalar ABI и глобальные
 relocations — в main 548d6135 через PR #168. Дополнительная control-closure
-матрица и её backend fix пока в следующей ветке. Полная цель остаётся активной.
+матрица и её backend fix интегрированы в main c69f2197 через PR #169.
+Граница scalar ABI до четырёх байт ожидает PR #170. Полная цель остаётся активной.
 
 | Семейство | Исполняемое доказательство | Состояние и граница |
 |---|---|---|
@@ -16,9 +17,9 @@ relocations — в main 548d6135 через PR #168. Дополнительна�
 | 32-bit multiply/divide/mod | `TestCIntegerSemanticsNativeVM` | C→raw/final VM/Z80 на граничных значениях; wide CALL с живыми caller значениями: `TestC89WideCallLiveVMZ80`, 2025 native / 2700 VM вызовов, интегрировано через PR #168 |
 | Pointer stride, difference, arithmetic | `TestCPointerArithmeticNativeVM` | VM/Z80; complete object types, target адреса 16-bit |
 | Lvalue, postfix, compound: вычислить адрес один раз | `TestCLvalueSingleEvaluationNativeVM` | VM/Z80; побочные эффекты и адреса |
-| if/while/for/do, continue и shadowing | `TestControlContinueShadowProbe` | raw/final VM/Z80; дополнительно `TestC89ControlClosureVMZ80`, пять семейств с точными trace-записями, пока в ветке |
+| if/while/for/do, continue и shadowing | `TestControlContinueShadowProbe` | raw/final VM/Z80; дополнительно `TestC89ControlClosureVMZ80`, пять семейств с точными trace-записями, интегрировано через PR #169 |
 | switch fallthrough/default/labels/nearest break | `TestC89ControlMatrixVMZ80` | VM/Z80; 10 семейств, интегрировано через PR #164 |
-| goto и join пути | `TestC89ControlMatrixVMZ80`, HIR goto suite | Простой C goto/join интегрирован; новая cleanup/multi-entry/nested-scope матрица: 225 native / 300 VM, пока в ветке |
+| goto и join пути | `TestC89ControlMatrixVMZ80`, HIR goto suite | Простой C goto/join интегрирован; новая cleanup/multi-entry/nested-scope матрица: 225 native / 300 VM, интегрировано через PR #169 |
 | logical/conditional/comma effects | `TestC89ExpressionEffectsNative`, `TestC89ControlEffectsNative` | C source + GCC frozen oracle; raw/final VM/Z80, порядок событий, память и PC/SP; expression suite — deep, control suite — fast |
 | Local/static storage, initialization | `TestCScalarConversionsNativeVM`, `TestCLocalAddressesNativeVM` | VM/Z80; отдельные адресуемые объекты, static long/array/struct |
 | Private symbols, extern, separate imports | `TestCSourcePrivateSymbolsNativeVM`, `TestCSourceImportNativeVM`, `TestC89AggregateImportVMZ80` | Mixed C/Nanz VM/Z80; aggregate ABI после связывания интегрирован через PR #165 |
@@ -27,8 +28,8 @@ relocations — в main 548d6135 через PR #168. Дополнительна�
 | Struct layout, array/struct initializer | `TestCAggregateStorageNativeVM` | VM/Z80, bytes/layout; C99 designated cases считать отдельно от C89 |
 | Nested struct/union/overlapping bytes | `TestCNestedUnionLayoutNativeVM` | VM/Z80; memory fallback, не shallow scalar optimization |
 | By-value struct input | `TestCStructParametersNativeVM`, `TestC89AggregateScalarizationBehavior` | Copy semantics direct/indirect/recursive и изменение копии |
-| Small struct return → multiple values | `TestC89AggregateScalarizationABI`, `TestC89AggregateScalarizationBehavior` | Два HIR/MIR result slots, native значения; ≤4 bytes shallow fields |
-| Small struct input → multiple arguments | Те же aggregate tests | Два HIR/MIR parameter slots, no alloca; адрес/indirect/volatile сохраняют memory ABI |
+| Small struct return → multiple values | `TestC89AggregateScalarizationABI`, `TestC89AggregateScalarizationBehavior` | Pair интегрирован; граница 3/4 byte, 2 word и mixed: `TestC89AggregateScalarWidthVMZ80`, 144 native / 192 VM, пока в следующей ветке |
+| Small struct input → multiple arguments | Те же aggregate tests | Pair интегрирован; новая width matrix подтверждает количество/типы argument slots и no alloca; адрес/indirect/volatile сохраняют memory ABI |
 | Цена aggregate scalar ABI | `TestC89AggregateTransferCostVMZ80` | Пара primary/heldout, реальные буферы против tuple slots; 732 native / 1464 VM вызовов, интегрировано через PR #168 |
 | Возврат большой структуры и косвенный aggregate return | `TestC89AggregateReturnLifetimeVMZ80` | Буфер caller и копирование до освобождения frame; интегрировано через PR #166 |
 | Глобальные address initializers | `TestC89GlobalRelocationsVMZ80`, `TestC89GlobalRelocationImportVMZ80` | Строки, поля, массивы, static local, function pointers, C/C и Nanz/C; 231 native / 308 VM вызовов, интегрировано через PR #168 |
@@ -50,8 +51,9 @@ long/VLA отклоняются. Их наличие в прежнем C-кор�
 
 Новые доказательства: [wide CALL и стоимость scalar ABI](call-abi-and-cost.md),
 [глобальные адресные инициализаторы](global-address-initializers.md),
-[cleanup, вложенные переходы и сохранность аргумента](control-closure.md).
-Следующие работы: завершить строгую интеграцию control-closure/backend
-проверок, воспроизвести их на main и оценить оставшиеся пробелы в матрице.
+[cleanup, вложенные переходы и сохранность аргумента](control-closure.md),
+[граница scalar ABI в четыре байта](aggregate-width-boundary.md).
+Следующие работы: завершить строгую интеграцию PR #170, воспроизвести
+декомпозицию на main и завершить [аудит условий цели](completion-audit.md).
 Runtime varargs и неизвестные indirect parameter ABI с живыми caller значениями явно
 не входят в заявленный Z80 допуск. Матрица сохраняет открытые строки.
