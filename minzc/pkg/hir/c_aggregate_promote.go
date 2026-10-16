@@ -50,7 +50,12 @@ func promoteStructReturns(m *Module, onlyC bool) {
 	}
 
 	// Phase 0: out-param promotion — void f(..., SSS *out) → tuple return.
-	outParamEligible := findOutParamFunctions(m, idx, onlyC)
+	outParamEligible := map[string]*outParamInfo{}
+	if onlyC {
+		changed = promoteCOutParameters(m) || changed
+	} else {
+		outParamEligible = findOutParamFunctions(m, idx, false)
+	}
 	changed = changed || len(outParamEligible) > 0
 	for _, fn := range m.Funcs {
 		info, ok := outParamEligible[fn.Name]
