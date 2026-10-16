@@ -381,7 +381,8 @@ func convert(v Value, t Type) (r Value) {
 	if t.Kind() == Enum {
 		t = t.(*EnumType).UnderlyingType()
 	}
-	if IsIntegerType(t) {
+	// C99 6.3.1.2: _Bool normalizes before any width truncation.
+	if IsIntegerType(t) && t.Kind() != Bool {
 		switch {
 		case t.Size() <= 0 || t.Size() > 8:
 			return Unknown

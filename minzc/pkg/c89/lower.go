@@ -93,7 +93,15 @@ func (l *lowerer) mapType(t cc.Type) mir2.Ty {
 	case cc.Struct, cc.Union:
 		return mir2.TyPtr // structs/unions lowered to pointer (address) on Z80
 	default:
-		return mir2.TyU16 // conservative fallback
+		// ObjC message expressions use parser placeholders; selector types
+		// are supplied separately by objc_lower. They are not C scalar types.
+		if t.Kind() == cc.InvalidKind && len(l.objcClasses) > 0 {
+			return mir2.TyU16
+		}
+		if l.typeError == nil {
+			l.typeError = fmt.Errorf("c89: unsupported Z80 type %s", t)
+		}
+		return mir2.TyU16 // only retained while collecting the diagnostic
 	}
 }
 
@@ -116,10 +124,19 @@ func cConvert(e hir.Expr, ty mir2.Ty) hir.Expr {
 	return hir.Cast(e, ty)
 }
 
+// Conversion to C _Bool tests the complete scalar before narrowing to its
+// one-byte ABI representation (C99 6.3.1.2).
+func (l *lowerer) convertType(e hir.Expr, ty cc.Type) hir.Expr {
+	if ty != nil && ty.Kind() == cc.Bool {
+		return boolNormalize(e)
+	}
+	return cConvert(e, l.mapType(ty))
+}
+
 // boolNormalize wraps an expression so that any non-zero value becomes 1.
 // Implements C99 _Bool semantics: `_Bool b = 42` → `b = 1`.
 func boolNormalize(e hir.Expr) hir.Expr {
-	return &hir.BinExpr{Op: "!=", L: e, R: &hir.IntLitExpr{Val: 0, Ty: e.ExprTy()}, Ty: mir2.TyU8}
+	return hir.Cast(&hir.BinExpr{Op: "!=", L: e, R: &hir.IntLitExpr{Val: 0, Ty: e.ExprTy()}, Ty: mir2.TyBool}, mir2.TyU8)
 }
 
 // isFunction checks if name is a known function in the module.
@@ -240,10 +257,13 @@ func (l *lowerer) storageType(t cc.Type) mir2.Ty {
 	case *cc.ArrayType:
 		return mir2.NewArray(l.storageType(t.Elem()), int(t.Len()))
 	case *cc.StructType:
-		if known := l.resolveStructType(t); known != nil {
-			return known
+		if name, ok := l.cStructs[t]; ok {
+			return l.structs[name]
 		}
 		tag := l.structTag(t)
+		if tag != "" && l.structs[tag] != nil {
+			return l.structs[tag]
+		}
 		if tag == "" {
 			tag = fmt.Sprintf("__anonymous_struct_%d", len(l.structs))
 		}
@@ -301,6 +321,9 @@ func (l *lowerer) writeGlobalInitializer(data []byte, init *cc.Initializer) erro
 		value = 0
 	default:
 		return fmt.Errorf("unsupported global initializer value %T", v)
+	}
+	if init.Type().Kind() == cc.Bool && value != 0 {
+		value = 1
 	}
 	for i := 0; i < width; i++ {
 		data[off+i] = byte(value >> (8 * i))
@@ -464,10 +487,11 @@ func (l *lowerer) lowerFunc(fd *cc.FunctionDefinition) (*hir.Func, error) {
 	}
 
 	fl := &funcLow{
-		low:    l,
-		name:   name,
-		retTy:  retTy,
-		locals: make(map[string]mir2.Ty),
+		low:      l,
+		name:     name,
+		retTy:    retTy,
+		retCType: ft.Result(),
+		locals:   make(map[string]mir2.Ty),
 	}
 
 	// Register params as locals.
@@ -511,10 +535,11 @@ func isReturn(s hir.Stmt) bool {
 // ── Function body lowering ──────────────────────────────────────────────────
 
 type funcLow struct {
-	low    *lowerer
-	name   string
-	retTy  mir2.Ty
-	locals map[string]mir2.Ty
+	low      *lowerer
+	name     string
+	retTy    mir2.Ty
+	retCType cc.Type
+	locals   map[string]mir2.Ty
 
 	// static locals: original name → mangled global name.
 	staticRenames map[string]string
@@ -601,6 +626,10 @@ func (fl *funcLow) lowerLocalDecl(d *cc.Declaration) ([]hir.Stmt, error) {
 			continue
 		}
 		ty := fl.low.mapType(decl.Type())
+		declarationTy := ty
+		if decl.Type().Kind() == cc.Struct || decl.Type().Kind() == cc.Union {
+			declarationTy = fl.low.storageType(decl.Type())
+		}
 		if !decl.IsStatic() {
 			delete(fl.staticRenames, name)
 		}
@@ -609,16 +638,13 @@ func (fl *funcLow) lowerLocalDecl(d *cc.Declaration) ([]hir.Stmt, error) {
 		// Skip __func__ (implicitly static, not a real user variable).
 		if decl.IsStatic() && name != "__func__" {
 			mangled := fl.name + "__" + name
+			ty = fl.low.storageType(decl.Type())
 			fl.locals[name] = ty
 			g := mir2.Global{Name: mangled, Ty: ty, Volatile: decl.Type().Attributes().IsVolatile()}
 			if id.Initializer != nil {
-				if val, ok := fl.low.evalConstInit(id.Initializer); ok {
-					w := mir2.ByteWidth(ty)
-					if w <= 1 {
-						g.Init = []byte{byte(val)}
-					} else {
-						g.Init = []byte{byte(val), byte(val >> 8)}
-					}
+				g.Init = make([]byte, mir2.ByteWidth(ty))
+				if err := fl.low.writeGlobalInitializer(g.Init, id.Initializer); err != nil {
+					return nil, fmt.Errorf("static local %s: %w", name, err)
 				}
 			}
 			fl.low.hm.Globals = append(fl.low.hm.Globals, g)
@@ -713,7 +739,7 @@ func (fl *funcLow) lowerLocalDecl(d *cc.Declaration) ([]hir.Stmt, error) {
 			}
 		}
 
-		stmts = append(stmts, &hir.VarDeclStmt{Name: name, Ty: ty, Init: init, Volatile: decl.Type().Attributes().IsVolatile()})
+		stmts = append(stmts, &hir.VarDeclStmt{Name: name, Ty: declarationTy, Init: init, Volatile: decl.Type().Attributes().IsVolatile()})
 	}
 	return stmts, nil
 }
@@ -1191,7 +1217,12 @@ func (fl *funcLow) lowerJump(js *cc.JumpStatement) ([]hir.Stmt, error) {
 			if err != nil {
 				return nil, err
 			}
-			return []hir.Stmt{hir.Ret(cConvert(val, fl.retTy))}, nil
+			if fl.retCType != nil {
+				val = fl.low.convertType(val, fl.retCType)
+			} else {
+				val = cConvert(val, fl.retTy)
+			}
+			return []hir.Stmt{hir.Ret(val)}, nil
 		}
 		return []hir.Stmt{hir.RetVoid()}, nil
 
@@ -1337,7 +1368,7 @@ func (fl *funcLow) lowerExprNode(e cc.ExpressionNode) (*exprResult, error) {
 			if err != nil {
 				return nil, err
 			}
-			return wrapExpr(hir.Cast(inner, fl.low.mapType(x.Type()))), nil
+			return wrapExpr(fl.low.convertType(inner, x.Type())), nil
 		}
 		return nil, nil
 
@@ -1507,6 +1538,9 @@ func (fl *funcLow) lowerPrimary(pe *cc.PrimaryExpression) (*exprResult, error) {
 			return wrapExpr(&hir.IntLitExpr{Val: constToInt64(v), Ty: ty}), nil
 		}
 
+	case cc.PrimaryExpressionFloat:
+		return nil, fmt.Errorf("c89: unsupported floating-point expression at %s", pe.Position())
+
 	case cc.PrimaryExpressionChar:
 		v := pe.Value()
 		if v == nil {
@@ -1634,7 +1668,7 @@ func (fl *funcLow) lowerPostfix(pf *cc.PostfixExpression) (*exprResult, error) {
 			return nil, err
 		}
 		ty := base.ExprTy()
-		return &exprResult{target: base, val: hir.Add(base, &hir.IntLitExpr{Val: fl.incrementStep(pf.PostfixExpression.Type()), Ty: ty}, ty), isPostfix: true}, nil
+		return &exprResult{target: base, val: fl.low.convertType(hir.Add(base, &hir.IntLitExpr{Val: fl.incrementStep(pf.PostfixExpression.Type()), Ty: ty}, ty), pf.PostfixExpression.Type()), isPostfix: true}, nil
 
 	case cc.PostfixExpressionDec: // x--
 		base, err := fl.lowerExprAsExpr(pf.PostfixExpression)
@@ -1642,7 +1676,7 @@ func (fl *funcLow) lowerPostfix(pf *cc.PostfixExpression) (*exprResult, error) {
 			return nil, err
 		}
 		ty := base.ExprTy()
-		return &exprResult{target: base, val: hir.Sub(base, &hir.IntLitExpr{Val: fl.incrementStep(pf.PostfixExpression.Type()), Ty: ty}, ty), isPostfix: true}, nil
+		return &exprResult{target: base, val: fl.low.convertType(hir.Sub(base, &hir.IntLitExpr{Val: fl.incrementStep(pf.PostfixExpression.Type()), Ty: ty}, ty), pf.PostfixExpression.Type()), isPostfix: true}, nil
 
 	case cc.PostfixExpressionComplit: // (Type){init-list} — compound literal
 		ty := pf.Type()
@@ -1714,7 +1748,7 @@ func (fl *funcLow) lowerCall(pf *cc.PostfixExpression) (*exprResult, error) {
 			return nil, err
 		}
 		if ft != nil && len(args) < len(ft.Parameters()) {
-			arg = cConvert(arg, fl.low.mapType(ft.Parameters()[len(args)].Type()))
+			arg = fl.low.convertType(arg, ft.Parameters()[len(args)].Type())
 		} else if cc.IsIntegerType(al.AssignmentExpression.Type()) {
 			arg = cConvert(arg, fl.low.mapType(cc.IntegerPromotion(al.AssignmentExpression.Type())))
 		}
@@ -1824,7 +1858,7 @@ func (fl *funcLow) lowerUnary(ue *cc.UnaryExpression) (*exprResult, error) {
 			return nil, err
 		}
 		ty := inner.ExprTy()
-		return wrapAssign(inner, hir.Add(inner, &hir.IntLitExpr{Val: fl.incrementStep(ue.UnaryExpression.Type()), Ty: ty}, ty)), nil
+		return wrapAssign(inner, fl.low.convertType(hir.Add(inner, &hir.IntLitExpr{Val: fl.incrementStep(ue.UnaryExpression.Type()), Ty: ty}, ty), ue.UnaryExpression.Type())), nil
 
 	case cc.UnaryExpressionDec: // --x
 		inner, err := fl.lowerExprAsExpr(ue.UnaryExpression)
@@ -1832,7 +1866,7 @@ func (fl *funcLow) lowerUnary(ue *cc.UnaryExpression) (*exprResult, error) {
 			return nil, err
 		}
 		ty := inner.ExprTy()
-		return wrapAssign(inner, hir.Sub(inner, &hir.IntLitExpr{Val: fl.incrementStep(ue.UnaryExpression.Type()), Ty: ty}, ty)), nil
+		return wrapAssign(inner, fl.low.convertType(hir.Sub(inner, &hir.IntLitExpr{Val: fl.incrementStep(ue.UnaryExpression.Type()), Ty: ty}, ty), ue.UnaryExpression.Type())), nil
 
 	default:
 		return fl.lowerExpr(ue.CastExpression)
@@ -1891,7 +1925,7 @@ func (fl *funcLow) lowerAssignment(ae *cc.AssignmentExpression) (*exprResult, er
 		val = &hir.BinExpr{Op: "%", L: operand, R: val, Ty: opTy}
 	}
 
-	return wrapAssign(target, cConvert(val, ty)), nil
+	return wrapAssign(target, fl.low.convertType(val, ae.Type())), nil
 }
 
 // lowerBinaryOp handles all binary expression types via the cc.Case value.
@@ -2220,7 +2254,7 @@ func (fl *funcLow) lowerStructInit(st *mir2.StructTy, il *cc.InitializerList) (*
 				if err != nil {
 					return nil, err
 				}
-				val = r.toExpr()
+				val = fl.low.convertType(r.toExpr(), init.Type())
 			}
 		case cc.InitializerInitList:
 			// Nested brace init — flatten embedded struct fields into parent.
@@ -2244,7 +2278,7 @@ func (fl *funcLow) lowerStructInit(st *mir2.StructTy, il *cc.InitializerList) (*
 							}
 							lit.Fields = append(lit.Fields, hir.FieldInit{
 								Name: st.Fields[innerIdx].Name,
-								Val:  r.toExpr(),
+								Val:  fl.low.convertType(r.toExpr(), innerInit.Type()),
 							})
 						}
 						innerIdx++
@@ -2295,7 +2329,7 @@ func (fl *funcLow) lowerArrayInit(elemTy mir2.Ty, length int, il *cc.Initializer
 				if err != nil {
 					return nil, err
 				}
-				result[idx] = r.toExpr()
+				result[idx] = fl.low.convertType(r.toExpr(), init.Type())
 			}
 		}
 		idx++
