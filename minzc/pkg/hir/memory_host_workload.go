@@ -337,7 +337,7 @@ func ValidateMemoryHostMIR(source *Module, m *mir2.Module, w MemoryHostWorkload)
 	}
 	seen := map[string]bool{}
 	for _, g := range m.Globals {
-		if g.Storage != mir2.StorageNormal || g.At != nil || len(g.VtableSyms) != 0 || memoryHostPointerStorage(g.Ty) {
+		if g.Storage != mir2.StorageNormal || g.At != nil || len(g.VtableSyms) != 0 || len(g.Relocs) != 0 || memoryHostPointerStorage(g.Ty) {
 			return fmt.Errorf("memory host: unsupported global storage %q", g.Name)
 		}
 	}

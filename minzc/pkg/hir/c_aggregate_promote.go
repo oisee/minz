@@ -232,6 +232,11 @@ func findEligibleFunctions(m *Module, idx structIndex, onlyC bool) map[string]*p
 			}
 		}
 		for _, g := range m.Globals {
+			for _, r := range g.Relocs {
+				if r.Symbol == name {
+					safe = false
+				}
+			}
 			for _, symbol := range g.VtableSyms {
 				if symbol == name {
 					safe = false

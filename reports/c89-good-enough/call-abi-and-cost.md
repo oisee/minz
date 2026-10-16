@@ -61,4 +61,4 @@ baseline и сохранение измеренного выигрыша по р
 не пишет эти артефакты в репозиторий.
 
 Эти проверки закрывают distinct wide CALL и измеренный scalar transfer slice.
-Глобальные pointer relocations и строгая интеграция оставшихся PR ещё впереди.
+Глобальные pointer relocations имеют [отдельный проверенный этап](global-address-initializers.md). Строгая интеграция оставшихся PR ещё впереди.

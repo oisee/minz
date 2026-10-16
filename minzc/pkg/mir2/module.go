@@ -51,8 +51,9 @@ const (
 
 // Global is a module-level variable or constant.
 type Global struct {
-	Volatile   bool   `json:",omitempty"` // all source reads/writes are observable
-	Name       string // linker symbol name
+	Relocs     []GlobalRelocation `json:",omitempty"` // symbolic 16-bit initializer addresses
+	Volatile   bool               `json:",omitempty"` // all source reads/writes are observable
+	Name       string             // linker symbol name
 	Ty         Ty
 	Init       []byte       // initial bytes; shorter initializers are zero-padded to ByteWidth(Ty)
 	InitString bool         // source used a byte-array string literal; preserve it when printing Nanz
@@ -64,6 +65,14 @@ type Global struct {
 	// Each entry is a mangled function name whose address occupies one ptr-width slot.
 	// Empty string = nil slot (protocol method not implemented).
 	VtableSyms []string
+}
+
+// GlobalRelocation writes Symbol+Addend into a two-byte little-endian slot.
+// Offset addresses the global's byte layout, including aggregate fields.
+type GlobalRelocation struct {
+	Offset int
+	Symbol string
+	Addend int64
 }
 
 // ── String pool ───────────────────────────────────────────────────────────────

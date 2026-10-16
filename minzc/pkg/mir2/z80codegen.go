@@ -222,6 +222,9 @@ func ValidateZ80Symbols(m *Module) error {
 // callers that don't need options can omit it entirely.
 // Invalid symbols return an error and no assembly.
 func Z80Codegen(m *Module, ar *AllocResult, opts ...Z80CodegenOptions) (string, error) {
+	if err := VerifyGlobalRelocations(m); err != nil {
+		return "", err
+	}
 	for i := 0; i < m.Strings.Len(); i++ {
 		n, k := len(m.Strings.At(i)), m.Strings.Kind(i)
 		if (k == StrSString && n > 255) || (k == StrLString && n > 65535) {
@@ -368,7 +371,11 @@ func Z80Codegen(m *Module, ar *AllocResult, opts ...Z80CodegenOptions) (string, 
 			}
 			sanitized := sanitizeIdent(g.Name)
 			sb.WriteString(sanitized + ":\n")
-			emitTypedGlobalData(&sb, g.Ty, g.Init)
+			if len(g.Relocs) > 0 {
+				emitRelocatedGlobalData(&sb, g)
+			} else {
+				emitTypedGlobalData(&sb, g.Ty, g.Init)
+			}
 			// For struct globals, emit EQU labels for each field so that direct
 			// addressing (LD A,(sym__field)) works without pointer arithmetic.
 			// Format: sanitizeIdent(sym)__fieldName  EQU  sym + byteOffset

@@ -257,7 +257,7 @@ func (l *lowerer) lowerTopDecl(d *cc.Declaration) error {
 		g := mir2.Global{Name: l.symbolName(name), Ty: mty, Volatile: ty.Attributes().IsVolatile()}
 		if id.Initializer != nil {
 			g.Init = make([]byte, mty.Width()/8)
-			if err := l.writeGlobalInitializer(g.Init, id.Initializer); err != nil {
+			if err := l.writeGlobalInitializer(&g, id.Initializer, nil); err != nil {
 				return fmt.Errorf("global %s: %w", name, err)
 			}
 		}
@@ -324,13 +324,14 @@ func (l *lowerer) storageFieldType(field *cc.Field) mir2.Ty {
 
 // The typed parser already resolves nested braces and designators to byte
 // offsets. Traverse all scalar leaves in source order so later designators win.
-func (l *lowerer) writeGlobalInitializer(data []byte, init *cc.Initializer) error {
+func (l *lowerer) writeGlobalInitializer(g *mir2.Global, init *cc.Initializer, scope map[string]string) error {
+	data := g.Init
 	if init == nil {
 		return nil
 	}
 	if init.Case == cc.InitializerInitList {
 		for list := init.InitializerList; list != nil; list = list.InitializerList {
-			if err := l.writeGlobalInitializer(data, list.Initializer); err != nil {
+			if err := l.writeGlobalInitializer(g, list.Initializer, scope); err != nil {
 				return err
 			}
 		}
@@ -342,6 +343,24 @@ func (l *lowerer) writeGlobalInitializer(data []byte, init *cc.Initializer) erro
 	off, width := int(init.Offset()), int(init.Type().Size())
 	if off < 0 || width < 1 || off+width > len(data) {
 		return fmt.Errorf("initializer layout exceeds storage: offset %d width %d size %d", off, width, len(data))
+	}
+	// Later designated leaves replace earlier storage, including relocations.
+	kept := g.Relocs[:0]
+	for _, r := range g.Relocs {
+		if r.Offset >= off+width || r.Offset+2 <= off {
+			kept = append(kept, r)
+		}
+	}
+	g.Relocs = kept
+	if init.Type().Kind() == cc.Ptr {
+		if sym, addend, ok := l.globalAddress(init.AssignmentExpression, false, scope); ok {
+			if width != 2 {
+				return fmt.Errorf("unsupported pointer initializer width %d", width)
+			}
+			g.Relocs = append(g.Relocs, mir2.GlobalRelocation{Offset: off, Symbol: sym, Addend: addend})
+			clear(data[off : off+width])
+			return nil
+		}
 	}
 	if str, ok := init.Value().(cc.StringValue); ok {
 		if init.Type().Kind() != cc.Array {
@@ -719,12 +738,16 @@ func (fl *funcLow) lowerLocalDecl(d *cc.Declaration) ([]hir.Stmt, error) {
 		// This also preserves the static lifetime of referenced __func__.
 		if decl.IsStatic() {
 			mangled := fl.name + "__" + name
+			if fl.staticRenames == nil {
+				fl.staticRenames = make(map[string]string)
+			}
+			fl.staticRenames[name] = mangled
 			ty = fl.low.storageType(decl.Type())
 			fl.locals[name] = ty
 			g := mir2.Global{Name: mangled, Ty: ty, Volatile: decl.Type().Attributes().IsVolatile()}
 			if id.Initializer != nil {
 				g.Init = make([]byte, mir2.ByteWidth(ty))
-				if err := fl.low.writeGlobalInitializer(g.Init, id.Initializer); err != nil {
+				if err := fl.low.writeGlobalInitializer(&g, id.Initializer, fl.staticRenames); err != nil {
 					return nil, fmt.Errorf("static local %s: %w", name, err)
 				}
 			}
@@ -734,11 +757,7 @@ func (fl *funcLow) lowerLocalDecl(d *cc.Declaration) ([]hir.Stmt, error) {
 			fl.locals[name] = ty
 			// Emit nothing — the variable lives as a global.
 			// We need a way for VarRef to find it by the mangled name.
-			// Store the mapping in locals but redirect reads/writes via rename.
-			if fl.staticRenames == nil {
-				fl.staticRenames = make(map[string]string)
-			}
-			fl.staticRenames[name] = mangled
+			// Reads/writes use the rename recorded before initialization.
 			continue
 		}
 
@@ -1527,18 +1546,7 @@ func (fl *funcLow) lowerPrimary(pe *cc.PrimaryExpression) (*exprResult, error) {
 		if !ok {
 			return nil, fmt.Errorf("unsupported string literal encoding at %s", pe.Position())
 		}
-		// The parser resolves escapes, adjacent literals and macro stringification.
-		// Its value includes the final NUL; the CString pool supplies that byte.
-		s := strings.TrimSuffix(string(value), "\x00")
-		for i, existing := range fl.low.hm.Strings {
-			if existing == s && i < len(fl.low.hm.StrKinds) && fl.low.hm.StrKinds[i] == mir2.StrCString {
-				return wrapExpr(hir.Addr(fmt.Sprintf("@mir2.str.%d", i))), nil
-			}
-		}
-		idx := len(fl.low.hm.Strings)
-		fl.low.hm.Strings = append(fl.low.hm.Strings, s)
-		fl.low.hm.StrKinds = append(fl.low.hm.StrKinds, mir2.StrCString)
-		return wrapExpr(hir.Addr(fmt.Sprintf("@mir2.str.%d", idx))), nil
+		return wrapExpr(hir.Addr(fl.low.internCString(value))), nil
 
 	case cc.PrimaryExpressionExpr:
 		return fl.lowerExpr(pe.ExpressionList)
@@ -1789,14 +1797,37 @@ func (fl *funcLow) lowerCall(pf *cc.PostfixExpression) (*exprResult, error) {
 	if pf.Type().Kind() == cc.Struct || pf.Type().Kind() == cc.Union {
 		retTy = fl.low.storageType(pf.Type())
 	}
+	indirect := func(fn hir.Expr) *exprResult {
+		sig := &hir.CallSignature{}
+		if ft != nil {
+			for _, p := range ft.Parameters() {
+				if p.Type().Kind() != cc.Void {
+					sig.Params = append(sig.Params, fl.low.mapType(p.Type()))
+				}
+			}
+		}
+		if len(sig.Params) == 0 && len(args) > 0 {
+			for _, arg := range args {
+				sig.Params = append(sig.Params, arg.ExprTy())
+			}
+		}
+		if retTy != mir2.TyVoid {
+			sig.Returns = []mir2.Ty{retTy}
+		}
+		sig.ResolveStructReturnABI()
+		return wrapExpr(&hir.CallIndirectExpr{Signature: sig, FnPtr: fn, Args: args, Ty: retTy})
+	}
 
 	// Try to extract a direct function name from the callee AST node.
 	// This avoids going through lowerExpr which may convert function names to AddrOfExpr.
 	if name := fl.extractCalleeName(pf.PostfixExpression); name != "" {
+		if ty, isGlobal := fl.low.globals[name]; isGlobal && mir2.IsPointer(ty) {
+			return indirect(hir.Var(fl.low.symbolName(name), mir2.TyPtr)), nil
+		}
 		if _, isLocal := fl.locals[name]; isLocal {
 			// Local variable or parameter holding a function pointer → indirect call.
 			fnPtr := &hir.VarRefExpr{Name: name, Ty: mir2.TyPtr}
-			return wrapExpr(&hir.CallIndirectExpr{FnPtr: fnPtr, Args: args, Ty: retTy}), nil
+			return indirect(fnPtr), nil
 		}
 		// Function name → direct call.
 		return wrapExpr(hir.Call(fl.low.symbolName(name), retTy, args...)), nil
@@ -1807,7 +1838,7 @@ func (fl *funcLow) lowerCall(pf *cc.PostfixExpression) (*exprResult, error) {
 	if err != nil {
 		return nil, err
 	}
-	return wrapExpr(&hir.CallIndirectExpr{FnPtr: fnExpr, Args: args, Ty: retTy}), nil
+	return indirect(fnExpr), nil
 }
 
 func (fl *funcLow) lowerUnary(ue *cc.UnaryExpression) (*exprResult, error) {

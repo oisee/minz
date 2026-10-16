@@ -140,6 +140,15 @@ func LowerStructReturnBuffers(m *Module) error {
 
 		}
 	}
+	for _, g := range m.Globals {
+		for _, r := range g.Relocs {
+			if target := m.FuncByName(r.Symbol); target != nil {
+				if err := fixGlobalIndirectABI(target); err != nil {
+					return err
+				}
+			}
+		}
+	}
 	// Derive this even when contract optimization is disabled. Indirect calls
 	// cannot consult the allocation chosen for their dynamically resolved target.
 	for _, f := range m.Funcs {
@@ -147,28 +156,8 @@ func LowerStructReturnBuffers(m *Module) error {
 			for _, inst := range b.Insts {
 				if inst.Op == OpAddrOf {
 					if target := m.FuncByName(inst.Sym); target != nil {
-						target.Attrs.FixedIndirectABI = true
-						returnTypes := make([]Ty, len(target.Contract.Returns))
-						for i, r := range target.Contract.Returns {
-							returnTypes[i] = r.Ty
-						}
-						returnClasses, err := CanonicalIndirectReturnClasses(returnTypes)
-						if err != nil {
-							return fmt.Errorf("%s: %w", target.Name, err)
-						}
-						for i := range target.Contract.Returns {
-							target.Contract.Returns[i].Class = returnClasses[i]
-						}
-						types := make([]Ty, len(target.Contract.Params))
-						for i, p := range target.Contract.Params {
-							types[i] = p.Ty
-						}
-						classes, err := CanonicalIndirectParamClasses(types)
-						if err != nil {
-							return fmt.Errorf("%s: %w", target.Name, err)
-						}
-						for i := range target.Contract.Params {
-							target.Contract.Params[i].Class = classes[i]
+						if err := fixGlobalIndirectABI(target); err != nil {
+							return err
 						}
 					}
 				}
@@ -378,4 +367,31 @@ func canonicalIndirectClasses(types []Ty, preferred func(Ty, int) RegClass) ([]R
 
 func CanonicalIndirectReturnClasses(types []Ty) ([]RegClass, error) {
 	return canonicalIndirectClasses(types, standardIndirectReturnClass)
+}
+
+func fixGlobalIndirectABI(target *Func) error {
+	target.Attrs.FixedIndirectABI = true
+	returnTypes := make([]Ty, len(target.Contract.Returns))
+	for i, r := range target.Contract.Returns {
+		returnTypes[i] = r.Ty
+	}
+	returnClasses, err := CanonicalIndirectReturnClasses(returnTypes)
+	if err != nil {
+		return fmt.Errorf("%s: %w", target.Name, err)
+	}
+	for i := range target.Contract.Returns {
+		target.Contract.Returns[i].Class = returnClasses[i]
+	}
+	types := make([]Ty, len(target.Contract.Params))
+	for i, p := range target.Contract.Params {
+		types[i] = p.Ty
+	}
+	classes, err := CanonicalIndirectParamClasses(types)
+	if err != nil {
+		return fmt.Errorf("%s: %w", target.Name, err)
+	}
+	for i := range target.Contract.Params {
+		target.Contract.Params[i].Class = classes[i]
+	}
+	return nil
 }

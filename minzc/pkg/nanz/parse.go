@@ -1846,6 +1846,14 @@ func (p *parser) parseImport() error {
 	}
 
 	// Rewrite internal references in imported functions:
+	for i := range imported.Globals {
+		for j := range imported.Globals[i].Relocs {
+			r := &imported.Globals[i].Relocs[j]
+			if name, ok := nameMap[r.Symbol]; ok {
+				r.Symbol = name
+			}
+		}
+	}
 	// CallExpr.Fn and VarRefExpr.Name (for globals) must use mangled names.
 	for _, f := range imported.Funcs {
 		if f.Body != nil {

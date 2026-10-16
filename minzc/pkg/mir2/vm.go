@@ -32,7 +32,8 @@ type PortIO interface {
 }
 
 type VM struct {
-	Module *Module
+	initErr error
+	Module  *Module
 
 	// Host function table.
 	// Key: full intrinsic name (e.g. "@mir.io.print.u8", "@host.emit.code")
@@ -221,6 +222,10 @@ func NewVM(m *Module) *VM {
 		globalSyms: make(map[string]int64),
 	}
 	vm.heap = make([]byte, 0, 4096)
+	if err := VerifyGlobalRelocations(m); err != nil {
+		vm.initErr = err
+		return vm
+	}
 	// Pre-allocate all module globals into the heap.
 	for _, g := range m.Globals {
 		offset := int64(len(vm.heap))
@@ -270,6 +275,18 @@ func NewVM(m *Module) *VM {
 				vm.heap[off] = byte(addr)
 				vm.heap[off+1] = byte(addr >> 8)
 			}
+		}
+	}
+	for _, g := range m.Globals {
+		for _, r := range g.Relocs {
+			addr, err := vm.resolveSymbol(r.Symbol)
+			if err != nil {
+				vm.initErr = err
+				return vm
+			}
+			off := vm.globalSyms[g.Name] + int64(r.Offset)
+			value := uint16(addr + r.Addend)
+			vm.heap[off], vm.heap[off+1] = byte(value), byte(value>>8)
 		}
 	}
 	vm.registerBuiltinHosts()
@@ -382,6 +399,9 @@ func (vm *VM) callFunc(fn *Func, args []Value) ([]Value, error) {
 	return out.Values, err
 }
 func (vm *VM) callFuncOutcome(fn *Func, args []Value) (CallOutcome, error) {
+	if vm.initErr != nil {
+		return CallOutcome{}, vm.initErr
+	}
 	if fn.Attrs.IsExtern {
 		// Try host table by function name.
 		if hf, ok := vm.Hosts["@"+fn.Name]; ok {

@@ -39,6 +39,9 @@ func Verify(m *Module) error {
 	if err := VerifyStructReturnBuffers(m); err != nil {
 		return err
 	}
+	if err := VerifyGlobalRelocations(m); err != nil {
+		return err
+	}
 	if err := validateNamedSMC(m); err != nil {
 		return err
 	}
