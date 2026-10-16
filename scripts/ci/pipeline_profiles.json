@@ -376,6 +376,7 @@
     "TestUnsupportedCapturedDirectCallRejectedBeforeLowering",
     "TestValueOnlyProfilesRejectLanguageOutcomeBeforeExecution",
     "TestVoidMatchEffectsVMZ80",
+    "TestByteAbsDiffCFGNativeCAndNanz",
     "TestWeightedCompositionValidatorRefusesForgedShapes",
     "TestWeightedPointerPrototypeAddressDomain",
     "TestWeightedPointerPrototypeHoistedPrefixRefusals",
