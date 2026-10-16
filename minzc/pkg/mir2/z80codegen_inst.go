@@ -850,8 +850,13 @@ func (g *z80cg) genInst(inst *Inst) {
 		// value is allocated to HL.  Avoids the byte-by-byte DE path that clobbers A.
 		if inst.Ty.Width() == 16 {
 			if sym, ok := g.globalU16StoreSym[inst.Src[0]]; ok {
-				if g.loc(inst.Src[1]) == "HL" {
+				value := g.loc(inst.Src[1])
+				if value == "HL" {
 					g.emitNativeMemoryf(inst, 0, 2, "    LD (%s), HL    ; u16 direct store (16T, no A clobber)", sanitizeIdent(sym))
+					break
+				}
+				if value == "DE" || value == "BC" {
+					g.emitNativeMemoryf(inst, 0, 2, "    LD (%s), %s    ; u16 direct store, no scratch clobber", sanitizeIdent(sym), value)
 					break
 				}
 			}
