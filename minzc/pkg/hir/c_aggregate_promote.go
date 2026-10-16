@@ -1263,24 +1263,3 @@ func walkStmts(blk *Block, fn func(Stmt) bool) bool {
 	}
 	return true
 }
-
-// walkStmtsMut visits every statement and allows replacing it.
-func walkStmtsMut(blk *Block, fn func(Stmt, func(Stmt))) {
-	if blk == nil {
-		return
-	}
-	for i, s := range blk.Body {
-		fn(s, func(replacement Stmt) {
-			blk.Body[i] = replacement
-		})
-		switch st := blk.Body[i].(type) {
-		case *IfStmt:
-			walkStmtsMut(st.Then, fn)
-			walkStmtsMut(st.Else, fn)
-		case *WhileStmt:
-			walkStmtsMut(st.Body, fn)
-		case *ForRangeStmt:
-			walkStmtsMut(st.Body, fn)
-		}
-	}
-}

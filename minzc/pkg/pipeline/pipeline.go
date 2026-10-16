@@ -173,7 +173,7 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 	}
 	hir.OptimizeCAggregateABI(hm)
 	if err := hir.Verify(hm); err != nil {
-		return Steps{}, fmt.Errorf("C aggregate ABI: %w", err)
+		return Steps{}, fmt.Errorf("c aggregate ABI: %w", err)
 	}
 	s.UnsignedPairComparePolicy = policy
 	s.Traces = make(map[string]*FuncTrace)
