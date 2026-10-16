@@ -226,7 +226,8 @@ SDCC 4.2.0 #13081; SDCC 4.5.0 #15242; z88dk/sccz80 checkout
 SDCC и sccz80; z88dk предоставляет frontend/toolchain для последнего.
 Все точные версии и SHA исходников/runner/helper archive находятся в
 [toolchains.json](c89-full-benchmark/toolchains.json); [summary.json](c89-full-benchmark/summary.json)
-содержит все 69 результатов. [Манифест](c89-full-benchmark/manifest.json) проверяет
+содержит все 69 результатов. Все 249 локальных ссылок отчёта проверены
+на наличие файлов именно в Git, включая ASM/MIR, обычно исключаемые .gitignore. [Манифест](c89-full-benchmark/manifest.json) проверяет
 опубликованные текстовые артефакты. Общие точные входы сохранены один раз на пример; в папке каждого варианта —
 команды, исходник и ASM, для MinZ также raw/final MIR. Costs содержит число наблюдений
 и SHA полного measurements.json. Подробные наблюдения, бинарники и полный исходный
