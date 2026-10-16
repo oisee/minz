@@ -1,7 +1,6 @@
 package mir2
 
 import (
-	"fmt"
 	"strings"
 	"testing"
 
@@ -72,7 +71,7 @@ func TestTruncPrefixBridgePreservesLiveAccumulatorNative(t *testing.T) {
 						}
 						got := z.GetRegisters()
 						if got.PC != 0xf100 || got.SP != 0xf000 || got.A != want.A || got.F != want.F || got.BC != want.BC || got.DE != want.DE || got.HL != want.HL || got.IX != want.IX || got.IY != want.IY {
-							t.Fatal(fmt.Sprintf("%s->%s word%04x A%02x F%02x: got%v want%v\n%s", src, dst, word, a, flags, got, want, out.String()))
+							t.Fatalf("%s->%s word%04x A%02x F%02x: got%v want%v\n%s", src, dst, word, a, flags, got, want, out.String())
 						}
 					}
 				}

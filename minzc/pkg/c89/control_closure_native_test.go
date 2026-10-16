@@ -3,7 +3,6 @@ package c89_test
 import (
 	"bytes"
 	"encoding/binary"
-	"fmt"
 	"os"
 	"reflect"
 	"testing"
@@ -207,7 +206,7 @@ func TestC89ControlClosureVMZ80(t *testing.T) {
 						cpu.DoOpcode()
 					}
 					if cpu.PC() != 0xf100 || cpu.SP() != 0xf000 {
-						t.Fatal(fmt.Sprintf("PC/SP %s(%d)=%04x/%04x", name, x, cpu.PC(), cpu.SP()))
+						t.Fatalf("PC/SP %s(%d)=%04x/%04x", name, x, cpu.PC(), cpu.SP())
 					}
 					var writes []volatileEvent
 					for _, a := range mem.events {
