@@ -23,6 +23,17 @@ func TestCIntegerSemanticsNativeVM(t *testing.T) {
 		name, expr string
 		want       func(uint32, uint32) uint32
 	}{
+		{"mul", "a*b", func(a, b uint32) uint32 { return a * b }},
+		{"mul_live", "a*b+a+b", func(a, b uint32) uint32 { return a*b + a + b }},
+		{"mul_const", "a*65537UL", func(a, b uint32) uint32 { return a * 65537 }},
+		{"mul_high_const", "a*0x80000000UL", func(a, b uint32) uint32 { return a * 0x80000000 }},
+		{"mul_zero", "a*0UL", func(a, b uint32) uint32 { return 0 }},
+		{"mul_one", "a*1UL", func(a, b uint32) uint32 { return a }},
+		{"div", "a/b", func(a, b uint32) uint32 { return a / b }},
+		{"mod", "a%b", func(a, b uint32) uint32 { return a % b }},
+		{"signed_mul", "(long)a*(long)b", func(a, b uint32) uint32 { return uint32(int32(a) * int32(b)) }},
+		{"signed_div", "(long)a/(long)b", func(a, b uint32) uint32 { return uint32(int32(a) / int32(b)) }},
+		{"signed_mod", "(long)a%(long)b", func(a, b uint32) uint32 { return uint32(int32(a) % int32(b)) }},
 		{"add", "a+b", func(a, b uint32) uint32 { return a + b }},
 		{"sub", "a-b", func(a, b uint32) uint32 { return a - b }},
 		{"xor", "a^b", func(a, b uint32) uint32 { return a ^ b }},
@@ -101,6 +112,20 @@ func TestCIntegerSemanticsNativeVM(t *testing.T) {
 			}
 			for _, a := range values {
 				for _, b := range values {
+					// C99 6.5.5: exclude division by zero and unrepresentable
+					// signed results; signed overflow is not an oracle input.
+					if (c.name == "div" || c.name == "mod" || c.name == "signed_div" || c.name == "signed_mod") && b == 0 {
+						continue
+					}
+					if (c.name == "signed_div" || c.name == "signed_mod") && a == 0x80000000 && b == 0xffffffff {
+						continue
+					}
+					if c.name == "signed_mul" {
+						product := int64(int32(a)) * int64(int32(b))
+						if product < -2147483648 || product > 2147483647 {
+							continue
+						}
+					}
 					want := c.want(a, b)
 					for _, vm := range []*mir2.VM{raw, final} {
 						var data [4]byte
