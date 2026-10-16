@@ -1,0 +1,10 @@
+global values: [u8; 512]
+global n: u8
+global result: u16
+fun unpack_pair(base: ^u8, index: u16) -> u16 {
+    var pos: u16 = index + (index >> 1)
+    var combined: u16 = u16(base[pos]) | (u16(base[pos + 1]) << 8)
+    if (index & 1) == 0 { return combined & 4095 }
+    return (combined >> 4) & 4095
+}
+fun execute() { result = unpack_pair(&values, u16(n)) }

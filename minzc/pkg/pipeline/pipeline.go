@@ -325,6 +325,7 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 		if mir2.FuseByteAbsDiffCFG(f) {
 			tr.FuseAbsDiff++
 		}
+		tr.PtrThreading += mir2.StrengthReduceCountedPointers(f)
 		if opt.OptSize {
 			mir2.MergeConstantReturnTails(f)
 		}
@@ -604,6 +605,7 @@ func CompileHIRWithOptions(hm *hir.Module, opts Options) (string, error) {
 		}
 		mir2.FuseAbsDiff(f)
 		mir2.FuseByteAbsDiffCFG(f)
+		mir2.StrengthReduceCountedPointers(f)
 		if opts.FuseByteWords {
 			mir2.FuseSequentialByteWords(f)
 		}

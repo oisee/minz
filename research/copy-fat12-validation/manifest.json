@@ -1,0 +1,51 @@
+{
+  "baseline_main": "df50290c52958771ea2fbea9fd269f346ac03a09",
+  "note": "Frozen before measurement of these additional programs; primary copy experiment already measured separately.",
+  "files": [
+    {
+      "path": "copy_xor-heldout.json",
+      "bytes": 2913504,
+      "sha256": "5526fb4d1ee6536cd3fb8ca08affe8f3c73b9676056f17b9e516bf29405bbfae"
+    },
+    {
+      "path": "copy_xor-search.json",
+      "bytes": 1914964,
+      "sha256": "0143953725b31317d31a39aa5a90d1c613739173247647767c4c6bc8e9d841e3"
+    },
+    {
+      "path": "copy_xor.c",
+      "bytes": 318,
+      "sha256": "fc13f6683432bd93a6267123f766ea58eda2ddb5e9826d280bba2cfea7a9782f"
+    },
+    {
+      "path": "copy_xor.nanz",
+      "bytes": 318,
+      "sha256": "fc8954312910ec0a6a17a2cf128d57236c218fcd8bb1407699706658456b42bf"
+    },
+    {
+      "path": "freeze_workloads.py",
+      "bytes": 2555,
+      "sha256": "67477d6afeaef678b513411e6b1fb295e17ab4b369f524c8830dac5d40fa129a"
+    },
+    {
+      "path": "packed_pair-heldout.json",
+      "bytes": 2886275,
+      "sha256": "009b1bf1ab8539ea188f7792af28dd5ed9d95c7ad5877df06e270f8498836de4"
+    },
+    {
+      "path": "packed_pair-search.json",
+      "bytes": 1923352,
+      "sha256": "e9d90141f8234fc341f346d246e60949374d42a053e6ee9651da2707980aa09e"
+    },
+    {
+      "path": "packed_pair.c",
+      "bytes": 411,
+      "sha256": "5428fb400b3372a137fdad821414f941b00286a806156adca9476a3b609d25fa"
+    },
+    {
+      "path": "packed_pair.nanz",
+      "bytes": 355,
+      "sha256": "4938f654dfbfea70bc24d0186f4cf9573723a8c5a5a5cd48a48addfbeedb29b5"
+    }
+  ]
+}
