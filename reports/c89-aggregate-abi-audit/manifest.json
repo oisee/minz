@@ -1,0 +1,142 @@
+[
+  {
+    "path": "c/default/final.mir",
+    "sha256": "5e5a40717272b5338ac04f884816fe1726ddee7872342b82f7ab20827db80711",
+    "bytes": 860
+  },
+  {
+    "path": "c/default/raw.mir",
+    "sha256": "eb4776bdcf4c62084318ff649d0e25bc1f6072b8f7ff7a04e5121f0c9baf473d",
+    "bytes": 852
+  },
+  {
+    "path": "c/default/source",
+    "sha256": "1b4db14f4aaad780e83e1cf25776c4a3745378a555f3f0d904cda8595fce6eca",
+    "bytes": 239
+  },
+  {
+    "path": "c/default/target.a80",
+    "sha256": "a2989acfb08d73e20a2c63d1c59076a5f66a1c4e56e28371787ea73fdaf46e2d",
+    "bytes": 1212
+  },
+  {
+    "path": "c/grace/final.mir",
+    "sha256": "5e5a40717272b5338ac04f884816fe1726ddee7872342b82f7ab20827db80711",
+    "bytes": 860
+  },
+  {
+    "path": "c/grace/raw.mir",
+    "sha256": "eb4776bdcf4c62084318ff649d0e25bc1f6072b8f7ff7a04e5121f0c9baf473d",
+    "bytes": 852
+  },
+  {
+    "path": "c/grace/source",
+    "sha256": "1b4db14f4aaad780e83e1cf25776c4a3745378a555f3f0d904cda8595fce6eca",
+    "bytes": 239
+  },
+  {
+    "path": "c/grace/target.a80",
+    "sha256": "49fbc06ebd6dda2fb59b97aeb8384e4976a5438b2659ab0a7f951b8e6d969f0e",
+    "bytes": 1197
+  },
+  {
+    "path": "c/size/final.mir",
+    "sha256": "5e5a40717272b5338ac04f884816fe1726ddee7872342b82f7ab20827db80711",
+    "bytes": 860
+  },
+  {
+    "path": "c/size/raw.mir",
+    "sha256": "eb4776bdcf4c62084318ff649d0e25bc1f6072b8f7ff7a04e5121f0c9baf473d",
+    "bytes": 852
+  },
+  {
+    "path": "c/size/source",
+    "sha256": "1b4db14f4aaad780e83e1cf25776c4a3745378a555f3f0d904cda8595fce6eca",
+    "bytes": 239
+  },
+  {
+    "path": "c/size/target.a80",
+    "sha256": "49fbc06ebd6dda2fb59b97aeb8384e4976a5438b2659ab0a7f951b8e6d969f0e",
+    "bytes": 1197
+  },
+  {
+    "path": "core.log",
+    "sha256": "9141a04ea0f8b82cd995c0dba152bb0f0aabbc370a2f59d473b102513350e69d",
+    "bytes": 130
+  },
+  {
+    "path": "directed.log",
+    "sha256": "b441c0ffe7fb5bce38119bc19e9c41b27de9f9ff83b190ce8048ea27186fecd1",
+    "bytes": 85
+  },
+  {
+    "path": "host-oracle.json",
+    "sha256": "94acc4479d700289db32fb534fc8fc750b0956c0947e74bf1fe4bf83daab4329",
+    "bytes": 187
+  },
+  {
+    "path": "nanz/default/final.mir",
+    "sha256": "a939803248470c82a161b7eb586428a67f5c3aab724be6646933776fc934ea6b",
+    "bytes": 916
+  },
+  {
+    "path": "nanz/default/raw.mir",
+    "sha256": "a939803248470c82a161b7eb586428a67f5c3aab724be6646933776fc934ea6b",
+    "bytes": 916
+  },
+  {
+    "path": "nanz/default/source",
+    "sha256": "82e6d386e9a952b39b86ad82ecdb1c9839f01d2be7d2e39b105aca8a8103baac",
+    "bytes": 209
+  },
+  {
+    "path": "nanz/default/target.a80",
+    "sha256": "7dac1085700a4d571d911c775f44c3c9d9c1a9dffdaf5dca0056d06f5ac01ee4",
+    "bytes": 1513
+  },
+  {
+    "path": "nanz/grace/final.mir",
+    "sha256": "a939803248470c82a161b7eb586428a67f5c3aab724be6646933776fc934ea6b",
+    "bytes": 916
+  },
+  {
+    "path": "nanz/grace/raw.mir",
+    "sha256": "a939803248470c82a161b7eb586428a67f5c3aab724be6646933776fc934ea6b",
+    "bytes": 916
+  },
+  {
+    "path": "nanz/grace/source",
+    "sha256": "82e6d386e9a952b39b86ad82ecdb1c9839f01d2be7d2e39b105aca8a8103baac",
+    "bytes": 209
+  },
+  {
+    "path": "nanz/grace/target.a80",
+    "sha256": "9a3a8f231a2ccf0d284c7155448879bf7fc7a4c78e658cd3770cac6d40a74230",
+    "bytes": 1483
+  },
+  {
+    "path": "nanz/size/final.mir",
+    "sha256": "a939803248470c82a161b7eb586428a67f5c3aab724be6646933776fc934ea6b",
+    "bytes": 916
+  },
+  {
+    "path": "nanz/size/raw.mir",
+    "sha256": "a939803248470c82a161b7eb586428a67f5c3aab724be6646933776fc934ea6b",
+    "bytes": 916
+  },
+  {
+    "path": "nanz/size/source",
+    "sha256": "82e6d386e9a952b39b86ad82ecdb1c9839f01d2be7d2e39b105aca8a8103baac",
+    "bytes": 209
+  },
+  {
+    "path": "nanz/size/target.a80",
+    "sha256": "9a3a8f231a2ccf0d284c7155448879bf7fc7a4c78e658cd3770cac6d40a74230",
+    "bytes": 1483
+  },
+  {
+    "path": "summary.json",
+    "sha256": "1090a9b1ee9f5ad97ea78b1d3a7f2258a512b86382584c05c6a1c97c3ed1bd69",
+    "bytes": 1313
+  }
+]
