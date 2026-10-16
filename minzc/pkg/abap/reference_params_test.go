@@ -54,6 +54,15 @@ func TestFORMReferenceEffectsVMAndZ80(t *testing.T) {
 
 func verifyABAPGlobalMemory(t *testing.T, src string, want map[string]uint16) {
 	t.Helper()
+	expected := make(map[string]int32, len(want))
+	for name, val := range want {
+		expected[name] = int32(val)
+	}
+	verifyABAPIntegerMemory(t, src, expected)
+}
+
+func verifyABAPIntegerMemory(t *testing.T, src string, want map[string]int32) {
+	t.Helper()
 	parse := func() *hir.Module {
 		t.Helper()
 		m, e := Compile(src, "zref")
@@ -72,7 +81,7 @@ func verifyABAPGlobalMemory(t *testing.T, src string, want map[string]uint16) {
 			t.Fatal(e)
 		}
 		for n, w := range want {
-			if got := binary.LittleEndian.Uint16(v.ReadHeap(v.GlobalAddr(n), 2)); got != w {
+			if got := binary.LittleEndian.Uint32(v.ReadHeap(v.GlobalAddr(n), 4)); got != uint32(w) {
 				t.Fatalf("VM %s=%d want %d", n, got, w)
 			}
 		}
@@ -108,7 +117,7 @@ func verifyABAPGlobalMemory(t *testing.T, src string, want map[string]uint16) {
 		if !ok {
 			t.Fatalf("missing global %s", n)
 		}
-		if got := binary.LittleEndian.Uint16(mem[addr : addr+2]); got != w {
+		if got := binary.LittleEndian.Uint32(mem[addr : addr+4]); got != uint32(w) {
 			t.Fatalf("Z80 %s=%d want %d\n%s", n, got, w, steps.Assembly)
 		}
 	}

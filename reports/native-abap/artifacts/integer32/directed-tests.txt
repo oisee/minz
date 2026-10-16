@@ -1,0 +1,26 @@
+=== RUN   TestInteger32ReferenceVMAndZ80
+=== RUN   TestInteger32ReferenceVMAndZ80/boundaries.abap
+=== RUN   TestInteger32ReferenceVMAndZ80/wide-reference.abap
+--- PASS: TestInteger32ReferenceVMAndZ80 (0.49s)
+    --- PASS: TestInteger32ReferenceVMAndZ80/boundaries.abap (0.22s)
+    --- PASS: TestInteger32ReferenceVMAndZ80/wide-reference.abap (0.27s)
+=== RUN   TestInteger32DecimalOutputVMAndZ80
+=== RUN   TestInteger32DecimalOutputVMAndZ80/0
+=== RUN   TestInteger32DecimalOutputVMAndZ80/1
+=== RUN   TestInteger32DecimalOutputVMAndZ80/-1
+=== RUN   TestInteger32DecimalOutputVMAndZ80/65536
+=== RUN   TestInteger32DecimalOutputVMAndZ80/-65537
+=== RUN   TestInteger32DecimalOutputVMAndZ80/-2147483648
+=== RUN   TestInteger32DecimalOutputVMAndZ80/2147483647
+--- PASS: TestInteger32DecimalOutputVMAndZ80 (0.92s)
+    --- PASS: TestInteger32DecimalOutputVMAndZ80/0 (0.13s)
+    --- PASS: TestInteger32DecimalOutputVMAndZ80/1 (0.13s)
+    --- PASS: TestInteger32DecimalOutputVMAndZ80/-1 (0.13s)
+    --- PASS: TestInteger32DecimalOutputVMAndZ80/65536 (0.13s)
+    --- PASS: TestInteger32DecimalOutputVMAndZ80/-65537 (0.13s)
+    --- PASS: TestInteger32DecimalOutputVMAndZ80/-2147483648 (0.13s)
+    --- PASS: TestInteger32DecimalOutputVMAndZ80/2147483647 (0.14s)
+=== RUN   TestInteger32LiteralAdmission
+--- PASS: TestInteger32LiteralAdmission (0.29s)
+PASS
+ok  	github.com/minz/minzc/pkg/abap	1.710s

@@ -45,3 +45,13 @@ match raw/final VM and native Z80 global memory and PC/SP. The DO probes also
 close the missing native SY-INDEX setter/getter path. Numeric widths,
 rounding/overflow, strings, remaining syntax/system-field admission and main
 integration are still required; these small-value probes do not complete them.
+
+## Signed 32-bit storage checkpoint
+
+[TYPE i storage and execution](2026-10-16-integer32-checkpoint.md) now use i32
+for globals, locals, literals and reference FORM parameters. Two independent
+wide/boundary probes match full four-byte memory on both VMs and native Z80.
+Decimal output also covers INT_MIN and INT_MAX. Native wide NEG's former
+byte fallback is corrected and verified across allocated banks and spills.
+Arithmetic overflow/rounding and full-width input, other type admission,
+strings, the full unchanged-program gate and main integration remain required.

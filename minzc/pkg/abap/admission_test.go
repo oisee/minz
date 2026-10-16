@@ -93,13 +93,13 @@ ENDFORM.`
 		t.Helper()
 		vm := mir2.NewVM(m)
 		addr := vm.GlobalAddr("lv_x")
-		if got := binary.LittleEndian.Uint16(vm.ReadHeap(addr, 2)); got != 7 {
+		if got := binary.LittleEndian.Uint32(vm.ReadHeap(addr, 4)); got != 7 {
 			t.Fatalf("before call: %d", got)
 		}
 		if _, e := vm.Call("probe", nil); e != nil {
 			t.Fatal(e)
 		}
-		if got := binary.LittleEndian.Uint16(vm.ReadHeap(addr, 2)); got != 0 {
+		if got := binary.LittleEndian.Uint32(vm.ReadHeap(addr, 4)); got != 0 {
 			t.Fatalf("after call: %d", got)
 		}
 	}
@@ -120,7 +120,7 @@ ENDFORM.`
 	if !ok {
 		t.Fatal("missing global symbol")
 	}
-	if got := binary.LittleEndian.Uint16(mem[addr : addr+2]); got != 7 {
+	if got := binary.LittleEndian.Uint32(mem[addr : addr+4]); got != 7 {
 		t.Fatalf("native before call: %d", got)
 	}
 	mem[0xeffe], mem[0xefff] = 0, 0xf1
@@ -132,7 +132,7 @@ ENDFORM.`
 	if r.PC != 0xf100 || r.SP != 0xf000 {
 		t.Fatalf("native return PC=%04x SP=%04x", r.PC, r.SP)
 	}
-	if got := binary.LittleEndian.Uint16(mem[addr : addr+2]); got != 0 {
+	if got := binary.LittleEndian.Uint32(mem[addr : addr+4]); got != 0 {
 		t.Fatalf("native after call: %d", got)
 	}
 }

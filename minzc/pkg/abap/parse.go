@@ -1034,11 +1034,16 @@ func parseDataStmt(tokens []string) (Decl, error) {
 				i++
 			}
 		case "VALUE":
-			if i+1 < len(tokens) {
-				val := parseTokenExpr(tokens[i+1])
-				d.Value = &val
-				i++
+			end := len(tokens)
+			if tokens[end-1] == "." || tokens[end-1] == "," {
+				end--
 			}
+			val, err := parseDeclarationLiteral(tokens[i+1 : end])
+			if err != nil {
+				return nil, fmt.Errorf("DATA %s VALUE: %w", d.Name, err)
+			}
+			d.Value = &val
+			i = end - 1
 		}
 	}
 	return d, nil
@@ -1423,11 +1428,16 @@ func parseParamStmt(tokens []string) (Decl, error) {
 				i++
 			}
 		case "DEFAULT":
-			if i+1 < len(tokens) {
-				val := parseTokenExpr(tokens[i+1])
-				p.Default = &val
-				i++
+			end := len(tokens)
+			if tokens[end-1] == "." || tokens[end-1] == "," {
+				end--
 			}
+			val, err := parseDeclarationLiteral(tokens[i+1 : end])
+			if err != nil {
+				return nil, fmt.Errorf("PARAMETERS %s DEFAULT: %w", p.Name, err)
+			}
+			p.Default = &val
+			i = end - 1
 		}
 	}
 	return p, nil

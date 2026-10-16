@@ -98,7 +98,7 @@ var abapAssertRe = regexp.MustCompile(
 )
 
 // Compile is the top-level entry point: ABAP source → HIR module.
-// Tries embedded Wasm parser first (no Node.js needed), falls back to Node.js bridge.
+// Uses the embedded Go parser, with no Node/Wasm fallback.
 // Target: hir.TargetCPM (default), hir.TargetZXSpectrum, etc.
 func Compile(src, name string, target ...uint8) (*hir.Module, error) {
 	tgt := uint8(0) // default: CPM
@@ -130,6 +130,9 @@ func Compile(src, name string, target ...uint8) (*hir.Module, error) {
 		return nil, fmt.Errorf("abap lower: %w", err)
 	}
 	emitRuntimeFuncs(hm, tgt)
+	if err := emitInteger32Runtime(hm, tgt); err != nil {
+		return nil, err
+	}
 
 	// Scan source for assert comments (* assert fn(args) == expected [via mir2|z80]).
 	for i, line := range strings.Split(src, "\n") {
@@ -239,13 +242,17 @@ func (l *lowerer) lower() (*hir.Module, error) {
 		case *DataDecl:
 			ty := l.abapTypeToHIR(d.AbapTy, d.Length)
 			l.varTypes[d.Name] = ty
-			l.lowerGlobal(d)
+			if err := l.lowerGlobal(d); err != nil {
+				return nil, err
+			}
 		case *ParamDecl:
 			// PARAMETERS → global variable + register in screen table
 			ty := l.abapTypeToHIR(d.AbapTy, d.Length)
 			l.varTypes[d.Name] = ty
 			dd := &DataDecl{Name: d.Name, AbapTy: d.AbapTy, Length: d.Length, Value: d.Default}
-			l.lowerGlobal(dd)
+			if err := l.lowerGlobal(dd); err != nil {
+				return nil, err
+			}
 			l.lowerParamRegister(d)
 		}
 	}
@@ -757,8 +764,8 @@ func (l *lowerer) lowerParamRegister(p *ParamDecl) {
 
 func (l *lowerer) abapTypeToHIR(abapTy string, length int) mir2.Ty {
 	switch abapTy {
-	case "i": // ABAP integer (4 bytes) → u16 for Z80
-		return mir2.TyU16
+	case "i": // ABAP signed integer occupies four bytes on every target.
+		return mir2.TyI32
 	case "int8", "b":
 		return mir2.TyU8
 	case "c", "n":
@@ -781,7 +788,7 @@ func (l *lowerer) abapTypeToHIR(abapTy string, length int) mir2.Ty {
 
 // ── Globals ──────────────────────────────────────────────────────────────────
 
-func (l *lowerer) lowerGlobal(d *DataDecl) {
+func (l *lowerer) lowerGlobal(d *DataDecl) error {
 	ty := l.abapTypeToHIR(d.AbapTy, d.Length)
 	g := mir2.Global{
 		Name: d.Name,
@@ -790,15 +797,18 @@ func (l *lowerer) lowerGlobal(d *DataDecl) {
 	if d.Value != nil {
 		switch lit := (*d.Value).(type) {
 		case *IntLit:
+			if ty == mir2.TyI32 && (lit.Val < -2147483648 || lit.Val > 2147483647) {
+				return fmt.Errorf("DATA %s: value %d is outside TYPE i range", d.Name, lit.Val)
+			}
 			w := mir2.ByteWidth(ty)
 			g.Init = make([]byte, w)
-			if w >= 1 {
-				g.Init[0] = byte(lit.Val)
-			}
-			if w >= 2 {
-				g.Init[1] = byte(lit.Val >> 8)
+			for i := range g.Init {
+				g.Init[i] = byte(uint64(lit.Val) >> (8 * i))
 			}
 		case *StringLit:
+			if ty == mir2.TyI32 {
+				return fmt.Errorf("DATA %s: character-to-integer initialization is not admitted", d.Name)
+			}
 			// String DATA → intern the string and record an init assignment
 			sym := l.internStr(lit.Val)
 			// Extract index from sym ("@mir2.str.N" → N)
@@ -809,9 +819,12 @@ func (l *lowerer) lowerGlobal(d *DataDecl) {
 				strIdx:  idx,
 				ty:      ty,
 			})
+		default:
+			return fmt.Errorf("DATA %s: unsupported initial value %T", d.Name, lit)
 		}
 	}
 	l.hm.Globals = append(l.hm.Globals, g)
+	return nil
 }
 
 // enterProcedure isolates parameters and local DATA from sibling procedures.
@@ -1054,7 +1067,7 @@ func (l *lowerer) lowerStmt(s Stmt_) (hir.Stmt, error) {
 		if !ok {
 			return nil, fmt.Errorf("CLEAR: unknown target %s", s.Target)
 		}
-		if ty != mir2.TyU16 {
+		if ty != mir2.TyU16 && ty != mir2.TyI32 {
 			return nil, fmt.Errorf("CLEAR %s: type-specific initial value is not implemented for %s", s.Target, ty)
 		}
 		return &hir.AssignStmt{Target: l.variableTarget(s.Target, ty), Val: &hir.IntLitExpr{Val: 0, Ty: ty}}, nil
@@ -1100,6 +1113,9 @@ func (l *lowerer) lowerWrite(s *WriteStmt) (hir.Stmt, error) {
 			return nil, err
 		}
 		fnName := "abap_write"
+		if he.ExprTy() == mir2.TyI32 {
+			fnName = "abap_write_i32"
+		}
 		if _, ok := e.(*StringLit); ok {
 			fnName = "abap_write_str"
 		} else if he.ExprTy() == mir2.TyPtr {
@@ -1935,11 +1951,10 @@ func (l *lowerer) lowerExpr(e Expr_) (hir.Expr, error) {
 	case *InvalidExpr:
 		return nil, fmt.Errorf("ABAP expression: %s", e.Message)
 	case *IntLit:
-		ty := mir2.TyU16
-		if e.Val >= 0 && e.Val <= 255 {
-			ty = mir2.TyU8
+		if e.Val < -2147483648 || e.Val > 2147483647 {
+			return nil, fmt.Errorf("integer literal %d is outside TYPE i range", e.Val)
 		}
-		return &hir.IntLitExpr{Val: e.Val, Ty: ty}, nil
+		return &hir.IntLitExpr{Val: e.Val, Ty: mir2.TyI32}, nil
 
 	case *StringLit:
 		// Intern string into module pool, return AddrOfExpr
@@ -1960,6 +1975,11 @@ func (l *lowerer) lowerExpr(e Expr_) (hir.Expr, error) {
 		return l.lowerBinOp(e)
 
 	case *UnaryOp:
+		if e.Op == "-" {
+			if literal, ok := e.Val.(*IntLit); ok && literal.Val == 2147483648 {
+				return &hir.IntLitExpr{Val: -2147483648, Ty: mir2.TyI32}, nil
+			}
+		}
 		val, err := l.lowerExpr(e.Val)
 		if err != nil {
 			return nil, err
@@ -2007,6 +2027,14 @@ func (l *lowerer) lowerBinOp(e *BinOp) (hir.Expr, error) {
 		return nil, err
 	}
 
+	if lhs.ExprTy() == mir2.TyI32 || rhs.ExprTy() == mir2.TyI32 {
+		if lhs.ExprTy() != mir2.TyI32 {
+			lhs = &hir.CastExpr{X: lhs, Ty: mir2.TyI32}
+		}
+		if rhs.ExprTy() != mir2.TyI32 {
+			rhs = &hir.CastExpr{X: rhs, Ty: mir2.TyI32}
+		}
+	}
 	// Map ABAP operators to HIR string operators
 	var op string
 	switch strings.ToUpper(e.Op) {

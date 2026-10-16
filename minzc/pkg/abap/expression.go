@@ -131,3 +131,26 @@ func expressionIdentifier(s string) bool {
 	}
 	return true
 }
+
+func parseDeclarationLiteral(tokens []string) (Expr_, error) {
+	e, err := parseExpression(tokens)
+	if err != nil {
+		return nil, err
+	}
+	if u, ok := e.(*UnaryOp); ok {
+		if lit, ok := u.Val.(*IntLit); ok {
+			switch u.Op {
+			case "+":
+				e = lit
+			case "-":
+				e = &IntLit{Val: -lit.Val}
+			}
+		}
+	}
+	switch e.(type) {
+	case *IntLit, *StringLit:
+		return e, nil
+	default:
+		return nil, fmt.Errorf("only numeric or character literal initialization is admitted")
+	}
+}
