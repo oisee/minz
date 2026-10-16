@@ -61,6 +61,7 @@ func narrowZeroExtendedByteComparisons(f *Func) bool {
 					}
 					i.Src = [2]Reg{left.Src[0], right.Src[0]}
 					i.Cond = cond
+					i.SrcTy = TyU8
 					changed = true
 				}
 			}

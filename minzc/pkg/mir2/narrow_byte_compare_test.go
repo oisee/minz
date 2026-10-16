@@ -10,7 +10,7 @@ func byteCompareFixture(cond CmpCond) (*Module, *Func, *Inst) {
 	f := m.AddFunc("compare")
 	f.Contract.Params = []Param{{Reg: 1, Ty: TyU8, Class: ClassGeneral}, {Reg: 2, Ty: TyU8, Class: ClassGeneral}}
 	f.Contract.Returns = []Return{{Ty: TyBool, Class: ClassAcc}, {Ty: TyI16, Class: ClassGeneral}}
-	cmp := &Inst{Op: OpCmp, Dst: 5, Src: [2]Reg{3, 4}, Ty: TyBool, Cond: cond, Cls: ClassAcc, SrcFile: "promoted.c", SrcLine: 7}
+	cmp := &Inst{Op: OpCmp, Dst: 5, Src: [2]Reg{3, 4}, Ty: TyBool, SrcTy: TyI16, Cond: cond, Cls: ClassAcc, SrcFile: "promoted.c", SrcLine: 7}
 	f.Blocks = []*Block{{Label: "entry", Insts: []*Inst{
 		{Op: OpExt, Dst: 3, Src: [2]Reg{1}, SrcTy: TyU8, Ty: TyI16},
 		{Op: OpExt, Dst: 4, Src: [2]Reg{2}, SrcTy: TyU8, Ty: TyI16}, cmp,
@@ -38,7 +38,7 @@ func TestNarrowByteCompareAllPairs(t *testing.T) {
 	for _, c := range []CmpCond{CmpEq, CmpNe, CmpLt, CmpLe, CmpGt, CmpGe, CmpUlt, CmpUle, CmpUgt, CmpUge} {
 		m, f, i := byteCompareFixture(c)
 		ext := *f.Blocks[0].Insts[0]
-		if !SimplifyIdentities(f) || i.Src != [2]Reg{1, 2} || i.SrcLine != 7 || i.SrcFile != "promoted.c" || !reflect.DeepEqual(ext, *f.Blocks[0].Insts[0]) {
+		if !SimplifyIdentities(f) || i.Src != [2]Reg{1, 2} || i.SrcTy != TyU8 || i.SrcLine != 7 || i.SrcFile != "promoted.c" || !reflect.DeepEqual(ext, *f.Blocks[0].Insts[0]) {
 			t.Fatal("rewrite or surviving extension", c)
 		}
 		if err := Verify(m); err != nil {
