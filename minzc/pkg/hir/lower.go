@@ -329,7 +329,9 @@ type lowerer struct {
 
 	// localArrays tracks local array variables promoted to globals.
 	// &name for these should return the env register (address) directly.
-	localArrays map[string]bool
+	localArrays  map[string]bool
+	localCells   map[string]bool // scalar objects represented by an owned address
+	addressTaken map[string]bool
 
 	// loopStack is the stack of enclosing loops (top = innermost).
 	// Needed by BreakStmt and ContinueStmt.
@@ -386,6 +388,7 @@ func (l *lowerer) bind(name string, r mir2.Reg, ty mir2.Ty) {
 	l.envTy[name] = ty
 	delete(l.fnAliases, name)
 	delete(l.localArrays, name)
+	delete(l.localCells, name)
 }
 
 // findGlobal looks up a global by name in the MIR2 module.
@@ -600,6 +603,8 @@ func lowerFuncWithFuncNames(m *mir2.Module, f *Func, funcNames map[string]bool, 
 		hirFuncs:     hirFuncs,
 		fnAliases:    make(map[string]string),
 		localArrays:  make(map[string]bool),
+		localCells:   make(map[string]bool),
+		addressTaken: make(map[string]bool),
 	}
 
 	if len(lineage) > 0 {
@@ -609,6 +614,21 @@ func lowerFuncWithFuncNames(m *mir2.Module, f *Func, funcNames map[string]bool, 
 		}
 	}
 	bld.SwitchToNewBlock("entry")
+
+	walkGraceBlocks(f.Body, "", func(_ string, block *Block) {
+		for _, stmt := range block.Body {
+			visitStmtExprs(stmt, func(expr Expr) {
+				if address, ok := expr.(*AddrOfExpr); ok {
+					if address.Sym != "" {
+						l.addressTaken[address.Sym] = true
+					}
+					if ref, ok := address.X.(*VarRefExpr); ok {
+						l.addressTaken[ref.Name] = true
+					}
+				}
+			})
+		}
+	})
 
 	// Bind parameters to virtual registers.
 	// @smc params are NOT MIR2 contract params — they become PatchSlots in the
@@ -628,6 +648,21 @@ func lowerFuncWithFuncNames(m *mir2.Module, f *Func, funcNames map[string]bool, 
 		r := bld.Param(p.Name, p.Ty, cls)
 		l.bind(p.Name, r, p.Ty)
 		nonSMCIdx++
+	}
+
+	for _, p := range f.Params {
+		if !l.addressTaken[p.Name] {
+			continue
+		}
+		if _, aggregate := mir2.BaseOf(p.Ty).(*mir2.StructTy); aggregate {
+			continue
+		}
+		value := l.env[p.Name]
+		cell := &mir2.StructTy{Fields: []mir2.StructField{{Name: "value", Ty: p.Ty}}}
+		address := l.fixedStructStorage(cell)
+		l.storeMemory(address, value, p.Ty, false)
+		l.bind(p.Name, address, mir2.TyPtr)
+		l.localCells[p.Name] = true
 	}
 
 	// Pre-create blocks for all goto labels (forward references).
@@ -859,7 +894,7 @@ func (l *lowerer) lowerBlockEntry(blk *Block, dead bool) bool {
 		ty                      mir2.Ty
 		alias                   string
 		hasReg, hasTy, hasAlias bool
-		array                   bool
+		array, cell             bool
 	}
 	locals := map[string]binding{}
 	save := func(name string) {
@@ -869,7 +904,7 @@ func (l *lowerer) lowerBlockEntry(blk *Block, dead bool) bool {
 		r, rok := l.env[name]
 		ty, tok := l.envTy[name]
 		alias, aok := l.fnAliases[name]
-		locals[name] = binding{r, ty, alias, rok, tok, aok, l.localArrays[name]}
+		locals[name] = binding{r, ty, alias, rok, tok, aok, l.localArrays[name], l.localCells[name]}
 	}
 	restore := func() {
 		for name, b := range locals {
@@ -887,6 +922,11 @@ func (l *lowerer) lowerBlockEntry(blk *Block, dead bool) bool {
 				l.localArrays[name] = true
 			} else {
 				delete(l.localArrays, name)
+			}
+			if b.cell {
+				l.localCells[name] = true
+			} else {
+				delete(l.localCells, name)
 			}
 			if b.hasAlias {
 				l.fnAliases[name] = b.alias
@@ -1027,6 +1067,7 @@ func (l *lowerer) lowerBlockEntry(blk *Block, dead bool) bool {
 				delete(l.env, decl.Name)
 				delete(l.fnAliases, decl.Name)
 				delete(l.localArrays, decl.Name)
+				delete(l.localCells, decl.Name)
 				l.envTy[decl.Name] = decl.Ty
 			case *TupleLetStmt:
 				for i, name := range decl.Names {
@@ -1069,18 +1110,20 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 		return l.lowerBlock(st)
 
 	case *VarDeclStmt:
-		if st.Volatile && st.ArrayLen == 0 {
-			if _, aggregate := mir2.BaseOf(st.Ty).(*mir2.StructTy); !aggregate {
+		if (st.Volatile || l.addressTaken[st.Name]) && st.ArrayLen == 0 {
+			_, aggregate := mir2.BaseOf(st.Ty).(*mir2.StructTy)
+			_, array := mir2.BaseOf(st.Ty).(*mir2.ArrayTy)
+			if !aggregate && !array {
 				// Own addressable storage even when declared inside a loop.
 				// The environment carries its address through CFG edges.
 				cell := &mir2.StructTy{Fields: []mir2.StructField{{Name: "value", Ty: st.Ty}}}
 				addr := l.fixedStructStorage(cell)
 				if st.Init != nil {
 					value := l.lowerExpr(st.Init)
-					l.storeMemory(addr, value, st.Ty, true)
+					l.storeMemory(addr, value, st.Ty, st.Volatile)
 				}
 				l.bind(st.Name, addr, mir2.TyPtr)
-				l.localArrays[st.Name] = true // AddrOf uses this existing storage
+				l.localCells[st.Name] = true // reads/writes use the cell, AddrOf uses its address
 				return false
 			}
 		}
@@ -1275,8 +1318,8 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 				l.storeMemory(addr, val, g.Ty, tgt.Volatile || g.Volatile)
 				return false
 			}
-			if tgt.Volatile && l.localArrays[tgt.Name] {
-				l.storeMemory(l.env[tgt.Name], val, tgt.Ty, true)
+			if l.localCells[tgt.Name] || tgt.Volatile && l.localArrays[tgt.Name] {
+				l.storeMemory(l.env[tgt.Name], val, tgt.Ty, tgt.Volatile)
 				return false
 			}
 			// Re-bind the local variable to the new vreg (SSA-style rename).
@@ -2381,8 +2424,8 @@ func (l *lowerer) lowerExpr(e Expr) mir2.Reg {
 			}
 			panic(fmt.Sprintf("hir/lower: undefined variable %q", ex.Name))
 		}
-		if ex.Volatile && l.localArrays[ex.Name] {
-			return l.loadMemory(r, ex.Ty, classForExpr(ex.Ty), true)
+		if l.localCells[ex.Name] || ex.Volatile && l.localArrays[ex.Name] {
+			return l.loadMemory(r, ex.Ty, classForExpr(ex.Ty), ex.Volatile)
 		}
 		return r
 
@@ -2525,7 +2568,7 @@ func (l *lowerer) lowerExpr(e Expr) mir2.Reg {
 			return r
 		}
 		// Local array promoted to global: env register IS the address.
-		if l.localArrays[ex.Sym] {
+		if l.localArrays[ex.Sym] || l.localCells[ex.Sym] {
 			if reg, ok := l.env[ex.Sym]; ok {
 				return reg
 			}

@@ -1,6 +1,9 @@
 package mir2
 
-import "fmt"
+import (
+	"fmt"
+	"github.com/minz/minzc/pkg/z80effects"
+)
 
 // nativeAllocaDepths proves a unique outstanding local allocation depth at each
 // reachable block exit. Conditional disjoint returns are supported; unequal
@@ -35,8 +38,20 @@ func nativeAllocaDepths(f *Func) (map[string]int, bool, error) {
 					return nil, true, fmt.Errorf("%s: invalid local frame size", f.Name)
 				}
 				n += int(i.Imm)
-			case OpPush, OpPop, OpAsm:
-				return nil, true, fmt.Errorf("%s: local frame with explicit stack/ASM unsupported", f.Name)
+			case OpPush, OpPop:
+				return nil, true, fmt.Errorf("%s: local frame with explicit stack operations unsupported", f.Name)
+			case OpAsm:
+				if i.Asm == nil {
+					return nil, true, fmt.Errorf("%s: local frame with missing ASM contract", f.Name)
+				}
+				// Re-read the actual template; lexical metadata is not a
+				// preservation certificate. A straight-line block with no
+				// SP access cannot change the outstanding allocation depth.
+				for _, effect := range z80effects.Block(i.Asm.Template) {
+					if !effect.Known || effect.Flow != z80effects.Fallthrough || (effect.Reads|effect.Writes)&z80effects.SP != 0 {
+						return nil, true, fmt.Errorf("%s: local frame requires known fallthrough ASM without SP access", f.Name)
+					}
+				}
 			}
 		}
 		depths[label] = n
