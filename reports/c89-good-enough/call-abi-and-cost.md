@@ -1,6 +1,8 @@
 # C89: широкие CALL и цена декомпозиции структур
 
-16 октября 2026 года. `feat/c89-call-abi`, до интеграции в main.
+16 октября 2026 года. Интегрировано в main 548d6135 через
+[PR #168](https://github.com/oisee/minz/pull/168), head 9d03ed8c.
+Все шесть обязательных CI checks, lint и advisory output sweep прошли.
 
 `testdata/call_abi/wide.c` передаёт два unsigned long через CALL, получает
 32-битный результат и сохраняет живые исходные операнды для следующих
@@ -61,4 +63,4 @@ baseline и сохранение измеренного выигрыша по р
 не пишет эти артефакты в репозиторий.
 
 Эти проверки закрывают distinct wide CALL и измеренный scalar transfer slice.
-Глобальные pointer relocations имеют [отдельный проверенный этап](global-address-initializers.md). Строгая интеграция оставшихся PR ещё впереди.
+Глобальные pointer relocations имеют [отдельный проверенный этап](global-address-initializers.md). Дополнительная control-closure проверка продолжается отдельно.

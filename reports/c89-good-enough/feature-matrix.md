@@ -6,13 +6,14 @@
 Aggregate scalarization интегрирована в main d6404fa4 через PR #163;
 switch/control-flow — в main 8fd960e5 через PR #164. Исправление ABI импортов — в main ce6d79ba через PR #165. Lifetime интегрирован в main 97e78d71 через PR #166.
 Language-admission интегрирован в main 1247c19d через PR #167; wide CALL, стоимость scalar ABI и глобальные
-relocations проверены в следующей ветке, пока не в main. Полная цель остаётся активной.
+relocations — в main 548d6135 через PR #168. Дополнительная control-closure
+матрица и её backend fix пока в следующей ветке. Полная цель остаётся активной.
 
 | Семейство | Исполняемое доказательство | Состояние и граница |
 |---|---|---|
 | char/short/int/long, integer promotions | `TestCIntegerSemanticsNativeVM` | VM/Z80; target char=8, short/int/pointer=16, long=32 |
 | signed/unsigned сравнения, сдвиги, compound assignment | `TestCIntegerSemanticsNativeVM` | VM/Z80 на граничных парах; UB signed overflow не используется |
-| 32-bit multiply/divide/mod | `TestCIntegerSemanticsNativeVM` | C→raw/final VM/Z80 на граничных значениях; wide CALL с живыми caller значениями: `TestC89WideCallLiveVMZ80`, 2025 native / 2700 VM вызовов, пока в ветке |
+| 32-bit multiply/divide/mod | `TestCIntegerSemanticsNativeVM` | C→raw/final VM/Z80 на граничных значениях; wide CALL с живыми caller значениями: `TestC89WideCallLiveVMZ80`, 2025 native / 2700 VM вызовов, интегрировано через PR #168 |
 | Pointer stride, difference, arithmetic | `TestCPointerArithmeticNativeVM` | VM/Z80; complete object types, target адреса 16-bit |
 | Lvalue, postfix, compound: вычислить адрес один раз | `TestCLvalueSingleEvaluationNativeVM` | VM/Z80; побочные эффекты и адреса |
 | if/while/for/do, continue и shadowing | `TestControlContinueShadowProbe` | raw/final VM/Z80; дополнительно `TestC89ControlClosureVMZ80`, пять семейств с точными trace-записями, пока в ветке |
@@ -28,13 +29,13 @@ relocations проверены в следующей ветке, пока не �
 | By-value struct input | `TestCStructParametersNativeVM`, `TestC89AggregateScalarizationBehavior` | Copy semantics direct/indirect/recursive и изменение копии |
 | Small struct return → multiple values | `TestC89AggregateScalarizationABI`, `TestC89AggregateScalarizationBehavior` | Два HIR/MIR result slots, native значения; ≤4 bytes shallow fields |
 | Small struct input → multiple arguments | Те же aggregate tests | Два HIR/MIR parameter slots, no alloca; адрес/indirect/volatile сохраняют memory ABI |
-| Цена aggregate scalar ABI | `TestC89AggregateTransferCostVMZ80` | Пара primary/heldout, реальные буферы против tuple slots; 732 native / 1464 VM вызовов, пока в ветке |
+| Цена aggregate scalar ABI | `TestC89AggregateTransferCostVMZ80` | Пара primary/heldout, реальные буферы против tuple slots; 732 native / 1464 VM вызовов, интегрировано через PR #168 |
 | Возврат большой структуры и косвенный aggregate return | `TestC89AggregateReturnLifetimeVMZ80` | Буфер caller и копирование до освобождения frame; интегрировано через PR #166 |
-| Глобальные address initializers | `TestC89GlobalRelocationsVMZ80`, `TestC89GlobalRelocationImportVMZ80` | Строки, поля, массивы, static local, function pointers, C/C и Nanz/C; 231 native / 308 VM вызовов, пока в ветке |
-| Косвенный вызов с живым out-pointer | `TestC89IndirectOutPointerAdmission` | Typed void CALL с живым адресом локальной структуры: 15 native / 20 VM, исправлен admission, пока в ветке |
+| Глобальные address initializers | `TestC89GlobalRelocationsVMZ80`, `TestC89GlobalRelocationImportVMZ80` | Строки, поля, массивы, static local, function pointers, C/C и Nanz/C; 231 native / 308 VM вызовов, интегрировано через PR #168 |
+| Косвенный вызов с живым out-pointer | `TestC89IndirectOutPointerAdmission` | Typed void CALL с живым адресом локальной структуры: 15 native / 20 VM, исправлен admission, интегрировано через PR #168 |
 | Enum width/value | `TestCEnumWidthsNativeVM` | VM/Z80; конкретный ABI для крайних значений |
 | sizeof/layout | integer/storage cases + `TestC89LanguageAdmissionVMZ80` | Target layout и sizeof без вычисления x++/вызова; source-level набор интегрирован через PR #167 |
-| Arrays/string/byte initializers | storage/string8 + language admission/string import suites | Escapes, соседние literals, NUL, C/Nanz linking, CString/SString identity; literal linkage интегрирован через PR #167; global pointer relocation имеет отдельный VM/Z80 набор в ветке |
+| Arrays/string/byte initializers | storage/string8 + language admission/string import suites | Escapes, соседние literals, NUL, C/Nanz linking, CString/SString identity; literal linkage интегрирован через PR #167; global pointer relocation интегрирована через PR #168 |
 | Function pointers | `TestCStructParametersNativeVM`, aggregate indirect case | VM/Z80 на typed signatures; varargs ABI не следует из этого |
 | Includes/preprocessor | include/FatFS + `TestC89LanguageAdmissionVMZ80` | #if/#/## имеют raw/final VM/Z80 оракулы в новом наборе; не все варианты preprocessing |
 | K&R definitions, implicit int/prototypes | `TestC89LanguageAdmissionVMZ80` | K&R byte/int parameters, implicit int, forward no-prototype call на VM/Z80; матрица интегрирована через PR #167 |
@@ -50,7 +51,7 @@ long/VLA отклоняются. Их наличие в прежнем C-кор�
 Новые доказательства: [wide CALL и стоимость scalar ABI](call-abi-and-cost.md),
 [глобальные адресные инициализаторы](global-address-initializers.md),
 [cleanup, вложенные переходы и сохранность аргумента](control-closure.md).
-Следующие работы: завершить строгую интеграцию новых ABI/relocation
+Следующие работы: завершить строгую интеграцию control-closure/backend
 проверок, воспроизвести их на main и оценить оставшиеся пробелы в матрице.
 Runtime varargs и неизвестные indirect parameter ABI с живыми caller значениями явно
 не входят в заявленный Z80 допуск. Матрица сохраняет открытые строки.
