@@ -640,6 +640,10 @@ type Source struct {
 //
 // If FS is nil, os.Open is used to open named files.
 type Config struct {
+	// MaxObjectSize limits representable object and sizeof sizes; zero disables the limit.
+	MaxObjectSize int64
+	// RejectVLA rejects variable-length array types for targets without runtime support.
+	RejectVLA           bool
 	ABI                 *ABI
 	CC                  string // The configured C compiler, filled by NewConfig.
 	FS                  fs.FS

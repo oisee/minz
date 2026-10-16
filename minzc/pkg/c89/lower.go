@@ -1850,13 +1850,13 @@ func (fl *funcLow) lowerUnary(ue *cc.UnaryExpression) (*exprResult, error) {
 		if v := ue.Value(); v != nil {
 			return wrapExpr(&hir.IntLitExpr{Val: constToInt64(v), Ty: mir2.TyU16}), nil
 		}
-		return wrapExpr(&hir.IntLitExpr{Val: 0, Ty: mir2.TyU16}), nil
+		return nil, fmt.Errorf("runtime sizeof is not supported by this target")
 
 	case cc.UnaryExpressionSizeofType:
 		if v := ue.Value(); v != nil {
 			return wrapExpr(&hir.IntLitExpr{Val: constToInt64(v), Ty: mir2.TyU16}), nil
 		}
-		return wrapExpr(&hir.IntLitExpr{Val: 0, Ty: mir2.TyU16}), nil
+		return nil, fmt.Errorf("runtime sizeof is not supported by this target")
 
 	case cc.UnaryExpressionAlignofExpr, cc.UnaryExpressionAlignofType:
 		// Z80 is byte-addressed — alignment is always 1 for all types.

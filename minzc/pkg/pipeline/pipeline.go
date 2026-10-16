@@ -993,7 +993,7 @@ func buildAssertBootstrap(org int, a hir.Assert, mf *mir2.Func, ar *mir2.AllocRe
 		}
 		fmt.Fprintf(&boot, "    LD %s, %d\n", loc.Name, arg)
 	}
-	fmt.Fprintf(&boot, "    CALL %s\n", a.FuncName)
+	fmt.Fprintf(&boot, "    CALL %s\n", asmutil.SanitizeZ80Label(a.FuncName))
 	boot.WriteString("    DI\n    HALT\n")
 	return boot.String()
 }

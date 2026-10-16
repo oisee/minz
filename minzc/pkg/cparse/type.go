@@ -1886,6 +1886,9 @@ type ArrayType struct {
 
 func (c *ctx) newArrayType(elem Type, elems int64, expr ExpressionNode) (r *ArrayType) {
 	r = &ArrayType{c: c, elem: newTyper(elem), elems: elems, expr: expr}
+	if c.cfg.RejectVLA && r.IsVLA() && expr != nil {
+		c.errors.add(errorf("%v: variable-length array types are not supported by this target", expr.Position()))
+	}
 	return r
 }
 
