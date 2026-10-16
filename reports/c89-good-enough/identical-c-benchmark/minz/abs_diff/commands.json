@@ -1,0 +1,13 @@
+[
+  [
+    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c89-benchmark-final/measure",
+    "-compiler",
+    "minz",
+    "-profile",
+    "default",
+    "-source",
+    "/home/alice/dev/minz-artifacts/grace-workspaces/c89-measured-benchmark/research/c89-benchmark/cases/abs_diff.c",
+    "-out",
+    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c89-benchmark-final/minz/default/abs_diff"
+  ]
+]
