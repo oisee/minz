@@ -76,6 +76,9 @@ func MergeImportedStrings(target, imported *Module) error {
 		})
 	}
 	for i := range imported.Globals {
+		for j := range imported.Globals[i].Relocs {
+			add(&imported.Globals[i].Relocs[j].Symbol)
+		}
 		for j := range imported.Globals[i].VtableSyms {
 			add(&imported.Globals[i].VtableSyms[j])
 		}

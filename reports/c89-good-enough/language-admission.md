@@ -1,7 +1,9 @@
 # C89: старые сигнатуры, строки и явный предел varargs
 
-16 октября 2026 года. Рабочая ветка `feat/c89-language-admission`, поверх
-aggregate linking/lifetime. До строгой интеграции это не состояние main.
+16 октября 2026 года. Интегрировано в main 1247c19d через
+[PR #167](https://github.com/oisee/minz/pull/167), поверх aggregate linking/lifetime.
+Все шесть обязательных CI checks прошли на окончательном head 761f9136.
+Advisory sweep: один ASM изменён (FatFS), exit/stdout/stderr изменений нет.
 
 Новый строгий C89 исходник `testdata/language_admission/core.c` проверяет:
 

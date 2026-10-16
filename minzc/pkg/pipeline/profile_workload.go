@@ -126,7 +126,7 @@ func RunZ80ProfileWorkload(steps Steps, source *hir.Module, workload hir.Profile
 	}
 	for _, module := range []*mir2.Module{hir.LowerModule(source), steps.MIR2Module} {
 		for _, g := range module.Globals {
-			if g.Storage != mir2.StorageNormal || g.At != nil || len(g.VtableSyms) != 0 || workloadPointerStorage(g.Ty) {
+			if g.Storage != mir2.StorageNormal || g.At != nil || len(g.VtableSyms) != 0 || len(g.Relocs) != 0 || workloadPointerStorage(g.Ty) {
 				return fail(fmt.Errorf("unsupported global storage/pointer %q", g.Name))
 			}
 		}

@@ -580,6 +580,11 @@ func scalarizeAggregateParams(m *Module, onlyC bool) bool {
 				}
 			}
 			for _, g := range m.Globals {
+				for _, r := range g.Relocs {
+					if r.Symbol == fn.Name {
+						safe = false
+					}
+				}
 				for _, symbol := range g.VtableSyms {
 					if symbol == fn.Name {
 						safe = false
