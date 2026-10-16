@@ -1,7 +1,7 @@
 # Прямая запись слова: ещё один шаг от C к короткому Z80
 
 16 октября 2026 года. Compiler checkpoint 3c097bcc; основные пакеты и обе
-benchmark-матрицы прошли. Новый проход ещё не интегрирован в main.
+benchmark-матрицы прошли. Интеграция и required checks: [PR #181](https://github.com/oisee/minz/pull/181).
 
 C и Nanz abs_diff теперь дают **27 байт / 220 904 T**, против предыдущих
 30 / 253 672 и SDCC 4.5 Size/Speed 33 / 258 142. Тело abs_diff уже было

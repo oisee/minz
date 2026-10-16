@@ -1,6 +1,7 @@
 # Аудит цели C89/Nanz: измеренная польза и интеграция
 
-16 октября 2026 года. **Цель ещё активна: часть проверенных изменений ожидает main CI.**
+16 октября 2026 года. Проверенный финальный набор публикуется через [PR #181](https://github.com/oisee/minz/pull/181).
+Фактическое слияние и required checks проверяются по состоянию этого PR.
 Это список доказательств полной цели, а не переопределение цели под уже сделанное.
 
 ## Требования и доказательства
@@ -11,13 +12,13 @@
 | MinZ против SDCC 4.2/4.5 и sccz80 | Полная матрица 69 строк; обе SDCC Size/Speed; 66 PASS, три сохранённых compile errors | Подтверждено |
 | Размеры и такты на настоящих Z80-инструкциях | Assembler + Remogatto emulator; итог execute()/helper CALL/RET; code+owned data; результат/заданная память/PC/SP | Подтверждено на заданных нагрузках |
 | Raw/final MIR VM и независимый C oracle | 94 488 primary VM calls; 75 350 primary native; GCC 6850 expectations | Подтверждено |
-| Безопасные обычные MIR/Grace-преобразования | Range-proven byte compare/arithmetic, direct byte loads, whole abs CFG, guarded word stores; refusal/native boundary tests | Реализовано и проверено; word stores ещё в PR #181 |
-| Структура → scalar input/tuple return | C ABI tests проверяют слоты и отсутствие лишней Alloca; lifetime/escape/volatile/import tests; отдельный G2 audit | C механизм подтверждён; bool-budget correction ещё в PR #182 |
+| Безопасные обычные MIR/Grace-преобразования | Range-proven byte compare/arithmetic, direct byte loads, whole abs CFG, guarded word stores; refusal/native boundary tests | Реализовано и проверено; word stores в финальном PR #181 |
+| Структура → scalar input/tuple return | C ABI tests проверяют слоты и отсутствие лишней Alloca; lifetime/escape/volatile/import tests; отдельный G2 audit | C механизм подтверждён; bool-budget correction включён в финальный PR #181 |
 | Out pointer → scalar returns | Проверенный C admission, caller+callee, сохранённые эффекты; три frozen источника/12 отказных форм | Main PR #177 |
 | Польза минимум двух семейств | Неизменные abs_diff и sum_array; также другие primary families | Подтверждено |
 | Дополнительные исходники/отложенные нагрузки | Независимые in_interval и count_less, их прежние source SHA и данные; свежий совмещённый native/raw/final/GCC повтор | Подтверждено |
 | Проигрыши и границы | Все compiler profiles, failed struct builds, copy/FAT12 losses, greedy PFCCO loss и baseline fallback сохранены | Подтверждено |
-| Итоговые код и отчёты в main | PR #173–180 интегрированы; #181–182 ещё открыты на момент аудита | **Не завершено** |
+| Итоговые код и отчёты в main | PR #173–180 интегрированы; #181 содержит оставшиеся код, отчёты и этот аудит | Проверить MERGED и compiler tree по #181 |
 
 Все 13 primary исходников и их manifests побайтно совпадают с интегрированным
 baseline b9ebf78d; оба heldout-исходника — с первым проверенным checkpoint 650ff119.
@@ -33,13 +34,13 @@ G2 означает проверенный C механизм и аудит во
 
 ## Совмещённый финальный кандидат
 
-В отдельном persistent worktree проверена совокупность #181 и bool-budget
-correction из #182, на основе уже интегрированных C/MIR изменений.
+В отдельном persistent worktree проверена совокупность word stores и bool-budget
+correction из первоначального #182, теперь объединённых в #181, на основе уже интегрированных C/MIR изменений.
 Compiler checkpoint **7fb342e5** (полный SHA и версии в toolchains).
-Совокупность актуальных PR #181/#182 имеет ровно тот же Git tree minzc:
+Совокупность, опубликованная в финальном PR #181 имеет ровно тот же Git tree minzc:
 `76beedd4cb240214fc51b214248831e353548819`. Это побайтовое совпадение всего
 compiler source/test tree, а не только списка изменённых production файлов.
-Фактический main после слияния предстоит сверить отдельно.
+Критерий приёмки: фактический main после слияния имеет этот же compiler tree.
 Все 69 результатов **побайтно равны JSON-матрице** проверенного direct-store
 checkpoint: размеры, T, Calls, source/workload SHA и статусы. Это независимый
 повтор окончательного набора правил перед main, а не новая таблица победителей.
@@ -68,13 +69,15 @@ Default, Grace и Size совпали, все сохранены. Вместе �
 [count_less ASM](c89-optimization-final-validation/count_less/program.a80) ·
 [Манифест](c89-optimization-final-validation/manifest.json).
 
-## Что требуется для закрытия
+## Критерии приёмки интеграции
 
-Дождаться реальных required checks и интегрировать #180/#181/#182, разрешая
-конфликты отчётов без потери текущих чисел. Затем сверить фактический main с
-проверенной совокупностью production changes и замороженными source manifests,
-проверить публикуемые ссылки/артефакты, выполнить необходимую совместную проверку
-на main и обновить этот аудит точными commit/CI links. До этого цель не завершена.
+PR #180 уже интегрирован. Финальный #181 должен иметь состояние MERGED и
+успешные required checks; первоначальный #182 заменён включением в #181.
+Compiler tree фактического main должен совпасть с указанным выше проверенным
+Git tree; замороженные source manifests, summary и публикуемые артефакты должны
+сохраниться. Ни наличие PR, ни зелёный узкий тест сами по себе этого не доказывают.
+Совместный core, полная матрица и heldout проверены на точном compiler tree;
+после слияния проверяется его идентичность, а не предполагается по названиям commits.
 
 ULA contention, peak stack RAM, все программы компилятора, полный RAM trace и
 универсальная победа над SDCC в требования этой benchmark-цели не подставлены.
