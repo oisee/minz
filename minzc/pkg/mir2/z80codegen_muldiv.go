@@ -220,6 +220,14 @@ func (g *z80cg) genMul(inst *Inst) {
 // SRL D is independent of incoming carry, so ADD HL,BC's carry does not corrupt
 // the extraction.  Total: ~320T worst case.
 func (g *z80cg) genMul16(inst *Inst) {
+	// Multiplication is commutative. Keep an operand already in HL there:
+	// moving the other operand into HL first would destroy this source before
+	// the fallback loop loads its multiplier (e.g. DE * HL becomes DE * DE).
+	if g.loc(inst.Src[1]) == "HL" && g.loc(inst.Src[0]) != "HL" {
+		copy := *inst
+		copy.Src[0], copy.Src[1] = inst.Src[1], inst.Src[0]
+		inst = &copy
+	}
 	dst := g.loc(inst.Dst)
 	lhs := g.loc(inst.Src[0])
 

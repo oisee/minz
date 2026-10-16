@@ -175,7 +175,8 @@ func findEligibleFunctions(m *Module, idx structIndex, onlyC bool) map[string]*p
 			continue
 		}
 		// Only consider functions currently returning TyPtr (struct pointer).
-		if fn.RetTy != mir2.TyPtr {
+		_, typedAggregate := mir2.BaseOf(fn.RetTy).(*mir2.StructTy)
+		if fn.RetTy != mir2.TyPtr && !(fn.CValueABI && typedAggregate) {
 			continue
 		}
 		// Check if all returns are struct literals of the same SSS type.
