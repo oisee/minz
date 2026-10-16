@@ -37,12 +37,16 @@ mixed_pair возвращает signed short и unsigned char: отрицате�
 порядок и типы полей сохранены. Во всех трёх остаётся наблюдаемое изменение events.
 Эти измерения относятся к трём небольшим программам, не к произвольному C-коду.
 
-[Все стоимости и вызовы](c89-output-contracts/summary.json),
+[Все стоимости, число вызовов и SHA256 полных протоколов](c89-output-contracts/summary.json),
 [исходники](../minzc/pkg/c89/testdata/outparam/),
 [memory ASM](c89-output-contracts/memory.a80),
 [scalar ASM](c89-output-contracts/scalar.a80),
 [raw scalar MIR](c89-output-contracts/raw.mir),
 [final scalar MIR](c89-output-contracts/final.mir).
+
+Полные протоколы каждого вызова и бинарники сохранены локально в
+`/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c89-nanz-sdcc45/outparam-reviewed/`,
+с SHA256-манифестом. Сводка в репозитории сохраняет все режимы и оба ABI.
 
 ## Условия доказательства
 
