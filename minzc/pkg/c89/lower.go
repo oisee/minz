@@ -127,6 +127,12 @@ func cConvert(e hir.Expr, ty mir2.Ty) hir.Expr {
 // Conversion to C _Bool tests the complete scalar before narrowing to its
 // one-byte ABI representation (C99 6.3.1.2).
 func (l *lowerer) convertType(e hir.Expr, ty cc.Type) hir.Expr {
+	if ty != nil && (ty.Kind() == cc.Struct || ty.Kind() == cc.Union) {
+		if _, aggregate := mir2.BaseOf(e.ExprTy()).(*mir2.StructTy); aggregate {
+			return hir.AddrExpr(e)
+		}
+		return e // aggregate values already represented by an address
+	}
 	if ty != nil && ty.Kind() == cc.Bool {
 		return boolNormalize(e)
 	}
@@ -522,6 +528,13 @@ func (l *lowerer) lowerFunc(fd *cc.FunctionDefinition) (*hir.Func, error) {
 
 	var prologue []hir.Stmt
 	for i, p := range ft.Parameters() {
+		if p.Type() != nil && (p.Type().Kind() == cc.Struct || p.Type().Kind() == cc.Union) && i < len(params) {
+			// C99 6.9.1: each by-value parameter owns an independent object.
+			// The physical ABI carries its source address, then the callee copies
+			// all bytes into its private frame before executing the body.
+			prologue = append(prologue, &hir.VarDeclStmt{Name: params[i].Name, Ty: l.storageType(p.Type()), Init: hir.Var(params[i].Name, mir2.TyPtr), Volatile: p.Type().Attributes().IsVolatile()})
+			continue
+		}
 		if p.Type() != nil && p.Type().Attributes().IsVolatile() && i < len(params) {
 			prologue = append(prologue, &hir.VarDeclStmt{Name: params[i].Name, Ty: params[i].Ty, Init: hir.Var(params[i].Name, params[i].Ty), Volatile: true})
 		}
@@ -1674,7 +1687,7 @@ func (fl *funcLow) lowerPostfix(pf *cc.PostfixExpression) (*exprResult, error) {
 		}
 		field := pf.Token2.SrcStr()
 		ty := fl.low.mapType(pf.Type())
-		if field := pf.Field(); field != nil && field.Type().Kind() == cc.Array {
+		if field := pf.Field(); field != nil && (field.Type().Kind() == cc.Array || field.Type().Kind() == cc.Struct || field.Type().Kind() == cc.Union) {
 			ty = fl.low.storageFieldType(field)
 		}
 		// Prefer cc parser's field offset (handles anonymous structs/unions correctly).
@@ -1697,7 +1710,7 @@ func (fl *funcLow) lowerPostfix(pf *cc.PostfixExpression) (*exprResult, error) {
 		}
 		field := pf.Token2.SrcStr()
 		ty := fl.low.mapType(pf.Type())
-		if field := pf.Field(); field != nil && field.Type().Kind() == cc.Array {
+		if field := pf.Field(); field != nil && (field.Type().Kind() == cc.Array || field.Type().Kind() == cc.Struct || field.Type().Kind() == cc.Union) {
 			ty = fl.low.storageFieldType(field)
 		}
 		offset := int(pf.FieldOffset())
@@ -1878,6 +1891,9 @@ func (fl *funcLow) lowerUnary(ue *cc.UnaryExpression) (*exprResult, error) {
 			return nil, err
 		}
 		ty := fl.low.mapType(ue.Type())
+		if ue.Type().Kind() == cc.Struct || ue.Type().Kind() == cc.Union {
+			ty = fl.low.storageType(ue.Type())
+		}
 		return wrapExpr(&hir.DerefExpr{Ptr: inner, Ty: ty}), nil
 
 	case cc.UnaryExpressionMinus:

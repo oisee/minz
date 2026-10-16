@@ -423,6 +423,10 @@ func (l *lowerer) lowerExprAddr(ex Expr) mir2.Reg {
 			return reg
 		}
 		panic(fmt.Sprintf("hir/lower: cannot take address of local variable %q", e.Name))
+	case *DerefExpr:
+		return l.lowerExpr(e.Ptr)
+	case *StructLitExpr:
+		return l.lowerExpr(e)
 	case *FieldExpr:
 		baseAddr := l.lowerExpr(e.X)
 		if e.Offset > 0 {
@@ -2612,6 +2616,9 @@ func (l *lowerer) lowerExpr(e Expr) mir2.Reg {
 
 	case *DerefExpr:
 		ptr := l.lowerExpr(ex.Ptr)
+		if _, aggregate := mir2.BaseOf(ex.Ty).(*mir2.StructTy); aggregate {
+			return ptr
+		}
 		return l.loadMemory(ptr, ex.Ty, classForExpr(ex.Ty), ex.Volatile || l.volatileAddress(ex.Ptr))
 
 	case *LoadExpr:
