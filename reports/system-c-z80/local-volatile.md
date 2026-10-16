@@ -14,7 +14,7 @@
 word parameter, long update, aggregate fields и pointer alias.
 Default/Grace/Size дают 48 raw/final VM исполнений и 48 native исполнений:
 каждый native сценарий запускается с INT включёнными и выключенными.
-Ожидания включают discarded/repeated reads, порядок младших байтов,
+Ожидания включают повторные чтения, порядок младших байтов,
 compound update и отсутствие лишнего чтения после записи. Проверяются
 32-битный результат, возвращаемые PC/SP и неизменность обоих IFF.
 
@@ -31,7 +31,8 @@ Backend в этом шаге не менялся. Промежуточные FAI
 go -C minzc test ./pkg/c89 -run '^TestCLocalVolatileTrafficNativeVM$' -count=1
 ```
 
-Итоговый focused test прошёл за 0.45–0.47 секунды. Экспортируются 24 исходника,
+Итоговый focused test с обоими состояниями INT прошёл за 0.337 секунды.
+Экспортируются 24 исходника,
 24 ASM с origin 0x8000 и 24 BIN через SYSTEM_C_VOLATILE_EXPORT.
 Артефакты и логи находятся в
 `/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/system-c-z80/local-volatile/`.
