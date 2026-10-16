@@ -9,6 +9,7 @@ import (
 
 	"github.com/minz/minzc/pkg/hir"
 	"github.com/minz/minzc/pkg/mir2"
+	"github.com/minz/minzc/pkg/nanz"
 	"github.com/minz/minzc/pkg/pipeline"
 )
 
@@ -145,7 +146,11 @@ func TestC89ExampleHIRContracts(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			h, err := c89.CompileWithOpts(string(source), filepath.Base(path), c89.CompileOpts{})
+			abs, err := filepath.Abs(path)
+			if err != nil {
+				t.Fatal(err)
+			}
+			h, err := c89.CompileWithOpts(string(source), abs, c89.CompileOpts{BaseDir: filepath.Dir(abs), IncludePaths: []string{filepath.Dir(abs)}, Resolver: nanz.CSourceResolver(abs, nanz.ParseOpts{})})
 			if err != nil {
 				t.Fatal(err)
 			}

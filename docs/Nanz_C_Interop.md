@@ -46,12 +46,21 @@ Compilation executes both assertions on assembled Z80. Imports can also use
 The same resolution applies to assertions. Imported functions, typed globals,
 struct fields and local headers have separate native and raw/final VM tests.
 
-A C module loaded through Nanz can call back into Nanz with
-`#import "block_device.nanz"`; the shared module resolver generates the C
-interface. See the FAT12 example for this path. The low-level Go API requires
-an `interop.Resolver` in `c89.CompileOpts` for cross-language `#import`.
-A standalone `.c` CLI entry does not currently supply that resolver; use the
-Nanz entry for the documented bidirectional path.
+C can import source modules with `#import "block_device.nanz"` or
+`#import "helpers.c"`. The CLI supplies the mixed C/Nanz resolver for `.c`
+entries too. Nested headers and imports resolve from their own file's directory.
+Declare called functions and shared globals explicitly in C prototypes or
+headers; importing a module does not generate those declarations. The FAT12
+example demonstrates a C → Nanz callback.
+
+The low-level Go API takes `nanz.CSourceResolver(sourceFile, parseOpts)` in
+`c89.CompileOpts.Resolver`. A `#import` without a resolver returns an explicit
+error. The standard loader isolates file-static functions and globals in each
+imported C translation unit, including references through pointers. `extern`
+object declarations refer to linked storage rather than allocate another copy.
+Conflicting public function definitions return a link error; identical repeated
+functions are coalesced. This is a source-module linker, not a complete host C
+linker.
 
 ## Target model
 

@@ -6600,6 +6600,13 @@ func mergeGeneratedDeclarations(dst, src *hir.Module) error {
 	return nil
 }
 
+// CSourceResolver provides the same mixed C/Nanz loader used by Nanz imports
+// to standalone C entry points. opts carries stdlib, policy and cycle context.
+// C callers must still declare imported functions in C prototypes/headers.
+func CSourceResolver(sourceFile string, opts ParseOpts) *interop.Resolver {
+	return (&parser{opts: opts}).cSourceResolver(sourceFile)
+}
+
 // C #import modules join the same HIR before the outer Nanz import receives
 // its namespace. Pass absolute source identities so nested includes/imports
 // resolve relative to the actual file, not the current process directory.
@@ -6616,7 +6623,8 @@ func (p *parser) cSourceResolver(sourceFile string) *interop.Resolver {
 	}
 	compilers[".minz"] = compilers[".nanz"]
 	compilers[".c"] = func(src, name string) (*hir.Module, error) {
-		return c89.CompileWithOpts(src, name, c89.CompileOpts{BaseDir: filepath.Dir(name), IncludePaths: []string{filepath.Dir(name)}})
+		identity := sha256.Sum256([]byte(name))
+		return c89.CompileWithOpts(src, name, c89.CompileOpts{BaseDir: filepath.Dir(name), IncludePaths: []string{filepath.Dir(name)}, PrivatePrefix: fmt.Sprintf("__c_%x__", identity[:16])})
 	}
 	return &interop.Resolver{BaseDir: filepath.Dir(sourceFile), Compilers: compilers}
 }

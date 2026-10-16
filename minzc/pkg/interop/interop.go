@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"reflect"
 	"regexp"
 	"strings"
 
@@ -129,23 +130,42 @@ func (r *Resolver) Resolve(src string) (string, []*hir.Module, error) {
 }
 
 // MergeInto merges functions, globals, structs, and asserts from imported
-// modules into the target module. Duplicate function names are skipped.
-func MergeInto(target *hir.Module, imports []*hir.Module) {
-	seen := make(map[string]bool)
+// modules into the target module. Identical functions are coalesced, externs
+// yield to definitions, and conflicting definitions return an error.
+func MergeInto(target *hir.Module, imports []*hir.Module) error {
+	seen := make(map[string]*hir.Func)
 	for _, f := range target.Funcs {
-		seen[f.Name] = true
+		seen[f.Name] = f
 	}
 	for _, m := range imports {
 		for _, f := range m.Funcs {
-			if !seen[f.Name] {
-				target.Funcs = append(target.Funcs, f)
-				seen[f.Name] = true
+			if old, ok := seen[f.Name]; ok {
+				if reflect.DeepEqual(old, f) {
+					continue
+				}
+				if old.IsExtern && !f.IsExtern {
+					for i, existing := range target.Funcs {
+						if existing == old {
+							target.Funcs[i] = f
+							break
+						}
+					}
+					seen[f.Name] = f
+					continue
+				}
+				if f.IsExtern && !old.IsExtern {
+					continue
+				}
+				return fmt.Errorf("conflicting source-module function %q", f.Name)
 			}
+			target.Funcs = append(target.Funcs, f)
+			seen[f.Name] = f
 		}
 		target.Globals = append(target.Globals, m.Globals...)
 		target.Structs = append(target.Structs, m.Structs...)
 		target.Strings = append(target.Strings, m.Strings...)
 	}
+	return nil
 }
 
 func (r *Resolver) supportedExts() string {

@@ -85,6 +85,6 @@ go -C minzc run ./cmd/minzc ../examples/system-c/interop/main.nanz --asserts=z80
 
 Руководство явно отделяет источник C от чужого binary ABI, минимальные headers
 от полного libc, supported C subset от полного C17 и image controller от FDC.
-Standalone C CLI пока не подключает cross-language resolver; документированный
-двунаправленный сценарий начинается с Nanz. Этот API-стык остаётся пунктом
-итогового аудита перед закрытием системной цели.
+На этом checkpoint standalone C CLI ещё не подключал cross-language resolver.
+Следующее исправление закрывает этот стык и изоляцию file-static символов:
+[смешанный source API](source-api.md). Итоговая интеграция остаётся открытой.

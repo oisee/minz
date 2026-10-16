@@ -12,13 +12,14 @@ import (
 )
 
 type lowerer struct {
-	typeError error // unsupported mapped types must never produce an executable
-	ast       *cc.AST
-	hm        *hir.Module
-	globals   map[string]mir2.Ty
-	typedefs  map[string]mir2.Ty
-	structs   map[string]*mir2.StructTy
-	cStructs  map[cc.Type]string // C struct type → MIR2 struct name
+	privateSymbols map[string]string
+	typeError      error // unsupported mapped types must never produce an executable
+	ast            *cc.AST
+	hm             *hir.Module
+	globals        map[string]mir2.Ty
+	typedefs       map[string]mir2.Ty
+	structs        map[string]*mir2.StructTy
+	cStructs       map[cc.Type]string // C struct type → MIR2 struct name
 
 	// ObjC: class info from @interface declarations.
 	objcClasses   map[string]*objcClassInfo
@@ -245,7 +246,11 @@ func (l *lowerer) lowerTopDecl(d *cc.Declaration) error {
 		// For arrays, preserve ArrayTy so HIR lowerer returns address
 		// (array decay) instead of loading the value as a pointer.
 		mty := l.storageType(ty)
-		g := mir2.Global{Name: name, Ty: mty, Volatile: ty.Attributes().IsVolatile()}
+		if decl.IsExtern() && id.Initializer == nil {
+			l.globals[name] = mty
+			continue // a declaration supplies a type, not another storage object
+		}
+		g := mir2.Global{Name: l.symbolName(name), Ty: mty, Volatile: ty.Attributes().IsVolatile()}
 		if id.Initializer != nil {
 			g.Init = make([]byte, mty.Width()/8)
 			if err := l.writeGlobalInitializer(g.Init, id.Initializer); err != nil {
@@ -541,7 +546,7 @@ func (l *lowerer) lowerFunc(fd *cc.FunctionDefinition) (*hir.Func, error) {
 
 	fl := &funcLow{
 		low:      l,
-		name:     name,
+		name:     l.symbolName(name),
 		retTy:    retTy,
 		retCType: ft.Result(),
 		locals:   make(map[string]mir2.Ty),
@@ -580,7 +585,7 @@ func (l *lowerer) lowerFunc(fd *cc.FunctionDefinition) (*hir.Func, error) {
 	}
 
 	return &hir.Func{
-		Name:   name,
+		Name:   l.symbolName(name),
 		Params: params,
 		RetTy:  retTy,
 		Body:   hir.Blk(body...),
@@ -1560,7 +1565,7 @@ func (fl *funcLow) lowerPrimary(pe *cc.PrimaryExpression) (*exprResult, error) {
 		if _, isLocal := fl.locals[resolvedName]; !isLocal {
 			if _, isGlobal := fl.low.globals[resolvedName]; !isGlobal {
 				if fl.low.isFunction(resolvedName) {
-					return wrapExpr(hir.Addr(resolvedName)), nil
+					return wrapExpr(hir.Addr(fl.low.symbolName(resolvedName))), nil
 				}
 			}
 		}
@@ -1570,6 +1575,9 @@ func (fl *funcLow) lowerPrimary(pe *cc.PrimaryExpression) (*exprResult, error) {
 		// otherwise makes native truncation throw away address bits.
 		if _, array := ty.(*mir2.ArrayTy); array {
 			ty = mir2.TyPtr
+		}
+		if _, local := fl.locals[resolvedName]; !local {
+			resolvedName = fl.low.symbolName(resolvedName)
 		}
 		return wrapExpr(hir.Var(resolvedName, ty)), nil
 
@@ -1864,7 +1872,7 @@ func (fl *funcLow) lowerCall(pf *cc.PostfixExpression) (*exprResult, error) {
 			return wrapExpr(&hir.CallIndirectExpr{FnPtr: fnPtr, Args: args, Ty: retTy}), nil
 		}
 		// Function name → direct call.
-		return wrapExpr(hir.Call(name, retTy, args...)), nil
+		return wrapExpr(hir.Call(fl.low.symbolName(name), retTy, args...)), nil
 	}
 
 	// Callee is a complex expression → lower it and do indirect call.

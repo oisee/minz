@@ -897,10 +897,11 @@ func compileViaHIR(sourceFile string) error {
 			break
 		}
 		absPath, _ := filepath.Abs(sourceFile)
-		hirMod, err = c89.CompileWithOpts(string(src), filepath.Base(sourceFile), c89.CompileOpts{
-			BaseDir:      filepath.Dir(absPath),
-			IncludePaths: []string{filepath.Dir(absPath)},
-		})
+		copts := c89.CompileOpts{BaseDir: filepath.Dir(absPath), IncludePaths: []string{filepath.Dir(absPath)}}
+		if ext == ".c" {
+			copts.Resolver = nanz.CSourceResolver(absPath, nanz.ParseOpts{StdlibDir: stdlibDir, OptSize: optSize})
+		}
+		hirMod, err = c89.CompileWithOpts(string(src), absPath, copts)
 		if err != nil {
 			return fmt.Errorf("C89/ObjC compile: %w", err)
 		}
