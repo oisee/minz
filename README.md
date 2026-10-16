@@ -26,9 +26,9 @@ The project is active research: examples and targets have different levels of ma
 
 [Byte arithmetic after C promotions](reports/2026-10-16-c89-byte-arithmetic.md): unchanged C abs_diff now matches idiomatic Nanz at 38 bytes / 305,750 T; all compiler profiles and remaining SDCC losses are retained.
 
-[Direct byte loads in C and Nanz](reports/2026-10-16-c89-byte-load-fusion.md): the complete 69-build matrix was repeated; abs_diff reaches 36 bytes / 289,366 T by removing caller-side moves. Core packages and all 432 fast pipeline checks pass. SDCC 4.5 still leads this case; this follow-up awaits integration.
+[Direct byte loads in C and Nanz](reports/2026-10-16-c89-byte-load-fusion.md): the complete 69-build matrix was repeated; abs_diff reaches 36 bytes / 289,366 T by removing caller-side moves. Core packages and all 432 fast pipeline checks pass. This stage is integrated through PR #176; the CFG follow-up below improves abs_diff further.
 
-[Old claims, new evidence](reports/2026-10-16-old-claims-new-evidence.md): a five-byte hand-written abs_diff passes the complete byte domain and beats SDCC on the frozen workload with the existing caller. This is a measured target for a future CFG rewrite, not an automatic compiler result.
+[Old claims, new evidence](reports/2026-10-16-old-claims-new-evidence.md): a proven CFG rewrite now produces the five-byte abs_diff automatically from unchanged C and Nanz. The full module measures 30 bytes / 253,672 T versus SDCC 4.5 Size and Speed at 33 / 258,142; complete byte-domain VM/Z80 tests pass. Integration is pending.
 
 [Extended C/Nanz benchmark with SDCC 4.5](reports/c89-optimization/baseline.md): same frozen C, separate idiomatic Nanz and tuple variants, all profiles retained. SDCC 4.5 supports the tested aggregate ABI; MinZ C wins that case. The five other common C cases favor SDCC. [Optimization milestones](reports/c89-optimization/objective.md) track the next verified work.
 
