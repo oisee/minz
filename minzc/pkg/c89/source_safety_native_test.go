@@ -23,6 +23,10 @@ func TestCSourceSafetyRawFinalNative(t *testing.T) {
 		name, body string
 		want       uint16
 	}{
+		{"forward-function-pointer", `int target(int,int,int); typedef int (*Fn)(int,int,int); int invoke(Fn fn){return fn(2,3,4);} void execute(void){result=invoke((Fn)target);} int target(int a,int b,int c){return a+2*b+3*c;}`, 20},
+		{"four-pointer-callback", `typedef int (*Fn)(int*,int*,int*,int*); int a=1,b=2,c=3,d=4; int action(int*p,int*q,int*r,int*s){*s+=1; return *p+2**q+3**r+4**s;} int invoke(Fn fn,int*p,int*q,int*r,int*s){int keep=*p; int x=fn(p,q,r,s); return x+keep;} void execute(void){result=invoke(action,&a,&b,&c,&d)+a+b+c+d;}`, 46},
+		{"backslash-data", `void execute(void){const char*s="\\n";result=(unsigned char)s[0]+256u*(unsigned char)s[1];}`, 28252},
+		{"semicolon-data", `void execute(void){const char*s=";#";result=(unsigned char)s[0]+256u*(unsigned char)s[1];}`, 9019},
 		{"apostrophe", `void execute(void){result=sizeof("a'b");}`, 4},
 		{"bitint-string", `void execute(void){result=sizeof("_BitInt(4)");}`, 11},
 		{"attribute-string", `void execute(void){result=sizeof("[[nodiscard]]");}`, 14},
@@ -96,6 +100,8 @@ func TestCEmbedDiagnosticsAndInactiveBranches(t *testing.T) {
 		bad       bool
 	}{
 		{"missing", "unsigned char data[1]={\n#embed \"missing.bin\"\n};", true},
+		{"limit-overflow", "unsigned char data[1]={\n#embed \"data.bin\" limit(999999999999999999999999999999999999999999)\n};", true},
+		{"offset-overflow", "unsigned char data[1]={\n#embed \"data.bin\" offset(999999999999999999999999999999999999999999)\n};", true},
 		{"inactive", "#if 0\nunsigned char data[1]={\n#embed \"missing.bin\"\n};\n#endif\nint answer(void){return 7;}", false},
 		{"comment", "/*\n#embed \"missing.bin\"\n*/\nint answer(void){return 7;}", false},
 		{"present", "unsigned char data[2]={\n#embed \"data.bin\"\n}; int answer(void){return data[0]+data[1];}", false},
@@ -103,7 +109,7 @@ func TestCEmbedDiagnosticsAndInactiveBranches(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			m, err := c89.CompileWithOpts(tc.src, "embed-safety.c", c89.CompileOpts{BaseDir: dir})
 			if tc.bad {
-				if err == nil || !strings.Contains(err.Error(), "#embed") || !strings.Contains(err.Error(), "missing.bin") {
+				if err == nil || !strings.Contains(err.Error(), "#embed") || tc.name == "missing" && !strings.Contains(err.Error(), "missing.bin") {
 					t.Fatalf("missing asset must give an explicit #embed file error: %v", err)
 				}
 				return
@@ -121,5 +127,40 @@ func TestCEmbedDiagnosticsAndInactiveBranches(t *testing.T) {
 				t.Fatal(got, err)
 			}
 		})
+	}
+}
+
+// C23 6.2.5 / 6.7.1: bit-precise integer and constexpr declarations
+// cannot be implemented by replacing their spelling with a native type/const.
+func TestUnsupportedC23DiagnosticsAfterPreprocessing(t *testing.T) {
+	for _, construct := range []struct{ name, source string }{
+		{"_BitInt", "signed _BitInt(4) x=-1;"},
+		{"_BitInt", "unsigned _BitInt(33) x;"},
+		{"constexpr", "int make(void){return 3;} constexpr int x=make();"},
+		{"nullptr", "int answer(void){return _Generic(nullptr, void*:1, default:2);}"},
+	} {
+		if _, err := c89.Compile(construct.source, "unsupported.c"); err == nil || !strings.Contains(err.Error(), "unsupported "+construct.name) {
+			t.Fatalf("expected %s diagnostic: %v", construct.name, err)
+		}
+		if _, err := c89.Compile("#if 0\n"+construct.source+"\n#endif\nint answer(void){return 7;}", "inactive.c"); err != nil {
+			t.Fatalf("inactive %s: %v", construct.name, err)
+		}
+	}
+	for _, src := range []string{
+		"#define UNUSED _BitInt(33)\nint answer(void){return 7;}",
+		"#define SPELL(x) #x\nint answer(void){return sizeof(SPELL(_BitInt(4)));}",
+		"#define constexpr const\nconstexpr int x=3; int answer(void){return x;}",
+	} {
+		if _, err := c89.Compile(src, "macro.c"); err != nil {
+			t.Fatal(err)
+		}
+	}
+	dir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(dir, "unsupported.h"), []byte("#define TYPE _BitInt(4)\n"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	_, err := c89.CompileWithOpts("#include \"unsupported.h\"\nTYPE x;", "header.c", c89.CompileOpts{IncludePaths: []string{dir}})
+	if err == nil || !strings.Contains(err.Error(), "unsupported _BitInt") {
+		t.Fatal(err)
 	}
 }

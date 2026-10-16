@@ -672,7 +672,9 @@ func (g *z80cg) genInst(inst *Inst) {
 				g.invalidate("A")
 				g.emit("    POP HL           ; restore ptr")
 			} else {
-				// BC/DE indirect: only LD A,(rr) is valid, so go through A.
+				// BC/DE indirect uses HL as scratch. A spilled result does not
+				// own HL; retain any earlier live value before loading either byte.
+				restoreHL := g.saveLiveScratch(inst, "HL")
 				g.emitNativeMemoryf(inst, 0, 1, "    LD A, (%s)     ; lo", ptr)
 				g.emit("    LD L, A")
 				g.emitf("    INC %s", ptr)
@@ -682,6 +684,7 @@ func (g *z80cg) genInst(inst *Inst) {
 				g.emitNativeSpillf(dst, 0, 2, true, "    LD (%s), HL", dst)
 				g.invalidate("HL")
 				g.invalidate("A")
+				restoreHL()
 			}
 		} else {
 			// 16-bit load via HL/DE/BC: INC/DEC trick — little-endian

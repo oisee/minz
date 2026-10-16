@@ -52,8 +52,6 @@ const z80Predefined = `
 #define bool _Bool
 #define true 1
 #define false 0
-#define nullptr ((void*)0)
-#define constexpr const
 #define __builtin_unreachable() do { while(1); } while(0)
 typedef unsigned char uint8_t;
 typedef signed char int8_t;
@@ -148,10 +146,6 @@ func CompileWithOpts(src, name string, opts CompileOpts) (*hir.Module, error) {
 	// These are cosmetic (warnings/hints) — no codegen effect on Z80.
 	src = stripC23Attributes(src)
 
-	// Process C23 _BitInt(N) → Z80 native types.
-	// N=1..8 → uint8_t, N=9..16 → uint16_t, N=17..32 → uint32_t, else → error comment.
-	src = preprocessBitInt(src)
-
 	// Strip C23 digit separators: 1'000 → 1000, 0xFF'FF → 0xFFFF.
 	// Safe: only matches digit'digit, never touches char literals ('A').
 	src = stripDigitSeparators(src)
@@ -174,6 +168,11 @@ func CompileWithOpts(src, name string, opts CompileOpts) (*hir.Module, error) {
 	sysIncPaths = append(sysIncPaths, opts.SysIncludePaths...)
 
 	cfg := &cc.Config{
+		UnsupportedIdentifiers: map[string]string{
+			"_BitInt":   "bit-precise integer semantics are not implemented; use explicit fixed-width types",
+			"constexpr": "C23 constant-expression declarations are not implemented",
+			"nullptr":   "C23 nullptr_t is not implemented; use NULL for the C subset",
+		},
 		MaxObjectSize:   65535,
 		RejectVLA:       true,
 		ABI:             z80ABI(),
@@ -345,38 +344,6 @@ func parseCommentDirectives(src string) ([]hir.Assert, []hir.Sandbox) {
 	return asserts, sandboxes
 }
 
-// bitIntRe matches C23 _BitInt(N) type specifier.
-var bitIntRe = regexp.MustCompile(`\b_BitInt\(\s*(\d+)\s*\)`)
-
-// preprocessBitInt replaces _BitInt(N) with Z80-native types.
-//
-//	_BitInt(1)..._BitInt(8)   → uint8_t
-//	_BitInt(9)..._BitInt(16)  → uint16_t
-//	_BitInt(17)..._BitInt(32) → uint32_t
-//	_BitInt(>32)              → /* _BitInt(N) error: too wide for Z80 */ int
-func preprocessBitInt(src string) string {
-	return replaceCCodeMatches(src, bitIntRe, false, func(match string) string {
-		m := bitIntRe.FindStringSubmatch(match)
-		if m == nil {
-			return match
-		}
-		n, err := strconv.Atoi(m[1])
-		if err != nil || n < 1 {
-			return match
-		}
-		switch {
-		case n <= 8:
-			return "uint8_t"
-		case n <= 16:
-			return "uint16_t"
-		case n <= 32:
-			return "uint32_t"
-		default:
-			return fmt.Sprintf("/* _BitInt(%d): too wide for Z80 (max 32) */ int", n)
-		}
-	})
-}
-
 // digitSepRe matches C23 digit separators: digit'digit (e.g. 1'000, 0xFF'FF).
 // Safe: [0-9a-fA-F]'[0-9a-fA-F] never matches char literals ('A').
 var digitSepRe = regexp.MustCompile(`([0-9a-fA-F])'([0-9a-fA-F])`)
@@ -410,7 +377,7 @@ func stripC23Attributes(src string) string {
 }
 
 // embedRe matches: #embed "filename" or #embed <filename>
-// Optional limit/offset params (C23): #embed "file" limit(N) offset(N)
+// Literal limit parameter and MinZ offset extension: #embed "file" limit(N) offset(N)
 var embedRe = regexp.MustCompile(`(?m)^[ \t]*#[ \t]*embed[ \t]+("([^"\r\n]+)"|<([^>\r\n]+)>)(?:[ \t]+limit\((\d+)\))?(?:[ \t]+offset\((\d+)\))?[ \t]*$`)
 
 // preprocessEmbed replaces C23 #embed directives with comma-separated byte literals.
@@ -448,7 +415,11 @@ func preprocessEmbed(src, baseDir string) string {
 		// Optional offset
 		offset := 0
 		if m[5] != "" {
-			offset, _ = strconv.Atoi(m[5])
+			var err error
+			offset, err = strconv.Atoi(m[5])
+			if err != nil {
+				return fmt.Sprintf("#error minz #embed %s: invalid offset %s", filename, m[5])
+			}
 			if offset > len(data) {
 				offset = len(data)
 			}
@@ -457,7 +428,10 @@ func preprocessEmbed(src, baseDir string) string {
 
 		// Optional limit
 		if m[4] != "" {
-			limit, _ := strconv.Atoi(m[4])
+			limit, err := strconv.Atoi(m[4])
+			if err != nil {
+				return fmt.Sprintf("#error minz #embed %s: invalid limit %s", filename, m[4])
+			}
 			if limit < len(data) {
 				data = data[:limit]
 			}

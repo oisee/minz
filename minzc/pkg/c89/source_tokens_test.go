@@ -15,7 +15,7 @@ func TestCExtensionsPreserveNonCodeTokens(t *testing.T) {
 		"# /* gap */ include /* gap */ <a'b.h>\n" +
 		"#define SPELL a'b'\n" +
 		"char *s=\"a'b _BitInt(4) [[nodiscard]]\"; char c='A';\n"
-	got := stripDigitSeparators(preprocessBitInt(stripC23Attributes(src)))
+	got := stripDigitSeparators(stripC23Attributes(src))
 	if got != src {
 		t.Fatalf("protected source changed:\n%s", got)
 	}
@@ -23,16 +23,16 @@ func TestCExtensionsPreserveNonCodeTokens(t *testing.T) {
 
 func TestCExtensionsPreserveSourceLines(t *testing.T) {
 	src := "[[\nnodiscard\n]] _BitInt(\n8\n) value(void){return 7;}\n"
-	got := preprocessBitInt(stripC23Attributes(src))
-	if strings.Count(got, "\n") != strings.Count(src, "\n") || !strings.Contains(got, "uint8_t") {
+	got := stripC23Attributes(src)
+	if strings.Count(got, "\n") != strings.Count(src, "\n") {
 		t.Fatalf("source lines changed: %q", got)
 	}
 }
 
 func TestCExtensionsStillTransformCode(t *testing.T) {
-	src := "[[deprecated(\"old\")]] _BitInt(8) x=1'234;\n"
+	src := "[[deprecated(\"old\")]] uint8_t x=1'234;\n"
 	want := " uint8_t x=1234;\n"
-	if got := stripDigitSeparators(preprocessBitInt(stripC23Attributes(src))); got != want {
+	if got := stripDigitSeparators(stripC23Attributes(src)); got != want {
 		t.Fatalf("got %q, want %q", got, want)
 	}
 }

@@ -120,3 +120,30 @@ func TestZ80SpilledAddressPreservesLiveHL(t *testing.T) {
 		}
 	}
 }
+
+func TestZ80SpilledWordResultPreservesLiveHL(t *testing.T) {
+	for _, ptr := range []string{"DE", "BC"} {
+		for _, value := range []uint16{0, 1, 255, 256, 32768, 65535} {
+			var sb strings.Builder
+			inst := &Inst{Op: OpLoad, Dst: 2, Src: [2]Reg{1}, Ty: TyU16}
+			block := &Block{Label: "entry", Insts: []*Inst{inst}, Term: &TermRet{Vals: []Reg{3}}}
+			f := &Func{Name: "spill_word", Blocks: []*Block{block}}
+			ar := &AllocResult{Locs: map[Reg]PhysLoc{1: {Kind: LocReg, Name: ptr}, 2: {Kind: LocMem, Name: "slot"}, 3: {Kind: LocReg, Name: "HL"}}}
+			g := &z80cg{fn: f, ar: ar, sb: &sb, holdsPhys: map[string]string{}, physOverride: map[Reg]string{}, curBlock: block}
+			g.genInst(inst)
+			sb.WriteString("LD IX,(" + Z80SpillLabel(f.Name, 2) + ")\nJP stop\n" + Z80SpillLabel(f.Name, 2) + ": DW 0\nstop:\n")
+			initial := checksumCopyRegisters()
+			if ptr == "DE" {
+				initial.DE = 0xc03d
+			} else {
+				initial.BC = 0xc03d
+			}
+			prefix := fmt.Sprintf("PUSH AF\nLD A,%d\nLD (0xc03d),A\nLD A,%d\nLD (0xc03e),A\nPOP AF\n", byte(value), byte(value>>8))
+			r := runChecksumCopyAsm(t, prefix+sb.String(), initial)
+			regs := r.GetRegisters()
+			if regs.IX != value || regs.HL != initial.HL || regs.SP != initial.SP || regs.A != initial.A || regs.F != initial.F || regs.DE != initial.DE || regs.BC != initial.BC {
+				t.Fatalf("scratch changed ptr%s value%x got%+v want%+v\n%s", ptr, value, regs, initial, sb.String())
+			}
+		}
+	}
+}

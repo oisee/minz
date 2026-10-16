@@ -1492,11 +1492,16 @@ func (fl *funcLow) lowerPrimary(pe *cc.PrimaryExpression) (*exprResult, error) {
 				resolvedName = mangled
 			}
 		}
+		// The checked declarator retains function type even after the primary
+		// expression has undergone function-to-pointer decay.
+		if d, ok := pe.ResolvedTo().(*cc.Declarator); ok && d.Type() != nil && d.Type().Kind() == cc.Function {
+			return wrapExpr(hir.Addr(fl.low.symbolName(resolvedName))), nil
+		}
 		// Function name used as value → take address (function-to-pointer decay).
 		// In C, `fp = add` is equivalent to `fp = &add`.
 		if _, isLocal := fl.locals[resolvedName]; !isLocal {
 			if _, isGlobal := fl.low.globals[resolvedName]; !isGlobal {
-				if fl.low.isFunction(resolvedName) {
+				if fl.low.isFunction(resolvedName) || pe.Type() != nil && pe.Type().Kind() == cc.Function {
 					return wrapExpr(hir.Addr(fl.low.symbolName(resolvedName))), nil
 				}
 			}

@@ -145,7 +145,7 @@ func ValidateZ80Symbols(m *Module) error {
 	}
 	seen := make(map[string]string)
 	// Runtime names and internal namespaces are reserved even when unused.
-	for _, name := range []string{"__mul8", "__mul16", "__call_ix", "__agon_entry"} {
+	for _, name := range []string{"__mul8", "__mul16", "__call_ix", "__call_stack", "__agon_entry"} {
 		seen[name] = "compiler runtime"
 	}
 	for i := 0; i <= 7; i++ {
@@ -446,6 +446,13 @@ func Z80Codegen(m *Module, ar *AllocResult, opts ...Z80CodegenOptions) (string, 
 		sb.WriteString("    JP (IX)\n")
 	}
 
+	if cg.needsCallStack {
+		// Entry: [continuation, target, caller frame]. Reorder to
+		// [target, continuation, caller frame] without changing argument pairs.
+		sb.WriteString("\n; runtime: stack-target indirect call\n__call_stack:\n")
+		sb.WriteString("    EXX\n    POP HL\n    POP DE\n    PUSH HL\n    PUSH DE\n    EXX\n    RET\n")
+	}
+
 	// Emit __mul8 runtime: A = A * B (unsigned 8-bit multiply).
 	// Algorithm: add-and-shift, 8 iterations. Clobbers A, B, C, D, E, F.
 	if cg.needsMul8 {
@@ -585,6 +592,7 @@ type z80cg struct {
 	constVals                             map[Reg]int64              // virtual reg → compile-time constant value (for peepholes)
 	blockParamRegs                        map[Reg]bool               // regs that are block parameters (loop-variant, not const)
 	deadConsts                            map[Reg]bool               // OpConst dsts whose LD is suppressed by DSE
+	needsCallStack                        bool                       // stack target trampoline, preserving all primary argument registers
 	needsCallIX                           bool                       // emit __call_ix trampoline (JP (IX)) at end of module
 	needsMul8                             bool                       // emit __mul8 runtime (A*B→A) at end of module
 	needsRotate                           bool                       // emit __rotate RLCA sled (multi-entry barrel shifter)
@@ -1377,16 +1385,17 @@ func emitStringLiteral(sb *strings.Builder, data []byte) {
 	i := 0
 	for i < len(data) {
 		// Collect a run of printable ASCII (0x20-0x7E). A double quote can't be
-		// embedded in DB "...", so it is excluded from the run and emitted as a
+		// embedded in DB "..."; backslashes are interpreted as ASM escapes. Both
+		// are excluded from the run and emitted as a
 		// byte by the branch below. Excluding it here rather than breaking out
 		// of the inner loop matters: breaking left i unchanged, so the outer
 		// loop re-entered this branch on the same quote and spun forever.
-		if isPrintableASCII(data[i]) && data[i] != '"' {
+		if isPrintableASCII(data[i]) && data[i] != '"' && data[i] != '\\' {
 			if !first {
 				sb.WriteString(", ")
 			}
 			sb.WriteByte('"')
-			for i < len(data) && isPrintableASCII(data[i]) && data[i] != '"' {
+			for i < len(data) && isPrintableASCII(data[i]) && data[i] != '"' && data[i] != '\\' {
 				sb.WriteByte(data[i])
 				i++
 			}

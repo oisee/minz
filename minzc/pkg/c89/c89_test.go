@@ -493,6 +493,20 @@ func TestCorpus_C99Examples(t *testing.T) {
 				BaseDir:      absDir,
 				IncludePaths: []string{absDir},
 			})
+			// Historical examples used approximate C23 aliases. They are retained
+			// as diagnostic regressions, not counted as executable support.
+			unsupported := map[string]string{
+				"c23_bitint.c":         "_BitInt",
+				"c23_constexpr_enum.c": "constexpr",
+				"c23_misc.c":           "constexpr",
+			}
+			if construct := unsupported[e.Name()]; construct != "" {
+				if err == nil || !strings.Contains(err.Error(), "unsupported "+construct) {
+					t.Fatalf("expected explicit rejection of %s: %v", construct, err)
+				}
+				t.Logf("explicit rejection: %s", construct)
+				return
+			}
 			if err != nil {
 				t.Fatalf("Compile: %v", err)
 			}

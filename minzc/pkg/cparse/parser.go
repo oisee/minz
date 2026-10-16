@@ -103,7 +103,6 @@ var defaultKeywords = map[string]rune{
 	"__volatile__":  rune(VOLATILE),
 	"asm":           rune(ASM),
 	"typeof":        rune(TYPEOF),
-
 }
 
 type parser struct {
@@ -227,6 +226,9 @@ func (p *parser) tok(t Token) (r Token) {
 	r = t
 	switch t.Ch {
 	case rune(IDENTIFIER):
+		if reason, unsupported := p.cpp.cfg.UnsupportedIdentifiers[r.SrcStr()]; unsupported {
+			p.cpp.eh("%v: unsupported %s: %s", r.Position(), r.SrcStr(), reason)
+		}
 		if c, ok := p.isKeyword(r.Src()); ok {
 			r.Ch = c
 			break
