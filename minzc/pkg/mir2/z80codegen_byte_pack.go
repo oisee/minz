@@ -106,3 +106,29 @@ func bytePackImplicitFlagUse(f *Func, result Reg) bool {
 	}
 	return false
 }
+
+// Word mask lane identities may change incidental ALU flags. Admit only
+// value-based consumers, excluding physical flags/assembly and error ABIs.
+func wordMaskFlagsUnobserved(f *Func, result Reg) bool {
+	if f == nil || f.Attrs.HasAsm || f.Attrs.FallibleCY || bytePackImplicitFlagUse(f, result) {
+		return false
+	}
+	for _, p := range f.Contract.Params {
+		if p.Class == ClassFlag {
+			return false
+		}
+	}
+	for _, r := range f.Contract.Returns {
+		if r.Class == ClassFlag {
+			return false
+		}
+	}
+	for _, b := range f.Blocks {
+		for _, x := range b.Insts {
+			if x.Op == OpAsm || x.Op == OpCallCond || x.FallibleCY || x.Op == OpCmp && (x.Cond == CmpSubCarry || x.Cond == CmpSubCarryNot) {
+				return false
+			}
+		}
+	}
+	return true
+}

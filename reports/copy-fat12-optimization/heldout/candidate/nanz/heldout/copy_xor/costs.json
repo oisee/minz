@@ -1,0 +1,15 @@
+{
+  "Compiler": "nanz",
+  "Profile": "default",
+  "Case": "copy_xor",
+  "SourceSHA256": "fc8954312910ec0a6a17a2cf128d57236c218fcd8bb1407699706658456b42bf",
+  "WorkloadSHA256": "a07f875a564dd309015d2f6b88d1b7dad5c5e80201bc635ac6f6e91176f5f52b",
+  "Status": "PASS",
+  "InitializedBytes": 573,
+  "GlobalBytes": 515,
+  "ProgramBytes": 573,
+  "Calls": 768,
+  "TotalT": 11808384,
+  "ObservationCount": 768,
+  "DetailedMeasurementsSHA256": "37126dabfaafc261ba8f3b1901caac1540d548189e0626ab91e0ba275d4ea06e"
+}

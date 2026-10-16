@@ -1,0 +1,40 @@
+{
+  "version": "gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+  "results": [
+    {
+      "case": "copy_xor",
+      "calls": 768,
+      "status": "PASS",
+      "source_sha256": "fc13f6683432bd93a6267123f766ea58eda2ddb5e9826d280bba2cfea7a9782f",
+      "command": [
+        "gcc",
+        "-std=c89",
+        "-pedantic-errors",
+        "-O2",
+        "-shared",
+        "-fPIC",
+        "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/heldout-refined/host-cases/copy_xor.c",
+        "-o",
+        "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/heldout-refined/host-heldout/host-oracle/copy_xor.so"
+      ]
+    },
+    {
+      "case": "packed_pair",
+      "calls": 768,
+      "status": "PASS",
+      "source_sha256": "5428fb400b3372a137fdad821414f941b00286a806156adca9476a3b609d25fa",
+      "command": [
+        "gcc",
+        "-std=c89",
+        "-pedantic-errors",
+        "-O2",
+        "-shared",
+        "-fPIC",
+        "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/heldout-refined/host-cases/packed_pair.c",
+        "-o",
+        "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/heldout-refined/host-heldout/host-oracle/packed_pair.so"
+      ]
+    }
+  ],
+  "total_calls": 1536
+}

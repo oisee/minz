@@ -3,20 +3,20 @@
 ;
 ;	Reconstructed for z80 Module Assembler
 ;
-;	Module compile time: Fri Oct 16 14:24:50 2026
+;	Module compile time: Fri Oct 16 18:32:27 2026
 
 
-	C_LINE	0,"/home/alice/dev/minz-artifacts/grace-workspaces/c89-direct-word-store/research/c89-benchmark/cases/copy_bytes.c"
+	C_LINE	0,"/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-z80/research/c89-benchmark/cases/copy_bytes.c"
 
-	MODULE	X_home_alice_dev_minz_artifacts_grace_workspaces_c89_direct_word_store_research_c89_benchmark_cases_copy_bytes_c
+	MODULE	X_home_alice_dev_minz_artifacts_grace_workspaces_copy_fat12_z80_research_c89_benchmark_cases_copy_bytes_c
 
 
 	INCLUDE "z80_crt0.hdr"
 
 
-	C_LINE	1,"/home/alice/dev/minz-artifacts/grace-workspaces/c89-direct-word-store/research/c89-benchmark/cases/copy_bytes.c"
-	C_LINE	2,"/home/alice/dev/minz-artifacts/grace-workspaces/c89-direct-word-store/research/c89-benchmark/cases/copy_bytes.c"
-	C_LINE	3,"/home/alice/dev/minz-artifacts/grace-workspaces/c89-direct-word-store/research/c89-benchmark/cases/copy_bytes.c"
+	C_LINE	1,"/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-z80/research/c89-benchmark/cases/copy_bytes.c"
+	C_LINE	2,"/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-z80/research/c89-benchmark/cases/copy_bytes.c"
+	C_LINE	3,"/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-z80/research/c89-benchmark/cases/copy_bytes.c"
 	SECTION	code_compiler
 
 ; Function copy_bytes flags 0x00000200 __smallc 
@@ -24,7 +24,7 @@
 ; parameter 'unsigned char count' at sp+2 size(1)
 ; parameter 'unsigned char * src' at sp+4 size(2)
 ; parameter 'unsigned char * dst' at sp+6 size(2)
-	C_LINE	3,"/home/alice/dev/minz-artifacts/grace-workspaces/c89-direct-word-store/research/c89-benchmark/cases/copy_bytes.c::copy_bytes::0::0"
+	C_LINE	3,"/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-z80/research/c89-benchmark/cases/copy_bytes.c::copy_bytes::0::0"
 ._copy_bytes
 	dec	sp
 	ld	hl,0	;const
@@ -77,11 +77,11 @@
 	ret
 
 
-	C_LINE	7,"/home/alice/dev/minz-artifacts/grace-workspaces/c89-direct-word-store/research/c89-benchmark/cases/copy_bytes.c::copy_bytes::0::1"
+	C_LINE	7,"/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-z80/research/c89-benchmark/cases/copy_bytes.c::copy_bytes::0::1"
 
 ; Function execute flags 0x00000200 __smallc 
 ; void execute()
-	C_LINE	7,"/home/alice/dev/minz-artifacts/grace-workspaces/c89-direct-word-store/research/c89-benchmark/cases/copy_bytes.c::execute::0::1"
+	C_LINE	7,"/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-z80/research/c89-benchmark/cases/copy_bytes.c::execute::0::1"
 ._execute
 	ld	hl,_target
 	push	hl

@@ -1,0 +1,44 @@
+ORG 0x8000
+; Hand-written model, conventional callee ABI: HL=base, DE=cluster, HL=result.
+fat12_decode:
+    LD B,D
+    LD C,E
+    SRL D
+    RR E
+    ADD HL,BC
+    ADD HL,DE
+    LD E,(HL)
+    INC HL
+    LD D,(HL)
+    EX DE,HL
+    BIT 0,C
+    JR Z,fat12_even
+    SRL H
+    RR L
+    SRL H
+    RR L
+    SRL H
+    RR L
+    SRL H
+    RR L
+    RET
+fat12_even:
+    LD A,H
+    AND 15
+    LD H,A
+    RET
+
+execute:
+    LD A,(n)
+    LD E,A
+    LD D,0
+    LD HL,values
+    CALL fat12_decode
+    LD (result),HL
+    RET
+values:
+    DS 64
+n:
+    DB 0
+result:
+    DW 0

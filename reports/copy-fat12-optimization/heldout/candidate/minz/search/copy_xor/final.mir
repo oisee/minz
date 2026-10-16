@@ -1,0 +1,40 @@
+; MIR2 module: /home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-z80/research/copy-fat12-validation/copy_xor
+global @source : [256]u8
+global @target : [256]u8
+global @n : u8
+global @result : u16
+
+fun @transform_bytes(%r1: ptr [pointer], %r2: ptr [pointer], %r3: u8 [counter]) -> u8 [acc]
+  block @entry:
+    %r4 = const 0 : u8 [general]
+    jmp @loop_head1(%r4, %r1, %r2)
+  block @loop_head1(%r4: u8 [general], %r6: ptr [pointer], %r7: ptr [pointer]):
+    %r8 = cmp.ult %r4, %r3 : bool [flag]
+    cond_ret %r8, [%r4], @loop_body2()
+  block @loop_body2:
+    %r9 = load %r7 : u8 [general]
+    %r10 = ext %r9 : u8 -> i16 [pointer]
+    %r11 = const 90 : i16 [pointer]
+    %r12 = xor %r10, %r11 : i16 [pointer]
+    %r13 = trunc %r12 : i16 -> u8 [general]
+    store %r6, %r13 : u8
+    %r14 = const 1 : u8 [general]
+    %r15 = add %r4, %r14 : u8 [general]
+    %r16 = ptr_bump %r6, +1 : ptr [pointer]
+    %r17 = ptr_bump %r7, +1 : ptr [pointer]
+    jmp @loop_head1(%r15, %r16, %r17)
+
+fun @execute()
+  block @entry:
+    %r18 = addr_of @target : ptr [pointer]
+    %r19 = move %r18 : ptr [pointer]
+    %r20 = addr_of @source : ptr [pointer]
+    %r21 = move %r20 : ptr [pointer]
+    %r22 = addr_of @n : ptr [pointer]
+    %r23 = load %r22 : u8 [counter]
+    %r24 = call @transform_bytes(%r19, %r21, %r23) : u8 [acc]
+    %r25 = ext %r24 : u8 -> u16 [pointer]
+    %r26 = addr_of @result : ptr [pointer]
+    store %r26, %r25 : u16
+    ret void
+

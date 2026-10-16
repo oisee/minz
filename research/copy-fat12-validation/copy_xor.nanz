@@ -1,0 +1,13 @@
+global source: [u8; 256]
+global target: [u8; 256]
+global n: u8
+global result: u16
+fun transform_bytes(dst: ^u8, src: ^u8, count: u8) -> u8 {
+    var i: u8 = 0
+    while i < count {
+        dst[i] = src[i] ^ 90
+        i = i + 1
+    }
+    return i
+}
+fun execute() { result = u16(transform_bytes(&target, &source, n)) }

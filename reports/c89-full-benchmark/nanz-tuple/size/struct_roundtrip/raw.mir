@@ -1,4 +1,4 @@
-; MIR2 module: /home/alice/dev/minz-artifacts/grace-workspaces/c89-direct-word-store/research/c89-benchmark/nanz-tuple/struct_roundtrip.nanz
+; MIR2 module: /home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-z80/research/c89-benchmark/nanz-tuple/struct_roundtrip.nanz
 global @a : u8
 global @b : u8
 global @result : u16

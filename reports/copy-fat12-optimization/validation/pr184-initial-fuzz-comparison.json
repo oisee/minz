@@ -1,0 +1,25 @@
+{
+  "baseline_commit": "b781ac797602978b7054918b8d30954fae44a156",
+  "baseline_compiler_tree": "76beedd4cb240214fc51b214248831e353548819",
+  "candidate_commit": "f1e3eef869aef4324f511afaadc3d836dcfc9b65",
+  "seed_start": 0,
+  "count": 300,
+  "mode": "direct-call",
+  "baseline_binary_sha256": "f2a35eef1bd1b7a053a4d734e6b94a19ac42e4cad47ff1374fee87a1bd1097ad",
+  "baseline_results_sha256": "53af9b60ef0dde2943f3b40a27d8012442499078d8cf4331795830ea50152abd",
+  "candidate_results_sha256": "53af9b60ef0dde2943f3b40a27d8012442499078d8cf4331795830ea50152abd",
+  "same_status_every_seed": true,
+  "same_complete_observations": true,
+  "pass": 223,
+  "compiler_errors": 70,
+  "mismatch_seeds": [
+    14,
+    62,
+    64,
+    172,
+    196,
+    253,
+    258
+  ],
+  "new_failures": []
+}

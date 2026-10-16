@@ -590,10 +590,21 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 			}
 			hi, lo := highByte(dst), lowByte(dst)
 			imm, constant := g.constVals[rhsReg]
+			elideMaskFlags := mnem == "AND" && constant && wordMaskFlagsUnobserved(g.fn, inst.Dst)
 			for _, part := range []struct {
 				dst, src string
 				shift    uint
 			}{{hi, highByte(rhs), 8}, {lo, lowByte(rhs), 0}} {
+				if elideMaskFlags {
+					switch byte(imm >> part.shift) {
+					case 255:
+						continue // this byte is already in its destination
+					case 0:
+						g.emitLD8(part.dst, "0")
+						g.invalidate(part.dst)
+						continue
+					}
+				}
 				g.emitLDA(part.dst)
 				if constant {
 					g.emit8ALUImm(mnem, imm>>part.shift)

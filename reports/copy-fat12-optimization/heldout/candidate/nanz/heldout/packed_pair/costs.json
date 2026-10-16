@@ -1,0 +1,15 @@
+{
+  "Compiler": "nanz",
+  "Profile": "default",
+  "Case": "packed_pair",
+  "SourceSHA256": "3388dcbc12cb6f5c6cd5b0f01e2b974140b4c74f5789d733c74251f8cb14fc2d",
+  "WorkloadSHA256": "b1b85ca6972b6d040249f481394313d8e9380d7e673f011fbcb06c36b3947196",
+  "Status": "PASS",
+  "InitializedBytes": 617,
+  "GlobalBytes": 515,
+  "ProgramBytes": 617,
+  "Calls": 768,
+  "TotalT": 362112,
+  "ObservationCount": 768,
+  "DetailedMeasurementsSHA256": "4b59d9bbe0d48a8a85266f9927d88f0642deab960b1b3bb54ea2b78c9c7a8deb"
+}

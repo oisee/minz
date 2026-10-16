@@ -47,10 +47,10 @@ func TestProfileGuidedSumVMZ80(t *testing.T) {
 		t.Fatal(e)
 	}
 	profileJSON, _ := json.MarshalIndent(profileRun.Profile, "", "  ")
-	// reports/hardware-sum-cost records the full 1022-row current measurement.
-	// Word-width comparison fixes add 24 bytes in the uncalled main print loop;
-	// the benchmark sum_array body and every measured cycle coefficient agree.
-	model := hir.LoopCostModel{CompilerID: context.CompilerID, SemanticsID: context.SemanticsID, Function: "sum_array", HIRSHA256: profileRun.Profile.Compatibility.HIRSHA256, TargetID: context.TargetID, EvidenceID: "sum-array-z80-word-width-v7", OriginalBytes: 227, PointerBytes: 277, OriginalEntry: 69, OriginalIteration: 191, EqualEntryExtra: 7, FastEntry: 241, FastIteration: 37, FastZeroEntry: 232, FastZeroMeasured: true, FallbackEntry: 258, FallbackIteration: 191, FallbackMeasured: true}
+	// The counted-pointer pass improves the ordinary loop as well as copy.
+	// These coefficients were remeasured over all 1022 length/address cases;
+	// the guarded variant and its fallback retain their previous costs.
+	model := hir.LoopCostModel{CompilerID: context.CompilerID, SemanticsID: context.SemanticsID, Function: "sum_array", HIRSHA256: profileRun.Profile.Compatibility.HIRSHA256, TargetID: context.TargetID, EvidenceID: "sum-array-z80-counted-pointer-v8", OriginalBytes: 198, PointerBytes: 277, OriginalEntry: 41, OriginalIteration: 54, EqualEntryExtra: 7, FastEntry: 241, FastIteration: 37, FastZeroEntry: 232, FastZeroMeasured: true, FallbackEntry: 258, FallbackIteration: 191, FallbackMeasured: true}
 	decisions, e := hir.SelectLoopVariants(bytes.NewReader(profileJSON), input, context, model, false)
 	if e != nil {
 		t.Fatal(e)
@@ -170,7 +170,7 @@ func TestProfileGuidedSumVMZ80(t *testing.T) {
 				dir = filepath.Join(output, variant, fmt.Sprintf("n%d", n))
 			}
 			cycles, size := measureProfileZ80(t, h, "sum_array", Options{AssertMode: "none"}, []int64{0x4000, n}, memory, want, dir)
-			expected := 69 + 191*int(n)
+			expected := 41 + 54*int(n)
 			expectedSize := int(model.OriginalBytes)
 			if variant != "original" {
 				expected = 241 + 37*int(n)
@@ -216,7 +216,7 @@ func TestProfileGuidedSumVMZ80(t *testing.T) {
 	}
 	writeJSON("size-decision.json", sizeDecisions)
 	// Execute both sides of the profitability boundary, including retained original.
-	for _, n := range []int64{0, 1, 2, 3} {
+	for _, n := range []int64{0, 1, 11, 12, 13} {
 		one := workload
 		one.Calls = []hir.ProfileInvocation{{Function: "sum_array", Arguments: []hir.ProfileArgument{{Resource: "array"}, literal(n)}}}
 		run, e := hir.RunLoopProfile(parse(), one)
@@ -234,7 +234,7 @@ func TestProfileGuidedSumVMZ80(t *testing.T) {
 				t.Fatal(e)
 			}
 			expectedVariant := "original"
-			if n >= 2 && !size {
+			if n >= 12 && !size {
 				expectedVariant = "pointer-walk"
 			}
 			if d[0].Variant != expectedVariant {
@@ -245,7 +245,7 @@ func TestProfileGuidedSumVMZ80(t *testing.T) {
 				t.Fatal(e)
 			}
 			cycles, codeBytes := measureProfileZ80(t, h, "sum_array", Options{UseHIRGrace: true, AssertMode: "none"}, []int64{0x4000, n}, memory, n*(n+1)/2&255, "")
-			wantCycles := 69 + 191*int(n)
+			wantCycles := 41 + 54*int(n)
 			wantBytes := int(model.OriginalBytes)
 			if expectedVariant == "pointer-walk" {
 				wantCycles = 241 + 37*int(n)

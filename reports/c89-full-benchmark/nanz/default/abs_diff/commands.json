@@ -1,13 +1,13 @@
 [
   [
-    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c89-nanz-sdcc45/direct-word-store-full/measure",
+    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/full-refined/measure",
     "-compiler",
     "nanz",
     "-profile",
     "default",
     "-source",
-    "/home/alice/dev/minz-artifacts/grace-workspaces/c89-direct-word-store/research/c89-benchmark/nanz-cases/abs_diff.nanz",
+    "/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-z80/research/c89-benchmark/nanz-cases/abs_diff.nanz",
     "-out",
-    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c89-nanz-sdcc45/direct-word-store-full/nanz/default/abs_diff"
+    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/full-refined/nanz/default/abs_diff"
   ]
 ]

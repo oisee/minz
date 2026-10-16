@@ -12,24 +12,24 @@
     "--lib-path",
     "/home/alice/dev/minz-artifacts/toolchains/sdcc-4.2/root/usr/share/sdcc/lib/z80",
     "-o",
-    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c89-nanz-sdcc45/direct-word-store-full/sdcc/speed/fat12_decode/program.ihx",
-    "/home/alice/dev/minz-artifacts/grace-workspaces/c89-direct-word-store/research/c89-benchmark/cases/fat12_decode.c"
+    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/full-refined/sdcc/speed/fat12_decode/program.ihx",
+    "/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-z80/research/c89-benchmark/cases/fat12_decode.c"
   ],
   [
-    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c89-nanz-sdcc45/direct-word-store-full/measure",
+    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/full-refined/measure",
     "-compiler",
     "sdcc",
     "-profile",
     "speed",
     "-source",
-    "/home/alice/dev/minz-artifacts/grace-workspaces/c89-direct-word-store/research/c89-benchmark/cases/fat12_decode.c",
+    "/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-z80/research/c89-benchmark/cases/fat12_decode.c",
     "-out",
-    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c89-nanz-sdcc45/direct-word-store-full/sdcc/speed/fat12_decode",
+    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/full-refined/sdcc/speed/fat12_decode",
     "-image",
-    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c89-nanz-sdcc45/direct-word-store-full/sdcc/speed/fat12_decode/program.ihx",
+    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/full-refined/sdcc/speed/fat12_decode/program.ihx",
     "-symbols",
-    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c89-nanz-sdcc45/direct-word-store-full/sdcc/speed/fat12_decode/program.noi",
+    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/full-refined/sdcc/speed/fat12_decode/program.noi",
     "-build-info",
-    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c89-nanz-sdcc45/direct-word-store-full/sdcc/speed/fat12_decode/build-info.json"
+    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/full-refined/sdcc/speed/fat12_decode/build-info.json"
   ]
 ]

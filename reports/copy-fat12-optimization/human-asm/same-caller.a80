@@ -1,0 +1,60 @@
+ORG 0x8000
+; Hand-written model, same MinZ callee ABI: HL=base, IY=cluster, HL=result.
+fat12_decode:
+    PUSH IY
+    POP DE
+    LD B,D
+    LD C,E
+    SRL D
+    RR E
+    ADD HL,BC
+    ADD HL,DE
+    LD E,(HL)
+    INC HL
+    LD D,(HL)
+    EX DE,HL
+    BIT 0,C
+    JR Z,fat12_even
+    SRL H
+    RR L
+    SRL H
+    RR L
+    SRL H
+    RR L
+    SRL H
+    RR L
+    RET
+fat12_even:
+    LD A,H
+    AND 15
+    LD H,A
+    RET
+
+; fun execute() ; clobbers: A, B, BC, C, D, DE, E, F, H, HL, IX, IXH, IXL, IY, IYH, IYL, L
+; [trace] backend=PBQP passes=[dse=1]
+execute:
+    LD HL, values
+    PUSH HL
+    POP BC
+    LD HL, n
+    LD D, (HL)
+    LD L, D
+    LD H, 0
+    ; genCall: fat12_decode dst=32
+    PUSH HL
+    POP IY
+    LD H, B
+    LD L, C
+    CALL fat12_decode
+    LD D, H
+    LD E, L
+    LD (result), DE    ; u16 direct store, no scratch clobber
+    RET
+
+; globals
+values:
+    DB 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+n:
+    DB 0
+result:
+    DW 0

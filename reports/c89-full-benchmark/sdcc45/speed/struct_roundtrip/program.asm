@@ -52,7 +52,7 @@ _result::
 ; code
 ;--------------------------------------------------------
 	.area _CODE
-;/home/alice/dev/minz-artifacts/grace-workspaces/c89-direct-word-store/research/c89-benchmark/cases/struct_roundtrip.c:4: struct Pair make_pair(unsigned char x) {
+;/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-z80/research/c89-benchmark/cases/struct_roundtrip.c:4: struct Pair make_pair(unsigned char x) {
 ;	---------------------------------
 ; Function make_pair
 ; ---------------------------------
@@ -62,7 +62,7 @@ _make_pair::
 	add	ix,sp
 	push	af
 	ld	c, a
-;/home/alice/dev/minz-artifacts/grace-workspaces/c89-direct-word-store/research/c89-benchmark/cases/struct_roundtrip.c:5: struct Pair p = {0, 0}; p.hi = x; p.lo = x + 1; return p;
+;/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-z80/research/c89-benchmark/cases/struct_roundtrip.c:5: struct Pair p = {0, 0}; p.hi = x; p.lo = x + 1; return p;
 	ld	hl, #0
 	add	hl, sp
 	ld	e, l
@@ -84,13 +84,13 @@ _make_pair::
 	add	hl, sp
 	ld	bc, #2
 	ldir
-;/home/alice/dev/minz-artifacts/grace-workspaces/c89-direct-word-store/research/c89-benchmark/cases/struct_roundtrip.c:6: }
+;/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-z80/research/c89-benchmark/cases/struct_roundtrip.c:6: }
 	ld	sp, ix
 	pop	ix
 	pop	hl
 	pop	af
 	jp	(hl)
-;/home/alice/dev/minz-artifacts/grace-workspaces/c89-direct-word-store/research/c89-benchmark/cases/struct_roundtrip.c:7: unsigned short consume(struct Pair p) { return (unsigned short)p.hi * 256u + p.lo; }
+;/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-z80/research/c89-benchmark/cases/struct_roundtrip.c:7: unsigned short consume(struct Pair p) { return (unsigned short)p.hi * 256u + p.lo; }
 ;	---------------------------------
 ; Function consume
 ; ---------------------------------
@@ -106,7 +106,7 @@ _consume::
 	pop	hl
 	pop	af
 	jp	(hl)
-;/home/alice/dev/minz-artifacts/grace-workspaces/c89-direct-word-store/research/c89-benchmark/cases/struct_roundtrip.c:8: unsigned short caller(unsigned char x, unsigned char y) {
+;/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-z80/research/c89-benchmark/cases/struct_roundtrip.c:8: unsigned short caller(unsigned char x, unsigned char y) {
 ;	---------------------------------
 ; Function caller
 ; ---------------------------------
@@ -118,7 +118,7 @@ _caller::
 	push	af
 	ld	d, a
 	ld	e, l
-;/home/alice/dev/minz-artifacts/grace-workspaces/c89-direct-word-store/research/c89-benchmark/cases/struct_roundtrip.c:9: struct Pair p = make_pair(x);
+;/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-z80/research/c89-benchmark/cases/struct_roundtrip.c:9: struct Pair p = make_pair(x);
 	push	de
 	ld	a, d
 	ld	hl, #0x0004
@@ -135,7 +135,7 @@ _caller::
 	ldi
 	ld	a, (hl)
 	ld	(de), a
-;/home/alice/dev/minz-artifacts/grace-workspaces/c89-direct-word-store/research/c89-benchmark/cases/struct_roundtrip.c:10: return (consume(p) + x) ^ y;
+;/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-z80/research/c89-benchmark/cases/struct_roundtrip.c:10: return (consume(p) + x) ^ y;
 	ld	hl,#0x3
 	add	hl,sp
 	ld	b, (hl)
@@ -152,11 +152,11 @@ _caller::
 	xor	a, e
 	ld	d, h
 	ld	e, a
-;/home/alice/dev/minz-artifacts/grace-workspaces/c89-direct-word-store/research/c89-benchmark/cases/struct_roundtrip.c:11: }
+;/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-z80/research/c89-benchmark/cases/struct_roundtrip.c:11: }
 	ld	sp, ix
 	pop	ix
 	ret
-;/home/alice/dev/minz-artifacts/grace-workspaces/c89-direct-word-store/research/c89-benchmark/cases/struct_roundtrip.c:12: void execute(void) { result = caller(a, b); }
+;/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-z80/research/c89-benchmark/cases/struct_roundtrip.c:12: void execute(void) { result = caller(a, b); }
 ;	---------------------------------
 ; Function execute
 ; ---------------------------------
