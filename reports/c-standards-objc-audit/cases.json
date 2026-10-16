@@ -1,0 +1,132 @@
+[
+  {
+    "name": "c99_designated",
+    "standard": "C99",
+    "reject": false
+  },
+  {
+    "name": "c99_compound",
+    "standard": "C99",
+    "reject": false
+  },
+  {
+    "name": "c99_for",
+    "standard": "C99",
+    "reject": false
+  },
+  {
+    "name": "c11_generic",
+    "standard": "C11",
+    "reject": false
+  },
+  {
+    "name": "c11_static_assert",
+    "standard": "C11",
+    "reject": true
+  },
+  {
+    "name": "c11_anonymous",
+    "standard": "C11",
+    "reject": false
+  },
+  {
+    "name": "c23_digit",
+    "standard": "C23",
+    "reject": false
+  },
+  {
+    "name": "c23_auto",
+    "standard": "C23",
+    "reject": false
+  },
+  {
+    "name": "c23_typeof",
+    "standard": "C23",
+    "reject": false
+  },
+  {
+    "name": "c23_enum",
+    "standard": "C23",
+    "reject": false
+  },
+  {
+    "name": "c23_bitint_signed",
+    "standard": "C23",
+    "reject": false
+  },
+  {
+    "name": "c23_bitint_unsigned",
+    "standard": "C23",
+    "reject": false
+  },
+  {
+    "name": "c23_bitint_too_wide",
+    "standard": "C23",
+    "reject": true
+  },
+  {
+    "name": "c23_constexpr_constraint",
+    "standard": "C23",
+    "reject": true
+  },
+  {
+    "name": "lex_digit_string",
+    "standard": "all",
+    "reject": false
+  },
+  {
+    "name": "lex_bitint_string",
+    "standard": "all",
+    "reject": false
+  },
+  {
+    "name": "lex_attribute_string",
+    "standard": "all",
+    "reject": false
+  },
+  {
+    "name": "c23_missing_embed",
+    "standard": "C23",
+    "reject": true
+  },
+  {
+    "name": "objc_static",
+    "standard": "ObjC",
+    "reject": false
+  },
+  {
+    "name": "objc_nil",
+    "standard": "ObjC",
+    "reject": false
+  },
+  {
+    "name": "objc_property",
+    "standard": "ObjC",
+    "reject": false
+  },
+  {
+    "name": "c11_generic_pointer_ab",
+    "standard": "C11",
+    "reject": false
+  },
+  {
+    "name": "c11_generic_pointer_ba",
+    "standard": "C11",
+    "reject": false
+  },
+  {
+    "name": "c23_constexpr_ice",
+    "standard": "C23",
+    "reject": false
+  },
+  {
+    "name": "c23_nullptr_type",
+    "standard": "C23",
+    "reject": false
+  },
+  {
+    "name": "c23_missing_embed_fixed",
+    "standard": "C23",
+    "reject": true
+  }
+]

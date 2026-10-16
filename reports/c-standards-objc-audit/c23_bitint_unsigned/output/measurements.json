@@ -1,0 +1,15 @@
+{
+  "Compiler": "minz",
+  "Profile": "default",
+  "Case": "c23_bitint_unsigned",
+  "SourceSHA256": "65415ba1fb196e7e400b3424af013db8a72cf8e4de7c56d416ef40467def6c3e",
+  "WorkloadSHA256": "7941e027e0274c6f384f21f481f48c2721ff628890cd20a7845a56a42238fae8",
+  "Status": "ERROR",
+  "InitializedBytes": 0,
+  "GlobalBytes": 0,
+  "ProgramBytes": 0,
+  "Calls": 0,
+  "TotalT": 0,
+  "Observations": null,
+  "Error": "c89 parse: /home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c-standards-objc/c23_bitint_unsigned/c23_bitint_unsigned.c:2:37: unexpected identifier, expected ';'"
+}

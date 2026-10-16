@@ -1,0 +1,15 @@
+{
+  "Compiler": "minz",
+  "Profile": "default",
+  "Case": "c23_missing_embed",
+  "SourceSHA256": "ec5f877845d48662691f0307f20d149c81a0c36d81968e0a579be31f27e60bcc",
+  "WorkloadSHA256": "8c7baa9f7c1299d1055c779f0fcbdd9d3db6b8ca8d819021d2bf32837f44d437",
+  "Status": "ERROR",
+  "InitializedBytes": 0,
+  "GlobalBytes": 0,
+  "ProgramBytes": 0,
+  "Calls": 0,
+  "TotalT": 0,
+  "Observations": null,
+  "Error": "c89 lower: variable-length array storage is not supported"
+}

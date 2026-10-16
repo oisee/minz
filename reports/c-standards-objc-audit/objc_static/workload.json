@@ -1,0 +1,13 @@
+{
+  "samples": [
+    {
+      "id": "objc_static",
+      "inputs": {},
+      "expected": 7,
+      "after": {}
+    }
+  ],
+  "sizes": {
+    "result": 2
+  }
+}

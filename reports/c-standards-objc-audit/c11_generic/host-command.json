@@ -1,0 +1,9 @@
+[
+  "gcc",
+  "-std=c11",
+  "-Wall",
+  "-Wextra",
+  "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c-standards-objc/c11_generic/host-reference.c",
+  "-o",
+  "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c-standards-objc/c11_generic/host-reference"
+]

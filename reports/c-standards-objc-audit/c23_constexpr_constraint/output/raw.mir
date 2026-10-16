@@ -1,0 +1,15 @@
+; MIR2 module: /home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c-standards-objc/c23_constexpr_constraint/c23_constexpr_constraint
+global @result : u16
+
+fun @value() -> i16 [pointer]
+  block @entry:
+    %r1 = const 7 : i16 [pointer]
+    ret %r1
+
+fun @execute()
+  block @entry:
+    %r2 = call @value() : i16 [pointer]
+    %r3 = addr_of @result : ptr [pointer]
+    store %r3, %r2 : u16
+    ret void
+

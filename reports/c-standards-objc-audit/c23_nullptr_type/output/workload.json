@@ -1,0 +1,8 @@
+[
+  {
+    "id": "c23_nullptr_type",
+    "inputs": {},
+    "expected": 2,
+    "after": {}
+  }
+]

@@ -1,0 +1,1 @@
+minz default c11_static_assert: ERROR 0 calls 0 bytes 0T c89 parse: /home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c-standards-objc/c11_static_assert/c11_static_assert.c:2:16: assertion failed: must reject (check.go:1224:check:)

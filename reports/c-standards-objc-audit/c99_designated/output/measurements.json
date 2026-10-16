@@ -1,0 +1,21 @@
+{
+  "Compiler": "minz",
+  "Profile": "default",
+  "Case": "c99_designated",
+  "SourceSHA256": "4c0c085d326a0ce56d9df78996d37b2088032813bbaa8a70ff9c48c67d586a8e",
+  "WorkloadSHA256": "0929925bedaa08217928e3e38643494d0530f118c5b993cee7f58640446d9315",
+  "Status": "PASS",
+  "InitializedBytes": 79,
+  "GlobalBytes": 2,
+  "ProgramBytes": 79,
+  "Calls": 1,
+  "TotalT": 531,
+  "Observations": [
+    {
+      "id": "c99_designated",
+      "expected": 5,
+      "result": 5,
+      "t_states": 531
+    }
+  ]
+}

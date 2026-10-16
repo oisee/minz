@@ -1,0 +1,199 @@
+=== RUN   TestObjCSelectorMatchDeterministic
+--- PASS: TestObjCSelectorMatchDeterministic (0.02s)
+=== RUN   TestObjCAssert_E2E
+    c89_test.go:347: ObjC E2E: 4 asserts passed (1 C + 3 ObjC)
+--- PASS: TestObjCAssert_E2E (0.01s)
+=== RUN   TestObjCMethodChaining
+    c89_test.go:403: funcs=10 asserts=4
+    c89_test.go:409: method chaining: 4 asserts passed
+--- PASS: TestObjCMethodChaining (0.01s)
+=== RUN   TestCorpus_C99Examples
+=== RUN   TestCorpus_C99Examples/array_desig.c
+    c89_test.go:515:   6 funcs, 6 asserts (dual=0, mir2=6, z80=0)
+    c89_test.go:527:   6 mir2 + 0 z80 asserts passed
+=== RUN   TestCorpus_C99Examples/c11_anon_struct.c
+    c89_test.go:515:   6 funcs, 6 asserts (dual=0, mir2=6, z80=0)
+    c89_test.go:527:   6 mir2 + 0 z80 asserts passed
+=== RUN   TestCorpus_C99Examples/c11_features.c
+    c89_test.go:515:   7 funcs, 9 asserts (dual=0, mir2=9, z80=0)
+    c89_test.go:527:   9 mir2 + 0 z80 asserts passed
+=== RUN   TestCorpus_C99Examples/c23_attributes.c
+    c89_test.go:515:   7 funcs, 9 asserts (dual=0, mir2=9, z80=0)
+    c89_test.go:527:   9 mir2 + 0 z80 asserts passed
+=== RUN   TestCorpus_C99Examples/c23_bitint.c
+    c89_test.go:515:   12 funcs, 12 asserts (dual=0, mir2=12, z80=0)
+    c89_test.go:527:   12 mir2 + 0 z80 asserts passed
+=== RUN   TestCorpus_C99Examples/c23_constexpr_enum.c
+    c89_test.go:515:   14 funcs, 20 asserts (dual=0, mir2=20, z80=0)
+    c89_test.go:527:   20 mir2 + 0 z80 asserts passed
+=== RUN   TestCorpus_C99Examples/c23_digit_sep.c
+    c89_test.go:515:   9 funcs, 9 asserts (dual=0, mir2=9, z80=0)
+    c89_test.go:527:   9 mir2 + 0 z80 asserts passed
+=== RUN   TestCorpus_C99Examples/c23_embed.c
+    c89_test.go:515:   5 funcs, 10 asserts (dual=0, mir2=10, z80=0)
+    c89_test.go:527:   10 mir2 + 0 z80 asserts passed
+=== RUN   TestCorpus_C99Examples/c23_misc.c
+    c89_test.go:515:   10 funcs, 11 asserts (dual=0, mir2=11, z80=0)
+    c89_test.go:527:   11 mir2 + 0 z80 asserts passed
+=== RUN   TestCorpus_C99Examples/c23_preview.c
+    c89_test.go:515:   4 funcs, 10 asserts (dual=0, mir2=10, z80=0)
+    c89_test.go:527:   10 mir2 + 0 z80 asserts passed
+=== RUN   TestCorpus_C99Examples/c23_stdbit.c
+    c89_test.go:515:   50 funcs, 34 asserts (dual=0, mir2=34, z80=0)
+    c89_test.go:527:   34 mir2 + 0 z80 asserts passed
+=== RUN   TestCorpus_C99Examples/c99_bitops.c
+    c89_test.go:515:   15 funcs, 27 asserts (dual=0, mir2=27, z80=0)
+    c89_test.go:527:   27 mir2 + 0 z80 asserts passed
+=== RUN   TestCorpus_C99Examples/c99_control_flow.c
+    c89_test.go:515:   10 funcs, 21 asserts (dual=0, mir2=21, z80=0)
+    c89_test.go:527:   21 mir2 + 0 z80 asserts passed
+=== RUN   TestCorpus_C99Examples/c99_ctype.c
+    c89_test.go:515:   21 funcs, 17 asserts (dual=0, mir2=17, z80=0)
+    c89_test.go:527:   17 mir2 + 0 z80 asserts passed
+=== RUN   TestCorpus_C99Examples/c99_enum_typedef.c
+    c89_test.go:515:   12 funcs, 15 asserts (dual=0, mir2=15, z80=0)
+    c89_test.go:527:   15 mir2 + 0 z80 asserts passed
+=== RUN   TestCorpus_C99Examples/c99_math8.c
+    c89_test.go:515:   15 funcs, 31 asserts (dual=0, mir2=31, z80=0)
+    c89_test.go:527:   31 mir2 + 0 z80 asserts passed
+=== RUN   TestCorpus_C99Examples/c99_pointers.c
+    c89_test.go:515:   11 funcs, 8 asserts (dual=0, mir2=0, z80=8)
+    c89_test.go:527:   0 mir2 + 8 z80 asserts passed
+=== RUN   TestCorpus_C99Examples/c99_stdbool.c
+    c89_test.go:515:   6 funcs, 12 asserts (dual=0, mir2=12, z80=0)
+    c89_test.go:527:   12 mir2 + 0 z80 asserts passed
+=== RUN   TestCorpus_C99Examples/c99_structs.c
+    c89_test.go:515:   11 funcs, 10 asserts (dual=0, mir2=10, z80=0)
+    c89_test.go:527:   10 mir2 + 0 z80 asserts passed
+=== RUN   TestCorpus_C99Examples/c_edge_cases.c
+    c89_test.go:515:   15 funcs, 36 asserts (dual=0, mir2=36, z80=0)
+    c89_test.go:527:   36 mir2 + 0 z80 asserts passed
+=== RUN   TestCorpus_C99Examples/mul_const.c
+    c89_test.go:515:   1 funcs, 4 asserts (dual=0, mir2=2, z80=2)
+    c89_test.go:527:   2 mir2 + 2 z80 asserts passed
+=== RUN   TestCorpus_C99Examples/promoted_arithmetic.c
+    c89_test.go:515:   9 funcs, 24 asserts (dual=0, mir2=12, z80=12)
+    c89_test.go:527:   12 mir2 + 12 z80 asserts passed
+=== RUN   TestCorpus_C99Examples/signed_arithmetic.c
+    c89_test.go:515:   9 funcs, 36 asserts (dual=0, mir2=18, z80=18)
+    c89_test.go:527:   18 mir2 + 18 z80 asserts passed
+=== NAME  TestCorpus_C99Examples
+    c89_test.go:531: TOTAL: mir2=337/337 z80=40/40 combined=377/377 across C99+ corpus
+--- PASS: TestCorpus_C99Examples (0.75s)
+    --- PASS: TestCorpus_C99Examples/array_desig.c (0.02s)
+    --- PASS: TestCorpus_C99Examples/c11_anon_struct.c (0.00s)
+    --- PASS: TestCorpus_C99Examples/c11_features.c (0.01s)
+    --- PASS: TestCorpus_C99Examples/c23_attributes.c (0.01s)
+    --- PASS: TestCorpus_C99Examples/c23_bitint.c (0.01s)
+    --- PASS: TestCorpus_C99Examples/c23_constexpr_enum.c (0.01s)
+    --- PASS: TestCorpus_C99Examples/c23_digit_sep.c (0.00s)
+    --- PASS: TestCorpus_C99Examples/c23_embed.c (0.00s)
+    --- PASS: TestCorpus_C99Examples/c23_misc.c (0.01s)
+    --- PASS: TestCorpus_C99Examples/c23_preview.c (0.01s)
+    --- PASS: TestCorpus_C99Examples/c23_stdbit.c (0.07s)
+    --- PASS: TestCorpus_C99Examples/c99_bitops.c (0.03s)
+    --- PASS: TestCorpus_C99Examples/c99_control_flow.c (0.03s)
+    --- PASS: TestCorpus_C99Examples/c99_ctype.c (0.06s)
+    --- PASS: TestCorpus_C99Examples/c99_enum_typedef.c (0.01s)
+    --- PASS: TestCorpus_C99Examples/c99_math8.c (0.03s)
+    --- PASS: TestCorpus_C99Examples/c99_pointers.c (0.08s)
+    --- PASS: TestCorpus_C99Examples/c99_stdbool.c (0.01s)
+    --- PASS: TestCorpus_C99Examples/c99_structs.c (0.01s)
+    --- PASS: TestCorpus_C99Examples/c_edge_cases.c (0.01s)
+    --- PASS: TestCorpus_C99Examples/mul_const.c (0.00s)
+    --- PASS: TestCorpus_C99Examples/promoted_arithmetic.c (0.13s)
+    --- PASS: TestCorpus_C99Examples/signed_arithmetic.c (0.20s)
+=== RUN   TestCorpus_ObjCExamples
+=== RUN   TestCorpus_ObjCExamples/canvas_shapes.m
+    c89_test.go:579:   14 funcs, 6 asserts
+    c89_test.go:587:   all 6 asserts passed
+=== RUN   TestCorpus_ObjCExamples/counter.m
+    c89_test.go:579:   9 funcs, 5 asserts
+    c89_test.go:587:   all 5 asserts passed
+=== RUN   TestCorpus_ObjCExamples/dynamic.m
+    c89_test.go:579:   13 funcs, 8 asserts
+    c89_test.go:587:   all 8 asserts passed
+=== RUN   TestCorpus_ObjCExamples/foundation.m
+    c89_test.go:579:   57 funcs, 22 asserts
+    c89_test.go:587:   all 22 asserts passed
+=== RUN   TestCorpus_ObjCExamples/game_ecs.m
+    c89_test.go:579:   21 funcs, 11 asserts
+    c89_test.go:587:   all 11 asserts passed
+=== RUN   TestCorpus_ObjCExamples/inherit.m
+    c89_test.go:579:   16 funcs, 8 asserts
+    c89_test.go:587:   all 8 asserts passed
+=== RUN   TestCorpus_ObjCExamples/math_objc.m
+    c89_test.go:579:   28 funcs, 11 asserts
+    c89_test.go:587:   all 11 asserts passed
+=== RUN   TestCorpus_ObjCExamples/message.m
+    c89_test.go:579:   9 funcs, 5 asserts
+    c89_test.go:587:   all 5 asserts passed
+=== RUN   TestCorpus_ObjCExamples/pipeline.m
+    c89_test.go:579:   22 funcs, 7 asserts
+    c89_test.go:587:   all 7 asserts passed
+=== RUN   TestCorpus_ObjCExamples/plasma.m
+    c89_test.go:579:   13 funcs, 11 asserts
+    c89_test.go:587:   all 11 asserts passed
+=== RUN   TestCorpus_ObjCExamples/simple.m
+    c89_test.go:579:   6 funcs, 4 asserts
+    c89_test.go:587:   all 4 asserts passed
+--- PASS: TestCorpus_ObjCExamples (0.60s)
+    --- PASS: TestCorpus_ObjCExamples/canvas_shapes.m (0.05s)
+    --- PASS: TestCorpus_ObjCExamples/counter.m (0.03s)
+    --- PASS: TestCorpus_ObjCExamples/dynamic.m (0.03s)
+    --- PASS: TestCorpus_ObjCExamples/foundation.m (0.12s)
+    --- PASS: TestCorpus_ObjCExamples/game_ecs.m (0.09s)
+    --- PASS: TestCorpus_ObjCExamples/inherit.m (0.03s)
+    --- PASS: TestCorpus_ObjCExamples/math_objc.m (0.04s)
+    --- PASS: TestCorpus_ObjCExamples/message.m (0.02s)
+    --- PASS: TestCorpus_ObjCExamples/pipeline.m (0.04s)
+    --- PASS: TestCorpus_ObjCExamples/plasma.m (0.14s)
+    --- PASS: TestCorpus_ObjCExamples/simple.m (0.01s)
+PASS
+ok  	github.com/minz/minzc/pkg/c89	1.392s
+=== RUN   TestObjC_MessageUnary
+    objc_msg_test.go:22: funcs=1, ifaces=1
+--- PASS: TestObjC_MessageUnary (0.00s)
+=== RUN   TestObjC_MessageKeyword
+    objc_msg_test.go:43: [self add:x] parsed OK
+--- PASS: TestObjC_MessageKeyword (0.00s)
+=== RUN   TestObjC_MessageMultiKeyword
+    objc_msg_test.go:57: [self addX:1 andY:2] parsed OK
+--- PASS: TestObjC_MessageMultiKeyword (0.00s)
+=== RUN   TestObjC_MessageNested
+    objc_msg_test.go:72: [[self alloc] init] parsed OK
+--- PASS: TestObjC_MessageNested (0.00s)
+=== RUN   TestObjC_MessageInExpression
+    objc_msg_test.go:86: [self value] + a * 2 parsed OK
+--- PASS: TestObjC_MessageInExpression (0.00s)
+=== RUN   TestObjC_FullClass
+    objc_msg_test.go:136: @implementation Point — 4 methods
+    objc_msg_test.go:138:   getX (body: true)
+    objc_msg_test.go:138:   getY (body: true)
+    objc_msg_test.go:138:   setX: (body: true)
+    objc_msg_test.go:138:   manhattan (body: true)
+    objc_msg_test.go:142: funcs=1, ifaces=1, impls=1
+--- PASS: TestObjC_FullClass (0.00s)
+=== RUN   TestObjCTokens_ScanAtKeywords
+    objc_test.go:36: @interface Foo parsed OK
+--- PASS: TestObjCTokens_ScanAtKeywords (0.00s)
+=== RUN   TestObjC_InterfaceWithIvarsAndMethods
+    objc_test.go:71: @interface Counter
+    objc_test.go:72:   1 ivars, 3 methods
+    objc_test.go:81:   method: value (kind=0)
+    objc_test.go:81:   method: increment (kind=0)
+    objc_test.go:81:   method: addAmount: (kind=0)
+--- PASS: TestObjC_InterfaceWithIvarsAndMethods (0.00s)
+=== RUN   TestObjC_Implementation
+    objc_test.go:114: @implementation Counter — 2 methods
+    objc_test.go:119:   method: value (has body: true)
+    objc_test.go:119:   method: increment (has body: true)
+--- PASS: TestObjC_Implementation (0.00s)
+=== RUN   TestObjC_MixedWithC
+    objc_test.go:163: C functions: 2, ObjC interfaces: 1
+--- PASS: TestObjC_MixedWithC (0.00s)
+=== RUN   TestObjCTokens_PlainC_StillWorks
+    objc_test.go:190: Plain C still works with ObjC tokens added
+--- PASS: TestObjCTokens_PlainC_StillWorks (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/cparse	0.004s

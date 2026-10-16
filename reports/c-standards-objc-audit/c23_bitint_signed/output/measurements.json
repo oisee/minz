@@ -1,0 +1,22 @@
+{
+  "Compiler": "minz",
+  "Profile": "default",
+  "Case": "c23_bitint_signed",
+  "SourceSHA256": "e44fa24eb53a0507ef530e7d098e58a66dac749031c77935e805beec3e91fc90",
+  "WorkloadSHA256": "481f302bb8c402a1aad3a3a67bec3fabb54e8aed8251b35f56f285352d8d464c",
+  "Status": "FAIL",
+  "InitializedBytes": 10,
+  "GlobalBytes": 2,
+  "ProgramBytes": 10,
+  "Calls": 1,
+  "TotalT": 40,
+  "Observations": [
+    {
+      "id": "c23_bitint_signed",
+      "expected": 1,
+      "result": 0,
+      "t_states": 40,
+      "error": "native result0 want1"
+    }
+  ]
+}

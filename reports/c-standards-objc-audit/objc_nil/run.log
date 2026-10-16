@@ -1,0 +1,1 @@
+minz default objc_nil: ERROR 0 calls 0 bytes 0T c89 parse: /home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c-standards-objc/objc_nil/objc_nil.m:4:32: unexpected ')', expected unary expression

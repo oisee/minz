@@ -1,0 +1,17 @@
+; MIR2 module: /home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c-standards-objc/c99_compound/c99_compound
+global @result : u16
+
+fun @execute()
+  block @entry:
+    %r1 = alloca 4 : ptr
+    %r2 = const 3 : i16 [pointer]
+    store %r1, %r2 : i16
+    %r3 = const 8 : i16 [pointer]
+    %r4 = field %r1, +2 : ptr [pointer]
+    store %r4, %r3 : i16
+    %r5 = field %r1, +2 : ptr [pointer]
+    %r6 = load %r5 : i16 [pointer]
+    %r7 = addr_of @result : ptr [pointer]
+    store %r7, %r6 : u16
+    ret void
+

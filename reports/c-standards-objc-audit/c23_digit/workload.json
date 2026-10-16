@@ -1,0 +1,13 @@
+{
+  "samples": [
+    {
+      "id": "c23_digit",
+      "inputs": {},
+      "expected": 1234,
+      "after": {}
+    }
+  ],
+  "sizes": {
+    "result": 2
+  }
+}

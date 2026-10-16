@@ -1,0 +1,15 @@
+{
+  "Compiler": "minz",
+  "Profile": "default",
+  "Case": "objc_static",
+  "SourceSHA256": "4b9108d313e0ddcc452e79de8873e340de91ce7a09ae467b1b624c0366bcdb25",
+  "WorkloadSHA256": "955eb17166824496e701d87a390300bdac922ee2dc7b3e0f565ecea44e37f06f",
+  "Status": "ERROR",
+  "InitializedBytes": 0,
+  "GlobalBytes": 0,
+  "ProgramBytes": 0,
+  "Calls": 0,
+  "TotalT": 0,
+  "Observations": null,
+  "Error": "c89 parse: /home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c-standards-objc/objc_static/objc_static.m:4:18: unexpected '*', expected ')'"
+}

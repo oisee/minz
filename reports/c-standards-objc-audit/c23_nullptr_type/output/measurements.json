@@ -1,0 +1,22 @@
+{
+  "Compiler": "minz",
+  "Profile": "default",
+  "Case": "c23_nullptr_type",
+  "SourceSHA256": "64289520ffe6d4073cbf591adc993da7eaf3f7619dc70dc375a40eac60418860",
+  "WorkloadSHA256": "57c0ea4d029b61cc969a08e102e0b4af394e1b70ff508a514b6a4c78f3ca1e23",
+  "Status": "FAIL",
+  "InitializedBytes": 10,
+  "GlobalBytes": 2,
+  "ProgramBytes": 10,
+  "Calls": 1,
+  "TotalT": 40,
+  "Observations": [
+    {
+      "id": "c23_nullptr_type",
+      "expected": 2,
+      "result": 1,
+      "t_states": 40,
+      "error": "native result1 want2"
+    }
+  ]
+}

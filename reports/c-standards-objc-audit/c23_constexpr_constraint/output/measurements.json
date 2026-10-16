@@ -1,0 +1,22 @@
+{
+  "Compiler": "minz",
+  "Profile": "default",
+  "Case": "c23_constexpr_constraint",
+  "SourceSHA256": "c2cc24363d4cf876cb98b412855ffc395f1a5acb9fabaa829cf7bff80565527b",
+  "WorkloadSHA256": "d81fa96176f9685aab87738f415efba2b4c84a0c39389efd7caa858965534ed9",
+  "Status": "FAIL",
+  "InitializedBytes": 14,
+  "GlobalBytes": 2,
+  "ProgramBytes": 14,
+  "Calls": 1,
+  "TotalT": 40,
+  "Observations": [
+    {
+      "id": "c23_constexpr_constraint",
+      "expected": 0,
+      "result": 7,
+      "t_states": 40,
+      "error": "native result7 want0"
+    }
+  ]
+}

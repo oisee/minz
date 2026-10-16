@@ -1,0 +1,618 @@
+[
+  {
+    "Compiler": "minz",
+    "Profile": "default",
+    "Case": "c99_designated",
+    "SourceSHA256": "4c0c085d326a0ce56d9df78996d37b2088032813bbaa8a70ff9c48c67d586a8e",
+    "WorkloadSHA256": "0929925bedaa08217928e3e38643494d0530f118c5b993cee7f58640446d9315",
+    "Status": "PASS",
+    "InitializedBytes": 79,
+    "GlobalBytes": 2,
+    "ProgramBytes": 79,
+    "Calls": 1,
+    "TotalT": 531,
+    "Observations": [
+      {
+        "id": "c99_designated",
+        "expected": 5,
+        "result": 5,
+        "t_states": 531
+      }
+    ],
+    "probe": "c99_designated",
+    "standard": "C99",
+    "expected_rejection": false,
+    "finding": "PASS"
+  },
+  {
+    "Compiler": "minz",
+    "Profile": "default",
+    "Case": "c99_compound",
+    "SourceSHA256": "71aea7d9e58d6ca16abefb47c5a9a72d22b7467221b58484cdfaa3489ef4bb95",
+    "WorkloadSHA256": "3f7b63ec99514143dc9f02e6425f5d75755fefcfb8a13d399131ac9997ba9ef1",
+    "Status": "PASS",
+    "InitializedBytes": 57,
+    "GlobalBytes": 2,
+    "ProgramBytes": 57,
+    "Calls": 1,
+    "TotalT": 337,
+    "Observations": [
+      {
+        "id": "c99_compound",
+        "expected": 8,
+        "result": 8,
+        "t_states": 337
+      }
+    ],
+    "probe": "c99_compound",
+    "standard": "C99",
+    "expected_rejection": false,
+    "finding": "PASS"
+  },
+  {
+    "Compiler": "minz",
+    "Profile": "default",
+    "Case": "c99_for",
+    "SourceSHA256": "e7df84f91d16c91a135069136115e6f67e1d3f6aebfae63f26b505536517fb63",
+    "WorkloadSHA256": "ce38f766e38e7687152b57715cc8451ad9e3e3eda6bf1a0314787e083568e980",
+    "Status": "PASS",
+    "InitializedBytes": 51,
+    "GlobalBytes": 2,
+    "ProgramBytes": 51,
+    "Calls": 1,
+    "TotalT": 800,
+    "Observations": [
+      {
+        "id": "c99_for",
+        "expected": 6,
+        "result": 6,
+        "t_states": 800
+      }
+    ],
+    "probe": "c99_for",
+    "standard": "C99",
+    "expected_rejection": false,
+    "finding": "PASS"
+  },
+  {
+    "Compiler": "minz",
+    "Profile": "default",
+    "Case": "c11_generic",
+    "SourceSHA256": "744715f963c208e8e27f1c79f1a951aea1c51afd05d69f0eae5d7fb1a4246248",
+    "WorkloadSHA256": "95a009ca718b956f7177a3c6c8b56bf33cdecce4d5021cbe47b5dca79f684881",
+    "Status": "PASS",
+    "InitializedBytes": 10,
+    "GlobalBytes": 2,
+    "ProgramBytes": 10,
+    "Calls": 1,
+    "TotalT": 40,
+    "Observations": [
+      {
+        "id": "c11_generic",
+        "expected": 7,
+        "result": 7,
+        "t_states": 40
+      }
+    ],
+    "probe": "c11_generic",
+    "standard": "C11",
+    "expected_rejection": false,
+    "finding": "PASS"
+  },
+  {
+    "Compiler": "minz",
+    "Profile": "default",
+    "Case": "c11_static_assert",
+    "SourceSHA256": "62df223514d64d07f145c91dd4cb0fbfa1b932584678be52cf50461f5178a787",
+    "WorkloadSHA256": "85646453e08a703f8774ac60430e025612dffcb9ebd644ce0d8daf0e15c2dc4e",
+    "Status": "ERROR",
+    "InitializedBytes": 0,
+    "GlobalBytes": 0,
+    "ProgramBytes": 0,
+    "Calls": 0,
+    "TotalT": 0,
+    "Observations": null,
+    "Error": "c89 parse: /home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c-standards-objc/c11_static_assert/c11_static_assert.c:2:16: assertion failed: must reject (check.go:1224:check:)",
+    "probe": "c11_static_assert",
+    "standard": "C11",
+    "expected_rejection": true,
+    "finding": "EXPECTED_REJECTION"
+  },
+  {
+    "Compiler": "minz",
+    "Profile": "default",
+    "Case": "c11_anonymous",
+    "SourceSHA256": "1c126749a7be0f36c9cadf7bc30508499a6816f052876904e19d395673edadab",
+    "WorkloadSHA256": "6160f8b44b766d1ca0a1231faa68990303bba55d2dd73c0ed9778ffa679e4ec7",
+    "Status": "PASS",
+    "InitializedBytes": 30,
+    "GlobalBytes": 2,
+    "ProgramBytes": 30,
+    "Calls": 1,
+    "TotalT": 179,
+    "Observations": [
+      {
+        "id": "c11_anonymous",
+        "expected": 7,
+        "result": 7,
+        "t_states": 179
+      }
+    ],
+    "probe": "c11_anonymous",
+    "standard": "C11",
+    "expected_rejection": false,
+    "finding": "PASS"
+  },
+  {
+    "Compiler": "minz",
+    "Profile": "default",
+    "Case": "c23_digit",
+    "SourceSHA256": "491a1cc8dcaf3ded0c5c181d73436a341eb590a60bc527586271daba74feb5d0",
+    "WorkloadSHA256": "f3e128666fae3d30b1bb77953a38a7fb040ee603b86f00557d61c84b5fee569d",
+    "Status": "PASS",
+    "InitializedBytes": 10,
+    "GlobalBytes": 2,
+    "ProgramBytes": 10,
+    "Calls": 1,
+    "TotalT": 40,
+    "Observations": [
+      {
+        "id": "c23_digit",
+        "expected": 1234,
+        "result": 1234,
+        "t_states": 40
+      }
+    ],
+    "probe": "c23_digit",
+    "standard": "C23",
+    "expected_rejection": false,
+    "finding": "PASS"
+  },
+  {
+    "Compiler": "minz",
+    "Profile": "default",
+    "Case": "c23_auto",
+    "SourceSHA256": "3fc1281a72675f4361cb5f2f16a24cdd0fb6a3be701a71a40566c40db90b860a",
+    "WorkloadSHA256": "aecd9420fad25629e007a3512b3fe994d8a02437a57e4da28a71209e02659f22",
+    "Status": "PASS",
+    "InitializedBytes": 10,
+    "GlobalBytes": 2,
+    "ProgramBytes": 10,
+    "Calls": 1,
+    "TotalT": 40,
+    "Observations": [
+      {
+        "id": "c23_auto",
+        "expected": 7,
+        "result": 7,
+        "t_states": 40
+      }
+    ],
+    "probe": "c23_auto",
+    "standard": "C23",
+    "expected_rejection": false,
+    "finding": "PASS"
+  },
+  {
+    "Compiler": "minz",
+    "Profile": "default",
+    "Case": "c23_typeof",
+    "SourceSHA256": "554ed9310e6c13bbb19db639125eac493ff7e1dd012363a5100bec50e71ea7e9",
+    "WorkloadSHA256": "24cd0a282b1d1a449a0f66182901b31217f096c397d193660b11f11bf1517b07",
+    "Status": "PASS",
+    "InitializedBytes": 10,
+    "GlobalBytes": 2,
+    "ProgramBytes": 10,
+    "Calls": 1,
+    "TotalT": 40,
+    "Observations": [
+      {
+        "id": "c23_typeof",
+        "expected": 10,
+        "result": 10,
+        "t_states": 40
+      }
+    ],
+    "probe": "c23_typeof",
+    "standard": "C23",
+    "expected_rejection": false,
+    "finding": "PASS"
+  },
+  {
+    "Compiler": "minz",
+    "Profile": "default",
+    "Case": "c23_enum",
+    "SourceSHA256": "0ec310ee52364b4356e5f379e6b530c14259556364a9db5dda921ef4af27599c",
+    "WorkloadSHA256": "e6685acf5a105019824768d4902813544bf46462b010fe7ea35a1f4514f9d7d6",
+    "Status": "PASS",
+    "InitializedBytes": 10,
+    "GlobalBytes": 2,
+    "ProgramBytes": 10,
+    "Calls": 1,
+    "TotalT": 40,
+    "Observations": [
+      {
+        "id": "c23_enum",
+        "expected": 1,
+        "result": 1,
+        "t_states": 40
+      }
+    ],
+    "probe": "c23_enum",
+    "standard": "C23",
+    "expected_rejection": false,
+    "finding": "PASS"
+  },
+  {
+    "Compiler": "minz",
+    "Profile": "default",
+    "Case": "c23_bitint_signed",
+    "SourceSHA256": "e44fa24eb53a0507ef530e7d098e58a66dac749031c77935e805beec3e91fc90",
+    "WorkloadSHA256": "481f302bb8c402a1aad3a3a67bec3fabb54e8aed8251b35f56f285352d8d464c",
+    "Status": "FAIL",
+    "InitializedBytes": 10,
+    "GlobalBytes": 2,
+    "ProgramBytes": 10,
+    "Calls": 1,
+    "TotalT": 40,
+    "Observations": [
+      {
+        "id": "c23_bitint_signed",
+        "expected": 1,
+        "result": 0,
+        "t_states": 40,
+        "error": "native result0 want1"
+      }
+    ],
+    "probe": "c23_bitint_signed",
+    "standard": "C23",
+    "expected_rejection": false,
+    "finding": "FAIL"
+  },
+  {
+    "Compiler": "minz",
+    "Profile": "default",
+    "Case": "c23_bitint_unsigned",
+    "SourceSHA256": "65415ba1fb196e7e400b3424af013db8a72cf8e4de7c56d416ef40467def6c3e",
+    "WorkloadSHA256": "7941e027e0274c6f384f21f481f48c2721ff628890cd20a7845a56a42238fae8",
+    "Status": "ERROR",
+    "InitializedBytes": 0,
+    "GlobalBytes": 0,
+    "ProgramBytes": 0,
+    "Calls": 0,
+    "TotalT": 0,
+    "Observations": null,
+    "Error": "c89 parse: /home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c-standards-objc/c23_bitint_unsigned/c23_bitint_unsigned.c:2:37: unexpected identifier, expected ';'",
+    "probe": "c23_bitint_unsigned",
+    "standard": "C23",
+    "expected_rejection": false,
+    "finding": "ERROR"
+  },
+  {
+    "Compiler": "minz",
+    "Profile": "default",
+    "Case": "c23_bitint_too_wide",
+    "SourceSHA256": "c8f2b5fa9e42f00b1a2e032f7893e80d556ff92514225ce0f3b8ef17334b956c",
+    "WorkloadSHA256": "cf66da2d64c30c19a4ed40864eceaefaf1abfb18c4c78470d11f03ff0e7ca4e2",
+    "Status": "FAIL",
+    "InitializedBytes": 10,
+    "GlobalBytes": 2,
+    "ProgramBytes": 10,
+    "Calls": 1,
+    "TotalT": 40,
+    "Observations": [
+      {
+        "id": "c23_bitint_too_wide",
+        "expected": 0,
+        "result": 2,
+        "t_states": 40,
+        "error": "native result2 want0"
+      }
+    ],
+    "probe": "c23_bitint_too_wide",
+    "standard": "C23",
+    "expected_rejection": true,
+    "finding": "WRONGLY_ACCEPTED"
+  },
+  {
+    "Compiler": "minz",
+    "Profile": "default",
+    "Case": "c23_constexpr_constraint",
+    "SourceSHA256": "c2cc24363d4cf876cb98b412855ffc395f1a5acb9fabaa829cf7bff80565527b",
+    "WorkloadSHA256": "d81fa96176f9685aab87738f415efba2b4c84a0c39389efd7caa858965534ed9",
+    "Status": "FAIL",
+    "InitializedBytes": 14,
+    "GlobalBytes": 2,
+    "ProgramBytes": 14,
+    "Calls": 1,
+    "TotalT": 40,
+    "Observations": [
+      {
+        "id": "c23_constexpr_constraint",
+        "expected": 0,
+        "result": 7,
+        "t_states": 40,
+        "error": "native result7 want0"
+      }
+    ],
+    "probe": "c23_constexpr_constraint",
+    "standard": "C23",
+    "expected_rejection": true,
+    "finding": "WRONGLY_ACCEPTED"
+  },
+  {
+    "Compiler": "minz",
+    "Profile": "default",
+    "Case": "lex_digit_string",
+    "SourceSHA256": "dd6d33f5faa1154247cac39c241de2bb70ed167f46af9a5fa9963185d6daad8d",
+    "WorkloadSHA256": "a1c8b81f7e721905548488d3b32cc8ac7160dea1021aa67d9a2f88414285d36c",
+    "Status": "FAIL",
+    "InitializedBytes": 10,
+    "GlobalBytes": 2,
+    "ProgramBytes": 10,
+    "Calls": 1,
+    "TotalT": 40,
+    "Observations": [
+      {
+        "id": "lex_digit_string",
+        "expected": 4,
+        "result": 3,
+        "t_states": 40,
+        "error": "native result3 want4"
+      }
+    ],
+    "probe": "lex_digit_string",
+    "standard": "all",
+    "expected_rejection": false,
+    "finding": "FAIL"
+  },
+  {
+    "Compiler": "minz",
+    "Profile": "default",
+    "Case": "lex_bitint_string",
+    "SourceSHA256": "00298fcdaa66a9cdd932b9e6806a6f127c90ec2f53c47f8840cae279cf2f7aa4",
+    "WorkloadSHA256": "82b49a7bb2bb5a2bbe81efa1b710d2fbfe1af3824a1e3d70cd59b35c4abd2f01",
+    "Status": "FAIL",
+    "InitializedBytes": 10,
+    "GlobalBytes": 2,
+    "ProgramBytes": 10,
+    "Calls": 1,
+    "TotalT": 40,
+    "Observations": [
+      {
+        "id": "lex_bitint_string",
+        "expected": 11,
+        "result": 8,
+        "t_states": 40,
+        "error": "native result8 want11"
+      }
+    ],
+    "probe": "lex_bitint_string",
+    "standard": "all",
+    "expected_rejection": false,
+    "finding": "FAIL"
+  },
+  {
+    "Compiler": "minz",
+    "Profile": "default",
+    "Case": "lex_attribute_string",
+    "SourceSHA256": "a0b2cd9f80875dd4bbd4a93cc9cc65fb24fba652930d54eea2b8be9ff99a7e16",
+    "WorkloadSHA256": "4a50f6a2522c5c624a8b4dd944987b9797a31b9cd17f6d73b8c4e06fbc6a34a0",
+    "Status": "FAIL",
+    "InitializedBytes": 10,
+    "GlobalBytes": 2,
+    "ProgramBytes": 10,
+    "Calls": 1,
+    "TotalT": 40,
+    "Observations": [
+      {
+        "id": "lex_attribute_string",
+        "expected": 14,
+        "result": 1,
+        "t_states": 40,
+        "error": "native result1 want14"
+      }
+    ],
+    "probe": "lex_attribute_string",
+    "standard": "all",
+    "expected_rejection": false,
+    "finding": "FAIL"
+  },
+  {
+    "Compiler": "minz",
+    "Profile": "default",
+    "Case": "c23_missing_embed",
+    "SourceSHA256": "ec5f877845d48662691f0307f20d149c81a0c36d81968e0a579be31f27e60bcc",
+    "WorkloadSHA256": "8c7baa9f7c1299d1055c779f0fcbdd9d3db6b8ca8d819021d2bf32837f44d437",
+    "Status": "ERROR",
+    "InitializedBytes": 0,
+    "GlobalBytes": 0,
+    "ProgramBytes": 0,
+    "Calls": 0,
+    "TotalT": 0,
+    "Observations": null,
+    "Error": "c89 lower: variable-length array storage is not supported",
+    "probe": "c23_missing_embed",
+    "standard": "C23",
+    "expected_rejection": true,
+    "finding": "EXPECTED_REJECTION"
+  },
+  {
+    "Compiler": "minz",
+    "Profile": "default",
+    "Case": "objc_static",
+    "SourceSHA256": "4b9108d313e0ddcc452e79de8873e340de91ce7a09ae467b1b624c0366bcdb25",
+    "WorkloadSHA256": "955eb17166824496e701d87a390300bdac922ee2dc7b3e0f565ecea44e37f06f",
+    "Status": "ERROR",
+    "InitializedBytes": 0,
+    "GlobalBytes": 0,
+    "ProgramBytes": 0,
+    "Calls": 0,
+    "TotalT": 0,
+    "Observations": null,
+    "Error": "c89 parse: /home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c-standards-objc/objc_static/objc_static.m:4:18: unexpected '*', expected ')'",
+    "probe": "objc_static",
+    "standard": "ObjC",
+    "expected_rejection": false,
+    "finding": "ERROR"
+  },
+  {
+    "Compiler": "minz",
+    "Profile": "default",
+    "Case": "objc_nil",
+    "SourceSHA256": "57ee50d0fb04cc262fd1ec57dbd246443b067da21097045b7f04b3b25b3f2d33",
+    "WorkloadSHA256": "e1ea8e8914d37f1861850f23c33c259a7b7b1ddc24b17ee4b5235839515d1891",
+    "Status": "ERROR",
+    "InitializedBytes": 0,
+    "GlobalBytes": 0,
+    "ProgramBytes": 0,
+    "Calls": 0,
+    "TotalT": 0,
+    "Observations": null,
+    "Error": "c89 parse: /home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c-standards-objc/objc_nil/objc_nil.m:4:32: unexpected ')', expected unary expression",
+    "probe": "objc_nil",
+    "standard": "ObjC",
+    "expected_rejection": false,
+    "finding": "ERROR"
+  },
+  {
+    "Compiler": "minz",
+    "Profile": "default",
+    "Case": "objc_property",
+    "SourceSHA256": "0f480c142a6ee2f12250698260bdffb37d1a08764c264126c154d9176aae3187",
+    "WorkloadSHA256": "8a7f54544418297bc22f78d02977ca9fe813a6148db67b8d8f23d9a7612260c1",
+    "Status": "PASS",
+    "InitializedBytes": 10,
+    "GlobalBytes": 2,
+    "ProgramBytes": 10,
+    "Calls": 1,
+    "TotalT": 40,
+    "Observations": [
+      {
+        "id": "objc_property",
+        "expected": 1,
+        "result": 1,
+        "t_states": 40
+      }
+    ],
+    "probe": "objc_property",
+    "standard": "ObjC",
+    "expected_rejection": false,
+    "finding": "PASS"
+  },
+  {
+    "Compiler": "minz",
+    "Profile": "default",
+    "Case": "c11_generic_pointer_ab",
+    "SourceSHA256": "5ebbfc124255a6f5421e1b4ff2aa29c51ffeba29969d89972c14bb58f59650b5",
+    "WorkloadSHA256": "99e258373bd7ca0442ff5207f0c900315796f562ba07b1926b4079a525121730",
+    "Status": "PASS",
+    "InitializedBytes": 10,
+    "GlobalBytes": 2,
+    "ProgramBytes": 10,
+    "Calls": 1,
+    "TotalT": 40,
+    "Observations": [
+      {
+        "id": "c11_generic_pointer_ab",
+        "expected": 1,
+        "result": 1,
+        "t_states": 40
+      }
+    ],
+    "probe": "c11_generic_pointer_ab",
+    "standard": "C11",
+    "expected_rejection": false,
+    "finding": "PASS"
+  },
+  {
+    "Compiler": "minz",
+    "Profile": "default",
+    "Case": "c11_generic_pointer_ba",
+    "SourceSHA256": "4ab08e340b6832fe68281f209acb4ee3f950b705fa99114ba772c0e531f02dd8",
+    "WorkloadSHA256": "cdce6a9038e1bd58f196e62cf9396452dc811d7768321c1773a22145afca74ef",
+    "Status": "ERROR",
+    "InitializedBytes": 0,
+    "GlobalBytes": 0,
+    "ProgramBytes": 0,
+    "Calls": 0,
+    "TotalT": 0,
+    "Observations": null,
+    "Error": "c89 lower: c89: unsupported Z80 type <invalid type>",
+    "probe": "c11_generic_pointer_ba",
+    "standard": "C11",
+    "expected_rejection": false,
+    "finding": "ERROR"
+  },
+  {
+    "Compiler": "minz",
+    "Profile": "default",
+    "Case": "c23_constexpr_ice",
+    "SourceSHA256": "27813da2590999ad02ebcb789d94fa43a97c47722fc7be2a6ba5bbcded321c0b",
+    "WorkloadSHA256": "63d61d37067397aa3be81bed6c70d87c8f01c23cee1a8ffe202b6e4bbe8e7fb9",
+    "Status": "ERROR",
+    "InitializedBytes": 0,
+    "GlobalBytes": 0,
+    "ProgramBytes": 0,
+    "Calls": 0,
+    "TotalT": 0,
+    "Observations": null,
+    "Error": "c89 parse: /home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c-standards-objc/c23_constexpr_ice/c23_constexpr_ice.c:2:44: variable-length array types are not supported by this target (type.go:1890:newArrayType:)",
+    "probe": "c23_constexpr_ice",
+    "standard": "C23",
+    "expected_rejection": false,
+    "finding": "ERROR"
+  },
+  {
+    "Compiler": "minz",
+    "Profile": "default",
+    "Case": "c23_nullptr_type",
+    "SourceSHA256": "64289520ffe6d4073cbf591adc993da7eaf3f7619dc70dc375a40eac60418860",
+    "WorkloadSHA256": "57c0ea4d029b61cc969a08e102e0b4af394e1b70ff508a514b6a4c78f3ca1e23",
+    "Status": "FAIL",
+    "InitializedBytes": 10,
+    "GlobalBytes": 2,
+    "ProgramBytes": 10,
+    "Calls": 1,
+    "TotalT": 40,
+    "Observations": [
+      {
+        "id": "c23_nullptr_type",
+        "expected": 2,
+        "result": 1,
+        "t_states": 40,
+        "error": "native result1 want2"
+      }
+    ],
+    "probe": "c23_nullptr_type",
+    "standard": "C23",
+    "expected_rejection": false,
+    "finding": "FAIL"
+  },
+  {
+    "Compiler": "minz",
+    "Profile": "default",
+    "Case": "c23_missing_embed_fixed",
+    "SourceSHA256": "cf22af6b4e376c7a824f40461ae2ec4e40d853c5bc6e8108a997b36af6bdf725",
+    "WorkloadSHA256": "07beed62a528f5d8f166fadd8ac0f57ced7dd05d0f1bee7970cf9e59d17b5d76",
+    "Status": "FAIL",
+    "InitializedBytes": 11,
+    "GlobalBytes": 2,
+    "ProgramBytes": 11,
+    "Calls": 1,
+    "TotalT": 40,
+    "Observations": [
+      {
+        "id": "c23_missing_embed_fixed",
+        "expected": 0,
+        "result": 1,
+        "t_states": 40,
+        "error": "native result1 want0"
+      }
+    ],
+    "probe": "c23_missing_embed_fixed",
+    "standard": "C23",
+    "expected_rejection": true,
+    "finding": "WRONGLY_ACCEPTED"
+  }
+]

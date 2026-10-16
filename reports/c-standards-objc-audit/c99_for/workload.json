@@ -1,0 +1,13 @@
+{
+  "samples": [
+    {
+      "id": "c99_for",
+      "inputs": {},
+      "expected": 6,
+      "after": {}
+    }
+  ],
+  "sizes": {
+    "result": 2
+  }
+}

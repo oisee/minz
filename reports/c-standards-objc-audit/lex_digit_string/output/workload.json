@@ -1,0 +1,8 @@
+[
+  {
+    "id": "lex_digit_string",
+    "inputs": {},
+    "expected": 4,
+    "after": {}
+  }
+]

@@ -1,0 +1,11 @@
+; MIR2 module: /home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c-standards-objc/c23_bitint_too_wide/c23_bitint_too_wide
+global @result : u16
+
+fun @execute()
+  block @entry:
+    %r1 = const 0 : i16 [pointer]
+    %r2 = const 2 : u16 [pointer]
+    %r3 = addr_of @result : ptr [pointer]
+    store %r3, %r2 : u16
+    ret void
+

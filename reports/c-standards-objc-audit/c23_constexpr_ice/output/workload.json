@@ -1,0 +1,8 @@
+[
+  {
+    "id": "c23_constexpr_ice",
+    "inputs": {},
+    "expected": 6,
+    "after": {}
+  }
+]

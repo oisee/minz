@@ -180,4 +180,4 @@ cd minz/minzc && go build -o mz ./cmd/minzc
 
 ---
 
-*MinZ v0.23.0 — 8 frontend languages, C23 conformant, Z3 optimal codegen, 501 GPU-precomputed arithmetic sequences. The world's most sophisticated compiler for the world's simplest CPU.*
+*MinZ v0.23.0 — 8 frontend languages, selected C23 syntax extensions, Z3 optimal codegen, 501 GPU-precomputed arithmetic sequences. C23 conformance is not established; see the [current C/ObjC audit](../reports/2026-10-16-c-standards-objc-audit.md).*

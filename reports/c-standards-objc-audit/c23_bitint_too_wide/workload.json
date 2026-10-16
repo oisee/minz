@@ -1,0 +1,13 @@
+{
+  "samples": [
+    {
+      "id": "c23_bitint_too_wide",
+      "inputs": {},
+      "expected": 0,
+      "after": {}
+    }
+  ],
+  "sizes": {
+    "result": 2
+  }
+}

@@ -1,0 +1,16 @@
+; MIR2 module: /home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c-standards-objc/c23_bitint_signed/c23_bitint_signed
+global @result : u16
+
+fun @execute()
+  block @entry:
+    %r1 = const 1 : i16 [pointer]
+    %r2 = neg %r1 : i16 [pointer]
+    %r3 = trunc %r2 : i16 -> u8 [general]
+    %r4 = ext %r3 : u8 -> i16 [pointer]
+    %r5 = const 0 : i16 [pointer]
+    %r6 = cmp.lt %r4, %r5 : bool [flag]
+    %r7 = ext %r6 : bool -> u16 [pointer]
+    %r8 = addr_of @result : ptr [pointer]
+    store %r8, %r7 : u16
+    ret void
+

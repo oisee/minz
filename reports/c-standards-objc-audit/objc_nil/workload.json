@@ -1,0 +1,13 @@
+{
+  "samples": [
+    {
+      "id": "objc_nil",
+      "inputs": {},
+      "expected": 0,
+      "after": {}
+    }
+  ],
+  "sizes": {
+    "result": 2
+  }
+}

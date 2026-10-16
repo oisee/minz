@@ -1,0 +1,1 @@
+minz default c23_constexpr_ice: ERROR 0 calls 0 bytes 0T c89 parse: /home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c-standards-objc/c23_constexpr_ice/c23_constexpr_ice.c:2:44: variable-length array types are not supported by this target (type.go:1890:newArrayType:)

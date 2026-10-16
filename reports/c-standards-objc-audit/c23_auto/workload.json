@@ -1,0 +1,13 @@
+{
+  "samples": [
+    {
+      "id": "c23_auto",
+      "inputs": {},
+      "expected": 7,
+      "after": {}
+    }
+  ],
+  "sizes": {
+    "result": 2
+  }
+}

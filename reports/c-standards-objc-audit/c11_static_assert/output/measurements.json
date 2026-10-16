@@ -1,0 +1,15 @@
+{
+  "Compiler": "minz",
+  "Profile": "default",
+  "Case": "c11_static_assert",
+  "SourceSHA256": "62df223514d64d07f145c91dd4cb0fbfa1b932584678be52cf50461f5178a787",
+  "WorkloadSHA256": "85646453e08a703f8774ac60430e025612dffcb9ebd644ce0d8daf0e15c2dc4e",
+  "Status": "ERROR",
+  "InitializedBytes": 0,
+  "GlobalBytes": 0,
+  "ProgramBytes": 0,
+  "Calls": 0,
+  "TotalT": 0,
+  "Observations": null,
+  "Error": "c89 parse: /home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c-standards-objc/c11_static_assert/c11_static_assert.c:2:16: assertion failed: must reject (check.go:1224:check:)"
+}

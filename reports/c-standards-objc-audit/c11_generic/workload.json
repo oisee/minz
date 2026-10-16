@@ -1,0 +1,13 @@
+{
+  "samples": [
+    {
+      "id": "c11_generic",
+      "inputs": {},
+      "expected": 7,
+      "after": {}
+    }
+  ],
+  "sizes": {
+    "result": 2
+  }
+}

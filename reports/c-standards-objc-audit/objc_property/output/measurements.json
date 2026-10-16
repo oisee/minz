@@ -1,0 +1,21 @@
+{
+  "Compiler": "minz",
+  "Profile": "default",
+  "Case": "objc_property",
+  "SourceSHA256": "0f480c142a6ee2f12250698260bdffb37d1a08764c264126c154d9176aae3187",
+  "WorkloadSHA256": "8a7f54544418297bc22f78d02977ca9fe813a6148db67b8d8f23d9a7612260c1",
+  "Status": "PASS",
+  "InitializedBytes": 10,
+  "GlobalBytes": 2,
+  "ProgramBytes": 10,
+  "Calls": 1,
+  "TotalT": 40,
+  "Observations": [
+    {
+      "id": "objc_property",
+      "expected": 1,
+      "result": 1,
+      "t_states": 40
+    }
+  ]
+}

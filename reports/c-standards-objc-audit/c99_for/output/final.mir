@@ -1,0 +1,22 @@
+; MIR2 module: /home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c-standards-objc/c99_for/c99_for
+global @result : u16
+
+fun @execute()
+  block @entry:
+    %r1 = const 0 : i16 [pointer]
+    %r2 = const 0 : i16 [pointer]
+    jmp @loop_head1(%r2, %r1)
+  block @loop_head1(%r2: i16 [pointer], %r1: i16 [pointer]):
+    %r5 = const 4 : i16 [pointer]
+    %r6 = cmp.lt %r2, %r5 : bool [flag]
+    br_if %r6, @loop_body2(), @loop_exit3(%r1)
+  block @loop_body2:
+    %r7 = add %r1, %r2 : i16 [pointer]
+    %r8 = const 1 : i16 [pointer]
+    %r9 = add %r2, %r8 : i16 [pointer]
+    jmp @loop_head1(%r9, %r7)
+  block @loop_exit3(%r10: i16 [pointer]):
+    %r11 = addr_of @result : ptr [pointer]
+    store %r11, %r10 : u16
+    ret void
+
