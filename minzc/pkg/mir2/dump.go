@@ -23,6 +23,9 @@ import (
 func (m *Module) Dump() string {
 	var sb strings.Builder
 	fmt.Fprintf(&sb, "; MIR2 module: %s\n", m.Name)
+	if m.NonNullObjects {
+		sb.WriteString("; object addresses: non-null (VM reserves address zero)\n")
+	}
 
 	for i := 0; i < m.Strings.Len(); i++ {
 		fmt.Fprintf(&sb, "string %s = %q\n", m.Strings.Symbol(i), m.Strings.At(i))
