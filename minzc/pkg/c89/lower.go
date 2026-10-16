@@ -621,7 +621,8 @@ type funcLow struct {
 	objcProtoVars map[string]string // varName → protocolName (for id<Proto> dynamic dispatch)
 
 	continuePrelude func() ([]hir.Stmt, error) // do/for effects before continue
-	inSwitch        bool                       // true while lowering a switch body (C89 switch→if/else chain)
+	switchEnd       string                     // nearest switch break target; empty inside a loop
+	switchCases     *[]cSwitchCase             // labels collected for the active dispatch
 }
 
 func (fl *funcLow) tmpCounter() int {
@@ -854,9 +855,9 @@ func (fl *funcLow) lowerConditionalValue(cond hir.Expr, then, els hir.Expr, then
 }
 
 func (fl *funcLow) lowerLoopBody(s *cc.Statement, prelude func() ([]hir.Stmt, error)) ([]hir.Stmt, error) {
-	old := fl.continuePrelude
-	fl.continuePrelude = prelude
-	defer func() { fl.continuePrelude = old }()
+	old, oldBreak := fl.continuePrelude, fl.switchEnd
+	fl.continuePrelude, fl.switchEnd = prelude, ""
+	defer func() { fl.continuePrelude, fl.switchEnd = old, oldBreak }()
 	return fl.lowerStmt(s)
 }
 
@@ -890,7 +891,23 @@ func (fl *funcLow) lowerStmtInner(s *cc.Statement) ([]hir.Stmt, error) {
 			return nil, nil
 		}
 		var stmts []hir.Stmt
-		// Emit label for goto targets (not case/default labels).
+		if ls.Case == cc.LabeledStatementCaseLabel || ls.Case == cc.LabeledStatementDefault {
+			if fl.switchCases == nil {
+				return nil, fmt.Errorf("case/default without active switch")
+			}
+			label := fmt.Sprintf("__switch_case_%d", fl.tmpCounter())
+			var val hir.Expr
+			if ls.Case == cc.LabeledStatementCaseLabel {
+				var err error
+				val, err = fl.lowerExprAsExpr(ls.ConstantExpression)
+				if err != nil {
+					return nil, err
+				}
+			}
+			*fl.switchCases = append(*fl.switchCases, cSwitchCase{val: val, label: label})
+			stmts = append(stmts, &hir.LabelStmt{Name: label})
+		}
+		// User goto labels keep their source names.
 		if ls.Case == cc.LabeledStatementLabel {
 			name := ls.Token.SrcStr()
 			stmts = append(stmts, &hir.LabelStmt{Name: name})
@@ -967,162 +984,46 @@ func (fl *funcLow) lowerSelection(ss *cc.SelectionStatement) ([]hir.Stmt, error)
 	}
 }
 
-// lowerSwitch lowers a C switch statement into a chain of if/else:
-//
-//	switch (expr) { case 1: A; break; case 2: B; break; default: C; }
-//	→ if (expr == 1) { A } else if (expr == 2) { B } else { C }
-//
-// Limitations: fall-through between cases is NOT supported (each case is
-// treated as if it ends with break). This matches the vast majority of
-// real-world switch usage.
+// cSwitchCase records source-ordered labels. Dispatch enters one label and
+// normal control flow then executes every following statement until a break.
+type cSwitchCase struct {
+	val   hir.Expr
+	label string
+}
+
 func (fl *funcLow) lowerSwitch(ss *cc.SelectionStatement) ([]hir.Stmt, error) {
-	// Lower the switch expression.
-	switchExpr, err := fl.lowerExprAsExpr(ss.ExpressionList)
+	selector, err := fl.lowerExprAsExpr(ss.ExpressionList)
 	if err != nil {
 		return nil, err
 	}
-	switchTy := switchExpr.ExprTy()
-	// Selector effects precede the branch; arm effects must remain in the arm.
-	var selectorEffects []hir.Stmt
-	fl.drainPending(&selectorEffects)
-
-	// Collect case arms by walking the body.
-	type caseArm struct {
-		val  hir.Expr   // nil for default
-		body []hir.Stmt // statements until next case/break
+	selectorTy := fl.low.mapType(cc.IntegerPromotion(ss.ExpressionList.Type()))
+	selector = cConvert(selector, selectorTy)
+	var effects []hir.Stmt
+	fl.drainPending(&effects)
+	id := fl.tmpCounter()
+	name := fmt.Sprintf("__switch_value_%d", id)
+	end := fmt.Sprintf("__switch_end_%d", id)
+	effects = append(effects, &hir.VarDeclStmt{Name: name, Ty: selector.ExprTy(), Init: selector})
+	var cases []cSwitchCase
+	oldCases, oldEnd := fl.switchCases, fl.switchEnd
+	fl.switchCases, fl.switchEnd = &cases, end
+	body, err := fl.lowerStmt(ss.Statement)
+	fl.switchCases, fl.switchEnd = oldCases, oldEnd
+	if err != nil {
+		return nil, err
 	}
-	var arms []caseArm
-	var defaultArm *caseArm
-
-	// The switch body is a compound statement.  Walk its block items
-	// and split at case/default labels.
-	if ss.Statement == nil || ss.Statement.CompoundStatement == nil {
-		return nil, nil
-	}
-	cs := ss.Statement.CompoundStatement
-
-	var curBody []hir.Stmt
-	var curVal hir.Expr // nil = not yet in a case
-	isDefault := false
-	inCase := false
-
-	// flushArm saves the current arm being built.
-	flushArm := func() {
-		if !inCase {
-			return
-		}
-		arm := caseArm{val: curVal, body: curBody}
-		if isDefault {
-			defaultArm = &arm
-		} else {
-			arms = append(arms, arm)
-		}
-		curBody = nil
-		curVal = nil
-		isDefault = false
-		inCase = false
-	}
-
-	// Walk block items.  Mark that we're inside a switch so that nested
-	// break statements (inside if blocks etc.) are treated as switch-break
-	// rather than loop-break.
-	prevInSwitch := fl.inSwitch
-	fl.inSwitch = true
-	defer func() { fl.inSwitch = prevInSwitch }()
-
-	for bi := cs.BlockItemList; bi != nil; bi = bi.BlockItemList {
-		item := bi.BlockItem
-		if item == nil {
+	fallback := end
+	for _, c := range cases {
+		if c.val == nil {
+			fallback = c.label
 			continue
 		}
-		switch item.Case {
-		case cc.BlockItemStmt:
-			stmt := item.Statement
-			if stmt == nil {
-				continue
-			}
-			// Check for labeled statement (case/default).
-			if stmt.Case == cc.StatementLabeled && stmt.LabeledStatement != nil {
-				ls := stmt.LabeledStatement
-				switch ls.Case {
-				case cc.LabeledStatementCaseLabel:
-					flushArm()
-					// Lower the case constant.
-					caseExpr, err := fl.lowerExprAsExpr(ls.ConstantExpression)
-					if err != nil {
-						return nil, err
-					}
-					curVal = caseExpr
-					inCase = true
-					// The labeled statement may have a body statement.
-					if ls.Statement != nil {
-						stmts, err := fl.lowerStmt(ls.Statement)
-						if err != nil {
-							return nil, err
-						}
-						fl.drainPending(&curBody)
-						curBody = append(curBody, stmts...)
-					}
-					continue
-				case cc.LabeledStatementDefault:
-					flushArm()
-					isDefault = true
-					inCase = true
-					if ls.Statement != nil {
-						stmts, err := fl.lowerStmt(ls.Statement)
-						if err != nil {
-							return nil, err
-						}
-						fl.drainPending(&curBody)
-						curBody = append(curBody, stmts...)
-					}
-					continue
-				}
-			}
-			// Check for break — end of this case arm.
-			if stmt.Case == cc.StatementJump && stmt.JumpStatement != nil &&
-				stmt.JumpStatement.Case == cc.JumpStatementBreak {
-				flushArm()
-				continue
-			}
-			// Regular statement — append to current body.
-			stmts, err := fl.lowerStmt(stmt)
-			if err != nil {
-				return nil, err
-			}
-			fl.drainPending(&curBody)
-			curBody = append(curBody, stmts...)
-
-		case cc.BlockItemDecl:
-			stmts, err := fl.lowerLocalDecl(item.Declaration)
-			if err != nil {
-				return nil, err
-			}
-			fl.drainPending(&curBody)
-			curBody = append(curBody, stmts...)
-		}
+		cond := &hir.BinExpr{Op: "==", L: hir.Var(name, selector.ExprTy()), R: cConvert(c.val, selectorTy), Ty: mir2.TyBool}
+		effects = append(effects, hir.If(cond, hir.Blk(&hir.GotoStmt{Label: c.label}), nil))
 	}
-	flushArm() // flush last arm
-
-	// Build if/else chain from bottom up.
-	// Start with default (or nil if no default).
-	var result *hir.Block
-	if defaultArm != nil {
-		result = hir.Blk(defaultArm.body...)
-	}
-	for i := len(arms) - 1; i >= 0; i-- {
-		arm := arms[i]
-		cond := &hir.BinExpr{Op: "==", L: switchExpr, R: arm.val, Ty: mir2.TyBool}
-		thenBlk := hir.Blk(arm.body...)
-		ifStmt := hir.If(cond, thenBlk, result)
-		result = hir.Blk(ifStmt)
-		_ = switchTy
-	}
-
-	if result == nil {
-		return selectorEffects, nil
-	}
-	return append(selectorEffects, result.Body...), nil
+	effects = append(effects, &hir.GotoStmt{Label: fallback})
+	effects = append(effects, body...)
+	return append(effects, &hir.LabelStmt{Name: end}), nil
 }
 
 func (fl *funcLow) lowerIteration(is *cc.IterationStatement) ([]hir.Stmt, error) {
@@ -1288,10 +1189,8 @@ func (fl *funcLow) lowerJump(js *cc.JumpStatement) ([]hir.Stmt, error) {
 		return []hir.Stmt{hir.RetVoid()}, nil
 
 	case cc.JumpStatementBreak:
-		if fl.inSwitch {
-			// Inside a switch lowered to if/else chain, break is implicit
-			// (the if/else structure already provides case separation).
-			return nil, nil
+		if fl.switchEnd != "" {
+			return []hir.Stmt{&hir.GotoStmt{Label: fl.switchEnd}}, nil
 		}
 		return []hir.Stmt{hir.Break()}, nil
 

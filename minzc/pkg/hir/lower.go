@@ -1626,7 +1626,43 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 
 	case *LabelStmt:
 		label := "label_" + st.Name
-		vars := sortedKeys(l.gotoDemands[st.Name], l.env)
+		// The textual environment can belong to another case/terminated
+		// path. Start from a real predecessor and merge differing bindings,
+		// even when source liveness does not demand them: an enclosing HIR
+		// if/loop can still carry those bindings in its own block arguments.
+		incoming := make([]map[string]mir2.Reg, 0, len(l.gotoPending[st.Name])+1)
+		for _, edge := range l.gotoPending[st.Name] {
+			incoming = append(incoming, edge.env)
+		}
+		if !l.bld.Cur.IsSealed() {
+			incoming = append(incoming, l.env)
+		}
+		labelEnv := cloneMap(l.env)
+		demanded := maps.Clone(l.gotoDemands[st.Name])
+		if demanded == nil {
+			demanded = map[string]bool{}
+		}
+		if len(incoming) > 0 {
+			labelEnv = cloneMap(incoming[0])
+			for name, value := range labelEnv {
+				different := false
+				for _, edge := range incoming[1:] {
+					other, present := edge[name]
+					if !present {
+						delete(labelEnv, name)
+						different = false
+						break
+					}
+					if other != value {
+						different = true
+					}
+				}
+				if different {
+					demanded[name] = true
+				}
+			}
+		}
+		vars := sortedKeys(demanded, labelEnv)
 		l.backwardGotoVars[st.Name] = vars
 		if !l.bld.Cur.IsSealed() {
 			l.bld.Jmp(label, l.collectArgs(vars)...)
@@ -1644,7 +1680,7 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 				break
 			}
 		}
-		env := cloneMap(l.env)
+		env := labelEnv
 		for _, name := range vars {
 			ty := l.envTy[name]
 			env[name] = l.bld.BlockParam(l.bld.Cur, ty, classForExpr(ty))
