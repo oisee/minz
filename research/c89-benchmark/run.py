@@ -58,7 +58,7 @@ def main():
 
     def run_one(task):
         compiler, profile, case = task
-        source = (nanz_cases if compiler == 'nanz' else cases)/case['file']
+        source = (root/'research/c89-benchmark/nanz-tuple' if compiler == 'nanz-tuple' else nanz_cases if compiler == 'nanz' else cases)/case['file']
         assert sha(source) == case['sha256']
         dest = out/compiler/profile/source.stem
         dest.mkdir(parents=True, exist_ok=True)
@@ -82,7 +82,7 @@ def main():
                     failed={'Compiler':compiler,'Profile':profile,'Case':source.stem,'SourceSHA256':sha(source),'Status':'COMPILE_ERROR','Error':f'exit {proc.returncode}; see build.log'}
                     break
         assert sha(source) == case['sha256']
-        measure=[str(out/'measure'),'-compiler',('sdcc' if compiler == 'sdcc45' else compiler),'-profile',profile,'-source',str(source),'-out',str(dest)]
+        measure=[str(out/'measure'),'-compiler',('sdcc' if compiler == 'sdcc45' else 'nanz' if compiler == 'nanz-tuple' else compiler),'-profile',profile,'-source',str(source),'-out',str(dest)]
         if failed is None and image:
             info={key+'_sha256':sha(path) for key,path in [('source',source),('image',image),('symbols',symbols)]}
             (dest/'build-info.json').write_text(json.dumps(info,indent=2)+'\n')
@@ -105,7 +105,10 @@ def main():
         print(json.dumps(compact),flush=True)
         return compact
     tasks=[(c,p,case) for c,p in profiles for case in frozen]
-    if args.include_nanz: tasks += [('nanz',p,c) for p in ['default','size','grace'] for c in nfrozen]
+    if args.include_nanz:
+        tasks += [('nanz',p,c) for p in ['default','size','grace'] for c in nfrozen]
+        tuple_cases=json.loads((root/'research/c89-benchmark/nanz-tuple/manifest.json').read_text())['cases']
+        tasks += [('nanz-tuple',p,c) for p in ['default','size','grace'] for c in tuple_cases]
     if args.sdcc45_root: tasks += [('sdcc45',p,c) for p in ['size','speed'] for c in frozen]
     with concurrent.futures.ThreadPoolExecutor(max_workers=args.jobs) as pool:
         results=list(pool.map(run_one,tasks))

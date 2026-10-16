@@ -9,4 +9,5 @@ fun copy_bytes(dst: ^u8, src: ^u8, count: u8) {
         i = i + 1
     }
 }
-fun execute() { copy_bytes(&target, &source, n); result = u16(n) }
+fun execute() { copy_bytes(&target, &source, n)
+    result = u16(n) }
