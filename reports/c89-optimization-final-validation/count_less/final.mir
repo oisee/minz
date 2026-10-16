@@ -1,0 +1,42 @@
+; MIR2 module: /home/alice/dev/minz-artifacts/grace-workspaces/c89-final-validation/research/c89-benchmark/heldout/count_less
+global @values : [256]u8
+global @n : u8
+global @b : u8
+global @result : u16
+
+fun @count_less(%r1: ptr [pointer], %r2: u8 [general], %r3: u8 [counter]) -> u16 [pointer]
+  block @entry:
+    %r4 = const 0 : i16 [pointer]
+    %r5 = const 0 : u8 [general]
+    jmp @loop_head1(%r4, %r5, %r2, %r1, %r3)
+  block @loop_head1(%r4: u16 [pointer], %r5: u8 [general], %r8: u8 [general], %r9: ptr [general], %r10: u8 [general]):
+    %r11 = cmp.ult %r5, %r8 : bool [flag]
+    cond_ret %r11, [%r4], @loop_body2()
+  block @loop_body2:
+    %r12 = ext %r5 : u8 -> u16 [index]
+    %r13 = ptr_add %r9, %r12 : ptr [pointer]
+    %r14 = load %r13 : u8 [general]
+    %r15 = cmp.ult %r14, %r10 : bool [flag]
+    br_if %r15, @if_then4(), @if_join5(%r4)
+  block @if_then4:
+    %r16 = const 1 : u16 [pointer]
+    %r17 = add %r4, %r16 : u16 [pointer]
+    jmp @if_join5(%r17)
+  block @if_join5(%r17: u16 [pointer]):
+    %r19 = const 1 : u8 [general]
+    %r20 = add %r5, %r19 : u8 [general]
+    jmp @loop_head1(%r17, %r20, %r8, %r9, %r10)
+
+fun @execute()
+  block @entry:
+    %r21 = addr_of @values : ptr [pointer]
+    %r22 = move %r21 : ptr [pointer]
+    %r23 = addr_of @n : ptr [pointer]
+    %r24 = load %r23 : u8 [general]
+    %r25 = addr_of @b : ptr [pointer]
+    %r26 = load %r25 : u8 [counter]
+    %r27 = call @count_less(%r22, %r24, %r26) : u16 [pointer]
+    %r28 = addr_of @result : ptr [pointer]
+    store %r28, %r27 : u16
+    ret void
+
