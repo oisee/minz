@@ -178,3 +178,10 @@ reserved runtime collisions are refused and bound/conditional call edges are
 preserved during pruning. Full HIR/MIR2/ABAP/parser/MZV suites pass. Guarded
 character/string and CHANGING pointer access, remaining semantic admission,
 I/O/SQL closure, main integration and the bounded Nanz TUI connection remain open.
+
+## Selection-screen admission checkpoint
+
+The [Nanz TUI boundary](2026-10-16-pbo-pai-nanz-tui.md) now explicitly refuses
+unsupported SELECTION-SCREEN layout/dialog statements rather than dropping
+them. Plain PARAMETERS input remains admitted. This is semantic hardening;
+the actual PBO/PAI renderer/keyboard connection still follows the core goal.

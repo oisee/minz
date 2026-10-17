@@ -57,3 +57,21 @@ func TestExecutableAdmissionEventAdditions(t *testing.T) {
 		t.Fatalf("unmodified validation event refused: %v", err)
 	}
 }
+
+func TestExecutableAdmissionSelectionLayout(t *testing.T) {
+	for _, layout := range []string{
+		"SELECTION-SCREEN BEGIN OF BLOCK b1. PARAMETERS x TYPE i. SELECTION-SCREEN END OF BLOCK b1.",
+		"SELECTION-SCREEN SKIP 2.",
+		"SELECTION-SCREEN ULINE.",
+	} {
+		t.Run(layout, func(t *testing.T) {
+			module, err := Compile("REPORT zadmit. "+layout, "zadmit")
+			if module != nil || err == nil || !strings.Contains(err.Error(), "SELECTION-SCREEN") {
+				t.Fatalf("layout silently admitted: module=%t err=%v", module != nil, err)
+			}
+		})
+	}
+	if _, err := Compile("REPORT zadmit. PARAMETERS x TYPE i DEFAULT 7. START-OF-SELECTION. x = x + 1.", "zadmit"); err != nil {
+		t.Fatalf("plain PARAMETERS input refused: %v", err)
+	}
+}

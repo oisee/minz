@@ -934,8 +934,7 @@ func convertStmt(s *StmtNode) (Decl, error) {
 		return parseExecSQL(tokens)
 	case upper == "SELECT" || s.Type == "Select" || s.Type == "SelectionScreen":
 		if s.Type == "SelectionScreen" {
-			// SELECTION-SCREEN BLOCK → skip for now
-			return nil, nil
+			return nil, fmt.Errorf("SELECTION-SCREEN layout and dialog statements are not implemented; PARAMETERS input is supported separately")
 		}
 		return parseSelectStmt(tokens)
 	case upper == "ULINE":

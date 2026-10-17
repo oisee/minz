@@ -87,3 +87,12 @@ ABAP and link concrete Nanz calls through the common HIR pipeline.
 This is still an integration design. The connection is not yet implemented
 or certified. Acceptance must exercise edit/submit, retry, cancellation and
 exact i32/c transport together with event order on VM and assembled Z80.
+
+## Current admission boundary
+
+`SELECTION-SCREEN` layout/dialog statements now produce an explicit diagnostic
+instead of being discarded. This includes BEGIN/END OF BLOCK, SKIP and ULINE
+inside selection-screen syntax. Plain PARAMETERS input continues to work;
+AT SELECTION-SCREEN OUTPUT remains explicitly unsupported pending this adapter.
+The refusal keeps future TUI work visible instead of accepting an incomplete
+screen. Focused tests exercise the real embedded-parser compilation path.
