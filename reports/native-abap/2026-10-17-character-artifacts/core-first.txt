@@ -1,0 +1,49 @@
+ok  	github.com/minz/minzc/pkg/hir	36.178s
+--- FAIL: TestZ80ExternalFiveWordsAndSpillNative (0.00s)
+    extern_abi_test.go:128: return/SP 2 {0 68 0 4917 4660 0 0 61438 32780}
+[Z80-VALIDATE] double: 4 invalid instruction(s)
+  line 3: >>> ADD A, <<<
+  line 4: >>> LD , A <<<
+[Z80-VALIDATE] fibonacci: 16 invalid instruction(s)
+  line 3: >>> LD , 1 <<<
+  line 8: >>> LD , 0 <<<
+  line 11: >>> LD , 0 <<<
+  line 12: >>> LD , 1 <<<
+  line 13: >>> LD , 2 <<<
+  line 18: >>> LD L, <<<
+  line 20: >>> ADD HL, <<<
+  line 21: >>> LD , L <<<
+[Z80-VALIDATE] double: 4 invalid instruction(s)
+  line 3: >>> ADD A, <<<
+  line 4: >>> LD , A <<<
+; MIR2 module: fib
+fun @fibonacci(%r1: u8 [acc]) -> u16 [pointer]
+  block @entry:
+    %r2 = const 1 : u8 [general]
+    %r3 = cmp.le %r1, %r2 : bool [flag]
+    br_if %r3, @base(), @loop_init()
+  block @base:
+    %r4 = ext %r1 : u8 -> u16 [acc]
+    ret %r4
+  block @loop_init:
+    %r5 = const 0 : u16 [pointer]
+    %r6 = const 1 : u16 [index]
+    %r7 = const 2 : u8 [counter]
+    jmp @loop_head(%r5, %r6, %r7)
+  block @loop_head(%r8: u16 [pointer], %r9: u16 [index], %r10: u8 [counter]):
+    %r11 = cmp.le %r10, %r1 : bool [flag]
+    br_if %r11, @loop_body(%r8, %r9, %r10), @exit(%r9)
+  block @loop_body(%r12: u16 [pointer], %r13: u16 [index], %r14: u8 [counter]):
+    %r15 = add %r12, %r13 : u16 [pointer]
+    %r16 = const 1 : u8 [general]
+    %r17 = add %r14, %r16 : u8 [counter]
+    jmp @loop_head(%r13, %r15, %r17)
+  block @exit(%r18: u16 [pointer]):
+    ret %r18
+
+
+FAIL
+FAIL	github.com/minz/minzc/pkg/mir2	116.683s
+ok  	github.com/minz/minzc/pkg/abap	14.214s
+ok  	github.com/minz/minzc/pkg/abap/internal/abapparse	0.239s
+FAIL

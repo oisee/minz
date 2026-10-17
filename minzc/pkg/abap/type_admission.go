@@ -1,6 +1,9 @@
 package abap
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 // Validate before generating any runtime or ABI. Unknown and approximate
 // numeric mappings must never become executable code. Character storage is
@@ -23,6 +26,12 @@ func validateProgramTypes(p *Program) error {
 	}
 	params := func(context string, ps []FormParam) error {
 		for _, v := range ps {
+			if v.AbapTy == "string" {
+				return fmt.Errorf("%s parameter %s: owned string reference ABI is not implemented", context, v.Name)
+			}
+			if !strings.HasPrefix(context, "FORM ") && (v.AbapTy == "c" || v.AbapTy == "string") {
+				return fmt.Errorf("%s parameter %s: character ABI is not implemented", context, v.Name)
+			}
 			if err := check(context+" parameter "+v.Name, v.AbapTy, 0); err != nil {
 				return err
 			}
@@ -109,6 +118,9 @@ func validateProgramTypes(p *Program) error {
 			}
 		case *ClassDecl:
 			for _, a := range v.Attrs {
+				if a.AbapTy == "c" || a.AbapTy == "string" {
+					return fmt.Errorf("CLASS %s attribute %s: owned character attributes are not implemented", v.Name, a.Name)
+				}
 				if err := check("CLASS "+v.Name+" attribute "+a.Name, a.AbapTy, a.Length); err != nil {
 					return err
 				}

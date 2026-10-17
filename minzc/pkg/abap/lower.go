@@ -183,6 +183,7 @@ func LowerProgramWithTarget(prog *Program, target uint8) (*hir.Module, error) {
 	l := &lowerer{
 		prog:           prog,
 		varTypes:       make(map[string]mir2.Ty),
+		characters:     make(map[string]characterBinding),
 		strCache:       make(map[string]int),
 		internalTables: make(map[string]*internalTable),
 	}
@@ -210,6 +211,7 @@ type internalTable struct {
 type lowerer struct {
 	prog               *Program
 	hm                 *hir.Module
+	characters         map[string]characterBinding
 	varTypes           map[string]mir2.Ty
 	referenceParams    map[string]hir.Expr
 	actualCounter      int
@@ -377,11 +379,13 @@ func (l *lowerer) lower() (*hir.Module, error) {
 				Init: txtData,
 			})
 
-			// p_name = &_abap_txt_<name>
-			mainStmts = append(mainStmts, &hir.AssignStmt{
-				Target: &hir.VarRefExpr{Name: p.Name, Ty: ty},
-				Val:    &hir.AddrOfExpr{Sym: txtName},
-			})
+			// Dynamic string parameters retain the existing pointer representation.
+			if p.AbapTy != "c" {
+				mainStmts = append(mainStmts, &hir.AssignStmt{
+					Target: &hir.VarRefExpr{Name: p.Name, Ty: ty},
+					Val:    &hir.AddrOfExpr{Sym: txtName},
+				})
+			}
 		} else if p.Default != nil {
 			// Integer param: just set the default value
 			val, err := l.lowerExpr(*p.Default)
@@ -582,6 +586,13 @@ func (l *lowerer) lower() (*hir.Module, error) {
 		}
 	}
 
+	// Transport selection text into the actual fixed-length ABAP object.
+	for _, p := range l.prog.Params {
+		if b, ok := l.characters[p.Name]; ok {
+			src := &hir.AddrOfExpr{Sym: "_abap_txt_" + p.Name}
+			mainStmts = append(mainStmts, charCall("_abap_char_copy", b.ptr, b.length, src, &hir.CallExpr{Fn: "_abap_char_cstrlen", Args: []hir.Expr{src}, Ty: mir2.TyU16}))
+		}
+	}
 	// AT-SELECTION-SCREEN — runs after screen, SY-UCOMM is set
 	if body, ok := l.prog.Events["AT-SELECTION-SCREEN"]; ok {
 		stmts, err := l.lowerStmts(body)
@@ -771,7 +782,9 @@ func (l *lowerer) abapTypeToHIR(abapTy string, length int) mir2.Ty {
 		return mir2.TyI32
 	case "int8", "b":
 		return mir2.TyU8
-	case "c", "n":
+	case "c":
+		return mir2.TyPtr
+	case "n":
 		if length <= 1 {
 			return mir2.TyU8
 		}
@@ -792,6 +805,9 @@ func (l *lowerer) abapTypeToHIR(abapTy string, length int) mir2.Ty {
 // ── Globals ──────────────────────────────────────────────────────────────────
 
 func (l *lowerer) lowerGlobal(d *DataDecl) error {
+	if d.AbapTy == "c" {
+		return l.characterGlobal(d)
+	}
 	ty := l.abapTypeToHIR(d.AbapTy, d.Length)
 	g := mir2.Global{
 		Name: d.Name,
@@ -834,19 +850,31 @@ func (l *lowerer) lowerGlobal(d *DataDecl) error {
 // The outer map contains report globals and is restored even on lowering errors.
 func (l *lowerer) enterProcedure() func() {
 	outer := l.varTypes
+	outerChars := l.characters
+	l.characters = make(map[string]characterBinding, len(outerChars))
+	for name, binding := range outerChars {
+		l.characters[name] = binding
+	}
 	outerRefs := l.referenceParams
 	l.referenceParams = make(map[string]hir.Expr)
 	l.varTypes = make(map[string]mir2.Ty, len(outer))
 	for name, ty := range outer {
 		l.varTypes[name] = ty
 	}
-	return func() { l.varTypes = outer; l.referenceParams = outerRefs }
+	return func() { l.varTypes = outer; l.referenceParams = outerRefs; l.characters = outerChars }
 }
 
 func (l *lowerer) lowerLocalData(d *DataDecl) (hir.Stmt, error) {
+	delete(l.characters, d.Name)
+	if d.AbapTy == "c" {
+		return l.characterLocal(d)
+	}
 	ty := l.abapTypeToHIR(d.AbapTy, d.Length)
 	var init hir.Expr = &hir.IntLitExpr{Val: 0, Ty: ty}
 	if d.Value != nil {
+		if _, text := (*d.Value).(*StringLit); text && ty == mir2.TyI32 {
+			return nil, fmt.Errorf("DATA %s: character-to-integer initialization is not admitted", d.Name)
+		}
 		var err error
 		init, err = l.lowerExpr(*d.Value)
 		if err != nil {
@@ -871,11 +899,20 @@ func (l *lowerer) lowerForm(d *FormDecl) error {
 	defer l.enterProcedure()()
 	params := []hir.Param{}
 	all := append(append([]FormParam{}, d.Using...), d.Changing...)
+	paramNames := map[string]bool{}
 	for _, p := range all {
-		if _, exists := l.referenceParams[p.Name]; exists {
+		if paramNames[p.Name] {
 			return fmt.Errorf("FORM %s: duplicate parameter %s", d.Name, p.Name)
 		}
+		paramNames[p.Name] = true
 		l.varTypes[p.Name] = l.formParameterType(p)
+		delete(l.characters, p.Name)
+		if p.AbapTy == "c" {
+			lengthName := p.Name + "$length"
+			params = append(params, hir.Param{Name: p.Name, Ty: mir2.TyPtr}, hir.Param{Name: lengthName, Ty: mir2.TyU16})
+			l.characters[p.Name] = characterBinding{&hir.VarRefExpr{Name: p.Name, Ty: mir2.TyPtr}, &hir.VarRefExpr{Name: lengthName, Ty: mir2.TyU16}}
+			continue
+		}
 		params = append(params, hir.Param{Name: p.Name, Ty: mir2.TyPtr})
 		l.referenceParams[p.Name] = &hir.VarRefExpr{Name: p.Name, Ty: mir2.TyPtr}
 	}
@@ -884,7 +921,13 @@ func (l *lowerer) lowerForm(d *FormDecl) error {
 		return fmt.Errorf("FORM %s: %w", d.Name, err)
 	}
 	l.hm.Funcs = append(l.hm.Funcs, &hir.Func{Name: formEntry(d), Params: params, RetTy: mir2.TyVoid, Body: body})
-	if len(d.Changing) == 1 {
+	scalarWrapper := true
+	for _, p := range all {
+		if p.AbapTy == "c" {
+			scalarWrapper = false
+		}
+	}
+	if len(d.Changing) == 1 && scalarWrapper {
 		resultTy := l.formParameterType(d.Changing[0])
 		resultName := "$abap_result"
 		wrapper := &hir.Block{Body: []hir.Stmt{&hir.VarDeclStmt{Name: resultName, Ty: resultTy, Init: &hir.IntLitExpr{Val: 0, Ty: resultTy}}}}
@@ -912,11 +955,13 @@ func (l *lowerer) lowerFunction(d *FunctionDecl) error {
 	params := make([]hir.Param, 0, len(d.Importing)+len(d.Changing))
 	for _, p := range d.Importing {
 		ty := l.abapTypeToHIR(p.AbapTy, 0)
+		delete(l.characters, p.Name)
 		params = append(params, hir.Param{Name: p.Name, Ty: ty})
 		l.varTypes[p.Name] = ty
 	}
 	for _, p := range d.Changing {
 		ty := l.abapTypeToHIR(p.AbapTy, 0)
+		delete(l.characters, p.Name)
 		params = append(params, hir.Param{Name: p.Name, Ty: ty})
 		l.varTypes[p.Name] = ty
 	}
@@ -987,6 +1032,7 @@ func (l *lowerer) lowerMethod(className string, m *MethodDecl) error {
 
 	for _, p := range m.Importing {
 		ty := l.abapTypeToHIR(p.AbapTy, 0)
+		delete(l.characters, p.Name)
 		params = append(params, hir.Param{Name: p.Name, Ty: ty})
 		l.varTypes[p.Name] = ty
 	}
@@ -1053,6 +1099,14 @@ func (l *lowerer) lowerStmts(stmts []Stmt_) (*hir.Block, error) {
 			return nil, err
 		}
 		if hs != nil {
+			// DATA initialization may need multiple statements, but its name
+			// remains visible in the surrounding ABAP procedure.
+			if _, decl := s.(*DataDecl); decl {
+				if init, ok := hs.(*hir.Block); ok {
+					block.Body = append(block.Body, init.Body...)
+					continue
+				}
+			}
 			block.Body = append(block.Body, hs)
 		}
 	}
@@ -1066,6 +1120,9 @@ func (l *lowerer) lowerStmt(s Stmt_) (hir.Stmt, error) {
 	case *WriteStmt:
 		return l.lowerWrite(s)
 	case *ClearStmt:
+		if b, ok := l.characters[s.Target]; ok {
+			return charCall("_abap_char_clear", b.ptr, b.length), nil
+		}
 		ty, ok := l.varTypes[s.Target]
 		if !ok {
 			return nil, fmt.Errorf("CLEAR: unknown target %s", s.Target)
@@ -1111,6 +1168,12 @@ func (l *lowerer) lowerWrite(s *WriteStmt) (hir.Stmt, error) {
 	// Normal CALL liveness and runtime clobber contracts preserve live values.
 	var stmts []hir.Stmt
 	for _, e := range s.Exprs {
+		if v, ok := e.(*VarRef); ok {
+			if b, exists := l.characters[v.Name]; exists {
+				stmts = append(stmts, charCall("_abap_char_write", b.ptr, b.length))
+				continue
+			}
+		}
 		he, err := l.lowerExpr(e)
 		if err != nil {
 			return nil, err
@@ -1140,6 +1203,17 @@ func (l *lowerer) lowerWrite(s *WriteStmt) (hir.Stmt, error) {
 }
 
 func (l *lowerer) lowerAssign(s *AssignStmt) (hir.Stmt, error) {
+	if b, ok := l.characters[s.Target]; ok {
+		return l.characterAssign(b, s.Val)
+	}
+	if _, text := s.Val.(*StringLit); text && l.varTypes[s.Target] == mir2.TyI32 {
+		return nil, fmt.Errorf("assignment to %s: character-to-integer conversion is not implemented", s.Target)
+	}
+	if _, character, err := l.characterExpr(s.Val); err != nil {
+		return nil, err
+	} else if character && l.varTypes[s.Target] != mir2.TyPtr {
+		return nil, fmt.Errorf("assignment to %s: character conversion is not implemented", s.Target)
+	}
 	val, err := l.lowerExpr(s.Val)
 	if err != nil {
 		return nil, err
@@ -1285,6 +1359,22 @@ func (l *lowerer) lowerPerform(s *PerformStmt) (hir.Stmt, error) {
 	actuals := append(append([]Expr_{}, s.Using...), s.Changing...)
 	params := append(append([]FormParam{}, form.Using...), form.Changing...)
 	for i, a := range actuals {
+		if params[i].AbapTy == "c" {
+			binding, ok, err := l.characterExpr(a)
+			if err != nil {
+				return nil, err
+			}
+			if !ok {
+				return nil, fmt.Errorf("PERFORM %s: character parameter %s needs a character object", s.FormName, params[i].Name)
+			}
+			if _, variable := a.(*VarRef); !variable {
+				if i >= len(s.Using) || l.formMayWrite(form, params[i].Name, map[string]bool{}) {
+					return nil, fmt.Errorf("PERFORM %s: character literal requires read-only USING", s.FormName)
+				}
+			}
+			args = append(args, binding.ptr, binding.length)
+			continue
+		}
 		ty := l.formParameterType(params[i])
 		if v, ok := a.(*VarRef); ok {
 			if actualTy, exists := l.varTypes[v.Name]; !exists || actualTy != ty {
@@ -1965,6 +2055,9 @@ func (l *lowerer) lowerExpr(e Expr_) (hir.Expr, error) {
 		return &hir.AddrOfExpr{Sym: sym}, nil
 
 	case *VarRef:
+		if b, ok := l.characters[e.Name]; ok {
+			return b.ptr, nil
+		}
 		ty, ok := l.varTypes[e.Name]
 		if !ok {
 			ty = mir2.TyU16
@@ -1978,6 +2071,11 @@ func (l *lowerer) lowerExpr(e Expr_) (hir.Expr, error) {
 		return l.lowerBinOp(e)
 
 	case *UnaryOp:
+		if _, character, err := l.characterExpr(e.Val); err != nil {
+			return nil, err
+		} else if character {
+			return nil, fmt.Errorf("unary character-to-numeric conversion is not implemented")
+		}
 		if e.Op == "-" {
 			if literal, ok := e.Val.(*IntLit); ok && literal.Val == 2147483648 {
 				return &hir.IntLitExpr{Val: -2147483648, Ty: mir2.TyI32}, nil
@@ -1988,6 +2086,9 @@ func (l *lowerer) lowerExpr(e Expr_) (hir.Expr, error) {
 			return nil, err
 		}
 		op, ty := "-", val.ExprTy()
+		if ty == mir2.TyPtr {
+			return nil, fmt.Errorf("unary character-to-numeric conversion is not implemented")
+		}
 		switch strings.ToUpper(e.Op) {
 		case "+":
 			return val, nil
@@ -2024,6 +2125,26 @@ func (l *lowerer) lowerExpr(e Expr_) (hir.Expr, error) {
 }
 
 func (l *lowerer) lowerBinOp(e *BinOp) (hir.Expr, error) {
+	a, ac, err := l.characterExpr(e.LHS)
+	if err != nil {
+		return nil, err
+	}
+	b, bc, err := l.characterExpr(e.RHS)
+	if err != nil {
+		return nil, err
+	}
+	if ac || bc {
+		if !ac || !bc {
+			return nil, fmt.Errorf("mixed character/numeric expressions are not implemented")
+		}
+		ops := map[string]string{"=": "==", "EQ": "==", "<>": "!=", "NE": "!=", "<": "<", "LT": "<", ">": ">", "GT": ">", "<=": "<=", "LE": "<=", ">=": ">=", "GE": ">="}
+		op, ok := ops[strings.ToUpper(e.Op)]
+		if !ok {
+			return nil, fmt.Errorf("character operator %s is not implemented", e.Op)
+		}
+		cmp := &hir.CallExpr{Fn: "_abap_char_compare", Args: []hir.Expr{a.ptr, a.length, b.ptr, b.length}, Ty: mir2.TyI16}
+		return &hir.BinExpr{Op: op, L: cmp, R: &hir.IntLitExpr{Val: 0, Ty: mir2.TyI16}, Ty: mir2.TyBool}, nil
+	}
 	lhs, err := l.lowerExpr(e.LHS)
 	if err != nil {
 		return nil, err
@@ -2033,6 +2154,9 @@ func (l *lowerer) lowerBinOp(e *BinOp) (hir.Expr, error) {
 		return nil, err
 	}
 
+	if lhs.ExprTy() == mir2.TyPtr || rhs.ExprTy() == mir2.TyPtr {
+		return nil, fmt.Errorf("dynamic character expressions and numeric conversions are not implemented")
+	}
 	if lhs.ExprTy() == mir2.TyI32 || rhs.ExprTy() == mir2.TyI32 {
 		if lhs.ExprTy() != mir2.TyI32 {
 			lhs = &hir.CastExpr{X: lhs, Ty: mir2.TyI32}

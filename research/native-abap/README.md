@@ -39,3 +39,16 @@ the unchanged source, calls FORM probe and reads actual global objects. The
 JSON fingerprints both source and inputs. This runtime is not an overflow
 oracle because its Integer.set overflow check is disabled; fault expectations
 are specification-derived. Node remains a reference-generation dependency only.
+
+## Complete character reports
+
+Copy `character-reference.mjs` into the isolated semantic-reference directory
+with the pinned package/lock files above. Run
+`node_modules/node/bin/node character-reference.mjs SOURCE.abap` on each
+source under `minzc/pkg/abap/testdata/character-reference`. This script executes
+the full report, with no additional FORM call or injected inputs. It captures
+actual globals and MemoryConsole output; JSON fingerprints the complete source.
+The MinZ test checks unchanged-source execution in raw/final VM and assembled
+Z80. Ordinary HALT and CalledMain return contracts are checked explicitly.
+These reports establish fixed ASCII character behavior, not full dynamic
+string, selection UI or SAP runtime compatibility.

@@ -98,7 +98,7 @@ func (p *expressionParser) parse(min int) (Expr_, error) {
 func expressionAtom(s string) (Expr_, error) {
 	if len(s) >= 2 && ((s[0] == '\'' && s[len(s)-1] == '\'') || (s[0] == '`' && s[len(s)-1] == '`')) {
 		quote := string(s[0])
-		return &StringLit{Val: strings.ReplaceAll(s[1:len(s)-1], quote+quote, quote)}, nil
+		return &StringLit{Val: strings.ReplaceAll(s[1:len(s)-1], quote+quote, quote), IsString: s[0] == '`'}, nil
 	}
 	if n, err := strconv.ParseInt(s, 10, 64); err == nil {
 		return &IntLit{Val: n}, nil

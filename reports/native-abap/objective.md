@@ -74,3 +74,14 @@ reject approximate numeric storage and unknown types before runtime/ABI
 generation. Unrepresented declaration additions no longer disappear. ABAP
 and native-parser packages pass. c/string storage and copying remain required;
 this admission checkpoint is not their completion.
+
+## Fixed character and complete-report checkpoint
+
+[Owned TYPE c and full-report evidence](2026-10-17-fixed-character.md) now
+cover content copying, truncation/padding, CLEAR, comparisons, locals and
+actual-object FORM forwarding/aliases. Three unchanged complete reports match
+independent reference, raw/final VM and native Z80 memory/output. Bare-metal
+HALT and called-main PC/SP contracts are checked separately. A final-call
+termination bug in bare main is corrected. Owned dynamic string semantics,
+input, remaining admission/system fields, guarded CP/M runtime integration
+and main integration still need completion.

@@ -313,7 +313,10 @@ type IntLit struct{ Val int64 }
 
 func (*IntLit) abapExpr() {}
 
-type StringLit struct{ Val string }
+type StringLit struct {
+	Val      string
+	IsString bool // backtick string literal; single quotes denote fixed character data
+}
 
 func (*StringLit) abapExpr() {}
 

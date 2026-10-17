@@ -1,0 +1,24 @@
+=== RUN   TestCharacterFullReportReferenceVMAndZ80
+=== RUN   TestCharacterFullReportReferenceVMAndZ80/alias-report.abap
+=== RUN   TestCharacterFullReportReferenceVMAndZ80/alias-report.abap/bare
+=== RUN   TestCharacterFullReportReferenceVMAndZ80/alias-report.abap/called
+=== RUN   TestCharacterFullReportReferenceVMAndZ80/copy-report.abap
+=== RUN   TestCharacterFullReportReferenceVMAndZ80/copy-report.abap/bare
+=== RUN   TestCharacterFullReportReferenceVMAndZ80/copy-report.abap/called
+=== RUN   TestCharacterFullReportReferenceVMAndZ80/ordering-report.abap
+=== RUN   TestCharacterFullReportReferenceVMAndZ80/ordering-report.abap/bare
+=== RUN   TestCharacterFullReportReferenceVMAndZ80/ordering-report.abap/called
+--- PASS: TestCharacterFullReportReferenceVMAndZ80 (4.20s)
+    --- PASS: TestCharacterFullReportReferenceVMAndZ80/alias-report.abap (1.28s)
+        --- PASS: TestCharacterFullReportReferenceVMAndZ80/alias-report.abap/bare (0.34s)
+        --- PASS: TestCharacterFullReportReferenceVMAndZ80/alias-report.abap/called (0.31s)
+    --- PASS: TestCharacterFullReportReferenceVMAndZ80/copy-report.abap (1.31s)
+        --- PASS: TestCharacterFullReportReferenceVMAndZ80/copy-report.abap/bare (0.33s)
+        --- PASS: TestCharacterFullReportReferenceVMAndZ80/copy-report.abap/called (0.33s)
+    --- PASS: TestCharacterFullReportReferenceVMAndZ80/ordering-report.abap (1.61s)
+        --- PASS: TestCharacterFullReportReferenceVMAndZ80/ordering-report.abap/bare (0.39s)
+        --- PASS: TestCharacterFullReportReferenceVMAndZ80/ordering-report.abap/called (0.41s)
+=== RUN   TestCharacterAdmission
+--- PASS: TestCharacterAdmission (0.30s)
+PASS
+ok  	github.com/minz/minzc/pkg/abap	4.517s

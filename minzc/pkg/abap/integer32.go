@@ -121,7 +121,7 @@ func emitInteger32Runtime(hm *hir.Module, target uint8) error {
 		io = `@extern fun _zx_putchar(ch: u8) -> void
 fun _abap_num_putchar(ch: u8) -> void { _zx_putchar(ch) }`
 	}
-	m, err := nanz.Parse(integer32Output+integer32Arithmetic+io, "abap-integer-runtime.nanz")
+	m, err := nanz.Parse(integer32Output+integer32Arithmetic+characterRuntime+io, "abap-integer-runtime.nanz")
 	if err != nil {
 		return fmt.Errorf("ABAP integer runtime: %w", err)
 	}

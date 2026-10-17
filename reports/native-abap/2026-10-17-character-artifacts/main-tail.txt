@@ -1,0 +1,12 @@
+=== RUN   TestZ80ExternalFiveWordsAndSpillNative
+--- PASS: TestZ80ExternalFiveWordsAndSpillNative (0.00s)
+=== RUN   TestVoidMainFinalCallHonorsNativeEntryContract
+=== RUN   TestVoidMainFinalCallHonorsNativeEntryContract/bare
+=== RUN   TestVoidMainFinalCallHonorsNativeEntryContract/called
+=== RUN   TestVoidMainFinalCallHonorsNativeEntryContract/cpm
+--- PASS: TestVoidMainFinalCallHonorsNativeEntryContract (0.00s)
+    --- PASS: TestVoidMainFinalCallHonorsNativeEntryContract/bare (0.00s)
+    --- PASS: TestVoidMainFinalCallHonorsNativeEntryContract/called (0.00s)
+    --- PASS: TestVoidMainFinalCallHonorsNativeEntryContract/cpm (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/mir2	0.013s
