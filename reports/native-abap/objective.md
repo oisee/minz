@@ -148,3 +148,13 @@ SY-SUBRC uses shared i32 state. Row-model tests cover both VMs and Z80; seven
 additional actual-SQLite cases cover both VMs. Native SQL server linkage,
 NULL conversion, remaining SQL/executable admission, guarded CP/M closure and
 main integration remain required.
+
+## DATA lifetime checkpoint
+
+[Procedure and report DATA scope](2026-10-17-data-scope.md) now creates local
+objects once per invocation and preserves values across loops. Report-event
+DATA uses global storage. Physical local names preserve the distinction
+between early global reads and later local bindings. Four unchanged full
+reports match independent reference, both VMs and Z80. Shadow probes are
+separated from provider parity. Remaining admission, scalar method RETURN,
+guarded CP/M closure and main integration remain open.

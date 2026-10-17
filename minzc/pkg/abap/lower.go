@@ -215,6 +215,11 @@ type lowerer struct {
 	varTypes           map[string]mir2.Ty
 	referenceParams    map[string]hir.Expr
 	actualCounter      int
+	localObjects       map[string]string
+	localCounter       int
+	localInitializers  []hir.Stmt
+	localNames         map[string]bool
+	reportData         map[*DataDecl]bool
 	loopCounter        int
 	indexLoops         []string
 	loopDepth          int
@@ -241,18 +246,29 @@ func (l *lowerer) internStr(s string) string {
 func (l *lowerer) lower() (*hir.Module, error) {
 	// ── SY structure (global system variable) ────────────────────────────
 	l.emitSYStruct()
+	l.reportData = make(map[*DataDecl]bool)
 
 	// ── Collect declarations ─────────────────────────────────────────────
+	reportNames := map[string]bool{"sy": true}
 	var mainBody []Stmt_
 	for _, d := range l.prog.Decls {
 		switch d := d.(type) {
 		case *DataDecl:
+			if reportNames[d.Name] {
+				return nil, fmt.Errorf("DATA %s: duplicate report object", d.Name)
+			}
+			reportNames[d.Name] = true
+			l.reportData[d] = true
 			ty := l.abapTypeToHIR(d.AbapTy, d.Length)
 			l.varTypes[d.Name] = ty
 			if err := l.lowerGlobal(d); err != nil {
 				return nil, err
 			}
 		case *ParamDecl:
+			if reportNames[d.Name] {
+				return nil, fmt.Errorf("PARAMETERS %s: duplicate report object", d.Name)
+			}
+			reportNames[d.Name] = true
 			// PARAMETERS → global variable + register in screen table
 			ty := l.abapTypeToHIR(d.AbapTy, d.Length)
 			l.varTypes[d.Name] = ty
@@ -262,6 +278,9 @@ func (l *lowerer) lower() (*hir.Module, error) {
 			}
 			l.lowerParamRegister(d)
 		}
+	}
+	if err := l.collectReportData(); err != nil {
+		return nil, err
 	}
 	// Collect every global before entering procedure-local scopes, including
 	// globals declared after a FORM or FUNCTION in source order.
@@ -725,6 +744,10 @@ func (l *lowerer) lowerGlobal(d *DataDecl) error {
 // enterProcedure isolates parameters and local DATA from sibling procedures.
 // The outer map contains report globals and is restored even on lowering errors.
 func (l *lowerer) enterProcedure() func() {
+	outerObjects := l.localObjects
+	l.localObjects = make(map[string]string)
+	outerInitializers, outerNames := l.localInitializers, l.localNames
+	l.localInitializers, l.localNames = nil, make(map[string]bool)
 	outerLoops, outerDepth := l.indexLoops, l.loopDepth
 	l.indexLoops = nil
 	l.loopDepth = 0
@@ -741,6 +764,8 @@ func (l *lowerer) enterProcedure() func() {
 		l.varTypes[name] = ty
 	}
 	return func() {
+		l.localObjects = outerObjects
+		l.localInitializers, l.localNames = outerInitializers, outerNames
 		l.varTypes = outer
 		l.referenceParams = outerRefs
 		l.characters = outerChars
@@ -750,12 +775,39 @@ func (l *lowerer) enterProcedure() func() {
 }
 
 func (l *lowerer) lowerLocalData(d *DataDecl) (hir.Stmt, error) {
-	delete(l.characters, d.Name)
-	if d.AbapTy == "c" {
-		return l.characterLocal(d)
+	if l.localNames[d.Name] {
+		return nil, fmt.Errorf("DATA %s: duplicate procedure object", d.Name)
 	}
-	if d.AbapTy == "string" {
-		return l.stringLocal(d)
+	if l.localNames != nil {
+		l.localNames[d.Name] = true
+	}
+	if err := validateDataStartValue(d); err != nil {
+		return nil, err
+	}
+	delete(l.characters, d.Name)
+	l.localCounter++
+	object := fmt.Sprintf("$abap_local_%d", l.localCounter)
+	if l.localObjects != nil {
+		l.localObjects[d.Name] = object
+	}
+	if d.AbapTy == "c" || d.AbapTy == "string" {
+		physical := *d
+		physical.Name = object
+		var init hir.Stmt
+		var err error
+		if d.AbapTy == "c" {
+			init, err = l.characterLocal(&physical)
+		} else {
+			init, err = l.stringLocal(&physical)
+		}
+		if err != nil {
+			return nil, fmt.Errorf("DATA %s: %w", d.Name, err)
+		}
+		l.characters[d.Name] = l.characters[object]
+		delete(l.characters, object)
+		delete(l.varTypes, object)
+		l.varTypes[d.Name] = mir2.TyPtr
+		return init, nil
 	}
 	ty := l.abapTypeToHIR(d.AbapTy, d.Length)
 	var init hir.Expr = &hir.IntLitExpr{Val: 0, Ty: ty}
@@ -770,7 +822,7 @@ func (l *lowerer) lowerLocalData(d *DataDecl) (hir.Stmt, error) {
 		}
 	}
 	l.varTypes[d.Name] = ty
-	return &hir.VarDeclStmt{Name: d.Name, Ty: ty, Init: init}, nil
+	return &hir.VarDeclStmt{Name: object, Ty: ty, Init: init}, nil
 }
 
 // ── FORM → hir.Func ─────────────────────────────────────────────────────────
@@ -793,6 +845,7 @@ func (l *lowerer) lowerForm(d *FormDecl) error {
 			return fmt.Errorf("FORM %s: duplicate parameter %s", d.Name, p.Name)
 		}
 		paramNames[p.Name] = true
+		l.localNames[p.Name] = true
 		l.varTypes[p.Name] = l.formParameterType(p)
 		delete(l.characters, p.Name)
 		if p.AbapTy == "string" {
@@ -813,6 +866,7 @@ func (l *lowerer) lowerForm(d *FormDecl) error {
 	if err != nil {
 		return fmt.Errorf("FORM %s: %w", d.Name, err)
 	}
+	body.Body = append(l.localInitializers, body.Body...)
 	l.hm.Funcs = append(l.hm.Funcs, &hir.Func{Name: formEntry(d), Params: params, RetTy: mir2.TyVoid, Body: body})
 	scalarWrapper := true
 	for _, p := range all {
@@ -859,15 +913,26 @@ func (l *lowerer) lowerFunction(d *FunctionDecl) error {
 		l.varTypes[p.Name] = ty
 	}
 
+	for _, p := range params {
+		if l.localNames[p.Name] {
+			return fmt.Errorf("duplicate procedure parameter %s", p.Name)
+		}
+		l.localNames[p.Name] = true
+	}
 	var resultDecl hir.Stmt
 	if len(d.Exporting) == 1 {
 		p := d.Exporting[0]
-		resultDecl, _ = l.lowerLocalData(&DataDecl{Name: p.Name, AbapTy: p.AbapTy})
+		var err error
+		resultDecl, err = l.lowerLocalData(&DataDecl{Name: p.Name, AbapTy: p.AbapTy})
+		if err != nil {
+			return err
+		}
 	}
 	body, err := l.lowerStmts(d.Body)
 	if err != nil {
 		return fmt.Errorf("FUNCTION %s: %w", d.Name, err)
 	}
+	body.Body = append(l.localInitializers, body.Body...)
 
 	// If exactly one EXPORTING param → promote to return value (like FORM CHANGING).
 	if len(d.Exporting) == 1 {
@@ -875,7 +940,7 @@ func (l *lowerer) lowerFunction(d *FunctionDecl) error {
 		expTy := l.abapTypeToHIR(d.Exporting[0].AbapTy, 0)
 		l.varTypes[expName] = expTy
 		retStmt := &hir.ReturnStmt{
-			Val: &hir.VarRefExpr{Name: expName, Ty: expTy},
+			Val: &hir.VarRefExpr{Name: l.localObjectName(expName), Ty: expTy},
 		}
 		body.Body = append([]hir.Stmt{resultDecl}, body.Body...)
 		body.Body = append(body.Body, retStmt)
@@ -930,6 +995,12 @@ func (l *lowerer) lowerMethod(className string, m *MethodDecl) error {
 		l.varTypes[p.Name] = ty
 	}
 
+	for _, p := range params {
+		if l.localNames[p.Name] {
+			return fmt.Errorf("duplicate procedure parameter %s", p.Name)
+		}
+		l.localNames[p.Name] = true
+	}
 	var retTy mir2.Ty = mir2.TyVoid
 	if m.Returning != nil {
 		retTy = l.abapTypeToHIR(m.Returning.AbapTy, 0)
@@ -938,19 +1009,24 @@ func (l *lowerer) lowerMethod(className string, m *MethodDecl) error {
 	var resultDecl hir.Stmt
 	if m.Returning != nil {
 		p := m.Returning
-		resultDecl, _ = l.lowerLocalData(&DataDecl{Name: p.Name, AbapTy: p.AbapTy})
+		var err error
+		resultDecl, err = l.lowerLocalData(&DataDecl{Name: p.Name, AbapTy: p.AbapTy})
+		if err != nil {
+			return err
+		}
 	}
 	body, err := l.lowerStmts(m.Body)
 	if err != nil {
 		return fmt.Errorf("METHOD %s~%s: %w", className, m.Name, err)
 	}
+	body.Body = append(l.localInitializers, body.Body...)
 
 	// If the method has RETURNING, add implicit return of the RETURNING variable.
 	if m.Returning != nil {
 		retVarTy := l.abapTypeToHIR(m.Returning.AbapTy, 0)
 		body.Body = append([]hir.Stmt{resultDecl}, body.Body...)
 		body.Body = append(body.Body, &hir.ReturnStmt{
-			Val: &hir.VarRefExpr{Name: m.Returning.Name, Ty: retVarTy},
+			Val: &hir.VarRefExpr{Name: l.localObjectName(m.Returning.Name), Ty: retVarTy},
 		})
 	}
 
@@ -1009,7 +1085,19 @@ func (l *lowerer) lowerStmts(stmts []Stmt_) (*hir.Block, error) {
 func (l *lowerer) lowerStmt(s Stmt_) (hir.Stmt, error) {
 	switch s := s.(type) {
 	case *DataDecl:
-		return l.lowerLocalData(s)
+		if l.reportData[s] {
+			return nil, nil
+		}
+		init, err := l.lowerLocalData(s)
+		if err != nil {
+			return nil, err
+		}
+		if block, ok := init.(*hir.Block); ok {
+			l.localInitializers = append(l.localInitializers, block.Body...)
+		} else {
+			l.localInitializers = append(l.localInitializers, init)
+		}
+		return nil, nil
 	case *WriteStmt:
 		return l.lowerWrite(s)
 	case *ClearStmt:
@@ -1204,7 +1292,7 @@ func (l *lowerer) variableTarget(name string, ty mir2.Ty) hir.Expr {
 	if ptr := l.referenceParams[name]; ptr != nil {
 		return &hir.DerefExpr{Ptr: ptr, Ty: ty}
 	}
-	return &hir.VarRefExpr{Name: name, Ty: ty}
+	return &hir.VarRefExpr{Name: l.localObjectName(name), Ty: ty}
 }
 func (l *lowerer) lowerPerform(s *PerformStmt) (hir.Stmt, error) {
 	var form *FormDecl
@@ -1260,7 +1348,7 @@ func (l *lowerer) lowerPerform(s *PerformStmt) (hir.Stmt, error) {
 			if ptr := l.referenceParams[v.Name]; ptr != nil {
 				args = append(args, ptr)
 			} else {
-				args = append(args, &hir.AddrOfExpr{X: &hir.VarRefExpr{Name: v.Name, Ty: ty}})
+				args = append(args, &hir.AddrOfExpr{X: &hir.VarRefExpr{Name: l.localObjectName(v.Name), Ty: ty}})
 			}
 		} else {
 			if i >= len(s.Using) {
@@ -1880,7 +1968,7 @@ func (l *lowerer) lowerExpr(e Expr_) (hir.Expr, error) {
 		if ptr := l.referenceParams[e.Name]; ptr != nil {
 			return &hir.LoadExpr{Ptr: ptr, Ty: ty}, nil
 		}
-		return &hir.VarRefExpr{Name: e.Name, Ty: ty}, nil
+		return &hir.VarRefExpr{Name: l.localObjectName(e.Name), Ty: ty}, nil
 
 	case *BinOp:
 		return l.lowerBinOp(e)
