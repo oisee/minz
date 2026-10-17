@@ -13,7 +13,7 @@ import (
 // and local-frame lowering as application functions. In particular INT_MIN
 // is converted to an unsigned magnitude without signed negation overflow.
 const integer32Output = `
-fun abap_write_i32(value: i32) -> void {
+fun _abap_write_i32_value(value: i32) -> void {
     var magnitude: u32 = u32(value)
     if value < 0 {
         _abap_num_putchar(45)
@@ -31,6 +31,10 @@ fun abap_write_i32(value: i32) -> void {
         count = count - 1
         _abap_num_putchar(digits[count])
     }
+}
+
+fun abap_write_i32(value: i32) -> void {
+    _abap_write_i32_value(value)
     _abap_num_putchar(32)
 }
 `

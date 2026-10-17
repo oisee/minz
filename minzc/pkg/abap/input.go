@@ -65,6 +65,21 @@ fun _abap_read_i32(dst: ^i32) -> void {
     _abap_num_putchar(10)
     if count != 0 { dst^ = _abap_parse_i32(_abap_input_data(), count) }
 }
+
+fun _abap_read_c(dst: ^u8, length: u16) -> void {
+    var count: u8 = _abap_input_line()
+    _abap_num_putchar(13)
+    _abap_num_putchar(10)
+    if count != 0 {
+        var data: ^u8 = _abap_input_data()
+        var i: u16 = 0
+        while i < u16(count) {
+            if data[i] > 127 { _abap_fault(4) }
+            i = i + 1
+        }
+        _abap_char_copy(dst, length, data, u16(count))
+    }
+}
 `
 
 // Only line acquisition is target-specific. Decimal conversion and checked

@@ -321,71 +321,18 @@ func (l *lowerer) lower() (*hir.Module, error) {
 		})
 	}
 
-	// ── PARAMETERS: allocate per-param buffers, set defaults, prompt ────
-	//
-	// Each string param gets a static buffer: _abap_buf_<name>
-	//   [0]: max length (for BDOS 0x0A)
-	//   [1]: actual length (filled by BDOS)
-	//   [2..]: text data (null-terminated)
-	//
-	// p_name always points to _abap_buf_<name> + 2 (text area).
-	// Default value pre-filled. Empty input = keep default.
+	// Scalar parameter defaults are initialized before INITIALIZATION.
+	// TYPE c owns its storage and default through lowerGlobal; input later
+	// receives its actual address and full length.
 	for _, p := range l.prog.Params {
 		ty := l.varTypes[p.Name]
-		if ty == mir2.TyPtr {
-			// String param: allocate TWO adjacent globals:
-			//   _abap_hdr_<name>: [max_len, actual_len] (2 bytes, BDOS 0x0A header)
-			//   _abap_txt_<name>: [text..., NUL]         (text data area)
-			//
-			// BDOS 0x0A writes starting at the header, text lands in txt.
-			// p_name points to _abap_txt_<name> (the text part).
-			// If user enters empty line, txt keeps the pre-filled default.
-
-			bufLen := p.Length
-			if bufLen < 20 {
-				bufLen = 20
-			}
-			defStr := ""
-			if p.Default != nil {
-				if sl, ok := (*p.Default).(*StringLit); ok {
-					defStr = sl.Val
-				}
-			}
-
-			hdrName := "_abap_hdr_" + p.Name
-			txtName := "_abap_txt_" + p.Name
-
-			// Header: [max_len, pre-filled actual_len]
-			l.hm.Globals = append(l.hm.Globals, mir2.Global{
-				Name: hdrName,
-				Ty:   mir2.NewArray(mir2.TyU8, 2),
-				Init: []byte{byte(bufLen), byte(len(defStr))},
-			})
-			// Text area: default value + padding + NUL
-			txtData := make([]byte, bufLen+1) // +1 for NUL
-			copy(txtData, []byte(defStr))
-			l.hm.Globals = append(l.hm.Globals, mir2.Global{
-				Name: txtName,
-				Ty:   mir2.NewArray(mir2.TyU8, bufLen+1),
-				Init: txtData,
-			})
-
-			// Dynamic string parameters retain the existing pointer representation.
-			if p.AbapTy != "c" {
-				mainStmts = append(mainStmts, &hir.AssignStmt{
-					Target: &hir.VarRefExpr{Name: p.Name, Ty: ty},
-					Val:    &hir.AddrOfExpr{Sym: txtName},
-				})
-			}
-		} else if p.Default != nil {
-			// Integer param: just set the default value
+		if ty != mir2.TyPtr && p.Default != nil {
 			val, err := l.lowerExpr(*p.Default)
 			if err != nil {
 				return nil, err
 			}
 			mainStmts = append(mainStmts, &hir.AssignStmt{
-				Target: &hir.VarRefExpr{Name: p.Name, Ty: ty},
-				Val:    val,
+				Target: &hir.VarRefExpr{Name: p.Name, Ty: ty}, Val: val,
 			})
 		}
 	}
@@ -401,15 +348,14 @@ func (l *lowerer) lower() (*hir.Module, error) {
 
 	// Selection screen — register fields, then sel_show for input.
 	//
-	// Architecture: sel_register_str/sel_register_int tell the host about each
-	// field (name, type, length, buffer address, default). sel_show() blocks
+	// Architecture: sel_register_c/sel_register_int tell the host about each
+	// field's actual storage or current i32 value. sel_show() blocks
 	// for user input and returns u8: 1 = host handled (MZV), 0 = fallback.
 	// On Z80/CP/M the fallback path does inline BDOS prompts.
 	// On MZV the host function reads stdin and writes values to VM heap.
 	if len(l.prog.Params) > 0 {
 		// ── Register each parameter with the screen host ────────────
-		// Skip on ZX Spectrum — sel_register calls have 4+ args that the
-		// production regalloc can't handle. Go straight to fallback input.
+		// ZX uses the console-input fallback instead of a host selection screen.
 		fieldIdx := 0
 		for _, p := range l.prog.Params {
 			if l.hm.Target == hir.TargetZXSpectrum {
@@ -422,28 +368,8 @@ func (l *lowerer) lower() (*hir.Module, error) {
 			labelSym := l.internStr(strings.ToUpper(p.Name))
 
 			if ty == mir2.TyPtr {
-				// String field → sel_register_str(name, length, default, buf)
-				defStr := ""
-				if p.Default != nil {
-					if sl, ok := (*p.Default).(*StringLit); ok {
-						defStr = sl.Val
-					}
-				}
-				defSym := l.internStr(defStr)
-				txtName := "_abap_txt_" + p.Name
-
-				mainStmts = append(mainStmts, &hir.ExprStmt{
-					Expr: &hir.CallExpr{
-						Fn: "sel_register_str",
-						Args: []hir.Expr{
-							&hir.AddrOfExpr{Sym: labelSym},
-							&hir.IntLitExpr{Val: int64(p.Length), Ty: mir2.TyU8},
-							&hir.AddrOfExpr{Sym: defSym},
-							&hir.AddrOfExpr{Sym: txtName},
-						},
-						Ty: mir2.TyVoid,
-					},
-				})
+				b := l.characters[p.Name]
+				mainStmts = append(mainStmts, charCall("sel_register_c", &hir.AddrOfExpr{Sym: labelSym}, b.length, b.ptr))
 			} else {
 				// Register the current i32 value after INITIALIZATION.
 				mainStmts = append(mainStmts, &hir.ExprStmt{
@@ -472,40 +398,20 @@ func (l *lowerer) lower() (*hir.Module, error) {
 		// ── Input prompts (BDOS on CP/M, console port on ZX) ──
 		var promptStmts []hir.Stmt
 		for _, p := range l.prog.Params {
-			promptStr := strings.ToUpper(p.Name)
-			defStr := ""
-			if p.Default != nil {
-				if sl, ok := (*p.Default).(*StringLit); ok {
-					defStr = sl.Val
-				} else if il, ok := (*p.Default).(*IntLit); ok {
-					defStr = fmt.Sprintf("%d", il.Val)
-				}
+			label := l.internStr(strings.ToUpper(p.Name) + " [")
+			end := l.internStr("]: ")
+			promptStmts = append(promptStmts, charCall("abap_write_str", &hir.AddrOfExpr{Sym: label}))
+			if b, ok := l.characters[p.Name]; ok {
+				promptStmts = append(promptStmts, charCall("_abap_char_write", b.ptr, textValueLength(b)))
+			} else {
+				promptStmts = append(promptStmts, charCall("_abap_write_i32_value", &hir.VarRefExpr{Name: p.Name, Ty: mir2.TyI32}))
 			}
-			if defStr != "" {
-				promptStr += " [" + defStr + "]"
-			}
-			promptStr += ": "
-
-			promptSym := l.internStr(promptStr)
-
-			promptStmts = append(promptStmts, &hir.ExprStmt{
-				Expr: &hir.CallExpr{
-					Fn:   "abap_write_str",
-					Args: []hir.Expr{&hir.AddrOfExpr{Sym: promptSym}},
-					Ty:   mir2.TyVoid,
-				},
-			})
+			promptStmts = append(promptStmts, charCall("abap_write_str", &hir.AddrOfExpr{Sym: end}))
 
 			ty := l.varTypes[p.Name]
 			if ty == mir2.TyPtr {
-				txtName := "_abap_txt_" + p.Name
-				promptStmts = append(promptStmts, &hir.ExprStmt{
-					Expr: &hir.CallExpr{
-						Fn:   "abap_sel_read",
-						Args: []hir.Expr{&hir.AddrOfExpr{Sym: txtName}},
-						Ty:   mir2.TyVoid,
-					},
-				})
+				b := l.characters[p.Name]
+				promptStmts = append(promptStmts, charCall("_abap_read_c", b.ptr, b.length))
 			} else {
 				promptStmts = append(promptStmts, charCall("_abap_read_i32", &hir.AddrOfExpr{Sym: p.Name}))
 			}
@@ -568,13 +474,6 @@ func (l *lowerer) lower() (*hir.Module, error) {
 		}
 	}
 
-	// Transport selection text into the actual fixed-length ABAP object.
-	for _, p := range l.prog.Params {
-		if b, ok := l.characters[p.Name]; ok {
-			src := &hir.AddrOfExpr{Sym: "_abap_txt_" + p.Name}
-			mainStmts = append(mainStmts, charCall("_abap_char_copy", b.ptr, b.length, src, &hir.CallExpr{Fn: "_abap_char_cstrlen", Args: []hir.Expr{src}, Ty: mir2.TyU16}))
-		}
-	}
 	// AT-SELECTION-SCREEN — runs after screen, SY-UCOMM is set
 	if body, ok := l.prog.Events["AT-SELECTION-SCREEN"]; ok {
 		stmts, err := l.lowerStmts(body)
@@ -2328,6 +2227,16 @@ func emitRuntimeFuncs(hm *hir.Module, target uint8) {
 			},
 		})
 		names["sel_register_str"] = true
+	}
+
+	// Owned ABAP TYPE c field: the host edits length bytes at the actual address.
+	if !names["sel_register_c"] {
+		hm.Funcs = append(hm.Funcs, &hir.Func{
+			Name: "sel_register_c", RetTy: mir2.TyVoid,
+			Params: []hir.Param{{Name: "name", Ty: mir2.TyPtr}, {Name: "length", Ty: mir2.TyU16}, {Name: "object", Ty: mir2.TyPtr}},
+			Body:   &hir.Block{Body: []hir.Stmt{&hir.AsmStmt{Target: "z80", Code: "NOP"}}},
+		})
+		names["sel_register_c"] = true
 	}
 
 	// sel_register_int(name, default_val) — no-op on Z80.

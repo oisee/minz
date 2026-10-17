@@ -91,3 +91,8 @@ space. A blank input line prints `-65537 ` instead.
 
 System fields, remaining executable admission, character input transport,
 guarded CP/M closure and integration into main remain open.
+
+Follow-up: [character input hardening](2026-10-17-character-input.md) replaces
+the temporary character buffers with an owned-field protocol, fixes the
+shared-stdin race and makes fallback prompts display current values. The
+integer input and compact WRITE contracts remain unchanged.

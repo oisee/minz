@@ -116,3 +116,13 @@ storage. Complete-report input cases pass raw/final VM and Z80, and real MZV
 CLI pipe runs verify output without Node. System fields, remaining operators,
 character input/default transport, guarded CP/M closure and main integration
 remain required.
+
+## Character input checkpoint
+
+[Owned character selection input](2026-10-17-character-input.md) now passes
+the actual field and u16 length, preserves INITIALIZATION on empty input,
+copies/truncates/pads replacements and retains embedded NUL. MZV reads from
+the shared stdin channel without consuming later program input. Eighteen
+full-report VM/Z80 cases and twelve actual CLI runs pass, alongside the full
+ABAP, Go-parser and MZV package suites. System fields, remaining operators,
+guarded CP/M closure and main integration remain open.

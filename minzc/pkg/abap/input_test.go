@@ -115,7 +115,7 @@ START-OF-SELECTION.
 					t.Fatalf("VM line reads %d", calls)
 				}
 				check(func(name string, n int) []byte { return v.ReadHeap(v.GlobalAddr(name), n) })
-				want := "P [-7]: \r\n"
+				want := "P [-65537]: \r\n"
 				if c.fault == 0 {
 					want += "\r\n"
 				}
@@ -176,7 +176,7 @@ START-OF-SELECTION.
 				}
 				return mem[addr : addr+n]
 			})
-			want := "P [-7]: \r\n"
+			want := "P [-65537]: \r\n"
 			if c.fault == 0 {
 				want += "\r\n"
 			}
