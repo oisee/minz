@@ -9,7 +9,10 @@ import (
 
 // Fixed character objects own their bytes. Generic TYPE c FORM parameters
 // carry the actual object's address and length, never a C-string pointer cell.
-type characterBinding struct{ ptr, length hir.Expr }
+type characterBinding struct {
+	ptr, length, object hir.Expr
+	dynamic             bool
+}
 
 func characterLength(n int) int {
 	if n == 0 {
@@ -34,16 +37,14 @@ func (l *lowerer) characterExpr(e Expr_) (characterBinding, bool, error) {
 		b, ok := l.characters[v.Name]
 		return b, ok, nil
 	case *StringLit:
-		if v.IsString {
-			return characterBinding{}, false, nil
-		}
+
 		if err := asciiCharacter(v.Val); err != nil {
 			return characterBinding{}, true, err
 		}
 		if len(v.Val) > 65535 {
 			return characterBinding{}, true, fmt.Errorf("character literal exceeds the 16-bit length range")
 		}
-		return characterBinding{&hir.AddrOfExpr{Sym: l.internStr(v.Val)}, charLen(len(v.Val))}, true, nil
+		return characterBinding{ptr: &hir.AddrOfExpr{Sym: l.internStr(v.Val)}, length: charLen(len(v.Val)), dynamic: v.IsString}, true, nil
 	}
 	return characterBinding{}, false, nil
 }
@@ -52,17 +53,15 @@ func charCall(fn string, args ...hir.Expr) hir.Stmt {
 	return &hir.ExprStmt{Expr: &hir.CallExpr{Fn: fn, Args: args, Ty: mir2.TyVoid}}
 }
 func (l *lowerer) characterAssign(dst characterBinding, e Expr_) (hir.Stmt, error) {
-	// Conversion from a string literal to fixed c is raw copy/truncation/padding.
-	// Comparisons with dynamic string semantics remain separately admitted.
-	if lit, ok := e.(*StringLit); ok && lit.IsString {
-		e = &StringLit{Val: lit.Val}
-	}
 	src, ok, err := l.characterExpr(e)
 	if err != nil {
 		return nil, err
 	}
 	if !ok {
 		return nil, fmt.Errorf("character assignment: numeric/dynamic conversion is not implemented")
+	}
+	if dst.dynamic {
+		return charCall("_abap_string_assign", dst.object, src.ptr, textValueLength(src)), nil
 	}
 	return charCall("_abap_char_copy", dst.ptr, dst.length, src.ptr, src.length), nil
 }
@@ -84,14 +83,14 @@ func (l *lowerer) characterGlobal(d *DataDecl) error {
 		copy(init, []byte(s.Val))
 	}
 	l.hm.Globals = append(l.hm.Globals, mir2.Global{Name: d.Name, Ty: mir2.NewArray(mir2.TyU8, n), Init: init})
-	l.characters[d.Name] = characterBinding{&hir.AddrOfExpr{Sym: d.Name}, charLen(n)}
+	l.characters[d.Name] = characterBinding{ptr: &hir.AddrOfExpr{Sym: d.Name}, length: charLen(n)}
 	return nil
 }
 
 func (l *lowerer) characterLocal(d *DataDecl) (hir.Stmt, error) {
 	n := characterLength(d.Length)
 	ty := mir2.NewArray(mir2.TyU8, n)
-	b := characterBinding{&hir.AddrOfExpr{X: &hir.VarRefExpr{Name: d.Name, Ty: ty}}, charLen(n)}
+	b := characterBinding{ptr: &hir.AddrOfExpr{X: &hir.VarRefExpr{Name: d.Name, Ty: ty}}, length: charLen(n)}
 	l.characters[d.Name] = b
 	l.varTypes[d.Name] = mir2.TyPtr
 	ss := []hir.Stmt{&hir.VarDeclStmt{Name: d.Name, Ty: ty}}

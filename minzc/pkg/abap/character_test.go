@@ -154,7 +154,6 @@ func TestCharacterAdmission(t *testing.T) {
 		"DATA y TYPE i. y = `7`.",
 		"FORM probe. DATA y TYPE i VALUE '7'. ENDFORM.",
 		"DATA y TYPE i. y = `7` + 1.",
-		"DATA x TYPE c LENGTH 2. IF x = `X`. ENDIF.",
 		"FORM probe USING x TYPE c. x = 'X'. ENDFORM. PERFORM probe USING 'Y'.",
 		"FORM probe CHANGING x TYPE c. ENDFORM. PERFORM probe CHANGING 'Y'.",
 	} {

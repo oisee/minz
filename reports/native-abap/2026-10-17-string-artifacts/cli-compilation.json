@@ -1,0 +1,28 @@
+[
+  {
+    "source": "alias-report.abap",
+    "argv": [
+      "/home/alice/dev/minz-artifacts/grace-reports/2026-10-17/native-abap/owned-string/minzc",
+      "/home/alice/dev/minz-artifacts/grace-workspaces/native-abap-hardening/minzc/pkg/abap/testdata/string-reference/alias-report.abap",
+      "-o",
+      "/home/alice/dev/minz-artifacts/grace-reports/2026-10-17/native-abap/owned-string/alias-report.a80"
+    ],
+    "PATH": "/nonexistent",
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "source": "copy-report.abap",
+    "argv": [
+      "/home/alice/dev/minz-artifacts/grace-reports/2026-10-17/native-abap/owned-string/minzc",
+      "/home/alice/dev/minz-artifacts/grace-workspaces/native-abap-hardening/minzc/pkg/abap/testdata/string-reference/copy-report.abap",
+      "-o",
+      "/home/alice/dev/minz-artifacts/grace-reports/2026-10-17/native-abap/owned-string/copy-report.a80"
+    ],
+    "PATH": "/nonexistent",
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": ""
+  }
+]

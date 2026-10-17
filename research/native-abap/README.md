@@ -52,3 +52,14 @@ The MinZ test checks unchanged-source execution in raw/final VM and assembled
 Z80. Ordinary HALT and CalledMain return contracts are checked explicitly.
 These reports establish fixed ASCII character behavior, not full dynamic
 string, selection UI or SAP runtime compatibility.
+
+## Complete owned-string reports
+
+Use `string-reference.mjs` with the same isolated pinned semantic-reference
+package/lock files. Run `node_modules/node/bin/node string-reference.mjs SOURCE.abap`
+on the sources under `minzc/pkg/abap/testdata/string-reference`. It executes
+the complete source and records x/y/c/seen plus MemoryConsole output, without
+extra calls or mutations. These fixtures test copy-only dynamic string lengths
+and reference parameters, including wide integer state. MinZ's bounded storage
+capacity faults are separate contract probes, not a property of the reference
+runtime's allocator.

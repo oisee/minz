@@ -26,9 +26,7 @@ func validateProgramTypes(p *Program) error {
 	}
 	params := func(context string, ps []FormParam) error {
 		for _, v := range ps {
-			if v.AbapTy == "string" {
-				return fmt.Errorf("%s parameter %s: owned string reference ABI is not implemented", context, v.Name)
-			}
+
 			if !strings.HasPrefix(context, "FORM ") && (v.AbapTy == "c" || v.AbapTy == "string") {
 				return fmt.Errorf("%s parameter %s: character ABI is not implemented", context, v.Name)
 			}
@@ -94,6 +92,9 @@ func validateProgramTypes(p *Program) error {
 				return err
 			}
 		case *ParamDecl:
+			if v.AbapTy == "string" {
+				return fmt.Errorf("PARAMETERS %s: dynamic string selection fields are not implemented", v.Name)
+			}
 			if err := check("PARAMETERS "+v.Name, v.AbapTy, v.Length); err != nil {
 				return err
 			}
@@ -141,6 +142,9 @@ func validateProgramTypes(p *Program) error {
 		}
 	}
 	for _, v := range p.Params {
+		if v.AbapTy == "string" {
+			return fmt.Errorf("PARAMETERS %s: dynamic string selection fields are not implemented", v.Name)
+		}
 		if err := check("PARAMETERS "+v.Name, v.AbapTy, v.Length); err != nil {
 			return err
 		}

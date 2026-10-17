@@ -85,3 +85,13 @@ HALT and called-main PC/SP contracts are checked separately. A final-call
 termination bug in bare main is corrected. Owned dynamic string semantics,
 input, remaining admission/system fields, guarded CP/M runtime integration
 and main integration still need completion.
+
+## Owned string checkpoint
+
+[Owned strings and capacity checks](2026-10-17-owned-string.md) replace string
+pointer aliasing with length/capacity descriptors and owned payloads. Two
+unchanged full reports combine string copy/CLEAR/reference aliasing, exact
+output and i32 globals above 65535; independent reference, raw/final VM and
+Z80 agree. Smaller-capacity probes stop before committing writes. ABAP and
+Go-parser package tests pass. Remaining operator/system-field admission,
+full-width input, guarded CP/M closure and main integration remain required.
