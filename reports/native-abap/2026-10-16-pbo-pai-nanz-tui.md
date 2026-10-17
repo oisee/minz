@@ -69,3 +69,21 @@ to the hardened ABAP representation rather than silently narrowing them.
 
 Full SAP dynpro compatibility remains outside the current goal. A small
 verified ABAP-to-Nanz selection-screen adapter is a useful next extension.
+
+## Updated integration boundary — 17 October
+
+The ABAP input adapter now has checked signed i32 conversion, owned fixed
+character fields and a shared MZV stdin stream. These are the value-transport
+contracts to reuse when connecting Nanz TUI. Do not replace them with the
+legacy `Screen.get_int()` u16 default or the older `sel_*` declarations in
+`screen.nanz`.
+
+Use the Nanz renderer, focus and keyboard handling around those typed field
+adapters. The first target is CP/M with a VT100-compatible terminal and MZV;
+`render.nanz` supplies BDOS bodies and host overrides. Its Spectrum rendering
+is a separate target implementation. Keep application PBO/PAI handlers in
+ABAP and link concrete Nanz calls through the common HIR pipeline.
+
+This is still an integration design. The connection is not yet implemented
+or certified. Acceptance must exercise edit/submit, retry, cancellation and
+exact i32/c transport together with event order on VM and assembled Z80.

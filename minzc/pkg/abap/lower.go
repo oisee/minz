@@ -215,6 +215,9 @@ type lowerer struct {
 	varTypes           map[string]mir2.Ty
 	referenceParams    map[string]hir.Expr
 	actualCounter      int
+	loopCounter        int
+	indexLoops         []string
+	loopDepth          int
 	paramRegistrations []*ParamDecl              // collected during lowering
 	strCache           map[string]int            // dedup cache: content → index in hm.Strings
 	hasSelect          bool                      // true if any SELECT statement → emit sqlite externs + _abap_db
@@ -617,12 +620,13 @@ func (l *lowerer) lower() (*hir.Module, error) {
 
 // emitSYStruct creates the SY system structure and a global instance.
 func (l *lowerer) emitSYStruct() {
-	// SY struct: INDEX, SUBRC, TABIX, UCOMM (u16 each for simplicity)
+	// Legacy SY metadata; executable field admission is checked separately.
+	// INDEX uses the same signed width as its backing global and accessors.
 	st := &mir2.StructTy{
 		Name: "SY",
 		Fields: []mir2.StructField{
 			{Name: "SUBRC", Ty: mir2.TyU16},
-			{Name: "INDEX", Ty: mir2.TyU16},
+			{Name: "INDEX", Ty: mir2.TyI32},
 			{Name: "TABIX", Ty: mir2.TyU16},
 			{Name: "UCOMM", Ty: mir2.TyU16}, // simplified: command code as u16
 			{Name: "DATUM", Ty: mir2.TyU16}, // date as days-since-epoch (simplified)
@@ -721,6 +725,9 @@ func (l *lowerer) lowerGlobal(d *DataDecl) error {
 // enterProcedure isolates parameters and local DATA from sibling procedures.
 // The outer map contains report globals and is restored even on lowering errors.
 func (l *lowerer) enterProcedure() func() {
+	outerLoops, outerDepth := l.indexLoops, l.loopDepth
+	l.indexLoops = nil
+	l.loopDepth = 0
 	outer := l.varTypes
 	outerChars := l.characters
 	l.characters = make(map[string]characterBinding, len(outerChars))
@@ -733,7 +740,13 @@ func (l *lowerer) enterProcedure() func() {
 	for name, ty := range outer {
 		l.varTypes[name] = ty
 	}
-	return func() { l.varTypes = outer; l.referenceParams = outerRefs; l.characters = outerChars }
+	return func() {
+		l.varTypes = outer
+		l.referenceParams = outerRefs
+		l.characters = outerChars
+		l.indexLoops = outerLoops
+		l.loopDepth = outerDepth
+	}
 }
 
 func (l *lowerer) lowerLocalData(d *DataDecl) (hir.Stmt, error) {
@@ -1025,11 +1038,17 @@ func (l *lowerer) lowerStmt(s Stmt_) (hir.Stmt, error) {
 	case *PerformStmt:
 		return l.lowerPerform(s)
 	case *ExitStmt:
+		if l.loopDepth == 0 {
+			return l.lowerLoopReturn(), nil
+		}
 		return &hir.BreakStmt{}, nil
 	case *ContinueStmt:
+		if l.loopDepth == 0 {
+			return nil, fmt.Errorf("CONTINUE: no enclosing ABAP loop")
+		}
 		return &hir.ContinueStmt{}, nil
 	case *ReturnStmt:
-		return &hir.ReturnStmt{}, nil
+		return l.lowerLoopReturn(), nil
 	case *CaseStmt:
 		return l.lowerCase(s)
 	case *SelectStmt:
@@ -1162,41 +1181,15 @@ func (l *lowerer) lowerIf(s *IfStmt) (hir.Stmt, error) {
 }
 
 func (l *lowerer) lowerDo(s *DoStmt) (hir.Stmt, error) {
-	body, err := l.lowerStmts(s.Body)
-	if err != nil {
-		return nil, err
-	}
+	var times hir.Expr
 	if s.Times != nil {
-		timesExpr, err := l.lowerExpr(*s.Times)
+		var err error
+		times, err = l.lowerExpr(*s.Times)
 		if err != nil {
 			return nil, err
 		}
-		// ABAP DO N TIMES: SY-INDEX counts 1..N (1-based)
-		// Ensure timesExpr is u16 (parseTokenExpr may give u8 for small literals)
-		if timesExpr.ExprTy() == mir2.TyU8 {
-			timesExpr = &hir.CastExpr{X: timesExpr, Ty: mir2.TyU16}
-		}
-		// Prepend SY-INDEX update to body: sy_set_index(_abap_sy_index)
-		// so WRITE SY-INDEX inside DO shows 1, 2, 3...
-		syUpdate := &hir.ExprStmt{
-			Expr: &hir.CallExpr{
-				Fn:   "sy_set_index",
-				Args: []hir.Expr{&hir.VarRefExpr{Name: "_abap_sy_index", Ty: mir2.TyU16}},
-				Ty:   mir2.TyVoid,
-			},
-		}
-		augBody := &hir.Block{Body: append([]hir.Stmt{syUpdate}, body.Body...)}
-		return &hir.ForRangeStmt{
-			Var:   "_abap_sy_index",
-			Start: &hir.IntLitExpr{Val: 1, Ty: mir2.TyU16},
-			End:   &hir.BinExpr{Op: "+", L: timesExpr, R: &hir.IntLitExpr{Val: 1, Ty: mir2.TyU16}, Ty: mir2.TyU16},
-			Body:  augBody,
-		}, nil
 	}
-	return &hir.WhileStmt{
-		Cond: &hir.BoolLitExpr{Val: true},
-		Body: body,
-	}, nil
+	return l.lowerIndexedLoop(s.Body, times, nil)
 }
 
 func (l *lowerer) lowerWhile(s *WhileStmt) (hir.Stmt, error) {
@@ -1204,11 +1197,7 @@ func (l *lowerer) lowerWhile(s *WhileStmt) (hir.Stmt, error) {
 	if err != nil {
 		return nil, err
 	}
-	body, err := l.lowerStmts(s.Body)
-	if err != nil {
-		return nil, err
-	}
-	return &hir.WhileStmt{Cond: cond, Body: body}, nil
+	return l.lowerIndexedLoop(s.Body, nil, cond)
 }
 
 func (l *lowerer) variableTarget(name string, ty mir2.Ty) hir.Expr {
@@ -1481,7 +1470,9 @@ func (l *lowerer) lowerSelect(s *SelectStmt) (hir.Stmt, error) {
 
 		// Append user's loop body (from SELECT...ENDSELECT block)
 		if len(s.Body) > 0 {
+			l.loopDepth++
 			bodyBlock, err := l.lowerStmts(s.Body)
+			l.loopDepth--
 			if err != nil {
 				return nil, err
 			}
@@ -1992,8 +1983,17 @@ func (l *lowerer) lowerExpr(e Expr_) (hir.Expr, error) {
 		return &hir.UnaryExpr{Op: op, X: val, Ty: ty}, nil
 
 	case *SYField:
-		// SY-INDEX etc. → host function call sy_get_FIELD()
+		switch strings.ToUpper(e.Field) {
+		case "INDEX", "SUBRC":
+		default:
+			return nil, fmt.Errorf("SY-%s: precise system-field semantics are not implemented", strings.ToUpper(e.Field))
+		}
+		// SUBRC still awaits the SQL/operation-status audit; INDEX is backed
+		// by the shared i32 counter state used by native code and the VM.
 		fnName := fmt.Sprintf("sy_get_%s", strings.ToLower(e.Field))
+		if strings.EqualFold(e.Field, "index") {
+			return &hir.CallExpr{Fn: fnName, Ty: mir2.TyI32}, nil
+		}
 		return &hir.CallExpr{Fn: fnName, Ty: mir2.TyU16}, nil
 
 	case *FuncCall:
@@ -2141,13 +2141,13 @@ func emitRuntimeFuncs(hm *hir.Module, target uint8) {
 
 	// DO updates must have a real implementation in raw VM and native Z80.
 	// Previously sy_set_index was called but never defined.
-	hm.Globals = append(hm.Globals, mir2.Global{Name: "_abap_index_value", Ty: mir2.TyU16})
+	hm.Globals = append(hm.Globals, mir2.Global{Name: "_abap_index_value", Ty: mir2.TyI32})
 	if !names["sy_set_index"] {
 		hm.Funcs = append(hm.Funcs, &hir.Func{
-			Name: "sy_set_index", Params: []hir.Param{{Name: "value", Ty: mir2.TyU16}}, RetTy: mir2.TyVoid,
+			Name: "sy_set_index", Params: []hir.Param{{Name: "value", Ty: mir2.TyI32}}, RetTy: mir2.TyVoid,
 			Body: &hir.Block{Body: []hir.Stmt{&hir.AssignStmt{
-				Target: &hir.VarRefExpr{Name: "_abap_index_value", Ty: mir2.TyU16},
-				Val:    &hir.VarRefExpr{Name: "value", Ty: mir2.TyU16},
+				Target: &hir.VarRefExpr{Name: "_abap_index_value", Ty: mir2.TyI32},
+				Val:    &hir.VarRefExpr{Name: "value", Ty: mir2.TyI32},
 			}}},
 		})
 		names["sy_set_index"] = true
@@ -2159,11 +2159,11 @@ func emitRuntimeFuncs(hm *hir.Module, target uint8) {
 		if !names[fnName] {
 			var value hir.Expr = &hir.IntLitExpr{Val: 0, Ty: mir2.TyU16}
 			if field == "index" {
-				value = &hir.VarRefExpr{Name: "_abap_index_value", Ty: mir2.TyU16}
+				value = &hir.VarRefExpr{Name: "_abap_index_value", Ty: mir2.TyI32}
 			}
 			hm.Funcs = append(hm.Funcs, &hir.Func{
 				Name:  fnName,
-				RetTy: mir2.TyU16,
+				RetTy: value.ExprTy(),
 				Body: &hir.Block{
 					Body: []hir.Stmt{
 						&hir.ReturnStmt{Val: value},

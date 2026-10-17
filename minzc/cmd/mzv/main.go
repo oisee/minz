@@ -854,8 +854,18 @@ func registerABAPHosts(vm *mir2.VM, headless bool, trace bool) {
 	// SY-UZEIT:  current time (simplified: 0)
 
 	var syIndex, sySubrc, syTabix, syUcomm int64
+	indexBacking := false
+	for _, global := range vm.Module.Globals {
+		if global.Name == "_abap_index_value" {
+			indexBacking = true
+		}
+	}
 
 	vm.Hosts["sy_get_index"] = func(_ []mir2.Value) ([]mir2.Value, error) {
+		if indexBacking {
+			data := vm.ReadHeap(vm.GlobalAddr("_abap_index_value"), 4)
+			return []mir2.Value{{I: int64(int32(uint32(data[0]) | uint32(data[1])<<8 | uint32(data[2])<<16 | uint32(data[3])<<24))}}, nil
+		}
 		return []mir2.Value{{I: syIndex}}, nil
 	}
 	vm.Hosts["sy_get_subrc"] = func(_ []mir2.Value) ([]mir2.Value, error) {
@@ -877,6 +887,10 @@ func registerABAPHosts(vm *mir2.VM, headless bool, trace bool) {
 	// SY-INDEX setter (called internally by DO loop lowering)
 	vm.Hosts["sy_set_index"] = func(args []mir2.Value) ([]mir2.Value, error) {
 		syIndex = args[0].I
+		if indexBacking {
+			value := uint32(syIndex)
+			vm.WriteHeapBytes(vm.GlobalAddr("_abap_index_value"), []byte{byte(value), byte(value >> 8), byte(value >> 16), byte(value >> 24)})
+		}
 		return nil, nil
 	}
 	vm.Hosts["sy_set_subrc"] = func(args []mir2.Value) ([]mir2.Value, error) {

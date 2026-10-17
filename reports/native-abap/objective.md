@@ -126,3 +126,15 @@ the shared stdin channel without consuming later program input. Eighteen
 full-report VM/Z80 cases and twelve actual CLI runs pass, alongside the full
 ABAP, Go-parser and MZV package suites. System fields, remaining operators,
 guarded CP/M closure and main integration remain open.
+
+## Loop-index checkpoint
+
+[Full-width nested loop state](2026-10-17-loop-index.md) now preserves
+SY-INDEX through DO/WHILE, count snapshotting, CONTINUE, EXIT and nested
+procedure RETURN. Five unchanged complete reports match independent
+reference, both VMs and assembled Z80, including 65,537 actual iterations.
+One nested-RETURN provider disagreement is explicitly separated from parity
+evidence. Nonimplemented system fields are refused; SY-SUBRC/SQL, remaining
+semantic admission, guarded CP/M closure and main integration remain open.
+The Nanz TUI design now reuses checked i32/c transport rather than legacy u16
+field retrieval; that connection remains to be implemented.
