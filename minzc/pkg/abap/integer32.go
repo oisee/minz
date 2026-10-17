@@ -114,6 +114,12 @@ fun _abap_division(a: i32, b: i32, mode: u8) -> i32 {
 `
 
 func emitInteger32Runtime(hm *hir.Module, target uint8) error {
+	start := len(hm.Funcs)
+	defer func() {
+		for _, f := range hm.Funcs[start:] {
+			f.Internal = true
+		}
+	}()
 	io := `fun _abap_num_putchar(ch: u8) -> void {
     asm z80 (in ch) (clob all) {
         LD E, A
@@ -149,13 +155,6 @@ fun _abap_num_putchar(ch: u8) -> void { _zx_putchar(ch) }`
 		Body: &hir.Block{Body: []hir.Stmt{
 			&hir.AssignStmt{Target: &hir.VarRefExpr{Name: "_abap_error_code", Ty: mir2.TyU8}, Val: &hir.VarRefExpr{Name: "code", Ty: mir2.TyU8}},
 			&hir.ExprStmt{Expr: &hir.CallExpr{Fn: "@mir.io.halt", Ty: mir2.TyVoid}},
-		}},
-	}, &hir.Func{
-		Name: "@mir.io.halt", RetTy: mir2.TyVoid,
-		Body: &hir.Block{Body: []hir.Stmt{
-			&hir.WhileStmt{Cond: &hir.BoolLitExpr{Val: true}, Body: &hir.Block{Body: []hir.Stmt{
-				&hir.AsmStmt{Target: "z80", Code: "DI / HALT"},
-			}}},
 		}},
 	})
 	return nil

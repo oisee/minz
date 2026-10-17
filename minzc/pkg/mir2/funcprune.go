@@ -63,7 +63,7 @@ func PruneUnreachableFuncs(m *Module, roots map[string]bool) bool {
 				if inst.Op == OpPatchSlot && inst.Sym != "" {
 					enqueue(SMCSetterName(inst.Sym))
 				}
-				if inst.Op == OpCall && inst.Sym != "" && inst.Sym[0] != '@' {
+				if (inst.Op == OpCall || inst.Op == OpCallCond) && inst.Sym != "" {
 					enqueue(inst.Sym)
 					continue
 				}

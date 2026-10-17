@@ -177,6 +177,9 @@ func LowerProgram(prog *Program) (*hir.Module, error) {
 
 // LowerProgramWithTarget converts a semantic ABAP Program to a HIR module with target platform.
 func LowerProgramWithTarget(prog *Program, target uint8) (*hir.Module, error) {
+	if err := validateABAPRuntimeNames(prog); err != nil {
+		return nil, err
+	}
 	if err := validateProgramTypes(prog); err != nil {
 		return nil, err
 	}
@@ -633,6 +636,12 @@ func (l *lowerer) lower() (*hir.Module, error) {
 			RetTy: mir2.TyVoid,
 			Body:  &hir.Block{Body: mainStmts},
 		})
+	}
+
+	for _, f := range l.hm.Funcs {
+		if reservedABAPRuntimeName(f.Name) {
+			f.Internal = true
+		}
 	}
 
 	return l.hm, nil
@@ -1937,6 +1946,7 @@ func (l *lowerer) emitSQLiteExterns() {
 		if !names[sf.name] {
 			l.hm.Funcs = append(l.hm.Funcs, &hir.Func{
 				Name:     sf.name,
+				Internal: true,
 				Params:   sf.params,
 				RetTy:    sf.ret,
 				IsExtern: true,
@@ -2159,6 +2169,12 @@ func (l *lowerer) lowerBinOp(e *BinOp) (hir.Expr, error) {
 
 // emitRuntimeFuncs adds built-in ABAP runtime functions.
 func emitRuntimeFuncs(hm *hir.Module, target uint8) {
+	start := len(hm.Funcs)
+	defer func() {
+		for _, f := range hm.Funcs[start:] {
+			f.Internal = true
+		}
+	}()
 	names := map[string]bool{}
 	for _, f := range hm.Funcs {
 		names[f.Name] = true

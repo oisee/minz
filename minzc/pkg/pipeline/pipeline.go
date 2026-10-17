@@ -1655,7 +1655,7 @@ func functionPruneRoots(hm *hir.Module) map[string]bool {
 		// Root explicit user-declared functions from the current module.
 		// Imported module functions and compiler-generated helpers are kept only
 		// when reachable from these roots, asserts, or address-taken edges.
-		if isUserFacingPruneRoot(f.Name) {
+		if !f.Internal && isUserFacingPruneRoot(f.Name) {
 			roots[f.Name] = true
 		}
 	}

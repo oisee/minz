@@ -167,3 +167,14 @@ indexes. CLASS-METHODS declarations are preserved with a static ABI. Twelve
 function-boundary VM/Z80 calls pass; these are explicitly separate from
 source-level method dispatch and full-report reference gates. Remaining
 admission, guarded CP/M closure and main integration remain required.
+
+## Private runtime and guarded CP/M checkpoint
+
+[Private helper visibility and terminal halt](2026-10-17-internal-runtime-cpm.md)
+allow two unchanged numeric reports to execute as guarded CP/M COM images
+with a 1024-byte stack. Independent reference globals, native return PC/SP
+and memory outside the image match. Internal status grants no runtime authority;
+reserved runtime collisions are refused and bound/conditional call edges are
+preserved during pruning. Full HIR/MIR2/ABAP/parser/MZV suites pass. Guarded
+character/string and CHANGING pointer access, remaining semantic admission,
+I/O/SQL closure, main integration and the bounded Nanz TUI connection remain open.
