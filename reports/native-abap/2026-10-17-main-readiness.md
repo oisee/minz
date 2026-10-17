@@ -94,17 +94,14 @@ explained output/exit-code changes, and advisory Go lint was cancelled with no
 result. Post-merge result on clean main: `Main audit PASS: 3e26dbe27a1737e8eb8657d495fb149d5cc43639`.
 
 The post-merge audit used a clean detached checkout of main at `3e26dbe27`, with
-Node absent (`PATH=/nonexistent` for the compile/run steps). All checks exited 0:
-
-- `756d589e4` (PR head) is an ancestor of main; the checkout is clean; no `minzc/`
-  or `stdlib/` difference between the PR head and main.
-- Builds of `minzc` (mz) and `mzv`.
-- `go test ./pkg/abap/... ./cmd/mzv/...`: pkg/abap 42.665 s, internal/abapparse
-  0.215 s, cmd/mzv 1.686 s, all ok.
-- `go test ./cmd/minzc -run '^TestABAPCPMOrdinaryCLI$'`: ok, 1.374 s.
-- Node-free compile of `pkg/abap/testdata/write-reference/templates.abap` to CP/M
-  ASM; `mzv --headless` output equals the independent reference output in
-  `templates.json`.
+Node absent (PATH=/nonexistent for the compile/run steps).
+Checks, all exit 0:
+- 756d589e4 (PR head) is an ancestor of main; checkout clean; no minzc/ or stdlib/ diff between PR head and main
+- builds of minzc (mz) and mzv
+- go test ./pkg/abap/... ./cmd/mzv/... : pkg/abap 42.665s, internal/abapparse 0.215s, cmd/mzv 1.686s, all ok
+- go test ./cmd/minzc -run '^TestABAPCPMOrdinaryCLI$' : ok 1.374s
+- Node-free compile of pkg/abap/testdata/write-reference/templates.abap to CP/M ASM, and mzv --headless output
+  equal to the independent reference output in templates.json
 
 The audit receipt is kept with the machine-local evidence (receipt SHA256
 `29847c5afc467b0a694e6a7227825039a16d9124ec0de614a97589ce27d984a4`).
