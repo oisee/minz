@@ -270,6 +270,14 @@ func convertFormStructure(node *ASTChild) (*FormDecl, error) {
 					if err != nil {
 						return nil, childError(sub, err)
 					}
+				case "Token":
+					for _, tok := range sub.Tokens {
+						if !strings.EqualFold(tok.Str, "FORM") && tok.Str != "." {
+							return nil, childError(sub, fmt.Errorf("FORM header addition %s is not implemented", tok.Str))
+						}
+					}
+				default:
+					return nil, childError(sub, fmt.Errorf("FORM header section %s is not implemented", sub.Type))
 				}
 			}
 			// Fallback: parse name from header tokens directly
@@ -953,7 +961,13 @@ func convertStmt(s *StmtNode) (Decl, error) {
 	upper := strings.ToUpper(s.Type)
 
 	switch {
-	case upper == "REPORT" || upper == "COMMENT" || upper == "EMPTY" || upper == "ELSE":
+	case upper == "REPORT":
+		// Plain report identity is metadata; additions alter list/runtime behavior.
+		if len(tokens) != 3 || !strings.EqualFold(tokens[0], "REPORT") || tokens[2] != "." {
+			return nil, fmt.Errorf("REPORT additions are not implemented")
+		}
+		return nil, nil
+	case upper == "COMMENT" || upper == "EMPTY" || upper == "ELSE":
 		// These syntax nodes have no executable effect. ELSE bodies are walked separately.
 		return nil, nil
 	case upper == "DATA" || s.Type == "Data":

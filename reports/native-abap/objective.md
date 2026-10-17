@@ -230,3 +230,17 @@ through the same backend validator and checks exact ASM/BIN, globals, PC/SP
 and outside-image memory. Real commands pass without Node on PATH. Remaining
 admission audit and main integration are required; broad SQL/table/TUI support
 is not substituted for the original checked-subset goal.
+
+## Report/procedure admission and TUI boundary
+
+The final admission audit now rejects REPORT list/message additions,
+FORM TABLES/RAISING, FUNCTION CHANGING and multiple FUNCTION EXPORTING results
+instead of erasing their behavior or ABI. Plain REPORT, typed reference FORM
+USING/CHANGING and the checked single scalar FUNCTION result are retained.
+Five real-source refusal probes and two semantic-AST ABI probes cover these
+boundaries; the existing reference and scalar-return VM/Z80 gates pass.
+
+The [Nanz TUI integration plan](2026-10-16-pbo-pai-nanz-tui.md) now states the
+ownership and atomic field-transfer requirements explicitly. Renderer/focus
+reuse is planned; ABAP PBO/PAI dispatch is not implemented. Remaining SQL
+admission/error handling audit and main integration are still required.

@@ -112,6 +112,12 @@ func validateProgramTypes(p *Program) error {
 				return err
 			}
 		case *FunctionDecl:
+			if len(v.Changing) != 0 {
+				return fmt.Errorf("FUNCTION %s: CHANGING reference ABI is not implemented", v.Name)
+			}
+			if len(v.Exporting) > 1 {
+				return fmt.Errorf("FUNCTION %s: multiple EXPORTING results are not implemented", v.Name)
+			}
 			for _, ps := range [][]FormParam{v.Importing, v.Exporting, v.Changing} {
 				if err := params("FUNCTION "+v.Name, ps); err != nil {
 					return err
