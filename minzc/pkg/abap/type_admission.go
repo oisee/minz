@@ -1,0 +1,142 @@
+package abap
+
+import "fmt"
+
+// Validate before generating any runtime or ABI. Unknown and approximate
+// numeric mappings must never become executable code. Character storage is
+// hardened separately; admission here does not certify its copying semantics.
+func validateProgramTypes(p *Program) error {
+	check := func(context, ty string, length int) error {
+		switch ty {
+		case "i", "string":
+			if length != 0 {
+				return fmt.Errorf("%s: LENGTH is not admitted for TYPE %s", context, ty)
+			}
+		case "c":
+			if length < 0 || length > 65535 {
+				return fmt.Errorf("%s: character LENGTH %d is outside 1..65535", context, length)
+			}
+		default:
+			return fmt.Errorf("%s: TYPE %s is not implemented precisely; approximate storage is not admitted", context, ty)
+		}
+		return nil
+	}
+	params := func(context string, ps []FormParam) error {
+		for _, v := range ps {
+			if err := check(context+" parameter "+v.Name, v.AbapTy, 0); err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+	var body func([]Stmt_) error
+	body = func(ss []Stmt_) error {
+		for _, s := range ss {
+			var groups [][]Stmt_
+			switch v := s.(type) {
+			case *DataDecl:
+				if err := check("DATA "+v.Name, v.AbapTy, v.Length); err != nil {
+					return err
+				}
+			case *IfStmt:
+				groups = append(groups, v.Then, v.Else)
+				for _, e := range v.ElseIf {
+					groups = append(groups, e.Body)
+				}
+			case *DoStmt:
+				groups = append(groups, v.Body)
+			case *WhileStmt:
+				groups = append(groups, v.Body)
+			case *LoopStmt:
+				groups = append(groups, v.Body)
+			case *SelectStmt:
+				groups = append(groups, v.Body)
+			case *CaseStmt:
+				groups = append(groups, v.Others)
+				for _, w := range v.Whens {
+					groups = append(groups, w.Body)
+				}
+			}
+			for _, g := range groups {
+				if err := body(g); err != nil {
+					return err
+				}
+			}
+		}
+		return nil
+	}
+	method := func(context string, m *MethodDecl) error {
+		for _, ps := range [][]FormParam{m.Importing, m.Exporting, m.Changing} {
+			if err := params(context, ps); err != nil {
+				return err
+			}
+		}
+		if m.Returning != nil {
+			if err := params(context, []FormParam{*m.Returning}); err != nil {
+				return err
+			}
+		}
+		return body(m.Body)
+	}
+	for _, decl := range p.Decls {
+		switch v := decl.(type) {
+		case *DataDecl:
+			if err := check("DATA "+v.Name, v.AbapTy, v.Length); err != nil {
+				return err
+			}
+		case *ParamDecl:
+			if err := check("PARAMETERS "+v.Name, v.AbapTy, v.Length); err != nil {
+				return err
+			}
+		case *FormDecl:
+			if err := params("FORM "+v.Name, v.Using); err != nil {
+				return err
+			}
+			if err := params("FORM "+v.Name, v.Changing); err != nil {
+				return err
+			}
+			if err := body(v.Body); err != nil {
+				return err
+			}
+		case *FunctionDecl:
+			for _, ps := range [][]FormParam{v.Importing, v.Exporting, v.Changing} {
+				if err := params("FUNCTION "+v.Name, ps); err != nil {
+					return err
+				}
+			}
+			if err := body(v.Body); err != nil {
+				return err
+			}
+		case *ClassDecl:
+			for _, a := range v.Attrs {
+				if err := check("CLASS "+v.Name+" attribute "+a.Name, a.AbapTy, a.Length); err != nil {
+					return err
+				}
+			}
+			for _, m := range v.Methods {
+				if err := method("METHOD "+v.Name+"=>"+m.Name, m); err != nil {
+					return err
+				}
+			}
+		case *EventDecl:
+			if err := body(v.Body); err != nil {
+				return err
+			}
+		case *formBodyDecl:
+			if err := body([]Stmt_{v.stmt}); err != nil {
+				return err
+			}
+		}
+	}
+	for _, v := range p.Params {
+		if err := check("PARAMETERS "+v.Name, v.AbapTy, v.Length); err != nil {
+			return err
+		}
+	}
+	for _, ss := range p.Events {
+		if err := body(ss); err != nil {
+			return err
+		}
+	}
+	return nil
+}

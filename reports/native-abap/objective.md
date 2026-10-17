@@ -66,3 +66,11 @@ CFG predicates now receive byte storage in both allocators. Core HIR, MIR2,
 ABAP and generated-parser packages pass. These function-boundary checks do
 not complete the full-report criterion. Character/string semantics, precise
 remaining admission, input, system fields and main integration remain open.
+
+## Declaration admission checkpoint
+
+[Strict declarations and type admission](2026-10-17-type-admission.md) now
+reject approximate numeric storage and unknown types before runtime/ABI
+generation. Unrepresented declaration additions no longer disappear. ABAP
+and native-parser packages pass. c/string storage and copying remain required;
+this admission checkpoint is not their completion.

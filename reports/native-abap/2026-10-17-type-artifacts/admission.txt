@@ -1,0 +1,42 @@
+=== RUN   TestDeclarationAdmissionRejectsLostSemantics
+=== RUN   TestDeclarationAdmissionRejectsLostSemantics/DATA_x_TYPE_int8.
+=== RUN   TestDeclarationAdmissionRejectsLostSemantics/DATA_x_TYPE_f.
+=== RUN   TestDeclarationAdmissionRejectsLostSemantics/DATA_x_TYPE_p_DECIMALS_2.
+=== RUN   TestDeclarationAdmissionRejectsLostSemantics/DATA_x_TYPE_p.
+=== RUN   TestDeclarationAdmissionRejectsLostSemantics/DATA_x_TYPE_n_LENGTH_4.
+=== RUN   TestDeclarationAdmissionRejectsLostSemantics/DATA_x_TYPE_x_LENGTH_4.
+=== RUN   TestDeclarationAdmissionRejectsLostSemantics/DATA_x_TYPE_d.
+=== RUN   TestDeclarationAdmissionRejectsLostSemantics/DATA_x_TYPE_t.
+=== RUN   TestDeclarationAdmissionRejectsLostSemantics/DATA_x_TYPE_zunknown.
+=== RUN   TestDeclarationAdmissionRejectsLostSemantics/DATA_x_LIKE_sy-index.
+=== RUN   TestDeclarationAdmissionRejectsLostSemantics/PARAMETERS_x_TYPE_i_OBLIGATORY.
+=== RUN   TestDeclarationAdmissionRejectsLostSemantics/PARAMETERS_x_TYPE_i_AS_CHECKBOX.
+=== RUN   TestDeclarationAdmissionRejectsLostSemantics/PARAMETERS_x_TYPE_int8.
+=== RUN   TestDeclarationAdmissionRejectsLostSemantics/FORM_probe_CHANGING_x_TYPE_int8._ENDFORM.
+=== RUN   TestDeclarationAdmissionRejectsLostSemantics/FORM_probe._DATA_x_TYPE_f._ENDFORM.
+=== RUN   TestDeclarationAdmissionRejectsLostSemantics/FORM_probe._IF_1_=_1._DATA_x_TYPE_int8._ENDIF._ENDFORM.
+=== RUN   TestDeclarationAdmissionRejectsLostSemantics/START-OF-SELECTION._DO_1_TIMES._DATA_x_TYPE_f._ENDDO.
+--- PASS: TestDeclarationAdmissionRejectsLostSemantics (0.45s)
+    --- PASS: TestDeclarationAdmissionRejectsLostSemantics/DATA_x_TYPE_int8. (0.03s)
+    --- PASS: TestDeclarationAdmissionRejectsLostSemantics/DATA_x_TYPE_f. (0.02s)
+    --- PASS: TestDeclarationAdmissionRejectsLostSemantics/DATA_x_TYPE_p_DECIMALS_2. (0.02s)
+    --- PASS: TestDeclarationAdmissionRejectsLostSemantics/DATA_x_TYPE_p. (0.02s)
+    --- PASS: TestDeclarationAdmissionRejectsLostSemantics/DATA_x_TYPE_n_LENGTH_4. (0.02s)
+    --- PASS: TestDeclarationAdmissionRejectsLostSemantics/DATA_x_TYPE_x_LENGTH_4. (0.02s)
+    --- PASS: TestDeclarationAdmissionRejectsLostSemantics/DATA_x_TYPE_d. (0.03s)
+    --- PASS: TestDeclarationAdmissionRejectsLostSemantics/DATA_x_TYPE_t. (0.03s)
+    --- PASS: TestDeclarationAdmissionRejectsLostSemantics/DATA_x_TYPE_zunknown. (0.03s)
+    --- PASS: TestDeclarationAdmissionRejectsLostSemantics/DATA_x_LIKE_sy-index. (0.03s)
+    --- PASS: TestDeclarationAdmissionRejectsLostSemantics/PARAMETERS_x_TYPE_i_OBLIGATORY. (0.03s)
+    --- PASS: TestDeclarationAdmissionRejectsLostSemantics/PARAMETERS_x_TYPE_i_AS_CHECKBOX. (0.03s)
+    --- PASS: TestDeclarationAdmissionRejectsLostSemantics/PARAMETERS_x_TYPE_int8. (0.03s)
+    --- PASS: TestDeclarationAdmissionRejectsLostSemantics/FORM_probe_CHANGING_x_TYPE_int8._ENDFORM. (0.03s)
+    --- PASS: TestDeclarationAdmissionRejectsLostSemantics/FORM_probe._DATA_x_TYPE_f._ENDFORM. (0.03s)
+    --- PASS: TestDeclarationAdmissionRejectsLostSemantics/FORM_probe._IF_1_=_1._DATA_x_TYPE_int8._ENDIF._ENDFORM. (0.03s)
+    --- PASS: TestDeclarationAdmissionRejectsLostSemantics/START-OF-SELECTION._DO_1_TIMES._DATA_x_TYPE_f._ENDDO. (0.03s)
+=== RUN   TestDeclarationAdmissionPreservesDefaultsAndInitial
+--- PASS: TestDeclarationAdmissionPreservesDefaultsAndInitial (0.03s)
+=== RUN   TestDeclarationAdmissionNoIgnoredTokens
+--- PASS: TestDeclarationAdmissionNoIgnoredTokens (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/abap	0.492s

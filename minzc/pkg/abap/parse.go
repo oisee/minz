@@ -1013,40 +1013,11 @@ func collectChildTokens(children []*ASTChild) []string {
 
 // parseDataStmt: DATA varname TYPE typename [VALUE val].
 func parseDataStmt(tokens []string) (Decl, error) {
-	if len(tokens) < 2 {
-		return nil, fmt.Errorf("DATA: too few tokens")
+	name, ty, length, value, err := parseSimpleDeclaration(tokens, "VALUE")
+	if err != nil {
+		return nil, err
 	}
-	d := &DataDecl{Name: tokens[1], AbapTy: "i"} // default to integer
-
-	for i := 2; i < len(tokens); i++ {
-		upper := strings.ToUpper(tokens[i])
-		switch upper {
-		case "TYPE":
-			if i+1 < len(tokens) {
-				d.AbapTy = strings.ToLower(tokens[i+1])
-				i++
-			}
-		case "LENGTH":
-			if i+1 < len(tokens) {
-				if n, err := strconv.Atoi(tokens[i+1]); err == nil {
-					d.Length = n
-				}
-				i++
-			}
-		case "VALUE":
-			end := len(tokens)
-			if tokens[end-1] == "." || tokens[end-1] == "," {
-				end--
-			}
-			val, err := parseDeclarationLiteral(tokens[i+1 : end])
-			if err != nil {
-				return nil, fmt.Errorf("DATA %s VALUE: %w", d.Name, err)
-			}
-			d.Value = &val
-			i = end - 1
-		}
-	}
-	return d, nil
+	return &DataDecl{Name: name, AbapTy: ty, Length: length, Value: value}, nil
 }
 
 // parseExecSQL: EXEC SQL. raw_sql ENDEXEC.
@@ -1407,40 +1378,74 @@ func (*formBodyDecl) abapDecl() {}
 
 // parseParamStmt: PARAMETERS p_name TYPE c LENGTH 20 DEFAULT 'Hello'.
 func parseParamStmt(tokens []string) (Decl, error) {
-	if len(tokens) < 2 {
-		return nil, fmt.Errorf("PARAMETERS: too few tokens")
+	name, ty, length, value, err := parseSimpleDeclaration(tokens, "DEFAULT")
+	if err != nil {
+		return nil, err
 	}
-	p := &ParamDecl{Name: tokens[1], AbapTy: "c", Length: 1}
+	return &ParamDecl{Name: name, AbapTy: ty, Length: length, Default: value}, nil
+}
 
-	for i := 2; i < len(tokens); i++ {
-		upper := strings.ToUpper(tokens[i])
-		switch upper {
+// Only consume additions whose meaning is represented in the semantic AST.
+// Unspecified elementary DATA/PARAMETERS types are c of length one in ABAP.
+func parseSimpleDeclaration(tokens []string, initializer string) (name, ty string, length int, value *Expr_, err error) {
+	if len(tokens) < 2 {
+		err = fmt.Errorf("declaration: too few tokens")
+		return
+	}
+	name, ty = tokens[1], "c"
+	end := len(tokens)
+	if tokens[end-1] == "." || tokens[end-1] == "," {
+		end--
+	}
+	seen := map[string]bool{}
+	for i := 2; i < end; {
+		key := strings.ToUpper(tokens[i])
+		if seen[key] {
+			err = fmt.Errorf("%s %s: duplicate %s", tokens[0], name, key)
+			return
+		}
+		seen[key] = true
+		switch key {
 		case "TYPE":
-			if i+1 < len(tokens) {
-				p.AbapTy = strings.ToLower(tokens[i+1])
-				i++
+			if i+1 >= end {
+				err = fmt.Errorf("%s %s: missing TYPE", tokens[0], name)
+				return
 			}
+			ty = strings.ToLower(tokens[i+1])
+			i += 2
 		case "LENGTH":
-			if i+1 < len(tokens) {
-				if n, err := strconv.Atoi(tokens[i+1]); err == nil {
-					p.Length = n
-				}
-				i++
+			if i+1 >= end {
+				err = fmt.Errorf("%s %s: missing LENGTH", tokens[0], name)
+				return
 			}
-		case "DEFAULT":
-			end := len(tokens)
-			if tokens[end-1] == "." || tokens[end-1] == "," {
-				end--
+			length, err = strconv.Atoi(tokens[i+1])
+			if err != nil || length < 1 {
+				err = fmt.Errorf("%s %s: LENGTH must be a positive integer literal", tokens[0], name)
+				return
 			}
-			val, err := parseDeclarationLiteral(tokens[i+1 : end])
+			i += 2
+		case initializer:
+			if initializer == "VALUE" && i+3 == end && strings.EqualFold(tokens[i+1], "IS") && strings.EqualFold(tokens[i+2], "INITIAL") {
+				i = end
+				continue
+			}
+			var v Expr_
+			v, err = parseDeclarationLiteral(tokens[i+1 : end])
 			if err != nil {
-				return nil, fmt.Errorf("PARAMETERS %s DEFAULT: %w", p.Name, err)
+				err = fmt.Errorf("%s %s %s: %w", tokens[0], name, initializer, err)
+				return
 			}
-			p.Default = &val
-			i = end - 1
+			value = &v
+			i = end
+		default:
+			err = fmt.Errorf("%s %s: unsupported declaration addition %s", tokens[0], name, tokens[i])
+			return
 		}
 	}
-	return p, nil
+	if seen["LENGTH"] && ty != "c" && ty != "n" && ty != "x" {
+		err = fmt.Errorf("%s %s: LENGTH is not admitted for TYPE %s", tokens[0], name, ty)
+	}
+	return
 }
 
 // parseMoveStmt: target = source.  (abaplint type: "Move")

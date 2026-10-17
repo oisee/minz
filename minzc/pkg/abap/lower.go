@@ -177,6 +177,9 @@ func LowerProgram(prog *Program) (*hir.Module, error) {
 
 // LowerProgramWithTarget converts a semantic ABAP Program to a HIR module with target platform.
 func LowerProgramWithTarget(prog *Program, target uint8) (*hir.Module, error) {
+	if err := validateProgramTypes(prog); err != nil {
+		return nil, err
+	}
 	l := &lowerer{
 		prog:           prog,
 		varTypes:       make(map[string]mir2.Ty),
