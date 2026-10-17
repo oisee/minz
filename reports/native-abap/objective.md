@@ -15,8 +15,11 @@ The SAP runtime is outside this goal. No success criterion is replaced by a narr
 
 Current implementation has evidence for the parser, semantic-admission and
 unchanged full-program execution criteria. The [readiness audit](2026-10-17-main-readiness.md)
-maps them to concrete tests and commands. Main integration remains pending;
-the historical checkpoints below are not current limitations or proof of merge.
+maps them to concrete tests and commands. The work is integrated into main by
+[PR #190](https://github.com/oisee/minz/pull/190) at merge commit
+`3e26dbe27a1737e8eb8657d495fb149d5cc43639`; the readiness audit records the
+post-merge check. The historical checkpoints below are history, not current
+limitations.
 
 The inspected [PBO/PAI and Nanz TUI integration design](2026-10-16-pbo-pai-nanz-tui.md)
 records a follow-up selection-screen adapter. Current report input is not a
@@ -267,3 +270,12 @@ local DATA. Specification-based VM/Z80 gates are kept separate from the
 unchanged independent-reference reports. Three missing pipeline tests are
 classified fast; four called-main harnesses now select their explicit
 subroutine contract. Fresh required PR CI and main integration remain open.
+
+## Main integration
+
+[PR #190](https://github.com/oisee/minz/pull/190), head
+`756d589e4729cb6ee2df4ad70351e739e95c3f37`, merged as `3e26dbe27a1737e8eb8657d495fb149d5cc43639`.
+Final CI [run 39000547135](https://github.com/oisee/minz/actions/runs/39000547135)
+passed all required checks; the advisory output sweep failed with the previously
+explained output/exit-code changes, and advisory Go lint was cancelled with no result.
+Post-merge result on clean main: `Main audit PASS: 3e26dbe27a1737e8eb8657d495fb149d5cc43639`.

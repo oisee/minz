@@ -1,9 +1,10 @@
-# Native ABAP: audit before integration into main
+# Native ABAP: readiness audit and main integration
 
-The ordinary ABAP frontend now embeds the pinned Go parser from abapiti and
-lowers a checked subset through HIR → MIR2 → assembled Z80. The work is on
-`feat/native-abap-hardening`; main integration is still pending. This report
-does not declare the goal complete before the PR is merged and verified.
+The ordinary ABAP frontend embeds the pinned Go parser from abapiti and
+lowers a checked subset through HIR → MIR2 → assembled Z80. The work was
+developed on `feat/native-abap-hardening` and is integrated into main by
+[PR #190](https://github.com/oisee/minz/pull/190) at merge commit
+`3e26dbe27a1737e8eb8657d495fb149d5cc43639`, with a passing post-merge audit.
 
 ## Original criteria and evidence
 
@@ -14,7 +15,7 @@ does not declare the goal complete before the PR is merged and verified.
 | CLEAR and explicit refusal of unsupported executable syntax | Actual-object CLEAR tests with explicit invocation; executable, expression, declaration, class, report/FORM and SELECT admission probes | Implemented for the documented subset |
 | Precise numbers, strings and CHANGING | Checked i32 arithmetic/input/output; owned c/string storage; real reference FORM ABI, alias/forwarding tests and conservative mode refusals | Checked within the documented admission rules |
 | Two unchanged whole programs: independent reference, raw/final VM and assembled Z80 with memory and PC/SP | `TestCharacterFullReportReferenceVMAndZ80` and `TestStringFullReportReferenceVMAndZ80`; fixture SHA and `entry: full report` are checked before execution | Checked; more than two whole reports covered |
-| Code, report and launch commands in main | This readiness report, current guide and CI admission are in the implementation branch | Pending PR and merge-state audit |
+| Code, report and launch commands in main | [PR #190](https://github.com/oisee/minz/pull/190), merge commit `3e26dbe27a1737e8eb8657d495fb149d5cc43639` | Integrated (PR #190, 3e26dbe27); post-merge audit PASS |
 
 The two representative whole-report sources are
 [fixed-character copy](../../minzc/pkg/abap/testdata/character-reference/copy-report.abap)
@@ -76,8 +77,8 @@ seed/EXEC SQL/SELECT report printed `65537` through actual SQLite in MZV.
 This is a host-SQL check, not execution of a native database server.
 
 The final local integration run and real CLI receipt are saved with the
-SQL-execution artifacts. Required PR CI must pass on the merge tree; the
-normal gate now includes `pkg/abap/...` and `cmd/mzv/...` so parser parity,
+SQL-execution artifacts. The normal gate includes `pkg/abap/...` and
+`cmd/mzv/...` so parser parity,
 admission, whole-report and actual SQLite checks remain maintained.
 Historical checkpoint reports are retained as history; this matrix and the
 current guide describe the final admission boundary.
@@ -86,5 +87,21 @@ The [event-boundary/PR-gate follow-up](2026-10-17-event-blocks-and-pr-gate.md)
 records a later semantic correction, the first CI failure and the explicit
 called-main harness repairs. The earlier Nanz language run excluded the legacy
 compile-only showcase inventory, matching the existing PR gate; it did not
-establish a complete showcase PASS. Fresh CI on the corrected commit remains
-required before this goal can close.
+establish a complete showcase PASS. Final CI
+[run 39000547135](https://github.com/oisee/minz/actions/runs/39000547135)
+passed all required checks; the advisory output sweep failed with the previously
+explained output/exit-code changes, and advisory Go lint was cancelled with no
+result. Post-merge result on clean main: `Main audit PASS: 3e26dbe27a1737e8eb8657d495fb149d5cc43639`.
+
+The post-merge audit used a clean detached checkout of main at `3e26dbe27`, with
+Node absent (PATH=/nonexistent for the compile/run steps).
+Checks, all exit 0:
+- 756d589e4 (PR head) is an ancestor of main; checkout clean; no minzc/ or stdlib/ diff between PR head and main
+- builds of minzc (mz) and mzv
+- go test ./pkg/abap/... ./cmd/mzv/... : pkg/abap 42.665s, internal/abapparse 0.215s, cmd/mzv 1.686s, all ok
+- go test ./cmd/minzc -run '^TestABAPCPMOrdinaryCLI$' : ok 1.374s
+- Node-free compile of pkg/abap/testdata/write-reference/templates.abap to CP/M ASM, and mzv --headless output
+  equal to the independent reference output in templates.json
+
+The audit receipt is kept with the machine-local evidence (receipt SHA256
+`29847c5afc467b0a694e6a7227825039a16d9124ec0de614a97589ce27d984a4`).

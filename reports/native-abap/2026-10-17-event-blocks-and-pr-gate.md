@@ -55,8 +55,7 @@ Before the final metadata guard, the complete ABAP/parser/MZV suites passed
 35.967 / 0.314 / 1.275 seconds. Focused event/scope/metadata checks passed after
 the guard. The complete local fast-pipeline rerun passed all 438 selected
 entries in three shards; the ordinary ABAP CP/M CLI gate also passed (1.864
-seconds). Fresh required PR CI remains the merge gate; completion of the ABAP
-goal still requires main integration.
+seconds). The final PR run and merge are recorded below.
 
 ## Reviewed catalog follow-up
 
@@ -69,4 +68,14 @@ original source and observation scope; current harness/helper hashes and a
 record the checked contract change. Historical manifests are not rewritten.
 The full existing Nanz language gate passed after this refresh (14.627 s),
 metafunction CLI checks passed (10.377 s), and both Z3 smoke scripts passed.
-Fresh required PR CI remains the merge requirement.
+The final PR run and merge are recorded below.
+
+## Final PR run and merge
+
+[Run 39000547135](https://github.com/oisee/minz/actions/runs/39000547135)
+passed all required checks: PR gate, Compiler checks / Build judge compilers,
+Judge self-tests, Assert matrix, Short fuzz, Direct-call fuzz findings and
+the PR test report.
+The advisory output sweep failed with the same 73 output changes and seven
+exit-code changes explained above; advisory Go lint was cancelled with no result.
+[PR #190](https://github.com/oisee/minz/pull/190) then merged as `3e26dbe27a1737e8eb8657d495fb149d5cc43639`.
