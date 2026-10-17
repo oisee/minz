@@ -57,3 +57,16 @@ the guard. The complete local fast-pipeline rerun passed all 438 selected
 entries in three shards; the ordinary ABAP CP/M CLI gate also passed (1.864
 seconds). Fresh required PR CI remains the merge gate; completion of the ABAP
 goal still requires main integration.
+
+## Reviewed catalog follow-up
+
+Run [38999430421](https://github.com/oisee/minz/actions/runs/38999430421)
+passed the complete stable compiler/pipeline gate, upstream system C and
+embedded demos. Nanz then refused stale reviewed SHA256 entries for the
+changed SQLite/Pascal test harnesses. Four affected catalog rows retain their
+original source and observation scope; current harness/helper hashes and a
+[refresh receipt](../../docs/grace-integration-338/called-main-refresh.txt)
+record the checked contract change. Historical manifests are not rewritten.
+The full existing Nanz language gate passed after this refresh (14.627 s),
+metafunction CLI checks passed (10.377 s), and both Z3 smoke scripts passed.
+Fresh required PR CI remains the merge requirement.
