@@ -248,6 +248,23 @@ func (l *lowerer) internStr(s string) string {
 }
 
 func (l *lowerer) lower() (*hir.Module, error) {
+	// The aggregate event API and source-block boundaries must describe the
+	// same statements. A semantic-AST edit must not be silently ignored.
+	for event, blocks := range l.prog.EventBlocks {
+		body, ok := l.prog.Events[event]
+		index := 0
+		for _, block := range blocks {
+			for _, stmt := range block {
+				if !ok || index >= len(body) || stmt != body[index] {
+					return nil, fmt.Errorf("%s: event block metadata does not match event statements", event)
+				}
+				index++
+			}
+		}
+		if !ok || index != len(body) {
+			return nil, fmt.Errorf("%s: event block metadata does not match event statements", event)
+		}
+	}
 	// ── SY structure (global system variable) ────────────────────────────
 	l.emitSYStruct()
 	l.reportData = make(map[*DataDecl]bool)
@@ -365,11 +382,17 @@ func (l *lowerer) lower() (*hir.Module, error) {
 
 	// INITIALIZATION
 	if body, ok := l.prog.Events["INITIALIZATION"]; ok {
-		stmts, err := l.lowerStmts(body)
-		if err != nil {
-			return nil, err
+		blocks := l.prog.EventBlocks["INITIALIZATION"]
+		if len(blocks) == 0 {
+			blocks = [][]Stmt_{body}
 		}
-		mainStmts = append(mainStmts, stmts.Body...)
+		for index, block := range blocks {
+			call, err := l.lowerRegularEvent("INITIALIZATION", index, block)
+			if err != nil {
+				return nil, err
+			}
+			mainStmts = append(mainStmts, call)
+		}
 	}
 
 	// Selection screen — register fields, then sel_show for input.
@@ -502,23 +525,21 @@ func (l *lowerer) lower() (*hir.Module, error) {
 
 	// AT-SELECTION-SCREEN — runs after screen, SY-UCOMM is set
 	if body, ok := l.prog.Events["AT-SELECTION-SCREEN"]; ok {
-		stmts, err := l.lowerStmts(body)
-		if err != nil {
-			return nil, err
+		blocks := l.prog.EventBlocks["AT-SELECTION-SCREEN"]
+		if len(blocks) == 0 {
+			blocks = [][]Stmt_{body}
 		}
-		mainStmts = append(mainStmts, stmts.Body...)
+		for index, block := range blocks {
+			call, err := l.lowerRegularEvent("AT-SELECTION-SCREEN", index, block)
+			if err != nil {
+				return nil, err
+			}
+			mainStmts = append(mainStmts, call)
+		}
 	}
 
-	// START-OF-SELECTION
-	if body, ok := l.prog.Events["START-OF-SELECTION"]; ok {
-		stmts, err := l.lowerStmts(body)
-		if err != nil {
-			return nil, err
-		}
-		mainStmts = append(mainStmts, stmts.Body...)
-	}
-
-	// Top-level statements (non-event code)
+	// Top-level executable statements are the implicit START-OF-SELECTION
+	// prefix, before the explicit START block (ABAP 7.52 event specification).
 	if len(mainBody) > 0 {
 		stmts, err := l.lowerStmts(mainBody)
 		if err != nil {
@@ -527,13 +548,28 @@ func (l *lowerer) lower() (*hir.Module, error) {
 		mainStmts = append(mainStmts, stmts.Body...)
 	}
 
-	// END-OF-SELECTION
-	if body, ok := l.prog.Events["END-OF-SELECTION"]; ok {
+	// START-OF-SELECTION stays in the driver: RETURN stops further reporting events.
+	if body, ok := l.prog.Events["START-OF-SELECTION"]; ok {
 		stmts, err := l.lowerStmts(body)
 		if err != nil {
 			return nil, err
 		}
 		mainStmts = append(mainStmts, stmts.Body...)
+	}
+
+	// END-OF-SELECTION
+	if body, ok := l.prog.Events["END-OF-SELECTION"]; ok {
+		blocks := l.prog.EventBlocks["END-OF-SELECTION"]
+		if len(blocks) == 0 {
+			blocks = [][]Stmt_{body}
+		}
+		for index, block := range blocks {
+			call, err := l.lowerRegularEvent("END-OF-SELECTION", index, block)
+			if err != nil {
+				return nil, err
+			}
+			mainStmts = append(mainStmts, call)
+		}
 	}
 
 	// If any SELECT was used or SeedSQL exists, set up SQLite
@@ -727,6 +763,23 @@ func (l *lowerer) lowerGlobal(d *DataDecl) error {
 	}
 	l.hm.Globals = append(l.hm.Globals, g)
 	return nil
+}
+
+// Regular report events have procedure boundaries: RETURN exits the event,
+// then the report driver continues. START-OF-SELECTION has special RETURN
+// semantics and is deliberately lowered in the driver instead.
+func (l *lowerer) lowerRegularEvent(event string, index int, body []Stmt_) (hir.Stmt, error) {
+	leave := l.enterProcedure()
+	defer leave()
+	block, err := l.lowerStmts(body)
+	if err != nil {
+		return nil, err
+	}
+	block.Body = append(l.localInitializers, block.Body...)
+	block.Body = append(block.Body, &hir.ReturnStmt{})
+	name := fmt.Sprintf("_abap_event_%s_%d", strings.ToLower(strings.ReplaceAll(event, "-", "_")), index)
+	l.hm.Funcs = append(l.hm.Funcs, &hir.Func{Name: name, RetTy: mir2.TyVoid, Internal: true, Body: block})
+	return charCall(name), nil
 }
 
 // enterProcedure isolates parameters and local DATA from sibling procedures.

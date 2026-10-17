@@ -258,3 +258,12 @@ Actual SQLite confirms handle isolation and iterator-error reporting. Native
 row-model gates check handle use and failure behavior. Ambiguous WHERE host
 operands and unsupported text transport are explicit refusals. Main integration
 and the final merge-state audit remain required.
+
+## Event-boundary and CI-catalog checkpoint
+
+[Event blocks and PR gate corrections](2026-10-17-event-blocks-and-pr-gate.md)
+fix regular-event RETURN, implicit/repeated START order and selection-event
+local DATA. Specification-based VM/Z80 gates are kept separate from the
+unchanged independent-reference reports. Three missing pipeline tests are
+classified fast; four called-main harnesses now select their explicit
+subroutine contract. Fresh required PR CI and main integration remain open.

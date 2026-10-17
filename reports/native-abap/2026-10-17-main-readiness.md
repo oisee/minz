@@ -81,3 +81,10 @@ normal gate now includes `pkg/abap/...` and `cmd/mzv/...` so parser parity,
 admission, whole-report and actual SQLite checks remain maintained.
 Historical checkpoint reports are retained as history; this matrix and the
 current guide describe the final admission boundary.
+
+The [event-boundary/PR-gate follow-up](2026-10-17-event-blocks-and-pr-gate.md)
+records a later semantic correction, the first CI failure and the explicit
+called-main harness repairs. The earlier Nanz language run excluded the legacy
+compile-only showcase inventory, matching the existing PR gate; it did not
+establish a complete showcase PASS. Fresh CI on the corrected commit remains
+required before this goal can close.

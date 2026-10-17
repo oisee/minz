@@ -45,8 +45,9 @@ func ParseNode(src, name string) (*Program, error) {
 // buildProgram converts the raw JSON AST into a semantic Program.
 func buildProgram(name string, r *ParseResult) (*Program, error) {
 	prog := &Program{
-		Name:   name,
-		Events: make(map[string][]Stmt_),
+		Name:        name,
+		Events:      make(map[string][]Stmt_),
+		EventBlocks: make(map[string][][]Stmt_),
 	}
 
 	if r.Structure != nil {
@@ -75,7 +76,13 @@ func buildProgram(name string, r *ParseResult) (*Program, error) {
 			prog.Params = append(prog.Params, d)
 			filtered = append(filtered, d) // keep as global DATA too
 		case *EventDecl:
-			prog.Events[d.Event] = d.Body
+			if d.Event == "AT-SELECTION-SCREEN" && len(prog.EventBlocks[d.Event]) != 0 {
+				return nil, fmt.Errorf("%s: repeated AT-SELECTION-SCREEN processing block is not admitted", name)
+			}
+			prog.EventBlocks[d.Event] = append(prog.EventBlocks[d.Event], d.Body)
+			// Repeated processing blocks execute in source order, rather than
+			// replacing an earlier block (explicit/implicit START can coexist).
+			prog.Events[d.Event] = append(prog.Events[d.Event], d.Body...)
 		default:
 			filtered = append(filtered, d)
 		}
@@ -203,8 +210,10 @@ func walkStructure(sn *StructNode) ([]Decl, error) {
 				for _, d := range subDecls {
 					if fbd, ok := d.(*formBodyDecl); ok {
 						currentEvent.Body = append(currentEvent.Body, fbd.stmt)
+					} else if data, ok := d.(*DataDecl); ok && currentEvent.Event == "AT-SELECTION-SCREEN" {
+						currentEvent.Body = append(currentEvent.Body, data)
 					} else {
-						// DATA in report events has report scope, including
+						// DATA in regular report events has report scope, including
 						// declarations wrapped in a Body or chained DATA node.
 						decls = append(decls, d)
 					}
@@ -227,6 +236,8 @@ func walkStructure(sn *StructNode) ([]Decl, error) {
 				if currentEvent != nil {
 					if fbd, ok := d.(*formBodyDecl); ok {
 						currentEvent.Body = append(currentEvent.Body, fbd.stmt)
+					} else if data, ok := d.(*DataDecl); ok && currentEvent.Event == "AT-SELECTION-SCREEN" {
+						currentEvent.Body = append(currentEvent.Body, data)
 					} else {
 						decls = append(decls, d)
 					}

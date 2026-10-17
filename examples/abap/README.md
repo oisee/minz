@@ -45,6 +45,9 @@ compilation. The guarded native test assembles the actual COM runtime image.
   programs; scalar method harnesses are a separate, narrower ABI boundary.
 - IF/ELSEIF, short-circuit expressions, DO/WHILE and early exits have VM/Z80
   evidence. Indexed loops preserve full-width SY-INDEX and caller state.
+- Regular report events have separate RETURN boundaries; RETURN in
+  START-OF-SELECTION stops further reporting. Implicit START statements precede
+  explicit blocks. DATA in AT SELECTION-SCREEN is procedure-local.
 - Counted WRITE and default templates preserve bytes. General list layout,
   ULINE, unsupported formatting additions and non-ASCII text are refused.
 - Scalar SELECT transport has real-SQLite VM tests and a native row model.

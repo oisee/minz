@@ -33,12 +33,13 @@ func TestHardwareSpriteChainCompile(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			a, err := z80asm.NewAssembler().AssembleString("ORG 0x8000\n" + steps.Assembly)
+			callerAssembly := calledMainTestAssembly(t, steps)
+			a, err := z80asm.NewAssembler().AssembleString("ORG 0x8000\n" + callerAssembly)
 			if err != nil {
 				t.Fatal(err)
 			}
 			if len(a.Errors) > 0 {
-				t.Fatalf("%v\n%s", a.Errors, steps.Assembly)
+				t.Fatalf("%v\n%s", a.Errors, callerAssembly)
 			}
 			z := emulator.NewRemogattoZ80()
 			mem := z.Memory()

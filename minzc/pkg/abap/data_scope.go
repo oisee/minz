@@ -61,7 +61,8 @@ func walkDataDeclarations(stmts []Stmt_, visit func(*DataDecl) error) error {
 	return nil
 }
 
-// DATA in report event/control-flow blocks belongs to report global storage.
+// DATA in regular report event/control-flow blocks belongs to report storage.
+// AT-SELECTION-SCREEN is a procedure and keeps its own local DATA.
 // FORM/method DATA is collected separately, once per invocation.
 func (l *lowerer) collectReportData() error {
 	names := map[string]bool{}
@@ -86,7 +87,9 @@ func (l *lowerer) collectReportData() error {
 		var ss []Stmt_
 		switch v := d.(type) {
 		case *EventDecl:
-			ss = v.Body
+			if v.Event != "AT-SELECTION-SCREEN" {
+				ss = v.Body
+			}
 		case *formBodyDecl:
 			ss = []Stmt_{v.stmt}
 		}
@@ -100,6 +103,9 @@ func (l *lowerer) collectReportData() error {
 	}
 	sort.Strings(keys)
 	for _, k := range keys {
+		if k == "AT-SELECTION-SCREEN" {
+			continue
+		}
 		if err := walkDataDeclarations(l.prog.Events[k], visit); err != nil {
 			return err
 		}

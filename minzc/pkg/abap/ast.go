@@ -49,11 +49,12 @@ type Token struct {
 
 // Program is the top-level semantic unit after AST simplification.
 type Program struct {
-	Name    string
-	Decls   []Decl
-	Params  []*ParamDecl       // PARAMETERS declarations (selection screen)
-	Events  map[string][]Stmt_ // INITIALIZATION, START-OF-SELECTION, END-OF-SELECTION, etc.
-	SeedSQL []string           // *!sql pragma lines (seed database setup)
+	Name        string
+	Decls       []Decl
+	Params      []*ParamDecl         // PARAMETERS declarations (selection screen)
+	Events      map[string][]Stmt_   // INITIALIZATION, START-OF-SELECTION, END-OF-SELECTION, etc.
+	EventBlocks map[string][][]Stmt_ // Separate processing blocks in source order.
+	SeedSQL     []string             // *!sql pragma lines (seed database setup)
 }
 
 // Decl is any top-level or local declaration.
