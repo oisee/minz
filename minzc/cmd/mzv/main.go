@@ -884,8 +884,11 @@ func registerABAPHosts(vm *mir2.VM, headless bool, trace bool) {
 	// SY-UZEIT:  current time (simplified: 0)
 
 	var syIndex, sySubrc, syTabix, syUcomm int64
-	indexBacking, subrcBacking := false, false
+	indexBacking, subrcBacking, tabixBacking := false, false, false
 	for _, global := range vm.Module.Globals {
+		if global.Name == "_abap_tabix_value" {
+			tabixBacking = true
+		}
 		if global.Name == "_abap_subrc_value" {
 			subrcBacking = true
 		}
@@ -909,6 +912,10 @@ func registerABAPHosts(vm *mir2.VM, headless bool, trace bool) {
 		return []mir2.Value{{I: sySubrc}}, nil
 	}
 	vm.Hosts["sy_get_tabix"] = func(_ []mir2.Value) ([]mir2.Value, error) {
+		if tabixBacking {
+			data := vm.ReadHeap(vm.GlobalAddr("_abap_tabix_value"), 4)
+			return []mir2.Value{{I: int64(int32(uint32(data[0]) | uint32(data[1])<<8 | uint32(data[2])<<16 | uint32(data[3])<<24))}}, nil
+		}
 		return []mir2.Value{{I: syTabix}}, nil
 	}
 	vm.Hosts["sy_get_ucomm"] = func(_ []mir2.Value) ([]mir2.Value, error) {
@@ -935,6 +942,14 @@ func registerABAPHosts(vm *mir2.VM, headless bool, trace bool) {
 		if subrcBacking {
 			value := uint32(sySubrc)
 			vm.WriteHeapBytes(vm.GlobalAddr("_abap_subrc_value"), []byte{byte(value), byte(value >> 8), byte(value >> 16), byte(value >> 24)})
+		}
+		return nil, nil
+	}
+	vm.Hosts["sy_set_tabix"] = func(args []mir2.Value) ([]mir2.Value, error) {
+		syTabix = args[0].I
+		if tabixBacking {
+			value := uint32(syTabix)
+			vm.WriteHeapBytes(vm.GlobalAddr("_abap_tabix_value"), []byte{byte(value), byte(value >> 8), byte(value >> 16), byte(value >> 24)})
 		}
 		return nil, nil
 	}
