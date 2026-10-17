@@ -9,6 +9,9 @@ import (
 
 // VerifyGlobalRelocations validates the layout and symbolic initializer ABI.
 func VerifyGlobalRelocations(m *Module) error {
+	if err := VerifyGlobalInitializers(m); err != nil {
+		return err
+	}
 	symbols := map[string]bool{}
 	for _, g := range m.Globals {
 		symbols[g.Name] = true
@@ -25,7 +28,7 @@ func VerifyGlobalRelocations(m *Module) error {
 		if g.Ty == nil || g.Storage != StorageNormal || g.At != nil {
 			return fmt.Errorf("invalid relocation storage for global %s", g.Name)
 		}
-		width := max(ByteWidth(g.Ty), len(g.Init))
+		width := ByteWidth(g.Ty)
 		used := map[int]bool{}
 		for _, r := range g.Relocs {
 			if r.Offset < 0 || r.Offset > width-2 || used[r.Offset] || used[r.Offset+1] {
@@ -46,7 +49,7 @@ func VerifyGlobalRelocations(m *Module) error {
 }
 
 func emitRelocatedGlobalData(sb *strings.Builder, g Global) {
-	data := make([]byte, max(ByteWidth(g.Ty), len(g.Init)))
+	data := make([]byte, ByteWidth(g.Ty))
 	copy(data, g.Init)
 	relocs := append([]GlobalRelocation(nil), g.Relocs...)
 	sort.Slice(relocs, func(i, j int) bool { return relocs[i].Offset < relocs[j].Offset })

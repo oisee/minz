@@ -2643,12 +2643,13 @@ func emitRuntimeFuncs(hm *hir.Module, target uint8) {
 func emitZXRuntimeFuncs(hm *hir.Module, names map[string]bool) {
 	// Global: cursor position (row, col) — 2 bytes
 	hm.Globals = append(hm.Globals, mir2.Global{
-		Name: "_zx_cursor",
-		Ty:   mir2.TyU8,
-		Init: []byte{0, 0}, // row=0, col=0
+		Name:     "_zx_cursor",
+		Producer: "abap.emitZXRuntimeFuncs",
+		Ty:       mir2.NewArray(mir2.TyU8, 2),
+		Init:     []byte{0, 0}, // row=0, col=0
 	})
 
-	// Global: embedded ZX Spectrum font (chars 32-95 = space to underscore, 64 chars × 8 bytes = 512)
+	// Global: embedded ZX Spectrum font (chars 32-127, 96 chars × 8 bytes = 768)
 	// Covers: space, !, ", #, $, %, &, ', (, ), *, +, ,, -, ., /, 0-9, :, ;, <, =, >, ?, @, A-Z, [, \, ], ^, _
 	fontData := []byte{
 		// Space (32)
@@ -2772,9 +2773,10 @@ func emitZXRuntimeFuncs(hm *hir.Module, names map[string]bool) {
 		0x3C, 0x42, 0x99, 0xA1, 0xA1, 0x99, 0x42, 0x3C,
 	}
 	hm.Globals = append(hm.Globals, mir2.Global{
-		Name: "_zx_font",
-		Ty:   mir2.TyU8,
-		Init: fontData,
+		Name:     "_zx_font",
+		Producer: "abap.emitZXRuntimeFuncs",
+		Ty:       mir2.NewArray(mir2.TyU8, len(fontData)),
+		Init:     fontData,
 	})
 
 	// _zx_putchar(ch: u8) — render one character to screen at cursor position.

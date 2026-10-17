@@ -54,11 +54,12 @@ const (
 
 // Global is a module-level variable or constant.
 type Global struct {
+	Producer   string             `json:",omitempty"` // frontend or synthesis pass responsible for the declared layout
 	Relocs     []GlobalRelocation `json:",omitempty"` // symbolic 16-bit initializer addresses
 	Volatile   bool               `json:",omitempty"` // all source reads/writes are observable
 	Name       string             // linker symbol name
 	Ty         Ty
-	Init       []byte       // initial bytes; shorter initializers are zero-padded to ByteWidth(Ty)
+	Init       []byte       // must fit ByteWidth(Ty); shorter initializers are zero-padded
 	InitString bool         // source used a byte-array string literal; preserve it when printing Nanz
 	IsConst    bool         // true = read-only (placed in ROM on Z80)
 	At         *uint16      // if non-nil: variable is placed at this absolute address (EQU / AT)
