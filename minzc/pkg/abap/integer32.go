@@ -125,12 +125,19 @@ func emitInteger32Runtime(hm *hir.Module, target uint8) error {
 		io = `@extern fun _zx_putchar(ch: u8) -> void
 fun _abap_num_putchar(ch: u8) -> void { _zx_putchar(ch) }`
 	}
-	m, err := nanz.Parse(integer32Output+integer32Arithmetic+integer32Input+characterRuntime+stringRuntime+io, "abap-integer-runtime.nanz")
+	sqlRuntime := ""
+	for _, f := range hm.Funcs {
+		if f.Name == "sqlite_column_text" {
+			sqlRuntime = sqlScalarRuntime
+			break
+		}
+	}
+	m, err := nanz.Parse(integer32Output+integer32Arithmetic+integer32Input+sqlRuntime+characterRuntime+stringRuntime+io, "abap-integer-runtime.nanz")
 	if err != nil {
 		return fmt.Errorf("ABAP integer runtime: %w", err)
 	}
 	for _, f := range m.Funcs {
-		if strings.HasPrefix(f.Name, "_zx_") || f.Name == "_abap_fault" || f.Name == "_abap_input_data" || f.Name == "_abap_input_line" {
+		if strings.HasPrefix(f.Name, "_zx_") || f.Name == "_abap_fault" || f.Name == "_abap_input_data" || f.Name == "_abap_input_line" || f.Name == "sqlite_column_text" {
 			continue
 		}
 		hm.Funcs = append(hm.Funcs, f)

@@ -138,3 +138,13 @@ evidence. Nonimplemented system fields are refused; SY-SUBRC/SQL, remaining
 semantic admission, guarded CP/M closure and main integration remain open.
 The Nanz TUI design now reuses checked i32/c transport rather than legacy u16
 field retrieval; that connection remains to be implemented.
+
+## Scalar SQL transport checkpoint
+
+[Typed SELECT transport and operation status](2026-10-17-sql-scalar-transport.md)
+replace truncated integer reads and pointer assignment with checked i32
+conversion and owned character/string copying. Missing rows retain targets;
+SY-SUBRC uses shared i32 state. Row-model tests cover both VMs and Z80; seven
+additional actual-SQLite cases cover both VMs. Native SQL server linkage,
+NULL conversion, remaining SQL/executable admission, guarded CP/M closure and
+main integration remain required.

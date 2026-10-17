@@ -625,7 +625,7 @@ func (l *lowerer) emitSYStruct() {
 	st := &mir2.StructTy{
 		Name: "SY",
 		Fields: []mir2.StructField{
-			{Name: "SUBRC", Ty: mir2.TyU16},
+			{Name: "SUBRC", Ty: mir2.TyI32},
 			{Name: "INDEX", Ty: mir2.TyI32},
 			{Name: "TABIX", Ty: mir2.TyU16},
 			{Name: "UCOMM", Ty: mir2.TyU16}, // simplified: command code as u16
@@ -1400,99 +1400,35 @@ func (l *lowerer) lowerSelect(s *SelectStmt) (hir.Stmt, error) {
 		},
 	})
 
-	if s.Single {
-		// SELECT SINGLE: one sqlite_step + column reads + finalize
-		stmts = append(stmts, &hir.ExprStmt{
-			Expr: &hir.CallExpr{
-				Fn:   "sqlite_step",
-				Args: []hir.Expr{&hir.VarRefExpr{Name: stmtVar, Ty: mir2.TyU16}},
-				Ty:   mir2.TyU8,
-			},
-		})
-
-		// Read columns into target variables
-		for i, into := range s.Into {
-			ty := l.varTypes[into]
-			if ty == nil {
-				ty = mir2.TyU16
-			}
-			fnName := "sqlite_column_int"
-			if ty == mir2.TyPtr {
-				fnName = "sqlite_column_text"
-			}
-			stmts = append(stmts, &hir.AssignStmt{
-				Target: &hir.VarRefExpr{Name: into, Ty: ty},
-				Val: &hir.CallExpr{
-					Fn: fnName,
-					Args: []hir.Expr{
-						&hir.VarRefExpr{Name: stmtVar, Ty: mir2.TyU16},
-						&hir.IntLitExpr{Val: int64(i), Ty: mir2.TyU8},
-					},
-					Ty: ty,
-				},
-			})
-		}
-
-		// Finalize
-		stmts = append(stmts, &hir.ExprStmt{
-			Expr: &hir.CallExpr{
-				Fn:   "sqlite_finalize",
-				Args: []hir.Expr{&hir.VarRefExpr{Name: stmtVar, Ty: mir2.TyU16}},
-				Ty:   mir2.TyU8,
-			},
-		})
-	} else {
-		// SELECT ... ENDSELECT loop: while sqlite_step == 1 { read columns; body }
-		var loopBody []hir.Stmt
-
-		// Read columns into target variables
-		for i, into := range s.Into {
-			ty := l.varTypes[into]
-			if ty == nil {
-				ty = mir2.TyU16
-			}
-			fnName := "sqlite_column_int"
-			if ty == mir2.TyPtr {
-				fnName = "sqlite_column_text"
-			}
-			loopBody = append(loopBody, &hir.AssignStmt{
-				Target: &hir.VarRefExpr{Name: into, Ty: ty},
-				Val: &hir.CallExpr{
-					Fn: fnName,
-					Args: []hir.Expr{
-						&hir.VarRefExpr{Name: stmtVar, Ty: mir2.TyU16},
-						&hir.IntLitExpr{Val: int64(i), Ty: mir2.TyU8},
-					},
-					Ty: ty,
-				},
-			})
-		}
-
-		// Append user's loop body (from SELECT...ENDSELECT block)
-		if len(s.Body) > 0 {
-			l.loopDepth++
-			bodyBlock, err := l.lowerStmts(s.Body)
-			l.loopDepth--
-			if err != nil {
-				return nil, err
-			}
-			loopBody = append(loopBody, bodyBlock.Body...)
-		}
-
-		stmts = append(stmts, &hir.WhileStmt{
-			Cond: &hir.BinExpr{
-				Op: "==",
-				L: &hir.CallExpr{
-					Fn:   "sqlite_step",
-					Args: []hir.Expr{&hir.VarRefExpr{Name: stmtVar, Ty: mir2.TyU16}},
-					Ty:   mir2.TyU8,
-				},
-				R:  &hir.IntLitExpr{Val: 1, Ty: mir2.TyU8},
-				Ty: mir2.TyU8,
-			},
-			Body: &hir.Block{Body: loopBody},
-		})
+	stmts = append(stmts, &hir.IfStmt{
+		Cond: &hir.BinExpr{Op: "==", L: &hir.VarRefExpr{Name: stmtVar, Ty: mir2.TyU16}, R: &hir.IntLitExpr{Val: 0, Ty: mir2.TyU16}, Ty: mir2.TyBool},
+		Then: &hir.Block{Body: []hir.Stmt{charCall("_abap_fault", &hir.IntLitExpr{Val: 6, Ty: mir2.TyU8})}},
+	})
+	columns, err := l.lowerSQLColumns(s, stmtVar)
+	if err != nil {
+		return nil, err
 	}
+	step := &hir.CallExpr{Fn: "sqlite_step", Args: []hir.Expr{&hir.VarRefExpr{Name: stmtVar, Ty: mir2.TyU16}}, Ty: mir2.TyU8}
+	hasRow := &hir.BinExpr{Op: "==", L: step, R: &hir.IntLitExpr{Val: 1, Ty: mir2.TyU8}, Ty: mir2.TyBool}
+	stmts = append(stmts, charCall("sy_set_subrc", &hir.IntLitExpr{Val: 4, Ty: mir2.TyI32}))
+	columns = append(columns, charCall("sy_set_subrc", &hir.IntLitExpr{Val: 0, Ty: mir2.TyI32}))
+	if s.Single {
+		stmts = append(stmts, &hir.IfStmt{Cond: hasRow, Then: &hir.Block{Body: columns}})
+	} else {
+		found := fmt.Sprintf("_sql_found_%d", uid)
+		stmts = append(stmts, &hir.VarDeclStmt{Name: found, Ty: mir2.TyU8, Init: &hir.IntLitExpr{Val: 0, Ty: mir2.TyU8}})
+		columns = append(columns, &hir.AssignStmt{Target: &hir.VarRefExpr{Name: found, Ty: mir2.TyU8}, Val: &hir.IntLitExpr{Val: 1, Ty: mir2.TyU8}})
+		l.loopDepth++
+		body, err := l.lowerStmts(s.Body)
+		l.loopDepth--
+		if err != nil {
+			return nil, err
+		}
+		columns = append(columns, body.Body...)
+		stmts = append(stmts, &hir.WhileStmt{Cond: hasRow, Body: &hir.Block{Body: columns}})
+		stmts = append(stmts, &hir.IfStmt{Cond: &hir.BinExpr{Op: "!=", L: &hir.VarRefExpr{Name: found, Ty: mir2.TyU8}, R: &hir.IntLitExpr{Val: 0, Ty: mir2.TyU8}, Ty: mir2.TyBool}, Then: &hir.Block{Body: []hir.Stmt{charCall("sy_set_subrc", &hir.IntLitExpr{Val: 0, Ty: mir2.TyI32})}}, Else: &hir.Block{Body: []hir.Stmt{charCall("sy_set_subrc", &hir.IntLitExpr{Val: 4, Ty: mir2.TyI32})}}})
+	}
+	stmts = append(stmts, &hir.ExprStmt{Expr: &hir.CallExpr{Fn: "sqlite_finalize", Args: []hir.Expr{&hir.VarRefExpr{Name: stmtVar, Ty: mir2.TyU16}}, Ty: mir2.TyU8}})
 
 	return &hir.Block{Body: stmts}, nil
 }
@@ -1548,7 +1484,7 @@ func (l *lowerer) lowerSelectIntoTable(s *SelectStmt, sql string, uid int) (hir.
 	}
 	l.hm.Globals = append(l.hm.Globals, mir2.Global{
 		Name: bufName,
-		Ty:   mir2.TyU8,
+		Ty:   &mir2.ArrayTy{Elem: mir2.TyU8, Len: maxRows * rowSize},
 		Init: make([]byte, maxRows*rowSize),
 	})
 	l.hm.Globals = append(l.hm.Globals, mir2.Global{
@@ -1988,13 +1924,8 @@ func (l *lowerer) lowerExpr(e Expr_) (hir.Expr, error) {
 		default:
 			return nil, fmt.Errorf("SY-%s: precise system-field semantics are not implemented", strings.ToUpper(e.Field))
 		}
-		// SUBRC still awaits the SQL/operation-status audit; INDEX is backed
-		// by the shared i32 counter state used by native code and the VM.
 		fnName := fmt.Sprintf("sy_get_%s", strings.ToLower(e.Field))
-		if strings.EqualFold(e.Field, "index") {
-			return &hir.CallExpr{Fn: fnName, Ty: mir2.TyI32}, nil
-		}
-		return &hir.CallExpr{Fn: fnName, Ty: mir2.TyU16}, nil
+		return &hir.CallExpr{Fn: fnName, Ty: mir2.TyI32}, nil
 
 	case *FuncCall:
 		args := make([]hir.Expr, len(e.Args))
@@ -2139,18 +2070,20 @@ func emitRuntimeFuncs(hm *hir.Module, target uint8) {
 		names[f.Name] = true
 	}
 
-	// DO updates must have a real implementation in raw VM and native Z80.
-	// Previously sy_set_index was called but never defined.
-	hm.Globals = append(hm.Globals, mir2.Global{Name: "_abap_index_value", Ty: mir2.TyI32})
-	if !names["sy_set_index"] {
-		hm.Funcs = append(hm.Funcs, &hir.Func{
-			Name: "sy_set_index", Params: []hir.Param{{Name: "value", Ty: mir2.TyI32}}, RetTy: mir2.TyVoid,
-			Body: &hir.Block{Body: []hir.Stmt{&hir.AssignStmt{
-				Target: &hir.VarRefExpr{Name: "_abap_index_value", Ty: mir2.TyI32},
-				Val:    &hir.VarRefExpr{Name: "value", Ty: mir2.TyI32},
-			}}},
-		})
-		names["sy_set_index"] = true
+	// Index and operation status must share native/VM four-byte state.
+	for _, field := range []string{"index", "subrc"} {
+		backing, setter := "_abap_"+field+"_value", "sy_set_"+field
+		hm.Globals = append(hm.Globals, mir2.Global{Name: backing, Ty: mir2.TyI32})
+		if !names[setter] {
+			hm.Funcs = append(hm.Funcs, &hir.Func{
+				Name: setter, Params: []hir.Param{{Name: "value", Ty: mir2.TyI32}}, RetTy: mir2.TyVoid,
+				Body: &hir.Block{Body: []hir.Stmt{&hir.AssignStmt{
+					Target: &hir.VarRefExpr{Name: backing, Ty: mir2.TyI32},
+					Val:    &hir.VarRefExpr{Name: "value", Ty: mir2.TyI32},
+				}}},
+			})
+			names[setter] = true
+		}
 	}
 	// SY-* getter stubs (return 0 on Z80, overridden by MZV host functions)
 	syFields := []string{"subrc", "index", "tabix", "ucomm", "datum", "uzeit"}
@@ -2158,8 +2091,8 @@ func emitRuntimeFuncs(hm *hir.Module, target uint8) {
 		fnName := "sy_get_" + field
 		if !names[fnName] {
 			var value hir.Expr = &hir.IntLitExpr{Val: 0, Ty: mir2.TyU16}
-			if field == "index" {
-				value = &hir.VarRefExpr{Name: "_abap_index_value", Ty: mir2.TyI32}
+			if field == "index" || field == "subrc" {
+				value = &hir.VarRefExpr{Name: "_abap_" + field + "_value", Ty: mir2.TyI32}
 			}
 			hm.Funcs = append(hm.Funcs, &hir.Func{
 				Name:  fnName,

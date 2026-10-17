@@ -807,10 +807,20 @@ func registerSQLiteHosts(vm *mir2.VM, trace bool) {
 		sh := args[0].I
 		col := int(args[1].I)
 		st, ok := stmts[sh]
-		if !ok || col >= len(st.vals) {
-			return []mir2.Value{writeStr("")}, nil
+		if !ok || col < 0 || col >= len(st.vals) {
+			return []mir2.Value{{I: 0}}, nil
 		}
-		s := fmt.Sprintf("%v", st.vals[col])
+		var s string
+		switch value := st.vals[col].(type) {
+		case nil:
+			return []mir2.Value{{I: 0}}, nil
+		case []byte:
+			s = string(value)
+		case string:
+			s = value
+		default:
+			s = fmt.Sprint(value)
+		}
 		if trace {
 			fmt.Fprintf(os.Stderr, "  sqlite_column_text(%d, %d) → %q\n", sh, col, s)
 		}
@@ -854,8 +864,11 @@ func registerABAPHosts(vm *mir2.VM, headless bool, trace bool) {
 	// SY-UZEIT:  current time (simplified: 0)
 
 	var syIndex, sySubrc, syTabix, syUcomm int64
-	indexBacking := false
+	indexBacking, subrcBacking := false, false
 	for _, global := range vm.Module.Globals {
+		if global.Name == "_abap_subrc_value" {
+			subrcBacking = true
+		}
 		if global.Name == "_abap_index_value" {
 			indexBacking = true
 		}
@@ -869,6 +882,10 @@ func registerABAPHosts(vm *mir2.VM, headless bool, trace bool) {
 		return []mir2.Value{{I: syIndex}}, nil
 	}
 	vm.Hosts["sy_get_subrc"] = func(_ []mir2.Value) ([]mir2.Value, error) {
+		if subrcBacking {
+			data := vm.ReadHeap(vm.GlobalAddr("_abap_subrc_value"), 4)
+			return []mir2.Value{{I: int64(int32(uint32(data[0]) | uint32(data[1])<<8 | uint32(data[2])<<16 | uint32(data[3])<<24))}}, nil
+		}
 		return []mir2.Value{{I: sySubrc}}, nil
 	}
 	vm.Hosts["sy_get_tabix"] = func(_ []mir2.Value) ([]mir2.Value, error) {
@@ -895,6 +912,10 @@ func registerABAPHosts(vm *mir2.VM, headless bool, trace bool) {
 	}
 	vm.Hosts["sy_set_subrc"] = func(args []mir2.Value) ([]mir2.Value, error) {
 		sySubrc = args[0].I
+		if subrcBacking {
+			value := uint32(sySubrc)
+			vm.WriteHeapBytes(vm.GlobalAddr("_abap_subrc_value"), []byte{byte(value), byte(value >> 8), byte(value >> 16), byte(value >> 24)})
+		}
 		return nil, nil
 	}
 	vm.Hosts["sy_set_ucomm"] = func(args []mir2.Value) ([]mir2.Value, error) {

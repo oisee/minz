@@ -704,18 +704,9 @@ func convertSelect(node *ASTChild) (Stmt_, error) {
 	for _, child := range node.Children {
 		switch child.Type {
 		case "Select", "SelectLoop":
-			// Collect tokens from the SELECT statement header.
-			// Use only direct tokens — collectChildTokens would duplicate
-			// expression sub-tokens that are already in the flat token list.
-			for _, t := range child.Tokens {
-				selectTokens = append(selectTokens, t.Str)
-			}
-			// Also collect Token-type direct children (some parsers put tokens there)
-			for _, sub := range child.Children {
-				if sub.Type == "Token" {
-					selectTokens = append(selectTokens, sub.Str)
-				}
-			}
+			// Use the flat header once; descendant tokens duplicate its prefix.
+			selectTokens = append(selectTokens, expressionTokens(child)...)
+
 		case "Body":
 			sub := &StructNode{Type: "Body", Children: child.Children}
 			decls, err := walkStructure(sub)
@@ -1252,8 +1243,8 @@ func parseSelectStmt(tokens []string) (Decl, error) {
 						}
 						break
 					}
-					if t != "," {
-						sel.Into = append(sel.Into, t)
+					if t != "," && t != "@" {
+						sel.Into = append(sel.Into, strings.ToLower(strings.TrimPrefix(t, "@")))
 					}
 					i++
 				}
