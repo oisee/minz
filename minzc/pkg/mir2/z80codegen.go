@@ -1201,7 +1201,11 @@ func (g *z80cg) genBlock(f *Func, b *Block) {
 			if ret, ok := b.Term.(*TermRet); ok && !f.Attrs.FallibleCY {
 				isTail := len(ret.Vals) == 0 ||
 					(len(ret.Vals) == 1 && ret.Vals[0] == last.Dst)
-				if isTail {
+					// A bare-metal void main must halt after the callee returns.
+				// A tail JP would let the callee RET consume a nonexistent
+				// program return address and skip main's termination boundary.
+				haltingMain := f.Name == "main" && len(ret.Vals) == 0 && g.runtime != Z80RuntimeCPM && !g.calledMain
+				if isTail && !haltingMain {
 					g.tailCallInst = last
 				}
 			}

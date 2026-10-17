@@ -80,7 +80,8 @@ func TestZ80ExternalFiveWordsAndSpillNative(t *testing.T) {
 			}
 			combined.Spilled = append(combined.Spilled, ar.Spilled...)
 		}
-		text, e := Z80Codegen(m, combined)
+		// The test-owned loader CALLs main and checks its return address/SP.
+		text, e := Z80Codegen(m, combined, Z80CodegenOptions{CalledMain: true})
 		if e != nil {
 			t.Fatal(e)
 		} // test-owned RET at the external label, immutable emitted caller
