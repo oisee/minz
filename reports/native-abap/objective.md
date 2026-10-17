@@ -185,3 +185,12 @@ The [Nanz TUI boundary](2026-10-16-pbo-pai-nanz-tui.md) now explicitly refuses
 unsupported SELECTION-SCREEN layout/dialog statements rather than dropping
 them. Plain PARAMETERS input remains admitted. This is semantic hardening;
 the actual PBO/PAI renderer/keyboard connection still follows the core goal.
+
+## SELECT clause admission checkpoint
+
+[SELECT admission](2026-10-17-select-admission.md) now refuses unimplemented
+ORDER BY and other additions before INTO/WHERE token consumption. Unknown
+trailing clauses no longer disappear; host escapes outside INTO are refused
+until binding is implemented. Literal clause words remain data. This closes
+syntax loss, not general SQL support. Remaining semantic admission, native
+runtime closure and main integration are still required.

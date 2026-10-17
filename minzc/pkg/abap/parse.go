@@ -1056,6 +1056,9 @@ func parseSelectStmt(tokens []string) (Decl, error) {
 		return nil, fmt.Errorf("SELECT: too few tokens")
 	}
 
+	if err := validateSelectTokenAdmission(tokens); err != nil {
+		return nil, err
+	}
 	sel := &SelectStmt{}
 	i := 1 // skip SELECT
 
@@ -1254,15 +1257,7 @@ func parseSelectStmt(tokens []string) (Decl, error) {
 			continue
 		}
 
-		if upper == "ORDER" {
-			// ORDER BY — skip for now
-			for i < len(tokens) && tokens[i] != "." {
-				i++
-			}
-			continue
-		}
-
-		i++ // skip unknown tokens
+		return nil, fmt.Errorf("SELECT: unsupported clause or token %q", tokens[i])
 	}
 
 	// Default: no INTO → use field names as target variables
