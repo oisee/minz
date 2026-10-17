@@ -23,3 +23,19 @@ To reproduce in an isolated directory, copy `reference.mjs`, `semantic-package.j
 Real PERFORM calls use the reference entry. For compatibility with compiler assertion comments, a FORM with exactly one CHANGING parameter also has a plain-name scalar wrapper: its USING arguments are separate local objects, its output starts at zero, and the wrapper calls the same reference implementation. This wrapper is an external test convention; it is not the semantics of PERFORM.
 
 Untyped FORM parameters and VALUE/LIKE modes are explicitly refused until implemented. Literal USING arguments are admitted only when a conservative, transitive effect check proves the corresponding formal cannot be written. CHANGING and writable USING require actual variables.
+
+## Independent division reference
+
+Copy `division-reference.mjs` into the isolated semantic-reference directory
+prepared with the package and lock files above. Run:
+
+```sh
+node_modules/node/bin/node division-reference.mjs /ABS/PATH/arithmetic.abap /ABS/PATH/inputs.json
+```
+
+Both inputs live in `minzc/pkg/abap/testdata/arithmetic-reference`. The script
+uses a fresh reference runtime for each case, injects globals after loading
+the unchanged source, calls FORM probe and reads actual global objects. The
+JSON fingerprints both source and inputs. This runtime is not an overflow
+oracle because its Integer.set overflow check is disabled; fault expectations
+are specification-derived. Node remains a reference-generation dependency only.

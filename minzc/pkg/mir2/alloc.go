@@ -392,6 +392,7 @@ func (a *AllocResult) Loc(r Reg) PhysLoc {
 // Spill: LocMem slot when all compatible locations are taken.
 func Allocate(f *Func, lr *LivenessResult, ct CostTable) *AllocResult {
 	info := collectRegInfo(f)
+	crossBlock := liveAcrossBlocks(f, lr)
 	ig := BuildInterferenceGraph(f, lr)
 	allLocs := ct.Locs()
 
@@ -453,7 +454,7 @@ func Allocate(f *Func, lr *LivenessResult, ct CostTable) *AllocResult {
 		// neighbours, reuse that location — the OpMove becomes a no-op.
 		if hintSrc, ok := coalesceHint[r]; ok {
 			if srcLoc, allocated := result.Locs[hintSrc]; allocated {
-				if !usedByNeighbors[srcLoc] &&
+				if !usedByNeighbors[srcLoc] && !(srcLoc.Kind == LocFlag && crossBlock[r]) &&
 					locCompatible(ri.Ty, srcLoc) &&
 					ct.Cost(ri.Cls, srcLoc) < InfCost {
 					result.Locs[r] = srcLoc
@@ -468,6 +469,9 @@ func Allocate(f *Func, lr *LivenessResult, ct CostTable) *AllocResult {
 
 		for _, loc := range allLocs {
 			if usedByNeighbors[loc] {
+				continue
+			}
+			if loc.Kind == LocFlag && crossBlock[r] {
 				continue
 			}
 			if !locCompatible(ri.Ty, loc) {
@@ -659,4 +663,27 @@ func physicalAliases(loc PhysLoc) []PhysLoc {
 	}
 	// Other location kinds have no additional pair overlap.
 	return nil
+}
+
+// Flags encode only the current instruction predicate. A value read in a
+// successor needs byte storage: intervening blocks may freely change flags,
+// and block-local predicate relocations cannot restore a persistent F value.
+func liveAcrossBlocks(f *Func, lr *LivenessResult) map[Reg]bool {
+	out := map[Reg]bool{}
+	if lr == nil {
+		lr = ComputeLiveness(f)
+	}
+	info := collectRegInfo(f)
+	for _, b := range f.Blocks {
+		set := lr.LiveOutOf(f, b)
+		if set == nil {
+			continue
+		}
+		for r := range info {
+			if set.Has(r) {
+				out[r] = true
+			}
+		}
+	}
+	return out
 }

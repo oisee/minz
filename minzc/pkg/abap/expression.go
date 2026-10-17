@@ -36,7 +36,7 @@ func expressionPrecedence(op string) int {
 		return 3
 	case "+", "-":
 		return 4
-	case "*", "/", "MOD":
+	case "*", "/", "DIV", "MOD":
 		return 5
 	}
 	return 0

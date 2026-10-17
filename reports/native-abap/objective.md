@@ -55,3 +55,14 @@ Decimal output also covers INT_MIN and INT_MAX. Native wide NEG's former
 byte fallback is corrected and verified across allocated banks and spills.
 Arithmetic overflow/rounding and full-width input, other type admission,
 strings, the full unchanged-program gate and main integration remain required.
+
+## Checked arithmetic checkpoint
+
+[Checked integer arithmetic and backend correction](2026-10-17-checked-arithmetic.md)
+cover signed overflow, integer division rounding, DIV/MOD signs and terminal
+errors before destination writes. Thirteen independent division cases, ten
+fault cases and six valid bounds pass raw/final VM and native Z80. Persistent
+CFG predicates now receive byte storage in both allocators. Core HIR, MIR2,
+ABAP and generated-parser packages pass. These function-boundary checks do
+not complete the full-report criterion. Character/string semantics, precise
+remaining admission, input, system fields and main integration remain open.

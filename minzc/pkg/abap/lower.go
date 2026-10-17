@@ -1994,6 +1994,9 @@ func (l *lowerer) lowerExpr(e Expr_) (hir.Expr, error) {
 		default:
 			return nil, fmt.Errorf("unsupported ABAP unary operator %q", e.Op)
 		}
+		if op == "-" && ty == mir2.TyI32 {
+			return &hir.CallExpr{Fn: "_abap_neg", Args: []hir.Expr{val}, Ty: ty}, nil
+		}
 		return &hir.UnaryExpr{Op: op, X: val, Ty: ty}, nil
 
 	case *SYField:
@@ -2033,6 +2036,29 @@ func (l *lowerer) lowerBinOp(e *BinOp) (hir.Expr, error) {
 		}
 		if rhs.ExprTy() != mir2.TyI32 {
 			rhs = &hir.CastExpr{X: rhs, Ty: mir2.TyI32}
+		}
+	}
+	if lhs.ExprTy() == mir2.TyI32 && rhs.ExprTy() == mir2.TyI32 {
+		var name string
+		switch strings.ToUpper(e.Op) {
+		case "+":
+			name = "_abap_add"
+		case "-":
+			name = "_abap_sub"
+		case "*":
+			name = "_abap_mul"
+		case "/", "DIV", "MOD":
+			mode := int64(0)
+			if strings.EqualFold(e.Op, "DIV") {
+				mode = 1
+			}
+			if strings.EqualFold(e.Op, "MOD") {
+				mode = 2
+			}
+			return &hir.CallExpr{Fn: "_abap_division", Args: []hir.Expr{lhs, rhs, &hir.IntLitExpr{Val: mode, Ty: mir2.TyU8}}, Ty: mir2.TyI32}, nil
+		}
+		if name != "" {
+			return &hir.CallExpr{Fn: name, Args: []hir.Expr{lhs, rhs}, Ty: mir2.TyI32}, nil
 		}
 	}
 	// Map ABAP operators to HIR string operators

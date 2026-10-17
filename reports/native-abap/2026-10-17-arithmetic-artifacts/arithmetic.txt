@@ -1,0 +1,72 @@
+=== RUN   TestCheckedArithmeticReferenceAndFaults
+=== RUN   TestCheckedArithmeticReferenceAndFaults/division/7/2
+=== RUN   TestCheckedArithmeticReferenceAndFaults/division/-7/2
+=== RUN   TestCheckedArithmeticReferenceAndFaults/division/7/-2
+=== RUN   TestCheckedArithmeticReferenceAndFaults/division/-7/-2
+=== RUN   TestCheckedArithmeticReferenceAndFaults/division/7/3
+=== RUN   TestCheckedArithmeticReferenceAndFaults/division/-7/3
+=== RUN   TestCheckedArithmeticReferenceAndFaults/division/7/-3
+=== RUN   TestCheckedArithmeticReferenceAndFaults/division/-7/-3
+=== RUN   TestCheckedArithmeticReferenceAndFaults/division/0/0
+=== RUN   TestCheckedArithmeticReferenceAndFaults/division/-2147483648/3
+=== RUN   TestCheckedArithmeticReferenceAndFaults/division/2147483647/3
+=== RUN   TestCheckedArithmeticReferenceAndFaults/division/1/-2147483648
+=== RUN   TestCheckedArithmeticReferenceAndFaults/division/-1/-2147483648
+=== RUN   TestCheckedArithmeticReferenceAndFaults/fault/plus/2147483647/1
+    arithmetic_test.go:136: native fault=2 PC=a5ad SP=eff6 (terminal halt; caller stack remains active)
+=== RUN   TestCheckedArithmeticReferenceAndFaults/fault/plus/-2147483648/-1
+    arithmetic_test.go:136: native fault=2 PC=a5ad SP=eff6 (terminal halt; caller stack remains active)
+=== RUN   TestCheckedArithmeticReferenceAndFaults/fault/minus/-2147483648/1
+    arithmetic_test.go:136: native fault=2 PC=a5ad SP=eff6 (terminal halt; caller stack remains active)
+=== RUN   TestCheckedArithmeticReferenceAndFaults/fault/minus/2147483647/-1
+    arithmetic_test.go:136: native fault=2 PC=a5ad SP=eff6 (terminal halt; caller stack remains active)
+=== RUN   TestCheckedArithmeticReferenceAndFaults/fault/product/2147483647/2
+    arithmetic_test.go:136: native fault=2 PC=a5ad SP=eff0 (terminal halt; caller stack remains active)
+=== RUN   TestCheckedArithmeticReferenceAndFaults/fault/product/-46341/46341
+    arithmetic_test.go:136: native fault=2 PC=a5ad SP=eff0 (terminal halt; caller stack remains active)
+=== RUN   TestCheckedArithmeticReferenceAndFaults/fault/negate/-2147483648/0
+    arithmetic_test.go:136: native fault=2 PC=a5ad SP=eff6 (terminal halt; caller stack remains active)
+=== RUN   TestCheckedArithmeticReferenceAndFaults/fault/probe/-2147483648/-1
+    arithmetic_test.go:136: native fault=2 PC=a5ad SP=efec (terminal halt; caller stack remains active)
+=== RUN   TestCheckedArithmeticReferenceAndFaults/fault/probe/1/0
+    arithmetic_test.go:136: native fault=1 PC=a5ad SP=eff2 (terminal halt; caller stack remains active)
+=== RUN   TestCheckedArithmeticReferenceAndFaults/fault/probe/-1/0
+    arithmetic_test.go:136: native fault=1 PC=a5ad SP=eff2 (terminal halt; caller stack remains active)
+=== RUN   TestCheckedArithmeticReferenceAndFaults/valid/plus/-2147483648/2147483647
+=== RUN   TestCheckedArithmeticReferenceAndFaults/valid/minus/2147483647/2147483647
+=== RUN   TestCheckedArithmeticReferenceAndFaults/valid/product/-2147483648/1
+=== RUN   TestCheckedArithmeticReferenceAndFaults/valid/product/-2147483648/0
+=== RUN   TestCheckedArithmeticReferenceAndFaults/valid/product/-46340/46340
+=== RUN   TestCheckedArithmeticReferenceAndFaults/valid/negate/-2147483647/0
+--- PASS: TestCheckedArithmeticReferenceAndFaults (0.42s)
+    --- PASS: TestCheckedArithmeticReferenceAndFaults/division/7/2 (0.00s)
+    --- PASS: TestCheckedArithmeticReferenceAndFaults/division/-7/2 (0.00s)
+    --- PASS: TestCheckedArithmeticReferenceAndFaults/division/7/-2 (0.00s)
+    --- PASS: TestCheckedArithmeticReferenceAndFaults/division/-7/-2 (0.00s)
+    --- PASS: TestCheckedArithmeticReferenceAndFaults/division/7/3 (0.00s)
+    --- PASS: TestCheckedArithmeticReferenceAndFaults/division/-7/3 (0.00s)
+    --- PASS: TestCheckedArithmeticReferenceAndFaults/division/7/-3 (0.00s)
+    --- PASS: TestCheckedArithmeticReferenceAndFaults/division/-7/-3 (0.00s)
+    --- PASS: TestCheckedArithmeticReferenceAndFaults/division/0/0 (0.00s)
+    --- PASS: TestCheckedArithmeticReferenceAndFaults/division/-2147483648/3 (0.00s)
+    --- PASS: TestCheckedArithmeticReferenceAndFaults/division/2147483647/3 (0.00s)
+    --- PASS: TestCheckedArithmeticReferenceAndFaults/division/1/-2147483648 (0.00s)
+    --- PASS: TestCheckedArithmeticReferenceAndFaults/division/-1/-2147483648 (0.00s)
+    --- PASS: TestCheckedArithmeticReferenceAndFaults/fault/plus/2147483647/1 (0.00s)
+    --- PASS: TestCheckedArithmeticReferenceAndFaults/fault/plus/-2147483648/-1 (0.00s)
+    --- PASS: TestCheckedArithmeticReferenceAndFaults/fault/minus/-2147483648/1 (0.00s)
+    --- PASS: TestCheckedArithmeticReferenceAndFaults/fault/minus/2147483647/-1 (0.00s)
+    --- PASS: TestCheckedArithmeticReferenceAndFaults/fault/product/2147483647/2 (0.00s)
+    --- PASS: TestCheckedArithmeticReferenceAndFaults/fault/product/-46341/46341 (0.00s)
+    --- PASS: TestCheckedArithmeticReferenceAndFaults/fault/negate/-2147483648/0 (0.00s)
+    --- PASS: TestCheckedArithmeticReferenceAndFaults/fault/probe/-2147483648/-1 (0.00s)
+    --- PASS: TestCheckedArithmeticReferenceAndFaults/fault/probe/1/0 (0.00s)
+    --- PASS: TestCheckedArithmeticReferenceAndFaults/fault/probe/-1/0 (0.00s)
+    --- PASS: TestCheckedArithmeticReferenceAndFaults/valid/plus/-2147483648/2147483647 (0.00s)
+    --- PASS: TestCheckedArithmeticReferenceAndFaults/valid/minus/2147483647/2147483647 (0.00s)
+    --- PASS: TestCheckedArithmeticReferenceAndFaults/valid/product/-2147483648/1 (0.00s)
+    --- PASS: TestCheckedArithmeticReferenceAndFaults/valid/product/-2147483648/0 (0.00s)
+    --- PASS: TestCheckedArithmeticReferenceAndFaults/valid/product/-46340/46340 (0.00s)
+    --- PASS: TestCheckedArithmeticReferenceAndFaults/valid/negate/-2147483647/0 (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/abap	0.432s
