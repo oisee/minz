@@ -15,6 +15,11 @@ func TestSelectUnsupportedAdditions(t *testing.T) {
 		"SELECT n FROM t GROUP BY n INTO x. ENDSELECT.",
 		"SELECT SINGLE n FROM t WHERE n = @x INTO @y.",
 		"SELECT SINGLE n FROM t INTO @y WHERE n = @x.",
+		"SELECT SINGLE n FROM t WHERE n = x INTO y.",
+		"SELECT SINGLE n FROM t INTO y WHERE n EQ x.",
+		"SELECT SINGLE n FROM t WHERE n BETWEEN 0 AND x INTO y.",
+		"SELECT SINGLE n FROM t WHERE n IN ( x ) INTO y.",
+		"SELECT SINGLE n FROM t WHERE n = 7 + x INTO y.",
 	} {
 		t.Run(query, func(t *testing.T) {
 			m, err := Compile("REPORT zadmit. DATA x TYPE i. DATA y TYPE i. "+query, "zadmit")

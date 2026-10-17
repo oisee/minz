@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/minz/minzc/pkg/emulator"
+	"github.com/minz/minzc/pkg/mir2"
 	"github.com/minz/minzc/pkg/nanz"
 	"github.com/minz/minzc/pkg/pipeline"
 	"github.com/minz/minzc/pkg/z80asm"
@@ -67,7 +68,13 @@ func TestAgonHelloMOSProductsAndBoundary(t *testing.T) {
 			// Assemble ordinary Z80 caller at 0x8000. .LIL MOS calls are kept intact;
 			// intercept those two bytes explicitly instead of pretending a Z80 CPU
 			// implements eZ80 instruction prefixes.
-			res, err = a.AssembleString("ORG $8000\n" + s.Assembly)
+			// This harness invokes main with a return address, so select the
+			// platform-wrapper contract instead of bare-main HALT termination.
+			callerAssembly, err := mir2.Z80Codegen(s.MIR2Module, s.Allocation, mir2.Z80CodegenOptions{CalledMain: true, UnsignedPairComparePolicy: s.UnsignedPairComparePolicy})
+			if err != nil {
+				t.Fatal(err)
+			}
+			res, err = a.AssembleString("ORG $8000\n" + callerAssembly)
 			if err != nil || len(res.Errors) != 0 {
 				t.Fatal(err, res.Errors)
 			}
@@ -138,7 +145,7 @@ func TestAgonHelloMOSProductsAndBoundary(t *testing.T) {
 				if err = os.MkdirAll(dir, 0755); err != nil {
 					t.Fatal(err)
 				}
-				for name, data := range map[string][]byte{"caller.a80": []byte("ORG $8000\n" + s.Assembly), "caller.bin": res.Binary, "stdout.bin": output, "result.txt": []byte(fmt.Sprintf("PASS boundary mock, keyCalls=%d SP=%04x\n", keyCalls, z.GetSP()))} {
+				for name, data := range map[string][]byte{"caller.a80": []byte("ORG $8000\n" + callerAssembly), "caller.bin": res.Binary, "stdout.bin": output, "result.txt": []byte(fmt.Sprintf("PASS boundary mock, keyCalls=%d SP=%04x\n", keyCalls, z.GetSP()))} {
 					if err = os.WriteFile(filepath.Join(dir, name), data, 0644); err != nil {
 						t.Fatal(err)
 					}

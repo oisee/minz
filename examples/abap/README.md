@@ -50,6 +50,10 @@ compilation. The guarded native test assembles the actual COM runtime image.
 - Scalar SELECT transport has real-SQLite VM tests and a native row model.
   RETURN closes statements in lexical order. Native SQL server linkage is
   separate. INTO TABLE/ALV fixed-slot prototypes are explicitly refused.
+- Native `EXEC SQL` blocks preserve the body and use checked SQLite execution;
+  `*!sql` seed statements use the opened database handle. Errors in open/exec/
+  step stop with ABAP fault 6. Native host bindings and unescaped WHERE host
+  operands are explicitly refused; general SAP SQL semantics are not claimed.
 - PARAMETERS uses checked i32/fixed-character transport. Connecting the
   [Nanz TUI with PBO/PAI](../../reports/native-abap/2026-10-16-pbo-pai-nanz-tui.md)
   is a design awaiting implementation; general dynpros are not supported.

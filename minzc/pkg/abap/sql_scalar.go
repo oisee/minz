@@ -4,12 +4,30 @@ import (
 	"fmt"
 	"github.com/minz/minzc/pkg/hir"
 	"github.com/minz/minzc/pkg/mir2"
+	"strings"
 )
 
 // SQLite transports scalar values as bounded NUL-terminated text. The old
 // integer port only carries 16 bits and must not implement ABAP TYPE i.
 const sqlScalarRuntime = `
 @extern fun sqlite_column_text(stmt: u16, col: u8) -> ^u8
+@extern fun sqlite_open(name: ^u8) -> u16
+@extern fun sqlite_exec(db: u16, sql: ^u8) -> u8
+@extern fun sqlite_step(stmt: u16) -> u8
+fun _abap_sql_open(name: ^u8) -> u16 {
+    var db: u16 = sqlite_open(name)
+    if db == 0 { _abap_fault(6) }
+    return db
+}
+fun _abap_sql_exec(db: u16, sql: ^u8) -> void {
+    if sqlite_exec(db, sql) != 0 { _abap_fault(6) }
+}
+fun _abap_sql_step(stmt: u16) -> u8 {
+    var rc: u8 = sqlite_step(stmt)
+    if rc > 1 { _abap_fault(6) }
+    return rc
+}
+
 fun _abap_sql_text_length(data: ^u8) -> u16 {
     if data == @ptr(u8, 0) { _abap_fault(6) }
     var n: u16 = 0
@@ -70,4 +88,20 @@ func (l *lowerer) lowerSQLColumns(s *SelectStmt, stmt string) ([]hir.Stmt, error
 		}
 	}
 	return body, nil
+}
+
+// SQL crosses the target ABI as an ASCII NUL-terminated string.
+func validateSQLText(sql string) error {
+	if strings.TrimSpace(sql) == "" {
+		return fmt.Errorf("SQL: empty statement is not admitted")
+	}
+	if len(sql) >= 65535 {
+		return fmt.Errorf("SQL: statement exceeds 16-bit text transport")
+	}
+	for _, ch := range []byte(sql) {
+		if ch == 0 || ch > 127 {
+			return fmt.Errorf("SQL: statement requires ASCII without NUL")
+		}
+	}
+	return nil
 }

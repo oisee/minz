@@ -143,7 +143,7 @@ fun _abap_num_putchar(ch: u8) -> void { _zx_putchar(ch) }`
 		return fmt.Errorf("ABAP integer runtime: %w", err)
 	}
 	for _, f := range m.Funcs {
-		if strings.HasPrefix(f.Name, "_zx_") || f.Name == "_abap_fault" || f.Name == "_abap_input_data" || f.Name == "_abap_input_line" || f.Name == "sqlite_column_text" {
+		if strings.HasPrefix(f.Name, "_zx_") || f.Name == "_abap_fault" || f.Name == "_abap_input_data" || f.Name == "_abap_input_line" || (f.IsExtern && strings.HasPrefix(f.Name, "sqlite_")) {
 			continue
 		}
 		hm.Funcs = append(hm.Funcs, f)

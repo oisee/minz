@@ -2,6 +2,7 @@ package abap
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 )
 
@@ -56,6 +57,61 @@ func validateSelectTokenAdmission(tokens []string) error {
 				return fmt.Errorf("SELECT: host expressions outside INTO are not implemented")
 			}
 		}
+	}
+	return nil
+}
+
+// An unescaped RHS name in classic Open SQL can denote an ABAP host object.
+// Sending it unchanged to SQLite can instead read a same-named database column.
+// Until binding is implemented, admit literal RHS values and explicitly
+// table-qualified column references, rather than guessing from schema names.
+func validateSelectPredicateOperands(tokens []string) error {
+	between := false
+	for i, token := range tokens {
+		switch strings.ToUpper(token) {
+		case "+", "-", "*", "/":
+			// Keep signed literal RHS values; do not send a host-containing
+			// arithmetic expression to SQLite merely because it starts with a literal.
+			if (token == "+" || token == "-") && i > 0 {
+				switch strings.ToUpper(tokens[i-1]) {
+				case "=", "!=", "<>", "<", ">", "<=", ">=", "BETWEEN", "AND":
+					continue
+				}
+			}
+			return fmt.Errorf("SELECT: predicate arithmetic expressions are not implemented")
+		case "BETWEEN":
+			between = true
+		case "AND":
+			if !between {
+				continue
+			}
+			between = false
+		case "=", "!=", "<>", "<", ">", "<=", ">=", "LIKE", "IN":
+		default:
+			continue
+		}
+		if i+1 >= len(tokens) {
+			return fmt.Errorf("SELECT: incomplete predicate")
+		}
+		rhs := tokens[i+1]
+		if strings.HasPrefix(rhs, "'") || strings.EqualFold(rhs, "NULL") {
+			continue
+		}
+		if _, err := strconv.ParseFloat(rhs, 64); err == nil && len(rhs) > 0 && ((rhs[0] >= '0' && rhs[0] <= '9') || rhs[0] == '-' || rhs[0] == '+') {
+			continue
+		}
+		if (rhs == "-" || rhs == "+") && i+2 < len(tokens) {
+			if _, err := strconv.ParseFloat(tokens[i+2], 64); err == nil {
+				continue
+			}
+		}
+		if strings.Contains(rhs, "~") {
+			continue
+		}
+		if i+2 < len(tokens) && tokens[i+2] == "~" {
+			continue
+		}
+		return fmt.Errorf("SELECT: unescaped host operands or predicate expressions are not implemented: %s", rhs)
 	}
 	return nil
 }

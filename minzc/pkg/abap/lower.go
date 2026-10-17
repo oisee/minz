@@ -547,40 +547,18 @@ func (l *lowerer) lower() (*hir.Module, error) {
 		initStmts = append(initStmts, &hir.AssignStmt{
 			Target: &hir.VarRefExpr{Name: "_abap_db", Ty: mir2.TyU16},
 			Val: &hir.CallExpr{
-				Fn:   "sqlite_open",
+				Fn:   "_abap_sql_open",
 				Args: []hir.Expr{&hir.AddrOfExpr{Sym: memSym}},
 				Ty:   mir2.TyU16,
 			},
 		})
-		// Execute seed SQL statements from *!sql pragmas.
-		// Each wrapped in asm function to avoid regalloc string pointer corruption.
-		for si, sql := range l.prog.SeedSQL {
-			sqlSym := l.internStr(sql)
-			sqlAsmSym := strings.ReplaceAll(strings.ReplaceAll(sqlSym, "@", "_"), ".", "_")
-			seedFn := fmt.Sprintf("_abap_seed_%d", si)
-			l.hm.Funcs = append(l.hm.Funcs, &hir.Func{
-				Name:   seedFn,
-				Params: []hir.Param{{Name: "_x", Ty: mir2.TyU8}},
-				RetTy:  mir2.TyVoid,
-				Body: &hir.Block{
-					Body: []hir.Stmt{
-						&hir.AsmStmt{
-							Target: "z80",
-							Code: fmt.Sprintf(
-								"LD HL, 1 / LD DE, %s / CALL sqlite_exec", sqlAsmSym),
-							Ins:         []hir.AsmOperand{{Name: "_x"}},
-							ClobberRegs: []string{"A", "B", "C", "D", "E", "H", "L"},
-						},
-					},
-				},
-			})
-			initStmts = append(initStmts, &hir.ExprStmt{
-				Expr: &hir.CallExpr{
-					Fn:   seedFn,
-					Args: []hir.Expr{&hir.IntLitExpr{Val: 0, Ty: mir2.TyU8}},
-					Ty:   mir2.TyVoid,
-				},
-			})
+		// Seed statements use the actual opened handle and the ordinary checked ABI.
+		for _, sql := range l.prog.SeedSQL {
+			seed, err := l.lowerExecSQL(&ExecSQLStmt{SQL: sql})
+			if err != nil {
+				return nil, err
+			}
+			initStmts = append(initStmts, seed)
 		}
 		// YELLOW border = seed SQL done
 		if l.hm.Target == hir.TargetZXSpectrum {
@@ -1416,16 +1394,19 @@ func (l *lowerer) lowerCase(s *CaseStmt) (hir.Stmt, error) {
 // ── EXEC SQL → sqlite_exec lowering ─────────────────────────────────────────
 
 func (l *lowerer) lowerExecSQL(s *ExecSQLStmt) (hir.Stmt, error) {
+	if err := validateSQLText(s.SQL); err != nil {
+		return nil, err
+	}
 	l.hasSelect = true // ensure sqlite externs + _abap_db are emitted
 	sqlSym := l.internStr(s.SQL)
 	return &hir.ExprStmt{
 		Expr: &hir.CallExpr{
-			Fn: "sqlite_exec",
+			Fn: "_abap_sql_exec",
 			Args: []hir.Expr{
 				&hir.VarRefExpr{Name: "_abap_db", Ty: mir2.TyU16},
 				&hir.AddrOfExpr{Sym: sqlSym},
 			},
-			Ty: mir2.TyU8,
+			Ty: mir2.TyVoid,
 		},
 	}, nil
 }
@@ -1485,6 +1466,9 @@ func (l *lowerer) lowerSelect(s *SelectStmt) (hir.Stmt, error) {
 	}
 
 	// Intern the SQL string
+	if err := validateSQLText(sql); err != nil {
+		return nil, err
+	}
 	sqlSym := l.internStr(sql)
 
 	// Temp variable names
@@ -1514,7 +1498,7 @@ func (l *lowerer) lowerSelect(s *SelectStmt) (hir.Stmt, error) {
 	if err != nil {
 		return nil, err
 	}
-	step := &hir.CallExpr{Fn: "sqlite_step", Args: []hir.Expr{&hir.VarRefExpr{Name: stmtVar, Ty: mir2.TyU16}}, Ty: mir2.TyU8}
+	step := &hir.CallExpr{Fn: "_abap_sql_step", Args: []hir.Expr{&hir.VarRefExpr{Name: stmtVar, Ty: mir2.TyU16}}, Ty: mir2.TyU8}
 	hasRow := &hir.BinExpr{Op: "==", L: step, R: &hir.IntLitExpr{Val: 1, Ty: mir2.TyU8}, Ty: mir2.TyBool}
 	stmts = append(stmts, charCall("sy_set_subrc", &hir.IntLitExpr{Val: 4, Ty: mir2.TyI32}))
 	columns = append(columns, charCall("sy_set_subrc", &hir.IntLitExpr{Val: 0, Ty: mir2.TyI32}))

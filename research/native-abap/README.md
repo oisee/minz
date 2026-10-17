@@ -12,7 +12,7 @@ Acceptance checks from `minzc`:
 go test ./pkg/abap/...
 ```
 
-The CLEAR regression sets PATH to an empty directory, explicitly calls the FORM, and checks the actual global object in raw/final VM and assembled Z80. It also checks initial memory and native PC/SP. The complete objective is in `reports/native-abap/objective.md`; numeric, string and CHANGING semantics and two independent full-program references are still required.
+The CLEAR regression sets PATH to an empty directory, explicitly calls the FORM, and checks the actual global object in raw/final VM and assembled Z80. It also checks initial memory and native PC/SP. Numeric, owned-character/string and CHANGING admission now have frozen-reference and native execution tests, including unchanged whole reports. The complete objective and remaining main-integration status are in `reports/native-abap/objective.md`; the current launch guide is `examples/abap/README.md`.
 
 ## Independent FORM semantics reference
 

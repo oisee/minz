@@ -140,3 +140,43 @@ func TestABAPSQLActualSQLiteCleanup(t *testing.T) {
 		})
 	}
 }
+
+func TestABAPSQLSeedAndNativeBlockActualSQLite(t *testing.T) {
+	src := `*!sql CREATE TABLE t(n);
+REPORT zsql.
+DATA x TYPE i VALUE 17.
+EXEC SQL.
+INSERT INTO t VALUES(65537);
+ENDEXEC.
+SELECT SINGLE n FROM t INTO x.`
+	m, err := abap.Compile(src, "zsql")
+	if err != nil {
+		t.Fatal(err)
+	}
+	steps, err := pipeline.CompileHIRSteps(m, pipeline.DefaultOptions())
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, module := range []*mir2.Module{hir.LowerModule(m), steps.MIR2Module} {
+		v := mir2.NewVM(module)
+		registerSQLiteHosts(v, false)
+		str := func(s string) mir2.Value { return v.AllocHeap(append([]byte(s), 0)) }
+		// Occupy handle 1: main must seed and query its own handle 2.
+		first, err := v.Hosts["sqlite_open"]([]mir2.Value{str(":memory:")})
+		if err != nil || len(first) != 1 || first[0].I != 1 {
+			t.Fatalf("open %v %v", first, err)
+		}
+		if _, err := v.Call("main", nil); err != nil {
+			t.Fatal(err)
+		}
+		if got := binary.LittleEndian.Uint16(v.ReadHeap(v.GlobalAddr("_abap_db"), 2)); got != 2 {
+			t.Fatalf("db=%d", got)
+		}
+		if got := int32(binary.LittleEndian.Uint32(v.ReadHeap(v.GlobalAddr("x"), 4))); got != 65537 {
+			t.Fatalf("x=%d", got)
+		}
+		for _, h := range []mir2.Value{first[0], {I: 2}} {
+			v.Hosts["sqlite_close"]([]mir2.Value{h})
+		}
+	}
+}

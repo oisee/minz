@@ -13,11 +13,16 @@ Completion requires:
 
 The SAP runtime is outside this goal. No success criterion is replaced by a narrower parser-only milestone.
 
+Current implementation has evidence for the parser, semantic-admission and
+unchanged full-program execution criteria. The [readiness audit](2026-10-17-main-readiness.md)
+maps them to concrete tests and commands. Main integration remains pending;
+the historical checkpoints below are not current limitations or proof of merge.
+
 The inspected [PBO/PAI and Nanz TUI integration design](2026-10-16-pbo-pai-nanz-tui.md)
 records a follow-up selection-screen adapter. Current report input is not a
 general dynpro runtime; this extension does not replace semantic hardening.
 
-## Current checkpoint
+## Initial checkpoint (historical)
 
 The semantic adapter previously discarded errors at report, FORM, function, method and control-flow boundaries. These errors now propagate. Regression tests cover flat and nested trees and procedure-lowering failures. Single-object numeric CLEAR and PERFORM calls are parsed; CLEAR is checked on the actual global memory after an explicit call in raw/final VM and native Z80, with initial memory and PC/SP verified. The existing ABAP package tests pass.
 
@@ -244,3 +249,12 @@ The [Nanz TUI integration plan](2026-10-16-pbo-pai-nanz-tui.md) now states the
 ownership and atomic field-transfer requirements explicitly. Renderer/focus
 reuse is planned; ABAP PBO/PAI dispatch is not implemented. Remaining SQL
 admission/error handling audit and main integration are still required.
+
+## Checked SQL execution checkpoint
+
+[SQL execution](2026-10-17-sql-execution.md) preserves complete EXEC SQL bodies,
+removes the hardcoded seed handle/ASM wrapper and checks open/exec/step status.
+Actual SQLite confirms handle isolation and iterator-error reporting. Native
+row-model gates check handle use and failure behavior. Ambiguous WHERE host
+operands and unsupported text transport are explicit refusals. Main integration
+and the final merge-state audit remain required.

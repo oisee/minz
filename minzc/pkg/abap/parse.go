@@ -1000,7 +1000,7 @@ func convertStmt(s *StmtNode) (Decl, error) {
 	case upper == "MOVE" || s.Type == "Move":
 		return parseMoveStmt(tokens)
 	case upper == "EXEC" || s.Type == "ExecSQL":
-		return parseExecSQL(tokens)
+		return parseExecSQL(s)
 	case upper == "SELECT" || s.Type == "Select" || s.Type == "SelectionScreen":
 		if s.Type == "SelectionScreen" {
 			return nil, fmt.Errorf("SELECTION-SCREEN layout and dialog statements are not implemented; PARAMETERS input is supported separately")
@@ -1092,31 +1092,41 @@ func parseDataStmt(tokens []string) (Decl, error) {
 	return &DataDecl{Name: name, AbapTy: ty, Length: length, Value: value}, nil
 }
 
-// parseExecSQL: EXEC SQL. raw_sql ENDEXEC.
-// Collects tokens between EXEC SQL and ENDEXEC as raw SQL for sqlite_exec.
-func parseExecSQL(tokens []string) (Decl, error) {
-	// Tokens: EXEC SQL <sql_tokens...> ENDEXEC
-	// Skip "EXEC" and "SQL", collect until "ENDEXEC" or "."
-	var sqlParts []string
-	started := false
-	for _, t := range tokens {
-		upper := strings.ToUpper(t)
-		if upper == "EXEC" || upper == "SQL" {
-			started = true
-			continue
+// parseExecSQL consumes the structured block, not just its period-terminated header.
+func parseExecSQL(s *StmtNode) (Decl, error) {
+	if len(s.Children) < 3 || s.Children[0].Type != "ExecSQL" || s.Children[len(s.Children)-1].Type != "EndExec" {
+		return nil, fmt.Errorf("EXEC SQL: complete structured body is required")
+	}
+	header := collectTokenStrings(&StmtNode{Tokens: s.Children[0].Tokens, Children: s.Children[0].Children})
+	if len(header) != 3 || !strings.EqualFold(header[0], "EXEC") || !strings.EqualFold(header[1], "SQL") || header[2] != "." {
+		return nil, fmt.Errorf("EXEC SQL: header additions are not implemented")
+	}
+	var body strings.Builder
+	var previous *Token
+	for _, child := range s.Children[1 : len(s.Children)-1] {
+		if child.Type != "NativeSQL" || len(child.Tokens) == 0 {
+			return nil, childError(child, fmt.Errorf("EXEC SQL: unsupported body node %s", child.Type))
 		}
-		if upper == "ENDEXEC" || (started && t == ".") {
-			break
-		}
-		if started {
-			sqlParts = append(sqlParts, t)
+		for _, token := range child.Tokens {
+			// Native host binding is not a SQL literal and needs explicit transport.
+			if !strings.HasPrefix(token.Str, "'") && strings.Contains(token.Str, ":") {
+				return nil, childError(child, fmt.Errorf("EXEC SQL: host bindings are not implemented"))
+			}
+			if previous != nil {
+				if token.Row != previous.Row {
+					body.WriteByte('\n')
+				} else if token.Col > previous.Col+len(previous.Str) {
+					body.WriteByte(' ')
+				}
+			}
+			body.WriteString(token.Str)
+			previous = token
 		}
 	}
-	if len(sqlParts) == 0 {
-		return nil, nil // empty EXEC SQL
+	if strings.TrimSpace(body.String()) == "" {
+		return nil, fmt.Errorf("EXEC SQL: empty body is not admitted")
 	}
-	sql := strings.Join(sqlParts, " ")
-	return &formBodyDecl{stmt: &ExecSQLStmt{SQL: sql}}, nil
+	return &formBodyDecl{stmt: &ExecSQLStmt{SQL: body.String()}}, nil
 }
 
 // parseSelectStmt: SELECT [SINGLE] f1 f2 ... FROM table [INTO (v1,v2,...)] [WHERE cond].
@@ -1261,6 +1271,14 @@ func parseSelectStmt(tokens []string) (Decl, error) {
 					whereParts = append(whereParts, t)
 				}
 				i++
+			}
+			if err := validateSelectPredicateOperands(whereParts); err != nil {
+				return nil, err
+			}
+			for j, token := range whereParts {
+				if !strings.HasPrefix(token, "'") {
+					whereParts[j] = strings.ReplaceAll(token, "~", ".")
+				}
 			}
 			sel.Where = strings.Join(whereParts, " ")
 			continue

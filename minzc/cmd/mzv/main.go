@@ -754,34 +754,45 @@ func registerSQLiteHosts(vm *mir2.VM, trace bool) {
 		return []mir2.Value{{I: sh}}, nil
 	}
 
-	// @sqlite_step(stmt_handle) -> has_row (1=yes, 0=done)
-	// Scans the row into cached values so column_int/column_text can read them.
+	// @sqlite_step(stmt_handle) -> 1=row, 0=done, 2=error.
+	// Never expose a partial row or turn an iterator error into exhaustion.
 	vm.Hosts["sqlite_step"] = func(args []mir2.Value) ([]mir2.Value, error) {
 		sh := args[0].I
 		st, ok := stmts[sh]
 		if !ok {
+			return []mir2.Value{{I: 2}}, nil
+		}
+		finish := func(stepErr error) ([]mir2.Value, error) {
+			closeErr := st.rows.Close()
+			delete(stmts, sh)
+			if stepErr != nil || closeErr != nil {
+				if trace {
+					fmt.Fprintf(os.Stderr, "  sqlite_step(%d) → error: %v; close: %v\n", sh, stepErr, closeErr)
+				}
+				return []mir2.Value{{I: 2}}, nil
+			}
+			if trace {
+				fmt.Fprintf(os.Stderr, "  sqlite_step(%d) → done (rows closed)\n", sh)
+			}
 			return []mir2.Value{{I: 0}}, nil
 		}
 		if st.rows.Next() {
-			// Scan row into cache
-			cols, _ := st.rows.Columns()
-			st.vals = make([]interface{}, len(cols))
-			ptrs := make([]interface{}, len(cols))
-			for i := range st.vals {
-				ptrs[i] = &st.vals[i]
+			cols, err := st.rows.Columns()
+			if err != nil {
+				return finish(err)
 			}
-			st.rows.Scan(ptrs...)
+			values := make([]interface{}, len(cols))
+			ptrs := make([]interface{}, len(cols))
+			for i := range values {
+				ptrs[i] = &values[i]
+			}
+			if err := st.rows.Scan(ptrs...); err != nil {
+				return finish(err)
+			}
+			st.vals = values
 			return []mir2.Value{{I: 1}}, nil
 		}
-		// Done — close the rows immediately to release connection
-		if err := st.rows.Close(); err != nil && trace {
-			fmt.Fprintf(os.Stderr, "  sqlite_step(%d) close error: %v\n", sh, err)
-		}
-		delete(stmts, sh)
-		if trace {
-			fmt.Fprintf(os.Stderr, "  sqlite_step(%d) → done (rows closed)\n", sh)
-		}
-		return []mir2.Value{{I: 0}}, nil
+		return finish(st.rows.Err())
 	}
 
 	// @sqlite_column_int(stmt_handle, col_index) -> value
