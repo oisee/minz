@@ -41,7 +41,7 @@ Real PERFORM calls now pass actual-object addresses for fully typed reference-mo
 
 Main and event lowering errors now propagate too. Untyped FORM parameters and VALUE/LIKE modes are explicit refusals. Literal USING arguments require a conservative transitive no-write proof. Native CP/M output is checked with addressable locals and live references, without frontend PUSH/POP workarounds. HIR address-taking now respects local-parameter shadowing of globals.
 
-The plain-name scalar FORM wrapper remains available for existing compiler assertion comments; real PERFORM uses the reference entry. That wrapper convention is documented in the research README. Numeric widths, generic character storage/copy semantics, complete expression admission, broader unchanged-program reference evidence and main integration had not yet occurred.
+The plain-name scalar FORM wrapper remains available for existing compiler assertion comments; real PERFORM uses the reference entry. That wrapper convention is documented in the research README. Numeric widths, generic character storage/copy semantics, complete expression admission, broader unchanged-program reference evidence and main integration remain required.
 
 ## Expression checkpoint
 
@@ -62,7 +62,7 @@ wide/boundary probes match full four-byte memory on both VMs and native Z80.
 Decimal output also covers INT_MIN and INT_MAX. Native wide NEG's former
 byte fallback is corrected and verified across allocated banks and spills.
 Arithmetic overflow/rounding and full-width input, other type admission,
-strings, the full unchanged-program gate and main integration had not yet occurred.
+strings, the full unchanged-program gate and main integration remain required.
 
 ## Checked arithmetic checkpoint
 
@@ -73,7 +73,7 @@ fault cases and six valid bounds pass raw/final VM and native Z80. Persistent
 CFG predicates now receive byte storage in both allocators. Core HIR, MIR2,
 ABAP and generated-parser packages pass. These function-boundary checks do
 not complete the full-report criterion. Character/string semantics, precise
-remaining admission, input, system fields and main integration had not yet occurred.
+remaining admission, input, system fields and main integration remain open.
 
 ## Declaration admission checkpoint
 
@@ -92,7 +92,7 @@ independent reference, raw/final VM and native Z80 memory/output. Bare-metal
 HALT and called-main PC/SP contracts are checked separately. A final-call
 termination bug in bare main is corrected. Owned dynamic string semantics,
 input, remaining admission/system fields, guarded CP/M runtime integration
-and main integration had not yet occurred.
+and main integration still need completion.
 
 ## Owned string checkpoint
 
@@ -102,7 +102,7 @@ unchanged full reports combine string copy/CLEAR/reference aliasing, exact
 output and i32 globals above 65535; independent reference, raw/final VM and
 Z80 agree. Smaller-capacity probes stop before committing writes. ABAP and
 Go-parser package tests pass. Remaining operator/system-field admission,
-full-width input, guarded CP/M closure and main integration had not yet occurred.
+full-width input, guarded CP/M closure and main integration remain required.
 
 ## Executable admission checkpoint
 
@@ -112,7 +112,7 @@ refuse catchable-exception blocks and prevent selection-screen additions from
 collapsing into the ordinary validation event. Full ABAP and Go-parser tests
 pass. This prepares the Nanz TUI event boundary; the adapter itself remains a
 follow-up. System fields, remaining operators, full-width input, guarded CP/M
-closure and main integration had not yet occurred.
+closure and main integration remain open.
 
 ## Full-width integer input checkpoint
 
@@ -123,7 +123,7 @@ and does not commit a replacement. The native BDOS buffer has real 22-byte
 storage. Complete-report input cases pass raw/final VM and Z80, and real MZV
 CLI pipe runs verify output without Node. System fields, remaining operators,
 character input/default transport, guarded CP/M closure and main integration
-had not yet occurred.
+remain required.
 
 ## Character input checkpoint
 
@@ -133,7 +133,7 @@ copies/truncates/pads replacements and retains embedded NUL. MZV reads from
 the shared stdin channel without consuming later program input. Eighteen
 full-report VM/Z80 cases and twelve actual CLI runs pass, alongside the full
 ABAP, Go-parser and MZV package suites. System fields, remaining operators,
-guarded CP/M closure and main integration had not yet occurred.
+guarded CP/M closure and main integration remain open.
 
 ## Loop-index checkpoint
 
@@ -143,7 +143,7 @@ procedure RETURN. Five unchanged complete reports match independent
 reference, both VMs and assembled Z80, including 65,537 actual iterations.
 One nested-RETURN provider disagreement is explicitly separated from parity
 evidence. Nonimplemented system fields are refused; SY-SUBRC/SQL, remaining
-semantic admission, guarded CP/M closure and main integration had not yet occurred.
+semantic admission, guarded CP/M closure and main integration remain open.
 The Nanz TUI design now reuses checked i32/c transport rather than legacy u16
 field retrieval; that connection remains to be implemented.
 
@@ -155,7 +155,7 @@ conversion and owned character/string copying. Missing rows retain targets;
 SY-SUBRC uses shared i32 state. Row-model tests cover both VMs and Z80; seven
 additional actual-SQLite cases cover both VMs. Native SQL server linkage,
 NULL conversion, remaining SQL/executable admission, guarded CP/M closure and
-main integration had not yet occurred.
+main integration remain required.
 
 ## DATA lifetime checkpoint
 
@@ -165,7 +165,7 @@ DATA uses global storage. Physical local names preserve the distinction
 between early global reads and later local bindings. Four unchanged full
 reports match independent reference, both VMs and Z80. Shadow probes are
 separated from provider parity. Remaining admission, scalar method RETURN,
-guarded CP/M closure and main integration had not yet occurred.
+guarded CP/M closure and main integration remain open.
 
 ## Scalar-return checkpoint
 
@@ -174,7 +174,7 @@ scalar result through early method/function exits and restores nested loop
 indexes. CLASS-METHODS declarations are preserved with a static ABI. Twelve
 function-boundary VM/Z80 calls pass; these are explicitly separate from
 source-level method dispatch and full-report reference gates. Remaining
-admission, guarded CP/M closure and main integration had not yet occurred.
+admission, guarded CP/M closure and main integration remain required.
 
 ## Private runtime and guarded CP/M checkpoint
 
@@ -185,7 +185,7 @@ and memory outside the image match. Internal status grants no runtime authority;
 reserved runtime collisions are refused and bound/conditional call edges are
 preserved during pruning. Full HIR/MIR2/ABAP/parser/MZV suites pass. Guarded
 character/string and CHANGING pointer access, remaining semantic admission,
-I/O/SQL closure, main integration had not yet occurred; the bounded Nanz TUI connection remains outside this goal.
+I/O/SQL closure, main integration and the bounded Nanz TUI connection remain open.
 
 ## Selection-screen admission checkpoint
 
@@ -201,7 +201,7 @@ ORDER BY and other additions before INTO/WHERE token consumption. Unknown
 trailing clauses no longer disappear; host escapes outside INTO are refused
 until binding is implemented. Literal clause words remain data. This closes
 syntax loss, not general SQL support. Remaining semantic admission, native
-runtime closure and main integration had not yet occurred.
+runtime closure and main integration are still required.
 
 ## Class and method admission checkpoint
 
@@ -212,7 +212,7 @@ cannot turn into executable empty bodies. Explicit empty methods remain valid.
 VALUE-importing static scalar methods pass three new VM/Z80 calls and the
 previous scalar gates remain intact. This is a concrete function-boundary
 path, not general source-level OO dispatch or reference IMPORTING proof.
-Remaining output/SQL/runtime admission and main integration had not yet occurred.
+Remaining output/SQL/runtime admission and main integration remain required.
 
 ## Counted output and default template checkpoint
 
@@ -224,7 +224,7 @@ reference, both VMs and both native termination modes for bytes, globals,
 canary and PC/SP. Formatting additions and arbitrary ULINE layout are explicit
 refusals. This is counted stream/default-template output, not full SAP list
 formatting. Remaining SQL/resource/runtime admission and main integration
-had not yet occurred.
+remain required.
 
 ## SQL lifetime and guarded CLI checkpoint
 
@@ -236,7 +236,7 @@ remaining isolated between handles/VMs. INTO TABLE/ALV fixed-slot prototypes
 are explicitly refused. The CLI now admits the two numeric guarded ABAP COMs
 through the same backend validator and checks exact ASM/BIN, globals, PC/SP
 and outside-image memory. Real commands pass without Node on PATH. Remaining
-admission audit and main integration had not yet occurred; broad SQL/table/TUI support
+admission audit and main integration are required; broad SQL/table/TUI support
 is not substituted for the original checked-subset goal.
 
 ## Report/procedure admission and TUI boundary
@@ -251,7 +251,7 @@ boundaries; the existing reference and scalar-return VM/Z80 gates pass.
 The [Nanz TUI integration plan](2026-10-16-pbo-pai-nanz-tui.md) now states the
 ownership and atomic field-transfer requirements explicitly. Renderer/focus
 reuse is planned; ABAP PBO/PAI dispatch is not implemented. Remaining SQL
-admission/error handling audit and main integration had not yet occurred.
+admission/error handling audit and main integration are still required.
 
 ## Checked SQL execution checkpoint
 
@@ -260,7 +260,7 @@ removes the hardcoded seed handle/ASM wrapper and checks open/exec/step status.
 Actual SQLite confirms handle isolation and iterator-error reporting. Native
 row-model gates check handle use and failure behavior. Ambiguous WHERE host
 operands and unsupported text transport are explicit refusals. Main integration
-and the final merge-state audit had not yet occurred.
+and the final merge-state audit remain required.
 
 ## Event-boundary and CI-catalog checkpoint
 
@@ -269,7 +269,7 @@ fix regular-event RETURN, implicit/repeated START order and selection-event
 local DATA. Specification-based VM/Z80 gates are kept separate from the
 unchanged independent-reference reports. Three missing pipeline tests are
 classified fast; four called-main harnesses now select their explicit
-subroutine contract. Required PR CI and main integration had not yet occurred.
+subroutine contract. Fresh required PR CI and main integration remain open.
 
 ## Main integration
 
