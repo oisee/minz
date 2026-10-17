@@ -1,0 +1,36 @@
+{
+  "source_sha256": "8241ea2a848052b57f50ab2907bb02e98d47ecf0e1a148ebea7ce7722ba6e1ab",
+  "provider": "@abaplint/transpiler + @abaplint/runtime 2.14.8",
+  "node": "v22.23.3",
+  "entry": "full report",
+  "values": {
+    "entry": {
+      "code": "B  ",
+      "amount": -3
+    },
+    "probe": {
+      "code": "B  ",
+      "amount": 0
+    },
+    "ledger": [
+      {
+        "code": "B  ",
+        "amount": 0
+      },
+      {
+        "code": "B  ",
+        "amount": -3
+      }
+    ],
+    "x": 247,
+    "y": 202,
+    "seen": 331204,
+    "kept": 10007
+  },
+  "sy": {
+    "tabix": 2,
+    "subrc": 0,
+    "index": 0
+  },
+  "output": "GEN:7;:100;GEN:107;"
+}
