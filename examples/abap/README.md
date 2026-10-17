@@ -1,192 +1,68 @@
-# ABAP on Z80 🤯
+# ABAP on MinZ: checked native subset
 
-> *"Your ZX Spectrum is now an enterprise-grade ABAP runtime."*
+The ordinary compiler embeds a Go translation of abaplint from abapiti. It
+parses ABAP without Node/npm or a Wasm fallback, then feeds the shared
+HIR → MIR2 → Z80 pipeline. Parser provenance and reproduction are in
+[PROVENANCE.md](../../minzc/pkg/abap/internal/abapparse/PROVENANCE.md).
 
-MinZ compiles **ABAP** to native **Z80 machine code** via the HIR/MIR2 pipeline.
-The parser is powered by [abaplint](https://github.com/abaplint/abaplint) by Lars Hvam Petersen — a full ABAP parser written in TypeScript.
+This is a checked subset, not a complete SAP runtime. The native hardening
+work is tracked in [objective and evidence](../../reports/native-abap/objective.md).
+The older examples in this directory include experimental syntax and runtime
+paths; their presence does not establish that the strict frontend admits them.
 
-## How it works
+## Build and run
 
-```
-ABAP source  →  abaplint (Node.js)  →  JSON AST  →  Go lowerer  →  HIR  →  MIR2  →  Z80
-```
+From the repository's `minzc` directory:
 
-That's right: your `REPORT` program goes through **7 compilation stages** to become Z80 opcodes.
-
-## Examples
-
-| File | What it does | ABAP features |
-|------|-------------|---------------|
-| [hello.abap](hello.abap) | Hello world | `DATA`, `WRITE` |
-| [fibonacci.abap](fibonacci.abap) | Fibonacci sequence | `WHILE`, arithmetic |
-| [fizzbuzz.abap](fizzbuzz.abap) | FizzBuzz | `IF/ELSEIF/ELSE`, `MOD` |
-| [guessing_game.abap](guessing_game.abap) | Number guessing | `DO..TIMES`, `CASE/WHEN`, `EXIT` |
-| [bubble_sort.abap](bubble_sort.abap) | Bubble sort | Nested `WHILE`, `CASE`, swap pattern |
-| [forms.abap](forms.abap) | Subroutines | `FORM`, `PERFORM`, `USING/CHANGING` |
-| [oop.abap](oop.abap) | OOP shapes | `CLASS`, `INTERFACE`, `METHOD`, inheritance |
-| [sysinfo.abap](sysinfo.abap) | System report | Multiple `WRITE`, string output |
-| [sqlite_demo.abap](sqlite_demo.abap) | Database ops | `FORM`, `PERFORM`, string params |
-
-## Self-Contained Build (No Node.js)
-
-The ABAP parser is now embedded as a **Wasm module** (14MB). A standard `go build` produces a single binary (~36MB) that can parse and compile ABAP without Node.js or any external tooling.
-
-**Architecture:** `@abaplint/core` (TypeScript) → esbuild (bundle) → Javy/QuickJS → `.wasm` → `go:embed` → wazero (pure-Go Wasm runtime)
-
-The compiler detects the embedded Wasm blob at startup. If present, it uses wazero to execute the parser in-process. No network, no npm, no Node.js needed.
-
-**QBE native compilation** also works — ABAP programs compile through the full pipeline to native AMD64 binaries: ABAP → HIR → MIR2 → QBE IL → `qbe` → `cc` → executable.
-
-### Rebuilding the Wasm blob (optional)
-
-Only needed if you want to update `@abaplint/core` or modify the parser bridge:
-
-```bash
-cd minzc/pkg/abap/bridge
-npm install                    # downloads @abaplint/core
-npx esbuild parse.mjs --bundle --outfile=parse.bundle.js --platform=neutral
-javy compile parse.bundle.js -o parse.wasm
-cp parse.wasm ../parse.wasm   # go:embed picks this up on next build
+```sh
+go build -o mz ./cmd/minzc
+go build -o mzv ./cmd/mzv
+./mz pkg/abap/testdata/write-reference/templates.abap -t cpm -o templates.a80
+./mzv --headless pkg/abap/testdata/write-reference/templates.abap
 ```
 
-### Node.js fallback (optional)
+The source exercises signed 32-bit arithmetic, fixed characters and default
+WRITE templates. Generated Z80 execution, including exact output and PC/SP,
+is checked by the regression commands below. Running it in MZV is VM execution.
 
-If you prefer the Node.js path or want faster iteration on the bridge script:
-
-```bash
-cd minzc/pkg/abap/bridge
-npm install
+```sh
+go test ./pkg/abap/internal/abapparse -count=1
+go test ./pkg/abap -run '^(TestCharacterFullReport|TestStringFullReport|TestWriteFullReports)' -count=1 -v
+go test ./pkg/abap -run '^TestABAPGuardedCPMFullReports$' -count=1 -v
 ```
 
-The compiler falls back to Node.js (`parse.mjs`) when the Wasm blob is not embedded.
+For the two checked numeric guarded CP/M fixtures, use
+`-t cpm --runtime=cpm --runtime-stack=1024`. These options do not certify every
+reachable character/input/SQL runtime path; unsupported guarded paths refuse
+compilation. The guarded native test assembles the actual COM runtime image.
 
-## Setup
+## Current admission
 
-### Prerequisites
+- TYPE i is checked signed i32, with overflow and division rules; TYPE c owns
+  fixed-length bytes, TYPE string owns a bounded length/capacity object.
+- Fully typed reference FORM USING/CHANGING passes actual object addresses.
+  Alias/forwarding/CLEAR gates use real PERFORM calls and unchanged reference
+  programs; scalar method harnesses are a separate, narrower ABI boundary.
+- IF/ELSEIF, short-circuit expressions, DO/WHILE and early exits have VM/Z80
+  evidence. Indexed loops preserve full-width SY-INDEX and caller state.
+- Counted WRITE and default templates preserve bytes. General list layout,
+  ULINE, unsupported formatting additions and non-ASCII text are refused.
+- Scalar SELECT transport has real-SQLite VM tests and a native row model.
+  RETURN closes statements in lexical order. Native SQL server linkage is
+  separate. INTO TABLE/ALV fixed-slot prototypes are explicitly refused.
+- PARAMETERS uses checked i32/fixed-character transport. Connecting the
+  [Nanz TUI with PBO/PAI](../../reports/native-abap/2026-10-16-pbo-pai-nanz-tui.md)
+  is a design awaiting implementation; general dynpros are not supported.
+- Unsupported types, operators, additions, exception blocks and runtime
+  namespace collisions produce errors rather than approximate executable code.
 
-| Tool | Version | Why |
-|------|---------|-----|
-| **Go** | 1.24+ | Compiler is written in Go |
-| **Node.js** | 18+ | *Optional* — only for rebuilding the Wasm blob or using the Node.js fallback |
-| **npm** | 9+ | *Optional* — same as above |
+Normal compilation never downloads a parser or launches Node. The explicit
+ParseNode bridge is retained for research comparison only. A parser refusal
+or semantic admission error is a compiler diagnostic; installing Node does
+not bypass it. The Go parser is pinned to core 2.120.56, so syntax support is
+bounded by that version and its translated implementation.
 
-### Install (one time)
-
-```bash
-# Build the MinZ compiler (Wasm parser is embedded — no npm needed)
-cd minzc
-make build          # produces ./mz binary with embedded ABAP parser
-```
-
-### Verify
-
-```bash
-# Should print "PASS" — parses ABAP and lowers to HIR
-go test ./pkg/abap/ -v -run TestCompileToHIR
-```
-
-## Quick start
-
-```bash
-# Compile ABAP to Z80 assembly
-./mz ../examples/abap/hello.abap -o hello.a80
-
-# Emit HIR to see the intermediate representation
-./mz ../examples/abap/fibonacci.abap --emit=hir
-
-# Emit MIR2 to see the optimized IR
-./mz ../examples/abap/fizzbuzz.abap --emit=mir2
-
-# Full pipeline to CP/M binary (if target supports it)
-./mz ../examples/abap/hello.abap -o hello.com -t cpm
-```
-
-## Supported ABAP constructs
-
-### Phase 1 (working now)
-- `REPORT` — program declaration
-- `DATA` — variable declaration with `TYPE` and `VALUE`
-- `WRITE` — console output (maps to CP/M BDOS)
-- `IF / ELSEIF / ELSE / ENDIF` — conditionals
-- `WHILE / ENDWHILE` — pre-condition loops
-- `DO [n TIMES] / ENDDO` — counted and infinite loops
-- `CASE / WHEN / ENDCASE` — multi-branch dispatch
-- `FORM / ENDFORM` — subroutines
-- `PERFORM` — subroutine calls with `USING` / `CHANGING`
-- `EXIT` / `CONTINUE` — loop control
-- Arithmetic: `+`, `-`, `*`, `/`, `MOD`
-- Comparisons: `=`, `<>`, `<`, `>`, `<=`, `>=`, `EQ`, `NE`, `LT`, `GT`, `LE`, `GE`
-- Logical operators: `AND`, `OR`
-
-### Phase 2 (scaffolded)
-- `CLASS / ENDCLASS` — OOP with zero-cost dispatch
-- `INTERFACE / ENDINTERFACE` — structural interfaces (no vtables!)
-- `METHOD / ENDMETHOD` — instance methods
-- `CREATE OBJECT` — object instantiation
-- `INHERITING FROM` — single inheritance
-
-### Phase 3 (planned)
-- `SELECT` → SQLite via MZV host functions (prototype working! see `examples/nanz/sqlite_demo.nanz`)
-- Open SQL → SQLite transpilation (later: client-server protocol over Z80 I/O ports)
-
-### Not planned (Z80 limitations)
-- `CALL FUNCTION` — no RFC on a Spectrum
-- `ALV` — the CRT *is* the grid
-- `SAP GUI` — 256x192 pixels is all you get
-- `ABAP Debugger` — use `mzv -trace` instead
-
-## Why?
-
-Because we can. And because the idea of an SAP consultant debugging ABAP on a ZX Spectrum is objectively hilarious.
-
-Also: it validates that MinZ's HIR pipeline is truly language-agnostic. If we can compile ABAP to Z80, we can compile *anything* to Z80.
-
-## Architecture
-
-The ABAP frontend lives in `minzc/pkg/abap/` with three layers:
-
-1. **Bridge** (`bridge/parse.mjs`) — calls `@abaplint/core` to parse ABAP into a structured AST, emits JSON
-2. **Parser** (`parse.go`) — Go code that invokes Node.js, deserializes JSON, builds semantic `Program`
-3. **Lowerer** (`lower.go`) — converts semantic ABAP constructs to HIR nodes
-
-The lowerer maps ABAP concepts to Z80-friendly HIR:
-- `DATA lv_x TYPE i VALUE 42` → `mir2.Global{Name: "lv_x", Ty: TyU16, Init: [42, 0]}`
-- `WRITE lv_x` → `hir.CallExpr{Fn: "abap_write", Args: [VarRef("lv_x")]}`
-- `FORM name USING p1` → `hir.Func{Name: "name", Params: [{Name: "p1", Ty: TyU16}]}`
-- `IF cond ... ENDIF` → `hir.IfStmt{Cond: ..., Then: ..., Else: ...}`
-- `CLASS lcl_foo` → `mir2.StructTy{Name: "lcl_foo"}` + method functions
-
-## Troubleshooting
-
-**`abaplint bridge: ... is Node.js installed?`**
-- Install Node.js 18+ (`brew install node` / `apt install nodejs`)
-- Run `cd minzc/pkg/abap/bridge && npm install`
-
-**`no ABAP file parsed`**
-- abaplint requires `REPORT zname.` as the first statement for programs
-- The bridge auto-detects file type from source: `REPORT` → `.prog.abap`, `CLASS` → `.clas.abap`
-
-**`unsupported: SomeStatement`**
-- Not all 392 ABAP statement types are lowered yet — the parser handles them fine (abaplint is complete), but the Go lowerer only maps Phase 1+2 constructs to HIR
-- Want to add one? Look at `minzc/pkg/abap/lower.go` — each statement type is a `case` in `lowerStmt()`
-
-**Slow first compile**
-- First run downloads/compiles `@abaplint/core` via npm — subsequent runs are fast (~400ms)
-- The bridge is a cold `node` process per compile; caching/daemon mode is planned
-
-## How abaplint works
-
-[abaplint](https://github.com/abaplint/abaplint) by [Lars Hvam Petersen](https://github.com/larshp) is a standalone ABAP linter and parser written in TypeScript. It:
-
-- Parses **all** ABAP syntax (7.02–7.57) into a 3-layer AST: Token → Statement → Structure
-- Supports 392 statement types, 100+ expression types
-- Runs without an SAP system — pure static analysis
-- MIT licensed, no external dependencies
-- Also powers [@abaplint/transpiler](https://github.com/abaplint/transpiler) (ABAP → JavaScript)
-
-We use `@abaplint/core` as an npm library. The bridge script (`parse.mjs`, ~80 lines) feeds source code to abaplint, walks the AST, and emits JSON that Go can deserialize. abaplint handles all the ABAP parsing complexity — we just consume structured nodes.
-
----
-
-*ABAP: Advanced Business Application Programming.
-Z80: Advanced Business Application Processor (retroactively).*
+For per-feature evidence and limits, follow the linked reports in the
+[goal record](../../reports/native-abap/objective.md). Historical examples and
+[the older book](../../docs/ABAP_on_MinZ_Book.md) are not a current conformance
+matrix.

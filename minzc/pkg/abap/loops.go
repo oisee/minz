@@ -33,11 +33,11 @@ func (l *lowerer) lowerIndexedLoop(body []Stmt_, times, condition hir.Expr) (hir
 	if condition == nil {
 		condition = &hir.BoolLitExpr{Val: true}
 	}
-	l.indexLoops = append(l.indexLoops, saved)
+	l.returnCleanups = append(l.returnCleanups, indexSet(loopValue(saved)))
 	l.loopDepth++
 	block, err := l.lowerStmts(body)
 	l.loopDepth--
-	l.indexLoops = l.indexLoops[:len(l.indexLoops)-1]
+	l.returnCleanups = l.returnCleanups[:len(l.returnCleanups)-1]
 	if err != nil {
 		return nil, err
 	}
@@ -49,12 +49,13 @@ func (l *lowerer) lowerIndexedLoop(body []Stmt_, times, condition hir.Expr) (hir
 	return &hir.Block{Body: prefix}, nil
 }
 
-// RETURN bypasses loop epilogues. Restore every indexed loop in the current
-// processing block, leaving any dynamically enclosing caller loop untouched.
+// RETURN bypasses lexical epilogues. Unwind indexed-loop state and active
+// SELECT statements in reverse nesting order within this processing block.
+// Caller resources and loop state remain outside the callee's cleanup stack.
 func (l *lowerer) lowerLoopReturn() hir.Stmt {
 	statements := []hir.Stmt{}
-	for i := len(l.indexLoops) - 1; i >= 0; i-- {
-		statements = append(statements, indexSet(loopValue(l.indexLoops[i])))
+	for i := len(l.returnCleanups) - 1; i >= 0; i-- {
+		statements = append(statements, l.returnCleanups[i])
 	}
 	statements = append(statements, &hir.ReturnStmt{Val: l.returnValue})
 	if len(statements) == 1 {

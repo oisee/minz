@@ -64,7 +64,7 @@ go test ./pkg/mir2 -run '^TestPruneUnreachableFuncs' -count=1 -v
 go test ./pkg/hir ./pkg/mir2 ./pkg/abap ./pkg/abap/internal/abapparse ./cmd/mzv -count=1
 ```
 
-The equivalent compiler runtime options are `--runtime=cpm --runtime-stack=1024`.
+The equivalent compiler runtime options are `-t cpm --runtime=cpm --runtime-stack=1024`.
 The test retains original ABAP, independent reference JSON, generated ASM and
 COM when the artifact environment variable is set. Node is not required by
 these compiler or test paths.

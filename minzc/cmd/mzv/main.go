@@ -24,6 +24,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"syscall"
 	"time"
 
@@ -588,6 +589,10 @@ func findStdlib(srcPath string) string {
 // Later this can be decoupled into a client-server protocol where a Z80
 // program communicates with a SQLite server over I/O ports.
 
+// A logical :memory: database may use multiple SQL connections while a nested
+// SELECT keeps an outer cursor open. Give each open a distinct shared-cache URI.
+var sqliteMemorySequence atomic.Uint64
+
 func registerSQLiteHosts(vm *mir2.VM, trace bool) {
 	// Handle table: u16 handle → *sql.DB
 	dbs := make(map[int64]*sql.DB)
@@ -626,7 +631,11 @@ func registerSQLiteHosts(vm *mir2.VM, trace bool) {
 		if len(args) > 0 && args[0].I != 0 {
 			name = readStr(args[0].I)
 		}
-		db, err := sql.Open("sqlite", name)
+		driverName := name
+		if name == ":memory:" {
+			driverName = fmt.Sprintf("file:minz-vm-memory-%d?mode=memory&cache=shared", sqliteMemorySequence.Add(1))
+		}
+		db, err := sql.Open("sqlite", driverName)
 		if err != nil {
 			if trace {
 				fmt.Fprintf(os.Stderr, "  sqlite_open(%q) → error: %v\n", name, err)

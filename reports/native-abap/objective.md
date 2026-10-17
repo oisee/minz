@@ -217,3 +217,16 @@ canary and PC/SP. Formatting additions and arbitrary ULINE layout are explicit
 refusals. This is counted stream/default-template output, not full SAP list
 formatting. Remaining SQL/resource/runtime admission and main integration
 remain required.
+
+## SQL lifetime and guarded CLI checkpoint
+
+[Lexical SELECT cleanup and guarded CLI](2026-10-17-sql-lifecycle-cpm-cli.md)
+close active statements on RETURN in reverse nesting order with loop-state
+restoration. Ten row-model VM/Z80 scenarios and four actual-SQLite VM scenarios
+pass. SQLite memory databases now share connections within a handle while
+remaining isolated between handles/VMs. INTO TABLE/ALV fixed-slot prototypes
+are explicitly refused. The CLI now admits the two numeric guarded ABAP COMs
+through the same backend validator and checks exact ASM/BIN, globals, PC/SP
+and outside-image memory. Real commands pass without Node on PATH. Remaining
+admission audit and main integration are required; broad SQL/table/TUI support
+is not substituted for the original checked-subset goal.

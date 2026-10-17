@@ -225,7 +225,7 @@ type lowerer struct {
 	localNames         map[string]bool
 	reportData         map[*DataDecl]bool
 	loopCounter        int
-	indexLoops         []string
+	returnCleanups     []hir.Stmt
 	loopDepth          int
 	paramRegistrations []*ParamDecl              // collected during lowering
 	strCache           map[string]int            // dedup cache: content → index in hm.Strings
@@ -760,8 +760,8 @@ func (l *lowerer) enterProcedure() func() {
 	l.localObjects = make(map[string]string)
 	outerInitializers, outerNames := l.localInitializers, l.localNames
 	l.localInitializers, l.localNames = nil, make(map[string]bool)
-	outerLoops, outerDepth := l.indexLoops, l.loopDepth
-	l.indexLoops = nil
+	outerCleanups, outerDepth := l.returnCleanups, l.loopDepth
+	l.returnCleanups = nil
 	l.loopDepth = 0
 	outer := l.varTypes
 	outerChars := l.characters
@@ -782,7 +782,7 @@ func (l *lowerer) enterProcedure() func() {
 		l.varTypes = outer
 		l.referenceParams = outerRefs
 		l.characters = outerChars
-		l.indexLoops = outerLoops
+		l.returnCleanups = outerCleanups
 		l.loopDepth = outerDepth
 	}
 }
@@ -1157,7 +1157,7 @@ func (l *lowerer) lowerStmt(s Stmt_) (hir.Stmt, error) {
 	case *SelectStmt:
 		return l.lowerSelect(s)
 	case *ALVDisplayStmt:
-		return l.lowerALVDisplay(s)
+		return nil, fmt.Errorf("ALV: typed table and layout semantics are not implemented; fixed-slot display prototype is not admitted")
 	case *ExecSQLStmt:
 		return l.lowerExecSQL(s)
 	default:
@@ -1433,6 +1433,9 @@ func (l *lowerer) lowerExecSQL(s *ExecSQLStmt) (hir.Stmt, error) {
 // ── SELECT → SQLite lowering ─────────────────────────────────────────────────
 
 func (l *lowerer) lowerSelect(s *SelectStmt) (hir.Stmt, error) {
+	if s.IntoTable != "" {
+		return nil, fmt.Errorf("SELECT INTO TABLE: exact row storage and capacity semantics are not implemented; fixed eight-row prototype is not admitted")
+	}
 	l.hasSelect = true
 	l.selectStmtCounter++
 	uid := l.selectStmtCounter
@@ -1521,9 +1524,12 @@ func (l *lowerer) lowerSelect(s *SelectStmt) (hir.Stmt, error) {
 		found := fmt.Sprintf("_sql_found_%d", uid)
 		stmts = append(stmts, &hir.VarDeclStmt{Name: found, Ty: mir2.TyU8, Init: &hir.IntLitExpr{Val: 0, Ty: mir2.TyU8}})
 		columns = append(columns, &hir.AssignStmt{Target: &hir.VarRefExpr{Name: found, Ty: mir2.TyU8}, Val: &hir.IntLitExpr{Val: 1, Ty: mir2.TyU8}})
+		finalize := &hir.ExprStmt{Expr: &hir.CallExpr{Fn: "sqlite_finalize", Args: []hir.Expr{&hir.VarRefExpr{Name: stmtVar, Ty: mir2.TyU16}}, Ty: mir2.TyU8}}
+		l.returnCleanups = append(l.returnCleanups, finalize)
 		l.loopDepth++
 		body, err := l.lowerStmts(s.Body)
 		l.loopDepth--
+		l.returnCleanups = l.returnCleanups[:len(l.returnCleanups)-1]
 		if err != nil {
 			return nil, err
 		}
