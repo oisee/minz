@@ -251,7 +251,8 @@ func TestOriginalTetrisTUIWholeMain(t *testing.T) {
 			}
 			save(engine+"/summary.json", map[string]any{"result": "PASS", "full_ram": true, "steps": vm.StepsExecuted(), "events": len(expected)})
 		}
-		linked := s.Assembly
+		callerAssembly := calledMainTestAssembly(t, s)
+		linked := callerAssembly
 		for _, f := range s.MIR2Module.Funcs {
 			if f.Attrs.IsExtern {
 				label := f.Name + ":"
@@ -261,7 +262,7 @@ func TestOriginalTetrisTUIWholeMain(t *testing.T) {
 				linked = strings.Replace(linked, label, label+"\n    RET ; explicit test-owned terminal linker slot", 1)
 			}
 		}
-		save(mode+"/native/unlinked.a80", s.Assembly)
+		save(mode+"/native/unlinked.a80", callerAssembly)
 		asm := "ORG 0x100\n__test_loader:\nLD SP,0xeff0\nCALL main\nDI\nHALT\n" + linked
 		a, e := z80asm.NewAssembler().AssembleString(asm)
 		if e != nil || len(a.Errors) > 0 {
@@ -451,7 +452,7 @@ func TestOriginalTetrisTUIWholeMain(t *testing.T) {
 				}
 			}
 		}
-		save(mode+"/native/summary.json", map[string]any{"result": "PASS", "scope": "whole source main explicit native terminal linker externbindings", "events": len(expected), "stdout_bytes": len(stdout), "image_bytes": len(a.Binary), "minimum_sp": minSP, "full_ram": true, "unlinked_asm_sha256": fmt.Sprintf("%x", sha256.Sum256([]byte(s.Assembly))), "linked_asm_sha256": fmt.Sprintf("%x", sha256.Sum256([]byte(asm))), "source_sha256": freeze.Sources["examples/nanz/tetris_tui.nanz"]})
+		save(mode+"/native/summary.json", map[string]any{"result": "PASS", "scope": "whole source main explicit native terminal linker externbindings", "events": len(expected), "stdout_bytes": len(stdout), "image_bytes": len(a.Binary), "minimum_sp": minSP, "full_ram": true, "unlinked_asm_sha256": fmt.Sprintf("%x", sha256.Sum256([]byte(callerAssembly))), "linked_asm_sha256": fmt.Sprintf("%x", sha256.Sum256([]byte(asm))), "source_sha256": freeze.Sources["examples/nanz/tetris_tui.nanz"]})
 		t.Log(mode, "raw/finalVM+native wholemain PASS")
 	}
 }

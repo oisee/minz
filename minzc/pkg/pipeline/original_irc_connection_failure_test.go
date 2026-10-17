@@ -214,7 +214,7 @@ func TestOriginalIRCConnectionFailureWholeMain(t *testing.T) {
 				}
 				save(prefix+"/"+engine.name+"-result.json", map[string]any{"result": "PASS", "global_memory": true})
 			}
-			linked := s.Assembly
+			linked := calledMainTestAssembly(t, s)
 			for _, fn := range s.MIR2Module.Funcs {
 				if fn.Attrs.IsExtern {
 					linked = strings.Replace(linked, fn.Name+":", fn.Name+":\n RET", 1)

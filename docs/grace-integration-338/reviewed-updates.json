@@ -5,13 +5,15 @@
     "native_behavior": "executed-native-asm-bounded",
     "workload": "Whole main in 3 modes; independent exact screen/attrs/termination/RAM. Hello corrected CString source; current frozen keyboard scenario reads 18 ordered ports, including SYMBOL SHIFT and CAPS SHIFT.",
     "independent_model": "Independent ZX pixel/attribute/font fixture and port model; exact old/newsource freezes and assembler quoted-space fix.",
-    "boundary": "Injected device only, frozen scenario not fullkeyboard/font API or hardware. SAP source unchanged, Hello CString source corrected explicitly.",
+    "boundary": "Injected device only, frozen scenario not fullkeyboard/font API or hardware. SAP source unchanged, Hello CString source corrected explicitly. Called-main harness refreshed with unchanged observations; raw CLI termination changes require separate production caller review. Historical replay artifacts retained; refresh recorded separately.",
     "evidence": {
-      "minzc/pkg/pipeline/original_zx_apps_test.go": "f7c7640e1b4795f7687535349225ec5ce7f2043c9f0d491835864a566ac2abc1",
+      "minzc/pkg/pipeline/original_zx_apps_test.go": "26e11a614954095d804121ec05dbaaaf16b1a8b13d861864452cfc8c829f4bcc",
       "reports/original-zx-apps/manifest.json": "5e5dc435fce383df29f9922a9aef062166ab88fcd7db35c0f67f045016df9cf1",
       "reports/zx-hello-corrected/manifest.json": "b8303954db7119c387b95cfbd834a66affb02921d416c4c7e7f9885abf93df79",
       "docs/grace-integration-254/zx-root.txt": "16c3afe3bad10fdf4123bdaf8891f6ab597252d56201371cc476c48d5b8bb1c2",
-      "reports/advanced-demos/tetris/catalog-review.md": "b7f498555e43165051324f79519289d77fa5ff466bedf570c9c86a216d6cd3ee"
+      "reports/advanced-demos/tetris/catalog-review.md": "b7f498555e43165051324f79519289d77fa5ff466bedf570c9c86a216d6cd3ee",
+      "minzc/pkg/pipeline/called_main_test_helper_test.go": "94aeb4bff39ec9f607be78d79ed8fab5e11cc2e79b2a4d8eedb6be2caee36467",
+      "docs/grace-integration-338/deep-called-main-refresh.txt": "90191f50ab937fc5d3020c9be0a8cafcffe4c4dc789675b1159eeb4cda1d5264"
     }
   },
   {
@@ -20,13 +22,15 @@
     "native_behavior": "executed-native-asm-bounded",
     "workload": "Whole main in 3 modes; independent exact screen/attrs/termination/RAM. Hello corrected CString source; current frozen keyboard scenario reads 18 ordered ports, including SYMBOL SHIFT and CAPS SHIFT.",
     "independent_model": "Independent ZX pixel/attribute/font fixture and port model; exact old/newsource freezes and assembler quoted-space fix.",
-    "boundary": "Injected device only, frozen scenario not fullkeyboard/font API or hardware. SAP source unchanged, Hello CString source corrected explicitly.",
+    "boundary": "Injected device only, frozen scenario not fullkeyboard/font API or hardware. SAP source unchanged, Hello CString source corrected explicitly. Called-main harness refreshed with unchanged observations; raw CLI termination changes require separate production caller review. Historical replay artifacts retained; refresh recorded separately.",
     "evidence": {
-      "minzc/pkg/pipeline/original_zx_apps_test.go": "f7c7640e1b4795f7687535349225ec5ce7f2043c9f0d491835864a566ac2abc1",
+      "minzc/pkg/pipeline/original_zx_apps_test.go": "26e11a614954095d804121ec05dbaaaf16b1a8b13d861864452cfc8c829f4bcc",
       "reports/original-zx-apps/manifest.json": "5e5dc435fce383df29f9922a9aef062166ab88fcd7db35c0f67f045016df9cf1",
       "reports/zx-hello-corrected/manifest.json": "b8303954db7119c387b95cfbd834a66affb02921d416c4c7e7f9885abf93df79",
       "docs/grace-integration-254/zx-root.txt": "16c3afe3bad10fdf4123bdaf8891f6ab597252d56201371cc476c48d5b8bb1c2",
-      "reports/advanced-demos/tetris/catalog-review.md": "b7f498555e43165051324f79519289d77fa5ff466bedf570c9c86a216d6cd3ee"
+      "reports/advanced-demos/tetris/catalog-review.md": "b7f498555e43165051324f79519289d77fa5ff466bedf570c9c86a216d6cd3ee",
+      "minzc/pkg/pipeline/called_main_test_helper_test.go": "94aeb4bff39ec9f607be78d79ed8fab5e11cc2e79b2a4d8eedb6be2caee36467",
+      "docs/grace-integration-338/deep-called-main-refresh.txt": "90191f50ab937fc5d3020c9be0a8cafcffe4c4dc789675b1159eeb4cda1d5264"
     }
   },
   {
@@ -640,12 +644,14 @@
     "native_behavior": "bounded-independent-vm-native",
     "workload": "Wholemain four finite screen/key/edit scenarios total,three modes raw/final VM and linked Z80; exact orderedterminal/output/globalbuffers/RAM/PCSP.",
     "independent_model": "Frozen pre-execution ANSI80x24 terminal/key/read_line model; originalsources unchanged.",
-    "boundary": "Test-owned linked terminal runtime,not public standaloneBIN. ABAP original DIHALT usesJPloader; tui returnsCALLloader. One finite scenariofamily.",
+    "boundary": "Test-owned linked terminal runtime,not public standaloneBIN. ABAP original DIHALT usesJPloader; tui returnsCALLloader. One finite scenariofamily. Called-main harness refreshed with unchanged observations; raw CLI termination changes require separate production caller review. Historical replay artifacts retained; refresh recorded separately.",
     "evidence": {
-      "minzc/pkg/pipeline/original_terminal_screen_main_test.go": "dca1b8afcf5b5c02184df33c62f025b9f07401debca66a91090101247cfd421e",
+      "minzc/pkg/pipeline/original_terminal_screen_main_test.go": "3474372a8e69a47aed3037aaa15b9ee3e1fe7f90d933c98bba93de8f4033f5c5",
       "minzc/pkg/mir2/renumber.go": "d73a7c4c4f7142a0951a894fd91fe73bfd5170f624615b185cb6d78bd6f0bbaf",
       "reports/terminal-screen-main/manifest.json": "e8586c0e0d35c551e136034063d9aa705985e9a233bdecfb44892053ff4fd908",
-      "docs/grace-integration-287/root-final.txt": "6343930976baa317b532fc607617fd8a30961b6e8a991cf4b4f969b5871fd85f"
+      "docs/grace-integration-287/root-final.txt": "6343930976baa317b532fc607617fd8a30961b6e8a991cf4b4f969b5871fd85f",
+      "minzc/pkg/pipeline/called_main_test_helper_test.go": "94aeb4bff39ec9f607be78d79ed8fab5e11cc2e79b2a4d8eedb6be2caee36467",
+      "docs/grace-integration-338/deep-called-main-refresh.txt": "90191f50ab937fc5d3020c9be0a8cafcffe4c4dc789675b1159eeb4cda1d5264"
     }
   },
   {
@@ -680,10 +686,12 @@
     "native_behavior": "bounded-independent-vm-native",
     "workload": "Whole unchangedscene/main raw/finalVM/native3modes:13renderingcalls,49152pixels,savepath,methodcases/fullRAM/PCSP.",
     "independent_model": "Pre-execution independentcanvasmodel and actualcanvas API; frozenframebuffer and effects.",
-    "boundary": "Test-ownedcanvas, hostrendering time excluded; nohardware/rotozoomerproof.",
+    "boundary": "Test-ownedcanvas, hostrendering time excluded; nohardware/rotozoomerproof. Called-main harness refreshed with unchanged observations; raw CLI termination changes require separate production caller review. Historical replay artifacts retained; refresh recorded separately.",
     "evidence": {
       "docs/grace-integration-295/root.txt": "99314b765221b1176fe4c9d7e11d7046d835d6e29e6ffbd33434d97f3bb0bc5a",
-      "minzc/pkg/pipeline/original_canvas_house_test.go": "5dd599d47dc15c8f9c5e771e67e01ceba19f4ab7a4a9314672f14fa834e404a2"
+      "minzc/pkg/pipeline/original_canvas_house_test.go": "85517c9580f79d57a1fe935e4e157dbc6c60a5ed277f16e0b9da5afdeb768c35",
+      "minzc/pkg/pipeline/called_main_test_helper_test.go": "94aeb4bff39ec9f607be78d79ed8fab5e11cc2e79b2a4d8eedb6be2caee36467",
+      "docs/grace-integration-338/deep-called-main-refresh.txt": "90191f50ab937fc5d3020c9be0a8cafcffe4c4dc789675b1159eeb4cda1d5264"
     }
   },
   {
@@ -787,16 +795,18 @@
     "native_behavior": "bounded-independent-vm-native",
     "workload": "Original main: three failed connection paths plus pre-connected registration/PING/PRIVMSG/JOIN prefix, all three modes, raw/final VM and assembled Z80.",
     "independent_model": "Frozen exact host events, control/network bytes and globals including buffer tails; all native RAM except exact spill/observed stack; real return on failures and actual CALL continuation at prefix boundary.",
-    "boundary": "Test-owned network and imported TUI host overrides preserve registers except result. Infinite main prefix stops at next net_read, not program termination. No arbitrary traffic, user command loop or physical network/CPM claim.",
+    "boundary": "Test-owned network and imported TUI host overrides preserve registers except result. Infinite main prefix stops at next net_read, not program termination. No arbitrary traffic, user command loop or physical network/CPM claim. Called-main harness refreshed with unchanged observations; raw CLI termination changes require separate production caller review. Historical replay artifacts retained; refresh recorded separately.",
     "evidence": {
       "minzc/pkg/pipeline/original_irc_classifiers_test.go": "13c0b1423649b40a1b11b45c92ab1ab5738b3b93d67fbc207e48398db5055f26",
       "reports/irc-classifiers/freeze.json": "06f7aef515dbe1cbb2bf236e63482e3be5fce4807b31de9ce731f752d14a33db",
       "reports/irc-classifiers/manifest.json": "2222fdf72afedfe6b6fe7481e938a4c3a0964e26ca4d24344916013c8a933bf4",
       "docs/grace-integration-235/irc.txt": "ef535bbb358492c3be94467d0550b9215d4b99eccc3f17c0e592d1d243268a45",
-      "minzc/pkg/pipeline/original_irc_connection_failure_test.go": "10b989599865c39daafc745cbcdf662c5a9cd50f88f10f15ac7cb0e47dcf86d9",
+      "minzc/pkg/pipeline/original_irc_connection_failure_test.go": "0f30a05089370f3954e0d45970506c202c4c0aa6705eb982c8a11f3a723c677d",
       "minzc/pkg/pipeline/original_irc_connected_prefix_test.go": "d8c42500c3250b8b88088eed8ce885956dbec60478b1ef19c17c14076413c002",
       "reports/irc-connection-failure/manifest.json": "34bc7ecdee2057cd7fece99aa5e3681bbba537d74db7dc1fbd68d13e6de7c2f5",
-      "reports/irc-connected-prefix/manifest.json": "26df904f5523c1bc7a66a2c98fd8c9234e5a23792fb957d2d12ea897667a28f2"
+      "reports/irc-connected-prefix/manifest.json": "26df904f5523c1bc7a66a2c98fd8c9234e5a23792fb957d2d12ea897667a28f2",
+      "minzc/pkg/pipeline/called_main_test_helper_test.go": "94aeb4bff39ec9f607be78d79ed8fab5e11cc2e79b2a4d8eedb6be2caee36467",
+      "docs/grace-integration-338/deep-called-main-refresh.txt": "90191f50ab937fc5d3020c9be0a8cafcffe4c4dc789675b1159eeb4cda1d5264"
     }
   },
   {
@@ -805,12 +815,14 @@
     "native_behavior": "bounded-independent-vm-native",
     "workload": "Whole unchanged main, three modes; one key a, exact stdout 422/236 bytes; raw/final VM and assembled Z80.",
     "independent_model": "Pre-execution frozen output/model; explicit low-level ASM host bindings in VM and original native ASM.",
-    "boundary": "Finite scenario; RAM/code/PC/SP checked. Test-owned runtime, not public CP/M.; historical compiler provenance retained separately; current compiler frozen stdout/BDOS/RAM/PCSP gate PASS0.217s",
+    "boundary": "Finite scenario; RAM/code/PC/SP checked. Test-owned runtime, not public CP/M.; historical compiler provenance retained separately; current compiler frozen stdout/BDOS/RAM/PCSP gate PASS0.217s Called-main harness refreshed with unchanged observations; raw CLI termination changes require separate production caller review. Historical replay artifacts retained; refresh recorded separately.",
     "evidence": {
       "docs/grace-integration-283/root.txt": "1d4443af9676dceace698eee90359dac4e83c43d3ac3b339768eb54eb5d09563",
-      "minzc/pkg/pipeline/original_cpm_screen_main_test.go": "b66d78c971904b42a498d048e39e6cfbf8324ce82fe02b53e9e3b1739c08f68a",
+      "minzc/pkg/pipeline/original_cpm_screen_main_test.go": "1ba9c23c45b998c2122b16c9f39619a3724e43f4e1e75cdf06c8e8989e718cf5",
       "reports/cpm-screen-main/manifest.json": "50fb1ff5fd58ba30265eaa813cb3ce1ea15e039af72e7c1c9e093e94677edb49",
-      "reports/cpm-screen-compiler-boundary/manifest.json": "8b79c6c0772cd7c62816e461a77d15c3f817fab1ce2aad227a88e2236a54a8f1"
+      "reports/cpm-screen-compiler-boundary/manifest.json": "8b79c6c0772cd7c62816e461a77d15c3f817fab1ce2aad227a88e2236a54a8f1",
+      "minzc/pkg/pipeline/called_main_test_helper_test.go": "94aeb4bff39ec9f607be78d79ed8fab5e11cc2e79b2a4d8eedb6be2caee36467",
+      "docs/grace-integration-338/deep-called-main-refresh.txt": "90191f50ab937fc5d3020c9be0a8cafcffe4c4dc789675b1159eeb4cda1d5264"
     }
   },
   {
@@ -843,13 +855,15 @@
     "native_behavior": "bounded-independent-vm-native",
     "workload": "Whole original FAT12 browser main on independently generated eight-sector disk with two files/one directory; Down/Up/Esc, three frames, exact1453events in raw/finalVM/native across three modes.",
     "independent_model": "Pre-execution frozen disk entries, BPB, keys and source-derived terminal oracle; independent buffer formatting/tail simulation and expected filesystem state, no VM/native outputs used as oracle.",
-    "boundary": "Test-owned exact disk/TUI externs using actual ABI, read-only sectors0/2 and exact512-byte window; fullnativeRAM including allglobals/image, precise generatedspill/observedstack exceptions. Finite navigation, not viewing/deleting, arbitrary FAT images or physical CP/M.",
+    "boundary": "Test-owned exact disk/TUI externs using actual ABI, read-only sectors0/2 and exact512-byte window; fullnativeRAM including allglobals/image, precise generatedspill/observedstack exceptions. Finite navigation, not viewing/deleting, arbitrary FAT images or physical CP/M. Called-main harness refreshed with unchanged observations; raw CLI termination changes require separate production caller review. Historical replay artifacts retained; refresh recorded separately.",
     "evidence": {
       "minzc/pkg/pipeline/original_nc_main_test.go": "c684c539ec44346dfca96cd565b2e867aad74331a1e6054079bb58b20d65be1d",
-      "minzc/pkg/pipeline/original_nc_native_test.go": "8bdee6fdf2188b5e2a13d33340f08130c27fbb2b342204be428eb7d8a94e1617",
+      "minzc/pkg/pipeline/original_nc_native_test.go": "947dfabfa4a1e1859158d6e2c3e8be7706875605d204885982a34c11cba82931",
       "reports/nc-whole-main/frozen/freeze.json": "33aa5d0d68dc1d9191d2458b3afc955e9d3bc56a23e0bfa44a4481b2db953d5b",
       "reports/nc-whole-main/frozen/terminal-events.json": "b42dcf52f8a651c58e56701b88ddc417c848bb0cf003141a3667e86580781cbb",
-      "docs/grace-integration-310/root.txt": "8fc3179c118f639f95957dc0f4abbae44f1fa31de1d8b121ac4a525861e4ffea"
+      "docs/grace-integration-310/root.txt": "8fc3179c118f639f95957dc0f4abbae44f1fa31de1d8b121ac4a525861e4ffea",
+      "minzc/pkg/pipeline/called_main_test_helper_test.go": "94aeb4bff39ec9f607be78d79ed8fab5e11cc2e79b2a4d8eedb6be2caee36467",
+      "docs/grace-integration-338/deep-called-main-refresh.txt": "90191f50ab937fc5d3020c9be0a8cafcffe4c4dc789675b1159eeb4cda1d5264"
     }
   },
   {
@@ -897,11 +911,13 @@
     "native_behavior": "executed-native-cpm-runtime",
     "workload": "Full unchanged main, three modes and two BDOS clobber contracts; real SQLite via original imported port/ASM bodies.",
     "independent_model": "Frozen exact stdout/column values/type command order; all receive writes and retained buffer tails; full RAM except exact spill/observed stack, PC/SP restored, query/db closed.",
-    "boundary": "Native test-owned SQL port/BDOS adapter. No VM ASM emulation or physical CP/M/provider. Full port trace retained but not independently compared byte by byte.",
+    "boundary": "Native test-owned SQL port/BDOS adapter. No VM ASM emulation or physical CP/M/provider. Full port trace retained but not independently compared byte by byte. Called-main harness refreshed with unchanged observations; raw CLI termination changes require separate production caller review. Historical replay artifacts retained; refresh recorded separately.",
     "evidence": {
-      "minzc/pkg/pipeline/original_sqlite_import_main_test.go": "4bf7a415d1f29c7285e0737f7718bcd18fcee08935807006d4fd8f419f2c00cc",
+      "minzc/pkg/pipeline/original_sqlite_import_main_test.go": "7d8aa8c8acda5f357bcd5f6c2ff812f10f93ab1a6ed1950863c0abd54d5638d2",
       "reports/sap-mara-port-main/manifest.json": "20e058c03eae4905591b18183905795de68ae8ca711b19a7466d145ce0801a26",
-      "reports/sap-mara-port-main/root.txt": "dad6bb1a9b5a4a8b7ec087f0688c4ddb92ee6e7b95a56bddd98ff1089fa6b351"
+      "reports/sap-mara-port-main/root.txt": "dad6bb1a9b5a4a8b7ec087f0688c4ddb92ee6e7b95a56bddd98ff1089fa6b351",
+      "minzc/pkg/pipeline/called_main_test_helper_test.go": "94aeb4bff39ec9f607be78d79ed8fab5e11cc2e79b2a4d8eedb6be2caee36467",
+      "docs/grace-integration-338/deep-called-main-refresh.txt": "90191f50ab937fc5d3020c9be0a8cafcffe4c4dc789675b1159eeb4cda1d5264"
     }
   },
   {
@@ -965,14 +981,16 @@
     "native_behavior": "bounded-independent-vm-native",
     "workload": "Whole original SQL report: F8/F3 all eight carriers and Enter/LH/F8/F3 requery to Lufthansa, three modes raw/final VM/native; exact 503/711 terminal events, 2202/2766 output bytes and 472-byte table.",
     "independent_model": "Frozen seed rows, sorted query results, filter and table/terminal lifecycle; real modernc SQLite in each engine, source-generated table/padding ASM runs natively.",
-    "boundary": "Explicit test-owned terminal/SQL bindings using actual extern ABI; exact host scratch writes and full RAM/image/stack verified. Native tail close returns to driver HALT. Not public unlinked CP/M/SQL or all filter workloads.",
+    "boundary": "Explicit test-owned terminal/SQL bindings using actual extern ABI; exact host scratch writes and full RAM/image/stack verified. Native tail close returns to driver HALT. Not public unlinked CP/M/SQL or all filter workloads. Called-main harness refreshed with unchanged observations; raw CLI termination changes require separate production caller review. Historical replay artifacts retained; refresh recorded separately.",
     "evidence": {
-      "minzc/pkg/pipeline/original_report_screen_main_test.go": "437a2b7880500af216d7847ae1329f8bb597ccc01d2c284534ec52386e89f6f5",
+      "minzc/pkg/pipeline/original_report_screen_main_test.go": "dcc62f55b319ec0915c8847852749435f11ab36bdf2692a81460de87a333ba97",
       "reports/alv-report-main/freeze.json": "73ddcdd7e477d30e68ed214e7098c177a316e03eb1ddfb82e760246e256eb261",
       "reports/alv-report-main/report.json": "e0d24ea671b3646a38dd2f8ec0d09e9fa15bb37ded04f6c0c28752b206c84c32",
       "reports/alv-report-main/report-lh.json": "a8007adcc314ae5c49c63efa385ef724584afcef08d93aa89e7968560fc07e36",
       "reports/alv-report-main/manifest-report.json": "8ce643db4927d85fe2a8c645318e66144af56361aea361ad25ab6027facdcdcd",
-      "docs/grace-integration-302/root.txt": "8bdd29fcc9e8ee44e40185a7b2435ce833cdbeca3bdb13ffdaa5072adb6bdd1d"
+      "docs/grace-integration-302/root.txt": "8bdd29fcc9e8ee44e40185a7b2435ce833cdbeca3bdb13ffdaa5072adb6bdd1d",
+      "minzc/pkg/pipeline/called_main_test_helper_test.go": "94aeb4bff39ec9f607be78d79ed8fab5e11cc2e79b2a4d8eedb6be2caee36467",
+      "docs/grace-integration-338/deep-called-main-refresh.txt": "90191f50ab937fc5d3020c9be0a8cafcffe4c4dc789675b1159eeb4cda1d5264"
     }
   },
   {
@@ -1070,11 +1088,13 @@
     "native_behavior": "executed-native-cpm-runtime",
     "workload": "Full unchanged main, three modes and two BDOS clobber contracts; real SQLite via original imported port/ASM bodies.",
     "independent_model": "Frozen exact stdout/column values/type command order; all receive writes and retained buffer tails; full RAM except exact spill/observed stack, PC/SP restored, query/db closed.",
-    "boundary": "Native test-owned SQL port/BDOS adapter. No VM ASM emulation or physical CP/M/provider. Full port trace retained but not independently compared byte by byte.",
+    "boundary": "Native test-owned SQL port/BDOS adapter. No VM ASM emulation or physical CP/M/provider. Full port trace retained but not independently compared byte by byte. Called-main harness refreshed with unchanged observations; raw CLI termination changes require separate production caller review. Historical replay artifacts retained; refresh recorded separately.",
     "evidence": {
-      "minzc/pkg/pipeline/original_sqlite_import_main_test.go": "4bf7a415d1f29c7285e0737f7718bcd18fcee08935807006d4fd8f419f2c00cc",
+      "minzc/pkg/pipeline/original_sqlite_import_main_test.go": "7d8aa8c8acda5f357bcd5f6c2ff812f10f93ab1a6ed1950863c0abd54d5638d2",
       "reports/sqlite-import-main/manifest.json": "609a5c0bfe850f2d5e85082b33efc6f7079b8081ec85fa24a7c88f432d5fef1f",
-      "reports/sqlite-import-main/root.txt": "3a1baae905b1b621f894ee528080d9f37fed136432a5fa22aaaa9f7dc4fbb317"
+      "reports/sqlite-import-main/root.txt": "3a1baae905b1b621f894ee528080d9f37fed136432a5fa22aaaa9f7dc4fbb317",
+      "minzc/pkg/pipeline/called_main_test_helper_test.go": "94aeb4bff39ec9f607be78d79ed8fab5e11cc2e79b2a4d8eedb6be2caee36467",
+      "docs/grace-integration-338/deep-called-main-refresh.txt": "90191f50ab937fc5d3020c9be0a8cafcffe4c4dc789675b1159eeb4cda1d5264"
     }
   },
   {
@@ -1096,13 +1116,15 @@
     "native_behavior": "executed-native-asm-bounded",
     "workload": "Whole original corrected main z/q/a in three public guarded CP/M runtime modes; exact ANSI/state/RAM/OSPCSP plus invalid globalstore status2.",
     "independent_model": "Independent original game state and complete ANSI output model; real imported ASM with explicit test-owned BDOS1/2 and CALL-main loader; full RAM, code, return PC/SP.",
-    "boundary": "Finite scenario/test-owned BDOS OS; exact CLI ASM/COM parity donor. No hardware/BDOS10/general sandbox. Previous ordinary linkedmain proof/historicalfailure retained.",
+    "boundary": "Finite scenario/test-owned BDOS OS; exact CLI ASM/COM parity donor. No hardware/BDOS10/general sandbox. Previous ordinary linkedmain proof/historicalfailure retained. Called-main harness refreshed with unchanged observations; raw CLI termination changes require separate production caller review. Historical replay artifacts retained; refresh recorded separately.",
     "evidence": {
-      "minzc/pkg/pipeline/original_tetris_main_test.go": "77699d76a8c2271e2293ec3aec1a977f3c02ceb1d29b1f1db8f08fd6b973ef3e",
+      "minzc/pkg/pipeline/original_tetris_main_test.go": "e8b59b7816da6b470cd98ee799294b4a89dda1cb9c96d7042348d231ae3accb0",
       "minzc/pkg/pipeline/cpm_tetris_native_test.go": "671e010cb4dc56cd4514a3ba2ec6a22102ecc875ff235e3010d8a7e24fa879eb",
       "minzc/pkg/pipeline/cpm_tetris_invalid_store_test.go": "e278e94431edd0a94128977a6a18f187616e6d21e7f77d7dfd70d12cd99dd88e",
       "docs/grace-integration-286/root.txt": "169dec71a6acca7fc2867e10e7012c65b3f126e6ffb8e3f5f1df5bd088eb420e",
-      "docs/grace-integration-286/transition.txt": "2547a0186385efefde82fd8ccf584b9eefcbb4ec19f90f7a0be023b7e6ab27ef"
+      "docs/grace-integration-286/transition.txt": "2547a0186385efefde82fd8ccf584b9eefcbb4ec19f90f7a0be023b7e6ab27ef",
+      "minzc/pkg/pipeline/called_main_test_helper_test.go": "94aeb4bff39ec9f607be78d79ed8fab5e11cc2e79b2a4d8eedb6be2caee36467",
+      "docs/grace-integration-338/deep-called-main-refresh.txt": "90191f50ab937fc5d3020c9be0a8cafcffe4c4dc789675b1159eeb4cda1d5264"
     }
   },
   {
@@ -1111,13 +1133,15 @@
     "native_behavior": "bounded-independent-vm-native",
     "workload": "Whole corrected original main, frozen z/q/a terminal input, all3modes raw/finalVM and linked native; 1955 ordered events and 8669 UTF8 bytes.",
     "independent_model": "Independent complete terminal/render and game state model frozen before execution. Native unique extern RET linker slots and actual allocated ABI; pooled CString bounds, full RAM/code/stack return checked.",
-    "boundary": "Explicit test-owned terminal bindings match mzv host contract; unlinked public ASM has unresolved extern slots. No public mze/runtime/hardware claim; fixed finite scenario only.",
+    "boundary": "Explicit test-owned terminal bindings match mzv host contract; unlinked public ASM has unresolved extern slots. No public mze/runtime/hardware claim; fixed finite scenario only. Called-main harness refreshed with unchanged observations; raw CLI termination changes require separate production caller review. Historical replay artifacts retained; refresh recorded separately.",
     "evidence": {
-      "minzc/pkg/pipeline/original_tetris_tui_main_test.go": "4b516f485025df7ac151b2558eb169a9b582e88bc513defcf2a1a260ef75fdbb",
+      "minzc/pkg/pipeline/original_tetris_tui_main_test.go": "802239557ddee03327aeefb6ebae0d1312429fe2957f5ced5a000dc243869532",
       "reports/tetris-tui-main/freeze.json": "af7ee5f92f7135c10e3fd34c337ff4241bcbb0bfb406d6f1d2a3607ffe255314",
       "reports/tetris-tui-main/manifest.json": "6e88ac17b8d3cfe41ca0181834bbd2f39f97fad719089e678a8163f6a90d559c",
       "reports/tetris-tui-main/LINKER.md": "8133b24677280951f68cae559079d7d14b83db841484d483f0680a9b071f4512",
-      "docs/grace-integration-275/tui-root.txt": "10ccc3e877b317ecc386d409c24c6922df1f6d708e2d1f107b51739d45b9bec8"
+      "docs/grace-integration-275/tui-root.txt": "10ccc3e877b317ecc386d409c24c6922df1f6d708e2d1f107b51739d45b9bec8",
+      "minzc/pkg/pipeline/called_main_test_helper_test.go": "94aeb4bff39ec9f607be78d79ed8fab5e11cc2e79b2a4d8eedb6be2caee36467",
+      "docs/grace-integration-338/deep-called-main-refresh.txt": "90191f50ab937fc5d3020c9be0a8cafcffe4c4dc789675b1159eeb4cda1d5264"
     }
   },
   {
@@ -1139,13 +1163,15 @@
     "native_behavior": "bounded-independent-vm-native",
     "workload": "Whole original main: Down,F5,F3,Up,Esc; five frames, 204 terminal events and 2729 ANSI bytes in raw/final VM and assembled native across three modes.",
     "independent_model": "Frozen source/API and independent navigation/terminal oracle, including both independent if clauses in main.",
-    "boundary": "Test-owned typed TUI hosts with native register clobber stress; full RAM/image, state and PC7003/SPf000 checked. Finite key workload, not public terminal/hardware or tui_commander_l3 proof.",
+    "boundary": "Test-owned typed TUI hosts with native register clobber stress; full RAM/image, state and PC7003/SPf000 checked. Finite key workload, not public terminal/hardware or tui_commander_l3 proof. Called-main harness refreshed with unchanged observations; raw CLI termination changes require separate production caller review. Historical replay artifacts retained; refresh recorded separately.",
     "evidence": {
-      "minzc/pkg/pipeline/original_tui_commander_main_test.go": "b68a9f1f0b576fbefceecd7c0e1d839ff7dfed6a71c638669eac1ad719237331",
+      "minzc/pkg/pipeline/original_tui_commander_main_test.go": "8129352241c4839a9f56d003ee56a7a0385a39edcbdcf1590dd9ce47705f6d6d",
       "reports/tui-commander-main/freeze.json": "722a71887cbc65ae470a49532f58453d821cc50e180a55dd87009c66687c1380",
       "reports/tui-commander-main/manifest.json": "6bb24326c6e1463b211e261f92fcd20b2f21ff8ebc0c6105aed7913eb0301f9a",
       "docs/grace-integration-300/root.txt": "c6c81ade3c5a65eeab16094336bac45148cfc7b5079895998f164ad30315b095",
-      "docs/grace-integration-301/root.txt": "fe1b7dfeaf586404584a77be1836eaae60972bcd7ea5d6b863b59f628b49a99c"
+      "docs/grace-integration-301/root.txt": "fe1b7dfeaf586404584a77be1836eaae60972bcd7ea5d6b863b59f628b49a99c",
+      "minzc/pkg/pipeline/called_main_test_helper_test.go": "94aeb4bff39ec9f607be78d79ed8fab5e11cc2e79b2a4d8eedb6be2caee36467",
+      "docs/grace-integration-338/deep-called-main-refresh.txt": "90191f50ab937fc5d3020c9be0a8cafcffe4c4dc789675b1159eeb4cda1d5264"
     }
   },
   {
@@ -1154,13 +1180,15 @@
     "native_behavior": "bounded-independent-vm-native",
     "workload": "Original meta-generated screen whole main: one Esc input, 36 ordered terminal events and 399 ANSI bytes; raw/final VM and assembled native across three modes.",
     "independent_model": "Independent source metafunction/block rendering model frozen before execution; compile-time CString and emitted literals inspected.",
-    "boundary": "One original declarative block and key scenario, test-owned typed TUI host with register-clobber stress and full RAM/PC/SP checks; not generic meta-engine or public CP/M proof.",
+    "boundary": "One original declarative block and key scenario, test-owned typed TUI host with register-clobber stress and full RAM/PC/SP checks; not generic meta-engine or public CP/M proof. Called-main harness refreshed with unchanged observations; raw CLI termination changes require separate production caller review. Historical replay artifacts retained; refresh recorded separately.",
     "evidence": {
       "minzc/pkg/pipeline/original_tui_commander_l3_main_test.go": "f0d1a8f16741b28126166a71bd7733e5c5037ecd42f347e014324581f9dd05cb",
-      "minzc/pkg/pipeline/original_tui_commander_main_test.go": "b68a9f1f0b576fbefceecd7c0e1d839ff7dfed6a71c638669eac1ad719237331",
+      "minzc/pkg/pipeline/original_tui_commander_main_test.go": "8129352241c4839a9f56d003ee56a7a0385a39edcbdcf1590dd9ce47705f6d6d",
       "reports/tui-commander-l3-main/freeze.json": "6f3cb242f0cc7a81b63483c41b909af47a4953071e53f04db828253a1eb2a334",
       "reports/tui-commander-l3-main/manifest.json": "b40df3b4bb0a98a9ebc5d0b001487983cf7f9849a36bb01255016a47dcb159f2",
-      "docs/grace-integration-301/root.txt": "fe1b7dfeaf586404584a77be1836eaae60972bcd7ea5d6b863b59f628b49a99c"
+      "docs/grace-integration-301/root.txt": "fe1b7dfeaf586404584a77be1836eaae60972bcd7ea5d6b863b59f628b49a99c",
+      "minzc/pkg/pipeline/called_main_test_helper_test.go": "94aeb4bff39ec9f607be78d79ed8fab5e11cc2e79b2a4d8eedb6be2caee36467",
+      "docs/grace-integration-338/deep-called-main-refresh.txt": "90191f50ab937fc5d3020c9be0a8cafcffe4c4dc789675b1159eeb4cda1d5264"
     }
   },
   {
@@ -1169,12 +1197,14 @@
     "native_behavior": "bounded-independent-vm-native",
     "workload": "Whole unchanged main, three modes; one key a, exact stdout 422/236 bytes; raw/final VM and assembled Z80.",
     "independent_model": "Pre-execution frozen output/model; explicit low-level ASM host bindings in VM and original native ASM.",
-    "boundary": "Finite scenario; RAM/code/PC/SP checked. Test-owned runtime, not public CP/M.; historical compiler provenance retained separately; current compiler frozen stdout/BDOS/RAM/PCSP gate PASS0.217s",
+    "boundary": "Finite scenario; RAM/code/PC/SP checked. Test-owned runtime, not public CP/M.; historical compiler provenance retained separately; current compiler frozen stdout/BDOS/RAM/PCSP gate PASS0.217s Called-main harness refreshed with unchanged observations; raw CLI termination changes require separate production caller review. Historical replay artifacts retained; refresh recorded separately.",
     "evidence": {
       "docs/grace-integration-283/root.txt": "1d4443af9676dceace698eee90359dac4e83c43d3ac3b339768eb54eb5d09563",
-      "minzc/pkg/pipeline/original_cpm_screen_main_test.go": "b66d78c971904b42a498d048e39e6cfbf8324ce82fe02b53e9e3b1739c08f68a",
+      "minzc/pkg/pipeline/original_cpm_screen_main_test.go": "1ba9c23c45b998c2122b16c9f39619a3724e43f4e1e75cdf06c8e8989e718cf5",
       "reports/cpm-screen-main/manifest.json": "50fb1ff5fd58ba30265eaa813cb3ce1ea15e039af72e7c1c9e093e94677edb49",
-      "reports/cpm-screen-compiler-boundary/manifest.json": "8b79c6c0772cd7c62816e461a77d15c3f817fab1ce2aad227a88e2236a54a8f1"
+      "reports/cpm-screen-compiler-boundary/manifest.json": "8b79c6c0772cd7c62816e461a77d15c3f817fab1ce2aad227a88e2236a54a8f1",
+      "minzc/pkg/pipeline/called_main_test_helper_test.go": "94aeb4bff39ec9f607be78d79ed8fab5e11cc2e79b2a4d8eedb6be2caee36467",
+      "docs/grace-integration-338/deep-called-main-refresh.txt": "90191f50ab937fc5d3020c9be0a8cafcffe4c4dc789675b1159eeb4cda1d5264"
     }
   },
   {
@@ -1199,12 +1229,14 @@
     "native_behavior": "bounded-independent-vm-native",
     "workload": "Wholemain four finite screen/key/edit scenarios total,three modes raw/final VM and linked Z80; exact orderedterminal/output/globalbuffers/RAM/PCSP.",
     "independent_model": "Frozen pre-execution ANSI80x24 terminal/key/read_line model; originalsources unchanged.",
-    "boundary": "Test-owned linked terminal runtime,not public standaloneBIN. ABAP original DIHALT usesJPloader; tui returnsCALLloader. One finite scenariofamily.",
+    "boundary": "Test-owned linked terminal runtime,not public standaloneBIN. ABAP original DIHALT usesJPloader; tui returnsCALLloader. One finite scenariofamily. Called-main harness refreshed with unchanged observations; raw CLI termination changes require separate production caller review. Historical replay artifacts retained; refresh recorded separately.",
     "evidence": {
-      "minzc/pkg/pipeline/original_terminal_screen_main_test.go": "dca1b8afcf5b5c02184df33c62f025b9f07401debca66a91090101247cfd421e",
+      "minzc/pkg/pipeline/original_terminal_screen_main_test.go": "3474372a8e69a47aed3037aaa15b9ee3e1fe7f90d933c98bba93de8f4033f5c5",
       "minzc/pkg/mir2/renumber.go": "d73a7c4c4f7142a0951a894fd91fe73bfd5170f624615b185cb6d78bd6f0bbaf",
       "reports/terminal-screen-main/manifest.json": "e8586c0e0d35c551e136034063d9aa705985e9a233bdecfb44892053ff4fd908",
-      "docs/grace-integration-287/root-final.txt": "6343930976baa317b532fc607617fd8a30961b6e8a991cf4b4f969b5871fd85f"
+      "docs/grace-integration-287/root-final.txt": "6343930976baa317b532fc607617fd8a30961b6e8a991cf4b4f969b5871fd85f",
+      "minzc/pkg/pipeline/called_main_test_helper_test.go": "94aeb4bff39ec9f607be78d79ed8fab5e11cc2e79b2a4d8eedb6be2caee36467",
+      "docs/grace-integration-338/deep-called-main-refresh.txt": "90191f50ab937fc5d3020c9be0a8cafcffe4c4dc789675b1159eeb4cda1d5264"
     }
   },
   {
@@ -1261,13 +1293,15 @@
     "native_behavior": "executed-native-cpm-runtime",
     "workload": "Original main in three modes and two BDOS clobber contracts: 32 frozen input lines, CREATE/INSERT/SELECT, 388 exact output bytes, ordered SQL calls and receive writes.",
     "independent_model": "Frozen source-derived dialogue and input-buffer tails; real SQLite query results; full RAM, actual CALL authority, PC and SP.",
-    "boundary": "Native Z80 with test-owned SQLite and BDOS services; no raw/final VM, arbitrary input, public CP/M provider or hardware claim. Host service work is not included in T-states.",
+    "boundary": "Native Z80 with test-owned SQLite and BDOS services; no raw/final VM, arbitrary input, public CP/M provider or hardware claim. Host service work is not included in T-states. Called-main harness refreshed with unchanged observations; raw CLI termination changes require separate production caller review. Historical replay artifacts retained; refresh recorded separately.",
     "evidence": {
-      "minzc/pkg/pipeline/original_sqlite_import_main_test.go": "4bf7a415d1f29c7285e0737f7718bcd18fcee08935807006d4fd8f419f2c00cc",
+      "minzc/pkg/pipeline/original_sqlite_import_main_test.go": "7d8aa8c8acda5f357bcd5f6c2ff812f10f93ab1a6ed1950863c0abd54d5638d2",
       "reports/zsql-port-main/manifest.json": "0a4ce066c0511a05078b5a52736e4e5b09a8d34acf3d0a1aa0b2afb1ec9aeb06",
       "reports/zsql-port-main/root.txt": "ed0f7d8bea84dacb3d8899952609af8ab4dbdcc105d1a2dc314405ca4de47b3e",
       "reports/zsql-port-main/string-before.txt": "4b015daba1bab01b9921a53c15d077bf54eb5ea28ed2c35c79c0b0bc7a558b34",
-      "minzc/pkg/z80asm/local_label_strings_test.go": "6902310c50ebf61d3ccdbeafec5ac35fc02e68493d65e13865216bbfe66c4c05"
+      "minzc/pkg/z80asm/local_label_strings_test.go": "6902310c50ebf61d3ccdbeafec5ac35fc02e68493d65e13865216bbfe66c4c05",
+      "minzc/pkg/pipeline/called_main_test_helper_test.go": "94aeb4bff39ec9f607be78d79ed8fab5e11cc2e79b2a4d8eedb6be2caee36467",
+      "docs/grace-integration-338/deep-called-main-refresh.txt": "90191f50ab937fc5d3020c9be0a8cafcffe4c4dc789675b1159eeb4cda1d5264"
     }
   },
   {
@@ -1655,12 +1689,14 @@
     "native_behavior": "executed-native-asm-bounded",
     "workload": "Whole-main 3modes; original ex18 exact stdout/stderr ports; source-corrected ZX demo frozen font/keyboard scenario and full screen/RAM/PCSP.",
     "independent_model": "Independent byte output and ZX bitmap/attributes/keyboard port model; exact source before/new identity preserved. Native-only ASM proof.",
-    "boundary": "ZX source/library contracts corrected explicitly. One lowercase keyboard/font scenario, no full scrolling/keys API or hardware claim; VM ASM no-op excluded.",
+    "boundary": "ZX source/library contracts corrected explicitly. One lowercase keyboard/font scenario, no full scrolling/keys API or hardware claim; VM ASM no-op excluded. Called-main harness refreshed with unchanged observations; raw CLI termination changes require separate production caller review. Historical replay artifacts retained; refresh recorded separately.",
     "evidence": {
-      "minzc/pkg/pipeline/original_console_corpus_test.go": "aec69f3a70e426537b05ad0fb9de1ec73e4854bf018594a5ee58e3572ce08579",
+      "minzc/pkg/pipeline/original_console_corpus_test.go": "c76456e72184b2795c865685c1089869c654929fabbbcbf0666a9b8cbf074690",
       "reports/original-console-corrected/manifest.json": "9542f0d2b7a97614fc8f8c6bffa2651caecb599d5820a855a500712debafb1da",
       "docs/grace-integration-246/console-root.txt": "ad54b29180b92cda69c469db349e310030483d2ce6de51e89526bff3d55d1d0a",
-      "reports/advanced-demos/tetris/catalog-review.md": "b7f498555e43165051324f79519289d77fa5ff466bedf570c9c86a216d6cd3ee"
+      "reports/advanced-demos/tetris/catalog-review.md": "b7f498555e43165051324f79519289d77fa5ff466bedf570c9c86a216d6cd3ee",
+      "minzc/pkg/pipeline/called_main_test_helper_test.go": "94aeb4bff39ec9f607be78d79ed8fab5e11cc2e79b2a4d8eedb6be2caee36467",
+      "docs/grace-integration-338/deep-called-main-refresh.txt": "90191f50ab937fc5d3020c9be0a8cafcffe4c4dc789675b1159eeb4cda1d5264"
     }
   },
   {
@@ -1669,11 +1705,13 @@
     "native_behavior": "executed-native-asm-bounded",
     "workload": "Unchanged full main phase=0 in three modes: 6144 bitmap and 768 attribute writes, exact order, complete RAM and PC/SP return.",
     "independent_model": "Independent typed modular quarter-wave/dither/screen-address model (Book v7 3.2); raw/final VM with explicit zx_poke host model, native executes actual inline store.",
-    "boundary": "One static frame; VM requires explicit ASM contract. Flat Z80 RAM without ZX contention/ROM/interrupts/hardware. No additional Grace gain.",
+    "boundary": "One static frame; VM requires explicit ASM contract. Flat Z80 RAM without ZX contention/ROM/interrupts/hardware. No additional Grace gain. Called-main harness refreshed with unchanged observations; raw CLI termination changes require separate production caller review. Historical replay artifacts retained; refresh recorded separately.",
     "evidence": {
-      "minzc/pkg/pipeline/original_plasma_main_test.go": "d50b702892519b41e7e94ea43f105553c75f43134f38e5d42fbdcbae9379109f",
+      "minzc/pkg/pipeline/original_plasma_main_test.go": "0bea1697574567c8056d05b3bdd59ecc2b4c51905d939038f456f281b61fa7c4",
       "reports/plasma-whole-main/manifest.json": "2299ab7eae0594c4c2d55146d87c2d718c2487806f0e9e8c6626e33ad516dafe",
-      "reports/plasma-whole-main/root.txt": "f5af0c1e740c3fcdc4900c22ed6193dadadb77f16b14b434c51c0dbe1cc1ed0f"
+      "reports/plasma-whole-main/root.txt": "f5af0c1e740c3fcdc4900c22ed6193dadadb77f16b14b434c51c0dbe1cc1ed0f",
+      "minzc/pkg/pipeline/called_main_test_helper_test.go": "94aeb4bff39ec9f607be78d79ed8fab5e11cc2e79b2a4d8eedb6be2caee36467",
+      "docs/grace-integration-338/deep-called-main-refresh.txt": "90191f50ab937fc5d3020c9be0a8cafcffe4c4dc789675b1159eeb4cda1d5264"
     }
   },
   {
@@ -1682,9 +1720,9 @@
     "native_behavior": "executed-native-asm-bounded",
     "workload": "Original main in nine keyboard scenarios, three modes; full RAM every frame; game over after23frames/12drops,120flash HALTs,40border changes and PC7003/SPf000 return.",
     "independent_model": "Independent literal-layout screen model and two-step PRNG/I queue, keyboard rows and timer/ghost/preview expectations; actual ASM executes.",
-    "boundary": "One finite full lifecycle plus31-frame scenarios. All inline primitives audited; unused current peek separately checked. Multi-line/speed change/T-spin/wall kicks/arbitrary gameplay and interrupts/ROM/contention/hardware unverified. VM ASM model not supplied.",
+    "boundary": "One finite full lifecycle plus31-frame scenarios. All inline primitives audited; unused current peek separately checked. Multi-line/speed change/T-spin/wall kicks/arbitrary gameplay and interrupts/ROM/contention/hardware unverified. VM ASM model not supplied. Called-main harness refreshed with unchanged observations; raw CLI termination changes require separate production caller review. Historical replay artifacts retained; refresh recorded separately.",
     "evidence": {
-      "minzc/pkg/pipeline/original_zx_tetris_main_test.go": "86eac50209f5bc12a65455c942665c35b983fda8e00d546439d02a0f0ff5fe74",
+      "minzc/pkg/pipeline/original_zx_tetris_main_test.go": "44e4e16dd8d17e96670206498c499198e2300318329ff08f4b76ee5e5e43f18f",
       "reports/zx-tetris-initial-main/manifest.json": "e48bdb19c1ef0b97e6ea483036596902ff086c6cf4d6a747ff2b5a69cd4240c5",
       "reports/zx-tetris-initial-main/root.txt": "d53a66bcbf58863cafa316ecd981b82d595b2375b9d86146553de48ab6a05340",
       "reports/zx-tetris-gravity/root.txt": "777f19e4a20b038a3ca29cf8005f0185bd71f11ccb158fbd39da402783195196",
@@ -1699,7 +1737,9 @@
       "reports/zx-tetris-game-over/root.txt": "9a2705dffc9a674e41d813e9ba18189d126ea3a6313974e1ff402362e418f4eb",
       "reports/zx-tetris-asm-audit/README.md": "5afd489ed2e66dda0efaeb646cb0877883aeb312142b1437fcda7240c7ace6b8",
       "minzc/pkg/pipeline/original_zx_tetris_peek_test.go": "81bd8717adf237019fdc2861385663ba68641ba5329566ebecc38964af737c87",
-      "reports/zx-tetris-asm-audit/root.txt": "b710f4f12fce964e4ada9c78addb2766ca45bc05e93bfbb9a81dfe81152d5f65"
+      "reports/zx-tetris-asm-audit/root.txt": "b710f4f12fce964e4ada9c78addb2766ca45bc05e93bfbb9a81dfe81152d5f65",
+      "minzc/pkg/pipeline/called_main_test_helper_test.go": "94aeb4bff39ec9f607be78d79ed8fab5e11cc2e79b2a4d8eedb6be2caee36467",
+      "docs/grace-integration-338/deep-called-main-refresh.txt": "90191f50ab937fc5d3020c9be0a8cafcffe4c4dc789675b1159eeb4cda1d5264"
     }
   },
   {
@@ -2022,12 +2062,14 @@
     "native_behavior": "executed-native-asm-bounded",
     "workload": "Whole-main 3modes; original ex18 exact stdout/stderr ports; source-corrected ZX demo frozen font/keyboard scenario and full screen/RAM/PCSP.",
     "independent_model": "Independent byte output and ZX bitmap/attributes/keyboard port model; exact source before/new identity preserved. Native-only ASM proof.",
-    "boundary": "ZX source/library contracts corrected explicitly. One lowercase keyboard/font scenario, no full scrolling/keys API or hardware claim; VM ASM no-op excluded.",
+    "boundary": "ZX source/library contracts corrected explicitly. One lowercase keyboard/font scenario, no full scrolling/keys API or hardware claim; VM ASM no-op excluded. Called-main harness refreshed with unchanged observations; raw CLI termination changes require separate production caller review. Historical replay artifacts retained; refresh recorded separately.",
     "evidence": {
-      "minzc/pkg/pipeline/original_console_corpus_test.go": "aec69f3a70e426537b05ad0fb9de1ec73e4854bf018594a5ee58e3572ce08579",
+      "minzc/pkg/pipeline/original_console_corpus_test.go": "c76456e72184b2795c865685c1089869c654929fabbbcbf0666a9b8cbf074690",
       "reports/original-console-corrected/manifest.json": "9542f0d2b7a97614fc8f8c6bffa2651caecb599d5820a855a500712debafb1da",
       "docs/grace-integration-246/console-root.txt": "ad54b29180b92cda69c469db349e310030483d2ce6de51e89526bff3d55d1d0a",
-      "reports/advanced-demos/tetris/catalog-review.md": "b7f498555e43165051324f79519289d77fa5ff466bedf570c9c86a216d6cd3ee"
+      "reports/advanced-demos/tetris/catalog-review.md": "b7f498555e43165051324f79519289d77fa5ff466bedf570c9c86a216d6cd3ee",
+      "minzc/pkg/pipeline/called_main_test_helper_test.go": "94aeb4bff39ec9f607be78d79ed8fab5e11cc2e79b2a4d8eedb6be2caee36467",
+      "docs/grace-integration-338/deep-called-main-refresh.txt": "90191f50ab937fc5d3020c9be0a8cafcffe4c4dc789675b1159eeb4cda1d5264"
     }
   },
   {
@@ -2204,12 +2246,14 @@
     "native_behavior": "executed-native-asm-bounded",
     "workload": "Whole-main 3modes; original ex18 exact stdout/stderr ports; source-corrected ZX demo frozen font/keyboard scenario and full screen/RAM/PCSP.",
     "independent_model": "Independent byte output and ZX bitmap/attributes/keyboard port model; exact source before/new identity preserved. Native-only ASM proof.",
-    "boundary": "ZX source/library contracts corrected explicitly. One lowercase keyboard/font scenario, no full scrolling/keys API or hardware claim; VM ASM no-op excluded.",
+    "boundary": "ZX source/library contracts corrected explicitly. One lowercase keyboard/font scenario, no full scrolling/keys API or hardware claim; VM ASM no-op excluded. Called-main harness refreshed with unchanged observations; raw CLI termination changes require separate production caller review. Historical replay artifacts retained; refresh recorded separately.",
     "evidence": {
-      "minzc/pkg/pipeline/original_console_corpus_test.go": "aec69f3a70e426537b05ad0fb9de1ec73e4854bf018594a5ee58e3572ce08579",
+      "minzc/pkg/pipeline/original_console_corpus_test.go": "c76456e72184b2795c865685c1089869c654929fabbbcbf0666a9b8cbf074690",
       "reports/original-console-corrected/manifest.json": "9542f0d2b7a97614fc8f8c6bffa2651caecb599d5820a855a500712debafb1da",
       "docs/grace-integration-246/console-root.txt": "ad54b29180b92cda69c469db349e310030483d2ce6de51e89526bff3d55d1d0a",
-      "reports/advanced-demos/tetris/catalog-review.md": "b7f498555e43165051324f79519289d77fa5ff466bedf570c9c86a216d6cd3ee"
+      "reports/advanced-demos/tetris/catalog-review.md": "b7f498555e43165051324f79519289d77fa5ff466bedf570c9c86a216d6cd3ee",
+      "minzc/pkg/pipeline/called_main_test_helper_test.go": "94aeb4bff39ec9f607be78d79ed8fab5e11cc2e79b2a4d8eedb6be2caee36467",
+      "docs/grace-integration-338/deep-called-main-refresh.txt": "90191f50ab937fc5d3020c9be0a8cafcffe4c4dc789675b1159eeb4cda1d5264"
     }
   },
   {
@@ -2587,9 +2631,9 @@
     "native_behavior": "executed-native-asm-bounded",
     "workload": "Original main in nine keyboard scenarios, three modes; full RAM every frame; game over after23frames/12drops,120flash HALTs,40border changes and PC7003/SPf000 return.",
     "independent_model": "Independent literal-layout screen model and two-step PRNG/I queue, keyboard rows and timer/ghost/preview expectations; actual ASM executes.",
-    "boundary": "One finite full lifecycle plus31-frame scenarios. All inline primitives audited; unused current peek separately checked. Multi-line/speed change/T-spin/wall kicks/arbitrary gameplay and interrupts/ROM/contention/hardware unverified. VM ASM model not supplied.",
+    "boundary": "One finite full lifecycle plus31-frame scenarios. All inline primitives audited; unused current peek separately checked. Multi-line/speed change/T-spin/wall kicks/arbitrary gameplay and interrupts/ROM/contention/hardware unverified. VM ASM model not supplied. Called-main harness refreshed with unchanged observations; raw CLI termination changes require separate production caller review. Historical replay artifacts retained; refresh recorded separately.",
     "evidence": {
-      "minzc/pkg/pipeline/original_zx_tetris_main_test.go": "86eac50209f5bc12a65455c942665c35b983fda8e00d546439d02a0f0ff5fe74",
+      "minzc/pkg/pipeline/original_zx_tetris_main_test.go": "44e4e16dd8d17e96670206498c499198e2300318329ff08f4b76ee5e5e43f18f",
       "reports/zx-tetris-initial-main/manifest.json": "e48bdb19c1ef0b97e6ea483036596902ff086c6cf4d6a747ff2b5a69cd4240c5",
       "reports/zx-tetris-initial-main/root.txt": "d53a66bcbf58863cafa316ecd981b82d595b2375b9d86146553de48ab6a05340",
       "reports/zx-tetris-gravity/root.txt": "777f19e4a20b038a3ca29cf8005f0185bd71f11ccb158fbd39da402783195196",
@@ -2602,7 +2646,9 @@
       "reports/zx-tetris-gravity-lock/root.txt": "9203ac77967a5ab14c478227a0473ba6eb63eb4da1c0a9696e80fd659f539771",
       "reports/zx-tetris-line-clear/root.txt": "cd9a647591b8c9f34a9ec84d6fbabddff35abdf88482ee96298646753c9c9479",
       "reports/zx-tetris-game-over/root.txt": "9a2705dffc9a674e41d813e9ba18189d126ea3a6313974e1ff402362e418f4eb",
-      "reports/zx-tetris-asm-audit/README.md": "5afd489ed2e66dda0efaeb646cb0877883aeb312142b1437fcda7240c7ace6b8"
+      "reports/zx-tetris-asm-audit/README.md": "5afd489ed2e66dda0efaeb646cb0877883aeb312142b1437fcda7240c7ace6b8",
+      "minzc/pkg/pipeline/called_main_test_helper_test.go": "94aeb4bff39ec9f607be78d79ed8fab5e11cc2e79b2a4d8eedb6be2caee36467",
+      "docs/grace-integration-338/deep-called-main-refresh.txt": "90191f50ab937fc5d3020c9be0a8cafcffe4c4dc789675b1159eeb4cda1d5264"
     }
   }
 ]

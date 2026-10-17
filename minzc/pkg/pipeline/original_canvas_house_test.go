@@ -75,7 +75,8 @@ func TestOriginalCanvasHouseWholeScene(t *testing.T) {
 		}
 		save(mode+"/raw.mir", raw.Dump())
 		save(mode+"/final.mir", s.MIR2Module.Dump())
-		save(mode+"/unlinked.a80", s.Assembly)
+		callerAssembly := calledMainTestAssembly(t, s)
+		save(mode+"/unlinked.a80", callerAssembly)
 		save(mode+"/allocation.json", s.Allocation)
 		for _, entry := range []string{"draw_scene", "main"} {
 			expected := canvasHouseExpected()
@@ -145,7 +146,7 @@ func TestOriginalCanvasHouseWholeScene(t *testing.T) {
 					}
 				}
 			}
-			linked := s.Assembly
+			linked := callerAssembly
 			for _, f := range s.MIR2Module.Funcs {
 				if f.Attrs.IsExtern {
 					label := f.Name + ":"

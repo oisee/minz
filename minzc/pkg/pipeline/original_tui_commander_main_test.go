@@ -207,7 +207,7 @@ func testOriginalTUIWholeMain(t *testing.T, sourceName, packetName, artifactEnv 
 			}
 			save(mode+"/"+engine.name+"-stdout.bin", commanderANSI(events))
 		}
-		linked := s.Assembly
+		linked := calledMainTestAssembly(t, s)
 		for _, f := range s.MIR2Module.Funcs {
 			if f.Attrs.IsExtern {
 				linked = strings.Replace(linked, f.Name+":", f.Name+":\n RET", 1)

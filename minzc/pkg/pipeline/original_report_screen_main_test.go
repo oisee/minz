@@ -539,7 +539,8 @@ func TestOriginalReportScreenWholeMain(t *testing.T) {
 				}
 				save(engine+"/summary.json", map[string]any{"result": "PASS", "full_ram": true, "steps": vm.StepsExecuted()})
 			}
-			linked := s.Assembly
+			callerAssembly := calledMainTestAssembly(t, s)
+			linked := callerAssembly
 			for _, f := range s.MIR2Module.Funcs {
 				if f.Attrs.IsExtern {
 					label := "\n" + f.Name + ":"
@@ -554,7 +555,7 @@ func TestOriginalReportScreenWholeMain(t *testing.T) {
 			if e != nil || len(a.Errors) > 0 {
 				t.Fatal(e, a.Errors)
 			}
-			save(mode+"/native/unlinked.a80", s.Assembly)
+			save(mode+"/native/unlinked.a80", callerAssembly)
 			save(mode+"/native/program.a80", asm)
 			save(mode+"/native/program.com", a.Binary)
 			z := emulator.NewRemogattoZ80WithScreen()

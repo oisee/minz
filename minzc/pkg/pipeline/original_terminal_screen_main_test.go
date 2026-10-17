@@ -306,7 +306,11 @@ func TestOriginalTerminalScreenWholeMain(t *testing.T) {
 				}
 				save(engine+"/summary.json", map[string]any{"result": "PASS", "full_ram": true, "steps": vm.StepsExecuted(), "events": len(expected)})
 			}
-			linked := s.Assembly
+			callerAssembly := s.Assembly
+			if scenario.Module != "abap_screen" {
+				callerAssembly = calledMainTestAssembly(t, s)
+			}
+			linked := callerAssembly
 			for _, f := range s.MIR2Module.Funcs {
 				if f.Attrs.IsExtern {
 					label := f.Name + ":"
@@ -316,7 +320,7 @@ func TestOriginalTerminalScreenWholeMain(t *testing.T) {
 					linked = strings.Replace(linked, label, label+"\n    RET ; explicit test-owned terminal linker slot", 1)
 				}
 			}
-			save(mode+"/native/unlinked.a80", s.Assembly)
+			save(mode+"/native/unlinked.a80", callerAssembly)
 			loader := "ORG 0x100\n__test_loader:\nLD SP,0xeff0\nCALL main\nDI\nHALT\n"
 			if scenario.Module == "abap_screen" {
 				loader = "ORG 0x100\n__test_loader:\nLD SP,0xeff0\nJP main\n"
@@ -543,7 +547,7 @@ func TestOriginalTerminalScreenWholeMain(t *testing.T) {
 					}
 				}
 			}
-			save(mode+"/native/summary.json", map[string]any{"result": "PASS", "scope": "whole source main explicit native terminal linker externbindings", "events": len(expected), "stdout_bytes": len(stdout), "image_bytes": len(a.Binary), "minimum_sp": minSP, "full_ram": true, "unlinked_asm_sha256": fmt.Sprintf("%x", sha256.Sum256([]byte(s.Assembly))), "linked_asm_sha256": fmt.Sprintf("%x", sha256.Sum256([]byte(asm))), "case": caseName, "terminal_pc": terminal, "source_sha256": freeze.Sources["examples/nanz/"+scenario.Module+".nanz"]})
+			save(mode+"/native/summary.json", map[string]any{"result": "PASS", "scope": "whole source main explicit native terminal linker externbindings", "events": len(expected), "stdout_bytes": len(stdout), "image_bytes": len(a.Binary), "minimum_sp": minSP, "full_ram": true, "unlinked_asm_sha256": fmt.Sprintf("%x", sha256.Sum256([]byte(callerAssembly))), "linked_asm_sha256": fmt.Sprintf("%x", sha256.Sum256([]byte(asm))), "case": caseName, "terminal_pc": terminal, "source_sha256": freeze.Sources["examples/nanz/"+scenario.Module+".nanz"]})
 			t.Log(mode, "raw/finalVM+native wholemain PASS")
 		}
 	}

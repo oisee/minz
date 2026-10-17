@@ -82,7 +82,7 @@ func TestOriginalNCWholeMainNative(t *testing.T) {
 			if e != nil {
 				t.Fatal(e)
 			}
-			linked := s.Assembly
+			linked := calledMainTestAssembly(t, s)
 			for _, fn := range s.MIR2Module.Funcs {
 				if fn.Attrs.IsExtern {
 					linked = strings.Replace(linked, fn.Name+":", fn.Name+":\n RET", 1)

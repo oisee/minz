@@ -53,9 +53,13 @@ func TestOriginalZXAppsNative(t *testing.T) {
 					t.Log(e)
 					return
 				}
-				export(prefix+".a80", []byte(s.Assembly))
+				callerAssembly := s.Assembly
+				if i < 3 {
+					callerAssembly = calledMainTestAssembly(t, s)
+				}
+				export(prefix+".a80", []byte(callerAssembly))
 				export(prefix+".mir", []byte(s.MIR2Module.Dump()))
-				a, e := z80asm.NewAssembler().AssembleString("ORG 0x8000\n" + s.Assembly)
+				a, e := z80asm.NewAssembler().AssembleString("ORG 0x8000\n" + callerAssembly)
 				if e != nil || a == nil || len(a.Errors) > 0 {
 					result["assemble_errors"] = fmt.Sprint(e, a.Errors)
 					t.Log(e, a.Errors)

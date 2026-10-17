@@ -23,7 +23,7 @@ func TestZMachineConsoleScrollNative(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	a, err := z80asm.NewAssembler().AssembleString("ORG 0x8000\n" + s.Assembly)
+	a, err := z80asm.NewAssembler().AssembleString("ORG 0x8000\n" + calledMainTestAssembly(t, s))
 	if err != nil || len(a.Errors) > 0 {
 		t.Fatal(err, a.Errors)
 	}

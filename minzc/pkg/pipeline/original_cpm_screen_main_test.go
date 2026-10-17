@@ -191,7 +191,7 @@ func TestOriginalCPMScreenMain(t *testing.T) {
 			}
 			save(prefix+"/raw.mir", raw.Dump())
 			save(prefix+"/hir.txt", s.HIR)
-			asm := "ORG 0x100\nLD SP,0xeff0\nCALL main\nDI\nHALT\n" + s.Assembly
+			asm := "ORG 0x100\nLD SP,0xeff0\nCALL main\nDI\nHALT\n" + calledMainTestAssembly(t, s)
 			a, e := z80asm.NewAssembler().AssembleString(asm)
 			if e != nil || len(a.Errors) > 0 {
 				t.Fatal(module, e, a.Errors)
