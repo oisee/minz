@@ -95,3 +95,13 @@ output and i32 globals above 65535; independent reference, raw/final VM and
 Z80 agree. Smaller-capacity probes stop before committing writes. ABAP and
 Go-parser package tests pass. Remaining operator/system-field admission,
 full-width input, guarded CP/M closure and main integration remain required.
+
+## Executable admission checkpoint
+
+[Names, exceptions and event admission](2026-10-17-executable-admission.md)
+now reject undeclared reads/assignments before executable HIR, explicitly
+refuse catchable-exception blocks and prevent selection-screen additions from
+collapsing into the ordinary validation event. Full ABAP and Go-parser tests
+pass. This prepares the Nanz TUI event boundary; the adapter itself remains a
+follow-up. System fields, remaining operators, full-width input, guarded CP/M
+closure and main integration remain open.

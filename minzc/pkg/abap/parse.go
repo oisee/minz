@@ -140,6 +140,13 @@ func walkStructure(sn *StructNode) ([]Decl, error) {
 			continue
 
 		case isEventType(child.Type):
+			if child.Type == "AtSelectionScreen" {
+				tokens := collectTokenStrings(&StmtNode{Tokens: child.Tokens, Children: child.Children})
+				// abaplint can tokenize SELECTION-SCREEN as three tokens.
+				if strings.ToUpper(strings.Join(tokens, "")) != "ATSELECTION-SCREEN." {
+					return nil, childError(child, fmt.Errorf("unsupported event addition: %s", strings.Join(tokens, " ")))
+				}
+			}
 			// Close previous event
 			if currentEvent != nil {
 				decls = append(decls, currentEvent)
@@ -162,6 +169,9 @@ func walkStructure(sn *StructNode) ([]Decl, error) {
 					decls = append(decls, d)
 				}
 			}
+
+		case child.Type == "Try" || child.Type == "Catch":
+			return nil, childError(child, fmt.Errorf("TRY/CATCH: catchable exceptions are not implemented"))
 
 		case isStructureType(child.Type):
 			sub := &StructNode{Type: child.Type, Children: child.Children}
@@ -883,7 +893,6 @@ func isStructureType(t string) bool {
 		"If": true, "Else": true, "ElseIf": true,
 		"Do": true, "While": true, "Loop": true,
 		"Case": true, "When": true, "WhenOthers": true,
-		"Try": true, "Catch": true,
 	}
 	return structTypes[t]
 }

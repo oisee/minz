@@ -4,6 +4,7 @@ import (
 	"github.com/minz/minzc/pkg/hir"
 	"github.com/minz/minzc/pkg/pipeline"
 	"os"
+	"strings"
 	"testing"
 )
 
@@ -67,11 +68,8 @@ ENDFORM.
 FORM second USING pv_x TYPE i CHANGING pv_result TYPE i.
  pv_result = lv_private + pv_x.
 ENDFORM.`, "scope")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if err := hir.Verify(hm); err == nil {
-		t.Fatal("sibling FORM accepted another FORM's local DATA")
+	if hm != nil || err == nil || !strings.Contains(err.Error(), "undeclared ABAP object \"lv_private\"") {
+		t.Fatalf("sibling FORM accepted another FORM's local DATA: executable module returned=%t error=%v", hm != nil, err)
 	}
 }
 

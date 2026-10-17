@@ -1199,6 +1199,9 @@ func (l *lowerer) lowerAssign(s *AssignStmt) (hir.Stmt, error) {
 	if b, ok := l.characters[s.Target]; ok {
 		return l.characterAssign(b, s.Val)
 	}
+	if _, exists := l.varTypes[s.Target]; !exists {
+		return nil, fmt.Errorf("assignment to undeclared ABAP object %q", s.Target)
+	}
 	if _, text := s.Val.(*StringLit); text && l.varTypes[s.Target] == mir2.TyI32 {
 		return nil, fmt.Errorf("assignment to %s: character-to-integer conversion is not implemented", s.Target)
 	}
@@ -1210,15 +1213,6 @@ func (l *lowerer) lowerAssign(s *AssignStmt) (hir.Stmt, error) {
 	val, err := l.lowerExpr(s.Val)
 	if err != nil {
 		return nil, err
-	}
-	if _, exists := l.varTypes[s.Target]; !exists {
-		ty := val.ExprTy()
-		l.varTypes[s.Target] = ty
-		return &hir.VarDeclStmt{
-			Name: s.Target,
-			Ty:   ty,
-			Init: val,
-		}, nil
 	}
 	return &hir.AssignStmt{
 		Target: l.variableTarget(s.Target, l.varTypes[s.Target]),
@@ -2064,7 +2058,7 @@ func (l *lowerer) lowerExpr(e Expr_) (hir.Expr, error) {
 		}
 		ty, ok := l.varTypes[e.Name]
 		if !ok {
-			ty = mir2.TyU16
+			return nil, fmt.Errorf("reference to undeclared ABAP object %q", e.Name)
 		}
 		if ptr := l.referenceParams[e.Name]; ptr != nil {
 			return &hir.LoadExpr{Ptr: ptr, Ty: ty}, nil
