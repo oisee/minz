@@ -66,6 +66,9 @@ type DataDecl struct {
 	AbapTy string // "i", "c", "string", "n", "p", "x", "d", "t", "f", etc.
 	Length int    // for TYPE c LENGTH n, TYPE n LENGTH n, TYPE x LENGTH n
 	Value  *Expr_ // initial value (nil = default)
+	// Table is set for DATA ... TYPE STANDARD TABLE OF line; AbapTy then
+	// names the line type. A structure variable has AbapTy = its TYPES name.
+	Table *TableSpec
 }
 
 func (*DataDecl) abapDecl() {}
@@ -212,10 +215,11 @@ type WhileStmt struct {
 
 func (*WhileStmt) abapStmt() {}
 
+// LoopStmt is LOOP AT table INTO wa ... ENDLOOP. Other LOOP additions
+// (WHERE, ASSIGNING, REFERENCE INTO, FROM/TO, keys, GROUP BY) are refused.
 type LoopStmt struct {
 	Table string // LOOP AT table
 	Into  string // INTO wa
-	Where *Expr_ // WHERE condition
 	Body  []Stmt_
 }
 

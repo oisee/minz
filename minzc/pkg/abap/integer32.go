@@ -138,7 +138,7 @@ fun _abap_num_putchar(ch: u8) -> void { _zx_putchar(ch) }`
 			break
 		}
 	}
-	m, err := nanz.Parse(integer32Output+integer32Arithmetic+integer32Input+sqlRuntime+characterRuntime+stringRuntime+io, "abap-integer-runtime.nanz")
+	m, err := nanz.Parse(integer32Output+integer32Arithmetic+integer32Input+sqlRuntime+characterRuntime+stringRuntime+itabRuntime+io, "abap-integer-runtime.nanz")
 	if err != nil {
 		return fmt.Errorf("ABAP integer runtime: %w", err)
 	}

@@ -194,6 +194,9 @@ func LowerProgramWithTarget(prog *Program, target uint8) (*hir.Module, error) {
 		characters:     make(map[string]characterBinding),
 		strCache:       make(map[string]int),
 		internalTables: make(map[string]*internalTable),
+		types:          make(map[string]*abapStruct),
+		structs:        make(map[string]*structObject),
+		tables:         make(map[string]*tableObject),
 	}
 	l.hm = &hir.Module{Name: prog.Name, Target: target}
 	return l.lower()
@@ -232,6 +235,9 @@ type lowerer struct {
 	hasSelect          bool                      // true if any SELECT statement → emit sqlite externs + _abap_db
 	selectStmtCounter  int                       // unique IDs for temp variables
 	internalTables     map[string]*internalTable // lt_name → table metadata
+	types              map[string]*abapStruct    // report TYPES BEGIN OF structures
+	structs            map[string]*structObject  // visible structure variables
+	tables             map[string]*tableObject   // visible standard internal tables
 }
 
 // internStr interns a C-string into the HIR module, deduplicating by content.
@@ -270,6 +276,13 @@ func (l *lowerer) lower() (*hir.Module, error) {
 	l.reportData = make(map[*DataDecl]bool)
 
 	// ── Collect declarations ─────────────────────────────────────────────
+	for _, d := range l.prog.Decls {
+		if td, ok := d.(*TypesDecl); ok {
+			if err := l.declareType(td); err != nil {
+				return nil, err
+			}
+		}
+	}
 	reportNames := map[string]bool{"sy": true}
 	var mainBody []Stmt_
 	for _, d := range l.prog.Decls {
@@ -280,8 +293,9 @@ func (l *lowerer) lower() (*hir.Module, error) {
 			}
 			reportNames[d.Name] = true
 			l.reportData[d] = true
-			ty := l.abapTypeToHIR(d.AbapTy, d.Length)
-			l.varTypes[d.Name] = ty
+			if !l.aggregateDecl(d) {
+				l.varTypes[d.Name] = l.abapTypeToHIR(d.AbapTy, d.Length)
+			}
 			if err := l.lowerGlobal(d); err != nil {
 				return nil, err
 			}
@@ -670,7 +684,7 @@ func (l *lowerer) emitSYStruct() {
 		Fields: []mir2.StructField{
 			{Name: "SUBRC", Ty: mir2.TyI32},
 			{Name: "INDEX", Ty: mir2.TyI32},
-			{Name: "TABIX", Ty: mir2.TyU16},
+			{Name: "TABIX", Ty: mir2.TyI32},
 			{Name: "UCOMM", Ty: mir2.TyU16}, // simplified: command code as u16
 			{Name: "DATUM", Ty: mir2.TyU16}, // date as days-since-epoch (simplified)
 			{Name: "UZEIT", Ty: mir2.TyU16}, // time as minutes-since-midnight
@@ -733,6 +747,12 @@ func (l *lowerer) abapTypeToHIR(abapTy string, length int) mir2.Ty {
 // ── Globals ──────────────────────────────────────────────────────────────────
 
 func (l *lowerer) lowerGlobal(d *DataDecl) error {
+	if d.Table != nil {
+		return l.tableGlobal(d)
+	}
+	if l.types[d.AbapTy] != nil {
+		return l.structGlobal(d)
+	}
 	if d.AbapTy == "c" {
 		return l.characterGlobal(d)
 	}
@@ -802,6 +822,15 @@ func (l *lowerer) enterProcedure() func() {
 	}
 	outerRefs := l.referenceParams
 	l.referenceParams = make(map[string]hir.Expr)
+	outerStructs, outerTables := l.structs, l.tables
+	l.structs = make(map[string]*structObject, len(outerStructs))
+	for name, obj := range outerStructs {
+		l.structs[name] = obj
+	}
+	l.tables = make(map[string]*tableObject, len(outerTables))
+	for name, obj := range outerTables {
+		l.tables[name] = obj
+	}
 	l.varTypes = make(map[string]mir2.Ty, len(outer))
 	for name, ty := range outer {
 		l.varTypes[name] = ty
@@ -815,6 +844,7 @@ func (l *lowerer) enterProcedure() func() {
 		l.characters = outerChars
 		l.returnCleanups = outerCleanups
 		l.loopDepth = outerDepth
+		l.structs, l.tables = outerStructs, outerTables
 	}
 }
 
@@ -828,7 +858,11 @@ func (l *lowerer) lowerLocalData(d *DataDecl) (hir.Stmt, error) {
 	if err := validateDataStartValue(d); err != nil {
 		return nil, err
 	}
+	if l.aggregateDecl(d) {
+		return nil, fmt.Errorf("DATA %s: procedure-local structures and internal tables are not implemented", d.Name)
+	}
 	delete(l.characters, d.Name)
+	l.shadowAggregate(d.Name)
 	l.localCounter++
 	object := fmt.Sprintf("$abap_local_%d", l.localCounter)
 	if l.localObjects != nil {
@@ -892,6 +926,7 @@ func (l *lowerer) lowerForm(d *FormDecl) error {
 		l.localNames[p.Name] = true
 		l.varTypes[p.Name] = l.formParameterType(p)
 		delete(l.characters, p.Name)
+		l.shadowAggregate(p.Name)
 		if p.AbapTy == "string" {
 			params = append(params, hir.Param{Name: p.Name, Ty: mir2.TyPtr})
 			l.characters[p.Name] = stringBinding(&hir.VarRefExpr{Name: p.Name, Ty: mir2.TyPtr})
@@ -947,12 +982,14 @@ func (l *lowerer) lowerFunction(d *FunctionDecl) error {
 	for _, p := range d.Importing {
 		ty := l.abapTypeToHIR(p.AbapTy, 0)
 		delete(l.characters, p.Name)
+		l.shadowAggregate(p.Name)
 		params = append(params, hir.Param{Name: p.Name, Ty: ty})
 		l.varTypes[p.Name] = ty
 	}
 	for _, p := range d.Changing {
 		ty := l.abapTypeToHIR(p.AbapTy, 0)
 		delete(l.characters, p.Name)
+		l.shadowAggregate(p.Name)
 		params = append(params, hir.Param{Name: p.Name, Ty: ty})
 		l.varTypes[p.Name] = ty
 	}
@@ -1036,6 +1073,7 @@ func (l *lowerer) lowerMethod(className string, m *MethodDecl) error {
 	for _, p := range m.Importing {
 		ty := l.abapTypeToHIR(p.AbapTy, 0)
 		delete(l.characters, p.Name)
+		l.shadowAggregate(p.Name)
 		params = append(params, hir.Param{Name: p.Name, Ty: ty})
 		l.varTypes[p.Name] = ty
 	}
@@ -1147,6 +1185,9 @@ func (l *lowerer) lowerStmt(s Stmt_) (hir.Stmt, error) {
 	case *WriteStmt:
 		return l.lowerWrite(s)
 	case *ClearStmt:
+		if st, handled, err := l.lowerAggregateClear(s.Target); handled || err != nil {
+			return st, err
+		}
 		if b, ok := l.characters[s.Target]; ok {
 			if b.dynamic {
 				return charCall("_abap_string_clear", b.object), nil
@@ -1191,6 +1232,18 @@ func (l *lowerer) lowerStmt(s Stmt_) (hir.Stmt, error) {
 		return nil, fmt.Errorf("ALV: typed table and layout semantics are not implemented; fixed-slot display prototype is not admitted")
 	case *ExecSQLStmt:
 		return l.lowerExecSQL(s)
+	case *LoopStmt:
+		return l.lowerLoopAt(s)
+	case *AppendStmt:
+		return l.lowerAppend(s)
+	case *ReadTableStmt:
+		return l.lowerReadTable(s)
+	case *DescribeTableStmt:
+		return l.lowerDescribeTable(s)
+	case *RefreshStmt:
+		return l.lowerRefresh(s)
+	case *TypesDecl:
+		return nil, fmt.Errorf("TYPES %s: type declarations inside procedures or control blocks are not implemented", s.Name)
 	default:
 		return nil, fmt.Errorf("unsupported ABAP statement: %T", s)
 	}
@@ -1239,6 +1292,9 @@ func (l *lowerer) lowerWrite(s *WriteStmt) (hir.Stmt, error) {
 }
 
 func (l *lowerer) lowerAssign(s *AssignStmt) (hir.Stmt, error) {
+	if st, handled, err := l.lowerAggregateAssign(s); handled || err != nil {
+		return st, err
+	}
 	if b, ok := l.characters[s.Target]; ok {
 		return l.characterAssign(b, s.Val)
 	}
@@ -2020,6 +2076,9 @@ func (l *lowerer) lowerExpr(e Expr_) (hir.Expr, error) {
 		if b, ok := l.characters[e.Name]; ok {
 			return b.ptr, nil
 		}
+		if err := l.aggregateOperandError(e.Name); err != nil {
+			return nil, err
+		}
 		ty, ok := l.varTypes[e.Name]
 		if !ok {
 			return nil, fmt.Errorf("reference to undeclared ABAP object %q", e.Name)
@@ -2067,7 +2126,7 @@ func (l *lowerer) lowerExpr(e Expr_) (hir.Expr, error) {
 
 	case *SYField:
 		switch strings.ToUpper(e.Field) {
-		case "INDEX", "SUBRC":
+		case "INDEX", "SUBRC", "TABIX":
 		default:
 			return nil, fmt.Errorf("SY-%s: precise system-field semantics are not implemented", strings.ToUpper(e.Field))
 		}
@@ -2075,15 +2134,10 @@ func (l *lowerer) lowerExpr(e Expr_) (hir.Expr, error) {
 		return &hir.CallExpr{Fn: fnName, Ty: mir2.TyI32}, nil
 
 	case *FuncCall:
-		args := make([]hir.Expr, len(e.Args))
-		for i, a := range e.Args {
-			ha, err := l.lowerExpr(a)
-			if err != nil {
-				return nil, err
-			}
-			args[i] = ha
-		}
-		return &hir.CallExpr{Fn: e.Name, Args: args, Ty: mir2.TyU16}, nil
+		return l.lowerBuiltinCall(e)
+
+	case *FieldAccess:
+		return l.lowerFieldAccess(e)
 
 	default:
 		return nil, fmt.Errorf("unsupported ABAP expression %T", e)
@@ -2224,7 +2278,7 @@ func emitRuntimeFuncs(hm *hir.Module, target uint8) {
 	}
 
 	// Index and operation status must share native/VM four-byte state.
-	for _, field := range []string{"index", "subrc"} {
+	for _, field := range []string{"index", "subrc", "tabix"} {
 		backing, setter := "_abap_"+field+"_value", "sy_set_"+field
 		hm.Globals = append(hm.Globals, mir2.Global{Name: backing, Ty: mir2.TyI32})
 		if !names[setter] {
@@ -2244,7 +2298,7 @@ func emitRuntimeFuncs(hm *hir.Module, target uint8) {
 		fnName := "sy_get_" + field
 		if !names[fnName] {
 			var value hir.Expr = &hir.IntLitExpr{Val: 0, Ty: mir2.TyU16}
-			if field == "index" || field == "subrc" {
+			if field == "index" || field == "subrc" || field == "tabix" {
 				value = &hir.VarRefExpr{Name: "_abap_" + field + "_value", Ty: mir2.TyI32}
 			}
 			hm.Funcs = append(hm.Funcs, &hir.Func{

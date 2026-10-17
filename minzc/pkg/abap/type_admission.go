@@ -9,6 +9,16 @@ import (
 // numeric mappings must never become executable code. Character storage is
 // hardened separately; admission here does not certify its copying semantics.
 func validateProgramTypes(p *Program) error {
+	// Report-level TYPES BEGIN OF structures are the only named types.
+	structures := map[string]bool{}
+	for _, decl := range p.Decls {
+		if td, ok := decl.(*TypesDecl); ok {
+			if structures[td.Name] {
+				return fmt.Errorf("TYPES %s: duplicate type", td.Name)
+			}
+			structures[td.Name] = true
+		}
+	}
 	check := func(context, ty string, length int) error {
 		switch ty {
 		case "i", "string":
@@ -23,6 +33,23 @@ func validateProgramTypes(p *Program) error {
 			return fmt.Errorf("%s: TYPE %s is not implemented precisely; approximate storage is not admitted", context, ty)
 		}
 		return nil
+	}
+	// DATA admits a flat report structure type and standard tables of one.
+	data := func(d *DataDecl) error {
+		context := "DATA " + d.Name
+		if d.Table != nil {
+			if !structures[d.AbapTy] {
+				return fmt.Errorf("%s: table line type %s is not a flat structure declared with TYPES BEGIN OF; tables of elementary or unknown line types are not implemented", context, d.AbapTy)
+			}
+			return nil
+		}
+		if structures[d.AbapTy] {
+			if d.Length != 0 || d.Value != nil {
+				return fmt.Errorf("%s: structure LENGTH/VALUE additions are not implemented", context)
+			}
+			return nil
+		}
+		return check(context, d.AbapTy, d.Length)
 	}
 	params := func(context string, ps []FormParam) error {
 		for _, v := range ps {
@@ -42,7 +69,7 @@ func validateProgramTypes(p *Program) error {
 			var groups [][]Stmt_
 			switch v := s.(type) {
 			case *DataDecl:
-				if err := check("DATA "+v.Name, v.AbapTy, v.Length); err != nil {
+				if err := data(v); err != nil {
 					return err
 				}
 			case *IfStmt:
@@ -91,7 +118,7 @@ func validateProgramTypes(p *Program) error {
 	for _, decl := range p.Decls {
 		switch v := decl.(type) {
 		case *DataDecl:
-			if err := check("DATA "+v.Name, v.AbapTy, v.Length); err != nil {
+			if err := data(v); err != nil {
 				return err
 			}
 		case *ParamDecl:
@@ -133,6 +160,9 @@ func validateProgramTypes(p *Program) error {
 			for _, a := range v.Attrs {
 				if a.Value != nil {
 					return fmt.Errorf("CLASS %s attribute %s: VALUE initialization is not implemented", v.Name, a.Name)
+				}
+				if a.Table != nil || structures[a.AbapTy] {
+					return fmt.Errorf("CLASS %s attribute %s: structure and table attributes are not implemented", v.Name, a.Name)
 				}
 				if a.AbapTy == "c" || a.AbapTy == "string" {
 					return fmt.Errorf("CLASS %s attribute %s: owned character attributes are not implemented", v.Name, a.Name)

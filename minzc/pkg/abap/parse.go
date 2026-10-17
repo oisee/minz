@@ -197,6 +197,14 @@ func walkStructure(sn *StructNode) ([]Decl, error) {
 				}
 			}
 
+		case child.Type == "Types":
+			// Type declarations have report scope, like report DATA in events.
+			td, err := convertTypesStructure(child)
+			if err != nil {
+				return nil, err
+			}
+			decls = append(decls, td)
+
 		case child.Type == "Try" || child.Type == "Catch":
 			return nil, childError(child, fmt.Errorf("TRY/CATCH: catchable exceptions are not implemented"))
 
@@ -649,7 +657,7 @@ func mergeMethodBodies(cd *ClassDecl, implMethods map[string]*MethodDecl) error 
 }
 
 func isControlStructure(t string) bool {
-	return t == "While" || t == "If" || t == "Do" || t == "Case" || t == "Select"
+	return t == "While" || t == "If" || t == "Do" || t == "Case" || t == "Select" || t == "Loop"
 }
 
 // convertControlStructure converts a structured control flow node to a semantic Stmt_.
@@ -663,6 +671,8 @@ func convertControlStructure(node *ASTChild) (Stmt_, error) {
 		return convertDo(node)
 	case "Select":
 		return convertSelect(node)
+	case "Loop":
+		return convertLoop(node)
 	default:
 		return nil, fmt.Errorf("unsupported control structure: %s", node.Type)
 	}
@@ -744,7 +754,7 @@ func convertDo(node *ASTChild) (Stmt_, error) {
 	for _, child := range node.Children {
 		switch child.Type {
 		case "Do":
-			tokens := expressionTokens(child)
+			tokens := selectorExpressionTokens(child)
 			if len(tokens) > 0 && strings.EqualFold(tokens[0], "DO") {
 				tokens = tokens[1:]
 			}
@@ -816,7 +826,7 @@ func convertSelect(node *ASTChild) (Stmt_, error) {
 // It looks for Compare/Cond children with structured Source + CompareOperator,
 // falling back to flat token parsing.
 func extractCondFromStmt(stmtNode *ASTChild) Expr_ {
-	tokens := expressionTokens(stmtNode)
+	tokens := selectorExpressionTokens(stmtNode)
 	if len(tokens) > 0 {
 		switch strings.ToUpper(tokens[0]) {
 		case "WHILE", "IF", "ELSEIF":
@@ -926,6 +936,8 @@ func collectStmtsFromDecls(decls []Decl) []Stmt_ {
 			stmts = append(stmts, d.stmt)
 		case *DataDecl:
 			stmts = append(stmts, d)
+		case *TypesDecl:
+			stmts = append(stmts, d)
 		}
 	}
 	return stmts
@@ -970,6 +982,14 @@ func isStructureType(t string) bool {
 func convertStmt(s *StmtNode) (Decl, error) {
 	tokens := collectTokenStrings(s)
 	upper := strings.ToUpper(s.Type)
+	if message, refused := internalTableRefusal(s.Type); refused {
+		return nil, fmt.Errorf("%s", message)
+	}
+	// Statements that may name a structure component a-b see the joined selector.
+	switch s.Type {
+	case "Move", "Write", "Clear", "Append", "ReadTable", "Describe", "Refresh":
+		tokens = selectorTokenStrings(s)
+	}
 
 	switch {
 	case upper == "REPORT":
@@ -1008,6 +1028,14 @@ func convertStmt(s *StmtNode) (Decl, error) {
 		return &formBodyDecl{stmt: &ClearStmt{Target: strings.ToLower(tokens[1])}}, nil
 	case upper == "PERFORM":
 		return parsePerformStmt(tokens)
+	case s.Type == "Append":
+		return parseAppendStmt(tokens)
+	case s.Type == "ReadTable":
+		return parseReadTableStmt(tokens)
+	case s.Type == "Describe":
+		return parseDescribeStmt(tokens)
+	case s.Type == "Refresh":
+		return parseRefreshStmt(tokens)
 	case upper == "MOVE" || s.Type == "Move":
 		return parseMoveStmt(tokens)
 	case upper == "EXEC" || s.Type == "ExecSQL":
@@ -1096,6 +1124,14 @@ func collectChildTokens(children []*ASTChild) []string {
 
 // parseDataStmt: DATA varname TYPE typename [VALUE val].
 func parseDataStmt(tokens []string) (Decl, error) {
+	if len(tokens) >= 4 && strings.EqualFold(tokens[2], "TYPE") {
+		switch strings.ToUpper(tokens[3]) {
+		case "STANDARD", "TABLE", "SORTED", "HASHED", "ANY", "INDEX", "RANGE":
+			return parseTableDeclaration(tokens)
+		case "REF":
+			return nil, fmt.Errorf("DATA %s: TYPE REF TO data references are not implemented", tokens[1])
+		}
+	}
 	name, ty, length, value, err := parseSimpleDeclaration(tokens, "VALUE")
 	if err != nil {
 		return nil, err

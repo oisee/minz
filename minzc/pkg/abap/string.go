@@ -44,6 +44,10 @@ func inferStringCapacity(p *Program) (int, error) {
 				if x.AbapTy == "c" && characterLength(x.Length) > capacity {
 					capacity = characterLength(x.Length)
 				}
+			case TypeComponent:
+				if x.AbapTy == "c" && characterLength(x.Length) > capacity {
+					capacity = characterLength(x.Length)
+				}
 			case ParamDecl:
 				if x.AbapTy == "c" && characterLength(x.Length) > capacity {
 					capacity = characterLength(x.Length)

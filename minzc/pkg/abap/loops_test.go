@@ -163,7 +163,7 @@ y = 2.`, map[string]int32{"x": 1, "y": 2, "seen": 0}, "processing-exit")
 }
 
 func TestSystemFieldAdmission(t *testing.T) {
-	for _, field := range []string{"datum", "uzeit", "ucomm", "tabix", "mandt"} {
+	for _, field := range []string{"datum", "uzeit", "ucomm", "tfill", "mandt"} {
 		if module, err := Compile("REPORT zref. WRITE sy-"+field+".", "zref"); module != nil || err == nil || !strings.Contains(err.Error(), "precise system-field semantics") {
 			t.Fatalf("SY-%s: executable module returned=%t error=%v", field, module != nil, err)
 		}

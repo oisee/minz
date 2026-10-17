@@ -80,7 +80,9 @@ func (l *lowerer) collectReportData() error {
 			return err
 		}
 		names[d.Name], l.reportData[d] = true, true
-		l.varTypes[d.Name] = l.abapTypeToHIR(d.AbapTy, d.Length)
+		if !l.aggregateDecl(d) {
+			l.varTypes[d.Name] = l.abapTypeToHIR(d.AbapTy, d.Length)
+		}
 		return l.lowerGlobal(d)
 	}
 	for _, d := range l.prog.Decls {
