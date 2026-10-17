@@ -391,7 +391,10 @@ func convertClassDefinition(node *ASTChild) *ClassDecl {
 						for _, t := range item.Tokens {
 							toks = append(toks, t.Str)
 						}
-						if len(toks) >= 2 && strings.ToUpper(toks[0]) == "METHODS" {
+						if len(toks) >= 3 && strings.EqualFold(toks[0], "CLASS") && toks[1] == "-" && strings.EqualFold(toks[2], "METHODS") {
+							toks = append([]string{"CLASS-METHODS"}, toks[3:]...)
+						}
+						if len(toks) >= 2 && (strings.EqualFold(toks[0], "METHODS") || strings.EqualFold(toks[0], "CLASS-METHODS")) {
 							md := parseMethodSignature(toks)
 							if md != nil {
 								cd.Methods = append(cd.Methods, md)
@@ -421,7 +424,7 @@ func parseMethodSignature(toks []string) *MethodDecl {
 	if len(toks) < 2 {
 		return nil
 	}
-	md := &MethodDecl{Name: strings.ToLower(toks[1])}
+	md := &MethodDecl{Name: strings.ToLower(toks[1]), Static: strings.EqualFold(toks[0], "CLASS-METHODS")}
 
 	i := 2
 	for i < len(toks) {

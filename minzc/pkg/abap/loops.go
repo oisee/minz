@@ -56,7 +56,7 @@ func (l *lowerer) lowerLoopReturn() hir.Stmt {
 	for i := len(l.indexLoops) - 1; i >= 0; i-- {
 		statements = append(statements, indexSet(loopValue(l.indexLoops[i])))
 	}
-	statements = append(statements, &hir.ReturnStmt{})
+	statements = append(statements, &hir.ReturnStmt{Val: l.returnValue})
 	if len(statements) == 1 {
 		return statements[0]
 	}

@@ -139,6 +139,7 @@ func (*ClassDecl) abapDecl() {}
 
 // MethodDecl is a METHOD ... ENDMETHOD.
 type MethodDecl struct {
+	Static    bool
 	Name      string
 	Importing []FormParam
 	Exporting []FormParam

@@ -158,3 +158,12 @@ between early global reads and later local bindings. Four unchanged full
 reports match independent reference, both VMs and Z80. Shadow probes are
 separated from provider parity. Remaining admission, scalar method RETURN,
 guarded CP/M closure and main integration remain open.
+
+## Scalar-return checkpoint
+
+[Typed early RETURN](2026-10-17-scalar-return.md) now returns the current
+scalar result through early method/function exits and restores nested loop
+indexes. CLASS-METHODS declarations are preserved with a static ABI. Twelve
+function-boundary VM/Z80 calls pass; these are explicitly separate from
+source-level method dispatch and full-report reference gates. Remaining
+admission, guarded CP/M closure and main integration remain required.

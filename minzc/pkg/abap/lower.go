@@ -215,6 +215,7 @@ type lowerer struct {
 	varTypes           map[string]mir2.Ty
 	referenceParams    map[string]hir.Expr
 	actualCounter      int
+	returnValue        hir.Expr
 	localObjects       map[string]string
 	localCounter       int
 	localInitializers  []hir.Stmt
@@ -744,6 +745,8 @@ func (l *lowerer) lowerGlobal(d *DataDecl) error {
 // enterProcedure isolates parameters and local DATA from sibling procedures.
 // The outer map contains report globals and is restored even on lowering errors.
 func (l *lowerer) enterProcedure() func() {
+	outerReturn := l.returnValue
+	l.returnValue = nil
 	outerObjects := l.localObjects
 	l.localObjects = make(map[string]string)
 	outerInitializers, outerNames := l.localInitializers, l.localNames
@@ -764,6 +767,7 @@ func (l *lowerer) enterProcedure() func() {
 		l.varTypes[name] = ty
 	}
 	return func() {
+		l.returnValue = outerReturn
 		l.localObjects = outerObjects
 		l.localInitializers, l.localNames = outerInitializers, outerNames
 		l.varTypes = outer
@@ -927,6 +931,7 @@ func (l *lowerer) lowerFunction(d *FunctionDecl) error {
 		if err != nil {
 			return err
 		}
+		l.returnValue = &hir.VarRefExpr{Name: l.localObjectName(p.Name), Ty: l.abapTypeToHIR(p.AbapTy, 0)}
 	}
 	body, err := l.lowerStmts(d.Body)
 	if err != nil {
@@ -984,7 +989,7 @@ func (l *lowerer) lowerMethod(className string, m *MethodDecl) error {
 	// Only add self parameter if the class has attributes (instance data).
 	// Pure computation classes emit free functions, enabling compile-time asserts.
 	var params []hir.Param
-	if l.classHasAttrs(className) {
+	if l.classHasAttrs(className) && !m.Static {
 		params = append(params, hir.Param{Name: "self", Ty: mir2.TyPtr})
 	}
 
@@ -1014,6 +1019,7 @@ func (l *lowerer) lowerMethod(className string, m *MethodDecl) error {
 		if err != nil {
 			return err
 		}
+		l.returnValue = &hir.VarRefExpr{Name: l.localObjectName(p.Name), Ty: retTy}
 	}
 	body, err := l.lowerStmts(m.Body)
 	if err != nil {
