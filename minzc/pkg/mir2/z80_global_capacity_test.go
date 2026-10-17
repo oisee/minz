@@ -9,7 +9,7 @@ func TestZ80RejectsGlobalDataOutsideAddressSpace(t *testing.T) {
 	for _, globals := range [][]Global{
 		{{Name: "story", Ty: &ArrayTy{Elem: TyU8, Len: 131072}}},
 		{{Name: "first", Ty: &ArrayTy{Elem: TyU8, Len: 40000}}, {Name: "second", Ty: &ArrayTy{Elem: TyU8, Len: 40000}}},
-		{{Name: "buffer", Ty: TyU8, Init: make([]byte, 65537)}},
+		{{Name: "buffer", Ty: NewArray(TyU8, 65537), Init: make([]byte, 65537)}},
 	} {
 		asm, err := Z80Codegen(&Module{Globals: globals}, &AllocResult{})
 		if err == nil || asm != "" || !strings.Contains(err.Error(), "16-bit address space") {

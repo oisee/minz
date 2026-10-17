@@ -6,6 +6,7 @@ import "fmt"
 // Returns nil if the module is well-formed.
 //
 // Checks:
+//   - Global initializers and symbolic slots fit their declared type layout.
 //   - Non-extern functions have at least one block.
 //   - Block labels are unique within each function.
 //   - Every block is sealed (has a terminator).

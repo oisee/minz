@@ -594,7 +594,8 @@ func (l *lowerer) generateVtable(className string, info *objcClassInfo, protoNam
 	initBytes := make([]byte, len(syms)*2)
 	g := mir2.Global{
 		Name:       gname,
-		Ty:         mir2.TyPtr, // base type; actual size = len(VtableSyms)*2
+		Ty:         mir2.NewArray(mir2.TyPtr, len(syms)),
+		Producer:   "c89.generateVtable",
 		Init:       initBytes,
 		VtableSyms: syms, // list of function names — resolved to addresses at link/VM time
 	}

@@ -32,8 +32,11 @@ func emitDWLine(sb *strings.Builder, data []byte) {
 
 func paddedInitBytes(ty Ty, init []byte) []byte {
 	w := ByteWidth(ty)
-	if len(init) >= w {
-		return init[:w]
+	if len(init) > w {
+		panic("mir2: oversized global initializer reached emission")
+	}
+	if len(init) == w {
+		return init
 	}
 	buf := make([]byte, w)
 	copy(buf, init)
@@ -243,9 +246,6 @@ func Z80Codegen(m *Module, ar *AllocResult, opts ...Z80CodegenOptions) (string, 
 	globalBytes := 0
 	for _, g := range m.Globals {
 		width := ByteWidth(g.Ty)
-		if len(g.Init) > width {
-			width = len(g.Init)
-		}
 		if width < 0 || width > 65536-globalBytes {
 			return "", fmt.Errorf("Z80 global %q exceeds 16-bit address space (data before global: %d bytes, global: %d bytes)", g.Name, globalBytes, width)
 		}
@@ -353,11 +353,6 @@ func Z80Codegen(m *Module, ar *AllocResult, opts ...Z80CodegenOptions) (string, 
 		sb.WriteString("; globals\n")
 		for _, g := range m.Globals {
 			w := ByteWidth(g.Ty)
-			// If Init data is longer than type width, use the actual data length.
-			// This supports variable-length buffers (e.g. ABAP PARAMETERS buffers).
-			if len(g.Init) > w {
-				w = len(g.Init)
-			}
 			if w == 0 {
 				// Zero-size struct: emit the label so address-of references resolve,
 				// but no data bytes — the struct occupies no memory at runtime.
