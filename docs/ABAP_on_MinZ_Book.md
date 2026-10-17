@@ -2,6 +2,15 @@
 
 *A practical guide to running ABAP on 8-bit hardware*
 
+> Historical design/examples, not the current admission matrix. Native
+> hardening now uses an embedded Go parser, signed i32 and owned character/
+> string storage. The Wasm, u16, scalar-CHANGING and automatic ABAP TUI claims
+> below describe older experiments. INTO TABLE/ALV prototypes are not admitted
+> by the strict frontend. Standalone Nanz TUI/SQLite examples have their own
+> scope. See the [current ABAP guide](../examples/abap/README.md) and
+> [verified feature reports](../reports/native-abap/objective.md).
+
+
 ### At a Glance
 
 | Ch | Topic | Key Takeaway |

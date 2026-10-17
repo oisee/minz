@@ -15,6 +15,18 @@ func (g *z80cg) genCall(inst *Inst) error {
 
 	// ── Built-in intrinsics (inlined, no CALL emitted) ────────────────────────
 	switch inst.Sym {
+	case "@mir.io.halt":
+		if len(inst.Args) != 0 || inst.Dst != NoReg || len(inst.ExtraRets) != 0 || inst.Ty != TyVoid {
+			return fmt.Errorf("halt requires a void call without arguments or results")
+		}
+		idx := g.trampIdx
+		g.trampIdx++
+		g.emitf(".terminal_halt_%d:", idx)
+		g.emit("    DI")
+		g.emit("    HALT")
+		g.emitf("    JP .terminal_halt_%d", idx)
+		return nil
+
 	case "@mir.io.print.str":
 		if len(inst.Args) != 1 {
 			return fmt.Errorf("print.str requires one pointer argument")

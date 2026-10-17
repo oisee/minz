@@ -13,7 +13,7 @@ func TestNativeWideArithmeticBanksAndSpills(t *testing.T) {
 	homes := []string{"HL", "DE", "BC", "spill"}
 	values := []uint32{0, 1, 3, 0xffff, 0x10000, 0x80000003, 0xffffffff}
 	for _, width := range []int{24, 32} {
-		for _, op := range []Op{OpMul, OpDiv, OpMod, OpSDiv, OpSMod} {
+		for _, op := range []Op{OpMul, OpDiv, OpMod, OpSDiv, OpSMod, OpNeg} {
 			for _, lhs := range homes {
 				for _, rhs := range homes {
 					for _, dst := range homes {
@@ -78,7 +78,12 @@ func TestNativeWideArithmeticBanksAndSpills(t *testing.T) {
 							g.emit("DI")
 							g.emit("HALT")
 							g.emit("wide:")
-							g.genWideArithmetic(&Inst{Op: op, Dst: 3, Src: [2]Reg{1, 2}, Ty: ty})
+							inst := &Inst{Op: op, Dst: 3, Src: [2]Reg{1, 2}, Ty: ty}
+							if op == OpNeg {
+								g.genInst(inst)
+							} else {
+								g.genWideArithmetic(inst)
+							}
 							g.emit("RET")
 							for i := 1; i <= 3; i++ {
 								g.emitf("_spill_wide_r%d: DB 0,0,0,0", i)
@@ -98,11 +103,13 @@ func TestNativeWideArithmeticBanksAndSpills(t *testing.T) {
 									if lhs == rhs && lhs != "spill" {
 										b = a
 									}
-									if op != OpMul && b == 0 {
+									if op != OpMul && op != OpNeg && b == 0 {
 										continue
 									}
 									var want uint32
 									switch op {
+									case OpNeg:
+										want = 0 - a
 									case OpMul:
 										want = a * b
 									case OpDiv:

@@ -1,5 +1,13 @@
 # stdlib/tui — Universal TUI Framework
 
+> ABAP integration status (17 October 2026): the native ABAP selection-input
+> path is not yet connected to this Screen/app API. `Screen.get_int()` returns
+> a stored u16 default, not a verified edited ABAP i32 value; `app_run()` does
+> not dispatch ABAP PBO/PAI. The examples and portability descriptions below
+> are historical API documentation, not certification of every target or
+> input path. See the [ABAP/Nanz TUI integration plan](../../reports/native-abap/2026-10-16-pbo-pai-nanz-tui.md)
+> and the [current native ABAP guide](../../examples/abap/README.md).
+
 Interactive screen/form framework that works across **all backends**:
 CP/M (BDOS), MZV (MIR2 VM), ZX Spectrum, Agon Light, and native (QBE).
 

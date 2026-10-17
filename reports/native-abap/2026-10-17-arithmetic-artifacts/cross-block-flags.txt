@@ -1,0 +1,8 @@
+=== RUN   TestCrossBlockPredicateRequiresByteHomeNative
+=== RUN   TestCrossBlockPredicateRequiresByteHomeNative/greedy
+=== RUN   TestCrossBlockPredicateRequiresByteHomeNative/pbqp
+--- PASS: TestCrossBlockPredicateRequiresByteHomeNative (0.01s)
+    --- PASS: TestCrossBlockPredicateRequiresByteHomeNative/greedy (0.00s)
+    --- PASS: TestCrossBlockPredicateRequiresByteHomeNative/pbqp (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/mir2	0.013s

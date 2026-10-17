@@ -49,7 +49,9 @@ func (g *z80cg) genWideArithmetic(inst *Inst) {
 		}
 	}
 	stage(inst.Src[0], 0)
-	stage(inst.Src[1], 4)
+	if inst.Op != OpNeg {
+		stage(inst.Src[1], 4)
+	}
 	for i := 8; i < 12; i++ {
 		g.emitf("    LD (IX+%d), 0", i)
 	}
@@ -101,65 +103,69 @@ func (g *z80cg) genWideArithmetic(inst *Inst) {
 			g.emit(label(fmt.Sprintf("positive_%d", offset)) + ":")
 		}
 	}
-	g.emit(label("loop") + ":")
-	if inst.Op == OpMul {
-		g.emit("    SRL (IX+7)")
-		for i := 6; i >= 4; i-- {
-			g.emitf("    RR (IX+%d)", i)
-		}
-		g.emitf("    JR NC, %s", label("noadd"))
-		for i := 0; i < 4; i++ {
-			g.emitf("    LD A, (IX+%d)", 8+i)
-			if i == 0 {
-				g.emitf("    ADD A, (IX+%d)", i)
-			} else {
-				g.emitf("    ADC A, (IX+%d)", i)
-			}
-			g.emitf("    LD (IX+%d), A", 8+i)
-		}
-		g.emit(label("noadd") + ":")
-		g.emit("    SLA (IX+0)")
-		for i := 1; i < 4; i++ {
-			g.emitf("    RL (IX+%d)", i)
-		}
+	if inst.Op == OpNeg {
+		negate(0)
 	} else {
-		// Restoring division: shift the dividend through remainder, try the
-		// divisor, restore on borrow, otherwise insert the quotient's low bit.
-		g.emit("    SLA (IX+0)")
-		for i := 1; i < 4; i++ {
-			g.emitf("    RL (IX+%d)", i)
-		}
-		for i := 8; i < 12; i++ {
-			g.emitf("    RL (IX+%d)", i)
-		}
-		for i := 0; i < 4; i++ {
-			g.emitf("    LD A, (IX+%d)", 8+i)
-			if i == 0 {
-				g.emitf("    SUB (IX+%d)", 4+i)
-			} else {
-				g.emitf("    SBC A, (IX+%d)", 4+i)
+		g.emit(label("loop") + ":")
+		if inst.Op == OpMul {
+			g.emit("    SRL (IX+7)")
+			for i := 6; i >= 4; i-- {
+				g.emitf("    RR (IX+%d)", i)
 			}
-			g.emitf("    LD (IX+%d), A", 8+i)
-		}
-		g.emitf("    JR NC, %s", label("fits"))
-		for i := 0; i < 4; i++ {
-			g.emitf("    LD A, (IX+%d)", 8+i)
-			if i == 0 {
-				g.emitf("    ADD A, (IX+%d)", 4+i)
-			} else {
-				g.emitf("    ADC A, (IX+%d)", 4+i)
+			g.emitf("    JR NC, %s", label("noadd"))
+			for i := 0; i < 4; i++ {
+				g.emitf("    LD A, (IX+%d)", 8+i)
+				if i == 0 {
+					g.emitf("    ADD A, (IX+%d)", i)
+				} else {
+					g.emitf("    ADC A, (IX+%d)", i)
+				}
+				g.emitf("    LD (IX+%d), A", 8+i)
 			}
-			g.emitf("    LD (IX+%d), A", 8+i)
+			g.emit(label("noadd") + ":")
+			g.emit("    SLA (IX+0)")
+			for i := 1; i < 4; i++ {
+				g.emitf("    RL (IX+%d)", i)
+			}
+		} else {
+			// Restoring division: shift the dividend through remainder, try the
+			// divisor, restore on borrow, otherwise insert the quotient's low bit.
+			g.emit("    SLA (IX+0)")
+			for i := 1; i < 4; i++ {
+				g.emitf("    RL (IX+%d)", i)
+			}
+			for i := 8; i < 12; i++ {
+				g.emitf("    RL (IX+%d)", i)
+			}
+			for i := 0; i < 4; i++ {
+				g.emitf("    LD A, (IX+%d)", 8+i)
+				if i == 0 {
+					g.emitf("    SUB (IX+%d)", 4+i)
+				} else {
+					g.emitf("    SBC A, (IX+%d)", 4+i)
+				}
+				g.emitf("    LD (IX+%d), A", 8+i)
+			}
+			g.emitf("    JR NC, %s", label("fits"))
+			for i := 0; i < 4; i++ {
+				g.emitf("    LD A, (IX+%d)", 8+i)
+				if i == 0 {
+					g.emitf("    ADD A, (IX+%d)", 4+i)
+				} else {
+					g.emitf("    ADC A, (IX+%d)", 4+i)
+				}
+				g.emitf("    LD (IX+%d), A", 8+i)
+			}
+			g.emitf("    JR %s", label("next"))
+			g.emit(label("fits") + ":")
+			g.emit("    SET 0, (IX+0)")
+			g.emit(label("next") + ":")
 		}
-		g.emitf("    JR %s", label("next"))
-		g.emit(label("fits") + ":")
-		g.emit("    SET 0, (IX+0)")
-		g.emit(label("next") + ":")
+		g.emit("    DEC (IX+12)")
+		g.emitf("    JP NZ, %s", label("loop"))
 	}
-	g.emit("    DEC (IX+12)")
-	g.emitf("    JP NZ, %s", label("loop"))
 	result := 8
-	if inst.Op == OpDiv || inst.Op == OpSDiv {
+	if inst.Op == OpDiv || inst.Op == OpSDiv || inst.Op == OpNeg {
 		result = 0
 	}
 	if signed {

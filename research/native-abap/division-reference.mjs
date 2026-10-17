@@ -1,0 +1,14 @@
+import fs from 'node:fs';
+import crypto from 'node:crypto';
+import transpiler from '@abaplint/transpiler';
+import runtime from '@abaplint/runtime';
+const src=fs.readFileSync(process.argv[2],'utf8');
+const inputsText=fs.readFileSync(process.argv[3],'utf8');
+const out=await new transpiler.Transpiler({addCommonJS:false,ignoreSourceMap:true}).runRaw([{filename:'zref.prog.abap',contents:src}]);
+if(out.objects.length!==1)throw new Error('expected one program');
+const code=out.objects[0].chunk.getCode();
+const AsyncFunction=Object.getPrototypeOf(async function(){}).constructor;
+const run=new AsyncFunction('abap','a','b',code+'\nx.set(a);y.set(b);await abap.Forms["PROG-ZREF-PROBE"]({});return {x:x.get(),y:y.get(),seen:seen.get()};');
+const cases=[];
+for(const [a,b] of JSON.parse(inputsText))cases.push({input:[a,b],values:await run(new runtime.ABAP(),a,b)});
+console.log(JSON.stringify({source_sha256:crypto.createHash('sha256').update(src).digest('hex'),inputs_sha256:crypto.createHash('sha256').update(inputsText).digest('hex'),provider:'@abaplint/transpiler + @abaplint/runtime 2.14.8',node:process.version,cases},null,2));

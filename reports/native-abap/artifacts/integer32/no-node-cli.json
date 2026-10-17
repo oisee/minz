@@ -1,0 +1,16 @@
+{
+  "command": "env PATH=/nonexistent minzc-i32 minzc/pkg/abap/testdata/integer-reference/wide-reference.abap -o wide-reference.a80",
+  "exit_code": 0,
+  "compiler_parent_commit": "965445318d14613903556644ee77b4e3ddb79fd4",
+  "compiler_state": "uncommitted i32 checkpoint verified by package-tests.txt and directed-tests.txt",
+  "files": {
+    "minzc-i32": {
+      "bytes": 69175873,
+      "sha256": "611314fe8112cb0feea0543e55076e3aa0b71f511b7a50ac31c798d413d714f3"
+    },
+    "wide-reference.a80": {
+      "bytes": 33527,
+      "sha256": "5eee60fa28d96efb3a1b77e3cf8bd053b81296ea2183e5642d1b5fb18a4ffa89"
+    }
+  }
+}

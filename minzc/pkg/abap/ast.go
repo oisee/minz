@@ -1,16 +1,8 @@
 // Package abap implements an ABAP→HIR frontend for the MinZ compiler.
 //
-// It uses Lars Hvam Petersen's abaplint (TypeScript) as an external parser
-// via a JSON bridge, then lowers the resulting AST to HIR for compilation
-// through the standard MIR2→Z80 pipeline.
-//
-// Architecture:
-//
-//	ABAP source
-//	    → abaplint (Node.js)  → JSON AST
-//	    → Go deserializer     → abap.Program (this package)
-//	    → Lowerer             → *hir.Module
-//	    → MIR2 pipeline       → Z80 assembly
+// It embeds a pinned Go translation of Lars Hvam Petersen's abaplint parser,
+// produced by abapiti, and lowers the admitted semantic AST through HIR and
+// the standard MIR2-to-Z80 pipeline. Node is used only for research references.
 package abap
 
 // ── JSON AST types (deserialized from abaplint bridge output) ────────────────
@@ -57,11 +49,12 @@ type Token struct {
 
 // Program is the top-level semantic unit after AST simplification.
 type Program struct {
-	Name    string
-	Decls   []Decl
-	Params  []*ParamDecl       // PARAMETERS declarations (selection screen)
-	Events  map[string][]Stmt_ // INITIALIZATION, START-OF-SELECTION, END-OF-SELECTION, etc.
-	SeedSQL []string           // *!sql pragma lines (seed database setup)
+	Name        string
+	Decls       []Decl
+	Params      []*ParamDecl         // PARAMETERS declarations (selection screen)
+	Events      map[string][]Stmt_   // INITIALIZATION, START-OF-SELECTION, END-OF-SELECTION, etc.
+	EventBlocks map[string][][]Stmt_ // Separate processing blocks in source order.
+	SeedSQL     []string             // *!sql pragma lines (seed database setup)
 }
 
 // Decl is any top-level or local declaration.
@@ -147,6 +140,7 @@ func (*ClassDecl) abapDecl() {}
 
 // MethodDecl is a METHOD ... ENDMETHOD.
 type MethodDecl struct {
+	Static    bool
 	Name      string
 	Importing []FormParam
 	Exporting []FormParam
@@ -173,6 +167,17 @@ type WriteStmt struct {
 }
 
 func (*WriteStmt) abapStmt() {}
+
+// TemplateValue uses default string-template formatting, which differs from
+// ordinary numeric WRITE and trims fixed-character trailing blanks.
+type TemplateValue struct{ Val Expr_ }
+
+func (*TemplateValue) abapExpr() {}
+
+// ClearStmt resets a declared object to its type-specific initial value.
+type ClearStmt struct{ Target string }
+
+func (*ClearStmt) abapStmt() {}
 
 type AssignStmt struct {
 	Target string // variable name
@@ -306,11 +311,20 @@ func (*ExecSQLStmt) abapStmt() {}
 // Expr_ is a semantic ABAP expression.
 type Expr_ interface{ abapExpr() }
 
+// InvalidExpr carries an admission failure through legacy expression APIs.
+// Lowering must reject it; it never denotes a default value.
+type InvalidExpr struct{ Message string }
+
+func (*InvalidExpr) abapExpr() {}
+
 type IntLit struct{ Val int64 }
 
 func (*IntLit) abapExpr() {}
 
-type StringLit struct{ Val string }
+type StringLit struct {
+	Val      string
+	IsString bool // backtick string literal; single quotes denote fixed character data
+}
 
 func (*StringLit) abapExpr() {}
 

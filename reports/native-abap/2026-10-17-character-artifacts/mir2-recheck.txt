@@ -1,0 +1,1 @@
+ok  	github.com/minz/minzc/pkg/mir2	134.402s

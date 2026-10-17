@@ -27,3 +27,15 @@ func TestPruneUnreachableFuncsUnreachableAssembly(t *testing.T) {
 		t.Fatal("unreachable assembly should not disable ordinary call-graph pruning")
 	}
 }
+
+func TestPruneUnreachableFuncsBoundIntrinsicAndConditionalCall(t *testing.T) {
+	for _, op := range []Op{OpCall, OpCallCond} {
+		m := &Module{Funcs: []*Func{
+			{Name: "main", Blocks: []*Block{{Insts: []*Inst{{Op: op, Sym: "@bound"}}}}},
+			{Name: "@bound"}, {Name: "dead"},
+		}}
+		if !PruneUnreachableFuncs(m, map[string]bool{"main": true}) || m.FuncByName("@bound") == nil || m.FuncByName("dead") != nil {
+			t.Fatalf("call %s lost bound callee", op)
+		}
+	}
+}

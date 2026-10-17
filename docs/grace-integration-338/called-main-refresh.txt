@@ -1,0 +1,19 @@
+Native ABAP integration: reviewed called-main harness refresh
+
+Implementation ef2e19e54a22e032c5c740d48b8bbc47a441c016
+CI https://github.com/oisee/minz/actions/runs/38999430421
+PR gate stable compiler/toolchain tests: PASS.
+All 438 fast pipeline entries passed in 3 exhaustive shards.
+Frozen upstream system C VM/Z80: PASS. Embedded demos/Tetris: PASS.
+Nanz catalog subsequently failed on stale reviewed test SHA256.
+
+The SQLite harness now explicitly selects CalledMain for its return-address
+entry, and saves the same ASM that was assembled. The Pascal test loader
+selects CalledMain only outside the production COM path. Original sources,
+expected outputs, memory and PC/SP checks are unchanged. Historical root
+logs and manifests remain historical; their content is not rewritten.
+
+Local TestHardwareSpriteChainCompile, TestPascalWholeMainCPMLoaderObservation,
+TestPLMModuleEntryNative and TestSQLiteOriginalWholeMain all passed (0.421 s).
+Evidence log SHA256: 41669832360fd9ea94e587a4bf3cc6c03fb3f7a3829faf072cd294264d4812e0
+CI PR-gate log SHA256: 6b3f51641bffb8075f488377209f55e3cdfe4ce14a5b158dce004b608e5d1dd2

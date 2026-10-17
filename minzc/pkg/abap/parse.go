@@ -10,9 +10,9 @@ import (
 	"strings"
 )
 
-// Parse invokes the abaplint bridge to parse ABAP source, then converts the
+// ParseNode invokes the research/reference abaplint bridge to parse ABAP source, then converts the
 // JSON AST into a semantic Program suitable for lowering to HIR.
-func Parse(src, name string) (*Program, error) {
+func ParseNode(src, name string) (*Program, error) {
 	// Locate bridge script relative to this Go source file.
 	_, thisFile, _, _ := runtime.Caller(0)
 	bridgeDir := filepath.Join(filepath.Dir(thisFile), "bridge")
@@ -45,21 +45,22 @@ func Parse(src, name string) (*Program, error) {
 // buildProgram converts the raw JSON AST into a semantic Program.
 func buildProgram(name string, r *ParseResult) (*Program, error) {
 	prog := &Program{
-		Name:   name,
-		Events: make(map[string][]Stmt_),
+		Name:        name,
+		Events:      make(map[string][]Stmt_),
+		EventBlocks: make(map[string][][]Stmt_),
 	}
 
 	if r.Structure != nil {
 		decls, err := walkStructure(r.Structure)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("%s%w", name, err)
 		}
 		prog.Decls = decls
 	} else {
 		for _, s := range r.Statements {
 			d, err := convertStmt(s)
 			if err != nil {
-				continue // skip unsupported statements
+				return nil, statementError(name, s, err)
 			}
 			if d != nil {
 				prog.Decls = append(prog.Decls, d)
@@ -75,12 +76,27 @@ func buildProgram(name string, r *ParseResult) (*Program, error) {
 			prog.Params = append(prog.Params, d)
 			filtered = append(filtered, d) // keep as global DATA too
 		case *EventDecl:
-			prog.Events[d.Event] = d.Body
+			if d.Event == "AT-SELECTION-SCREEN" && len(prog.EventBlocks[d.Event]) != 0 {
+				return nil, fmt.Errorf("%s: repeated AT-SELECTION-SCREEN processing block is not admitted", name)
+			}
+			prog.EventBlocks[d.Event] = append(prog.EventBlocks[d.Event], d.Body)
+			// Repeated processing blocks execute in source order, rather than
+			// replacing an earlier block (explicit/implicit START can coexist).
+			prog.Events[d.Event] = append(prog.Events[d.Event], d.Body...)
 		default:
 			filtered = append(filtered, d)
 		}
 	}
 	prog.Decls = filtered
+	for _, d := range prog.Decls {
+		if cd, ok := d.(*ClassDecl); ok {
+			for _, m := range cd.Methods {
+				if m.Body == nil {
+					return nil, fmt.Errorf("%s: METHOD %s=>%s has no implementation", name, cd.Name, m.Name)
+				}
+			}
+		}
+	}
 
 	return prog, nil
 }
@@ -98,39 +114,66 @@ func walkStructure(sn *StructNode) ([]Decl, error) {
 			continue
 
 		case child.Type == "Form":
-			fd := convertFormStructure(child)
+			fd, err := convertFormStructure(child)
+			if err != nil {
+				return nil, err
+			}
 			if fd != nil {
 				decls = append(decls, fd)
 			}
 			continue
 
 		case child.Type == "FunctionModule":
-			fd := convertFunctionStructure(child)
+			fd, err := convertFunctionStructure(child)
+			if err != nil {
+				return nil, err
+			}
 			if fd != nil {
 				decls = append(decls, fd)
 			}
 			continue
 
 		case child.Type == "ClassDefinition":
-			cd := convertClassDefinition(child)
-			if cd != nil {
-				decls = append(decls, cd)
+			cd, err := convertClassDefinition(child)
+			if err != nil {
+				return nil, err
 			}
+			for _, d := range decls {
+				if prev, ok := d.(*ClassDecl); ok && prev.Name == cd.Name {
+					return nil, childError(child, fmt.Errorf("duplicate CLASS definition %s", cd.Name))
+				}
+			}
+			decls = append(decls, cd)
 			continue
 
 		case child.Type == "ClassImplementation":
 			// Find matching ClassDecl and fill in method bodies
-			className, methods := convertClassImplementation(child)
-			if className != "" {
-				for _, d := range decls {
-					if cd, ok := d.(*ClassDecl); ok && cd.Name == className {
-						mergeMethodBodies(cd, methods)
+			className, methods, err := convertClassImplementation(child)
+			if err != nil {
+				return nil, err
+			}
+			matched := false
+			for _, d := range decls {
+				if cd, ok := d.(*ClassDecl); ok && cd.Name == className {
+					if err := mergeMethodBodies(cd, methods); err != nil {
+						return nil, childError(child, err)
 					}
+					matched = true
 				}
+			}
+			if !matched {
+				return nil, childError(child, fmt.Errorf("CLASS IMPLEMENTATION %s has no matching definition", className))
 			}
 			continue
 
 		case isEventType(child.Type):
+			if child.Type == "AtSelectionScreen" {
+				tokens := collectTokenStrings(&StmtNode{Tokens: child.Tokens, Children: child.Children})
+				// abaplint can tokenize SELECTION-SCREEN as three tokens.
+				if strings.ToUpper(strings.Join(tokens, "")) != "ATSELECTION-SCREEN." {
+					return nil, childError(child, fmt.Errorf("unsupported event addition: %s", strings.Join(tokens, " ")))
+				}
+			}
 			// Close previous event
 			if currentEvent != nil {
 				decls = append(decls, currentEvent)
@@ -142,7 +185,10 @@ func walkStructure(sn *StructNode) ([]Decl, error) {
 		case isControlStructure(child.Type):
 			// While, If, Do, Case → convert to semantic statement
 			stmt, err := convertControlStructure(child)
-			if err == nil && stmt != nil {
+			if err != nil {
+				return nil, childError(child, err)
+			}
+			if stmt != nil {
 				d := &formBodyDecl{stmt: stmt}
 				if currentEvent != nil {
 					currentEvent.Body = append(currentEvent.Body, stmt)
@@ -150,6 +196,9 @@ func walkStructure(sn *StructNode) ([]Decl, error) {
 					decls = append(decls, d)
 				}
 			}
+
+		case child.Type == "Try" || child.Type == "Catch":
+			return nil, childError(child, fmt.Errorf("TRY/CATCH: catchable exceptions are not implemented"))
 
 		case isStructureType(child.Type):
 			sub := &StructNode{Type: child.Type, Children: child.Children}
@@ -161,8 +210,10 @@ func walkStructure(sn *StructNode) ([]Decl, error) {
 				for _, d := range subDecls {
 					if fbd, ok := d.(*formBodyDecl); ok {
 						currentEvent.Body = append(currentEvent.Body, fbd.stmt)
+					} else if data, ok := d.(*DataDecl); ok && currentEvent.Event == "AT-SELECTION-SCREEN" {
+						currentEvent.Body = append(currentEvent.Body, data)
 					} else {
-						// DATA in report events has report scope, including
+						// DATA in regular report events has report scope, including
 						// declarations wrapped in a Body or chained DATA node.
 						decls = append(decls, d)
 					}
@@ -179,19 +230,14 @@ func walkStructure(sn *StructNode) ([]Decl, error) {
 			}
 			d, err := convertStmt(stmt)
 			if err != nil {
-				// If inside an event, check if this is an event boundary
-				if ed, ok := d.(*EventDecl); ok {
-					if currentEvent != nil {
-						decls = append(decls, currentEvent)
-					}
-					currentEvent = ed
-				}
-				continue
+				return nil, statementError("", stmt, err)
 			}
 			if d != nil {
 				if currentEvent != nil {
 					if fbd, ok := d.(*formBodyDecl); ok {
 						currentEvent.Body = append(currentEvent.Body, fbd.stmt)
+					} else if data, ok := d.(*DataDecl); ok && currentEvent.Event == "AT-SELECTION-SCREEN" {
+						currentEvent.Body = append(currentEvent.Body, data)
 					} else {
 						decls = append(decls, d)
 					}
@@ -210,7 +256,7 @@ func walkStructure(sn *StructNode) ([]Decl, error) {
 
 // convertFormStructure converts a Form structure node to a FormDecl.
 // Form node children: Form (header with FormName/FormUsing/FormChanging children), Body, EndForm.
-func convertFormStructure(node *ASTChild) *FormDecl {
+func convertFormStructure(node *ASTChild) (*FormDecl, error) {
 	fd := &FormDecl{}
 
 	for _, child := range node.Children {
@@ -224,9 +270,25 @@ func convertFormStructure(node *ASTChild) *FormDecl {
 						fd.Name = strings.ToLower(sub.Tokens[0].Str)
 					}
 				case "FormUsing":
-					fd.Using = parseFormParams(sub.Tokens)
+					var err error
+					fd.Using, err = parseReferenceFormParams(sub.Tokens)
+					if err != nil {
+						return nil, childError(sub, err)
+					}
 				case "FormChanging":
-					fd.Changing = parseFormParams(sub.Tokens)
+					var err error
+					fd.Changing, err = parseReferenceFormParams(sub.Tokens)
+					if err != nil {
+						return nil, childError(sub, err)
+					}
+				case "Token":
+					for _, tok := range sub.Tokens {
+						if !strings.EqualFold(tok.Str, "FORM") && tok.Str != "." {
+							return nil, childError(sub, fmt.Errorf("FORM header addition %s is not implemented", tok.Str))
+						}
+					}
+				default:
+					return nil, childError(sub, fmt.Errorf("FORM header section %s is not implemented", sub.Type))
 				}
 			}
 			// Fallback: parse name from header tokens directly
@@ -242,20 +304,23 @@ func convertFormStructure(node *ASTChild) *FormDecl {
 			}
 		case "Body":
 			sub := &StructNode{Type: "Body", Children: child.Children}
-			decls, _ := walkStructure(sub)
+			decls, err := walkStructure(sub)
+			if err != nil {
+				return nil, err
+			}
 			fd.Body = collectStmtsFromDecls(decls)
 		}
 	}
 
 	if fd.Name == "" {
-		return nil
+		return nil, childError(node, fmt.Errorf("missing procedure name"))
 	}
-	return fd
+	return fd, nil
 }
 
 // convertFunctionStructure converts a FunctionModule structure to a FunctionDecl.
 // Reuses FORM infrastructure — FUNCTION is essentially FORM with IMPORTING/EXPORTING.
-func convertFunctionStructure(node *ASTChild) *FunctionDecl {
+func convertFunctionStructure(node *ASTChild) (*FunctionDecl, error) {
 	fd := &FunctionDecl{}
 
 	for _, child := range node.Children {
@@ -286,15 +351,18 @@ func convertFunctionStructure(node *ASTChild) *FunctionDecl {
 			}
 		case child.Type == "Body":
 			sub := &StructNode{Type: "Body", Children: child.Children}
-			decls, _ := walkStructure(sub)
+			decls, err := walkStructure(sub)
+			if err != nil {
+				return nil, err
+			}
 			fd.Body = collectStmtsFromDecls(decls)
 		}
 	}
 
 	if fd.Name == "" {
-		return nil
+		return nil, childError(node, fmt.Errorf("missing procedure name"))
 	}
-	return fd
+	return fd, nil
 }
 
 // parseFormParams extracts FORM parameters from tokens like "USING pv_a TYPE i pv_b TYPE i".
@@ -339,149 +407,170 @@ func parseFormParams(tokens []*Token) []FormParam {
 	return params
 }
 
-// convertClassDefinition extracts class name and method signatures from a ClassDefinition node.
-func convertClassDefinition(node *ASTChild) *ClassDecl {
+// convertClassDefinition preserves only declarations represented by the ABI.
+// Class additions, section members and signature tokens must never disappear.
+func convertClassDefinition(node *ASTChild) (*ClassDecl, error) {
 	cd := &ClassDecl{}
-
+	names := map[string]bool{}
 	for _, child := range node.Children {
 		switch child.Type {
 		case "ClassDefinition":
-			// Header — extract class name
-			for _, sub := range child.Children {
-				if sub.Type == "ClassName" && len(sub.Tokens) > 0 {
-					cd.Name = strings.ToLower(sub.Tokens[0].Str)
-				}
+			toks := collectTokenStrings(&StmtNode{Tokens: child.Tokens, Children: child.Children})
+			if len(toks) != 4 || !strings.EqualFold(toks[0], "CLASS") || !strings.EqualFold(toks[2], "DEFINITION") || toks[3] != "." {
+				return nil, childError(child, fmt.Errorf("CLASS: definition additions are not implemented"))
 			}
+			cd.Name = strings.ToLower(toks[1])
 		case "PublicSection", "ProtectedSection", "PrivateSection":
-			// Extract method signatures from section contents
 			for _, sec := range child.Children {
-				if sec.Type == "SectionContents" {
+				switch sec.Type {
+				case "Public", "Protected", "Private": // section header, no runtime effect
+					continue
+				case "SectionContents":
 					for _, item := range sec.Children {
-						// Use direct tokens from the node (not recursive getAllTokens which duplicates)
-						var toks []string
-						for _, t := range item.Tokens {
-							toks = append(toks, t.Str)
+						if item.Type == "Comment" || item.Type == "Empty" {
+							continue
 						}
-						if len(toks) >= 2 && strings.ToUpper(toks[0]) == "METHODS" {
-							md := parseMethodSignature(toks)
-							if md != nil {
-								cd.Methods = append(cd.Methods, md)
-							}
-						} else if len(toks) >= 2 && strings.ToUpper(toks[0]) == "DATA" {
-							// Class attribute
-							attr := parseClassDataAttr(toks)
-							if attr != nil {
-								cd.Attrs = append(cd.Attrs, attr)
-							}
+						toks := collectTokenStrings(&StmtNode{Tokens: item.Tokens, Children: item.Children})
+						if len(toks) >= 3 && strings.EqualFold(toks[0], "CLASS") && toks[1] == "-" && strings.EqualFold(toks[2], "METHODS") {
+							toks = append([]string{"CLASS-METHODS"}, toks[3:]...)
 						}
+						var name string
+						if len(toks) >= 2 && (strings.EqualFold(toks[0], "METHODS") || strings.EqualFold(toks[0], "CLASS-METHODS")) {
+							md, err := parseMethodSignature(toks)
+							if err != nil {
+								return nil, childError(item, err)
+							}
+							cd.Methods = append(cd.Methods, md)
+							name = md.Name
+						} else if len(toks) >= 2 && strings.EqualFold(toks[0], "DATA") {
+							decl, err := parseDataStmt(toks)
+							if err != nil {
+								return nil, childError(item, err)
+							}
+							attr, ok := decl.(*DataDecl)
+							if !ok {
+								return nil, childError(item, fmt.Errorf("CLASS: unsupported attribute declaration"))
+							}
+							if attr.Value != nil {
+								return nil, childError(item, fmt.Errorf("CLASS: attribute VALUE initialization is not implemented"))
+							}
+							cd.Attrs = append(cd.Attrs, attr)
+							name = attr.Name
+						} else {
+							return nil, childError(item, fmt.Errorf("CLASS: unsupported section member %s", item.Type))
+						}
+						if names[name] {
+							return nil, childError(item, fmt.Errorf("CLASS: duplicate member %s", name))
+						}
+						names[name] = true
 					}
+				case "Comment", "Empty":
+				default:
+					return nil, childError(sec, fmt.Errorf("CLASS: unsupported section node %s", sec.Type))
 				}
 			}
+		case "EndClass", "Comment", "Empty":
+		default:
+			return nil, childError(child, fmt.Errorf("CLASS: unsupported definition node %s", child.Type))
 		}
 	}
-
 	if cd.Name == "" {
-		return nil
+		return nil, childError(node, fmt.Errorf("CLASS: missing definition name"))
 	}
-	return cd
+	return cd, nil
 }
 
-// parseMethodSignature parses tokens like:
-// METHODS add IMPORTING iv_a TYPE i iv_b TYPE i RETURNING VALUE ( rv_sum ) TYPE i .
-func parseMethodSignature(toks []string) *MethodDecl {
-	if len(toks) < 2 {
-		return nil
+// IMPORTING scalar arguments and one VALUE RETURNING result are represented
+// by the current concrete method ABI. Other sections require a distinct ABI.
+func parseMethodSignature(toks []string) (*MethodDecl, error) {
+	if len(toks) < 3 || toks[len(toks)-1] != "." {
+		return nil, fmt.Errorf("METHODS: incomplete signature")
 	}
-	md := &MethodDecl{Name: strings.ToLower(toks[1])}
-
+	md := &MethodDecl{Name: strings.ToLower(toks[1]), Static: strings.EqualFold(toks[0], "CLASS-METHODS")}
 	i := 2
-	for i < len(toks) {
-		upper := strings.ToUpper(toks[i])
-		switch upper {
-		case "IMPORTING":
+	names := map[string]bool{}
+	param := func(requireValue bool) (FormParam, error) {
+		p := FormParam{}
+		value := i < len(toks) && strings.EqualFold(toks[i], "VALUE")
+		if requireValue && !value {
+			return p, fmt.Errorf("METHODS: RETURNING requires VALUE(name) TYPE")
+		}
+		if value {
 			i++
-			for i < len(toks) {
-				u := strings.ToUpper(toks[i])
-				if u == "RETURNING" || u == "CHANGING" || u == "EXPORTING" || u == "." {
-					break
+			if i >= len(toks) || toks[i] != "(" {
+				return p, fmt.Errorf("METHODS: expected VALUE(name)")
+			}
+			i++
+		}
+		if i >= len(toks) || toks[i] == "." || toks[i] == ")" {
+			return p, fmt.Errorf("METHODS: missing parameter name")
+		}
+		p.Name = strings.ToLower(toks[i])
+		i++
+		if value {
+			if i >= len(toks) || toks[i] != ")" {
+				return p, fmt.Errorf("METHODS: expected closing VALUE parenthesis")
+			}
+			i++
+		}
+		if i >= len(toks) || !strings.EqualFold(toks[i], "TYPE") {
+			return p, fmt.Errorf("METHODS parameter %s: fully typed parameters are required", p.Name)
+		}
+		i++
+		if i >= len(toks) || toks[i] == "." {
+			return p, fmt.Errorf("METHODS parameter %s: missing type", p.Name)
+		}
+		p.AbapTy = strings.ToLower(toks[i])
+		i++
+		if names[p.Name] {
+			return p, fmt.Errorf("METHODS: duplicate parameter %s", p.Name)
+		}
+		names[p.Name] = true
+		return p, nil
+	}
+	importing := false
+	for i < len(toks)-1 {
+		switch strings.ToUpper(toks[i]) {
+		case "IMPORTING":
+			if importing {
+				return nil, fmt.Errorf("METHODS: duplicate IMPORTING section")
+			}
+			importing = true
+			i++
+			before := len(md.Importing)
+			for i < len(toks)-1 && !strings.EqualFold(toks[i], "RETURNING") {
+				switch strings.ToUpper(toks[i]) {
+				case "CHANGING", "EXPORTING", "RAISING", "EXCEPTIONS":
+					return nil, fmt.Errorf("METHODS: %s ABI is not implemented", strings.ToUpper(toks[i]))
 				}
-				p := FormParam{Name: strings.ToLower(toks[i])}
-				i++
-				if i < len(toks) && strings.ToUpper(toks[i]) == "TYPE" {
-					i++
-					if i < len(toks) {
-						p.AbapTy = strings.ToLower(toks[i])
-						i++
-					}
+				p, err := param(false)
+				if err != nil {
+					return nil, err
 				}
 				md.Importing = append(md.Importing, p)
 			}
+			if len(md.Importing) == before {
+				return nil, fmt.Errorf("METHODS: empty IMPORTING section")
+			}
 		case "RETURNING":
+			if md.Returning != nil {
+				return nil, fmt.Errorf("METHODS: duplicate RETURNING section")
+			}
 			i++
-			// VALUE ( rv_name ) TYPE type
-			if i < len(toks) && strings.ToUpper(toks[i]) == "VALUE" {
-				i++
+			p, err := param(true)
+			if err != nil {
+				return nil, err
 			}
-			if i < len(toks) && toks[i] == "(" {
-				i++
-			}
-			if i < len(toks) {
-				p := FormParam{Name: strings.ToLower(toks[i])}
-				i++
-				if i < len(toks) && toks[i] == ")" {
-					i++
-				}
-				if i < len(toks) && strings.ToUpper(toks[i]) == "TYPE" {
-					i++
-					if i < len(toks) {
-						p.AbapTy = strings.ToLower(toks[i])
-						i++
-					}
-				}
-				md.Returning = &p
-			}
-		case "CHANGING":
-			i++
-			for i < len(toks) {
-				u := strings.ToUpper(toks[i])
-				if u == "RETURNING" || u == "IMPORTING" || u == "EXPORTING" || u == "." {
-					break
-				}
-				p := FormParam{Name: strings.ToLower(toks[i])}
-				i++
-				if i < len(toks) && strings.ToUpper(toks[i]) == "TYPE" {
-					i++
-					if i < len(toks) {
-						p.AbapTy = strings.ToLower(toks[i])
-						i++
-					}
-				}
-				md.Changing = append(md.Changing, p)
-			}
+			md.Returning = &p
 		default:
-			i++
+			return nil, fmt.Errorf("METHODS: unsupported signature addition %s", toks[i])
 		}
 	}
-	return md
-}
-
-// parseClassDataAttr parses DATA tokens into a DataDecl (class attribute).
-func parseClassDataAttr(toks []string) *DataDecl {
-	if len(toks) < 2 {
-		return nil
-	}
-	d := &DataDecl{Name: strings.ToLower(toks[1])}
-	for i := 2; i < len(toks); i++ {
-		if strings.ToUpper(toks[i]) == "TYPE" && i+1 < len(toks) {
-			d.AbapTy = strings.ToLower(toks[i+1])
-			break
-		}
-	}
-	return d
+	return md, nil
 }
 
 // convertClassImplementation extracts class name and method bodies from a ClassImplementation node.
-func convertClassImplementation(node *ASTChild) (string, map[string]*MethodDecl) {
+func convertClassImplementation(node *ASTChild) (string, map[string]*MethodDecl, error) {
 	var className string
 	methods := make(map[string]*MethodDecl)
 
@@ -494,19 +583,29 @@ func convertClassImplementation(node *ASTChild) (string, map[string]*MethodDecl)
 				}
 			}
 		case "Method":
-			name, body := convertMethodImpl(child)
-			if name != "" {
-				methods[name] = &MethodDecl{Name: name, Body: body}
+			name, body, err := convertMethodImpl(child)
+			if err != nil {
+				return "", nil, err
 			}
+			if name == "" {
+				return "", nil, childError(child, fmt.Errorf("METHOD: missing implementation name"))
+			}
+			if methods[name] != nil {
+				return "", nil, childError(child, fmt.Errorf("METHOD: duplicate implementation %s", name))
+			}
+			methods[name] = &MethodDecl{Name: name, Body: body}
+		case "EndClass", "Comment", "Empty":
+		default:
+			return "", nil, childError(child, fmt.Errorf("CLASS: unsupported implementation node %s", child.Type))
 		}
 	}
-	return className, methods
+	return className, methods, nil
 }
 
 // convertMethodImpl extracts method name and body from a Method node.
-func convertMethodImpl(node *ASTChild) (string, []Stmt_) {
+func convertMethodImpl(node *ASTChild) (string, []Stmt_, error) {
 	var name string
-	var body []Stmt_
+	body := make([]Stmt_, 0)
 
 	for _, child := range node.Children {
 		switch child.Type {
@@ -520,20 +619,33 @@ func convertMethodImpl(node *ASTChild) (string, []Stmt_) {
 			}
 		case "Body":
 			sub := &StructNode{Type: "Body", Children: child.Children}
-			decls, _ := walkStructure(sub)
-			body = collectStmtsFromDecls(decls)
+			decls, err := walkStructure(sub)
+			if err != nil {
+				return "", nil, err
+			}
+			body = append(body, collectStmtsFromDecls(decls)...)
 		}
 	}
-	return name, body
+	return name, body, nil
 }
 
 // mergeMethodBodies merges method implementations into a ClassDecl's method signatures.
-func mergeMethodBodies(cd *ClassDecl, implMethods map[string]*MethodDecl) {
+func mergeMethodBodies(cd *ClassDecl, implMethods map[string]*MethodDecl) error {
+	declared := map[string]*MethodDecl{}
 	for _, md := range cd.Methods {
-		if impl, ok := implMethods[md.Name]; ok {
-			md.Body = impl.Body
-		}
+		declared[md.Name] = md
 	}
+	for name, impl := range implMethods {
+		md := declared[name]
+		if md == nil {
+			return fmt.Errorf("METHOD %s=>%s has no matching declaration", cd.Name, name)
+		}
+		if md.Body != nil {
+			return fmt.Errorf("METHOD %s=>%s has duplicate implementations", cd.Name, name)
+		}
+		md.Body = impl.Body
+	}
+	return nil
 }
 
 func isControlStructure(t string) bool {
@@ -568,13 +680,16 @@ func convertWhile(node *ASTChild) (Stmt_, error) {
 		case "Body":
 			// Body contains the loop statements
 			sub := &StructNode{Type: "Body", Children: child.Children}
-			decls, _ := walkStructure(sub)
+			decls, err := walkStructure(sub)
+			if err != nil {
+				return nil, err
+			}
 			body = collectStmtsFromDecls(decls)
 		}
 	}
 
 	if cond == nil {
-		cond = &IntLit{Val: 1} // fallback: infinite loop
+		return nil, childError(node, fmt.Errorf("WHILE: missing condition"))
 	}
 	return &WhileStmt{Cond: cond, Body: body}, nil
 }
@@ -582,6 +697,7 @@ func convertWhile(node *ASTChild) (Stmt_, error) {
 func convertIf(node *ASTChild) (Stmt_, error) {
 	var cond Expr_
 	var thenBody, elseBody []Stmt_
+	elseTail := &elseBody
 
 	for _, child := range node.Children {
 		switch child.Type {
@@ -589,17 +705,34 @@ func convertIf(node *ASTChild) (Stmt_, error) {
 			cond = extractCondFromStmt(child)
 		case "Body":
 			sub := &StructNode{Type: "Body", Children: child.Children}
-			decls, _ := walkStructure(sub)
+			decls, err := walkStructure(sub)
+			if err != nil {
+				return nil, err
+			}
 			thenBody = collectStmtsFromDecls(decls)
+		case "ElseIf":
+			if node.Type == "ElseIf" {
+				cond = extractCondFromStmt(child)
+				continue
+			}
+			nested, err := convertIf(child)
+			if err != nil {
+				return nil, err
+			}
+			*elseTail = []Stmt_{nested}
+			elseTail = &nested.(*IfStmt).Else
 		case "Else":
 			sub := &StructNode{Type: "Else", Children: child.Children}
-			decls, _ := walkStructure(sub)
-			elseBody = collectStmtsFromDecls(decls)
+			decls, err := walkStructure(sub)
+			if err != nil {
+				return nil, err
+			}
+			*elseTail = collectStmtsFromDecls(decls)
 		}
 	}
 
 	if cond == nil {
-		cond = &IntLit{Val: 1}
+		return nil, childError(node, fmt.Errorf("IF: missing condition"))
 	}
 	return &IfStmt{Cond: cond, Then: thenBody, Else: elseBody}, nil
 }
@@ -611,26 +744,29 @@ func convertDo(node *ASTChild) (Stmt_, error) {
 	for _, child := range node.Children {
 		switch child.Type {
 		case "Do":
-			// Merge node's own tokens with child tokens (Wasm parser
-			// puts keywords like TIMES on the node, values in children)
-			var tokens []string
-			for _, t := range child.Tokens {
-				tokens = append(tokens, t.Str)
+			tokens := expressionTokens(child)
+			if len(tokens) > 0 && strings.EqualFold(tokens[0], "DO") {
+				tokens = tokens[1:]
 			}
-			childToks := collectChildTokens(child.Children)
-			tokens = append(tokens, childToks...)
-			// Filter out DO keyword and period
-			tokens = filterTokens(tokens, "DO", ".")
-			// Look for "TIMES" keyword
-			for i, t := range tokens {
-				if strings.ToUpper(t) == "TIMES" && i > 0 {
-					expr := parseTokenExpr(tokens[i-1])
-					times = &expr
+			if len(tokens) > 0 && tokens[len(tokens)-1] == "." {
+				tokens = tokens[:len(tokens)-1]
+			}
+			if len(tokens) > 0 {
+				if !strings.EqualFold(tokens[len(tokens)-1], "TIMES") {
+					return nil, childError(child, fmt.Errorf("unsupported DO additions"))
 				}
+				expr, err := parseExpression(tokens[:len(tokens)-1])
+				if err != nil {
+					return nil, childError(child, err)
+				}
+				times = &expr
 			}
 		case "Body":
 			sub := &StructNode{Type: "Body", Children: child.Children}
-			decls, _ := walkStructure(sub)
+			decls, err := walkStructure(sub)
+			if err != nil {
+				return nil, err
+			}
 			body = collectStmtsFromDecls(decls)
 		}
 	}
@@ -645,21 +781,15 @@ func convertSelect(node *ASTChild) (Stmt_, error) {
 	for _, child := range node.Children {
 		switch child.Type {
 		case "Select", "SelectLoop":
-			// Collect tokens from the SELECT statement header.
-			// Use only direct tokens — collectChildTokens would duplicate
-			// expression sub-tokens that are already in the flat token list.
-			for _, t := range child.Tokens {
-				selectTokens = append(selectTokens, t.Str)
-			}
-			// Also collect Token-type direct children (some parsers put tokens there)
-			for _, sub := range child.Children {
-				if sub.Type == "Token" {
-					selectTokens = append(selectTokens, sub.Str)
-				}
-			}
+			// Use the flat header once; descendant tokens duplicate its prefix.
+			selectTokens = append(selectTokens, expressionTokens(child)...)
+
 		case "Body":
 			sub := &StructNode{Type: "Body", Children: child.Children}
-			decls, _ := walkStructure(sub)
+			decls, err := walkStructure(sub)
+			if err != nil {
+				return nil, err
+			}
 			body = collectStmtsFromDecls(decls)
 		}
 	}
@@ -686,124 +816,48 @@ func convertSelect(node *ASTChild) (Stmt_, error) {
 // It looks for Compare/Cond children with structured Source + CompareOperator,
 // falling back to flat token parsing.
 func extractCondFromStmt(stmtNode *ASTChild) Expr_ {
-	// Look for a Cond or Compare child with structured operands
-	for _, child := range stmtNode.Children {
-		if child.Type == "Cond" || child.Type == "Compare" {
-			return extractCompare(child)
+	tokens := expressionTokens(stmtNode)
+	if len(tokens) > 0 {
+		switch strings.ToUpper(tokens[0]) {
+		case "WHILE", "IF", "ELSEIF":
+			tokens = tokens[1:]
 		}
 	}
-	// Recurse into children — Wasm parser may nest deeper
-	for _, child := range stmtNode.Children {
-		for _, grandchild := range child.Children {
-			if grandchild.Type == "Cond" || grandchild.Type == "Compare" {
-				return extractCompare(grandchild)
-			}
-		}
+	if len(tokens) > 0 && tokens[len(tokens)-1] == "." {
+		tokens = tokens[:len(tokens)-1]
 	}
-	// Fallback: use top-level tokens, skip keyword and period
-	tokens := collectLeafTokens(stmtNode)
-	condTokens := filterTokens(tokens, "WHILE", "IF", "ELSEIF", ".")
-	return parseCondition(condTokens)
+	e := parseCondition(tokens)
+	if bad, ok := e.(*InvalidExpr); ok {
+		bad.Message = childError(stmtNode, fmt.Errorf("%s", bad.Message)).Error()
+	}
+	return e
 }
 
-// extractCompare builds an Expr_ from a Compare node with Source + CompareOperator children.
-func extractCompare(node *ASTChild) Expr_ {
-	var sources []Expr_
-	var op string
-
+// A node's token list already covers its descendants. Never concatenate both:
+// doing so duplicates operands in the native parser's full AST.
+func expressionTokens(node *ASTChild) []string {
+	if len(node.Tokens) > 0 {
+		out := make([]string, len(node.Tokens))
+		for i, t := range node.Tokens {
+			out[i] = t.Str
+		}
+		return out
+	}
+	if len(node.Children) == 0 {
+		if node.Str != "" {
+			return []string{node.Str}
+		}
+		return nil
+	}
+	var out []string
 	for _, child := range node.Children {
-		switch child.Type {
-		case "Source":
-			sources = append(sources, extractSource(child))
-		case "CompareOperator":
-			// Get the operator token
-			for _, t := range child.Tokens {
-				op = t.Str
-			}
-			if op == "" {
-				toks := collectLeafTokens(child)
-				if len(toks) > 0 {
-					op = toks[0]
-				}
-			}
-		case "Compare":
-			// Nested compare (AND/OR chains)
-			return extractCompare(child)
-		}
+		out = append(out, expressionTokens(child)...)
 	}
-
-	if len(sources) >= 2 && op != "" {
-		return &BinOp{Op: op, LHS: sources[0], RHS: sources[1]}
-	}
-	if len(sources) == 1 {
-		return sources[0]
-	}
-	// Fallback: try node's own tokens first (Wasm parser puts tokens on Cond/Compare)
-	if len(node.Tokens) >= 3 {
-		var toks []string
-		for _, t := range node.Tokens {
-			toks = append(toks, t.Str)
-		}
-		cond := parseCondition(toks)
-		if _, isInt := cond.(*IntLit); !isInt {
-			return cond
-		}
-	}
-	// Last resort: collect all leaf tokens
-	tokens := collectLeafTokens(node)
-	return parseCondition(tokens)
+	return out
 }
 
-// extractSource extracts a value expression from a Source node.
-// Source nodes have nested structure: Source → FieldChain → SourceField → Field → Identifier
-// or: Source → Constant → Integer → Identifier
-// Tokens live on intermediate nodes (FieldChain, Constant, Integer), not on Identifier leaves.
-func extractSource(node *ASTChild) Expr_ {
-	var parts []interface{} // alternating: Expr_, string (operator)
-
-	for _, child := range node.Children {
-		switch child.Type {
-		case "FieldChain", "SourceField", "Field":
-			toks := getAllTokens(child)
-			if len(toks) > 0 {
-				parts = append(parts, parseTokenExpr(toks[0]))
-			}
-		case "Constant", "Integer", "ConstantString":
-			toks := getAllTokens(child)
-			if len(toks) > 0 {
-				parts = append(parts, parseTokenExpr(toks[0]))
-			}
-		case "ArithOperator":
-			toks := getAllTokens(child)
-			if len(toks) > 0 {
-				parts = append(parts, toks[0]) // operator string
-			}
-		case "Source":
-			parts = append(parts, extractSource(child))
-		}
-	}
-
-	if len(parts) == 1 {
-		if e, ok := parts[0].(Expr_); ok {
-			return e
-		}
-	}
-	if len(parts) >= 3 {
-		lhs, _ := parts[0].(Expr_)
-		op, _ := parts[1].(string)
-		rhs, _ := parts[2].(Expr_)
-		if lhs != nil && rhs != nil && op != "" {
-			return &BinOp{Op: op, LHS: lhs, RHS: rhs}
-		}
-	}
-
-	// Fallback: try Tokens on the node itself
-	toks := getAllTokens(node)
-	if len(toks) > 0 {
-		return parseTokenExpr(toks[0])
-	}
-	return &IntLit{Val: 0}
-}
+func extractCompare(node *ASTChild) Expr_ { return parseCondition(expressionTokens(node)) }
+func extractSource(node *ASTChild) Expr_  { return parseCondition(expressionTokens(node)) }
 
 // getAllTokens collects all Token.Str from a node and ALL descendants (breadth-first).
 // Unlike collectLeafTokens, this includes tokens on intermediate nodes too.
@@ -843,35 +897,11 @@ func collectLeafTokens(node *ASTChild) []string {
 // parseCondition parses condition tokens into an Expr_.
 // e.g. ["lv_i", "<=", "5"] → BinOp{Op:"<=", LHS:VarRef, RHS:IntLit}
 func parseCondition(tokens []string) Expr_ {
-	if len(tokens) == 0 {
-		return &IntLit{Val: 1}
+	e, err := parseExpression(tokens)
+	if err != nil {
+		return &InvalidExpr{Message: err.Error()}
 	}
-	if len(tokens) == 1 {
-		return parseTokenExpr(tokens[0])
-	}
-	// Find operator
-	for i, t := range tokens {
-		upper := strings.ToUpper(t)
-		switch upper {
-		case "=", "<>", "<", ">", "<=", ">=",
-			"EQ", "NE", "LT", "GT", "LE", "GE",
-			"AND", "OR":
-			lhs := parseCondition(tokens[:i])
-			rhs := parseCondition(tokens[i+1:])
-			return &BinOp{Op: t, LHS: lhs, RHS: rhs}
-		}
-	}
-	// No operator found — might be arithmetic like "lv_i + 1"
-	for i, t := range tokens {
-		if t == "+" || t == "-" || t == "*" || t == "/" {
-			lhs := parseTokenExpr(tokens[0])
-			if i+1 < len(tokens) {
-				rhs := parseTokenExpr(tokens[i+1])
-				return &BinOp{Op: t, LHS: lhs, RHS: rhs}
-			}
-		}
-	}
-	return parseTokenExpr(tokens[0])
+	return e
 }
 
 func filterTokens(tokens []string, skip ...string) []string {
@@ -931,39 +961,68 @@ func isStructureType(t string) bool {
 		"If": true, "Else": true, "ElseIf": true,
 		"Do": true, "While": true, "Loop": true,
 		"Case": true, "When": true, "WhenOthers": true,
-		"Try": true, "Catch": true,
 	}
 	return structTypes[t]
 }
 
 // convertStmt converts a single abaplint statement to a semantic Decl or wraps
-// it as a statement-bearing decl. Returns nil for unsupported statements.
+// it as a statement-bearing decl. Unsupported statements are errors.
 func convertStmt(s *StmtNode) (Decl, error) {
 	tokens := collectTokenStrings(s)
 	upper := strings.ToUpper(s.Type)
 
 	switch {
+	case upper == "REPORT":
+		// Plain report identity is metadata; additions alter list/runtime behavior.
+		if len(tokens) != 3 || !strings.EqualFold(tokens[0], "REPORT") || tokens[2] != "." {
+			return nil, fmt.Errorf("REPORT additions are not implemented")
+		}
+		return nil, nil
+	case upper == "COMMENT" || upper == "EMPTY" || upper == "ELSE":
+		// These syntax nodes have no executable effect. ELSE bodies are walked separately.
+		return nil, nil
 	case upper == "DATA" || s.Type == "Data":
 		return parseDataStmt(tokens)
 	case upper == "WRITE" || s.Type == "Write":
 		return parseWriteStmt(tokens)
 	case upper == "PARAMETER" || upper == "PARAMETERS" || s.Type == "Parameter":
 		return parseParamStmt(tokens)
+	case upper == "RETURN" || upper == "EXIT" || upper == "CONTINUE":
+		if len(tokens) != 2 || tokens[1] != "." {
+			return nil, fmt.Errorf("%s: unsupported addition", upper)
+		}
+		var statement Stmt_
+		switch upper {
+		case "RETURN":
+			statement = &ReturnStmt{}
+		case "EXIT":
+			statement = &ExitStmt{}
+		case "CONTINUE":
+			statement = &ContinueStmt{}
+		}
+		return &formBodyDecl{stmt: statement}, nil
+	case upper == "CLEAR":
+		if len(tokens) != 3 || tokens[2] != "." {
+			return nil, fmt.Errorf("CLEAR: only a single declared scalar target is supported")
+		}
+		return &formBodyDecl{stmt: &ClearStmt{Target: strings.ToLower(tokens[1])}}, nil
+	case upper == "PERFORM":
+		return parsePerformStmt(tokens)
 	case upper == "MOVE" || s.Type == "Move":
 		return parseMoveStmt(tokens)
 	case upper == "EXEC" || s.Type == "ExecSQL":
-		return parseExecSQL(tokens)
+		return parseExecSQL(s)
 	case upper == "SELECT" || s.Type == "Select" || s.Type == "SelectionScreen":
 		if s.Type == "SelectionScreen" {
-			// SELECTION-SCREEN BLOCK → skip for now
-			return nil, nil
+			return nil, fmt.Errorf("SELECTION-SCREEN layout and dialog statements are not implemented; PARAMETERS input is supported separately")
 		}
 		return parseSelectStmt(tokens)
 	case upper == "ULINE":
-		// ULINE → WRITE line of dashes
-		w := &WriteStmt{Exprs: []Expr_{&StringLit{Val: "----------------------------------------------------------------------\r\n"}}}
-		return &formBodyDecl{stmt: w}, nil
+		return nil, fmt.Errorf("ULINE: list width and horizontal-line layout are not implemented")
 	case upper == "SKIP" || upper == "NEW-LINE":
+		if len(tokens) != 2 || tokens[1] != "." {
+			return nil, fmt.Errorf("%s: additions are not implemented", upper)
+		}
 		// SKIP / NEW-LINE → WRITE newline
 		w := &WriteStmt{Exprs: []Expr_{&StringLit{Val: "\r\n"}}}
 		return &formBodyDecl{stmt: w}, nil
@@ -1037,62 +1096,48 @@ func collectChildTokens(children []*ASTChild) []string {
 
 // parseDataStmt: DATA varname TYPE typename [VALUE val].
 func parseDataStmt(tokens []string) (Decl, error) {
-	if len(tokens) < 2 {
-		return nil, fmt.Errorf("DATA: too few tokens")
+	name, ty, length, value, err := parseSimpleDeclaration(tokens, "VALUE")
+	if err != nil {
+		return nil, err
 	}
-	d := &DataDecl{Name: tokens[1], AbapTy: "i"} // default to integer
-
-	for i := 2; i < len(tokens); i++ {
-		upper := strings.ToUpper(tokens[i])
-		switch upper {
-		case "TYPE":
-			if i+1 < len(tokens) {
-				d.AbapTy = strings.ToLower(tokens[i+1])
-				i++
-			}
-		case "LENGTH":
-			if i+1 < len(tokens) {
-				if n, err := strconv.Atoi(tokens[i+1]); err == nil {
-					d.Length = n
-				}
-				i++
-			}
-		case "VALUE":
-			if i+1 < len(tokens) {
-				val := parseTokenExpr(tokens[i+1])
-				d.Value = &val
-				i++
-			}
-		}
-	}
-	return d, nil
+	return &DataDecl{Name: name, AbapTy: ty, Length: length, Value: value}, nil
 }
 
-// parseExecSQL: EXEC SQL. raw_sql ENDEXEC.
-// Collects tokens between EXEC SQL and ENDEXEC as raw SQL for sqlite_exec.
-func parseExecSQL(tokens []string) (Decl, error) {
-	// Tokens: EXEC SQL <sql_tokens...> ENDEXEC
-	// Skip "EXEC" and "SQL", collect until "ENDEXEC" or "."
-	var sqlParts []string
-	started := false
-	for _, t := range tokens {
-		upper := strings.ToUpper(t)
-		if upper == "EXEC" || upper == "SQL" {
-			started = true
-			continue
+// parseExecSQL consumes the structured block, not just its period-terminated header.
+func parseExecSQL(s *StmtNode) (Decl, error) {
+	if len(s.Children) < 3 || s.Children[0].Type != "ExecSQL" || s.Children[len(s.Children)-1].Type != "EndExec" {
+		return nil, fmt.Errorf("EXEC SQL: complete structured body is required")
+	}
+	header := collectTokenStrings(&StmtNode{Tokens: s.Children[0].Tokens, Children: s.Children[0].Children})
+	if len(header) != 3 || !strings.EqualFold(header[0], "EXEC") || !strings.EqualFold(header[1], "SQL") || header[2] != "." {
+		return nil, fmt.Errorf("EXEC SQL: header additions are not implemented")
+	}
+	var body strings.Builder
+	var previous *Token
+	for _, child := range s.Children[1 : len(s.Children)-1] {
+		if child.Type != "NativeSQL" || len(child.Tokens) == 0 {
+			return nil, childError(child, fmt.Errorf("EXEC SQL: unsupported body node %s", child.Type))
 		}
-		if upper == "ENDEXEC" || (started && t == ".") {
-			break
-		}
-		if started {
-			sqlParts = append(sqlParts, t)
+		for _, token := range child.Tokens {
+			// Native host binding is not a SQL literal and needs explicit transport.
+			if !strings.HasPrefix(token.Str, "'") && strings.Contains(token.Str, ":") {
+				return nil, childError(child, fmt.Errorf("EXEC SQL: host bindings are not implemented"))
+			}
+			if previous != nil {
+				if token.Row != previous.Row {
+					body.WriteByte('\n')
+				} else if token.Col > previous.Col+len(previous.Str) {
+					body.WriteByte(' ')
+				}
+			}
+			body.WriteString(token.Str)
+			previous = token
 		}
 	}
-	if len(sqlParts) == 0 {
-		return nil, nil // empty EXEC SQL
+	if strings.TrimSpace(body.String()) == "" {
+		return nil, fmt.Errorf("EXEC SQL: empty body is not admitted")
 	}
-	sql := strings.Join(sqlParts, " ")
-	return &formBodyDecl{stmt: &ExecSQLStmt{SQL: sql}}, nil
+	return &formBodyDecl{stmt: &ExecSQLStmt{SQL: body.String()}}, nil
 }
 
 // parseSelectStmt: SELECT [SINGLE] f1 f2 ... FROM table [INTO (v1,v2,...)] [WHERE cond].
@@ -1102,6 +1147,9 @@ func parseSelectStmt(tokens []string) (Decl, error) {
 		return nil, fmt.Errorf("SELECT: too few tokens")
 	}
 
+	if err := validateSelectTokenAdmission(tokens); err != nil {
+		return nil, err
+	}
 	sel := &SelectStmt{}
 	i := 1 // skip SELECT
 
@@ -1235,6 +1283,14 @@ func parseSelectStmt(tokens []string) (Decl, error) {
 				}
 				i++
 			}
+			if err := validateSelectPredicateOperands(whereParts); err != nil {
+				return nil, err
+			}
+			for j, token := range whereParts {
+				if !strings.HasPrefix(token, "'") {
+					whereParts[j] = strings.ReplaceAll(token, "~", ".")
+				}
+			}
 			sel.Where = strings.Join(whereParts, " ")
 			continue
 		}
@@ -1291,8 +1347,8 @@ func parseSelectStmt(tokens []string) (Decl, error) {
 						}
 						break
 					}
-					if t != "," {
-						sel.Into = append(sel.Into, t)
+					if t != "," && t != "@" {
+						sel.Into = append(sel.Into, strings.ToLower(strings.TrimPrefix(t, "@")))
 					}
 					i++
 				}
@@ -1300,15 +1356,7 @@ func parseSelectStmt(tokens []string) (Decl, error) {
 			continue
 		}
 
-		if upper == "ORDER" {
-			// ORDER BY — skip for now
-			for i < len(tokens) && tokens[i] != "." {
-				i++
-			}
-			continue
-		}
-
-		i++ // skip unknown tokens
+		return nil, fmt.Errorf("SELECT: unsupported clause or token %q", tokens[i])
 	}
 
 	// Default: no INTO → use field names as target variables
@@ -1323,100 +1371,6 @@ func parseSelectStmt(tokens []string) (Decl, error) {
 	return &formBodyDecl{stmt: sel}, nil
 }
 
-// parseWriteStmt: WRITE expr | WRITE: expr1, expr2, ... | WRITE / 'text'
-// Also handles string templates: WRITE |Hi { name }!|
-func parseWriteStmt(tokens []string) (Decl, error) {
-	if len(tokens) < 2 {
-		return nil, fmt.Errorf("WRITE: too few tokens")
-	}
-	w := &WriteStmt{}
-	for i := 1; i < len(tokens); i++ {
-		t := tokens[i]
-		if t == ":" || t == "," || t == "." {
-			continue
-		}
-		if t == "/" {
-			w.Exprs = append(w.Exprs, &StringLit{Val: "\r\n"})
-			continue
-		}
-		// String template: |text { expr } text| — abaplint splits into
-		// multiple tokens: "|Hello {", "lv_name", "}!|"
-		if strings.HasPrefix(t, "|") {
-			// Collect all tokens until we find one ending with |
-			var tmplTokens []string
-			tmplTokens = append(tmplTokens, t)
-			for i+1 < len(tokens) && !strings.HasSuffix(t, "|") {
-				i++
-				t = tokens[i]
-				tmplTokens = append(tmplTokens, t)
-			}
-			parts := expandStringTemplateTokens(tmplTokens)
-			w.Exprs = append(w.Exprs, parts...)
-			continue
-		}
-		// abaplint tokenizes a structure component as SY, -, SUBRC.
-		// Preserve it as one system-field expression rather than three values.
-		if strings.EqualFold(t, "SY") && i+2 < len(tokens) && tokens[i+1] == "-" {
-			w.Exprs = append(w.Exprs, &SYField{Field: strings.ToUpper(tokens[i+2])})
-			i += 2
-			continue
-		}
-		w.Exprs = append(w.Exprs, parseTokenExpr(t))
-	}
-	return &formBodyDecl{stmt: w}, nil
-}
-
-// expandStringTemplateTokens handles abaplint-tokenized string templates.
-// Input: ["|Hello {", "lv_name", "}!|"] or ["|plain text|"]
-// Output: [StringLit("Hello "), VarRef("lv_name"), StringLit("!")]
-func expandStringTemplateTokens(tokens []string) []Expr_ {
-	// Rejoin tokens into one string, then parse
-	joined := strings.Join(tokens, " ")
-	// Strip outer pipes
-	if strings.HasPrefix(joined, "|") {
-		joined = joined[1:]
-	}
-	if strings.HasSuffix(joined, "|") {
-		joined = joined[:len(joined)-1]
-	}
-	return expandStringTemplate("|" + joined + "|")
-}
-
-// expandStringTemplate splits |Hello { name }!| into ["Hello ", VarRef(name), "!"]
-func expandStringTemplate(tmpl string) []Expr_ {
-	// Strip leading/trailing |
-	inner := tmpl[1 : len(tmpl)-1]
-	var result []Expr_
-	for len(inner) > 0 {
-		braceStart := strings.Index(inner, "{")
-		if braceStart < 0 {
-			// No more expressions — rest is literal text
-			if inner != "" {
-				result = append(result, &StringLit{Val: inner})
-			}
-			break
-		}
-		braceEnd := strings.Index(inner[braceStart:], "}")
-		if braceEnd < 0 {
-			// Malformed — treat rest as literal
-			result = append(result, &StringLit{Val: inner})
-			break
-		}
-		braceEnd += braceStart
-		// Text before {
-		if braceStart > 0 {
-			result = append(result, &StringLit{Val: inner[:braceStart]})
-		}
-		// Expression inside { }
-		exprStr := strings.TrimSpace(inner[braceStart+1 : braceEnd])
-		if exprStr != "" {
-			result = append(result, &VarRef{Name: exprStr})
-		}
-		inner = inner[braceEnd+1:]
-	}
-	return result
-}
-
 // formBodyDecl wraps a statement as a top-level decl (for flat programs without FORM).
 type formBodyDecl struct {
 	stmt Stmt_
@@ -1426,35 +1380,74 @@ func (*formBodyDecl) abapDecl() {}
 
 // parseParamStmt: PARAMETERS p_name TYPE c LENGTH 20 DEFAULT 'Hello'.
 func parseParamStmt(tokens []string) (Decl, error) {
-	if len(tokens) < 2 {
-		return nil, fmt.Errorf("PARAMETERS: too few tokens")
+	name, ty, length, value, err := parseSimpleDeclaration(tokens, "DEFAULT")
+	if err != nil {
+		return nil, err
 	}
-	p := &ParamDecl{Name: tokens[1], AbapTy: "c", Length: 1}
+	return &ParamDecl{Name: name, AbapTy: ty, Length: length, Default: value}, nil
+}
 
-	for i := 2; i < len(tokens); i++ {
-		upper := strings.ToUpper(tokens[i])
-		switch upper {
+// Only consume additions whose meaning is represented in the semantic AST.
+// Unspecified elementary DATA/PARAMETERS types are c of length one in ABAP.
+func parseSimpleDeclaration(tokens []string, initializer string) (name, ty string, length int, value *Expr_, err error) {
+	if len(tokens) < 2 {
+		err = fmt.Errorf("declaration: too few tokens")
+		return
+	}
+	name, ty = tokens[1], "c"
+	end := len(tokens)
+	if tokens[end-1] == "." || tokens[end-1] == "," {
+		end--
+	}
+	seen := map[string]bool{}
+	for i := 2; i < end; {
+		key := strings.ToUpper(tokens[i])
+		if seen[key] {
+			err = fmt.Errorf("%s %s: duplicate %s", tokens[0], name, key)
+			return
+		}
+		seen[key] = true
+		switch key {
 		case "TYPE":
-			if i+1 < len(tokens) {
-				p.AbapTy = strings.ToLower(tokens[i+1])
-				i++
+			if i+1 >= end {
+				err = fmt.Errorf("%s %s: missing TYPE", tokens[0], name)
+				return
 			}
+			ty = strings.ToLower(tokens[i+1])
+			i += 2
 		case "LENGTH":
-			if i+1 < len(tokens) {
-				if n, err := strconv.Atoi(tokens[i+1]); err == nil {
-					p.Length = n
-				}
-				i++
+			if i+1 >= end {
+				err = fmt.Errorf("%s %s: missing LENGTH", tokens[0], name)
+				return
 			}
-		case "DEFAULT":
-			if i+1 < len(tokens) {
-				val := parseTokenExpr(tokens[i+1])
-				p.Default = &val
-				i++
+			length, err = strconv.Atoi(tokens[i+1])
+			if err != nil || length < 1 {
+				err = fmt.Errorf("%s %s: LENGTH must be a positive integer literal", tokens[0], name)
+				return
 			}
+			i += 2
+		case initializer:
+			if initializer == "VALUE" && i+3 == end && strings.EqualFold(tokens[i+1], "IS") && strings.EqualFold(tokens[i+2], "INITIAL") {
+				i = end
+				continue
+			}
+			var v Expr_
+			v, err = parseDeclarationLiteral(tokens[i+1 : end])
+			if err != nil {
+				err = fmt.Errorf("%s %s %s: %w", tokens[0], name, initializer, err)
+				return
+			}
+			value = &v
+			i = end
+		default:
+			err = fmt.Errorf("%s %s: unsupported declaration addition %s", tokens[0], name, tokens[i])
+			return
 		}
 	}
-	return p, nil
+	if seen["LENGTH"] && ty != "c" && ty != "n" && ty != "x" {
+		err = fmt.Errorf("%s %s: LENGTH is not admitted for TYPE %s", tokens[0], name, ty)
+	}
+	return
 }
 
 // parseMoveStmt: target = source.  (abaplint type: "Move")
@@ -1486,15 +1479,12 @@ func parseMoveStmt(tokens []string) (Decl, error) {
 		return nil, fmt.Errorf("MOVE: no source value")
 	}
 
-	// Build expression: simple case = single token, complex = binary op
-	var val Expr_
-	if len(srcTokens) == 1 {
-		val = parseTokenExpr(srcTokens[0])
-	} else if len(srcTokens) == 3 {
-		// a OP b
-		val = &BinOp{Op: srcTokens[1], LHS: parseTokenExpr(srcTokens[0]), RHS: parseTokenExpr(srcTokens[2])}
-	} else {
-		val = parseTokenExpr(srcTokens[0]) // fallback: first token
+	if eqIdx != 1 {
+		return nil, fmt.Errorf("MOVE: unsupported target %v", tokens[:eqIdx])
+	}
+	val, err := parseExpression(srcTokens)
+	if err != nil {
+		return nil, fmt.Errorf("MOVE: %w", err)
 	}
 
 	return &formBodyDecl{stmt: &AssignStmt{Target: target, Val: val}}, nil
@@ -1502,22 +1492,76 @@ func parseMoveStmt(tokens []string) (Decl, error) {
 
 // parseTokenExpr converts a single token string to an Expr_.
 func parseTokenExpr(s string) Expr_ {
-	// SY-FIELD references
-	upper := strings.ToUpper(s)
-	if strings.HasPrefix(upper, "SY-") {
-		return &SYField{Field: upper[3:]} // "SY-INDEX" → "INDEX"
+	e, err := expressionAtom(s)
+	if err != nil {
+		return &InvalidExpr{Message: err.Error()}
 	}
-	// Remove surrounding quotes for strings
-	if len(s) >= 2 && s[0] == '\'' && s[len(s)-1] == '\'' {
-		return &StringLit{Val: s[1 : len(s)-1]}
+	return e
+}
+
+// statementError keeps admission failures tied to the offending source token.
+func statementError(name string, s *StmtNode, err error) error {
+	if len(s.Tokens) > 0 {
+		t := s.Tokens[0]
+		return fmt.Errorf("%s:%d:%d: %s: %w", name, t.Row, t.Col, s.Type, err)
 	}
-	if len(s) >= 2 && s[0] == '`' && s[len(s)-1] == '`' {
-		return &StringLit{Val: s[1 : len(s)-1]}
+	return fmt.Errorf("%s: %s: %w", name, s.Type, err)
+}
+func childError(c *ASTChild, err error) error {
+	return statementError("", &StmtNode{Type: c.Type, Tokens: c.Tokens}, err)
+}
+
+func parsePerformStmt(tokens []string) (Decl, error) {
+	if len(tokens) < 3 || tokens[len(tokens)-1] != "." {
+		return nil, fmt.Errorf("PERFORM: malformed call")
 	}
-	// Try integer
-	if n, err := strconv.ParseInt(s, 10, 64); err == nil {
-		return &IntLit{Val: n}
+	p := &PerformStmt{FormName: strings.ToLower(tokens[1])}
+	var section string
+	for _, t := range tokens[2 : len(tokens)-1] {
+		switch strings.ToUpper(t) {
+		case "USING", "CHANGING":
+			section = strings.ToUpper(t)
+			continue
+		}
+		if section == "" {
+			return nil, fmt.Errorf("PERFORM: unsupported addition %s", t)
+		}
+		e := parseTokenExpr(t)
+		if _, ok := e.(*VarRef); !ok && section == "CHANGING" {
+			return nil, fmt.Errorf("PERFORM: only variable arguments are admitted, got %s", t)
+		}
+		if section == "USING" {
+			p.Using = append(p.Using, e)
+		} else {
+			p.Changing = append(p.Changing, e)
+		}
 	}
-	// Variable reference
-	return &VarRef{Name: s}
+	return &formBodyDecl{stmt: p}, nil
+}
+
+// parseReferenceFormParams admits fully typed, reference-mode FORM parameters.
+// VALUE/LIKE are rejected explicitly until their distinct semantics are implemented.
+func parseReferenceFormParams(tokens []*Token) ([]FormParam, error) {
+	if len(tokens) == 0 {
+		return nil, nil
+	}
+	i := 1
+	params := []FormParam{}
+	for i < len(tokens) {
+		if tokens[i].Str == "." {
+			if i != len(tokens)-1 {
+				return nil, fmt.Errorf("FORM: tokens after period")
+			}
+			break
+		}
+		if i+1 < len(tokens) && strings.EqualFold(tokens[i].Str, "VALUE") && tokens[i+1].Str == "(" {
+			return nil, fmt.Errorf("FORM VALUE copy semantics are not yet admitted")
+		}
+		if i+2 >= len(tokens) || !strings.EqualFold(tokens[i+1].Str, "TYPE") {
+			return nil, fmt.Errorf("FORM: parameter %s needs an explicit supported TYPE", tokens[i].Str)
+		}
+		params = append(params, FormParam{Name: strings.ToLower(tokens[i].Str), AbapTy: strings.ToLower(tokens[i+2].Str)})
+		i += 3
+	}
+	return params, nil
 }

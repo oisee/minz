@@ -1,0 +1,27 @@
+REPORT zref.
+DATA x TYPE i.
+DATA y TYPE i.
+DATA seen TYPE i.
+CLASS lcl DEFINITION.
+ PUBLIC SECTION.
+ DATA unused TYPE i.
+ CLASS-METHODS calc IMPORTING a TYPE i RETURNING VALUE(rv) TYPE i.
+ENDCLASS.
+CLASS lcl IMPLEMENTATION.
+ METHOD calc.
+  IF a < 0.
+   rv = a.
+   RETURN.
+  ENDIF.
+  rv = 65537.
+  DO 3 TIMES.
+   DO 3 TIMES.
+    IF sy-index = 2.
+     rv = rv + 1.
+     RETURN.
+    ENDIF.
+   ENDDO.
+  ENDDO.
+  rv = 99.
+ ENDMETHOD.
+ENDCLASS.

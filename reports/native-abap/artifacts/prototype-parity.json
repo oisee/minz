@@ -1,0 +1,62 @@
+[
+  {
+    "case": "clear",
+    "equal": true,
+    "diagnostics": 0,
+    "errors": {}
+  },
+  {
+    "case": "loops",
+    "equal": true,
+    "diagnostics": 0,
+    "errors": {}
+  },
+  {
+    "case": "changing",
+    "equal": true,
+    "diagnostics": 0,
+    "errors": {}
+  },
+  {
+    "case": "chained",
+    "equal": true,
+    "diagnostics": 0,
+    "errors": {}
+  },
+  {
+    "case": "unicode",
+    "equal": true,
+    "diagnostics": 0,
+    "errors": {}
+  },
+  {
+    "case": "unknown",
+    "equal": true,
+    "diagnostics": 1,
+    "errors": {}
+  },
+  {
+    "case": "missing-endif",
+    "equal": true,
+    "diagnostics": 1,
+    "errors": {}
+  },
+  {
+    "case": "bad-quote",
+    "equal": true,
+    "diagnostics": 1,
+    "errors": {}
+  },
+  {
+    "case": "empty",
+    "equal": true,
+    "diagnostics": 0,
+    "errors": {}
+  },
+  {
+    "case": "class",
+    "equal": true,
+    "diagnostics": 0,
+    "errors": {}
+  }
+]

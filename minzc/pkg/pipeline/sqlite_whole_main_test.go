@@ -223,7 +223,8 @@ func TestSQLiteOriginalWholeMain(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			a, err := z80asm.NewAssembler().AssembleString("ORG 0x100\n" + s.Assembly)
+			callerAssembly := calledMainTestAssembly(t, s)
+			a, err := z80asm.NewAssembler().AssembleString("ORG 0x100\n" + callerAssembly)
 			if err != nil || len(a.Errors) > 0 {
 				t.Fatal(err, a.Errors)
 			}
@@ -333,7 +334,7 @@ func TestSQLiteOriginalWholeMain(t *testing.T) {
 						payload := map[string]any{"stdout": string(output), "commands": host.commands, "done": done, "registers": z.GetRegisters(), "min_sp": minSP, "bytes": len(a.Binary), "native_t_states_excluding_test_bdos": nativeT, "received": received, "ports": ports, "options": o}
 						b, _ := json.MarshalIndent(payload, "", "  ")
 						os.WriteFile(filepath.Join(dir, "result.json"), b, 0644)
-						os.WriteFile(filepath.Join(dir, "main.a80"), []byte("ORG 0x100\n"+s.Assembly), 0644)
+						os.WriteFile(filepath.Join(dir, "main.a80"), []byte("ORG 0x100\n"+callerAssembly), 0644)
 						os.WriteFile(filepath.Join(dir, "main.bin"), a.Binary, 0644)
 						os.WriteFile(filepath.Join(dir, "before.ram"), before, 0644)
 						os.WriteFile(filepath.Join(dir, "after.ram"), z.Memory(), 0644)

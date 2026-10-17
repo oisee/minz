@@ -1,0 +1,4 @@
+ok  	github.com/minz/minzc/pkg/hir	36.502s
+ok  	github.com/minz/minzc/pkg/mir2	128.377s
+ok  	github.com/minz/minzc/pkg/abap	9.387s
+ok  	github.com/minz/minzc/pkg/abap/internal/abapparse	(cached)

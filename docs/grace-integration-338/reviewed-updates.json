@@ -1041,11 +1041,13 @@
     "native_behavior": "executed-native-asm-bounded",
     "workload": "Whole unchanged main, three modes × two BDOS contracts; real SQLite, 11 commands, exact 59 stdout bytes; bounded port APIs.",
     "independent_model": "Pre-execution frozen SQL/stdout oracle and real modernc SQLite through strict test-owned host.",
-    "boundary": "Native only; test-owned runtime. MZX mismatch remains; recv requires NUL within 256 bytes.",
+    "boundary": "Native only; test-owned runtime. MZX mismatch remains; recv requires NUL within 256 bytes. Called-main harness refreshed with unchanged observations; production COM entry unchanged. Historical replay artifacts retained as history; refresh recorded separately.",
     "evidence": {
       "docs/grace-integration-283/root.txt": "1d4443af9676dceace698eee90359dac4e83c43d3ac3b339768eb54eb5d09563",
-      "minzc/pkg/pipeline/sqlite_whole_main_test.go": "ab23c48b435bbe24c3ea1fb4eb097403473b2a237f050b49bd2dbb2a8e6d9148",
-      "reports/sqlite-whole-main/manifest.json": "5ecc84c447375a3ca053aad44e7625ff0859fff365d1036771179a69e1374a22"
+      "minzc/pkg/pipeline/sqlite_whole_main_test.go": "1cea04cd844542b39acae8577e6a2bdf66eb40dc02101b197d4b60e5e61813d8",
+      "reports/sqlite-whole-main/manifest.json": "5ecc84c447375a3ca053aad44e7625ff0859fff365d1036771179a69e1374a22",
+      "minzc/pkg/pipeline/called_main_test_helper_test.go": "94aeb4bff39ec9f607be78d79ed8fab5e11cc2e79b2a4d8eedb6be2caee36467",
+      "docs/grace-integration-338/called-main-refresh.txt": "6de7b9360b7d54950ce8f46654ccaf06df61a1b2f55c95502d7700ad2e70d10a"
     }
   },
   {
@@ -1339,11 +1341,13 @@
     "native_behavior": "executed-native-cpm-runtime",
     "workload": "Unchanged CASE66/REPEAT wholemain3modes x2BDOS hosts; exact Beta CRLF/OSRET/PCSP/RAM/stack.",
     "independent_model": "Frozen Pascal case/repeat semantic stdout; bounded source dollar literal read model.",
-    "boundary": "Native injected BDOS; no VM ASM stdout/hardware claim. Exact publicCLI COM equality verified in all3 modes.",
+    "boundary": "Native injected BDOS; no VM ASM stdout/hardware claim. Exact publicCLI COM equality verified in all3 modes. Called-main harness refreshed with unchanged observations; production COM entry unchanged. Historical replay artifacts retained as history; refresh recorded separately.",
     "evidence": {
       "minzc/pkg/pipeline/pascal_case_runtime_test.go": "ecc45c8173d67be998c913b386db63c89bf6722bdce260d4c5d5e4079dd31ed4",
-      "minzc/pkg/pipeline/pascal_cpm_main_test.go": "4527f3a1f5c5fb3f9195ad8dcf071b35e7e3d189a00eb169f700f36dd8fad9ed",
-      "reports/pascal-case-runtime/manifest.json": "79a5a75baeaa023032d7c41a4754523fd7415678d852feb8f19e292d1a99aee1"
+      "minzc/pkg/pipeline/pascal_cpm_main_test.go": "1212164bb8fe058bed2f219f695213b4c117f12dee70b1be4d5c19dc6c6884eb",
+      "reports/pascal-case-runtime/manifest.json": "79a5a75baeaa023032d7c41a4754523fd7415678d852feb8f19e292d1a99aee1",
+      "minzc/pkg/pipeline/called_main_test_helper_test.go": "94aeb4bff39ec9f607be78d79ed8fab5e11cc2e79b2a4d8eedb6be2caee36467",
+      "docs/grace-integration-338/called-main-refresh.txt": "6de7b9360b7d54950ce8f46654ccaf06df61a1b2f55c95502d7700ad2e70d10a"
     }
   },
   {
@@ -1352,13 +1356,15 @@
     "native_behavior": "executed-native-cpm-runtime",
     "workload": "Unchanged original whole-main production COM/public CLI, 3modes x2BDOS hosts, exact stdout/OSRET/PC/SP/RAM/stack. FACT0..12 raw/finalVM/native separately.",
     "independent_model": "Frozen output and independent decimal word domain: signed/unsigned all65536 x2hosts ordinary formatter options; wholemain3modes separate, same COM identity.",
-    "boundary": "Injected BDOS only, no hardware or VM ASM stdout claim. Formatter model module includes explicit unsigned helper; unchanged original Factorial wholemain separate. Signed beforefailure frozen.",
+    "boundary": "Injected BDOS only, no hardware or VM ASM stdout claim. Formatter model module includes explicit unsigned helper; unchanged original Factorial wholemain separate. Signed beforefailure frozen. Called-main harness refreshed with unchanged observations; production COM entry unchanged. Historical replay artifacts retained as history; refresh recorded separately.",
     "evidence": {
-      "minzc/pkg/pipeline/pascal_cpm_main_test.go": "4527f3a1f5c5fb3f9195ad8dcf071b35e7e3d189a00eb169f700f36dd8fad9ed",
+      "minzc/pkg/pipeline/pascal_cpm_main_test.go": "1212164bb8fe058bed2f219f695213b4c117f12dee70b1be4d5c19dc6c6884eb",
       "minzc/pkg/pipeline/pascal_decimal_runtime_test.go": "a43d07a46b534520cfcb65bcda8edb37ff54e12bfeddb7e8d9d4fce249e47cf4",
       "reports/pascal-decimal-runtime/manifest.json": "2b93ab205fe1e1764e4f845c791ede323df1337e13edc897561707b1684dda1f",
       "docs/grace-integration-244/pascal-factorial-whole-root.txt": "31bb6f23cb2b65d3f19e1045e619529a10373e0a3d59ae0a7df5d20725bdef25",
-      "docs/grace-integration-244/pascal-decimal-root.txt": "8576ee429fef8cf16501a4a3fc70e490fa01f0c647d95383a0174036ca9ecc76"
+      "docs/grace-integration-244/pascal-decimal-root.txt": "8576ee429fef8cf16501a4a3fc70e490fa01f0c647d95383a0174036ca9ecc76",
+      "minzc/pkg/pipeline/called_main_test_helper_test.go": "94aeb4bff39ec9f607be78d79ed8fab5e11cc2e79b2a4d8eedb6be2caee36467",
+      "docs/grace-integration-338/called-main-refresh.txt": "6de7b9360b7d54950ce8f46654ccaf06df61a1b2f55c95502d7700ad2e70d10a"
     }
   },
   {
@@ -1367,13 +1373,15 @@
     "native_behavior": "executed-native-cpm-runtime",
     "workload": "Unchanged original whole-main production COM/public CLI, 3modes x2BDOS hosts, exact stdout/OSRET/PC/SP/RAM/stack. FACT0..12 raw/finalVM/native separately.",
     "independent_model": "Frozen output and independent decimal word domain: signed/unsigned all65536 x2hosts ordinary formatter options; wholemain3modes separate, same COM identity.",
-    "boundary": "Injected BDOS only, no hardware or VM ASM stdout claim. Formatter model module includes explicit unsigned helper; unchanged original Factorial wholemain separate. Signed beforefailure frozen.",
+    "boundary": "Injected BDOS only, no hardware or VM ASM stdout claim. Formatter model module includes explicit unsigned helper; unchanged original Factorial wholemain separate. Signed beforefailure frozen. Called-main harness refreshed with unchanged observations; production COM entry unchanged. Historical replay artifacts retained as history; refresh recorded separately.",
     "evidence": {
-      "minzc/pkg/pipeline/pascal_cpm_main_test.go": "4527f3a1f5c5fb3f9195ad8dcf071b35e7e3d189a00eb169f700f36dd8fad9ed",
+      "minzc/pkg/pipeline/pascal_cpm_main_test.go": "1212164bb8fe058bed2f219f695213b4c117f12dee70b1be4d5c19dc6c6884eb",
       "minzc/pkg/pipeline/pascal_decimal_runtime_test.go": "a43d07a46b534520cfcb65bcda8edb37ff54e12bfeddb7e8d9d4fce249e47cf4",
       "reports/pascal-decimal-runtime/manifest.json": "2b93ab205fe1e1764e4f845c791ede323df1337e13edc897561707b1684dda1f",
       "docs/grace-integration-244/pascal-factorial-whole-root.txt": "31bb6f23cb2b65d3f19e1045e619529a10373e0a3d59ae0a7df5d20725bdef25",
-      "docs/grace-integration-244/pascal-decimal-root.txt": "8576ee429fef8cf16501a4a3fc70e490fa01f0c647d95383a0174036ca9ecc76"
+      "docs/grace-integration-244/pascal-decimal-root.txt": "8576ee429fef8cf16501a4a3fc70e490fa01f0c647d95383a0174036ca9ecc76",
+      "minzc/pkg/pipeline/called_main_test_helper_test.go": "94aeb4bff39ec9f607be78d79ed8fab5e11cc2e79b2a4d8eedb6be2caee36467",
+      "docs/grace-integration-338/called-main-refresh.txt": "6de7b9360b7d54950ce8f46654ccaf06df61a1b2f55c95502d7700ad2e70d10a"
     }
   },
   {

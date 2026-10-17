@@ -1,0 +1,12 @@
+{
+  "source_sha256": "b27703a6ea2dfed21fae04f269a853f9e35f2fd44e51b91b2001569b3b005bdf",
+  "provider": "@abaplint/transpiler + @abaplint/runtime 2.14.8",
+  "node": "v22.23.3",
+  "entry": "full report",
+  "values": {
+    "x": 123123,
+    "y": 3,
+    "seen": 2
+  },
+  "output": ""
+}

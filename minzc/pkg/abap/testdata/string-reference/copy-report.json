@@ -1,0 +1,13 @@
+{
+  "source_sha256": "642ee987649431a7f79702396fc30490bb65cedf55a72280cffce9f68b2e124d",
+  "provider": "@abaplint/transpiler + @abaplint/runtime 2.14.8",
+  "node": "v22.23.3",
+  "entry": "full report",
+  "values": {
+    "x": "",
+    "y": "A",
+    "c": "lon",
+    "seen": 65551
+  },
+  "output": "Alon"
+}

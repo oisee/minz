@@ -72,6 +72,10 @@ func validateCPMApplicationRuntime(m *Module, ar *AllocResult) error {
 						}
 					}
 					switch i.Sym {
+					case "@mir.io.halt":
+						if len(i.Args) != 0 || i.Dst != NoReg || len(i.ExtraRets) != 0 || i.Ty != TyVoid {
+							return fmt.Errorf("CP/M halt requires a void call without arguments or results")
+						}
 					case "@mir.io.print.str", "@mir.io.print.sstr", "@mir.io.print.lstr", "@mir.io.print.char", "@mir.io.print.nl", "@mir.io.print.u8", "@mir.io.print.dec", "console_log":
 					default:
 						if m.FuncByName(i.Sym) == nil {

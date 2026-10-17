@@ -1,0 +1,2 @@
+ok  	github.com/minz/minzc/pkg/abap	1.578s
+ok  	github.com/minz/minzc/pkg/abap/internal/abapparse	0.204s

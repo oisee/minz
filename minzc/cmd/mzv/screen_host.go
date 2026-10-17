@@ -10,9 +10,11 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/minz/minzc/pkg/mir2"
 )
@@ -25,12 +27,71 @@ type selField struct {
 	value  string // current value (user input or default)
 	defInt int64  // default integer value
 	bufPtr int64  // VM heap address of text buffer (string fields)
+	fixed  bool   // owned ABAP TYPE c: exactly length bytes, no NUL terminator
+}
+
+// main owns stdin and delivers its bytes through the shared channel. Screen
+// input must consume that channel too; a second os.Stdin reader loses bytes.
+type selectionChannelReader struct{ input <-chan byte }
+
+func (r selectionChannelReader) Read(p []byte) (int, error) {
+	if len(p) == 0 {
+		return 0, nil
+	}
+	b, ok := <-r.input
+	if !ok {
+		return 0, io.EOF
+	}
+	p[0] = b
+	// No read-ahead: bytes after the last selection field belong to later
+	// program input through ports or other TUI consumers.
+	return 1, nil
+}
+
+func readSelectionKey(reader *bufio.Reader, input <-chan byte) ([]byte, error) {
+	if input == nil {
+		buf := make([]byte, 8)
+		n, err := reader.Read(buf)
+		return buf[:n], err
+	}
+	b, err := reader.ReadByte()
+	if err != nil {
+		return nil, err
+	}
+	key := []byte{b}
+	if b != 0x1b {
+		return key, nil
+	}
+	// Escape sequences arrive as separate channel bytes. Allow a short gap
+	// between them, while a bare ESC still leaves the selection screen.
+	for len(key) < 8 {
+		timer := time.NewTimer(30 * time.Millisecond)
+		select {
+		case b, ok := <-input:
+			timer.Stop()
+			if !ok {
+				return key, nil
+			}
+			key = append(key, b)
+			if len(key) >= 3 && b >= 0x40 && b <= 0x7e {
+				return key, nil
+			}
+		case <-timer.C:
+			return key, nil
+		}
+	}
+	return key, nil
 }
 
 // registerScreenHosts registers the universal screen/TUI host functions.
 // These override the Z80 no-op stubs so MZV can do interactive input.
 func registerScreenHosts(vm *mir2.VM, headless bool, trace bool) {
 	var fields []*selField
+	var input io.Reader = os.Stdin
+	if stdinForTUI != nil {
+		input = selectionChannelReader{stdinForTUI}
+	}
+	reader := bufio.NewReader(input)
 
 	// Detect whether stdin is a pipe (has data) or a terminal.
 	stdinIsPipe := false
@@ -68,9 +129,25 @@ func registerScreenHosts(vm *mir2.VM, headless bool, trace bool) {
 	}
 
 	// ── sel_register_int(name_ptr, default_val) ─────────────────────
+	vm.Hosts["sel_register_c"] = func(args []mir2.Value) ([]mir2.Value, error) {
+		if len(args) != 3 || args[1].I < 1 || args[1].I > 65535 {
+			return nil, fmt.Errorf("owned character field: invalid registration")
+		}
+		length, ptr := int(args[1].I), args[2].I
+		value := vm.ReadHeap(ptr, length)
+		if len(value) != length {
+			return nil, fmt.Errorf("owned character field: invalid storage")
+		}
+		fields = append(fields, &selField{name: readStr(args[0].I), ty: 'c', length: length, value: string(value), bufPtr: ptr, fixed: true})
+		if trace {
+			fmt.Fprintf(os.Stderr, "  sel_register_c(%q, %d, @%d)\n", readStr(args[0].I), length, ptr)
+		}
+		return nil, nil
+	}
+
 	vm.Hosts["sel_register_int"] = func(args []mir2.Value) ([]mir2.Value, error) {
 		name := readStr(args[0].I)
-		defInt := args[1].I
+		defInt := int64(int32(args[1].I))
 		fields = append(fields, &selField{
 			name: name, ty: 'i',
 			value: fmt.Sprintf("%d", defInt), defInt: defInt,
@@ -92,10 +169,10 @@ func registerScreenHosts(vm *mir2.VM, headless bool, trace bool) {
 
 		if shouldRead && !stdinIsPipe {
 			// Interactive TUI mode — full screen with focus and colors
-			selShowTUI(fields, trace)
+			selShowTUI(fields, trace, reader, stdinForTUI)
 		} else if shouldRead && stdinIsPipe {
 			// Piped input — read values from stdin
-			selShowPiped(fields, trace)
+			selShowPiped(fields, trace, reader)
 		} else {
 			// Headless, no pipe — auto-execute with defaults
 			if trace {
@@ -103,16 +180,37 @@ func registerScreenHosts(vm *mir2.VM, headless bool, trace bool) {
 			}
 		}
 
+		// Validate every integer before committing any edited fields. ABAP TYPE i
+		// is signed 32-bit, and invalid input must not silently retain a default.
+		integers := make(map[*selField]int64)
+		for _, f := range fields {
+			if f.fixed {
+				for _, b := range []byte(f.value) {
+					if b > 127 {
+						return nil, fmt.Errorf("selection field %s: non-ASCII character input is not admitted", f.name)
+					}
+				}
+			}
+			if f.ty == 'i' {
+				v, err := strconv.ParseInt(strings.Trim(f.value, " "), 10, 32)
+				if err != nil {
+					return nil, fmt.Errorf("selection field %s: invalid TYPE i input %q: %w", f.name, f.value, err)
+				}
+				integers[f] = v
+			}
+		}
 		// Write values back to VM heap buffers
 		for _, f := range fields {
-			if f.ty == 'c' && f.bufPtr != 0 {
+			if f.fixed {
+				data := []byte(strings.Repeat(" ", f.length))
+				copy(data, []byte(f.value))
+				vm.WriteHeapBytes(f.bufPtr, data)
+			} else if f.ty == 'c' && f.bufPtr != 0 {
 				data := append([]byte(f.value), 0)
 				vm.WriteHeapBytes(f.bufPtr, data)
 			}
 			if f.ty == 'i' {
-				if v, err := strconv.ParseInt(f.value, 10, 64); err == nil {
-					f.defInt = v
-				}
+				f.defInt = integers[f]
 			}
 		}
 
@@ -122,7 +220,7 @@ func registerScreenHosts(vm *mir2.VM, headless bool, trace bool) {
 		return []mir2.Value{{I: 1}}, nil
 	}
 
-	// ── sel_get_int(idx) → u16 ──────────────────────────────────────
+	// ── sel_get_int(idx) → i32 ──────────────────────────────────────
 	vm.Hosts["sel_get_int"] = func(args []mir2.Value) ([]mir2.Value, error) {
 		idx := int(args[0].I)
 		if idx >= 0 && idx < len(fields) {
@@ -154,12 +252,12 @@ const (
 )
 
 // ANSI helpers — output to stdout (the TUI IS the program output)
-func ansiGoto(x, y int)            { fmt.Fprintf(os.Stdout, "\033[%d;%dH", y+1, x+1) }
-func ansiColor(fg, bg int)         { fmt.Fprintf(os.Stdout, "\033[%d;%dm", fg, bg) }
-func ansiReset()                   { fmt.Fprint(os.Stdout, "\033[0m") }
-func ansiClear()                   { fmt.Fprint(os.Stdout, "\033[2J\033[H") }
-func ansiShowCursor()              { fmt.Fprint(os.Stdout, "\033[?25h") }
-func ansiHideCursor()              { fmt.Fprint(os.Stdout, "\033[?25l") }
+func ansiGoto(x, y int)    { fmt.Fprintf(os.Stdout, "\033[%d;%dH", y+1, x+1) }
+func ansiColor(fg, bg int) { fmt.Fprintf(os.Stdout, "\033[%d;%dm", fg, bg) }
+func ansiReset()           { fmt.Fprint(os.Stdout, "\033[0m") }
+func ansiClear()           { fmt.Fprint(os.Stdout, "\033[2J\033[H") }
+func ansiShowCursor()      { fmt.Fprint(os.Stdout, "\033[?25h") }
+func ansiHideCursor()      { fmt.Fprint(os.Stdout, "\033[?25l") }
 
 func selRenderTUI(fields []*selField, focus int, title string) {
 	ansiClear()
@@ -194,7 +292,7 @@ func selRenderTUI(fields []*selField, focus int, title string) {
 		val := f.value
 		width := f.length
 		if f.ty == 'i' {
-			width = 6
+			width = 11
 		}
 		if width < 1 {
 			width = 10
@@ -237,7 +335,7 @@ func selRenderTUI(fields []*selField, focus int, title string) {
 	ansiReset()
 }
 
-func selShowTUI(fields []*selField, trace bool) {
+func selShowTUI(fields []*selField, trace bool, reader *bufio.Reader, input <-chan byte) {
 	focus := 0
 	totalItems := len(fields) + 2 // fields + Execute + Back buttons
 	title := "Selection Screen"
@@ -246,8 +344,8 @@ func selShowTUI(fields []*selField, trace bool) {
 		selRenderTUI(fields, focus, title)
 
 		// Read key
-		buf := make([]byte, 8)
-		n, err := os.Stdin.Read(buf)
+		buf, err := readSelectionKey(reader, input)
+		n := len(buf)
 		if err != nil || n == 0 {
 			break // execute on EOF
 		}
@@ -303,7 +401,6 @@ func selShowTUI(fields []*selField, trace bool) {
 				ansiColor(97, 104)
 				ansiShowCursor()
 
-				reader := bufio.NewReader(os.Stdin)
 				line, _ := reader.ReadString('\n')
 				line = strings.TrimRight(line, "\r\n")
 				ansiHideCursor()
@@ -322,8 +419,7 @@ done:
 	ansiReset()
 }
 
-func selShowPiped(fields []*selField, trace bool) {
-	reader := bufio.NewReader(os.Stdin)
+func selShowPiped(fields []*selField, trace bool, reader *bufio.Reader) {
 	for _, f := range fields {
 		line, err := reader.ReadString('\n')
 		if err != nil && len(line) == 0 {

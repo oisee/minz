@@ -1,0 +1,2 @@
+REPORT zbad.
+WRITE 'missing.

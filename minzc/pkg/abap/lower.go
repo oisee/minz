@@ -98,7 +98,7 @@ var abapAssertRe = regexp.MustCompile(
 )
 
 // Compile is the top-level entry point: ABAP source → HIR module.
-// Tries embedded Wasm parser first (no Node.js needed), falls back to Node.js bridge.
+// Uses the embedded Go parser, with no Node/Wasm fallback.
 // Target: hir.TargetCPM (default), hir.TargetZXSpectrum, etc.
 func Compile(src, name string, target ...uint8) (*hir.Module, error) {
 	tgt := uint8(0) // default: CPM
@@ -112,14 +112,9 @@ func Compile(src, name string, target ...uint8) (*hir.Module, error) {
 	// parse them. We rewrite to FORM which is semantically equivalent.
 	src = preprocessFunctions(src)
 
-	// Try embedded Wasm parser (self-contained, no Node.js)
-	prog, err := ParseWasm(src, name)
+	prog, err := Parse(src, name)
 	if err != nil {
-		// Fall back to Node.js bridge
-		prog, err = Parse(src, name)
-		if err != nil {
-			return nil, fmt.Errorf("abap parse: %w", err)
-		}
+		return nil, fmt.Errorf("abap parse: %w", err)
 	}
 	// Scan source for *!sql pragmas BEFORE lowering (lowerer emits sqlite_exec calls).
 	sqlPragmaRe := regexp.MustCompile(`^\s*[*"]\s*!sql\s+(.+)$`)
@@ -135,6 +130,9 @@ func Compile(src, name string, target ...uint8) (*hir.Module, error) {
 		return nil, fmt.Errorf("abap lower: %w", err)
 	}
 	emitRuntimeFuncs(hm, tgt)
+	if err := emitInteger32Runtime(hm, tgt); err != nil {
+		return nil, err
+	}
 
 	// Scan source for assert comments (* assert fn(args) == expected [via mir2|z80]).
 	for i, line := range strings.Split(src, "\n") {
@@ -179,20 +177,26 @@ func LowerProgram(prog *Program) (*hir.Module, error) {
 
 // LowerProgramWithTarget converts a semantic ABAP Program to a HIR module with target platform.
 func LowerProgramWithTarget(prog *Program, target uint8) (*hir.Module, error) {
+	if err := validateABAPRuntimeNames(prog); err != nil {
+		return nil, err
+	}
+	if err := validateProgramTypes(prog); err != nil {
+		return nil, err
+	}
+	capacity, err := inferStringCapacity(prog)
+	if err != nil {
+		return nil, err
+	}
 	l := &lowerer{
+		stringCapacity: capacity,
 		prog:           prog,
 		varTypes:       make(map[string]mir2.Ty),
+		characters:     make(map[string]characterBinding),
 		strCache:       make(map[string]int),
 		internalTables: make(map[string]*internalTable),
 	}
 	l.hm = &hir.Module{Name: prog.Name, Target: target}
 	return l.lower()
-}
-
-type stringInit struct {
-	varName string
-	strIdx  int
-	ty      mir2.Ty
 }
 
 // internalTable tracks metadata for an ABAP internal table (SELECT ... INTO TABLE @DATA(lt_name)).
@@ -209,9 +213,21 @@ type internalTable struct {
 type lowerer struct {
 	prog               *Program
 	hm                 *hir.Module
+	stringCapacity     int
+	characters         map[string]characterBinding
 	varTypes           map[string]mir2.Ty
+	referenceParams    map[string]hir.Expr
+	actualCounter      int
+	returnValue        hir.Expr
+	localObjects       map[string]string
+	localCounter       int
+	localInitializers  []hir.Stmt
+	localNames         map[string]bool
+	reportData         map[*DataDecl]bool
+	loopCounter        int
+	returnCleanups     []hir.Stmt
+	loopDepth          int
 	paramRegistrations []*ParamDecl              // collected during lowering
-	stringInits        []stringInit              // DATA x TYPE string VALUE '...' → deferred init
 	strCache           map[string]int            // dedup cache: content → index in hm.Strings
 	hasSelect          bool                      // true if any SELECT statement → emit sqlite externs + _abap_db
 	selectStmtCounter  int                       // unique IDs for temp variables
@@ -232,36 +248,77 @@ func (l *lowerer) internStr(s string) string {
 }
 
 func (l *lowerer) lower() (*hir.Module, error) {
+	// The aggregate event API and source-block boundaries must describe the
+	// same statements. A semantic-AST edit must not be silently ignored.
+	for event, blocks := range l.prog.EventBlocks {
+		body, ok := l.prog.Events[event]
+		index := 0
+		for _, block := range blocks {
+			for _, stmt := range block {
+				if !ok || index >= len(body) || stmt != body[index] {
+					return nil, fmt.Errorf("%s: event block metadata does not match event statements", event)
+				}
+				index++
+			}
+		}
+		if !ok || index != len(body) {
+			return nil, fmt.Errorf("%s: event block metadata does not match event statements", event)
+		}
+	}
 	// ── SY structure (global system variable) ────────────────────────────
 	l.emitSYStruct()
+	l.reportData = make(map[*DataDecl]bool)
 
 	// ── Collect declarations ─────────────────────────────────────────────
+	reportNames := map[string]bool{"sy": true}
 	var mainBody []Stmt_
 	for _, d := range l.prog.Decls {
 		switch d := d.(type) {
 		case *DataDecl:
+			if reportNames[d.Name] {
+				return nil, fmt.Errorf("DATA %s: duplicate report object", d.Name)
+			}
+			reportNames[d.Name] = true
+			l.reportData[d] = true
 			ty := l.abapTypeToHIR(d.AbapTy, d.Length)
 			l.varTypes[d.Name] = ty
-			l.lowerGlobal(d)
+			if err := l.lowerGlobal(d); err != nil {
+				return nil, err
+			}
 		case *ParamDecl:
+			if reportNames[d.Name] {
+				return nil, fmt.Errorf("PARAMETERS %s: duplicate report object", d.Name)
+			}
+			reportNames[d.Name] = true
 			// PARAMETERS → global variable + register in screen table
 			ty := l.abapTypeToHIR(d.AbapTy, d.Length)
 			l.varTypes[d.Name] = ty
 			dd := &DataDecl{Name: d.Name, AbapTy: d.AbapTy, Length: d.Length, Value: d.Default}
-			l.lowerGlobal(dd)
+			if err := l.lowerGlobal(dd); err != nil {
+				return nil, err
+			}
 			l.lowerParamRegister(d)
 		}
+	}
+	if err := l.collectReportData(); err != nil {
+		return nil, err
 	}
 	// Collect every global before entering procedure-local scopes, including
 	// globals declared after a FORM or FUNCTION in source order.
 	for _, d := range l.prog.Decls {
 		switch d := d.(type) {
 		case *FormDecl:
-			l.lowerForm(d)
+			if err := l.lowerForm(d); err != nil {
+				return nil, err
+			}
 		case *FunctionDecl:
-			l.lowerFunction(d)
+			if err := l.lowerFunction(d); err != nil {
+				return nil, err
+			}
 		case *ClassDecl:
-			l.lowerClass(d)
+			if err := l.lowerClass(d); err != nil {
+				return nil, err
+			}
 		case *InterfaceDecl:
 			l.lowerInterface(d)
 		case *EventDecl:
@@ -307,99 +364,47 @@ func (l *lowerer) lower() (*hir.Module, error) {
 		})
 	}
 
-	// String DATA globals — assign interned string addresses
-	for _, si := range l.stringInits {
-		mainStmts = append(mainStmts, &hir.AssignStmt{
-			Target: &hir.VarRefExpr{Name: si.varName, Ty: si.ty},
-			Val:    &hir.AddrOfExpr{Sym: fmt.Sprintf("@mir2.str.%d", si.strIdx)},
-		})
-	}
-
-	// ── PARAMETERS: allocate per-param buffers, set defaults, prompt ────
-	//
-	// Each string param gets a static buffer: _abap_buf_<name>
-	//   [0]: max length (for BDOS 0x0A)
-	//   [1]: actual length (filled by BDOS)
-	//   [2..]: text data (null-terminated)
-	//
-	// p_name always points to _abap_buf_<name> + 2 (text area).
-	// Default value pre-filled. Empty input = keep default.
+	// Scalar parameter defaults are initialized before INITIALIZATION.
+	// TYPE c owns its storage and default through lowerGlobal; input later
+	// receives its actual address and full length.
 	for _, p := range l.prog.Params {
 		ty := l.varTypes[p.Name]
-		if ty == mir2.TyPtr {
-			// String param: allocate TWO adjacent globals:
-			//   _abap_hdr_<name>: [max_len, actual_len] (2 bytes, BDOS 0x0A header)
-			//   _abap_txt_<name>: [text..., NUL]         (text data area)
-			//
-			// BDOS 0x0A writes starting at the header, text lands in txt.
-			// p_name points to _abap_txt_<name> (the text part).
-			// If user enters empty line, txt keeps the pre-filled default.
-
-			bufLen := p.Length
-			if bufLen < 20 {
-				bufLen = 20
-			}
-			defStr := ""
-			if p.Default != nil {
-				if sl, ok := (*p.Default).(*StringLit); ok {
-					defStr = sl.Val
-				}
-			}
-
-			hdrName := "_abap_hdr_" + p.Name
-			txtName := "_abap_txt_" + p.Name
-
-			// Header: [max_len, pre-filled actual_len]
-			l.hm.Globals = append(l.hm.Globals, mir2.Global{
-				Name: hdrName,
-				Ty:   mir2.TyU8,
-				Init: []byte{byte(bufLen), byte(len(defStr))},
-			})
-			// Text area: default value + padding + NUL
-			txtData := make([]byte, bufLen+1) // +1 for NUL
-			copy(txtData, []byte(defStr))
-			l.hm.Globals = append(l.hm.Globals, mir2.Global{
-				Name: txtName,
-				Ty:   mir2.TyU8,
-				Init: txtData,
-			})
-
-			// p_name = &_abap_txt_<name>
-			mainStmts = append(mainStmts, &hir.AssignStmt{
-				Target: &hir.VarRefExpr{Name: p.Name, Ty: ty},
-				Val:    &hir.AddrOfExpr{Sym: txtName},
-			})
-		} else if p.Default != nil {
-			// Integer param: just set the default value
+		if ty != mir2.TyPtr && p.Default != nil {
 			val, err := l.lowerExpr(*p.Default)
-			if err == nil {
-				mainStmts = append(mainStmts, &hir.AssignStmt{
-					Target: &hir.VarRefExpr{Name: p.Name, Ty: ty},
-					Val:    val,
-				})
+			if err != nil {
+				return nil, err
 			}
+			mainStmts = append(mainStmts, &hir.AssignStmt{
+				Target: &hir.VarRefExpr{Name: p.Name, Ty: ty}, Val: val,
+			})
 		}
 	}
 
 	// INITIALIZATION
 	if body, ok := l.prog.Events["INITIALIZATION"]; ok {
-		stmts, err := l.lowerStmts(body)
-		if err == nil {
-			mainStmts = append(mainStmts, stmts.Body...)
+		blocks := l.prog.EventBlocks["INITIALIZATION"]
+		if len(blocks) == 0 {
+			blocks = [][]Stmt_{body}
+		}
+		for index, block := range blocks {
+			call, err := l.lowerRegularEvent("INITIALIZATION", index, block)
+			if err != nil {
+				return nil, err
+			}
+			mainStmts = append(mainStmts, call)
 		}
 	}
 
 	// Selection screen — register fields, then sel_show for input.
 	//
-	// Architecture: sel_register_str/sel_register_int tell the host about each
-	// field (name, type, length, buffer address, default). sel_show() blocks
+	// Architecture: sel_register_c/sel_register_int tell the host about each
+	// field's actual storage or current i32 value. sel_show() blocks
 	// for user input and returns u8: 1 = host handled (MZV), 0 = fallback.
 	// On Z80/CP/M the fallback path does inline BDOS prompts.
 	// On MZV the host function reads stdin and writes values to VM heap.
 	if len(l.prog.Params) > 0 {
 		// ── Register each parameter with the screen host ────────────
-		// Skip on ZX Spectrum — sel_register calls have 4+ args that the
-		// production regalloc can't handle. Go straight to fallback input.
+		// ZX uses the console-input fallback instead of a host selection screen.
 		fieldIdx := 0
 		for _, p := range l.prog.Params {
 			if l.hm.Target == hir.TargetZXSpectrum {
@@ -412,42 +417,16 @@ func (l *lowerer) lower() (*hir.Module, error) {
 			labelSym := l.internStr(strings.ToUpper(p.Name))
 
 			if ty == mir2.TyPtr {
-				// String field → sel_register_str(name, length, default, buf)
-				defStr := ""
-				if p.Default != nil {
-					if sl, ok := (*p.Default).(*StringLit); ok {
-						defStr = sl.Val
-					}
-				}
-				defSym := l.internStr(defStr)
-				txtName := "_abap_txt_" + p.Name
-
-				mainStmts = append(mainStmts, &hir.ExprStmt{
-					Expr: &hir.CallExpr{
-						Fn: "sel_register_str",
-						Args: []hir.Expr{
-							&hir.AddrOfExpr{Sym: labelSym},
-							&hir.IntLitExpr{Val: int64(p.Length), Ty: mir2.TyU8},
-							&hir.AddrOfExpr{Sym: defSym},
-							&hir.AddrOfExpr{Sym: txtName},
-						},
-						Ty: mir2.TyVoid,
-					},
-				})
+				b := l.characters[p.Name]
+				mainStmts = append(mainStmts, charCall("sel_register_c", &hir.AddrOfExpr{Sym: labelSym}, b.length, b.ptr))
 			} else {
-				// Integer field → sel_register_int(name, default_val)
-				defVal := int64(0)
-				if p.Default != nil {
-					if il, ok := (*p.Default).(*IntLit); ok {
-						defVal = il.Val
-					}
-				}
+				// Register the current i32 value after INITIALIZATION.
 				mainStmts = append(mainStmts, &hir.ExprStmt{
 					Expr: &hir.CallExpr{
 						Fn: "sel_register_int",
 						Args: []hir.Expr{
 							&hir.AddrOfExpr{Sym: labelSym},
-							&hir.IntLitExpr{Val: defVal, Ty: mir2.TyU16},
+							&hir.VarRefExpr{Name: p.Name, Ty: mir2.TyI32},
 						},
 						Ty: mir2.TyVoid,
 					},
@@ -468,45 +447,22 @@ func (l *lowerer) lower() (*hir.Module, error) {
 		// ── Input prompts (BDOS on CP/M, console port on ZX) ──
 		var promptStmts []hir.Stmt
 		for _, p := range l.prog.Params {
-			promptStr := strings.ToUpper(p.Name)
-			defStr := ""
-			if p.Default != nil {
-				if sl, ok := (*p.Default).(*StringLit); ok {
-					defStr = sl.Val
-				} else if il, ok := (*p.Default).(*IntLit); ok {
-					defStr = fmt.Sprintf("%d", il.Val)
-				}
+			label := l.internStr(strings.ToUpper(p.Name) + " [")
+			end := l.internStr("]: ")
+			promptStmts = append(promptStmts, charCall("abap_write_str", &hir.AddrOfExpr{Sym: label}))
+			if b, ok := l.characters[p.Name]; ok {
+				promptStmts = append(promptStmts, charCall("_abap_char_write", b.ptr, textValueLength(b)))
+			} else {
+				promptStmts = append(promptStmts, charCall("_abap_write_i32_value", &hir.VarRefExpr{Name: p.Name, Ty: mir2.TyI32}))
 			}
-			if defStr != "" {
-				promptStr += " [" + defStr + "]"
-			}
-			promptStr += ": "
-
-			promptSym := l.internStr(promptStr)
-
-			promptStmts = append(promptStmts, &hir.ExprStmt{
-				Expr: &hir.CallExpr{
-					Fn:   "abap_write_str",
-					Args: []hir.Expr{&hir.AddrOfExpr{Sym: promptSym}},
-					Ty:   mir2.TyVoid,
-				},
-			})
+			promptStmts = append(promptStmts, charCall("abap_write_str", &hir.AddrOfExpr{Sym: end}))
 
 			ty := l.varTypes[p.Name]
 			if ty == mir2.TyPtr {
-				txtName := "_abap_txt_" + p.Name
-				promptStmts = append(promptStmts, &hir.ExprStmt{
-					Expr: &hir.CallExpr{
-						Fn:   "abap_sel_read",
-						Args: []hir.Expr{&hir.AddrOfExpr{Sym: txtName}},
-						Ty:   mir2.TyVoid,
-					},
-				})
+				b := l.characters[p.Name]
+				promptStmts = append(promptStmts, charCall("_abap_read_c", b.ptr, b.length))
 			} else {
-				promptStmts = append(promptStmts, &hir.AssignStmt{
-					Target: &hir.VarRefExpr{Name: p.Name, Ty: ty},
-					Val:    &hir.CallExpr{Fn: "abap_read_int", Ty: mir2.TyU16},
-				})
+				promptStmts = append(promptStmts, charCall("_abap_read_i32", &hir.AddrOfExpr{Sym: p.Name}))
 			}
 		}
 
@@ -546,7 +502,7 @@ func (l *lowerer) lower() (*hir.Module, error) {
 					Val: &hir.CallExpr{
 						Fn:   "sel_get_int",
 						Args: []hir.Expr{&hir.IntLitExpr{Val: int64(fieldIdx), Ty: mir2.TyU8}},
-						Ty:   mir2.TyU16,
+						Ty:   mir2.TyI32,
 					},
 				})
 			}
@@ -569,33 +525,50 @@ func (l *lowerer) lower() (*hir.Module, error) {
 
 	// AT-SELECTION-SCREEN — runs after screen, SY-UCOMM is set
 	if body, ok := l.prog.Events["AT-SELECTION-SCREEN"]; ok {
-		stmts, err := l.lowerStmts(body)
-		if err == nil {
-			mainStmts = append(mainStmts, stmts.Body...)
+		blocks := l.prog.EventBlocks["AT-SELECTION-SCREEN"]
+		if len(blocks) == 0 {
+			blocks = [][]Stmt_{body}
+		}
+		for index, block := range blocks {
+			call, err := l.lowerRegularEvent("AT-SELECTION-SCREEN", index, block)
+			if err != nil {
+				return nil, err
+			}
+			mainStmts = append(mainStmts, call)
 		}
 	}
 
-	// START-OF-SELECTION
-	if body, ok := l.prog.Events["START-OF-SELECTION"]; ok {
-		stmts, err := l.lowerStmts(body)
-		if err == nil {
-			mainStmts = append(mainStmts, stmts.Body...)
-		}
-	}
-
-	// Top-level statements (non-event code)
+	// Top-level executable statements are the implicit START-OF-SELECTION
+	// prefix, before the explicit START block (ABAP 7.52 event specification).
 	if len(mainBody) > 0 {
 		stmts, err := l.lowerStmts(mainBody)
-		if err == nil {
-			mainStmts = append(mainStmts, stmts.Body...)
+		if err != nil {
+			return nil, err
 		}
+		mainStmts = append(mainStmts, stmts.Body...)
+	}
+
+	// START-OF-SELECTION stays in the driver: RETURN stops further reporting events.
+	if body, ok := l.prog.Events["START-OF-SELECTION"]; ok {
+		stmts, err := l.lowerStmts(body)
+		if err != nil {
+			return nil, err
+		}
+		mainStmts = append(mainStmts, stmts.Body...)
 	}
 
 	// END-OF-SELECTION
 	if body, ok := l.prog.Events["END-OF-SELECTION"]; ok {
-		stmts, err := l.lowerStmts(body)
-		if err == nil {
-			mainStmts = append(mainStmts, stmts.Body...)
+		blocks := l.prog.EventBlocks["END-OF-SELECTION"]
+		if len(blocks) == 0 {
+			blocks = [][]Stmt_{body}
+		}
+		for index, block := range blocks {
+			call, err := l.lowerRegularEvent("END-OF-SELECTION", index, block)
+			if err != nil {
+				return nil, err
+			}
+			mainStmts = append(mainStmts, call)
 		}
 	}
 
@@ -610,40 +583,18 @@ func (l *lowerer) lower() (*hir.Module, error) {
 		initStmts = append(initStmts, &hir.AssignStmt{
 			Target: &hir.VarRefExpr{Name: "_abap_db", Ty: mir2.TyU16},
 			Val: &hir.CallExpr{
-				Fn:   "sqlite_open",
+				Fn:   "_abap_sql_open",
 				Args: []hir.Expr{&hir.AddrOfExpr{Sym: memSym}},
 				Ty:   mir2.TyU16,
 			},
 		})
-		// Execute seed SQL statements from *!sql pragmas.
-		// Each wrapped in asm function to avoid regalloc string pointer corruption.
-		for si, sql := range l.prog.SeedSQL {
-			sqlSym := l.internStr(sql)
-			sqlAsmSym := strings.ReplaceAll(strings.ReplaceAll(sqlSym, "@", "_"), ".", "_")
-			seedFn := fmt.Sprintf("_abap_seed_%d", si)
-			l.hm.Funcs = append(l.hm.Funcs, &hir.Func{
-				Name:   seedFn,
-				Params: []hir.Param{{Name: "_x", Ty: mir2.TyU8}},
-				RetTy:  mir2.TyVoid,
-				Body: &hir.Block{
-					Body: []hir.Stmt{
-						&hir.AsmStmt{
-							Target: "z80",
-							Code: fmt.Sprintf(
-								"LD HL, 1 / LD DE, %s / CALL sqlite_exec", sqlAsmSym),
-							Ins:         []hir.AsmOperand{{Name: "_x"}},
-							ClobberRegs: []string{"A", "B", "C", "D", "E", "H", "L"},
-						},
-					},
-				},
-			})
-			initStmts = append(initStmts, &hir.ExprStmt{
-				Expr: &hir.CallExpr{
-					Fn:   seedFn,
-					Args: []hir.Expr{&hir.IntLitExpr{Val: 0, Ty: mir2.TyU8}},
-					Ty:   mir2.TyVoid,
-				},
-			})
+		// Seed statements use the actual opened handle and the ordinary checked ABI.
+		for _, sql := range l.prog.SeedSQL {
+			seed, err := l.lowerExecSQL(&ExecSQLStmt{SQL: sql})
+			if err != nil {
+				return nil, err
+			}
+			initStmts = append(initStmts, seed)
 		}
 		// YELLOW border = seed SQL done
 		if l.hm.Target == hir.TargetZXSpectrum {
@@ -701,17 +652,24 @@ func (l *lowerer) lower() (*hir.Module, error) {
 		})
 	}
 
+	for _, f := range l.hm.Funcs {
+		if reservedABAPRuntimeName(f.Name) {
+			f.Internal = true
+		}
+	}
+
 	return l.hm, nil
 }
 
 // emitSYStruct creates the SY system structure and a global instance.
 func (l *lowerer) emitSYStruct() {
-	// SY struct: INDEX, SUBRC, TABIX, UCOMM (u16 each for simplicity)
+	// Legacy SY metadata; executable field admission is checked separately.
+	// INDEX uses the same signed width as its backing global and accessors.
 	st := &mir2.StructTy{
 		Name: "SY",
 		Fields: []mir2.StructField{
-			{Name: "SUBRC", Ty: mir2.TyU16},
-			{Name: "INDEX", Ty: mir2.TyU16},
+			{Name: "SUBRC", Ty: mir2.TyI32},
+			{Name: "INDEX", Ty: mir2.TyI32},
 			{Name: "TABIX", Ty: mir2.TyU16},
 			{Name: "UCOMM", Ty: mir2.TyU16}, // simplified: command code as u16
 			{Name: "DATUM", Ty: mir2.TyU16}, // date as days-since-epoch (simplified)
@@ -748,11 +706,13 @@ func (l *lowerer) lowerParamRegister(p *ParamDecl) {
 
 func (l *lowerer) abapTypeToHIR(abapTy string, length int) mir2.Ty {
 	switch abapTy {
-	case "i": // ABAP integer (4 bytes) → u16 for Z80
-		return mir2.TyU16
+	case "i": // ABAP signed integer occupies four bytes on every target.
+		return mir2.TyI32
 	case "int8", "b":
 		return mir2.TyU8
-	case "c", "n":
+	case "c":
+		return mir2.TyPtr
+	case "n":
 		if length <= 1 {
 			return mir2.TyU8
 		}
@@ -772,7 +732,13 @@ func (l *lowerer) abapTypeToHIR(abapTy string, length int) mir2.Ty {
 
 // ── Globals ──────────────────────────────────────────────────────────────────
 
-func (l *lowerer) lowerGlobal(d *DataDecl) {
+func (l *lowerer) lowerGlobal(d *DataDecl) error {
+	if d.AbapTy == "c" {
+		return l.characterGlobal(d)
+	}
+	if d.AbapTy == "string" {
+		return l.stringGlobal(d)
+	}
 	ty := l.abapTypeToHIR(d.AbapTy, d.Length)
 	g := mir2.Global{
 		Name: d.Name,
@@ -781,45 +747,118 @@ func (l *lowerer) lowerGlobal(d *DataDecl) {
 	if d.Value != nil {
 		switch lit := (*d.Value).(type) {
 		case *IntLit:
+			if ty == mir2.TyI32 && (lit.Val < -2147483648 || lit.Val > 2147483647) {
+				return fmt.Errorf("DATA %s: value %d is outside TYPE i range", d.Name, lit.Val)
+			}
 			w := mir2.ByteWidth(ty)
 			g.Init = make([]byte, w)
-			if w >= 1 {
-				g.Init[0] = byte(lit.Val)
-			}
-			if w >= 2 {
-				g.Init[1] = byte(lit.Val >> 8)
+			for i := range g.Init {
+				g.Init[i] = byte(uint64(lit.Val) >> (8 * i))
 			}
 		case *StringLit:
-			// String DATA → intern the string and record an init assignment
-			sym := l.internStr(lit.Val)
-			// Extract index from sym ("@mir2.str.N" → N)
-			var idx int
-			fmt.Sscanf(sym, "@mir2.str.%d", &idx)
-			l.stringInits = append(l.stringInits, stringInit{
-				varName: d.Name,
-				strIdx:  idx,
-				ty:      ty,
-			})
+			return fmt.Errorf("DATA %s: character-to-integer initialization is not admitted", d.Name)
+		default:
+			return fmt.Errorf("DATA %s: unsupported initial value %T", d.Name, lit)
 		}
 	}
 	l.hm.Globals = append(l.hm.Globals, g)
+	return nil
+}
+
+// Regular report events have procedure boundaries: RETURN exits the event,
+// then the report driver continues. START-OF-SELECTION has special RETURN
+// semantics and is deliberately lowered in the driver instead.
+func (l *lowerer) lowerRegularEvent(event string, index int, body []Stmt_) (hir.Stmt, error) {
+	leave := l.enterProcedure()
+	defer leave()
+	block, err := l.lowerStmts(body)
+	if err != nil {
+		return nil, err
+	}
+	block.Body = append(l.localInitializers, block.Body...)
+	block.Body = append(block.Body, &hir.ReturnStmt{})
+	name := fmt.Sprintf("_abap_event_%s_%d", strings.ToLower(strings.ReplaceAll(event, "-", "_")), index)
+	l.hm.Funcs = append(l.hm.Funcs, &hir.Func{Name: name, RetTy: mir2.TyVoid, Internal: true, Body: block})
+	return charCall(name), nil
 }
 
 // enterProcedure isolates parameters and local DATA from sibling procedures.
 // The outer map contains report globals and is restored even on lowering errors.
 func (l *lowerer) enterProcedure() func() {
+	outerReturn := l.returnValue
+	l.returnValue = nil
+	outerObjects := l.localObjects
+	l.localObjects = make(map[string]string)
+	outerInitializers, outerNames := l.localInitializers, l.localNames
+	l.localInitializers, l.localNames = nil, make(map[string]bool)
+	outerCleanups, outerDepth := l.returnCleanups, l.loopDepth
+	l.returnCleanups = nil
+	l.loopDepth = 0
 	outer := l.varTypes
+	outerChars := l.characters
+	l.characters = make(map[string]characterBinding, len(outerChars))
+	for name, binding := range outerChars {
+		l.characters[name] = binding
+	}
+	outerRefs := l.referenceParams
+	l.referenceParams = make(map[string]hir.Expr)
 	l.varTypes = make(map[string]mir2.Ty, len(outer))
 	for name, ty := range outer {
 		l.varTypes[name] = ty
 	}
-	return func() { l.varTypes = outer }
+	return func() {
+		l.returnValue = outerReturn
+		l.localObjects = outerObjects
+		l.localInitializers, l.localNames = outerInitializers, outerNames
+		l.varTypes = outer
+		l.referenceParams = outerRefs
+		l.characters = outerChars
+		l.returnCleanups = outerCleanups
+		l.loopDepth = outerDepth
+	}
 }
 
 func (l *lowerer) lowerLocalData(d *DataDecl) (hir.Stmt, error) {
+	if l.localNames[d.Name] {
+		return nil, fmt.Errorf("DATA %s: duplicate procedure object", d.Name)
+	}
+	if l.localNames != nil {
+		l.localNames[d.Name] = true
+	}
+	if err := validateDataStartValue(d); err != nil {
+		return nil, err
+	}
+	delete(l.characters, d.Name)
+	l.localCounter++
+	object := fmt.Sprintf("$abap_local_%d", l.localCounter)
+	if l.localObjects != nil {
+		l.localObjects[d.Name] = object
+	}
+	if d.AbapTy == "c" || d.AbapTy == "string" {
+		physical := *d
+		physical.Name = object
+		var init hir.Stmt
+		var err error
+		if d.AbapTy == "c" {
+			init, err = l.characterLocal(&physical)
+		} else {
+			init, err = l.stringLocal(&physical)
+		}
+		if err != nil {
+			return nil, fmt.Errorf("DATA %s: %w", d.Name, err)
+		}
+		l.characters[d.Name] = l.characters[object]
+		delete(l.characters, object)
+		delete(l.varTypes, object)
+		l.varTypes[d.Name] = mir2.TyPtr
+		return init, nil
+	}
 	ty := l.abapTypeToHIR(d.AbapTy, d.Length)
 	var init hir.Expr = &hir.IntLitExpr{Val: 0, Ty: ty}
 	if d.Value != nil {
+		if _, text := (*d.Value).(*StringLit); text && ty == mir2.TyI32 {
+			return nil, fmt.Errorf("DATA %s: character-to-integer initialization is not admitted", d.Name)
+		}
 		var err error
 		init, err = l.lowerExpr(*d.Value)
 		if err != nil {
@@ -827,94 +866,118 @@ func (l *lowerer) lowerLocalData(d *DataDecl) (hir.Stmt, error) {
 		}
 	}
 	l.varTypes[d.Name] = ty
-	return &hir.VarDeclStmt{Name: d.Name, Ty: ty, Init: init}, nil
+	return &hir.VarDeclStmt{Name: object, Ty: ty, Init: init}, nil
 }
 
 // ── FORM → hir.Func ─────────────────────────────────────────────────────────
 
-func (l *lowerer) lowerForm(d *FormDecl) {
-	defer l.enterProcedure()()
-	params := make([]hir.Param, 0, len(d.Using)+len(d.Changing))
-	for _, p := range d.Using {
-		ty := l.abapTypeToHIR(p.AbapTy, 0)
-		params = append(params, hir.Param{Name: p.Name, Ty: ty})
-		l.varTypes[p.Name] = ty
-	}
-	for _, p := range d.Changing {
-		ty := l.abapTypeToHIR(p.AbapTy, 0)
-		params = append(params, hir.Param{Name: p.Name, Ty: ty})
-		l.varTypes[p.Name] = ty
-	}
-
-	var resultDecl hir.Stmt
+// formEntry names the actual ABAP reference-parameter entry. The plain-name
+// single-output wrapper is only a convenience for direct compiler assertions.
+func formEntry(d *FormDecl) string {
 	if len(d.Changing) == 1 {
-		p := d.Changing[0]
-		resultDecl, _ = l.lowerLocalData(&DataDecl{Name: p.Name, AbapTy: p.AbapTy})
+		return d.Name + "$ref"
+	}
+	return d.Name
+}
+func (l *lowerer) lowerForm(d *FormDecl) error {
+	defer l.enterProcedure()()
+	params := []hir.Param{}
+	all := append(append([]FormParam{}, d.Using...), d.Changing...)
+	paramNames := map[string]bool{}
+	for _, p := range all {
+		if paramNames[p.Name] {
+			return fmt.Errorf("FORM %s: duplicate parameter %s", d.Name, p.Name)
+		}
+		paramNames[p.Name] = true
+		l.localNames[p.Name] = true
+		l.varTypes[p.Name] = l.formParameterType(p)
+		delete(l.characters, p.Name)
+		if p.AbapTy == "string" {
+			params = append(params, hir.Param{Name: p.Name, Ty: mir2.TyPtr})
+			l.characters[p.Name] = stringBinding(&hir.VarRefExpr{Name: p.Name, Ty: mir2.TyPtr})
+			continue
+		}
+		if p.AbapTy == "c" {
+			lengthName := p.Name + "$length"
+			params = append(params, hir.Param{Name: p.Name, Ty: mir2.TyPtr}, hir.Param{Name: lengthName, Ty: mir2.TyU16})
+			l.characters[p.Name] = characterBinding{ptr: &hir.VarRefExpr{Name: p.Name, Ty: mir2.TyPtr}, length: &hir.VarRefExpr{Name: lengthName, Ty: mir2.TyU16}}
+			continue
+		}
+		params = append(params, hir.Param{Name: p.Name, Ty: mir2.TyPtr})
+		l.referenceParams[p.Name] = &hir.VarRefExpr{Name: p.Name, Ty: mir2.TyPtr}
 	}
 	body, err := l.lowerStmts(d.Body)
 	if err != nil {
-		l.hm.Warnings = append(l.hm.Warnings, fmt.Sprintf("FORM %s: %v", d.Name, err))
-		return
+		return fmt.Errorf("FORM %s: %w", d.Name, err)
 	}
-
-	// If the FORM has exactly one CHANGING parameter, emit it as a function
-	// that returns the CHANGING value. This enables compile-time asserts and
-	// matches the semantic intent of "compute and return via CHANGING".
-	if len(d.Changing) == 1 {
-		changingName := d.Changing[0].Name
-		changingTy := l.abapTypeToHIR(d.Changing[0].AbapTy, 0)
-		// Remove the CHANGING param from the param list (it's now the return value)
-		usingOnly := make([]hir.Param, len(d.Using))
-		copy(usingOnly, params[:len(d.Using)])
-		retStmt := &hir.ReturnStmt{
-			Val: &hir.VarRefExpr{Name: changingName, Ty: changingTy},
+	body.Body = append(l.localInitializers, body.Body...)
+	l.hm.Funcs = append(l.hm.Funcs, &hir.Func{Name: formEntry(d), Params: params, RetTy: mir2.TyVoid, Body: body})
+	scalarWrapper := true
+	for _, p := range all {
+		if p.AbapTy == "c" || p.AbapTy == "string" {
+			scalarWrapper = false
 		}
-		body.Body = append([]hir.Stmt{resultDecl}, body.Body...)
-		body.Body = append(body.Body, retStmt)
-		l.hm.Funcs = append(l.hm.Funcs, &hir.Func{
-			Name:   d.Name,
-			Params: usingOnly,
-			RetTy:  changingTy,
-			Body:   body,
-		})
-	} else {
-		l.hm.Funcs = append(l.hm.Funcs, &hir.Func{
-			Name:   d.Name,
-			Params: params,
-			RetTy:  mir2.TyVoid,
-			Body:   body,
-		})
 	}
+	if len(d.Changing) == 1 && scalarWrapper {
+		resultTy := l.formParameterType(d.Changing[0])
+		resultName := "$abap_result"
+		wrapper := &hir.Block{Body: []hir.Stmt{&hir.VarDeclStmt{Name: resultName, Ty: resultTy, Init: &hir.IntLitExpr{Val: 0, Ty: resultTy}}}}
+		values := []hir.Param{}
+		args := []hir.Expr{}
+		for _, p := range d.Using {
+			ty := l.formParameterType(p)
+			values = append(values, hir.Param{Name: p.Name, Ty: ty})
+			args = append(args, &hir.AddrOfExpr{X: &hir.VarRefExpr{Name: p.Name, Ty: ty}})
+		}
+		result := &hir.VarRefExpr{Name: resultName, Ty: resultTy}
+		args = append(args, &hir.AddrOfExpr{X: result})
+		wrapper.Body = append(wrapper.Body, &hir.ExprStmt{Expr: &hir.CallExpr{Fn: formEntry(d), Args: args, Ty: mir2.TyVoid}}, &hir.ReturnStmt{Val: result})
+		l.hm.Funcs = append(l.hm.Funcs, &hir.Func{Name: d.Name, Params: values, RetTy: resultTy, Body: wrapper})
+	}
+	return nil
 }
 
 // ── FUNCTION MODULE → hir.Func ──────────────────────────────────────────────
 // Same as FORM but with IMPORTING/EXPORTING/CHANGING.
 // Name is lowercased function module name (e.g. 'Z_ADD' → 'z_add').
 
-func (l *lowerer) lowerFunction(d *FunctionDecl) {
+func (l *lowerer) lowerFunction(d *FunctionDecl) error {
 	defer l.enterProcedure()()
 	params := make([]hir.Param, 0, len(d.Importing)+len(d.Changing))
 	for _, p := range d.Importing {
 		ty := l.abapTypeToHIR(p.AbapTy, 0)
+		delete(l.characters, p.Name)
 		params = append(params, hir.Param{Name: p.Name, Ty: ty})
 		l.varTypes[p.Name] = ty
 	}
 	for _, p := range d.Changing {
 		ty := l.abapTypeToHIR(p.AbapTy, 0)
+		delete(l.characters, p.Name)
 		params = append(params, hir.Param{Name: p.Name, Ty: ty})
 		l.varTypes[p.Name] = ty
 	}
 
+	for _, p := range params {
+		if l.localNames[p.Name] {
+			return fmt.Errorf("duplicate procedure parameter %s", p.Name)
+		}
+		l.localNames[p.Name] = true
+	}
 	var resultDecl hir.Stmt
 	if len(d.Exporting) == 1 {
 		p := d.Exporting[0]
-		resultDecl, _ = l.lowerLocalData(&DataDecl{Name: p.Name, AbapTy: p.AbapTy})
+		var err error
+		resultDecl, err = l.lowerLocalData(&DataDecl{Name: p.Name, AbapTy: p.AbapTy})
+		if err != nil {
+			return err
+		}
+		l.returnValue = &hir.VarRefExpr{Name: l.localObjectName(p.Name), Ty: l.abapTypeToHIR(p.AbapTy, 0)}
 	}
 	body, err := l.lowerStmts(d.Body)
 	if err != nil {
-		l.hm.Warnings = append(l.hm.Warnings, fmt.Sprintf("FUNCTION %s: %v", d.Name, err))
-		return
+		return fmt.Errorf("FUNCTION %s: %w", d.Name, err)
 	}
+	body.Body = append(l.localInitializers, body.Body...)
 
 	// If exactly one EXPORTING param → promote to return value (like FORM CHANGING).
 	if len(d.Exporting) == 1 {
@@ -922,7 +985,7 @@ func (l *lowerer) lowerFunction(d *FunctionDecl) {
 		expTy := l.abapTypeToHIR(d.Exporting[0].AbapTy, 0)
 		l.varTypes[expName] = expTy
 		retStmt := &hir.ReturnStmt{
-			Val: &hir.VarRefExpr{Name: expName, Ty: expTy},
+			Val: &hir.VarRefExpr{Name: l.localObjectName(expName), Ty: expTy},
 		}
 		body.Body = append([]hir.Stmt{resultDecl}, body.Body...)
 		body.Body = append(body.Body, retStmt)
@@ -940,11 +1003,12 @@ func (l *lowerer) lowerFunction(d *FunctionDecl) {
 			Body:   body,
 		})
 	}
+	return nil
 }
 
 // ── CLASS → struct + methods ─────────────────────────────────────────────────
 
-func (l *lowerer) lowerClass(d *ClassDecl) {
+func (l *lowerer) lowerClass(d *ClassDecl) error {
 	st := &mir2.StructTy{Name: d.Name}
 	for _, attr := range d.Attrs {
 		ty := l.abapTypeToHIR(attr.AbapTy, attr.Length)
@@ -953,25 +1017,35 @@ func (l *lowerer) lowerClass(d *ClassDecl) {
 	l.hm.Structs = append(l.hm.Structs, st)
 
 	for _, m := range d.Methods {
-		l.lowerMethod(d.Name, m)
+		if err := l.lowerMethod(d.Name, m); err != nil {
+			return err
+		}
 	}
+	return nil
 }
 
-func (l *lowerer) lowerMethod(className string, m *MethodDecl) {
+func (l *lowerer) lowerMethod(className string, m *MethodDecl) error {
 	defer l.enterProcedure()()
 	// Only add self parameter if the class has attributes (instance data).
 	// Pure computation classes emit free functions, enabling compile-time asserts.
 	var params []hir.Param
-	if l.classHasAttrs(className) {
+	if l.classHasAttrs(className) && !m.Static {
 		params = append(params, hir.Param{Name: "self", Ty: mir2.TyPtr})
 	}
 
 	for _, p := range m.Importing {
 		ty := l.abapTypeToHIR(p.AbapTy, 0)
+		delete(l.characters, p.Name)
 		params = append(params, hir.Param{Name: p.Name, Ty: ty})
 		l.varTypes[p.Name] = ty
 	}
 
+	for _, p := range params {
+		if l.localNames[p.Name] {
+			return fmt.Errorf("duplicate procedure parameter %s", p.Name)
+		}
+		l.localNames[p.Name] = true
+	}
 	var retTy mir2.Ty = mir2.TyVoid
 	if m.Returning != nil {
 		retTy = l.abapTypeToHIR(m.Returning.AbapTy, 0)
@@ -980,20 +1054,25 @@ func (l *lowerer) lowerMethod(className string, m *MethodDecl) {
 	var resultDecl hir.Stmt
 	if m.Returning != nil {
 		p := m.Returning
-		resultDecl, _ = l.lowerLocalData(&DataDecl{Name: p.Name, AbapTy: p.AbapTy})
+		var err error
+		resultDecl, err = l.lowerLocalData(&DataDecl{Name: p.Name, AbapTy: p.AbapTy})
+		if err != nil {
+			return err
+		}
+		l.returnValue = &hir.VarRefExpr{Name: l.localObjectName(p.Name), Ty: retTy}
 	}
 	body, err := l.lowerStmts(m.Body)
 	if err != nil {
-		l.hm.Warnings = append(l.hm.Warnings, fmt.Sprintf("METHOD %s~%s: %v", className, m.Name, err))
-		return
+		return fmt.Errorf("METHOD %s~%s: %w", className, m.Name, err)
 	}
+	body.Body = append(l.localInitializers, body.Body...)
 
 	// If the method has RETURNING, add implicit return of the RETURNING variable.
 	if m.Returning != nil {
 		retVarTy := l.abapTypeToHIR(m.Returning.AbapTy, 0)
 		body.Body = append([]hir.Stmt{resultDecl}, body.Body...)
 		body.Body = append(body.Body, &hir.ReturnStmt{
-			Val: &hir.VarRefExpr{Name: m.Returning.Name, Ty: retVarTy},
+			Val: &hir.VarRefExpr{Name: l.localObjectName(m.Returning.Name), Ty: retVarTy},
 		})
 	}
 
@@ -1003,6 +1082,7 @@ func (l *lowerer) lowerMethod(className string, m *MethodDecl) {
 		RetTy:  retTy,
 		Body:   body,
 	})
+	return nil
 }
 
 // classHasAttrs checks if a class has instance data attributes.
@@ -1034,6 +1114,14 @@ func (l *lowerer) lowerStmts(stmts []Stmt_) (*hir.Block, error) {
 			return nil, err
 		}
 		if hs != nil {
+			// DATA initialization may need multiple statements, but its name
+			// remains visible in the surrounding ABAP procedure.
+			if _, decl := s.(*DataDecl); decl {
+				if init, ok := hs.(*hir.Block); ok {
+					block.Body = append(block.Body, init.Body...)
+					continue
+				}
+			}
 			block.Body = append(block.Body, hs)
 		}
 	}
@@ -1043,9 +1131,36 @@ func (l *lowerer) lowerStmts(stmts []Stmt_) (*hir.Block, error) {
 func (l *lowerer) lowerStmt(s Stmt_) (hir.Stmt, error) {
 	switch s := s.(type) {
 	case *DataDecl:
-		return l.lowerLocalData(s)
+		if l.reportData[s] {
+			return nil, nil
+		}
+		init, err := l.lowerLocalData(s)
+		if err != nil {
+			return nil, err
+		}
+		if block, ok := init.(*hir.Block); ok {
+			l.localInitializers = append(l.localInitializers, block.Body...)
+		} else {
+			l.localInitializers = append(l.localInitializers, init)
+		}
+		return nil, nil
 	case *WriteStmt:
 		return l.lowerWrite(s)
+	case *ClearStmt:
+		if b, ok := l.characters[s.Target]; ok {
+			if b.dynamic {
+				return charCall("_abap_string_clear", b.object), nil
+			}
+			return charCall("_abap_char_clear", b.ptr, b.length), nil
+		}
+		ty, ok := l.varTypes[s.Target]
+		if !ok {
+			return nil, fmt.Errorf("CLEAR: unknown target %s", s.Target)
+		}
+		if ty != mir2.TyU16 && ty != mir2.TyI32 {
+			return nil, fmt.Errorf("CLEAR %s: type-specific initial value is not implemented for %s", s.Target, ty)
+		}
+		return &hir.AssignStmt{Target: l.variableTarget(s.Target, ty), Val: &hir.IntLitExpr{Val: 0, Ty: ty}}, nil
 	case *AssignStmt:
 		return l.lowerAssign(s)
 	case *IfStmt:
@@ -1057,17 +1172,23 @@ func (l *lowerer) lowerStmt(s Stmt_) (hir.Stmt, error) {
 	case *PerformStmt:
 		return l.lowerPerform(s)
 	case *ExitStmt:
+		if l.loopDepth == 0 {
+			return l.lowerLoopReturn(), nil
+		}
 		return &hir.BreakStmt{}, nil
 	case *ContinueStmt:
+		if l.loopDepth == 0 {
+			return nil, fmt.Errorf("CONTINUE: no enclosing ABAP loop")
+		}
 		return &hir.ContinueStmt{}, nil
 	case *ReturnStmt:
-		return &hir.ReturnStmt{}, nil
+		return l.lowerLoopReturn(), nil
 	case *CaseStmt:
 		return l.lowerCase(s)
 	case *SelectStmt:
 		return l.lowerSelect(s)
 	case *ALVDisplayStmt:
-		return l.lowerALVDisplay(s)
+		return nil, fmt.Errorf("ALV: typed table and layout semantics are not implemented; fixed-slot display prototype is not admitted")
 	case *ExecSQLStmt:
 		return l.lowerExecSQL(s)
 	default:
@@ -1076,41 +1197,40 @@ func (l *lowerer) lowerStmt(s Stmt_) (hir.Stmt, error) {
 }
 
 func (l *lowerer) lowerWrite(s *WriteStmt) (hir.Stmt, error) {
-	// WRITE each expression via abap_write / abap_write_str
 	if len(s.Exprs) == 0 {
-		return nil, nil
+		return nil, fmt.Errorf("WRITE: missing operand")
 	}
-	// Emit PUSH HL/DE before each WRITE, POP after.
-	// This preserves loop-carried variables across function calls.
 	var stmts []hir.Stmt
 	for _, e := range s.Exprs {
+		template := false
+		if v, ok := e.(*TemplateValue); ok {
+			template = true
+			e = v.Val
+		}
+		b, character, err := l.characterExpr(e)
+		if err != nil {
+			return nil, err
+		}
+		if character {
+			length := b.length
+			if template {
+				length = textValueLength(b)
+			}
+			stmts = append(stmts, charCall("_abap_char_write", b.ptr, length))
+			continue
+		}
 		he, err := l.lowerExpr(e)
 		if err != nil {
 			return nil, err
 		}
-		fnName := "abap_write"
-		if _, ok := e.(*StringLit); ok {
-			fnName = "abap_write_str"
-		} else if he.ExprTy() == mir2.TyPtr {
-			fnName = "abap_write_str"
+		if he.ExprTy() != mir2.TyI32 {
+			return nil, fmt.Errorf("WRITE: unsupported numeric/output type %s", he.ExprTy())
 		}
-		// Save all register pairs before call
-		stmts = append(stmts, &hir.AsmStmt{
-			Target: "z80",
-			Code:   "PUSH IX / PUSH DE / PUSH HL",
-		})
-		stmts = append(stmts, &hir.ExprStmt{
-			Expr: &hir.CallExpr{
-				Fn:   fnName,
-				Args: []hir.Expr{he},
-				Ty:   mir2.TyVoid,
-			},
-		})
-		// Restore all register pairs after call
-		stmts = append(stmts, &hir.AsmStmt{
-			Target: "z80",
-			Code:   "POP HL / POP DE / POP IX",
-		})
+		fn := "abap_write_i32"
+		if template {
+			fn = "_abap_write_i32_value"
+		}
+		stmts = append(stmts, charCall(fn, he))
 	}
 	if len(stmts) == 1 {
 		return stmts[0], nil
@@ -1119,21 +1239,26 @@ func (l *lowerer) lowerWrite(s *WriteStmt) (hir.Stmt, error) {
 }
 
 func (l *lowerer) lowerAssign(s *AssignStmt) (hir.Stmt, error) {
+	if b, ok := l.characters[s.Target]; ok {
+		return l.characterAssign(b, s.Val)
+	}
+	if _, exists := l.varTypes[s.Target]; !exists {
+		return nil, fmt.Errorf("assignment to undeclared ABAP object %q", s.Target)
+	}
+	if _, text := s.Val.(*StringLit); text && l.varTypes[s.Target] == mir2.TyI32 {
+		return nil, fmt.Errorf("assignment to %s: character-to-integer conversion is not implemented", s.Target)
+	}
+	if _, character, err := l.characterExpr(s.Val); err != nil {
+		return nil, err
+	} else if character && l.varTypes[s.Target] != mir2.TyPtr {
+		return nil, fmt.Errorf("assignment to %s: character conversion is not implemented", s.Target)
+	}
 	val, err := l.lowerExpr(s.Val)
 	if err != nil {
 		return nil, err
 	}
-	if _, exists := l.varTypes[s.Target]; !exists {
-		ty := val.ExprTy()
-		l.varTypes[s.Target] = ty
-		return &hir.VarDeclStmt{
-			Name: s.Target,
-			Ty:   ty,
-			Init: val,
-		}, nil
-	}
 	return &hir.AssignStmt{
-		Target: &hir.VarRefExpr{Name: s.Target, Ty: l.varTypes[s.Target]},
+		Target: l.variableTarget(s.Target, l.varTypes[s.Target]),
 		Val:    val,
 	}, nil
 }
@@ -1190,41 +1315,15 @@ func (l *lowerer) lowerIf(s *IfStmt) (hir.Stmt, error) {
 }
 
 func (l *lowerer) lowerDo(s *DoStmt) (hir.Stmt, error) {
-	body, err := l.lowerStmts(s.Body)
-	if err != nil {
-		return nil, err
-	}
+	var times hir.Expr
 	if s.Times != nil {
-		timesExpr, err := l.lowerExpr(*s.Times)
+		var err error
+		times, err = l.lowerExpr(*s.Times)
 		if err != nil {
 			return nil, err
 		}
-		// ABAP DO N TIMES: SY-INDEX counts 1..N (1-based)
-		// Ensure timesExpr is u16 (parseTokenExpr may give u8 for small literals)
-		if timesExpr.ExprTy() == mir2.TyU8 {
-			timesExpr = &hir.CastExpr{X: timesExpr, Ty: mir2.TyU16}
-		}
-		// Prepend SY-INDEX update to body: sy_set_index(_abap_sy_index)
-		// so WRITE SY-INDEX inside DO shows 1, 2, 3...
-		syUpdate := &hir.ExprStmt{
-			Expr: &hir.CallExpr{
-				Fn:   "sy_set_index",
-				Args: []hir.Expr{&hir.VarRefExpr{Name: "_abap_sy_index", Ty: mir2.TyU16}},
-				Ty:   mir2.TyVoid,
-			},
-		}
-		augBody := &hir.Block{Body: append([]hir.Stmt{syUpdate}, body.Body...)}
-		return &hir.ForRangeStmt{
-			Var:   "_abap_sy_index",
-			Start: &hir.IntLitExpr{Val: 1, Ty: mir2.TyU16},
-			End:   &hir.BinExpr{Op: "+", L: timesExpr, R: &hir.IntLitExpr{Val: 1, Ty: mir2.TyU16}, Ty: mir2.TyU16},
-			Body:  augBody,
-		}, nil
 	}
-	return &hir.WhileStmt{
-		Cond: &hir.BoolLitExpr{Val: true},
-		Body: body,
-	}, nil
+	return l.lowerIndexedLoop(s.Body, times, nil)
 }
 
 func (l *lowerer) lowerWhile(s *WhileStmt) (hir.Stmt, error) {
@@ -1232,45 +1331,90 @@ func (l *lowerer) lowerWhile(s *WhileStmt) (hir.Stmt, error) {
 	if err != nil {
 		return nil, err
 	}
-	body, err := l.lowerStmts(s.Body)
-	if err != nil {
-		return nil, err
-	}
-	return &hir.WhileStmt{Cond: cond, Body: body}, nil
+	return l.lowerIndexedLoop(s.Body, nil, cond)
 }
 
+func (l *lowerer) variableTarget(name string, ty mir2.Ty) hir.Expr {
+	if ptr := l.referenceParams[name]; ptr != nil {
+		return &hir.DerefExpr{Ptr: ptr, Ty: ty}
+	}
+	return &hir.VarRefExpr{Name: l.localObjectName(name), Ty: ty}
+}
 func (l *lowerer) lowerPerform(s *PerformStmt) (hir.Stmt, error) {
-	args := make([]hir.Expr, 0, len(s.Using)+len(s.Changing))
-	for _, u := range s.Using {
-		e, err := l.lowerExpr(u)
-		if err != nil {
-			return nil, err
+	var form *FormDecl
+	for _, d := range l.prog.Decls {
+		if f, ok := d.(*FormDecl); ok && f.Name == s.FormName {
+			form = f
+			break
 		}
-		args = append(args, e)
 	}
-	if len(s.Changing) == 1 {
-		for _, decl := range l.prog.Decls {
-			if form, ok := decl.(*FormDecl); ok && form.Name == s.FormName && len(form.Changing) == 1 {
-				target, ok := s.Changing[0].(*VarRef)
-				if !ok {
-					return nil, fmt.Errorf("PERFORM %s CHANGING requires a variable", s.FormName)
-				}
-				ty := l.abapTypeToHIR(form.Changing[0].AbapTy, 0)
-				call := &hir.CallExpr{Fn: s.FormName, Args: args, Ty: ty}
-				return &hir.AssignStmt{Target: &hir.VarRefExpr{Name: target.Name, Ty: l.varTypes[target.Name]}, Val: call}, nil
+	if form == nil {
+		return nil, fmt.Errorf("PERFORM: unknown FORM %s", s.FormName)
+	}
+	if len(s.Using) != len(form.Using) || len(s.Changing) != len(form.Changing) {
+		return nil, fmt.Errorf("PERFORM %s: argument count does not match FORM", s.FormName)
+	}
+	args := []hir.Expr{}
+	block := &hir.Block{}
+	actuals := append(append([]Expr_{}, s.Using...), s.Changing...)
+	params := append(append([]FormParam{}, form.Using...), form.Changing...)
+	for i, a := range actuals {
+		if params[i].AbapTy == "string" {
+			binding, ok, err := l.characterExpr(a)
+			if err != nil {
+				return nil, err
 			}
+			if !ok || !binding.dynamic || binding.object == nil {
+				return nil, fmt.Errorf("PERFORM %s: TYPE string needs an owned string object", s.FormName)
+			}
+			args = append(args, binding.object)
+			continue
+		}
+		if params[i].AbapTy == "c" {
+			binding, ok, err := l.characterExpr(a)
+			if err != nil {
+				return nil, err
+			}
+			if !ok || binding.dynamic {
+				return nil, fmt.Errorf("PERFORM %s: character parameter %s needs a character object", s.FormName, params[i].Name)
+			}
+			if _, variable := a.(*VarRef); !variable {
+				if i >= len(s.Using) || l.formMayWrite(form, params[i].Name, map[string]bool{}) {
+					return nil, fmt.Errorf("PERFORM %s: character literal requires read-only USING", s.FormName)
+				}
+			}
+			args = append(args, binding.ptr, binding.length)
+			continue
+		}
+		ty := l.formParameterType(params[i])
+		if v, ok := a.(*VarRef); ok {
+			if actualTy, exists := l.varTypes[v.Name]; !exists || actualTy != ty {
+				return nil, fmt.Errorf("PERFORM %s: %s has incompatible or undeclared type", s.FormName, v.Name)
+			}
+			if ptr := l.referenceParams[v.Name]; ptr != nil {
+				args = append(args, ptr)
+			} else {
+				args = append(args, &hir.AddrOfExpr{X: &hir.VarRefExpr{Name: l.localObjectName(v.Name), Ty: ty}})
+			}
+		} else {
+			if i >= len(s.Using) {
+				return nil, fmt.Errorf("PERFORM %s: CHANGING needs a variable", s.FormName)
+			}
+			if l.formMayWrite(form, params[i].Name, map[string]bool{}) {
+				return nil, fmt.Errorf("PERFORM %s: literal passed to writable USING parameter %s", s.FormName, params[i].Name)
+			}
+			lit, ok := a.(*IntLit)
+			if !ok {
+				return nil, fmt.Errorf("PERFORM %s: unsupported literal argument", s.FormName)
+			}
+			l.actualCounter++
+			name := fmt.Sprintf("$abap_actual_%d", l.actualCounter)
+			block.Body = append(block.Body, &hir.VarDeclStmt{Name: name, Ty: ty, Init: &hir.IntLitExpr{Val: lit.Val, Ty: ty}})
+			args = append(args, &hir.AddrOfExpr{X: &hir.VarRefExpr{Name: name, Ty: ty}})
 		}
 	}
-	for _, c := range s.Changing {
-		e, err := l.lowerExpr(c)
-		if err != nil {
-			return nil, err
-		}
-		args = append(args, e)
-	}
-	return &hir.ExprStmt{
-		Expr: &hir.CallExpr{Fn: s.FormName, Args: args, Ty: mir2.TyVoid},
-	}, nil
+	block.Body = append(block.Body, &hir.ExprStmt{Expr: &hir.CallExpr{Fn: formEntry(form), Args: args, Ty: mir2.TyVoid}})
+	return block, nil
 }
 
 func (l *lowerer) lowerCase(s *CaseStmt) (hir.Stmt, error) {
@@ -1303,16 +1447,19 @@ func (l *lowerer) lowerCase(s *CaseStmt) (hir.Stmt, error) {
 // ── EXEC SQL → sqlite_exec lowering ─────────────────────────────────────────
 
 func (l *lowerer) lowerExecSQL(s *ExecSQLStmt) (hir.Stmt, error) {
+	if err := validateSQLText(s.SQL); err != nil {
+		return nil, err
+	}
 	l.hasSelect = true // ensure sqlite externs + _abap_db are emitted
 	sqlSym := l.internStr(s.SQL)
 	return &hir.ExprStmt{
 		Expr: &hir.CallExpr{
-			Fn: "sqlite_exec",
+			Fn: "_abap_sql_exec",
 			Args: []hir.Expr{
 				&hir.VarRefExpr{Name: "_abap_db", Ty: mir2.TyU16},
 				&hir.AddrOfExpr{Sym: sqlSym},
 			},
-			Ty: mir2.TyU8,
+			Ty: mir2.TyVoid,
 		},
 	}, nil
 }
@@ -1320,6 +1467,9 @@ func (l *lowerer) lowerExecSQL(s *ExecSQLStmt) (hir.Stmt, error) {
 // ── SELECT → SQLite lowering ─────────────────────────────────────────────────
 
 func (l *lowerer) lowerSelect(s *SelectStmt) (hir.Stmt, error) {
+	if s.IntoTable != "" {
+		return nil, fmt.Errorf("SELECT INTO TABLE: exact row storage and capacity semantics are not implemented; fixed eight-row prototype is not admitted")
+	}
 	l.hasSelect = true
 	l.selectStmtCounter++
 	uid := l.selectStmtCounter
@@ -1369,6 +1519,9 @@ func (l *lowerer) lowerSelect(s *SelectStmt) (hir.Stmt, error) {
 	}
 
 	// Intern the SQL string
+	if err := validateSQLText(sql); err != nil {
+		return nil, err
+	}
 	sqlSym := l.internStr(sql)
 
 	// Temp variable names
@@ -1390,97 +1543,38 @@ func (l *lowerer) lowerSelect(s *SelectStmt) (hir.Stmt, error) {
 		},
 	})
 
-	if s.Single {
-		// SELECT SINGLE: one sqlite_step + column reads + finalize
-		stmts = append(stmts, &hir.ExprStmt{
-			Expr: &hir.CallExpr{
-				Fn:   "sqlite_step",
-				Args: []hir.Expr{&hir.VarRefExpr{Name: stmtVar, Ty: mir2.TyU16}},
-				Ty:   mir2.TyU8,
-			},
-		})
-
-		// Read columns into target variables
-		for i, into := range s.Into {
-			ty := l.varTypes[into]
-			if ty == nil {
-				ty = mir2.TyU16
-			}
-			fnName := "sqlite_column_int"
-			if ty == mir2.TyPtr {
-				fnName = "sqlite_column_text"
-			}
-			stmts = append(stmts, &hir.AssignStmt{
-				Target: &hir.VarRefExpr{Name: into, Ty: ty},
-				Val: &hir.CallExpr{
-					Fn: fnName,
-					Args: []hir.Expr{
-						&hir.VarRefExpr{Name: stmtVar, Ty: mir2.TyU16},
-						&hir.IntLitExpr{Val: int64(i), Ty: mir2.TyU8},
-					},
-					Ty: ty,
-				},
-			})
-		}
-
-		// Finalize
-		stmts = append(stmts, &hir.ExprStmt{
-			Expr: &hir.CallExpr{
-				Fn:   "sqlite_finalize",
-				Args: []hir.Expr{&hir.VarRefExpr{Name: stmtVar, Ty: mir2.TyU16}},
-				Ty:   mir2.TyU8,
-			},
-		})
-	} else {
-		// SELECT ... ENDSELECT loop: while sqlite_step == 1 { read columns; body }
-		var loopBody []hir.Stmt
-
-		// Read columns into target variables
-		for i, into := range s.Into {
-			ty := l.varTypes[into]
-			if ty == nil {
-				ty = mir2.TyU16
-			}
-			fnName := "sqlite_column_int"
-			if ty == mir2.TyPtr {
-				fnName = "sqlite_column_text"
-			}
-			loopBody = append(loopBody, &hir.AssignStmt{
-				Target: &hir.VarRefExpr{Name: into, Ty: ty},
-				Val: &hir.CallExpr{
-					Fn: fnName,
-					Args: []hir.Expr{
-						&hir.VarRefExpr{Name: stmtVar, Ty: mir2.TyU16},
-						&hir.IntLitExpr{Val: int64(i), Ty: mir2.TyU8},
-					},
-					Ty: ty,
-				},
-			})
-		}
-
-		// Append user's loop body (from SELECT...ENDSELECT block)
-		if len(s.Body) > 0 {
-			bodyBlock, err := l.lowerStmts(s.Body)
-			if err != nil {
-				return nil, err
-			}
-			loopBody = append(loopBody, bodyBlock.Body...)
-		}
-
-		stmts = append(stmts, &hir.WhileStmt{
-			Cond: &hir.BinExpr{
-				Op: "==",
-				L: &hir.CallExpr{
-					Fn:   "sqlite_step",
-					Args: []hir.Expr{&hir.VarRefExpr{Name: stmtVar, Ty: mir2.TyU16}},
-					Ty:   mir2.TyU8,
-				},
-				R:  &hir.IntLitExpr{Val: 1, Ty: mir2.TyU8},
-				Ty: mir2.TyU8,
-			},
-			Body: &hir.Block{Body: loopBody},
-		})
+	stmts = append(stmts, &hir.IfStmt{
+		Cond: &hir.BinExpr{Op: "==", L: &hir.VarRefExpr{Name: stmtVar, Ty: mir2.TyU16}, R: &hir.IntLitExpr{Val: 0, Ty: mir2.TyU16}, Ty: mir2.TyBool},
+		Then: &hir.Block{Body: []hir.Stmt{charCall("_abap_fault", &hir.IntLitExpr{Val: 6, Ty: mir2.TyU8})}},
+	})
+	columns, err := l.lowerSQLColumns(s, stmtVar)
+	if err != nil {
+		return nil, err
 	}
+	step := &hir.CallExpr{Fn: "_abap_sql_step", Args: []hir.Expr{&hir.VarRefExpr{Name: stmtVar, Ty: mir2.TyU16}}, Ty: mir2.TyU8}
+	hasRow := &hir.BinExpr{Op: "==", L: step, R: &hir.IntLitExpr{Val: 1, Ty: mir2.TyU8}, Ty: mir2.TyBool}
+	stmts = append(stmts, charCall("sy_set_subrc", &hir.IntLitExpr{Val: 4, Ty: mir2.TyI32}))
+	columns = append(columns, charCall("sy_set_subrc", &hir.IntLitExpr{Val: 0, Ty: mir2.TyI32}))
+	if s.Single {
+		stmts = append(stmts, &hir.IfStmt{Cond: hasRow, Then: &hir.Block{Body: columns}})
+	} else {
+		found := fmt.Sprintf("_sql_found_%d", uid)
+		stmts = append(stmts, &hir.VarDeclStmt{Name: found, Ty: mir2.TyU8, Init: &hir.IntLitExpr{Val: 0, Ty: mir2.TyU8}})
+		columns = append(columns, &hir.AssignStmt{Target: &hir.VarRefExpr{Name: found, Ty: mir2.TyU8}, Val: &hir.IntLitExpr{Val: 1, Ty: mir2.TyU8}})
+		finalize := &hir.ExprStmt{Expr: &hir.CallExpr{Fn: "sqlite_finalize", Args: []hir.Expr{&hir.VarRefExpr{Name: stmtVar, Ty: mir2.TyU16}}, Ty: mir2.TyU8}}
+		l.returnCleanups = append(l.returnCleanups, finalize)
+		l.loopDepth++
+		body, err := l.lowerStmts(s.Body)
+		l.loopDepth--
+		l.returnCleanups = l.returnCleanups[:len(l.returnCleanups)-1]
+		if err != nil {
+			return nil, err
+		}
+		columns = append(columns, body.Body...)
+		stmts = append(stmts, &hir.WhileStmt{Cond: hasRow, Body: &hir.Block{Body: columns}})
+		stmts = append(stmts, &hir.IfStmt{Cond: &hir.BinExpr{Op: "!=", L: &hir.VarRefExpr{Name: found, Ty: mir2.TyU8}, R: &hir.IntLitExpr{Val: 0, Ty: mir2.TyU8}, Ty: mir2.TyBool}, Then: &hir.Block{Body: []hir.Stmt{charCall("sy_set_subrc", &hir.IntLitExpr{Val: 0, Ty: mir2.TyI32})}}, Else: &hir.Block{Body: []hir.Stmt{charCall("sy_set_subrc", &hir.IntLitExpr{Val: 4, Ty: mir2.TyI32})}}})
+	}
+	stmts = append(stmts, &hir.ExprStmt{Expr: &hir.CallExpr{Fn: "sqlite_finalize", Args: []hir.Expr{&hir.VarRefExpr{Name: stmtVar, Ty: mir2.TyU16}}, Ty: mir2.TyU8}})
 
 	return &hir.Block{Body: stmts}, nil
 }
@@ -1536,7 +1630,7 @@ func (l *lowerer) lowerSelectIntoTable(s *SelectStmt, sql string, uid int) (hir.
 	}
 	l.hm.Globals = append(l.hm.Globals, mir2.Global{
 		Name: bufName,
-		Ty:   mir2.TyU8,
+		Ty:   &mir2.ArrayTy{Elem: mir2.TyU8, Len: maxRows * rowSize},
 		Init: make([]byte, maxRows*rowSize),
 	})
 	l.hm.Globals = append(l.hm.Globals, mir2.Global{
@@ -1895,6 +1989,7 @@ func (l *lowerer) emitSQLiteExterns() {
 		if !names[sf.name] {
 			l.hm.Funcs = append(l.hm.Funcs, &hir.Func{
 				Name:     sf.name,
+				Internal: true,
 				Params:   sf.params,
 				RetTy:    sf.ret,
 				IsExtern: true,
@@ -1908,12 +2003,13 @@ func (l *lowerer) emitSQLiteExterns() {
 
 func (l *lowerer) lowerExpr(e Expr_) (hir.Expr, error) {
 	switch e := e.(type) {
+	case *InvalidExpr:
+		return nil, fmt.Errorf("ABAP expression: %s", e.Message)
 	case *IntLit:
-		ty := mir2.TyU16
-		if e.Val >= 0 && e.Val <= 255 {
-			ty = mir2.TyU8
+		if e.Val < -2147483648 || e.Val > 2147483647 {
+			return nil, fmt.Errorf("integer literal %d is outside TYPE i range", e.Val)
 		}
-		return &hir.IntLitExpr{Val: e.Val, Ty: ty}, nil
+		return &hir.IntLitExpr{Val: e.Val, Ty: mir2.TyI32}, nil
 
 	case *StringLit:
 		// Intern string into module pool, return AddrOfExpr
@@ -1921,30 +2017,62 @@ func (l *lowerer) lowerExpr(e Expr_) (hir.Expr, error) {
 		return &hir.AddrOfExpr{Sym: sym}, nil
 
 	case *VarRef:
+		if b, ok := l.characters[e.Name]; ok {
+			return b.ptr, nil
+		}
 		ty, ok := l.varTypes[e.Name]
 		if !ok {
-			ty = mir2.TyU16
+			return nil, fmt.Errorf("reference to undeclared ABAP object %q", e.Name)
 		}
-		return &hir.VarRefExpr{Name: e.Name, Ty: ty}, nil
+		if ptr := l.referenceParams[e.Name]; ptr != nil {
+			return &hir.LoadExpr{Ptr: ptr, Ty: ty}, nil
+		}
+		return &hir.VarRefExpr{Name: l.localObjectName(e.Name), Ty: ty}, nil
 
 	case *BinOp:
 		return l.lowerBinOp(e)
 
 	case *UnaryOp:
+		if _, character, err := l.characterExpr(e.Val); err != nil {
+			return nil, err
+		} else if character {
+			return nil, fmt.Errorf("unary character-to-numeric conversion is not implemented")
+		}
+		if e.Op == "-" {
+			if literal, ok := e.Val.(*IntLit); ok && literal.Val == 2147483648 {
+				return &hir.IntLitExpr{Val: -2147483648, Ty: mir2.TyI32}, nil
+			}
+		}
 		val, err := l.lowerExpr(e.Val)
 		if err != nil {
 			return nil, err
 		}
-		op := "-"
-		if e.Op == "NOT" {
-			op = "!"
+		op, ty := "-", val.ExprTy()
+		if ty == mir2.TyPtr {
+			return nil, fmt.Errorf("unary character-to-numeric conversion is not implemented")
 		}
-		return &hir.UnaryExpr{Op: op, X: val, Ty: val.ExprTy()}, nil
+		switch strings.ToUpper(e.Op) {
+		case "+":
+			return val, nil
+		case "-":
+		case "NOT":
+			op, ty = "!", mir2.TyBool
+		default:
+			return nil, fmt.Errorf("unsupported ABAP unary operator %q", e.Op)
+		}
+		if op == "-" && ty == mir2.TyI32 {
+			return &hir.CallExpr{Fn: "_abap_neg", Args: []hir.Expr{val}, Ty: ty}, nil
+		}
+		return &hir.UnaryExpr{Op: op, X: val, Ty: ty}, nil
 
 	case *SYField:
-		// SY-INDEX etc. → host function call sy_get_FIELD()
+		switch strings.ToUpper(e.Field) {
+		case "INDEX", "SUBRC":
+		default:
+			return nil, fmt.Errorf("SY-%s: precise system-field semantics are not implemented", strings.ToUpper(e.Field))
+		}
 		fnName := fmt.Sprintf("sy_get_%s", strings.ToLower(e.Field))
-		return &hir.CallExpr{Fn: fnName, Ty: mir2.TyU16}, nil
+		return &hir.CallExpr{Fn: fnName, Ty: mir2.TyI32}, nil
 
 	case *FuncCall:
 		args := make([]hir.Expr, len(e.Args))
@@ -1958,11 +2086,38 @@ func (l *lowerer) lowerExpr(e Expr_) (hir.Expr, error) {
 		return &hir.CallExpr{Fn: e.Name, Args: args, Ty: mir2.TyU16}, nil
 
 	default:
-		return &hir.IntLitExpr{Val: 0, Ty: mir2.TyU8}, nil
+		return nil, fmt.Errorf("unsupported ABAP expression %T", e)
 	}
 }
 
 func (l *lowerer) lowerBinOp(e *BinOp) (hir.Expr, error) {
+	a, ac, err := l.characterExpr(e.LHS)
+	if err != nil {
+		return nil, err
+	}
+	b, bc, err := l.characterExpr(e.RHS)
+	if err != nil {
+		return nil, err
+	}
+	if ac || bc {
+		if !ac || !bc {
+			return nil, fmt.Errorf("mixed character/numeric expressions are not implemented")
+		}
+		ops := map[string]string{"=": "==", "EQ": "==", "<>": "!=", "NE": "!=", "<": "<", "LT": "<", ">": ">", "GT": ">", "<=": "<=", "LE": "<=", ">=": ">=", "GE": ">="}
+		op, ok := ops[strings.ToUpper(e.Op)]
+		if !ok {
+			return nil, fmt.Errorf("character operator %s is not implemented", e.Op)
+		}
+		fn := "_abap_char_compare"
+		alen, blen := a.length, b.length
+		if a.dynamic || b.dynamic {
+			fn = "_abap_string_compare"
+			alen = textValueLength(a)
+			blen = textValueLength(b)
+		}
+		cmp := &hir.CallExpr{Fn: fn, Args: []hir.Expr{a.ptr, alen, b.ptr, blen}, Ty: mir2.TyI16}
+		return &hir.BinExpr{Op: op, L: cmp, R: &hir.IntLitExpr{Val: 0, Ty: mir2.TyI16}, Ty: mir2.TyBool}, nil
+	}
 	lhs, err := l.lowerExpr(e.LHS)
 	if err != nil {
 		return nil, err
@@ -1972,9 +2127,43 @@ func (l *lowerer) lowerBinOp(e *BinOp) (hir.Expr, error) {
 		return nil, err
 	}
 
+	if lhs.ExprTy() == mir2.TyPtr || rhs.ExprTy() == mir2.TyPtr {
+		return nil, fmt.Errorf("dynamic character expressions and numeric conversions are not implemented")
+	}
+	if lhs.ExprTy() == mir2.TyI32 || rhs.ExprTy() == mir2.TyI32 {
+		if lhs.ExprTy() != mir2.TyI32 {
+			lhs = &hir.CastExpr{X: lhs, Ty: mir2.TyI32}
+		}
+		if rhs.ExprTy() != mir2.TyI32 {
+			rhs = &hir.CastExpr{X: rhs, Ty: mir2.TyI32}
+		}
+	}
+	if lhs.ExprTy() == mir2.TyI32 && rhs.ExprTy() == mir2.TyI32 {
+		var name string
+		switch strings.ToUpper(e.Op) {
+		case "+":
+			name = "_abap_add"
+		case "-":
+			name = "_abap_sub"
+		case "*":
+			name = "_abap_mul"
+		case "/", "DIV", "MOD":
+			mode := int64(0)
+			if strings.EqualFold(e.Op, "DIV") {
+				mode = 1
+			}
+			if strings.EqualFold(e.Op, "MOD") {
+				mode = 2
+			}
+			return &hir.CallExpr{Fn: "_abap_division", Args: []hir.Expr{lhs, rhs, &hir.IntLitExpr{Val: mode, Ty: mir2.TyU8}}, Ty: mir2.TyI32}, nil
+		}
+		if name != "" {
+			return &hir.CallExpr{Fn: name, Args: []hir.Expr{lhs, rhs}, Ty: mir2.TyI32}, nil
+		}
+	}
 	// Map ABAP operators to HIR string operators
 	var op string
-	switch e.Op {
+	switch strings.ToUpper(e.Op) {
 	case "+":
 		op = "+"
 	case "-":
@@ -1998,17 +2187,17 @@ func (l *lowerer) lowerBinOp(e *BinOp) (hir.Expr, error) {
 	case ">=", "GE", "ge":
 		op = ">="
 	case "AND", "and":
-		op = "&"
+		op = "&&"
 	case "OR", "or":
-		op = "|"
+		op = "||"
 	default:
-		op = "+"
+		return nil, fmt.Errorf("unsupported ABAP binary operator %q", e.Op)
 	}
 
 	// Result type: comparisons → bool, arithmetic → promoted type
 	ty := lhs.ExprTy()
 	switch op {
-	case "==", "!=", "<", ">", "<=", ">=":
+	case "==", "!=", "<", ">", "<=", ">=", "&&", "||":
 		ty = mir2.TyBool
 	default:
 		if lhs.ExprTy() == mir2.TyU16 || rhs.ExprTy() == mir2.TyU16 {
@@ -2023,22 +2212,47 @@ func (l *lowerer) lowerBinOp(e *BinOp) (hir.Expr, error) {
 
 // emitRuntimeFuncs adds built-in ABAP runtime functions.
 func emitRuntimeFuncs(hm *hir.Module, target uint8) {
+	start := len(hm.Funcs)
+	defer func() {
+		for _, f := range hm.Funcs[start:] {
+			f.Internal = true
+		}
+	}()
 	names := map[string]bool{}
 	for _, f := range hm.Funcs {
 		names[f.Name] = true
 	}
 
+	// Index and operation status must share native/VM four-byte state.
+	for _, field := range []string{"index", "subrc"} {
+		backing, setter := "_abap_"+field+"_value", "sy_set_"+field
+		hm.Globals = append(hm.Globals, mir2.Global{Name: backing, Ty: mir2.TyI32})
+		if !names[setter] {
+			hm.Funcs = append(hm.Funcs, &hir.Func{
+				Name: setter, Params: []hir.Param{{Name: "value", Ty: mir2.TyI32}}, RetTy: mir2.TyVoid,
+				Body: &hir.Block{Body: []hir.Stmt{&hir.AssignStmt{
+					Target: &hir.VarRefExpr{Name: backing, Ty: mir2.TyI32},
+					Val:    &hir.VarRefExpr{Name: "value", Ty: mir2.TyI32},
+				}}},
+			})
+			names[setter] = true
+		}
+	}
 	// SY-* getter stubs (return 0 on Z80, overridden by MZV host functions)
 	syFields := []string{"subrc", "index", "tabix", "ucomm", "datum", "uzeit"}
 	for _, field := range syFields {
 		fnName := "sy_get_" + field
 		if !names[fnName] {
+			var value hir.Expr = &hir.IntLitExpr{Val: 0, Ty: mir2.TyU16}
+			if field == "index" || field == "subrc" {
+				value = &hir.VarRefExpr{Name: "_abap_" + field + "_value", Ty: mir2.TyI32}
+			}
 			hm.Funcs = append(hm.Funcs, &hir.Func{
 				Name:  fnName,
-				RetTy: mir2.TyU16,
+				RetTy: value.ExprTy(),
 				Body: &hir.Block{
 					Body: []hir.Stmt{
-						&hir.ReturnStmt{Val: &hir.IntLitExpr{Val: 0, Ty: mir2.TyU16}},
+						&hir.ReturnStmt{Val: value},
 					},
 				},
 			})
@@ -2101,13 +2315,23 @@ func emitRuntimeFuncs(hm *hir.Module, target uint8) {
 		names["sel_register_str"] = true
 	}
 
+	// Owned ABAP TYPE c field: the host edits length bytes at the actual address.
+	if !names["sel_register_c"] {
+		hm.Funcs = append(hm.Funcs, &hir.Func{
+			Name: "sel_register_c", RetTy: mir2.TyVoid,
+			Params: []hir.Param{{Name: "name", Ty: mir2.TyPtr}, {Name: "length", Ty: mir2.TyU16}, {Name: "object", Ty: mir2.TyPtr}},
+			Body:   &hir.Block{Body: []hir.Stmt{&hir.AsmStmt{Target: "z80", Code: "NOP"}}},
+		})
+		names["sel_register_c"] = true
+	}
+
 	// sel_register_int(name, default_val) — no-op on Z80.
 	if !names["sel_register_int"] {
 		hm.Funcs = append(hm.Funcs, &hir.Func{
 			Name: "sel_register_int",
 			Params: []hir.Param{
 				{Name: "name", Ty: mir2.TyPtr},
-				{Name: "defval", Ty: mir2.TyU16},
+				{Name: "defval", Ty: mir2.TyI32},
 			},
 			RetTy: mir2.TyVoid,
 			Body: &hir.Block{
@@ -2119,21 +2343,12 @@ func emitRuntimeFuncs(hm *hir.Module, target uint8) {
 		names["sel_register_int"] = true
 	}
 
-	// sel_get_int(idx) — returns 0 on Z80.
+	// Native selection uses fallback input; this host-only getter is unreachable there.
 	if !names["sel_get_int"] {
 		hm.Funcs = append(hm.Funcs, &hir.Func{
-			Name:   "sel_get_int",
-			Params: []hir.Param{{Name: "idx", Ty: mir2.TyU8}},
-			RetTy:  mir2.TyU16,
-			Body: &hir.Block{
-				Body: []hir.Stmt{
-					&hir.AsmStmt{
-						Target: "z80",
-						Code:   "LD HL, 0",
-						RetReg: "HL",
-					},
-				},
-			},
+			Name: "sel_get_int", Params: []hir.Param{{Name: "idx", Ty: mir2.TyU8}}, RetTy: mir2.TyI32,
+			// Preserve the host boundary through constant-call elimination.
+			Body: &hir.Block{Body: []hir.Stmt{&hir.AsmStmt{Target: "z80", Code: "NOP"}, &hir.ReturnStmt{Val: &hir.IntLitExpr{Val: 0, Ty: mir2.TyI32}}}},
 		})
 		names["sel_get_int"] = true
 	}
@@ -2274,7 +2489,7 @@ func emitRuntimeFuncs(hm *hir.Module, target uint8) {
 	if !hasInbuf && (names["abap_read_line"] || names["abap_read_int"]) {
 		hm.Globals = append(hm.Globals, mir2.Global{
 			Name: "_abap_inbuf",
-			Ty:   mir2.TyU8,
+			Ty:   mir2.NewArray(mir2.TyU8, 22),
 			Init: make([]byte, 22), // 22 bytes zeroed
 		})
 	}
@@ -2838,4 +3053,81 @@ func emitZXRuntimeFuncs(hm *hir.Module, names map[string]bool) {
 		})
 		names["abap_read_int"] = true
 	}
+}
+
+// formMayWrite is conservative and follows actual-to-formal bindings through
+// nested PERFORM calls. Unknown effects and recursion refuse literal arguments.
+func (l *lowerer) formMayWrite(form *FormDecl, name string, seen map[string]bool) bool {
+	key := form.Name + ":" + name
+	if seen[key] {
+		return true
+	}
+	seen[key] = true
+	defer delete(seen, key)
+	var writes func([]Stmt_) bool
+	writes = func(body []Stmt_) bool {
+		for _, s := range body {
+			switch x := s.(type) {
+			case *AssignStmt:
+				if x.Target == name {
+					return true
+				}
+			case *ClearStmt:
+				if x.Target == name {
+					return true
+				}
+			case *IfStmt:
+				if writes(x.Then) || writes(x.Else) {
+					return true
+				}
+				for _, b := range x.ElseIf {
+					if writes(b.Body) {
+						return true
+					}
+				}
+			case *DoStmt:
+				if writes(x.Body) {
+					return true
+				}
+			case *WhileStmt:
+				if writes(x.Body) {
+					return true
+				}
+			case *PerformStmt:
+				var callee *FormDecl
+				for _, d := range l.prog.Decls {
+					if f, ok := d.(*FormDecl); ok && f.Name == x.FormName {
+						callee = f
+						break
+					}
+				}
+				if callee == nil {
+					return true
+				}
+				actual := append(append([]Expr_{}, x.Using...), x.Changing...)
+				formal := append(append([]FormParam{}, callee.Using...), callee.Changing...)
+				if len(actual) != len(formal) {
+					return true
+				}
+				for i, a := range actual {
+					if v, ok := a.(*VarRef); ok && v.Name == name && l.formMayWrite(callee, formal[i].Name, seen) {
+						return true
+					}
+				}
+			case *DataDecl, *WriteStmt, *ReturnStmt, *ExitStmt, *ContinueStmt:
+			default:
+				return true
+			}
+		}
+		return false
+	}
+	return writes(form.Body)
+}
+
+func (l *lowerer) formParameterType(p FormParam) mir2.Ty {
+	// TYPE c on FORM is generic character data, not an implicit one-byte DATA.
+	if p.AbapTy == "c" {
+		return mir2.TyPtr
+	}
+	return l.abapTypeToHIR(p.AbapTy, 0)
 }

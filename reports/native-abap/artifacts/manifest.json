@@ -1,0 +1,12 @@
+{
+  "compiler_commit": "be9b65d1216a94e0a7de776000a44d2d710056c0",
+  "compiler_tree": "c9637730d6b887e0d7523c6d0555d4279865e2cc",
+  "scope": "Intermediate native parser checkpoint; numeric/string/CHANGING admission and independent full-program references remain required.",
+  "files": {
+    "cli-no-node.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "prototype-parity.json": "cef5d88584b2af268618f8183078b86031adf7122ec571ba40524262756d7a2d",
+    "packages.txt": "d1204ad84cb7e6b45130e7bb059d1860b92e1a4ad202a6c2089457366b1ad260",
+    "directed.txt": "243d069b682cd5f403b982c9576a9db08aa821e724984e537d41ce8921901e5a",
+    "clear-native.a80": "44bc6af3fa1666e78462f9f78111f9195dab0adc6697e7ddd491ab2afb2798e9"
+  }
+}

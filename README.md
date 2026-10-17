@@ -26,6 +26,10 @@ The project is active research: examples and targets have different levels of ma
 
 [**C and every frontend: supported scope and next hardening**](reports/2026-10-16-c-and-frontends-hardening.md): current C ABI and C99+ admission, fresh frontend tests, two new ABAP/Frill counterexamples, and a pinned abapiti/OSG plan for a native Go ABAP parser.
 
+[**ABAP: native Go parser and checked Z80 subset**](examples/abap/README.md): no Node/npm, signed i32 and owned text, actual-object FORM references, complete-program VM/Z80 gates and guarded numeric CP/M commands. General SAP/TUI/ALV support remains separate.
+
+[**Native ABAP evidence and limits**](reports/native-abap/2026-10-17-main-readiness.md): the original goal mapped to parser parity, unchanged whole reports, native memory/PC/SP checks and current integration status.
+
 [Practical C on Z80: real libraries and honest diagnostics](reports/2026-10-16-system-c-hardening.md): unchanged inih/heatshrink sources, VM/Z80 validation, and fixes found by real system code.
 
 [Direct word stores on Z80](reports/2026-10-16-c89-direct-word-store.md): unchanged C/Nanz abs_diff reaches 27 bytes / 220,904 T. All six C families improve; measured PFCCO interactions and remaining losses are recorded. Integration and required checks are tracked in [PR #181](https://github.com/oisee/minz/pull/181).

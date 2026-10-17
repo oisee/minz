@@ -304,7 +304,9 @@ func (g *z80cg) genInst(inst *Inst) {
 		g.materializePendingFlag(inst)
 		g.lastFlagsLhs = ""
 		g.lastFlagsRhs = ""
-		if inst.Ty.Width() == 16 {
+		if inst.Ty.Width() >= 24 {
+			g.genWideArithmetic(inst)
+		} else if inst.Ty.Width() == 16 {
 			defer g.saveWrittenScratch(inst)()
 			// The allocator may place either operand in a pair or a spill.
 			// NEG's fixed HL sequence must consume the actual source and

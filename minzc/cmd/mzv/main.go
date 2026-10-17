@@ -24,6 +24,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"syscall"
 	"time"
 
@@ -588,6 +589,10 @@ func findStdlib(srcPath string) string {
 // Later this can be decoupled into a client-server protocol where a Z80
 // program communicates with a SQLite server over I/O ports.
 
+// A logical :memory: database may use multiple SQL connections while a nested
+// SELECT keeps an outer cursor open. Give each open a distinct shared-cache URI.
+var sqliteMemorySequence atomic.Uint64
+
 func registerSQLiteHosts(vm *mir2.VM, trace bool) {
 	// Handle table: u16 handle → *sql.DB
 	dbs := make(map[int64]*sql.DB)
@@ -626,7 +631,11 @@ func registerSQLiteHosts(vm *mir2.VM, trace bool) {
 		if len(args) > 0 && args[0].I != 0 {
 			name = readStr(args[0].I)
 		}
-		db, err := sql.Open("sqlite", name)
+		driverName := name
+		if name == ":memory:" {
+			driverName = fmt.Sprintf("file:minz-vm-memory-%d?mode=memory&cache=shared", sqliteMemorySequence.Add(1))
+		}
+		db, err := sql.Open("sqlite", driverName)
 		if err != nil {
 			if trace {
 				fmt.Fprintf(os.Stderr, "  sqlite_open(%q) → error: %v\n", name, err)
@@ -745,34 +754,45 @@ func registerSQLiteHosts(vm *mir2.VM, trace bool) {
 		return []mir2.Value{{I: sh}}, nil
 	}
 
-	// @sqlite_step(stmt_handle) -> has_row (1=yes, 0=done)
-	// Scans the row into cached values so column_int/column_text can read them.
+	// @sqlite_step(stmt_handle) -> 1=row, 0=done, 2=error.
+	// Never expose a partial row or turn an iterator error into exhaustion.
 	vm.Hosts["sqlite_step"] = func(args []mir2.Value) ([]mir2.Value, error) {
 		sh := args[0].I
 		st, ok := stmts[sh]
 		if !ok {
+			return []mir2.Value{{I: 2}}, nil
+		}
+		finish := func(stepErr error) ([]mir2.Value, error) {
+			closeErr := st.rows.Close()
+			delete(stmts, sh)
+			if stepErr != nil || closeErr != nil {
+				if trace {
+					fmt.Fprintf(os.Stderr, "  sqlite_step(%d) → error: %v; close: %v\n", sh, stepErr, closeErr)
+				}
+				return []mir2.Value{{I: 2}}, nil
+			}
+			if trace {
+				fmt.Fprintf(os.Stderr, "  sqlite_step(%d) → done (rows closed)\n", sh)
+			}
 			return []mir2.Value{{I: 0}}, nil
 		}
 		if st.rows.Next() {
-			// Scan row into cache
-			cols, _ := st.rows.Columns()
-			st.vals = make([]interface{}, len(cols))
-			ptrs := make([]interface{}, len(cols))
-			for i := range st.vals {
-				ptrs[i] = &st.vals[i]
+			cols, err := st.rows.Columns()
+			if err != nil {
+				return finish(err)
 			}
-			st.rows.Scan(ptrs...)
+			values := make([]interface{}, len(cols))
+			ptrs := make([]interface{}, len(cols))
+			for i := range values {
+				ptrs[i] = &values[i]
+			}
+			if err := st.rows.Scan(ptrs...); err != nil {
+				return finish(err)
+			}
+			st.vals = values
 			return []mir2.Value{{I: 1}}, nil
 		}
-		// Done — close the rows immediately to release connection
-		if err := st.rows.Close(); err != nil && trace {
-			fmt.Fprintf(os.Stderr, "  sqlite_step(%d) close error: %v\n", sh, err)
-		}
-		delete(stmts, sh)
-		if trace {
-			fmt.Fprintf(os.Stderr, "  sqlite_step(%d) → done (rows closed)\n", sh)
-		}
-		return []mir2.Value{{I: 0}}, nil
+		return finish(st.rows.Err())
 	}
 
 	// @sqlite_column_int(stmt_handle, col_index) -> value
@@ -807,10 +827,20 @@ func registerSQLiteHosts(vm *mir2.VM, trace bool) {
 		sh := args[0].I
 		col := int(args[1].I)
 		st, ok := stmts[sh]
-		if !ok || col >= len(st.vals) {
-			return []mir2.Value{writeStr("")}, nil
+		if !ok || col < 0 || col >= len(st.vals) {
+			return []mir2.Value{{I: 0}}, nil
 		}
-		s := fmt.Sprintf("%v", st.vals[col])
+		var s string
+		switch value := st.vals[col].(type) {
+		case nil:
+			return []mir2.Value{{I: 0}}, nil
+		case []byte:
+			s = string(value)
+		case string:
+			s = value
+		default:
+			s = fmt.Sprint(value)
+		}
 		if trace {
 			fmt.Fprintf(os.Stderr, "  sqlite_column_text(%d, %d) → %q\n", sh, col, s)
 		}
@@ -854,11 +884,28 @@ func registerABAPHosts(vm *mir2.VM, headless bool, trace bool) {
 	// SY-UZEIT:  current time (simplified: 0)
 
 	var syIndex, sySubrc, syTabix, syUcomm int64
+	indexBacking, subrcBacking := false, false
+	for _, global := range vm.Module.Globals {
+		if global.Name == "_abap_subrc_value" {
+			subrcBacking = true
+		}
+		if global.Name == "_abap_index_value" {
+			indexBacking = true
+		}
+	}
 
 	vm.Hosts["sy_get_index"] = func(_ []mir2.Value) ([]mir2.Value, error) {
+		if indexBacking {
+			data := vm.ReadHeap(vm.GlobalAddr("_abap_index_value"), 4)
+			return []mir2.Value{{I: int64(int32(uint32(data[0]) | uint32(data[1])<<8 | uint32(data[2])<<16 | uint32(data[3])<<24))}}, nil
+		}
 		return []mir2.Value{{I: syIndex}}, nil
 	}
 	vm.Hosts["sy_get_subrc"] = func(_ []mir2.Value) ([]mir2.Value, error) {
+		if subrcBacking {
+			data := vm.ReadHeap(vm.GlobalAddr("_abap_subrc_value"), 4)
+			return []mir2.Value{{I: int64(int32(uint32(data[0]) | uint32(data[1])<<8 | uint32(data[2])<<16 | uint32(data[3])<<24))}}, nil
+		}
 		return []mir2.Value{{I: sySubrc}}, nil
 	}
 	vm.Hosts["sy_get_tabix"] = func(_ []mir2.Value) ([]mir2.Value, error) {
@@ -877,10 +924,18 @@ func registerABAPHosts(vm *mir2.VM, headless bool, trace bool) {
 	// SY-INDEX setter (called internally by DO loop lowering)
 	vm.Hosts["sy_set_index"] = func(args []mir2.Value) ([]mir2.Value, error) {
 		syIndex = args[0].I
+		if indexBacking {
+			value := uint32(syIndex)
+			vm.WriteHeapBytes(vm.GlobalAddr("_abap_index_value"), []byte{byte(value), byte(value >> 8), byte(value >> 16), byte(value >> 24)})
+		}
 		return nil, nil
 	}
 	vm.Hosts["sy_set_subrc"] = func(args []mir2.Value) ([]mir2.Value, error) {
 		sySubrc = args[0].I
+		if subrcBacking {
+			value := uint32(sySubrc)
+			vm.WriteHeapBytes(vm.GlobalAddr("_abap_subrc_value"), []byte{byte(value), byte(value >> 8), byte(value >> 16), byte(value >> 24)})
+		}
 		return nil, nil
 	}
 	vm.Hosts["sy_set_ucomm"] = func(args []mir2.Value) ([]mir2.Value, error) {
@@ -920,7 +975,16 @@ func registerABAPHosts(vm *mir2.VM, headless bool, trace bool) {
 		return nil, nil
 	}
 
-	// abap_read_int — stub for VM (return 0)
+	// Typed ABAP character and i32 output helpers share this byte IO boundary.
+	vm.Hosts["_abap_num_putchar"] = func(args []mir2.Value) ([]mir2.Value, error) {
+		if len(args) != 1 {
+			return nil, fmt.Errorf("ABAP byte output: expected one argument")
+		}
+		fmt.Print(string([]byte{byte(args[0].I)}))
+		return nil, nil
+	}
+
+	// abap_read_int — legacy stub; current PARAMETERS uses checked i32 transport.
 	vm.Hosts["abap_read_int"] = func(_ []mir2.Value) ([]mir2.Value, error) {
 		return []mir2.Value{{I: 0}}, nil
 	}

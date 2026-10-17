@@ -63,6 +63,7 @@ func nodeCosts(f *Func, info map[Reg]RegInfo, ct CostTable, locs []PhysLoc) map[
 	// Collect regs that are used in ALU ops (ADD/SUB/AND/OR/INC/DEC/MUL/SHL/SHR).
 	// These CANNOT live in LocFlag (INC F is not valid Z80).
 	aluUsed := make(map[Reg]bool)
+	crossBlock := liveAcrossBlocks(f, ComputeLiveness(f))
 	for _, b := range f.Blocks {
 		for _, inst := range b.Insts {
 			switch inst.Op {
@@ -141,7 +142,7 @@ func nodeCosts(f *Func, info map[Reg]RegInfo, ct CostTable, locs []PhysLoc) map[
 				cv[i] = InfCost
 				continue
 			}
-			if loc.Kind == LocFlag && aluUsed[r] {
+			if loc.Kind == LocFlag && (aluUsed[r] || crossBlock[r]) {
 				cv[i] = InfCost
 				continue
 			}

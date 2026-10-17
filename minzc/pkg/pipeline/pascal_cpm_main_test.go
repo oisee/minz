@@ -90,9 +90,11 @@ func pascalCPMProgramMode(t *testing.T, production bool, mode string, opt Option
 			if e != nil {
 				t.Fatal(e)
 			}
-			asm := "ORG 0x100\n__test_loader:\n LD SP,0xfdfe\n CALL main\n HALT\n" + steps.Assembly
-			if production {
-				asm = steps.Assembly
+			asm := steps.Assembly
+			if !production {
+				// The test loader calls main; the production runtime already
+				// selected its own platform-wrapper contract during compilation.
+				asm = "ORG 0x100\n__test_loader:\n LD SP,0xfdfe\n CALL main\n HALT\n" + calledMainTestAssembly(t, steps)
 			}
 			image, e := z80asm.NewAssembler().AssembleString(asm)
 			if e != nil || len(image.Errors) > 0 {

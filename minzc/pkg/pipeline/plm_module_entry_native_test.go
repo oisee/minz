@@ -104,14 +104,15 @@ func TestPLMModuleEntryNative(t *testing.T) {
 			if e != nil {
 				t.Fatal(e)
 			}
-			asm, e := z80asm.NewAssembler().AssembleString("ORG 0x4000\n" + steps.Assembly)
+			callerAssembly := calledMainTestAssembly(t, steps)
+			asm, e := z80asm.NewAssembler().AssembleString("ORG 0x4000\n" + callerAssembly)
 			if e != nil || len(asm.Errors) > 0 {
 				t.Fatal(e, asm.Errors)
 			}
 			prefix := fixture + "/" + mode
 			save(prefix+"/raw.mir", raw.Dump())
 			save(prefix+"/final.mir", steps.MIR2Module.Dump())
-			save(prefix+"/target.a80", steps.Assembly)
+			save(prefix+"/target.a80", callerAssembly)
 			save(prefix+"/target.bin", asm.Binary)
 			type event struct {
 				Op     string
