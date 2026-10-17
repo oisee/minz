@@ -1,0 +1,34 @@
+Deep pipeline called-main harness refresh (TASK2)
+
+Base: 915d7ee61dedfe572811752000cd16cf4a5564ab; uncommitted harness repair.
+All 19 specified failures independently bisect to d1415c8bd; they pass at
+57dea1b76 and fail on clean 915d7ee61. Retained bisect and endpoint logs were
+reviewed on restart. The four inherited failures remain untouched.
+
+Each repaired native harness installs a CALL return address for main and now
+selects CalledMain on the same allocated MIR using the existing helper.
+The terminal abap_screen JP entry and ZX compile-only cases retain ordinary
+assembly. Saved ASM/hash artifacts describe the actual assembled text.
+No source examples, output/protocol/RAM/PC/SP expectations or production code
+changed. Frozen root logs and manifests remain historical.
+
+Fresh 19-test gate: PASS (31.843 s). Fresh MIR2/ABAP/parser suites: PASS.
+M1: bare-main Tetris mutation fails with unexpected HALT ordinary 794;
+the harness was restored. Full gate details and the assert-matrix proposal
+are recorded in .local/PROGRESS.md; no matrix policy change is applied.
+
+Production scope: real CLI guarded CP/M meta_screen and tetris_cpm images
+are byte-identical at both endpoints. Other guarded refusals are unchanged.
+Raw CP/M/ZX CLI main termination DOES change from a final tail JP to
+CALL/XOR A/DI/HALT in the affected examples. STOP for production caller
+review; this receipt certifies only the explicit called-main harnesses.
+
+Evidence SHA256 (local logs retained in .local):
+.local/task2-evidence/bisects.json: dd5d8a2e392a3a81e72de6bc358e32634f6ef5f4ff6452dfeeea348301fdd9e4
+.local/task2-evidence/57dea1b76-23.log: 9052077ac22442f2b3230666e0c7e2dd485c2fa5259ac2f5a0a42eb06ce4f7e3
+.local/task2-evidence/915d7ee61-23.log: d115a0b09edfdf52df71941a6dfe15d1d153f90a15f68fc834192f66d6e69f6f
+.local/restart-gate-19.log: 0c15f4432a1692cda3b7c589ba3e8a15283754e52824621d1c21627381f99578
+.local/restart-mir2-abap.log: fde9e56bbde0c0d747394db42391e8560dff79ea218e15b01e892dd0e5370d1c
+.local/restart-M1.log: c23f4660d5bdcd451979cc4c1be9b45445f2cbad91a416c609816f9990c79fd6
+.local/task2-cli/results.json: ea0cb2733fb9a99f65d14f9015f2e0f08124aa7a6c033b198b8c271e819b03a8
+.local/task2-cli/images.json: 054f04e8799b853bdaf3618a4917c24db43959b8a7d9289a6e6b0da38812c481

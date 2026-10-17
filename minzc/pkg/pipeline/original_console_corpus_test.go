@@ -42,12 +42,13 @@ func TestOriginalConsoleNative(t *testing.T) {
 				if e != nil {
 					t.Fatal(e)
 				}
-				a, e := z80asm.NewAssembler().AssembleString("ORG 0x8000\n" + s.Assembly)
+				callerAssembly := calledMainTestAssembly(t, s)
+				a, e := z80asm.NewAssembler().AssembleString("ORG 0x8000\n" + callerAssembly)
 				if e != nil || a == nil || len(a.Errors) > 0 {
 					t.Fatal(e, a.Errors)
 				}
 				prefix := fmt.Sprintf("source%d/%s", i, mode.name)
-				export(prefix+".a80", []byte(s.Assembly))
+				export(prefix+".a80", []byte(callerAssembly))
 				export(prefix+".bin", a.Binary)
 				export(prefix+".mir", []byte(s.MIR2Module.Dump()))
 				z := emulator.NewRemogattoZ80WithScreen()

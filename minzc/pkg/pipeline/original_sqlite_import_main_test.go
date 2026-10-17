@@ -90,7 +90,7 @@ func testOriginalSQLitePortMain(t *testing.T, sourceName, packetName, exportEnv 
 			if e != nil {
 				t.Fatal(e)
 			}
-			asm := "ORG 0x8000\n" + s.Assembly
+			asm := "ORG 0x8000\n" + calledMainTestAssembly(t, s)
 			a, e := z80asm.NewAssembler().AssembleString(asm)
 			if e != nil || len(a.Errors) > 0 {
 				t.Fatal(e, a.Errors)

@@ -159,7 +159,7 @@ func TestOriginalPlasmaWholeMainNative(t *testing.T) {
 				save(mode+"/"+engine.name+"-vm-screen.bin", vm.ReadHeap(0x4000, 6912))
 				t.Log(engine.name, "VM with explicit zx_poke model PASS")
 			}
-			asm := "ORG 0x8000\n" + s.Assembly
+			asm := "ORG 0x8000\n" + calledMainTestAssembly(t, s)
 			a, e := z80asm.NewAssembler().AssembleString(asm)
 			if e != nil || len(a.Errors) > 0 {
 				t.Fatal(e, a.Errors)

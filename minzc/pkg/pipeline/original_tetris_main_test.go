@@ -134,7 +134,7 @@ func TestOriginalTetrisCPMMainNative(t *testing.T) {
 		if e != nil {
 			t.Fatal(e)
 		}
-		asm := "ORG 0x100\n__test_loader:\nLD SP,0xeff0\nCALL main\nDI\nHALT\n" + s.Assembly
+		asm := "ORG 0x100\n__test_loader:\nLD SP,0xeff0\nCALL main\nDI\nHALT\n" + calledMainTestAssembly(t, s)
 		a, e := z80asm.NewAssembler().AssembleString(asm)
 		if e != nil || len(a.Errors) > 0 {
 			t.Fatal(e, a.Errors)

@@ -19,7 +19,7 @@ fun main() { z3_windows_reset() z3_window_split(2) z3_window_select(1) z3_window
 	if e != nil {
 		t.Fatal(e)
 	}
-	a, e := z80asm.NewAssembler().AssembleString("ORG 0x8000\n" + s.Assembly)
+	a, e := z80asm.NewAssembler().AssembleString("ORG 0x8000\n" + calledMainTestAssembly(t, s))
 	if e != nil || len(a.Errors) > 0 {
 		t.Fatal(e, a.Errors)
 	}
