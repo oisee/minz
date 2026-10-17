@@ -121,16 +121,17 @@ func emitInteger32Runtime(hm *hir.Module, target uint8) error {
 		io = `@extern fun _zx_putchar(ch: u8) -> void
 fun _abap_num_putchar(ch: u8) -> void { _zx_putchar(ch) }`
 	}
-	m, err := nanz.Parse(integer32Output+integer32Arithmetic+characterRuntime+stringRuntime+io, "abap-integer-runtime.nanz")
+	m, err := nanz.Parse(integer32Output+integer32Arithmetic+integer32Input+characterRuntime+stringRuntime+io, "abap-integer-runtime.nanz")
 	if err != nil {
 		return fmt.Errorf("ABAP integer runtime: %w", err)
 	}
 	for _, f := range m.Funcs {
-		if strings.HasPrefix(f.Name, "_zx_") || f.Name == "_abap_fault" {
+		if strings.HasPrefix(f.Name, "_zx_") || f.Name == "_abap_fault" || f.Name == "_abap_input_data" || f.Name == "_abap_input_line" {
 			continue
 		}
 		hm.Funcs = append(hm.Funcs, f)
 	}
+	emitIntegerInputIO(hm, target)
 	hm.Globals = append(hm.Globals, mir2.Global{Name: "_abap_error_code", Ty: mir2.TyU8})
 	hm.Funcs = append(hm.Funcs, &hir.Func{
 		Name: "_abap_fault", Params: []hir.Param{{Name: "code", Ty: mir2.TyU8}}, RetTy: mir2.TyVoid,

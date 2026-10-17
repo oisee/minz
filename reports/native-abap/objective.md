@@ -105,3 +105,14 @@ collapsing into the ordinary validation event. Full ABAP and Go-parser tests
 pass. This prepares the Nanz TUI event boundary; the adapter itself remains a
 follow-up. System fields, remaining operators, full-width input, guarded CP/M
 closure and main integration remain open.
+
+## Full-width integer input checkpoint
+
+[Signed selection input](2026-10-17-integer-input.md) now preserves i32 through
+native decimal parsing and MZV field registration/retrieval. Empty input keeps
+the current INITIALIZATION value; invalid or out-of-range input is explicit
+and does not commit a replacement. The native BDOS buffer has real 22-byte
+storage. Complete-report input cases pass raw/final VM and Z80, and real MZV
+CLI pipe runs verify output without Node. System fields, remaining operators,
+character input/default transport, guarded CP/M closure and main integration
+remain required.

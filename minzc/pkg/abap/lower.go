@@ -358,7 +358,7 @@ func (l *lowerer) lower() (*hir.Module, error) {
 			// Header: [max_len, pre-filled actual_len]
 			l.hm.Globals = append(l.hm.Globals, mir2.Global{
 				Name: hdrName,
-				Ty:   mir2.TyU8,
+				Ty:   mir2.NewArray(mir2.TyU8, 2),
 				Init: []byte{byte(bufLen), byte(len(defStr))},
 			})
 			// Text area: default value + padding + NUL
@@ -366,7 +366,7 @@ func (l *lowerer) lower() (*hir.Module, error) {
 			copy(txtData, []byte(defStr))
 			l.hm.Globals = append(l.hm.Globals, mir2.Global{
 				Name: txtName,
-				Ty:   mir2.TyU8,
+				Ty:   mir2.NewArray(mir2.TyU8, bufLen+1),
 				Init: txtData,
 			})
 
@@ -445,19 +445,13 @@ func (l *lowerer) lower() (*hir.Module, error) {
 					},
 				})
 			} else {
-				// Integer field → sel_register_int(name, default_val)
-				defVal := int64(0)
-				if p.Default != nil {
-					if il, ok := (*p.Default).(*IntLit); ok {
-						defVal = il.Val
-					}
-				}
+				// Register the current i32 value after INITIALIZATION.
 				mainStmts = append(mainStmts, &hir.ExprStmt{
 					Expr: &hir.CallExpr{
 						Fn: "sel_register_int",
 						Args: []hir.Expr{
 							&hir.AddrOfExpr{Sym: labelSym},
-							&hir.IntLitExpr{Val: defVal, Ty: mir2.TyU16},
+							&hir.VarRefExpr{Name: p.Name, Ty: mir2.TyI32},
 						},
 						Ty: mir2.TyVoid,
 					},
@@ -513,10 +507,7 @@ func (l *lowerer) lower() (*hir.Module, error) {
 					},
 				})
 			} else {
-				promptStmts = append(promptStmts, &hir.AssignStmt{
-					Target: &hir.VarRefExpr{Name: p.Name, Ty: ty},
-					Val:    &hir.CallExpr{Fn: "abap_read_int", Ty: mir2.TyU16},
-				})
+				promptStmts = append(promptStmts, charCall("_abap_read_i32", &hir.AddrOfExpr{Sym: p.Name}))
 			}
 		}
 
@@ -556,7 +547,7 @@ func (l *lowerer) lower() (*hir.Module, error) {
 					Val: &hir.CallExpr{
 						Fn:   "sel_get_int",
 						Args: []hir.Expr{&hir.IntLitExpr{Val: int64(fieldIdx), Ty: mir2.TyU8}},
-						Ty:   mir2.TyU16,
+						Ty:   mir2.TyI32,
 					},
 				})
 			}
@@ -2345,7 +2336,7 @@ func emitRuntimeFuncs(hm *hir.Module, target uint8) {
 			Name: "sel_register_int",
 			Params: []hir.Param{
 				{Name: "name", Ty: mir2.TyPtr},
-				{Name: "defval", Ty: mir2.TyU16},
+				{Name: "defval", Ty: mir2.TyI32},
 			},
 			RetTy: mir2.TyVoid,
 			Body: &hir.Block{
@@ -2357,21 +2348,12 @@ func emitRuntimeFuncs(hm *hir.Module, target uint8) {
 		names["sel_register_int"] = true
 	}
 
-	// sel_get_int(idx) — returns 0 on Z80.
+	// Native selection uses fallback input; this host-only getter is unreachable there.
 	if !names["sel_get_int"] {
 		hm.Funcs = append(hm.Funcs, &hir.Func{
-			Name:   "sel_get_int",
-			Params: []hir.Param{{Name: "idx", Ty: mir2.TyU8}},
-			RetTy:  mir2.TyU16,
-			Body: &hir.Block{
-				Body: []hir.Stmt{
-					&hir.AsmStmt{
-						Target: "z80",
-						Code:   "LD HL, 0",
-						RetReg: "HL",
-					},
-				},
-			},
+			Name: "sel_get_int", Params: []hir.Param{{Name: "idx", Ty: mir2.TyU8}}, RetTy: mir2.TyI32,
+			// Preserve the host boundary through constant-call elimination.
+			Body: &hir.Block{Body: []hir.Stmt{&hir.AsmStmt{Target: "z80", Code: "NOP"}, &hir.ReturnStmt{Val: &hir.IntLitExpr{Val: 0, Ty: mir2.TyI32}}}},
 		})
 		names["sel_get_int"] = true
 	}
@@ -2512,7 +2494,7 @@ func emitRuntimeFuncs(hm *hir.Module, target uint8) {
 	if !hasInbuf && (names["abap_read_line"] || names["abap_read_int"]) {
 		hm.Globals = append(hm.Globals, mir2.Global{
 			Name: "_abap_inbuf",
-			Ty:   mir2.TyU8,
+			Ty:   mir2.NewArray(mir2.TyU8, 22),
 			Init: make([]byte, 22), // 22 bytes zeroed
 		})
 	}

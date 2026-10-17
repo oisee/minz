@@ -920,7 +920,16 @@ func registerABAPHosts(vm *mir2.VM, headless bool, trace bool) {
 		return nil, nil
 	}
 
-	// abap_read_int — stub for VM (return 0)
+	// Typed ABAP character and i32 output helpers share this byte IO boundary.
+	vm.Hosts["_abap_num_putchar"] = func(args []mir2.Value) ([]mir2.Value, error) {
+		if len(args) != 1 {
+			return nil, fmt.Errorf("ABAP byte output: expected one argument")
+		}
+		fmt.Print(string([]byte{byte(args[0].I)}))
+		return nil, nil
+	}
+
+	// abap_read_int — legacy stub; current PARAMETERS uses checked i32 transport.
 	vm.Hosts["abap_read_int"] = func(_ []mir2.Value) ([]mir2.Value, error) {
 		return []mir2.Value{{I: 0}}, nil
 	}

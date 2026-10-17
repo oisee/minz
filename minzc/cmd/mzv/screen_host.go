@@ -70,7 +70,7 @@ func registerScreenHosts(vm *mir2.VM, headless bool, trace bool) {
 	// ── sel_register_int(name_ptr, default_val) ─────────────────────
 	vm.Hosts["sel_register_int"] = func(args []mir2.Value) ([]mir2.Value, error) {
 		name := readStr(args[0].I)
-		defInt := args[1].I
+		defInt := int64(int32(args[1].I))
 		fields = append(fields, &selField{
 			name: name, ty: 'i',
 			value: fmt.Sprintf("%d", defInt), defInt: defInt,
@@ -103,6 +103,18 @@ func registerScreenHosts(vm *mir2.VM, headless bool, trace bool) {
 			}
 		}
 
+		// Validate every integer before committing any edited fields. ABAP TYPE i
+		// is signed 32-bit, and invalid input must not silently retain a default.
+		integers := make(map[*selField]int64)
+		for _, f := range fields {
+			if f.ty == 'i' {
+				v, err := strconv.ParseInt(strings.Trim(f.value, " "), 10, 32)
+				if err != nil {
+					return nil, fmt.Errorf("selection field %s: invalid TYPE i input %q: %w", f.name, f.value, err)
+				}
+				integers[f] = v
+			}
+		}
 		// Write values back to VM heap buffers
 		for _, f := range fields {
 			if f.ty == 'c' && f.bufPtr != 0 {
@@ -110,9 +122,7 @@ func registerScreenHosts(vm *mir2.VM, headless bool, trace bool) {
 				vm.WriteHeapBytes(f.bufPtr, data)
 			}
 			if f.ty == 'i' {
-				if v, err := strconv.ParseInt(f.value, 10, 64); err == nil {
-					f.defInt = v
-				}
+				f.defInt = integers[f]
 			}
 		}
 
@@ -122,7 +132,7 @@ func registerScreenHosts(vm *mir2.VM, headless bool, trace bool) {
 		return []mir2.Value{{I: 1}}, nil
 	}
 
-	// ── sel_get_int(idx) → u16 ──────────────────────────────────────
+	// ── sel_get_int(idx) → i32 ──────────────────────────────────────
 	vm.Hosts["sel_get_int"] = func(args []mir2.Value) ([]mir2.Value, error) {
 		idx := int(args[0].I)
 		if idx >= 0 && idx < len(fields) {
@@ -154,12 +164,12 @@ const (
 )
 
 // ANSI helpers — output to stdout (the TUI IS the program output)
-func ansiGoto(x, y int)            { fmt.Fprintf(os.Stdout, "\033[%d;%dH", y+1, x+1) }
-func ansiColor(fg, bg int)         { fmt.Fprintf(os.Stdout, "\033[%d;%dm", fg, bg) }
-func ansiReset()                   { fmt.Fprint(os.Stdout, "\033[0m") }
-func ansiClear()                   { fmt.Fprint(os.Stdout, "\033[2J\033[H") }
-func ansiShowCursor()              { fmt.Fprint(os.Stdout, "\033[?25h") }
-func ansiHideCursor()              { fmt.Fprint(os.Stdout, "\033[?25l") }
+func ansiGoto(x, y int)    { fmt.Fprintf(os.Stdout, "\033[%d;%dH", y+1, x+1) }
+func ansiColor(fg, bg int) { fmt.Fprintf(os.Stdout, "\033[%d;%dm", fg, bg) }
+func ansiReset()           { fmt.Fprint(os.Stdout, "\033[0m") }
+func ansiClear()           { fmt.Fprint(os.Stdout, "\033[2J\033[H") }
+func ansiShowCursor()      { fmt.Fprint(os.Stdout, "\033[?25h") }
+func ansiHideCursor()      { fmt.Fprint(os.Stdout, "\033[?25l") }
 
 func selRenderTUI(fields []*selField, focus int, title string) {
 	ansiClear()
@@ -194,7 +204,7 @@ func selRenderTUI(fields []*selField, focus int, title string) {
 		val := f.value
 		width := f.length
 		if f.ty == 'i' {
-			width = 6
+			width = 11
 		}
 		if width < 1 {
 			width = 10
