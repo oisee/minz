@@ -167,6 +167,12 @@ type WriteStmt struct {
 
 func (*WriteStmt) abapStmt() {}
 
+// TemplateValue uses default string-template formatting, which differs from
+// ordinary numeric WRITE and trims fixed-character trailing blanks.
+type TemplateValue struct{ Val Expr_ }
+
+func (*TemplateValue) abapExpr() {}
+
 // ClearStmt resets a declared object to its type-specific initial value.
 type ClearStmt struct{ Target string }
 

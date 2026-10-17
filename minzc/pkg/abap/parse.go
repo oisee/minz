@@ -993,10 +993,11 @@ func convertStmt(s *StmtNode) (Decl, error) {
 		}
 		return parseSelectStmt(tokens)
 	case upper == "ULINE":
-		// ULINE → WRITE line of dashes
-		w := &WriteStmt{Exprs: []Expr_{&StringLit{Val: "----------------------------------------------------------------------\r\n"}}}
-		return &formBodyDecl{stmt: w}, nil
+		return nil, fmt.Errorf("ULINE: list width and horizontal-line layout are not implemented")
 	case upper == "SKIP" || upper == "NEW-LINE":
+		if len(tokens) != 2 || tokens[1] != "." {
+			return nil, fmt.Errorf("%s: additions are not implemented", upper)
+		}
 		// SKIP / NEW-LINE → WRITE newline
 		w := &WriteStmt{Exprs: []Expr_{&StringLit{Val: "\r\n"}}}
 		return &formBodyDecl{stmt: w}, nil
@@ -1325,100 +1326,6 @@ func parseSelectStmt(tokens []string) (Decl, error) {
 	}
 
 	return &formBodyDecl{stmt: sel}, nil
-}
-
-// parseWriteStmt: WRITE expr | WRITE: expr1, expr2, ... | WRITE / 'text'
-// Also handles string templates: WRITE |Hi { name }!|
-func parseWriteStmt(tokens []string) (Decl, error) {
-	if len(tokens) < 2 {
-		return nil, fmt.Errorf("WRITE: too few tokens")
-	}
-	w := &WriteStmt{}
-	for i := 1; i < len(tokens); i++ {
-		t := tokens[i]
-		if t == ":" || t == "," || t == "." {
-			continue
-		}
-		if t == "/" {
-			w.Exprs = append(w.Exprs, &StringLit{Val: "\r\n"})
-			continue
-		}
-		// String template: |text { expr } text| — abaplint splits into
-		// multiple tokens: "|Hello {", "lv_name", "}!|"
-		if strings.HasPrefix(t, "|") {
-			// Collect all tokens until we find one ending with |
-			var tmplTokens []string
-			tmplTokens = append(tmplTokens, t)
-			for i+1 < len(tokens) && !strings.HasSuffix(t, "|") {
-				i++
-				t = tokens[i]
-				tmplTokens = append(tmplTokens, t)
-			}
-			parts := expandStringTemplateTokens(tmplTokens)
-			w.Exprs = append(w.Exprs, parts...)
-			continue
-		}
-		// abaplint tokenizes a structure component as SY, -, SUBRC.
-		// Preserve it as one system-field expression rather than three values.
-		if strings.EqualFold(t, "SY") && i+2 < len(tokens) && tokens[i+1] == "-" {
-			w.Exprs = append(w.Exprs, &SYField{Field: strings.ToUpper(tokens[i+2])})
-			i += 2
-			continue
-		}
-		w.Exprs = append(w.Exprs, parseTokenExpr(t))
-	}
-	return &formBodyDecl{stmt: w}, nil
-}
-
-// expandStringTemplateTokens handles abaplint-tokenized string templates.
-// Input: ["|Hello {", "lv_name", "}!|"] or ["|plain text|"]
-// Output: [StringLit("Hello "), VarRef("lv_name"), StringLit("!")]
-func expandStringTemplateTokens(tokens []string) []Expr_ {
-	// Rejoin tokens into one string, then parse
-	joined := strings.Join(tokens, " ")
-	// Strip outer pipes
-	if strings.HasPrefix(joined, "|") {
-		joined = joined[1:]
-	}
-	if strings.HasSuffix(joined, "|") {
-		joined = joined[:len(joined)-1]
-	}
-	return expandStringTemplate("|" + joined + "|")
-}
-
-// expandStringTemplate splits |Hello { name }!| into ["Hello ", VarRef(name), "!"]
-func expandStringTemplate(tmpl string) []Expr_ {
-	// Strip leading/trailing |
-	inner := tmpl[1 : len(tmpl)-1]
-	var result []Expr_
-	for len(inner) > 0 {
-		braceStart := strings.Index(inner, "{")
-		if braceStart < 0 {
-			// No more expressions — rest is literal text
-			if inner != "" {
-				result = append(result, &StringLit{Val: inner})
-			}
-			break
-		}
-		braceEnd := strings.Index(inner[braceStart:], "}")
-		if braceEnd < 0 {
-			// Malformed — treat rest as literal
-			result = append(result, &StringLit{Val: inner})
-			break
-		}
-		braceEnd += braceStart
-		// Text before {
-		if braceStart > 0 {
-			result = append(result, &StringLit{Val: inner[:braceStart]})
-		}
-		// Expression inside { }
-		exprStr := strings.TrimSpace(inner[braceStart+1 : braceEnd])
-		if exprStr != "" {
-			result = append(result, &VarRef{Name: exprStr})
-		}
-		inner = inner[braceEnd+1:]
-	}
-	return result
 }
 
 // formBodyDecl wraps a statement as a top-level decl (for flat programs without FORM).

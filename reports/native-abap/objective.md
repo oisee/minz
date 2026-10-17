@@ -205,3 +205,15 @@ VALUE-importing static scalar methods pass three new VM/Z80 calls and the
 previous scalar gates remain intact. This is a concrete function-boundary
 path, not general source-level OO dispatch or reference IMPORTING proof.
 Remaining output/SQL/runtime admission and main integration remain required.
+
+## Counted output and default template checkpoint
+
+[WRITE output](2026-10-17-write-output.md) now preserves literal NUL and applies
+character admission consistently. Default templates decode escapes, consume
+whole expressions, format integers without extra separators and trim fixed c
+interpolations. Two additional unchanged full reports match independent
+reference, both VMs and both native termination modes for bytes, globals,
+canary and PC/SP. Formatting additions and arbitrary ULINE layout are explicit
+refusals. This is counted stream/default-template output, not full SAP list
+formatting. Remaining SQL/resource/runtime admission and main integration
+remain required.

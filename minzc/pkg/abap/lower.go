@@ -1166,40 +1166,40 @@ func (l *lowerer) lowerStmt(s Stmt_) (hir.Stmt, error) {
 }
 
 func (l *lowerer) lowerWrite(s *WriteStmt) (hir.Stmt, error) {
-	// WRITE each expression via abap_write / abap_write_str
 	if len(s.Exprs) == 0 {
-		return nil, nil
+		return nil, fmt.Errorf("WRITE: missing operand")
 	}
-	// Normal CALL liveness and runtime clobber contracts preserve live values.
 	var stmts []hir.Stmt
 	for _, e := range s.Exprs {
-		if v, ok := e.(*VarRef); ok {
-			if b, exists := l.characters[v.Name]; exists {
-				stmts = append(stmts, charCall("_abap_char_write", b.ptr, b.length))
-				continue
+		template := false
+		if v, ok := e.(*TemplateValue); ok {
+			template = true
+			e = v.Val
+		}
+		b, character, err := l.characterExpr(e)
+		if err != nil {
+			return nil, err
+		}
+		if character {
+			length := b.length
+			if template {
+				length = textValueLength(b)
 			}
+			stmts = append(stmts, charCall("_abap_char_write", b.ptr, length))
+			continue
 		}
 		he, err := l.lowerExpr(e)
 		if err != nil {
 			return nil, err
 		}
-		fnName := "abap_write"
-		if he.ExprTy() == mir2.TyI32 {
-			fnName = "abap_write_i32"
+		if he.ExprTy() != mir2.TyI32 {
+			return nil, fmt.Errorf("WRITE: unsupported numeric/output type %s", he.ExprTy())
 		}
-		if _, ok := e.(*StringLit); ok {
-			fnName = "abap_write_str"
-		} else if he.ExprTy() == mir2.TyPtr {
-			fnName = "abap_write_str"
+		fn := "abap_write_i32"
+		if template {
+			fn = "_abap_write_i32_value"
 		}
-		stmts = append(stmts, &hir.ExprStmt{
-			Expr: &hir.CallExpr{
-				Fn:   fnName,
-				Args: []hir.Expr{he},
-				Ty:   mir2.TyVoid,
-			},
-		})
-
+		stmts = append(stmts, charCall(fn, he))
 	}
 	if len(stmts) == 1 {
 		return stmts[0], nil
