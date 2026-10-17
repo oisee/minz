@@ -515,6 +515,12 @@ func TestInternalTableAdmission(t *testing.T) {
 			t.Fatalf("%q: diagnostic %q lacks %q", c.src, err, c.want)
 		}
 	}
+	// TYPE TABLE OF is the ABAP spelling of a standard table.
+	for _, src := range []string{"DATA t3 TYPE TABLE OF ty.", "DATA t3 TYPE STANDARD TABLE OF ty WITH EMPTY KEY INITIAL SIZE 3."} {
+		if _, err := Compile(head+src+" APPEND ls TO t3.", "zok"); err != nil {
+			t.Fatalf("%s: %v", src, err)
+		}
+	}
 }
 
 // SY-TABIX in nested loops through a FORM: RETURN inside the callee's LOOP

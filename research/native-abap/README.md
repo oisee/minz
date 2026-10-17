@@ -63,3 +63,16 @@ extra calls or mutations. These fixtures test copy-only dynamic string lengths
 and reference parameters, including wide integer state. MinZ's bounded storage
 capacity faults are separate contract probes, not a property of the reference
 runtime's allocator.
+
+## Complete internal-table reports
+
+Use `itab-reference.mjs` with the same isolated pinned semantic-reference
+package/lock files (`npm ci`, or `npm ci --offline` from a populated cache).
+Run `node_modules/node/bin/node itab-reference.mjs SOURCE.abap > SOURCE.json`
+on the sources under `minzc/pkg/abap/testdata/itab-reference`. The script
+executes the unchanged complete report and records every report-level DATA
+object (scalars, flat structures, table lines), SY-TABIX/SUBRC/INDEX and the
+MemoryConsole output. It sets `globalThis.abap` because the runtime's table
+statements address the instance through the global. The runtime grows tables
+without bound, so MinZ's fixed-capacity fault 7 has a specification oracle
+instead (see `reports/native-abap/2026-10-17-internal-tables.md`).
