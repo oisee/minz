@@ -81,6 +81,15 @@ func buildProgram(name string, r *ParseResult) (*Program, error) {
 		}
 	}
 	prog.Decls = filtered
+	for _, d := range prog.Decls {
+		if cd, ok := d.(*ClassDecl); ok {
+			for _, m := range cd.Methods {
+				if m.Body == nil {
+					return nil, fmt.Errorf("%s: METHOD %s=>%s has no implementation", name, cd.Name, m.Name)
+				}
+			}
+		}
+	}
 
 	return prog, nil
 }
@@ -118,10 +127,16 @@ func walkStructure(sn *StructNode) ([]Decl, error) {
 			continue
 
 		case child.Type == "ClassDefinition":
-			cd := convertClassDefinition(child)
-			if cd != nil {
-				decls = append(decls, cd)
+			cd, err := convertClassDefinition(child)
+			if err != nil {
+				return nil, err
 			}
+			for _, d := range decls {
+				if prev, ok := d.(*ClassDecl); ok && prev.Name == cd.Name {
+					return nil, childError(child, fmt.Errorf("duplicate CLASS definition %s", cd.Name))
+				}
+			}
+			decls = append(decls, cd)
 			continue
 
 		case child.Type == "ClassImplementation":
@@ -130,12 +145,17 @@ func walkStructure(sn *StructNode) ([]Decl, error) {
 			if err != nil {
 				return nil, err
 			}
-			if className != "" {
-				for _, d := range decls {
-					if cd, ok := d.(*ClassDecl); ok && cd.Name == className {
-						mergeMethodBodies(cd, methods)
+			matched := false
+			for _, d := range decls {
+				if cd, ok := d.(*ClassDecl); ok && cd.Name == className {
+					if err := mergeMethodBodies(cd, methods); err != nil {
+						return nil, childError(child, err)
 					}
+					matched = true
 				}
+			}
+			if !matched {
+				return nil, childError(child, fmt.Errorf("CLASS IMPLEMENTATION %s has no matching definition", className))
 			}
 			continue
 
@@ -368,148 +388,166 @@ func parseFormParams(tokens []*Token) []FormParam {
 	return params
 }
 
-// convertClassDefinition extracts class name and method signatures from a ClassDefinition node.
-func convertClassDefinition(node *ASTChild) *ClassDecl {
+// convertClassDefinition preserves only declarations represented by the ABI.
+// Class additions, section members and signature tokens must never disappear.
+func convertClassDefinition(node *ASTChild) (*ClassDecl, error) {
 	cd := &ClassDecl{}
-
+	names := map[string]bool{}
 	for _, child := range node.Children {
 		switch child.Type {
 		case "ClassDefinition":
-			// Header — extract class name
-			for _, sub := range child.Children {
-				if sub.Type == "ClassName" && len(sub.Tokens) > 0 {
-					cd.Name = strings.ToLower(sub.Tokens[0].Str)
-				}
+			toks := collectTokenStrings(&StmtNode{Tokens: child.Tokens, Children: child.Children})
+			if len(toks) != 4 || !strings.EqualFold(toks[0], "CLASS") || !strings.EqualFold(toks[2], "DEFINITION") || toks[3] != "." {
+				return nil, childError(child, fmt.Errorf("CLASS: definition additions are not implemented"))
 			}
+			cd.Name = strings.ToLower(toks[1])
 		case "PublicSection", "ProtectedSection", "PrivateSection":
-			// Extract method signatures from section contents
 			for _, sec := range child.Children {
-				if sec.Type == "SectionContents" {
+				switch sec.Type {
+				case "Public", "Protected", "Private": // section header, no runtime effect
+					continue
+				case "SectionContents":
 					for _, item := range sec.Children {
-						// Use direct tokens from the node (not recursive getAllTokens which duplicates)
-						var toks []string
-						for _, t := range item.Tokens {
-							toks = append(toks, t.Str)
+						if item.Type == "Comment" || item.Type == "Empty" {
+							continue
 						}
+						toks := collectTokenStrings(&StmtNode{Tokens: item.Tokens, Children: item.Children})
 						if len(toks) >= 3 && strings.EqualFold(toks[0], "CLASS") && toks[1] == "-" && strings.EqualFold(toks[2], "METHODS") {
 							toks = append([]string{"CLASS-METHODS"}, toks[3:]...)
 						}
+						var name string
 						if len(toks) >= 2 && (strings.EqualFold(toks[0], "METHODS") || strings.EqualFold(toks[0], "CLASS-METHODS")) {
-							md := parseMethodSignature(toks)
-							if md != nil {
-								cd.Methods = append(cd.Methods, md)
+							md, err := parseMethodSignature(toks)
+							if err != nil {
+								return nil, childError(item, err)
 							}
-						} else if len(toks) >= 2 && strings.ToUpper(toks[0]) == "DATA" {
-							// Class attribute
-							attr := parseClassDataAttr(toks)
-							if attr != nil {
-								cd.Attrs = append(cd.Attrs, attr)
+							cd.Methods = append(cd.Methods, md)
+							name = md.Name
+						} else if len(toks) >= 2 && strings.EqualFold(toks[0], "DATA") {
+							decl, err := parseDataStmt(toks)
+							if err != nil {
+								return nil, childError(item, err)
 							}
+							attr, ok := decl.(*DataDecl)
+							if !ok {
+								return nil, childError(item, fmt.Errorf("CLASS: unsupported attribute declaration"))
+							}
+							if attr.Value != nil {
+								return nil, childError(item, fmt.Errorf("CLASS: attribute VALUE initialization is not implemented"))
+							}
+							cd.Attrs = append(cd.Attrs, attr)
+							name = attr.Name
+						} else {
+							return nil, childError(item, fmt.Errorf("CLASS: unsupported section member %s", item.Type))
 						}
+						if names[name] {
+							return nil, childError(item, fmt.Errorf("CLASS: duplicate member %s", name))
+						}
+						names[name] = true
 					}
+				case "Comment", "Empty":
+				default:
+					return nil, childError(sec, fmt.Errorf("CLASS: unsupported section node %s", sec.Type))
 				}
 			}
+		case "EndClass", "Comment", "Empty":
+		default:
+			return nil, childError(child, fmt.Errorf("CLASS: unsupported definition node %s", child.Type))
 		}
 	}
-
 	if cd.Name == "" {
-		return nil
+		return nil, childError(node, fmt.Errorf("CLASS: missing definition name"))
 	}
-	return cd
+	return cd, nil
 }
 
-// parseMethodSignature parses tokens like:
-// METHODS add IMPORTING iv_a TYPE i iv_b TYPE i RETURNING VALUE ( rv_sum ) TYPE i .
-func parseMethodSignature(toks []string) *MethodDecl {
-	if len(toks) < 2 {
-		return nil
+// IMPORTING scalar arguments and one VALUE RETURNING result are represented
+// by the current concrete method ABI. Other sections require a distinct ABI.
+func parseMethodSignature(toks []string) (*MethodDecl, error) {
+	if len(toks) < 3 || toks[len(toks)-1] != "." {
+		return nil, fmt.Errorf("METHODS: incomplete signature")
 	}
 	md := &MethodDecl{Name: strings.ToLower(toks[1]), Static: strings.EqualFold(toks[0], "CLASS-METHODS")}
-
 	i := 2
-	for i < len(toks) {
-		upper := strings.ToUpper(toks[i])
-		switch upper {
-		case "IMPORTING":
+	names := map[string]bool{}
+	param := func(requireValue bool) (FormParam, error) {
+		p := FormParam{}
+		value := i < len(toks) && strings.EqualFold(toks[i], "VALUE")
+		if requireValue && !value {
+			return p, fmt.Errorf("METHODS: RETURNING requires VALUE(name) TYPE")
+		}
+		if value {
 			i++
-			for i < len(toks) {
-				u := strings.ToUpper(toks[i])
-				if u == "RETURNING" || u == "CHANGING" || u == "EXPORTING" || u == "." {
-					break
+			if i >= len(toks) || toks[i] != "(" {
+				return p, fmt.Errorf("METHODS: expected VALUE(name)")
+			}
+			i++
+		}
+		if i >= len(toks) || toks[i] == "." || toks[i] == ")" {
+			return p, fmt.Errorf("METHODS: missing parameter name")
+		}
+		p.Name = strings.ToLower(toks[i])
+		i++
+		if value {
+			if i >= len(toks) || toks[i] != ")" {
+				return p, fmt.Errorf("METHODS: expected closing VALUE parenthesis")
+			}
+			i++
+		}
+		if i >= len(toks) || !strings.EqualFold(toks[i], "TYPE") {
+			return p, fmt.Errorf("METHODS parameter %s: fully typed parameters are required", p.Name)
+		}
+		i++
+		if i >= len(toks) || toks[i] == "." {
+			return p, fmt.Errorf("METHODS parameter %s: missing type", p.Name)
+		}
+		p.AbapTy = strings.ToLower(toks[i])
+		i++
+		if names[p.Name] {
+			return p, fmt.Errorf("METHODS: duplicate parameter %s", p.Name)
+		}
+		names[p.Name] = true
+		return p, nil
+	}
+	importing := false
+	for i < len(toks)-1 {
+		switch strings.ToUpper(toks[i]) {
+		case "IMPORTING":
+			if importing {
+				return nil, fmt.Errorf("METHODS: duplicate IMPORTING section")
+			}
+			importing = true
+			i++
+			before := len(md.Importing)
+			for i < len(toks)-1 && !strings.EqualFold(toks[i], "RETURNING") {
+				switch strings.ToUpper(toks[i]) {
+				case "CHANGING", "EXPORTING", "RAISING", "EXCEPTIONS":
+					return nil, fmt.Errorf("METHODS: %s ABI is not implemented", strings.ToUpper(toks[i]))
 				}
-				p := FormParam{Name: strings.ToLower(toks[i])}
-				i++
-				if i < len(toks) && strings.ToUpper(toks[i]) == "TYPE" {
-					i++
-					if i < len(toks) {
-						p.AbapTy = strings.ToLower(toks[i])
-						i++
-					}
+				p, err := param(false)
+				if err != nil {
+					return nil, err
 				}
 				md.Importing = append(md.Importing, p)
 			}
+			if len(md.Importing) == before {
+				return nil, fmt.Errorf("METHODS: empty IMPORTING section")
+			}
 		case "RETURNING":
+			if md.Returning != nil {
+				return nil, fmt.Errorf("METHODS: duplicate RETURNING section")
+			}
 			i++
-			// VALUE ( rv_name ) TYPE type
-			if i < len(toks) && strings.ToUpper(toks[i]) == "VALUE" {
-				i++
+			p, err := param(true)
+			if err != nil {
+				return nil, err
 			}
-			if i < len(toks) && toks[i] == "(" {
-				i++
-			}
-			if i < len(toks) {
-				p := FormParam{Name: strings.ToLower(toks[i])}
-				i++
-				if i < len(toks) && toks[i] == ")" {
-					i++
-				}
-				if i < len(toks) && strings.ToUpper(toks[i]) == "TYPE" {
-					i++
-					if i < len(toks) {
-						p.AbapTy = strings.ToLower(toks[i])
-						i++
-					}
-				}
-				md.Returning = &p
-			}
-		case "CHANGING":
-			i++
-			for i < len(toks) {
-				u := strings.ToUpper(toks[i])
-				if u == "RETURNING" || u == "IMPORTING" || u == "EXPORTING" || u == "." {
-					break
-				}
-				p := FormParam{Name: strings.ToLower(toks[i])}
-				i++
-				if i < len(toks) && strings.ToUpper(toks[i]) == "TYPE" {
-					i++
-					if i < len(toks) {
-						p.AbapTy = strings.ToLower(toks[i])
-						i++
-					}
-				}
-				md.Changing = append(md.Changing, p)
-			}
+			md.Returning = &p
 		default:
-			i++
+			return nil, fmt.Errorf("METHODS: unsupported signature addition %s", toks[i])
 		}
 	}
-	return md
-}
-
-// parseClassDataAttr parses DATA tokens into a DataDecl (class attribute).
-func parseClassDataAttr(toks []string) *DataDecl {
-	if len(toks) < 2 {
-		return nil
-	}
-	d := &DataDecl{Name: strings.ToLower(toks[1])}
-	for i := 2; i < len(toks); i++ {
-		if strings.ToUpper(toks[i]) == "TYPE" && i+1 < len(toks) {
-			d.AbapTy = strings.ToLower(toks[i+1])
-			break
-		}
-	}
-	return d
+	return md, nil
 }
 
 // convertClassImplementation extracts class name and method bodies from a ClassImplementation node.
@@ -530,9 +568,16 @@ func convertClassImplementation(node *ASTChild) (string, map[string]*MethodDecl,
 			if err != nil {
 				return "", nil, err
 			}
-			if name != "" {
-				methods[name] = &MethodDecl{Name: name, Body: body}
+			if name == "" {
+				return "", nil, childError(child, fmt.Errorf("METHOD: missing implementation name"))
 			}
+			if methods[name] != nil {
+				return "", nil, childError(child, fmt.Errorf("METHOD: duplicate implementation %s", name))
+			}
+			methods[name] = &MethodDecl{Name: name, Body: body}
+		case "EndClass", "Comment", "Empty":
+		default:
+			return "", nil, childError(child, fmt.Errorf("CLASS: unsupported implementation node %s", child.Type))
 		}
 	}
 	return className, methods, nil
@@ -541,7 +586,7 @@ func convertClassImplementation(node *ASTChild) (string, map[string]*MethodDecl,
 // convertMethodImpl extracts method name and body from a Method node.
 func convertMethodImpl(node *ASTChild) (string, []Stmt_, error) {
 	var name string
-	var body []Stmt_
+	body := make([]Stmt_, 0)
 
 	for _, child := range node.Children {
 		switch child.Type {
@@ -559,19 +604,29 @@ func convertMethodImpl(node *ASTChild) (string, []Stmt_, error) {
 			if err != nil {
 				return "", nil, err
 			}
-			body = collectStmtsFromDecls(decls)
+			body = append(body, collectStmtsFromDecls(decls)...)
 		}
 	}
 	return name, body, nil
 }
 
 // mergeMethodBodies merges method implementations into a ClassDecl's method signatures.
-func mergeMethodBodies(cd *ClassDecl, implMethods map[string]*MethodDecl) {
+func mergeMethodBodies(cd *ClassDecl, implMethods map[string]*MethodDecl) error {
+	declared := map[string]*MethodDecl{}
 	for _, md := range cd.Methods {
-		if impl, ok := implMethods[md.Name]; ok {
-			md.Body = impl.Body
-		}
+		declared[md.Name] = md
 	}
+	for name, impl := range implMethods {
+		md := declared[name]
+		if md == nil {
+			return fmt.Errorf("METHOD %s=>%s has no matching declaration", cd.Name, name)
+		}
+		if md.Body != nil {
+			return fmt.Errorf("METHOD %s=>%s has duplicate implementations", cd.Name, name)
+		}
+		md.Body = impl.Body
+	}
+	return nil
 }
 
 func isControlStructure(t string) bool {

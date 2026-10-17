@@ -194,3 +194,14 @@ trailing clauses no longer disappear; host escapes outside INTO are refused
 until binding is implemented. Literal clause words remain data. This closes
 syntax loss, not general SQL support. Remaining semantic admission, native
 runtime closure and main integration are still required.
+
+## Class and method admission checkpoint
+
+[Strict class/method admission](2026-10-17-class-admission.md) now refuses
+lost EXPORTING/CHANGING ABI, attribute initializers and unsupported members or
+definition additions. Implementations must match declarations; missing methods
+cannot turn into executable empty bodies. Explicit empty methods remain valid.
+VALUE-importing static scalar methods pass three new VM/Z80 calls and the
+previous scalar gates remain intact. This is a concrete function-boundary
+path, not general source-level OO dispatch or reference IMPORTING proof.
+Remaining output/SQL/runtime admission and main integration remain required.

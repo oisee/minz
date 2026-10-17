@@ -73,6 +73,9 @@ func validateProgramTypes(p *Program) error {
 		return nil
 	}
 	method := func(context string, m *MethodDecl) error {
+		if len(m.Exporting) != 0 || len(m.Changing) != 0 {
+			return fmt.Errorf("%s: EXPORTING/CHANGING method ABI is not implemented", context)
+		}
 		for _, ps := range [][]FormParam{m.Importing, m.Exporting, m.Changing} {
 			if err := params(context, ps); err != nil {
 				return err
@@ -118,7 +121,13 @@ func validateProgramTypes(p *Program) error {
 				return err
 			}
 		case *ClassDecl:
+			if v.Super != "" || len(v.Interfaces) != 0 {
+				return fmt.Errorf("CLASS %s: inheritance/interface dispatch is not implemented", v.Name)
+			}
 			for _, a := range v.Attrs {
+				if a.Value != nil {
+					return fmt.Errorf("CLASS %s attribute %s: VALUE initialization is not implemented", v.Name, a.Name)
+				}
 				if a.AbapTy == "c" || a.AbapTy == "string" {
 					return fmt.Errorf("CLASS %s attribute %s: owned character attributes are not implemented", v.Name, a.Name)
 				}
