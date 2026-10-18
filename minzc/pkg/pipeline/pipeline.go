@@ -87,8 +87,11 @@ type FuncTrace struct {
 
 // Options configures optional pipeline passes.
 type Options struct {
-	Runtime           mir2.Z80Runtime `json:",omitempty"`
-	RuntimeStackBytes int             `json:",omitempty"`
+	// CPMApplicationEntry selects ordinary native CP/M application entry,
+	// independently of the guarded runtime and semantic bare/called harnesses.
+	CPMApplicationEntry bool            `json:",omitempty"`
+	Runtime             mir2.Z80Runtime `json:",omitempty"`
+	RuntimeStackBytes   int             `json:",omitempty"`
 	// CheckedLocalTablePath opts into admitted leaf function replacements under
 	// OptSize. The selected function must assemble smaller than PBQP baseline.
 	CheckedLocalTablePath string `json:",omitempty"`
@@ -167,6 +170,9 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 	}
 	if opt.Runtime != "" && (opt.Runtime != mir2.Z80RuntimeCPM || hm.Target != hir.TargetCPM || opt.Backend != "" && opt.Backend != "z80" || opt.ProfileSelection != nil || opt.SkipZ80Emission) {
 		return s, fmt.Errorf("CP/M runtime requires emitted CPM Z80 without measured profile selection")
+	}
+	if opt.CPMApplicationEntry && (opt.Runtime != "" || hm.Target != hir.TargetCPM || opt.Backend != "" && opt.Backend != "z80" || opt.ProfileSelection != nil || opt.SkipZ80Emission || opt.AssertMode != "none" && (len(hm.Asserts) > 0 || len(hm.Sandboxes) > 0)) {
+		return s, fmt.Errorf("CP/M application entry requires emitted CPM Z80 without guarded runtime, assertion workloads or measured profile selection")
 	}
 	if opt.CheckedLocalTablePath != "" && (!opt.OptSize || opt.Backend != "" && opt.Backend != "z80" || opt.SkipZ80Emission || opt.ProfileSelection != nil && opt.CheckedLocalTableSHA256 == "") {
 		return s, fmt.Errorf("checked local tables require emitted Z80 OptSize and a content pin for PGO")
@@ -425,7 +431,8 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 		var codegenErr error
 		s.Assembly, codegenErr = mir2.Z80Codegen(m, combined, mir2.Z80CodegenOptions{
 			OptimizeForSize:           opt.OptSize,
-			CalledMain:                opt.Backend == "ez80",
+			CalledMain:                opt.Backend == "ez80" || opt.CPMApplicationEntry,
+			CPMApplicationEntry:       opt.CPMApplicationEntry,
 			Runtime:                   opt.Runtime,
 			RuntimeStackBytes:         opt.RuntimeStackBytes,
 			AnnotateTStates:           opt.AnnotateTStates,
@@ -549,7 +556,7 @@ func CompileHIRWithOptions(hm *hir.Module, opts Options) (string, error) {
 	if err := mir2.ValidateCPMRuntimeStack(opts.Runtime, opts.RuntimeStackBytes); err != nil {
 		return "", err
 	}
-	if opts.UseGrace || opts.Runtime != "" || opts.ProfileSelection != nil {
+	if opts.UseGrace || opts.Runtime != "" || opts.CPMApplicationEntry || opts.ProfileSelection != nil {
 		steps, err := CompileHIRSteps(hm, opts)
 		return steps.Assembly, err
 	}

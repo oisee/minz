@@ -19,6 +19,13 @@ func (g *z80cg) genCall(inst *Inst) error {
 		if len(inst.Args) != 0 || inst.Dst != NoReg || len(inst.ExtraRets) != 0 || inst.Ty != TyVoid {
 			return fmt.Errorf("halt requires a void call without arguments or results")
 		}
+		if g.cpmApplicationEntry {
+			// A terminal fault can occur in any nested frame. Abandon the whole
+			// application stack and restore the caller through the entry cleanup.
+			g.needsCPMApplicationFault = true
+			g.emit("    JP __cpm_app_fault")
+			return nil
+		}
 		idx := g.trampIdx
 		g.trampIdx++
 		g.emitf(".terminal_halt_%d:", idx)

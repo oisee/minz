@@ -1098,6 +1098,7 @@ func compileViaHIR(sourceFile string) error {
 		((am == "" || am == "all") && (len(hirMod.Asserts) > 0 || len(hirMod.Sandboxes) > 0) && !pipeline.NeedsZ80Asserts(hirMod, am))
 
 	opts := pipeline.Options{
+		CPMApplicationEntry:     ordinaryABAPCPMEntry(sourceFile, hirMod, skipZ80, am),
 		Runtime:                 mir2.Z80Runtime(runtimeMode),
 		RuntimeStackBytes:       runtimeStackBytes,
 		CheckedLocalTablePath:   checkedLocalTablePath,

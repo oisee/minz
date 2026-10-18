@@ -22,6 +22,7 @@
     "TestByteWordFusionCallbackRefusal",
     "TestByteWordFusionCompilationIdentity",
     "TestC89ControlEffectsNative",
+    "TestCPMApplicationEntryAdmission",
     "TestCPMRecursiveLiveSpillRestoration",
     "TestCPMRuntimeGuardedTokenizerMain",
     "TestCPMRuntimeOriginalSelfLanzMain",
