@@ -1,0 +1,8 @@
+ok  	github.com/minz/minzc/pkg/abap	55.735s
+ok  	github.com/minz/minzc/pkg/abap/internal/abapparse	0.439s
+ok  	github.com/minz/minzc/cmd/mzv	2.006s
+ok  	github.com/minz/minzc/pkg/hir	29.268s
+ok  	github.com/minz/minzc/pkg/mir2	109.463s
+ok  	github.com/minz/minzc/pkg/abap	17.391s
+ok  	github.com/minz/minzc/cmd/minzc	1.859s
+[{"shard": 1, "exit_code": 0, "log": "/tmp/minz-abap-f4-alv-evidence/fast/shard-1.log"}, {"shard": 2, "exit_code": 0, "log": "/tmp/minz-abap-f4-alv-evidence/fast/shard-2.log"}, {"shard": 3, "exit_code": 0, "log": "/tmp/minz-abap-f4-alv-evidence/fast/shard-3.log"}]

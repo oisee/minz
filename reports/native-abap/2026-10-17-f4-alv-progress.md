@@ -21,8 +21,10 @@ missing, nested, table-body and incompatible component actuals are refused.
 Two unchanged component/APPEND reports now have independently regenerated
 abaplint transpiler/runtime 2.14.8 fixtures, including source SHA and table images.
 A same-family sol-high critic returned MERGE GO for both fixes after rerunning
-regressions and six additional literal/admission probes. Integration gates remain
-in progress; this note does not claim main has merged the slice.
+regressions and six additional literal/admission probes. Integration gates passed: build, ABAP/parser/MZV/HIR/MIR2 packages, ordinary
+CP/M CLI and the fast pipeline (438 selected tests, three shards, all exit0).
+The newly frozen fixtures also pass a final directed run. This note does not
+claim main has merged the slice.
 
 ## Measured platform boundaries
 
