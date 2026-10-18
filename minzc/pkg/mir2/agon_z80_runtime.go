@@ -59,7 +59,7 @@ func validateAgonZ80Runtime(m *Module) error {
 			}
 		}
 	}
-	if _, _, e := agonFrontendRequirements(m); e != nil {
+	if _, _, _, e := agonFrontendRequirements(m); e != nil {
 		return e
 	}
 	state := map[string]uint8{}

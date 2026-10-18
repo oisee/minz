@@ -6,16 +6,18 @@ import (
 )
 
 var agonFrontendCalls = map[string]string{
-	"@mir.agon.fs.open":   "__agon_fs_open",
-	"@mir.agon.fs.close":  "__agon_fs_close",
-	"@mir.agon.fs.read":   "__agon_fs_read",
-	"@mir.agon.dir.open":  "__agon_dir_open",
-	"@mir.agon.dir.close": "__agon_dir_close",
-	"@mir.agon.dir.read":  "__agon_dir_read",
-	"@mir.agon.key.poll":  "__agon_key_poll",
+	"@mir.agon.fs.open":      "__agon_fs_open",
+	"@mir.agon.fs.close":     "__agon_fs_close",
+	"@mir.agon.fs.read":      "__agon_fs_read",
+	"@mir.agon.dir.open":     "__agon_dir_open",
+	"@mir.agon.dir.close":    "__agon_dir_close",
+	"@mir.agon.dir.read":     "__agon_dir_read",
+	"@mir.agon.key.poll":     "__agon_key_poll",
+	"@mir.agon.screen.begin": "__agon_screen_begin",
+	"@mir.agon.screen.end":   "__agon_screen_end",
 }
 
-func agonFrontendRequirements(m *Module) (files, keys bool, err error) {
+func agonFrontendRequirements(m *Module) (files, keys, screen bool, err error) {
 	for _, f := range m.Funcs {
 		for _, b := range f.Blocks {
 			for _, i := range b.Insts {
@@ -23,9 +25,11 @@ func agonFrontendRequirements(m *Module) (files, keys bool, err error) {
 					continue
 				}
 				if len(i.Args) != 0 || i.Ty != TyU8 || len(i.ExtraRets) != 0 {
-					return false, false, fmt.Errorf("agon-z80 frontend intrinsic %s requires no arguments and one byte result", i.Sym)
+					return false, false, false, fmt.Errorf("agon-z80 frontend intrinsic %s requires no arguments and one byte result", i.Sym)
 				}
-				if i.Sym == "@mir.agon.key.poll" {
+				if strings.HasPrefix(i.Sym, "@mir.agon.screen.") {
+					screen = true
+				} else if i.Sym == "@mir.agon.key.poll" {
 					keys = true
 				} else {
 					files = true
@@ -43,7 +47,7 @@ func agonFrontendRequirements(m *Module) (files, keys bool, err error) {
 				}
 			}
 			if !found {
-				return false, false, fmt.Errorf("agon-z80 frontend requires owned %s byte buffer of size%d", name, size)
+				return false, false, false, fmt.Errorf("agon-z80 frontend requires owned %s byte buffer of size%d", name, size)
 			}
 		}
 	}
@@ -51,7 +55,7 @@ func agonFrontendRequirements(m *Module) (files, keys bool, err error) {
 }
 
 func addAgonFrontendRuntime(assembly string, m *Module) (string, error) {
-	files, keys, e := agonFrontendRequirements(m)
+	files, keys, screen, e := agonFrontendRequirements(m)
 	if e != nil {
 		return "", e
 	}
@@ -65,13 +69,17 @@ func addAgonFrontendRuntime(assembly string, m *Module) (string, error) {
 	if keys {
 		assembly += agonKeyboardRuntime()
 	}
-	if files {
-		// Resource cleanup uses the owned short stack, never the caller's stack.
-		// Caller SPS may immediately border an image at the admitted F000 bound.
+	if screen {
+		assembly = strings.Replace(assembly, "    LD.LIL SP, ($040000+__agon_frame_spl)\n", "    LD.LIL SP, ($040000+__agon_frame_spl)\n    CALL __agon_screen_cleanup\n", 1)
+		assembly += agonScreenRuntime()
+	}
+	if files || screen {
+		// Resource cleanup must not push onto the caller's admitted short stack:
+		// at its lower bound that stack can immediately border the image.
 		assembly = strings.Replace(assembly, "    LD SP, (__agon_saved_sps)\n", "    LD SP, __agon_stack_top\n", 1)
 		assembly = strings.Replace(assembly, "    LD HL, __agon_stack_guard\n", "    LD SP, (__agon_saved_sps)\n    LD HL, __agon_stack_guard\n", 1)
 	}
-	if files || keys {
+	if files || keys || screen {
 		assembly = strings.Replace(assembly, "__agon_image_end:\n", "", 1)
 		assembly += "\n__agon_native_result: DB 0\n__agon_image_end:\n"
 	}
@@ -448,4 +456,44 @@ __agon_key_seen: DB 0
 __agon_key_pending: DB 0
 __agon_key_queue: DS 2, 0
 `
+}
+
+// BBC VDU viewport/cursor lifecycle. Clearing active before restoration makes a
+// console failure during cleanup finite: the second cleanup skips the screen.
+func agonScreenRuntime() string {
+	s := agonNativeLeaf("__agon_screen_begin", `
+    LD A, 1
+    LD (__agon_screen_active), A
+    LD HL, __agon_screen_begin_bytes
+    CALL __agon_screen_emit
+    XOR A
+`)
+	s += agonNativeLeaf("__agon_screen_end", `
+    CALL __agon_screen_cleanup
+    XOR A
+`)
+	s += `
+__agon_screen_cleanup:
+    LD A, (__agon_screen_active)
+    OR A
+    RET Z
+    XOR A
+    LD (__agon_screen_active), A
+    LD HL, __agon_screen_end_bytes
+__agon_screen_emit:
+    LD B, (HL)
+    INC HL
+__agon_screen_emit_loop:
+    LD A, (HL)
+    CALL __agon_putchar
+    INC HL
+    DJNZ __agon_screen_emit_loop
+    RET
+__agon_screen_active: DB 0
+; Reset viewport, clear, 80x24 text viewport (left,bottom,right,top), hide.
+__agon_screen_begin_bytes: DB 10,26,12,28,0,23,79,0,23,1,0
+; Reset to normal full-screen viewport, show cursor, next output below grid.
+__agon_screen_end_bytes: DB 7,26,23,1,1,31,0,24
+`
+	return s
 }

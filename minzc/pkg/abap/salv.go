@@ -221,8 +221,8 @@ func (l *lowerer) lowerSalvDisplay(s *SalvDisplayStmt) (hir.Stmt, error) {
 	if table == nil {
 		return nil, fmt.Errorf("SALV DISPLAY %s appears before a proven FACTORY binding", s.Handle)
 	}
-	if l.hm.Target != hir.TargetCPM {
-		return nil, fmt.Errorf("SALV platform adapter currently requires CP/M; Agon MOS must bind native output/key leaves")
+	if l.hm.Target != hir.TargetCPM && l.hm.Target != hir.TargetAgon {
+		return nil, fmt.Errorf("SALV platform adapter requires CP/M or Agon")
 	}
 	descriptor, width, err := salvDescriptor(table.line)
 	if err != nil {

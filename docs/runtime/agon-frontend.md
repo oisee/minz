@@ -84,3 +84,21 @@ useful preliminary API tests only. Filesystem/native-stack evidence uses
 MOS FatFS/SPI path, full eZ80 execution and full VDP with real SDL events.
 Physical SD hardware is a separate claim. The native final SALV grid and remaining
 negative/cancel/error gates must pass before the full F4 CSV ALV goal is complete.
+
+SALV uses the shared compiled 80-column, 24-row layout and key decoder. Its Agon
+adapter emits BBC VDU commands: reset text viewport (26), clear (12), set text
+viewport (28, left0/bottom23/right79/top0), hide cursor (23,1,0), and position
+cursor (31,x,y). Normal completion resets the full viewport, shows the cursor,
+and places subsequent MOS output below the grid. It does not send ANSI escapes
+to the VDP. The pinned default VDP mode provides at least80columns and24rows;
+changing video mode while a report is running is outside this adapter contract.
+
+The screen lifecycle uses finite no-argument, byte-result compiler intrinsics
+`@mir.agon.screen.begin` and `@mir.agon.screen.end`; ordinary compiled cursor
+placement uses the existing canonical byte console leaf. The owned screen-active
+byte makes cleanup conditional. Fault cleanup clears that byte before emitting
+the reset sequence, so a console failure during restoration cannot recurse
+indefinitely. Native filesystem and screen cleanup run on the reset reserved
+application short stack, with the saved long-stack frame restored; the caller's
+short stack is restored only after those calls finish. This preserves caller
+words even at the admitted lower short-stack boundary beside a full-size image.
