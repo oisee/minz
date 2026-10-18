@@ -74,16 +74,26 @@ unknown handler's depth. Native tests run with genuine default MOS/VDP interrupt
 
 ## Pinned console effects
 
-Source `/home/alice/dev/minz-artifacts/grace-tools/agon-mos-source` at
-f19be830c59176bb319305fe112d33d76ba9e849 documents exec16 in src/misc.S161..202:
-MB derives from the load bank, CALL.IS enters mode0, outer RET.LIS is required,
-and firmware subsequently restores MB/IX/IY. In src/handlers.S22..23, rst10 calls
-UART0_serial_PUTCH and RET.L. src/serial.S79..111,205..222 uses AF and temporary
-BC (BC is saved/restored); other primary/alternate registers and IX/IY are not
-used. The native byte bridge preserves AF and uses genuine RST.LIS10; it checks
+The tested Console8 MOS2.3.3 binary has SHA256
+`5fbacb749ee037f0428aeac39817b5a6d465adc020f92d4020bb7dcb046d39fe`.
+Its bundled symbol map and native debugger observations establish the launch
+and mixed-return contract above. A direct ROM-byte audit finds the RST10
+JP.LIL vector to00141C, CALL0010CA/RET.L handler, UART0 PUTCH at0010CA,
+TX at001056 and flow-control loop at001044. That leaf closure uses AF and
+saves/restores temporary BC; DE/HL/IX/IY and alternate registers are untouched.
+The native byte bridge preserves AF and uses genuine RST.LIS10; it checks
 transmit carry and performs terminal cleanup on failure. It performs no CP/M
-CALL5 or host service interception. Long-immediate assembler suffixes must use
-the separately reviewed width fix; runtime code contains no raw-byte workaround.
+CALL5. The console-only native proof does not depend on a host filesystem.
+
+The version-matched source reference is
+[Console8 MOS v2.3.3](https://github.com/AgonPlatform/agon-mos/tree/454e32a5c75cc0373de27ffd09667dc13f36f651),
+not a reproduced build of the bundled ROM. The previously inspected
+`agon-mos-source` commitf19be830c59176bb319305fe112d33d76ba9e849 is a later
+Rainbow fork and is not the exact Console8 build. Its source line numbers must
+not be used as binary provenance. ROM/map hashes, byte slices, source/release
+comparisons and native observations are preserved together in the local evidence.
+Long-immediate suffixes use the separately reviewed width fix; runtime code
+contains no raw-byte workaround.
 
 Full F4 CSV ALV, MOS file/key/directory services, arbitrary unsafe pointer
 programs and physical hardware/SD behavior require their own admission and tests.
