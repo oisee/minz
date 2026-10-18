@@ -1,0 +1,84 @@
+{
+  "schema": "minz.design-review/v1",
+  "subject": "Nanz stackless generators and lazy iteration",
+  "source_base": "5fff4123c12538d7cb046b4b5bf7bee6366fb7cd",
+  "implementation_status": "proposal_only",
+  "reviewers": [
+    {
+      "name": "Codex Sol",
+      "model": "gpt-6.1-sol",
+      "reasoning": "xhigh",
+      "status": "completed",
+      "artifact": "codex-sol-xhigh.md"
+    },
+    {
+      "name": "Z.ai GLM",
+      "model": "glm-5.3",
+      "reasoning": "high",
+      "profile": "zai",
+      "profile_file_modified": false,
+      "status": "completed",
+      "artifact": "glm53-high.md"
+    },
+    {
+      "name": "Claude",
+      "requested_model": "opus",
+      "requested_effort": "high",
+      "status": "unavailable",
+      "api_failure": "Credit balance is too low",
+      "subscription_failure": "You've hit your weekly limit; resets Oct 20, 6am UTC"
+    }
+  ],
+  "adopted": "Caller-owned stackless pull state; same semantics for immediate fusion; concrete protocol before generic traits; separate queue and scheduler contracts.",
+  "disagreements": [
+    "Generator-aware HIR versus early frontend desugaring",
+    "Nested RLE first versus byte cursor before nested generators",
+    "Initial immovable frame versus move-only assignment"
+  ],
+  "rejected_claims": [
+    "GLM handwritten sum changes accumulator via OR B before summation; RET Z size/timing wrong; ratios are not benchmark evidence."
+  ],
+  "local_archive": "minz-artifacts/grace-reports/2026-10-18/nanz-generators-design",
+  "artifacts": [
+    {
+      "path": "prompt.txt",
+      "bytes": 3439,
+      "sha256": "76eb323b0cca9a7a2d5d956ba903473c163b453a5a95aa727a18352217d443b0"
+    },
+    {
+      "path": "codex-sol-xhigh.md",
+      "bytes": 12180,
+      "sha256": "25a9a94b9ac3f176e5fabf8382153342dc9914750abbf2c98f37a66334666aaf"
+    },
+    {
+      "path": "glm53-high.md",
+      "bytes": 36181,
+      "sha256": "c212a578df098ece61c95ee429c7a35517a65d3d7be54c605833f0916a9d93c1"
+    },
+    {
+      "path": "glm53-high.log",
+      "bytes": 482121,
+      "sha256": "4a99a754b0598acbe0cf7fe948222c0f2e597e06c1dc2234ee2d95b1b34385c1"
+    },
+    {
+      "path": "claude-opus-high.md",
+      "bytes": 26,
+      "sha256": "2d261f78bd528eea493c197ee3fd6b424be3251d4e557faa3c1da9f86e0678a9"
+    },
+    {
+      "path": "claude-opus-high.log",
+      "bytes": 192,
+      "sha256": "102c9d2f90f67e102799d30f087cfbb7655a656b42fb3fcee8c1a3ed64bc4bde"
+    },
+    {
+      "path": "claude-opus-high-oauth.md",
+      "bytes": 57,
+      "sha256": "be25c955e3767fa81bb263b183c5f8acb83255b8d52a45d80a98224e862622c2"
+    },
+    {
+      "path": "claude-opus-high-oauth.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}
