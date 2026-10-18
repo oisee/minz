@@ -19,6 +19,11 @@ func (g *z80cg) genCall(inst *Inst) error {
 		if len(inst.Args) != 0 || inst.Dst != NoReg || len(inst.ExtraRets) != 0 || inst.Ty != TyVoid {
 			return fmt.Errorf("halt requires a void call without arguments or results")
 		}
+		if g.runtime == Z80RuntimeAgonZ80 {
+			g.emit("    LD A, 1")
+			g.emit("    JP __agon_fail")
+			return nil
+		}
 		if g.cpmApplicationEntry {
 			// A terminal fault can occur in any nested frame. Abandon the whole
 			// application stack and restore the caller through the entry cleanup.

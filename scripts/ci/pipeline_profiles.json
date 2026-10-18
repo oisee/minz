@@ -7,6 +7,7 @@
     "TestAggregateAddressClassesNative",
     "TestAgonCalledVoidMainEntry",
     "TestAgonCorpusADLProducts",
+    "TestAgonZ80RejectsOpaqueASMAndRecursion",
     "TestAlignedLUTAddressStillUsableForStoreNative",
     "TestAlignedLUTNoLiveNeighbourRetainsFastPath",
     "TestAlignedLUTRetainsLiveHighByteNative",

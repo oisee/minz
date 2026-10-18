@@ -171,7 +171,9 @@ __cpm_image_end:
 `
 
 func (g *z80cg) emitConsoleA() {
-	if g.runtime == Z80RuntimeCPM {
+	if g.runtime == Z80RuntimeAgonZ80 {
+		g.emit("    CALL __agon_putchar")
+	} else if g.runtime == Z80RuntimeCPM {
 		g.emit("    CALL __cpm_putchar")
 	} else {
 		g.emit("    OUT (0x23), A")

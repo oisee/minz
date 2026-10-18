@@ -259,8 +259,8 @@ func init() {
 	rootCmd.Flags().StringVar(&hirProfileAutoWorkload, "hir-profile-auto-workload", "", "controlled workload JSON for --hir-profile-auto")
 	rootCmd.Flags().StringVar(&contractStrategy, "contract-strategy", "", "interprocedural contracts: greedy (default) or experimental pbqp")
 	rootCmd.Flags().StringVarP(&backend, "backend", "b", defaultBackend, "target backend (z80, ez80)")
-	rootCmd.Flags().IntVar(&runtimeStackBytes, "runtime-stack", 0, "explicit guarded CP/M stack bytes (even 64..16384; enables recursive calls)")
-	rootCmd.Flags().StringVar(&runtimeMode, "runtime", "", "explicit application runtime: cpm (console and byte-memory ABI, proven resident 256-byte stack)")
+	rootCmd.Flags().IntVar(&runtimeStackBytes, "runtime-stack", 0, "resident stack bytes: cpm even 64..16384; agon-z80 even 128..16384 (default 1024)")
+	rootCmd.Flags().StringVar(&runtimeMode, "runtime", "", "explicit application runtime: cpm (guarded byte-memory ABI), agon-z80 (native MOS Z80-mode ABI)")
 	rootCmd.Flags().StringVarP(&target, "target", "t", "zxspectrum", "target platform (zxspectrum, cpm, msx, cpc, amstrad)")
 	rootCmd.Flags().StringVarP(&outputFormat, "format", "f", "", "output format: code (raw binary, default), sna, tap")
 	rootCmd.Flags().BoolVar(&forceOutput, "force", false, "overwrite existing implicit .generated.c output")
@@ -907,6 +907,9 @@ func compileViaHIR(sourceFile string) error {
 		}
 	case ".abap":
 		hirMod, err = abap.Compile(string(src), filepath.Base(sourceFile), hir.TargetFromString(target))
+		if err == nil && runtimeMode == "agon-z80" {
+			err = abap.BindAgonZ80Runtime(hirMod)
+		}
 		if err != nil {
 			return fmt.Errorf("ABAP compile: %w", err)
 		}
@@ -1383,6 +1386,9 @@ func compileViaHIR(sourceFile string) error {
 
 	// Otherwise assemble to binary
 	asmTarget := target
+	if runtimeMode == "agon-z80" {
+		asmTarget = "agon-z80"
+	}
 	if backend == "ez80" {
 		asmTarget = "agon" // eZ80 backend always targets Agon Light 2
 	}

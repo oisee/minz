@@ -1,0 +1,18 @@
+{
+  "source_sha256": "9e6362b759a392c0835165a9fca96d08f432a3cc63f670ef62ae59c399187542",
+  "provider": "@abaplint/transpiler + @abaplint/runtime 2.14.8",
+  "node": "v22.23.3",
+  "entry": "full report",
+  "values": {
+    "low": -2147418112,
+    "high": 2147418111,
+    "wide": 196609,
+    "negative": 131072
+  },
+  "sy": {
+    "tabix": 0,
+    "subrc": 0,
+    "index": 0
+  },
+  "output": "MIN=-2147483648;MAX=2147483647;-2147418112;2147418111;196609;131072"
+}

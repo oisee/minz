@@ -162,13 +162,27 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 	if err != nil {
 		return s, err
 	}
-	if err := mir2.ValidateCPMRuntimeStack(opt.Runtime, opt.RuntimeStackBytes); err != nil {
+	if err := mir2.ValidateRuntimeStack(opt.Runtime, opt.RuntimeStackBytes); err != nil {
 		return Steps{}, err
+	}
+	if opt.Runtime == mir2.Z80RuntimeAgonZ80 && opt.AssertMode != "none" && (len(hm.Asserts) > 0 || len(hm.Sandboxes) > 0) {
+		return s, fmt.Errorf("agon-z80 application runtime assertions require a separate workload; use AssertMode none")
 	}
 	if opt.Runtime != "" && opt.AssertMode != "none" && len(hm.Asserts) > 0 {
 		return s, fmt.Errorf("CP/M application runtime assertions require a separate workload; use AssertMode none")
 	}
-	if opt.Runtime != "" && (opt.Runtime != mir2.Z80RuntimeCPM || hm.Target != hir.TargetCPM || opt.Backend != "" && opt.Backend != "z80" || opt.ProfileSelection != nil || opt.SkipZ80Emission) {
+	if opt.Runtime == mir2.Z80RuntimeAgonZ80 {
+		if hm.Target != hir.TargetAgon || opt.Backend != "" && opt.Backend != "z80" || opt.ProfileSelection != nil || opt.SkipZ80Emission || opt.CheckedLocalTablePath != "" {
+			return s, fmt.Errorf("agon-z80 runtime requires emitted Agon Z80 without measured profile selection")
+		}
+		// Inspect source HIR before inlining/pruning. Opaque dead bodies or
+		// caller-supplied Internal markers must not grant native ABI admission.
+		for _, fact := range hir.AnalyzeFacts(hm).Functions {
+			if fact.Direct&hir.UnknownEffect != 0 || fact.Recursive {
+				return s, fmt.Errorf("agon-z80 rejects opaque/unsupported or recursive HIR body %s", fact.Name)
+			}
+		}
+	} else if opt.Runtime != "" && (opt.Runtime != mir2.Z80RuntimeCPM || hm.Target != hir.TargetCPM || opt.Backend != "" && opt.Backend != "z80" || opt.ProfileSelection != nil || opt.SkipZ80Emission) {
 		return s, fmt.Errorf("CP/M runtime requires emitted CPM Z80 without measured profile selection")
 	}
 	if opt.CPMApplicationEntry && (opt.Runtime != "" || hm.Target != hir.TargetCPM || opt.Backend != "" && opt.Backend != "z80" || opt.ProfileSelection != nil || opt.SkipZ80Emission || opt.AssertMode != "none" && (len(hm.Asserts) > 0 || len(hm.Sandboxes) > 0)) {
@@ -431,7 +445,7 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 		var codegenErr error
 		s.Assembly, codegenErr = mir2.Z80Codegen(m, combined, mir2.Z80CodegenOptions{
 			OptimizeForSize:           opt.OptSize,
-			CalledMain:                opt.Backend == "ez80" || opt.CPMApplicationEntry,
+			CalledMain:                opt.Backend == "ez80" || opt.CPMApplicationEntry || opt.Runtime == mir2.Z80RuntimeAgonZ80,
 			CPMApplicationEntry:       opt.CPMApplicationEntry,
 			Runtime:                   opt.Runtime,
 			RuntimeStackBytes:         opt.RuntimeStackBytes,
@@ -553,7 +567,7 @@ func CompileHIRWithOptions(hm *hir.Module, opts Options) (string, error) {
 	}
 	// MIR Grace has one implementation and one option/size policy in the steps
 	// pipeline. Do not silently run the legacy passes for an explicit request.
-	if err := mir2.ValidateCPMRuntimeStack(opts.Runtime, opts.RuntimeStackBytes); err != nil {
+	if err := mir2.ValidateRuntimeStack(opts.Runtime, opts.RuntimeStackBytes); err != nil {
 		return "", err
 	}
 	if opts.UseGrace || opts.Runtime != "" || opts.CPMApplicationEntry || opts.ProfileSelection != nil {
