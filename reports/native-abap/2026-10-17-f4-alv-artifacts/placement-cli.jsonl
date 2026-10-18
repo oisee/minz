@@ -1,0 +1,4 @@
+{"case": "cpm", "exit": 0, "bytes": 25588, "end_exclusive": "0x64f4", "CALL5_count": 14, "log": ""}
+{"case": "guarded", "exit": 1, "bytes": 0, "end_exclusive": "0x100", "CALL5_count": 0, "log": "Error: HIR compile: CP/M runtime rejects ASM without canonical body: sel_show\n"}
+{"case": "agon", "exit": 0, "bytes": 28608, "end_exclusive": "0x46fc0", "CALL5_count": 14, "log": ""}
+{"case": "agon_ez80", "exit": 1, "bytes": 0, "end_exclusive": "0x40000", "CALL5_count": 0, "log": "Error: HIR compile: wide memory main load: invalid value home A (src=[429 0] dst=430)\n"}

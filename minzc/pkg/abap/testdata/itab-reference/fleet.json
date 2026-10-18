@@ -1,0 +1,42 @@
+{
+  "source_sha256": "1dce7233cecdd8528d08ab5d56fc8b48788b8f5169ffd91c9890fc36c0d2721e",
+  "provider": "@abaplint/transpiler + @abaplint/runtime 2.14.8",
+  "node": "v22.23.3",
+  "entry": "full report",
+  "values": {
+    "ship": {
+      "name": "DORADO-X",
+      "crew": 2147483,
+      "cargo": 0
+    },
+    "other": {
+      "name": "CALYPSO ",
+      "crew": 2147483,
+      "cargo": 5
+    },
+    "fleet": [
+      {
+        "name": "CALYPSO ",
+        "crew": 2147483,
+        "cargo": 5
+      },
+      {
+        "name": "DORADO-X",
+        "crew": 2147483,
+        "cargo": 0
+      }
+    ],
+    "total": 6442475,
+    "seen": 12300240,
+    "pairs": 6783,
+    "lines_now": 3,
+    "described": 3,
+    "after": 42
+  },
+  "sy": {
+    "tabix": 2,
+    "subrc": 4,
+    "index": 0
+  },
+  "output": "AURORA=12;BOREAS=7;CALYPSO=2147483;CALYPSO/0"
+}

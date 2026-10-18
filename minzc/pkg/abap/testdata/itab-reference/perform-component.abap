@@ -1,0 +1,11 @@
+REPORT zprobe.
+TYPES: BEGIN OF ty, n TYPE i, tag TYPE c LENGTH 3, END OF ty.
+DATA ls TYPE ty.
+DATA rows TYPE STANDARD TABLE OF ty WITH EMPTY KEY INITIAL SIZE 2.
+ls-n = 41.
+PERFORM bump CHANGING ls-n.
+APPEND ls TO rows.
+WRITE |{ ls-n }|.
+FORM bump CHANGING n TYPE i.
+ n = n + 1.
+ENDFORM.

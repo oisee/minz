@@ -1,0 +1,35 @@
+--- FAIL: TestInternalTableCapacityAdmission (0.33s)
+    --- FAIL: TestInternalTableCapacityAdmission/max_int_capacity (0.03s)
+panic: runtime error: makeslice: len out of range [recovered, repanicked]
+
+goroutine 82 [running]:
+testing.tRunner.func1.2({0x1826f20, 0x1b62cc0})
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/testing/testing.go:1974 +0x232
+testing.tRunner.func1()
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/testing/testing.go:1977 +0x349
+panic({0x1826f20?, 0x1b62cc0?})
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/panic.go:860 +0x13a
+github.com/minz/minzc/pkg/abap.(*lowerer).tableGlobal(0x3f5c34365a00, 0x3f5c34a95080)
+	/tmp/minz-itab-capacity-worker/minzc/pkg/abap/itab_lower.go:106 +0x225
+github.com/minz/minzc/pkg/abap.(*lowerer).lowerGlobal(0x18363c0?, 0x3f5c3445b3b0?)
+	/tmp/minz-itab-capacity-worker/minzc/pkg/abap/lower.go:751 +0x5df
+github.com/minz/minzc/pkg/abap.(*lowerer).lower(0x3f5c34365a00)
+	/tmp/minz-itab-capacity-worker/minzc/pkg/abap/lower.go:299 +0xadd
+github.com/minz/minzc/pkg/abap.LowerProgramWithTarget(0x3f5c35900380, 0x0)
+	/tmp/minz-itab-capacity-worker/minzc/pkg/abap/lower.go:202 +0x1ce
+github.com/minz/minzc/pkg/abap.Compile({0x3f5c34506000?, 0x91?}, {0x1a32ccf, 0x9}, {0x0?, 0x3f5c342f60f0?, 0x52880d?})
+	/tmp/minz-itab-capacity-worker/minzc/pkg/abap/lower.go:128 +0x297
+github.com/minz/minzc/pkg/abap.TestInternalTableCapacityAdmission.func1(0x3f5c3491e008)
+	/tmp/minz-itab-capacity-worker/minzc/pkg/abap/itab_capacity_overflow_test.go:38 +0xc8
+testing.tRunner(0x3f5c3491e008, 0x3f5c343c79c0)
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/testing/testing.go:2036 +0xea
+created by testing.(*T).Run in goroutine 51
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/testing/testing.go:2101 +0x4c5
+FAIL	github.com/minz/minzc/pkg/abap	0.361s
+FAIL
+--- FAIL: TestInternalTableCapacityAdmission (0.03s)
+    --- FAIL: TestInternalTableCapacityAdmission/positive_wrapped_product (0.03s)
+        itab_capacity_overflow_test.go:41: Compile() error = <nil>, want table capacity rejection
+FAIL
+FAIL	github.com/minz/minzc/pkg/abap	0.040s
+FAIL

@@ -36,6 +36,19 @@ func (l *lowerer) characterExpr(e Expr_) (characterBinding, bool, error) {
 	case *VarRef:
 		b, ok := l.characters[v.Name]
 		return b, ok, nil
+	case *FieldAccess:
+		obj, ok := v.Obj.(*VarRef)
+		if !ok {
+			return characterBinding{}, false, fmt.Errorf("unsupported component access")
+		}
+		o, c, err := l.component(obj.Name, v.Field)
+		if err != nil {
+			return characterBinding{}, false, err
+		}
+		if c.abapTy != "c" {
+			return characterBinding{}, false, nil
+		}
+		return componentCharacter(o, c), true, nil
 	case *StringLit:
 
 		if err := asciiCharacter(v.Val); err != nil {

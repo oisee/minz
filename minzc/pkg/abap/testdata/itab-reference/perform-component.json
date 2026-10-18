@@ -1,0 +1,24 @@
+{
+  "source_sha256": "cdd131ecbdc42c9a165ca12721d2535fdfdfd21c208ce12c724d65f7aa8bb306",
+  "provider": "@abaplint/transpiler + @abaplint/runtime 2.14.8",
+  "node": "v22.23.3",
+  "entry": "full report",
+  "values": {
+    "ls": {
+      "n": 42,
+      "tag": "   "
+    },
+    "rows": [
+      {
+        "n": 42,
+        "tag": "   "
+      }
+    ]
+  },
+  "sy": {
+    "tabix": 1,
+    "subrc": 0,
+    "index": 0
+  },
+  "output": "42"
+}

@@ -75,6 +75,31 @@ func (p *expressionParser) parse(min int) (Expr_, error) {
 		}
 	default:
 		lhs, err = expressionAtom(t)
+		// name( args ): only built-in functions are callable in expressions.
+		if err == nil && p.pos < len(p.tokens) && p.tokens[p.pos] == "(" {
+			v, ok := lhs.(*VarRef)
+			if !ok {
+				return nil, fmt.Errorf("unsupported call of %q", t)
+			}
+			// Only lines( itab ) is admitted; other built-ins stay refused here.
+			if !strings.EqualFold(v.Name, "lines") {
+				return nil, fmt.Errorf("built-in function %s( ) is not implemented", strings.ToLower(v.Name))
+			}
+			p.pos++
+			call := &FuncCall{Name: strings.ToLower(v.Name)}
+			for p.pos < len(p.tokens) && p.tokens[p.pos] != ")" {
+				arg, aerr := p.parse(1)
+				if aerr != nil {
+					return nil, aerr
+				}
+				call.Args = append(call.Args, arg)
+			}
+			if p.pos == len(p.tokens) {
+				return nil, fmt.Errorf("missing closing parenthesis of %s( )", call.Name)
+			}
+			p.pos++
+			lhs = call
+		}
 	}
 	if err != nil {
 		return nil, err
@@ -112,6 +137,18 @@ func expressionAtom(s string) (Expr_, error) {
 	}
 	if expressionIdentifier(s) {
 		return &VarRef{Name: s}, nil
+	}
+	// A joined component selector a-b (see selectorTokens).
+	if parts := strings.Split(s, "-"); len(parts) > 1 {
+		for _, part := range parts {
+			if !expressionIdentifier(part) {
+				return nil, fmt.Errorf("unsupported expression operand %q", s)
+			}
+		}
+		if len(parts) != 2 {
+			return nil, fmt.Errorf("component selector %s: nested structures are not implemented", s)
+		}
+		return &FieldAccess{Obj: &VarRef{Name: parts[0]}, Field: strings.ToLower(parts[1])}, nil
 	}
 	return nil, fmt.Errorf("unsupported expression operand %q", s)
 }
