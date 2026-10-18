@@ -13,6 +13,19 @@ import (
 func (g *z80cg) genCall(inst *Inst) error {
 	clear(g.holdsPhys) // calls clobber all volatile registers
 
+	if label, native := agonFrontendCalls[inst.Sym]; native {
+		if g.runtime != Z80RuntimeAgonZ80 {
+			return fmt.Errorf("Agon native frontend requires explicit agon-z80 runtime")
+		}
+		if len(inst.Args) != 0 || inst.Ty != TyU8 || len(inst.ExtraRets) != 0 {
+			return fmt.Errorf("Agon native frontend requires no arguments and a byte result")
+		}
+		g.emit("    CALL " + label)
+		if inst.Dst != NoReg {
+			g.emitMov(g.loc(inst.Dst), "A", 8)
+		}
+		return nil
+	}
 	// ── Built-in intrinsics (inlined, no CALL emitted) ────────────────────────
 	switch inst.Sym {
 	case "@mir.io.halt":

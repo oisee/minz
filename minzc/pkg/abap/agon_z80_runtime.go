@@ -59,6 +59,10 @@ func BindAgonZ80Runtime(m *hir.Module) error {
 			return fmt.Errorf("agon-z80 unresolved ABAP call %s", name)
 		}
 		live[name] = true
+		if name == "abap_write_str" && known[name] {
+			f.Body = &hir.Block{Body: []hir.Stmt{&hir.ExprStmt{Expr: &hir.CallExpr{Fn: "@mir.io.print.str", Args: []hir.Expr{&hir.VarRefExpr{Name: f.Params[0].Name, Ty: mir2.TyPtr}}, Ty: mir2.TyVoid}}}}
+			return nil
+		}
 		if name == "_abap_num_putchar" && known[name] {
 			f.Body = &hir.Block{Body: []hir.Stmt{&hir.ExprStmt{Expr: &hir.CallExpr{
 				Fn: "@mir.io.print.char", Args: []hir.Expr{&hir.VarRefExpr{Name: f.Params[0].Name, Ty: mir2.TyU8}}, Ty: mir2.TyVoid,

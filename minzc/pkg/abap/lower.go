@@ -377,8 +377,8 @@ func (l *lowerer) lower() (*hir.Module, error) {
 				found = true
 			}
 		}
-		if !found || l.hm.Target != hir.TargetCPM {
-			return nil, fmt.Errorf("ON VALUE-REQUEST FOR %s requires a CP/M TYPE c parameter", name)
+		if !found || (l.hm.Target != hir.TargetCPM && l.hm.Target != hir.TargetAgon) {
+			return nil, fmt.Errorf("ON VALUE-REQUEST FOR %s requires a supported CP/M or Agon TYPE c parameter", name)
 		}
 		call, err := l.lowerRegularEvent(event, 0, l.prog.Events[event])
 		if err != nil {

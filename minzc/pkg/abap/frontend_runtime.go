@@ -375,7 +375,7 @@ func emitFrontendRuntime(hm *hir.Module) error {
 	if !needed {
 		return nil
 	}
-	if hm.Target != hir.TargetCPM {
+	if hm.Target != hir.TargetCPM && hm.Target != hir.TargetAgon {
 		return fmt.Errorf("frontend filesystem adapter not implemented for target %d", hm.Target)
 	}
 	m, err := nanz.Parse(fmt.Sprintf(frontendRuntime, frontendEscapePollBudget), "abap-frontend-runtime.nanz")
@@ -398,6 +398,9 @@ func emitFrontendRuntime(hm *hir.Module) error {
 			hm.Globals = append(hm.Globals, mir2.Global{Name: sym, Ty: mir2.NewArray(mir2.TyU8, b.size)})
 		}
 		hm.Funcs = append(hm.Funcs, &hir.Func{Name: "_abap_fs_" + b.name, Internal: true, RetTy: mir2.TyPtr, Body: &hir.Block{Body: []hir.Stmt{&hir.ReturnStmt{Val: &hir.AddrOfExpr{Sym: sym}}}}})
+	}
+	if hm.Target == hir.TargetAgon {
+		return emitAgonFrontendRuntime(hm)
 	}
 	for _, op := range []struct{ name, code string }{
 		{"open", "LD DE, _abap_fs_fcb_buffer / LD C, 15 / CALL 5"},

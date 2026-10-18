@@ -54,8 +54,8 @@ DATA rc TYPE i. DATA action TYPE i. DATA text TYPE c LENGTH 12.
 			}
 		})
 	}
-	for _, target := range []uint8{hir.TargetZXSpectrum, hir.TargetAgon} {
-		if _, err := Compile(decl+upload, "zadmit", target); err == nil || !strings.Contains(err.Error(), "CP/M BDOS only") {
+	for _, target := range []uint8{hir.TargetZXSpectrum} {
+		if _, err := Compile(decl+upload, "zadmit", target); err == nil || !strings.Contains(err.Error(), "ZX TR-DOS") {
 			t.Fatalf("target%d: %v", target, err)
 		}
 	}
