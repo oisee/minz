@@ -134,6 +134,8 @@ func Compile(src, name string, target ...uint8) (*hir.Module, error) {
 		return nil, err
 	}
 
+	namespaceABAPRuntimeBindings(hm)
+
 	// Scan source for assert comments (* assert fn(args) == expected [via mir2|z80]).
 	for i, line := range strings.Split(src, "\n") {
 		m := abapAssertRe.FindStringSubmatch(line)
