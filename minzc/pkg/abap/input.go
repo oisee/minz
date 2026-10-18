@@ -12,9 +12,9 @@ const integer32Input = `
 @extern fun _abap_input_line() -> u8
 @extern fun _abap_input_data() -> ^u8
 
-fun _abap_parse_i32(data: ^u8, count: u8) -> i32 {
+fun _abap_parse_text_i32(data: ^u8, count: u16) -> i32 {
     var first: u16 = 0
-    var end: u16 = u16(count)
+    var end: u16 = count
     while first < end {
         if data[first] != 32 { break }
         first = first + 1
@@ -58,6 +58,19 @@ fun _abap_parse_i32(data: ^u8, count: u8) -> i32 {
     if negative { magnitude = u32(0) - magnitude }
     return i32(magnitude)
 }
+
+// ABAP assignment initializes an empty/space-only character value to zero.
+// Keep console-input parsing separate: its existing strict grammar is unchanged.
+fun _abap_parse_assignment_i32(data: ^u8, count: u16) -> i32 {
+    var i: u16 = 0
+    while i < count {
+        if data[i] != 32 { return _abap_parse_text_i32(data, count) }
+        i = i + 1
+    }
+    return 0
+}
+
+fun _abap_parse_i32(data: ^u8, count: u8) -> i32 { return _abap_parse_text_i32(data, u16(count)) }
 
 fun _abap_read_i32(dst: ^i32) -> void {
     var count: u8 = _abap_input_line()

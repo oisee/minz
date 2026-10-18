@@ -245,7 +245,6 @@ func TestStringAdmission(t *testing.T) {
 	for _, src := range []string{
 		"DATA x TYPE string. x = 7.",
 		"DATA x TYPE string. x = x && x.",
-		"DATA x TYPE string. DATA y TYPE i. y = x.",
 		"PARAMETERS x TYPE string.",
 		"DATA x TYPE string VALUE 'é'.",
 		"FORM probe USING x TYPE string. ENDFORM. PERFORM probe USING `X`.",

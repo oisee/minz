@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -334,8 +335,9 @@ func parsePort(s string) (byte, error) {
 func setupCPMBDOS(z80 *emulator.RemogattoZ80WithScreen) {
 	dmaAddr := uint16(0x0080)
 	currentDisk := byte(0)
-	fileHandles := make(map[byte]*os.File) // FCB cr byte → host file
-	nextHandle := byte(1)
+	fileHandles := make(map[uint16]*os.File) // FCB address owns the host handle; CR stays a record index
+	var searchEntries [][11]byte
+	searchIndex := 0
 	var pendingInput *byte
 	var tickInput *cpmTickInput
 	if cpmInputTickMS > 0 {
@@ -406,24 +408,18 @@ func setupCPMBDOS(z80 *emulator.RemogattoZ80WithScreen) {
 		return s
 	}
 
-	// Find file on host filesystem (case-insensitive search)
+	// Shared ASCII8.3 namespace resolver. No Unicode aliases, host paths,
+	// symlinks or ambiguous case-folded identities can be reopened here.
 	findFile := func(name string) string {
-		// Try exact match first
-		p := filepath.Join(cpmDir, name)
-		if _, err := os.Stat(p); err == nil {
-			return p
-		}
-		// Try case-insensitive
-		entries, err := os.ReadDir(cpmDir)
-		if err != nil {
+		canonical, ok := cpmName83(name)
+		if !ok {
 			return ""
 		}
-		for _, e := range entries {
-			if strings.EqualFold(e.Name(), name) {
-				return filepath.Join(cpmDir, e.Name())
-			}
+		entries, err := cpmDirectoryEntries(cpmDir, canonical)
+		if err != nil || len(entries) != 1 {
+			return ""
 		}
-		return ""
+		return entries[0].path
 	}
 
 	z80.SetBDOSHandler(func(function byte, de uint16) (a byte, hl uint16, handled bool) {
@@ -551,68 +547,90 @@ func setupCPMBDOS(z80 *emulator.RemogattoZ80WithScreen) {
 		case 0x0D: // Reset disk system
 			currentDisk = 0
 			dmaAddr = 0x0080
+			searchEntries = nil
+			searchIndex = 0
 			return 0, 0, true
 
 		case 0x0E: // Select disk
 			currentDisk = byte(de & 0xFF)
+			searchEntries = nil
+			searchIndex = 0
 			return 0, 0, true
 
 		// ── File I/O ─────────────────────────────────────────────
 
-		case 0x0F: // Open file
+		case 0x0F: // Open admitted regular file, owned by FCB address.
 			fcbAddr := de
-			name := getFCBName(fcbAddr)
-			path := findFile(name)
-			if path == "" {
-				if verbose {
-					fmt.Fprintf(os.Stderr, "OPEN %s: not found\n", name)
-				}
-				return 0xFF, 0, true
+			if old := fileHandles[fcbAddr]; old != nil {
+				old.Close()
+				delete(fileHandles, fcbAddr)
 			}
-			f, err := os.Open(path)
+			name, err := cpmFCBName(z80.ReadMemory, fcbAddr, currentDisk, false)
 			if err != nil {
-				return 0xFF, 0, true
+				return 255, 0, true
 			}
-			h := nextHandle
-			fileHandles[h] = f
-			nextHandle++
-			// Store handle in FCB byte 32 (cr field) for our tracking
-			z80.WriteMemory(fcbAddr+32, h)
-			// Set rc (record count) — file size / 128, clamped to 128
-			fi, _ := f.Stat()
-			rc := int(fi.Size()) / 128
-			if rc > 128 {
-				rc = 128
+			f, err := cpmOpen83(cpmDir, name)
+			if err != nil {
+				if verbose {
+					fmt.Fprintf(os.Stderr, "OPEN: %v\n", err)
+				}
+				return 255, 0, true
 			}
-			z80.WriteMemory(fcbAddr+15, byte(rc))
-			// Clear extent counters
-			z80.WriteMemory(fcbAddr+12, 0) // ex
-			z80.WriteMemory(fcbAddr+14, 0) // s2
-			if verbose {
-				fmt.Fprintf(os.Stderr, "OPEN %s → handle %d (%d bytes)\n", name, h, fi.Size())
+			fi, err := f.Stat()
+			if err != nil {
+				f.Close()
+				return 255, 0, true
 			}
+			fileHandles[fcbAddr] = f
+			cpmAdvanceRecord(z80.WriteMemory, fcbAddr, 0)
+			records := (fi.Size() + 127) / 128
+			if records > 128 {
+				records = 128
+			}
+			z80.WriteMemory(fcbAddr+15, byte(records))
 			return 0, 0, true
 
 		case 0x10: // Close file
 			fcbAddr := de
-			h := z80.ReadMemory(fcbAddr + 32)
+			h := fcbAddr
 			if f, ok := fileHandles[h]; ok {
 				f.Close()
 				delete(fileHandles, h)
 			}
 			return 0, 0, true
 
-		case 0x11: // Search first (simplified — return first file in dir)
-			entries, err := os.ReadDir(cpmDir)
-			if err != nil || len(entries) == 0 {
-				return 0xFF, 0, true
+		case 0x11, 0x12: // One normalized snapshot, current drive and user 0.
+			if function == 0x11 {
+				searchEntries = nil
+				searchIndex = 0
+				pattern, err := cpmFCBName(z80.ReadMemory, de, currentDisk, true)
+				if err != nil {
+					return 255, 0, true
+				}
+				searchEntries, err = cpmDirectory(cpmDir, pattern)
+				if err != nil {
+					if verbose {
+						fmt.Fprintf(os.Stderr, "DIRECTORY: %v\n", err)
+					}
+					return 255, 0, true
+				}
 			}
-			// Write directory entry to DMA (32-byte FCB format)
-			// Simplified: just mark as found
-			return 0, 0, true
-
-		case 0x12: // Search next
-			return 0xFF, 0, true // No more files
+			if searchIndex >= len(searchEntries) {
+				return 255, 0, true
+			}
+			slot := searchIndex % 4
+			for i := uint16(0); i < 128; i++ {
+				z80.WriteMemory(dmaAddr+i, 0xE5)
+			}
+			entry := dmaAddr + uint16(slot*32)
+			for i := uint16(0); i < 32; i++ {
+				z80.WriteMemory(entry+i, 0)
+			}
+			for i, ch := range searchEntries[searchIndex] {
+				z80.WriteMemory(entry+1+uint16(i), ch)
+			}
+			searchIndex++
+			return byte(slot), 0, true
 
 		case 0x13: // Delete file
 			fcbAddr := de
@@ -626,7 +644,7 @@ func setupCPMBDOS(z80 *emulator.RemogattoZ80WithScreen) {
 
 		case 0x14: // Read sequential
 			fcbAddr := de
-			h := z80.ReadMemory(fcbAddr + 32)
+			h := fcbAddr
 			f, ok := fileHandles[h]
 			if !ok {
 				if verbose {
@@ -634,22 +652,20 @@ func setupCPMBDOS(z80 *emulator.RemogattoZ80WithScreen) {
 				}
 				return 0xFF, 0, true
 			}
-			// Calculate file position from FCB: (s2*4096 + ex*128 + cr) * 128
-			ex := z80.ReadMemory(fcbAddr + 12)
-			s2 := z80.ReadMemory(fcbAddr+14) & 0x7F
-			cr := z80.ReadMemory(fcbAddr + 32) // We use cr for handle, so seek from current pos
-			_ = cr
-			fpos := int64(s2)*4096*128 + int64(ex)*128*128
-			// Actually, simpler: just read sequentially from current file position
-			// (the file handle maintains its own position)
-			_ = fpos
+			if z80.ReadMemory(fcbAddr+32) > 127 || z80.ReadMemory(fcbAddr+12) > 31 || z80.ReadMemory(fcbAddr+14) > 63 {
+				return 2, 0, true // Invalid/exhausted sequential record, never wrap.
+			}
+			record := cpmSequentialRecord(z80.ReadMemory, fcbAddr)
 
 			buf := make([]byte, 128)
 			// Pre-fill with EOF marker
 			for i := range buf {
 				buf[i] = 0x1A
 			}
-			n, _ := f.Read(buf)
+			n, readErr := f.ReadAt(buf, record*128)
+			if readErr != nil && readErr != io.EOF {
+				return 2, 0, true
+			}
 			if n == 0 {
 				return 1, 0, true // EOF
 			}
@@ -657,6 +673,7 @@ func setupCPMBDOS(z80 *emulator.RemogattoZ80WithScreen) {
 			for i := 0; i < 128; i++ {
 				z80.WriteMemory(dmaAddr+uint16(i), buf[i])
 			}
+			cpmAdvanceRecord(z80.WriteMemory, fcbAddr, record+1)
 			if verbose {
 				fmt.Fprintf(os.Stderr, "READ %d bytes → DMA %04X\n", n, dmaAddr)
 			}
@@ -664,7 +681,7 @@ func setupCPMBDOS(z80 *emulator.RemogattoZ80WithScreen) {
 
 		case 0x15: // Write sequential
 			fcbAddr := de
-			h := z80.ReadMemory(fcbAddr + 32)
+			h := fcbAddr
 			f, ok := fileHandles[h]
 			if !ok {
 				return 0xFF, 0, true
@@ -684,10 +701,12 @@ func setupCPMBDOS(z80 *emulator.RemogattoZ80WithScreen) {
 			if err != nil {
 				return 0xFF, 0, true
 			}
-			h := nextHandle
+			h := fcbAddr
+			if old := fileHandles[h]; old != nil {
+				old.Close()
+			}
 			fileHandles[h] = f
-			nextHandle++
-			z80.WriteMemory(fcbAddr+32, h)
+			z80.WriteMemory(fcbAddr+32, 0)
 			if verbose {
 				fmt.Fprintf(os.Stderr, "CREATE %s → handle %d\n", name, h)
 			}
@@ -714,7 +733,7 @@ func setupCPMBDOS(z80 *emulator.RemogattoZ80WithScreen) {
 
 		case 0x21: // Read random
 			fcbAddr := de
-			h := z80.ReadMemory(fcbAddr + 32)
+			h := fcbAddr
 			f, ok := fileHandles[h]
 			if !ok {
 				return 0xFF, 0, true
@@ -743,7 +762,7 @@ func setupCPMBDOS(z80 *emulator.RemogattoZ80WithScreen) {
 
 		case 0x22: // Write random
 			fcbAddr := de
-			h := z80.ReadMemory(fcbAddr + 32)
+			h := fcbAddr
 			f, ok := fileHandles[h]
 			if !ok {
 				return 0xFF, 0, true
@@ -762,7 +781,7 @@ func setupCPMBDOS(z80 *emulator.RemogattoZ80WithScreen) {
 
 		case 0x23: // Compute file size
 			fcbAddr := de
-			h := z80.ReadMemory(fcbAddr + 32)
+			h := fcbAddr
 			if f, ok := fileHandles[h]; ok {
 				fi, _ := f.Stat()
 				records := fi.Size() / 128

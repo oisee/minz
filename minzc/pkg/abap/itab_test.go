@@ -495,7 +495,6 @@ func TestInternalTableAdmission(t *testing.T) {
 		{"ls = lz.", "same TYPES type"},
 		{"n = ls.", "elementary operand"},
 		{"lt = lt.", "internal table"},
-		{"n = ls-b.", "character conversion"},
 		{"ls-a = 'X'.", "character-to-integer"},
 		{"ls-zz = 1.", "no component zz"},
 		{"n-a = 1.", "not a declared structure"},

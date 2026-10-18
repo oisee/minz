@@ -149,9 +149,7 @@ func TestCharacterAdmission(t *testing.T) {
 	for _, src := range []string{
 		"DATA x TYPE c LENGTH 2 VALUE 'é'.",
 		"DATA x TYPE c LENGTH 2. x = 7.",
-		"DATA x TYPE c LENGTH 2. DATA y TYPE i. y = x.",
 		"DATA x TYPE c LENGTH 2. DATA y TYPE i. y = - x.",
-		"DATA y TYPE i. y = `7`.",
 		"FORM probe. DATA y TYPE i VALUE '7'. ENDFORM.",
 		"DATA y TYPE i. y = `7` + 1.",
 		"FORM probe USING x TYPE c. x = 'X'. ENDFORM. PERFORM probe USING 'Y'.",
