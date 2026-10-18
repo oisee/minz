@@ -79,12 +79,12 @@ func installSQLLifecycleModel(m *hir.Module, finite bool, rows int) {
 }
 
 func TestSQLPrototypeTablesAreNotAdmitted(t *testing.T) {
-	for _, src := range []string{
-		"REPORT zadmit. SELECT n FROM t INTO TABLE @DATA(items).",
-		"REPORT zadmit. cl_salv_table=>factory( items ).",
+	for _, tc := range []struct{ source, refusal string }{
+		{"REPORT zadmit. SELECT n FROM t INTO TABLE @DATA(items).", "prototype is not admitted"},
+		{"REPORT zadmit. cl_salv_table=>factory( items ).", "CL_SALV_TABLE FACTORY parameter/section items is not admitted"},
 	} {
-		m, err := Compile(src, "zadmit")
-		if m != nil || err == nil || !strings.Contains(err.Error(), "prototype is not admitted") {
+		m, err := Compile(tc.source, "zadmit")
+		if m != nil || err == nil || !strings.Contains(err.Error(), tc.refusal) {
 			t.Fatalf("prototype silently admitted: module=%t err=%v", m != nil, err)
 		}
 	}
