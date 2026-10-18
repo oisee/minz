@@ -45,6 +45,8 @@ jobs:
         id: stable
         run: |
           go test -short -timeout 30m ./pkg/z80effects/... ./pkg/hir/... ./pkg/mir2/... ./pkg/z80asm/... ./pkg/c89/... ./pkg/codegen/... ./pkg/parser/... ./pkg/plm/... ./pkg/lanz/... ./pkg/lizp/... ./pkg/abap/... ./cmd/mzv/...
+          go test -short -timeout 10m ./cmd/mze/...
+          go test -timeout 10m ./cmd/minzc -run '^(TestABAPCPMOrdinaryCLI|TestABAPFrontendCPMCLI|TestAgonZ80RuntimeCLI.*)$' -count=1
           python3 ../scripts/ci/test_stable_pipeline.py
           python3 ../scripts/ci/run_stable_pipeline.py --output "$RUNNER_TEMP/stable-pipeline" --profile fast --shards 3 --workers 3
       - name: Verify frozen upstream system C on VM and Z80
