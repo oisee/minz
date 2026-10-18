@@ -1,0 +1,36 @@
+Read-only target placement review of f4099ca38. Shared clone unchanged; all scratch here.
+
+Verdict: slice1 fleet storage fits CP/M's conservative 0x8000 application ceiling, but ordinary target-only success is not a CP/M OS-runtime proof. Agon binary success/size is likewise not an Agon ABI/execution proof. These blockers precede this internal-table slice.
+
+Existing observed artifacts (/tmp/itab-critic-ybPbeY/cli-results.jsonl):
+CP/M 25,588 bytes [0x0100,0x64F4), leaving 6,924 bytes to0x8000 before adding resident runtime/stack.
+Agon 28,608 bytes [0x040000,0x046FC0), includes69-byte MOS header. Declared target RAM ends0x0BE000, MOS stack0x0BFFFF. Storage is not near either ceiling.
+Spectrum 26,561 raw bytes versus zxspectrum49,179-byte SNA are different formats, not meaningful code-size deltas. SNA is27-byte header+49152-byte RAM image.
+
+CP/M invocation:
+./mz minzc/pkg/abap/testdata/itab-reference/fleet.abap -t cpm --runtime=cpm --runtime-stack=1024 -o fleet.com
+Produces: Error: HIR compile: CP/M runtime rejects ASM without canonical body: sel_show
+Target-only -t cpm -o fleet.com is accepted, but runtimeMode defaults empty (main.go:263). It emits no resident stack setup and main ends XOR A/DI/HALT (mir2/z80codegen_term.go:144-150), not OS return.
+Guarded runtime owns a resident stack and restores caller SP/RET (mir2/cpm_runtime.go:134-170). Its assembled image must end strictly below0x8000 (:205-206). Static default stack256 bytes; explicit guard64..16384 even; BDOS internal stack depth is an OS precondition (:351-355). Assembler's target memory estimate0x100+64256 and warning after0xFE00 (z80asm/targets.go:157-166,360-397) do not discover an actual machine's BDOS/TPA boundary.
+
+Exact blocker: reachable _abap_num_putchar ASM causes generic function pruning to stop conservatively (mir2/funcprune.go:49-53); all injected runtime helpers remain, including unused sel_show (abap/lower.go:2317-2334). CP/M closure certifies EVERY retained ASM before doing reachability (mir2/cpm_runtime_tui.go:115-134); sel_show's XOR A isn't among certified adapters. Fix must address full dead helper set, not only allowlist name sel_show. Existing guarded character report rejection is intentional at cmd/minzc/cpm_abap_cli_test.go:134; loop-only tests don't exercise retained output ASM.
+Smallest safe path: explicit canonical built-in ABAP runtime body/ABI recognition for dead helper elimination before guarded closure validation, analogous to hir.ProfileDeadPascalRuntime. Preserve generic opaque-ASM conservatism. Never grant arbitrary ASM authority or silently prune a helper just by reserved name/Internal marker. Alternatively emit only genuinely required built-in runtime with sound ASM dependencies.
+Regression: add unchanged fleet/ledger whole reports to ordinary guarded CLI, check .com=.a80, BDOS2 output exact, raw globals/count/SY fields, OS RET with entry SP restored, resident guard untouched, no foreign writes/fetches. Include canonical helper mutants and arbitrary unreachable/reachable ASM rejection. Existing table harness uses custom ORG0x4000, SP0xF000 and host BDOS trap (abap/itab_test.go:263-345); this is useful native semantic proof but not ordinary CP/M CLI admission.
+
+Agon existing limitations:
+-t agon alone does not select -b ez80 (main.go:261). Assembler selects ADL with ORG0x040000 (targets.go:229-239,340-344). generateAgonBin prepends69 bytes without relocating symbols (:627-685): header JP0x040045 reaches first instruction, but absolute internal addresses are69 bytes too low. Existing binary first instruction LD HL,0x046E9C; the assembled ship data gets shifted to0x046EE1.
+-b ez80 supplies ORG0x040045 and __agon_entry preserving IY/return (pipeline.go:467-475), but still uses shared Z80 codegen (:426-434). ABAP non-Spectrum byte output is explicitly LD E,A/LD C,2/CALL5 (abap/integer32.go:124-135); targetAgon isn't handled. Prior target-only binary has14 encoded CALL0x000005 (CD050000), which is CP/M BDOS, not MOS. Cannot declare true Agon executable support without correct MOS console/runtime + eZ80 frame/data-width semantic proof. Defer unrelated backend redesign; report Agon unsupported for this F4 path until end-to-end native proof exists.
+
+Fresh replay at f4099ca386f64df2666750b097c8876e8fb90088 completed. Exact commands from own minzc/:
+GOCACHE=/tmp/minz-grace-gocache flock /tmp/minz-heavy.lock /home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/bin/go build -buildvcs=false -o /tmp/minz-itab-placement/mz ./cmd/minzc
+flock /tmp/minz-heavy.lock python3 /tmp/minz-itab-placement/placement_probe.py
+GOCACHE=/tmp/minz-grace-gocache flock /tmp/minz-heavy.lock /home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/bin/go run ./placementprobe
+
+placement-cli.jsonl confirms old sizes/refusal exactly. Additionally real -t agon -b ez80 invocation REFUSES fleet before assembly:
+Error: HIR compile: wide memory main load: invalid value home A (src=[429 0] dst=430)
+Thus no need to speculate whether its MOS runtime would execute: current real fleet is compiler-refused on the explicit eZ80 backend.
+
+Own native emulator run of ordinary target-only CP/M image at0x100 (SP0xF000, BDOS2 host trap) completes99,595 steps, HALT PC0x346A SP0xF000, minimum SP0xEFC2 =62 bytes observed application stack use. Output:
+AURORA=12;BOREAS=7;CALYPSO=2147483;CALYPSO/0
+This proves fleet semantic execution at actual COM origin with synthetic BDOS and high external stack. It does not prove CP/M OS return, runtime image admission, arbitrary BDOS internal stack consumption, or actual deployed machine TPA boundary.
+Agon own assembler symbols: origin0x040000 size28539 raw end0x046F7B main0x040000 ship0x046E9C char_copy0x046A27. First bytes219C6E04 encode LD HL,0x046E9C. Header physically shifts ship to0x046EE1 while pointer stays0x046E9C. File end0x046FC0 includes69-byte header. This is a measured69-byte relocation mismatch, not a guess.

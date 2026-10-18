@@ -1434,7 +1434,9 @@ func (l *lowerer) lowerPerform(s *PerformStmt) (hir.Stmt, error) {
 			if !ok || binding.dynamic {
 				return nil, fmt.Errorf("PERFORM %s: character parameter %s needs a character object", s.FormName, params[i].Name)
 			}
-			if _, variable := a.(*VarRef); !variable {
+			switch a.(type) {
+			case *VarRef, *FieldAccess:
+			default:
 				if i >= len(s.Using) || l.formMayWrite(form, params[i].Name, map[string]bool{}) {
 					return nil, fmt.Errorf("PERFORM %s: character literal requires read-only USING", s.FormName)
 				}
@@ -1443,6 +1445,21 @@ func (l *lowerer) lowerPerform(s *PerformStmt) (hir.Stmt, error) {
 			continue
 		}
 		ty := l.formParameterType(params[i])
+		if field, ok := a.(*FieldAccess); ok {
+			v, ok := field.Obj.(*VarRef)
+			if !ok {
+				return nil, fmt.Errorf("PERFORM %s: unsupported component access", s.FormName)
+			}
+			obj, c, err := l.component(v.Name, field.Field)
+			if err != nil {
+				return nil, err
+			}
+			if c.abapTy != params[i].AbapTy || ty != mir2.TyI32 {
+				return nil, fmt.Errorf("PERFORM %s: %s-%s has incompatible type", s.FormName, v.Name, field.Field)
+			}
+			args = append(args, offsetPtr(obj.base, c.offset))
+			continue
+		}
 		if v, ok := a.(*VarRef); ok {
 			if actualTy, exists := l.varTypes[v.Name]; !exists || actualTy != ty {
 				return nil, fmt.Errorf("PERFORM %s: %s has incompatible or undeclared type", s.FormName, v.Name)

@@ -1,0 +1,24 @@
+{
+  "source_sha256": "4fd6117b87434e8766ab2b01843c6490a27d5affb7b8f98e054b3c37fdf2e865",
+  "provider": "@abaplint/transpiler + @abaplint/runtime 2.14.8",
+  "node": "v22.23.3",
+  "entry": "full report",
+  "values": {
+    "ls": {
+      "tag": "XY ",
+      "n": 84
+    },
+    "rows": [
+      {
+        "tag": "XY ",
+        "n": 84
+      }
+    ]
+  },
+  "sy": {
+    "tabix": 1,
+    "subrc": 0,
+    "index": 0
+  },
+  "output": "84:XY"
+}

@@ -987,7 +987,7 @@ func convertStmt(s *StmtNode) (Decl, error) {
 	}
 	// Statements that may name a structure component a-b see the joined selector.
 	switch s.Type {
-	case "Move", "Write", "Clear", "Append", "ReadTable", "Describe", "Refresh":
+	case "Move", "Write", "Clear", "Append", "ReadTable", "Describe", "Refresh", "Perform":
 		tokens = selectorTokenStrings(s)
 	}
 
@@ -1562,9 +1562,16 @@ func parsePerformStmt(tokens []string) (Decl, error) {
 		if section == "" {
 			return nil, fmt.Errorf("PERFORM: unsupported addition %s", t)
 		}
-		e := parseTokenExpr(t)
-		if _, ok := e.(*VarRef); !ok && section == "CHANGING" {
-			return nil, fmt.Errorf("PERFORM: only variable arguments are admitted, got %s", t)
+		e, err := expressionAtom(t)
+		if err != nil {
+			return nil, fmt.Errorf("PERFORM: %w", err)
+		}
+		if section == "CHANGING" {
+			switch e.(type) {
+			case *VarRef, *FieldAccess:
+			default:
+				return nil, fmt.Errorf("PERFORM: only variable or component arguments are admitted, got %s", t)
+			}
 		}
 		if section == "USING" {
 			p.Using = append(p.Using, e)

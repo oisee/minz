@@ -97,10 +97,12 @@ func (l *lowerer) tableGlobal(d *DataDecl) error {
 	if d.Value != nil {
 		return fmt.Errorf("DATA %s: table VALUE is not implemented", d.Name)
 	}
-	total := d.Table.Capacity * st.size
-	if d.Table.Capacity < 1 || total > maxTableBytes {
+	// Check the quotient before multiplying: INITIAL SIZE can be any parsed
+	// int, so its product with the row size may overflow even for small rows.
+	if d.Table.Capacity < 1 || d.Table.Capacity > maxTableBytes/st.size {
 		return fmt.Errorf("DATA %s: capacity %d x %d-byte lines exceeds the %d-byte table limit", d.Name, d.Table.Capacity, st.size, maxTableBytes)
 	}
+	total := d.Table.Capacity * st.size
 	count := "_itab_count_" + d.Name
 	l.hm.Globals = append(l.hm.Globals,
 		mir2.Global{Name: d.Name, Ty: mir2.NewArray(mir2.TyU8, total), Init: make([]byte, total)},

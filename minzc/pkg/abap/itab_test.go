@@ -359,7 +359,7 @@ func verifyItabReport(t *testing.T, name, src string, want itabExpectation) {
 
 func TestInternalTableFullReportReference(t *testing.T) {
 	paths, err := filepath.Glob("testdata/itab-reference/*.abap")
-	if err != nil || len(paths) != 2 {
+	if err != nil || len(paths) != 4 {
 		t.Fatalf("reference sources: %v count=%d", err, len(paths))
 	}
 	for _, path := range paths {
