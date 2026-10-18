@@ -3,6 +3,7 @@ package abap
 import (
 	"fmt"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -128,6 +129,12 @@ func Compile(src, name string, target ...uint8) (*hir.Module, error) {
 	hm, err := LowerProgramWithTarget(prog, tgt)
 	if err != nil {
 		return nil, fmt.Errorf("abap lower: %w", err)
+	}
+	if err := emitFrontendRuntime(hm); err != nil {
+		return nil, fmt.Errorf("ABAP frontend runtime: %w", err)
+	}
+	if err := emitSplitRuntime(hm); err != nil {
+		return nil, fmt.Errorf("ABAP SPLIT runtime: %w", err)
 	}
 	emitRuntimeFuncs(hm, tgt)
 	if err := emitInteger32Runtime(hm, tgt); err != nil {
@@ -344,6 +351,32 @@ func (l *lowerer) lower() (*hir.Module, error) {
 		}
 	}
 
+	requests := map[string]hir.Stmt{}
+	var requestKeys []string
+	for event := range l.prog.Events {
+		if strings.HasPrefix(event, "VALUE_REQUEST_") {
+			requestKeys = append(requestKeys, event)
+		}
+	}
+	sort.Strings(requestKeys)
+	for _, event := range requestKeys {
+		name := strings.TrimPrefix(event, "VALUE_REQUEST_")
+		found := false
+		for _, p := range l.prog.Params {
+			if p.Name == name && p.AbapTy == "c" {
+				found = true
+			}
+		}
+		if !found || l.hm.Target != hir.TargetCPM {
+			return nil, fmt.Errorf("ON VALUE-REQUEST FOR %s requires a CP/M TYPE c parameter", name)
+		}
+		call, err := l.lowerRegularEvent(event, 0, l.prog.Events[event])
+		if err != nil {
+			return nil, err
+		}
+		requests[name] = call
+	}
+
 	// ── Lower events into the main() execution flow ──────────────────────
 	//
 	// ABAP report execution order:
@@ -423,7 +456,7 @@ func (l *lowerer) lower() (*hir.Module, error) {
 		// ZX uses the console-input fallback instead of a host selection screen.
 		fieldIdx := 0
 		for _, p := range l.prog.Params {
-			if l.hm.Target == hir.TargetZXSpectrum {
+			if l.hm.Target == hir.TargetZXSpectrum || len(requests) > 0 {
 				fieldIdx++
 				continue
 			}
@@ -453,16 +486,21 @@ func (l *lowerer) lower() (*hir.Module, error) {
 
 		// ── sel_show() — returns 1 if host handled, 0 for Z80 fallback ──
 		if l.hm.Target != hir.TargetZXSpectrum {
+			var initialRC hir.Expr = &hir.CallExpr{Fn: "sel_show", Ty: mir2.TyU8}
+			if len(requests) > 0 {
+				initialRC = &hir.IntLitExpr{Val: 0, Ty: mir2.TyU8}
+			}
 			mainStmts = append(mainStmts, &hir.VarDeclStmt{
 				Name: "_sel_rc",
 				Ty:   mir2.TyU8,
-				Init: &hir.CallExpr{Fn: "sel_show", Ty: mir2.TyU8},
+				Init: initialRC,
 			})
 		}
 
 		// ── Input prompts (BDOS on CP/M, console port on ZX) ──
 		var promptStmts []hir.Stmt
 		for _, p := range l.prog.Params {
+			promptStart := len(promptStmts)
 			label := l.internStr(strings.ToUpper(p.Name) + " [")
 			end := l.internStr("]: ")
 			promptStmts = append(promptStmts, charCall("abap_write_str", &hir.AddrOfExpr{Sym: label}))
@@ -476,7 +514,16 @@ func (l *lowerer) lower() (*hir.Module, error) {
 			ty := l.varTypes[p.Name]
 			if ty == mir2.TyPtr {
 				b := l.characters[p.Name]
-				promptStmts = append(promptStmts, charCall("_abap_read_c", b.ptr, b.length))
+				if request, ok := requests[p.Name]; ok {
+					l.requireFrontendRuntime()
+					body := append([]hir.Stmt(nil), promptStmts[promptStart:]...)
+					body = append(body, &hir.IfStmt{Cond: &hir.BinExpr{Op: "==", L: &hir.CallExpr{Fn: "_abap_fs_read_c_f4", Args: []hir.Expr{b.ptr, b.length}, Ty: mir2.TyU8}, R: &hir.IntLitExpr{Val: 0, Ty: mir2.TyU8}, Ty: mir2.TyBool}, Then: &hir.Block{Body: []hir.Stmt{&hir.BreakStmt{}}}})
+					body = append(body, request)
+					promptStmts = append(promptStmts[:promptStart], &hir.WhileStmt{Cond: &hir.BoolLitExpr{Val: true}, Body: &hir.Block{Body: body}})
+				} else {
+					promptStmts = append(promptStmts, charCall("_abap_read_c", b.ptr, b.length))
+				}
+
 			} else {
 				promptStmts = append(promptStmts, charCall("_abap_read_i32", &hir.AddrOfExpr{Sym: p.Name}))
 			}
@@ -749,6 +796,10 @@ func (l *lowerer) abapTypeToHIR(abapTy string, length int) mir2.Ty {
 // ── Globals ──────────────────────────────────────────────────────────────────
 
 func (l *lowerer) lowerGlobal(d *DataDecl) error {
+	d = l.resolveDataAlias(d)
+	if !l.aggregateDecl(d) {
+		l.varTypes[d.Name] = l.abapTypeToHIR(d.AbapTy, d.Length)
+	}
 	if d.Table != nil {
 		return l.tableGlobal(d)
 	}
@@ -851,6 +902,7 @@ func (l *lowerer) enterProcedure() func() {
 }
 
 func (l *lowerer) lowerLocalData(d *DataDecl) (hir.Stmt, error) {
+	d = l.resolveDataAlias(d)
 	if l.localNames[d.Name] {
 		return nil, fmt.Errorf("DATA %s: duplicate procedure object", d.Name)
 	}
@@ -1204,6 +1256,10 @@ func (l *lowerer) lowerStmt(s Stmt_) (hir.Stmt, error) {
 			return nil, fmt.Errorf("CLEAR %s: type-specific initial value is not implemented for %s", s.Target, ty)
 		}
 		return &hir.AssignStmt{Target: l.variableTarget(s.Target, ty), Val: &hir.IntLitExpr{Val: 0, Ty: ty}}, nil
+	case *FrontendServiceStmt:
+		return l.lowerFrontendService(s)
+	case *SplitStmt:
+		return l.lowerSplit(s)
 	case *AssignStmt:
 		return l.lowerAssign(s)
 	case *IfStmt:
@@ -1303,13 +1359,13 @@ func (l *lowerer) lowerAssign(s *AssignStmt) (hir.Stmt, error) {
 	if _, exists := l.varTypes[s.Target]; !exists {
 		return nil, fmt.Errorf("assignment to undeclared ABAP object %q", s.Target)
 	}
-	if _, text := s.Val.(*StringLit); text && l.varTypes[s.Target] == mir2.TyI32 {
-		return nil, fmt.Errorf("assignment to %s: character-to-integer conversion is not implemented", s.Target)
-	}
-	if _, character, err := l.characterExpr(s.Val); err != nil {
+	if b, character, err := l.characterExpr(s.Val); err != nil {
 		return nil, err
-	} else if character && l.varTypes[s.Target] != mir2.TyPtr {
-		return nil, fmt.Errorf("assignment to %s: character conversion is not implemented", s.Target)
+	} else if character {
+		if l.varTypes[s.Target] != mir2.TyI32 {
+			return nil, fmt.Errorf("assignment to %s: character conversion requires TYPE i", s.Target)
+		}
+		return &hir.AssignStmt{Target: l.variableTarget(s.Target, mir2.TyI32), Val: &hir.CallExpr{Fn: "_abap_parse_text_i32", Args: []hir.Expr{b.ptr, textValueLength(b)}, Ty: mir2.TyI32}}, nil
 	}
 	val, err := l.lowerExpr(s.Val)
 	if err != nil {

@@ -11,12 +11,16 @@ import (
 func validateProgramTypes(p *Program) error {
 	// Report-level TYPES BEGIN OF structures are the only named types.
 	structures := map[string]bool{}
+	aliases := map[string]*TypesDecl{}
 	for _, decl := range p.Decls {
 		if td, ok := decl.(*TypesDecl); ok {
 			if structures[td.Name] {
 				return fmt.Errorf("TYPES %s: duplicate type", td.Name)
 			}
 			structures[td.Name] = true
+			if td.Elementary != "" {
+				aliases[td.Name] = td
+			}
 		}
 	}
 	check := func(context, ty string, length int) error {
@@ -38,10 +42,13 @@ func validateProgramTypes(p *Program) error {
 	data := func(d *DataDecl) error {
 		context := "DATA " + d.Name
 		if d.Table != nil {
-			if !structures[d.AbapTy] {
+			if !structures[d.AbapTy] && d.AbapTy != "c" && d.AbapTy != "string" {
 				return fmt.Errorf("%s: table line type %s is not a flat structure declared with TYPES BEGIN OF; tables of elementary or unknown line types are not implemented", context, d.AbapTy)
 			}
 			return nil
+		}
+		if alias := aliases[d.AbapTy]; alias != nil {
+			return check(context, alias.Elementary, alias.Length)
 		}
 		if structures[d.AbapTy] {
 			if d.Length != 0 || d.Value != nil {

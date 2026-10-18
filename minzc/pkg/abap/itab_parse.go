@@ -12,6 +12,8 @@ import (
 // components of the admitted elementary kinds (TYPE i, TYPE c LENGTH n) are
 // represented; nested/deep components and INCLUDE TYPE are refused.
 type TypesDecl struct {
+	Elementary string // admitted c/string alias, otherwise a structure
+	Length     int
 	Name       string
 	Components []TypeComponent
 }
@@ -211,7 +213,12 @@ func parseTypeComponent(structName string, toks []string) (TypeComponent, error)
 		if length < 0 || length > 65535 {
 			return c, fmt.Errorf("%s component %s: character LENGTH %d is outside 1..65535", context, c.Name, length)
 		}
-	case "string", "xstring":
+	case "string":
+		if c.Name == "filename" {
+			break
+		}
+		return c, fmt.Errorf("%s component %s: deep TYPE string components are not implemented except owned frontend filename", context, c.Name)
+	case "xstring":
 		return c, fmt.Errorf("%s component %s: deep TYPE %s components are not implemented", context, c.Name, ty)
 	default:
 		return c, fmt.Errorf("%s component %s: TYPE %s is not admitted (only flat TYPE i and TYPE c LENGTH n components; nested structures are not implemented)", context, c.Name, ty)
@@ -505,10 +512,22 @@ func internalTableRefusal(stmtType string) (string, bool) {
 		return "ASSIGN/UNASSIGN (field symbols) are not implemented", true
 	case "Free":
 		return "FREE is not implemented", true
-	case "Type":
-		return "TYPES: only flat BEGIN OF ... END OF structure types are implemented", true
 	case "MoveCorresponding":
 		return "MOVE-CORRESPONDING is not implemented", true
 	}
 	return "", false
+}
+
+func parseCharacterTypeAlias(tokens []string) (Decl, error) {
+	name, ty, length, value, err := parseSimpleDeclaration(tokens, "")
+	if err != nil {
+		return nil, err
+	}
+	if value != nil || (ty != "c" && ty != "string") {
+		return nil, fmt.Errorf("TYPES %s: only flat BEGIN OF structures and c/string aliases are admitted", name)
+	}
+	if ty == "string" && length != 0 || length < 0 || length > 65535 {
+		return nil, fmt.Errorf("TYPES %s: unsupported LENGTH", name)
+	}
+	return &TypesDecl{Name: strings.ToLower(name), Elementary: ty, Length: length}, nil
 }

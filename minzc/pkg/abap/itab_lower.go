@@ -26,11 +26,12 @@ type structComponent struct {
 }
 
 type abapStruct struct {
-	name    string
-	comps   []structComponent
-	size    int
-	initial []byte
-	emitted bool // initial-line image global exists
+	elementary string // c/string rows have owned elementary value images
+	name       string
+	comps      []structComponent
+	size       int
+	initial    []byte
+	emitted    bool // initial-line image global exists
 }
 
 type structObject struct {
@@ -49,6 +50,10 @@ func (l *lowerer) declareType(td *TypesDecl) error {
 	if l.types[td.Name] != nil {
 		return fmt.Errorf("TYPES %s: duplicate type", td.Name)
 	}
+	if td.Elementary != "" {
+		l.types[td.Name] = l.characterLineType(td.Name, td.Elementary, td.Length)
+		return nil
+	}
 	st := &abapStruct{name: td.Name}
 	for _, c := range td.Components {
 		sc := structComponent{name: c.Name, abapTy: c.AbapTy, offset: st.size}
@@ -56,6 +61,11 @@ func (l *lowerer) declareType(td *TypesDecl) error {
 		case "i":
 			sc.length = 4
 			st.initial = append(st.initial, 0, 0, 0, 0)
+		case "string":
+			sc.length = l.stringCapacity + 4
+			image := make([]byte, sc.length)
+			image[2], image[3] = byte(l.stringCapacity), byte(l.stringCapacity>>8)
+			st.initial = append(st.initial, image...)
 		case "c":
 			sc.length = characterLength(c.Length)
 			for i := 0; i < sc.length; i++ {
@@ -76,7 +86,7 @@ func (l *lowerer) declareType(td *TypesDecl) error {
 
 // aggregateDecl reports DATA of a declared structure type or a table.
 func (l *lowerer) aggregateDecl(d *DataDecl) bool {
-	return d.Table != nil || l.types[d.AbapTy] != nil
+	return d.Table != nil || l.types[d.AbapTy] != nil && l.types[d.AbapTy].elementary == ""
 }
 
 func (l *lowerer) structGlobal(d *DataDecl) error {
@@ -91,6 +101,9 @@ func (l *lowerer) structGlobal(d *DataDecl) error {
 
 func (l *lowerer) tableGlobal(d *DataDecl) error {
 	st := l.types[d.AbapTy]
+	if st == nil && (d.AbapTy == "c" || d.AbapTy == "string") {
+		st = l.characterLineType(d.AbapTy, d.AbapTy, d.Length)
+	}
 	if st == nil {
 		return fmt.Errorf("DATA %s: table line type %s is not a flat structure declared with TYPES BEGIN OF; tables of elementary or unknown line types are not implemented", d.Name, d.AbapTy)
 	}
@@ -155,6 +168,9 @@ func splitSelector(name string) (string, string, bool) {
 }
 
 func componentCharacter(obj *structObject, c *structComponent) characterBinding {
+	if c.abapTy == "string" {
+		return stringBinding(offsetPtr(obj.base, c.offset))
+	}
 	return characterBinding{ptr: offsetPtr(obj.base, c.offset), length: charLen(c.length)}
 }
 
@@ -178,7 +194,7 @@ func (l *lowerer) lowerFieldAccess(e *FieldAccess) (hir.Expr, error) {
 	if err != nil {
 		return nil, err
 	}
-	if c.abapTy == "c" {
+	if c.abapTy == "c" || c.abapTy == "string" {
 		return componentCharacter(obj, c).ptr, nil
 	}
 	return &hir.LoadExpr{Ptr: offsetPtr(obj.base, c.offset), Ty: mir2.TyI32}, nil
@@ -227,7 +243,7 @@ func (l *lowerer) lowerAggregateAssign(s *AssignStmt) (hir.Stmt, bool, error) {
 		if err != nil {
 			return nil, true, err
 		}
-		if c.abapTy == "c" {
+		if c.abapTy == "c" || c.abapTy == "string" {
 			st, err := l.characterAssign(componentCharacter(obj, c), s.Val)
 			return st, true, err
 		}
@@ -286,7 +302,7 @@ func (l *lowerer) lowerAggregateClear(target string) (hir.Stmt, bool, error) {
 		if err != nil {
 			return nil, true, err
 		}
-		if c.abapTy == "c" {
+		if c.abapTy == "c" || c.abapTy == "string" {
 			b := componentCharacter(obj, c)
 			return charCall("_abap_char_clear", b.ptr, b.length), true, nil
 		}
@@ -308,6 +324,19 @@ func (l *lowerer) tableAndArea(stmt, table, area string) (*tableObject, *structO
 	}
 	if area == "" {
 		return t, nil, nil
+	}
+	if t.line.elementary != "" {
+		b, ok := l.characters[area]
+		if !ok || (t.line.elementary == "string") != b.dynamic {
+			return nil, nil, fmt.Errorf("%s: work area %s must match elementary line TYPE %s", stmt, area, t.line.elementary)
+		}
+		base := b.ptr
+		if b.dynamic {
+			base = b.object
+		} else if n, ok := b.length.(*hir.IntLitExpr); !ok || n.Val != int64(t.line.size) {
+			return nil, nil, fmt.Errorf("%s: character work area %s LENGTH must match line size %d", stmt, area, t.line.size)
+		}
+		return t, &structObject{ty: t.line, base: base}, nil
 	}
 	wa := l.structs[area]
 	if wa == nil {
@@ -466,3 +495,30 @@ fun _abap_itab_load(dst: ^u8, base: ^u8, index: u16, size: u16) -> void {
  i = i + 1 }
 }
 `
+
+func (l *lowerer) characterLineType(name, ty string, length int) *abapStruct {
+	st := &abapStruct{name: name, elementary: ty}
+	if ty == "string" {
+		st.size = l.stringCapacity + 4
+		st.initial = make([]byte, st.size)
+		st.initial[2], st.initial[3] = byte(l.stringCapacity), byte(l.stringCapacity>>8)
+	} else {
+		st.size = characterLength(length)
+		st.initial = []byte(strings.Repeat(" ", st.size))
+	}
+	return st
+}
+
+func (l *lowerer) resolveDataAlias(d *DataDecl) *DataDecl {
+	if d.Table == nil {
+		if st := l.types[d.AbapTy]; st != nil && st.elementary != "" {
+			copy := *d
+			copy.AbapTy = st.elementary
+			if st.elementary == "c" {
+				copy.Length = st.size
+			}
+			return &copy
+		}
+	}
+	return d
+}

@@ -3,6 +3,7 @@ package abap
 import (
 	"fmt"
 	"sort"
+	"strings"
 )
 
 func validateDataStartValue(d *DataDecl) error {
@@ -89,7 +90,7 @@ func (l *lowerer) collectReportData() error {
 		var ss []Stmt_
 		switch v := d.(type) {
 		case *EventDecl:
-			if v.Event != "AT-SELECTION-SCREEN" {
+			if v.Event != "AT-SELECTION-SCREEN" && !strings.HasPrefix(v.Event, "VALUE_REQUEST_") {
 				ss = v.Body
 			}
 		case *formBodyDecl:
@@ -105,7 +106,7 @@ func (l *lowerer) collectReportData() error {
 	}
 	sort.Strings(keys)
 	for _, k := range keys {
-		if k == "AT-SELECTION-SCREEN" {
+		if k == "AT-SELECTION-SCREEN" || strings.HasPrefix(k, "VALUE_REQUEST_") {
 			continue
 		}
 		if err := walkDataDeclarations(l.prog.Events[k], visit); err != nil {

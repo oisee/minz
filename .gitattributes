@@ -2,3 +2,5 @@
 # Windows core.autocrlf must not change fingerprinted compile-time inputs.
 *.nanz text eol=lf
 *.json text eol=lf
+# CSV upload fixtures deliberately cover CRLF and LF; retain their tested bytes.
+examples/abap/fleet/*.CSV -text whitespace=cr-at-eol

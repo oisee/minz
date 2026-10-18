@@ -45,7 +45,7 @@ func (l *lowerer) characterExpr(e Expr_) (characterBinding, bool, error) {
 		if err != nil {
 			return characterBinding{}, false, err
 		}
-		if c.abapTy != "c" {
+		if c.abapTy != "c" && c.abapTy != "string" {
 			return characterBinding{}, false, nil
 		}
 		return componentCharacter(o, c), true, nil

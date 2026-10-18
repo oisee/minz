@@ -76,7 +76,7 @@ func buildProgram(name string, r *ParseResult) (*Program, error) {
 			prog.Params = append(prog.Params, d)
 			filtered = append(filtered, d) // keep as global DATA too
 		case *EventDecl:
-			if d.Event == "AT-SELECTION-SCREEN" && len(prog.EventBlocks[d.Event]) != 0 {
+			if (d.Event == "AT-SELECTION-SCREEN" || strings.HasPrefix(d.Event, "VALUE_REQUEST_")) && len(prog.EventBlocks[d.Event]) != 0 {
 				return nil, fmt.Errorf("%s: repeated AT-SELECTION-SCREEN processing block is not admitted", name)
 			}
 			prog.EventBlocks[d.Event] = append(prog.EventBlocks[d.Event], d.Body)
@@ -167,19 +167,27 @@ func walkStructure(sn *StructNode) ([]Decl, error) {
 			continue
 
 		case isEventType(child.Type):
+			eventName := eventTypeName(child.Type)
 			if child.Type == "AtSelectionScreen" {
 				tokens := collectTokenStrings(&StmtNode{Tokens: child.Tokens, Children: child.Children})
-				// abaplint can tokenize SELECTION-SCREEN as three tokens.
-				if strings.ToUpper(strings.Join(tokens, "")) != "ATSELECTION-SCREEN." {
-					return nil, childError(child, fmt.Errorf("unsupported event addition: %s", strings.Join(tokens, " ")))
+				compact := strings.ToUpper(strings.Join(tokens, ""))
+				const prefix = "ATSELECTION-SCREENONVALUE-REQUESTFOR"
+				if strings.HasPrefix(compact, prefix) && strings.HasSuffix(compact, ".") {
+					field := strings.TrimSuffix(strings.TrimPrefix(compact, prefix), ".")
+					if !identifierToken(field) {
+						return nil, childError(child, fmt.Errorf("unsupported event addition %s", compact))
+					}
+					eventName = "VALUE_REQUEST_" + strings.ToLower(field)
+				} else if compact != "ATSELECTION-SCREEN." {
+					return nil, childError(child, fmt.Errorf("unsupported event addition %s", compact))
 				}
 			}
+
 			// Close previous event
 			if currentEvent != nil {
 				decls = append(decls, currentEvent)
 			}
 			// Start new event
-			eventName := eventTypeName(child.Type)
 			currentEvent = &EventDecl{Event: eventName}
 
 		case isControlStructure(child.Type):
@@ -218,7 +226,7 @@ func walkStructure(sn *StructNode) ([]Decl, error) {
 				for _, d := range subDecls {
 					if fbd, ok := d.(*formBodyDecl); ok {
 						currentEvent.Body = append(currentEvent.Body, fbd.stmt)
-					} else if data, ok := d.(*DataDecl); ok && currentEvent.Event == "AT-SELECTION-SCREEN" {
+					} else if data, ok := d.(*DataDecl); ok && (currentEvent.Event == "AT-SELECTION-SCREEN" || strings.HasPrefix(currentEvent.Event, "VALUE_REQUEST_")) {
 						currentEvent.Body = append(currentEvent.Body, data)
 					} else {
 						// DATA in regular report events has report scope, including
@@ -244,7 +252,7 @@ func walkStructure(sn *StructNode) ([]Decl, error) {
 				if currentEvent != nil {
 					if fbd, ok := d.(*formBodyDecl); ok {
 						currentEvent.Body = append(currentEvent.Body, fbd.stmt)
-					} else if data, ok := d.(*DataDecl); ok && currentEvent.Event == "AT-SELECTION-SCREEN" {
+					} else if data, ok := d.(*DataDecl); ok && (currentEvent.Event == "AT-SELECTION-SCREEN" || strings.HasPrefix(currentEvent.Event, "VALUE_REQUEST_")) {
 						currentEvent.Body = append(currentEvent.Body, data)
 					} else {
 						decls = append(decls, d)
@@ -987,11 +995,13 @@ func convertStmt(s *StmtNode) (Decl, error) {
 	}
 	// Statements that may name a structure component a-b see the joined selector.
 	switch s.Type {
-	case "Move", "Write", "Clear", "Append", "ReadTable", "Describe", "Refresh", "Perform":
+	case "Move", "Write", "Clear", "Append", "ReadTable", "Describe", "Refresh", "Perform", "Split":
 		tokens = selectorTokenStrings(s)
 	}
 
 	switch {
+	case s.Type == "Type":
+		return parseCharacterTypeAlias(tokens)
 	case upper == "REPORT":
 		// Plain report identity is metadata; additions alter list/runtime behavior.
 		if len(tokens) != 3 || !strings.EqualFold(tokens[0], "REPORT") || tokens[2] != "." {
@@ -1026,8 +1036,12 @@ func convertStmt(s *StmtNode) (Decl, error) {
 			return nil, fmt.Errorf("CLEAR: only a single declared scalar target is supported")
 		}
 		return &formBodyDecl{stmt: &ClearStmt{Target: strings.ToLower(tokens[1])}}, nil
+	case upper == "CALLFUNCTION":
+		return nil, fmt.Errorf("CALL FUNCTION %s: frontend function-module forms including GUI_UPLOAD are not implemented; use the admitted class method", strings.Join(tokens, " "))
 	case upper == "PERFORM":
 		return parsePerformStmt(tokens)
+	case s.Type == "Split":
+		return parseSplitStatement(tokens)
 	case s.Type == "Append":
 		return parseAppendStmt(tokens)
 	case s.Type == "ReadTable":
@@ -1057,6 +1071,9 @@ func convertStmt(s *StmtNode) (Decl, error) {
 	default:
 		// Check for cl_salv_table=>factory( table_var ) pattern
 		joined := strings.Join(tokens, " ")
+		if strings.Contains(strings.ToLower(joined), "cl_gui_frontend_services") {
+			return parseFrontendService(selectorTokenStrings(s))
+		}
 		if strings.Contains(strings.ToLower(joined), "cl_salv_table") &&
 			strings.Contains(strings.ToLower(joined), "factory") {
 			return parseALVFactory(tokens)

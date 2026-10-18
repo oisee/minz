@@ -15,6 +15,7 @@ import (
 func inferStringCapacity(p *Program) (int, error) {
 	capacity := 1
 	hasString := false
+	frontendInput := false
 	var visit func(reflect.Value)
 	visit = func(v reflect.Value) {
 		if !v.IsValid() {
@@ -29,6 +30,10 @@ func inferStringCapacity(p *Program) (int, error) {
 		}
 		if v.CanInterface() {
 			switch x := v.Interface().(type) {
+			case FrontendServiceStmt:
+				if x.Method == "gui_upload" {
+					frontendInput = true
+				}
 			case StringLit:
 				if len(x.Val) > capacity {
 					capacity = len(x.Val)
@@ -44,7 +49,17 @@ func inferStringCapacity(p *Program) (int, error) {
 				if x.AbapTy == "c" && characterLength(x.Length) > capacity {
 					capacity = characterLength(x.Length)
 				}
+			case TypesDecl:
+				if x.Elementary == "string" {
+					hasString = true
+				}
+				if x.Elementary == "c" && characterLength(x.Length) > capacity {
+					capacity = characterLength(x.Length)
+				}
 			case TypeComponent:
+				if x.AbapTy == "string" {
+					hasString = true
+				}
 				if x.AbapTy == "c" && characterLength(x.Length) > capacity {
 					capacity = characterLength(x.Length)
 				}
@@ -73,6 +88,9 @@ func inferStringCapacity(p *Program) (int, error) {
 	visit(reflect.ValueOf(p))
 	if !hasString {
 		return 1, nil
+	}
+	if frontendInput && capacity < 1024 {
+		capacity = 1024
 	}
 	if capacity > 65531 {
 		return 0, fmt.Errorf("bounded string capacity %d cannot fit a 16-bit object with length header", capacity)
