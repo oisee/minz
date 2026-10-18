@@ -65,6 +65,12 @@ func addAgonFrontendRuntime(assembly string, m *Module) (string, error) {
 	if keys {
 		assembly += agonKeyboardRuntime()
 	}
+	if files {
+		// Resource cleanup uses the owned short stack, never the caller's stack.
+		// Caller SPS may immediately border an image at the admitted F000 bound.
+		assembly = strings.Replace(assembly, "    LD SP, (__agon_saved_sps)\n", "    LD SP, __agon_stack_top\n", 1)
+		assembly = strings.Replace(assembly, "    LD HL, __agon_stack_guard\n", "    LD SP, (__agon_saved_sps)\n    LD HL, __agon_stack_guard\n", 1)
+	}
 	if files || keys {
 		assembly = strings.Replace(assembly, "__agon_image_end:\n", "", 1)
 		assembly += "\n__agon_native_result: DB 0\n__agon_image_end:\n"
