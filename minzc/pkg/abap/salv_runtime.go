@@ -5,6 +5,7 @@ import (
 	"github.com/minz/minzc/pkg/hir"
 	"github.com/minz/minzc/pkg/mir2"
 	"github.com/minz/minzc/pkg/nanz"
+	"strings"
 )
 
 // Shared typed grid logic. All terminal state changes are platform calls: this
@@ -225,14 +226,19 @@ func emitSalvRuntime(hm *hir.Module) error {
 	if !needed {
 		return nil
 	}
-	if hm.Target != hir.TargetCPM && hm.Target != hir.TargetAgon {
+	if hm.Target != hir.TargetCPM && hm.Target != hir.TargetAgon && hm.Target != hir.TargetZXSpectrum {
 		return fmt.Errorf("SALV needs a native target screen/key adapter")
 	}
 	platform := salvCPMPlatform
 	if hm.Target == hir.TargetAgon {
 		platform = salvAgonPlatform
 	}
-	for _, source := range []string{salvRuntime, platform} {
+	shared := salvRuntime
+	if hm.Target == hir.TargetZXSpectrum {
+		shared = strings.NewReplacer("var width: u8 = 80", "var width: u8 = 32", "width = 79", "width = 31", "grid_width > 80", "grid_width > 32").Replace(shared)
+		platform = salvZXPlatform
+	}
+	for _, source := range []string{shared, platform} {
 		parsed, err := nanz.Parse(source, "abap-salv-runtime.nanz")
 		if err != nil {
 			return err
@@ -248,6 +254,17 @@ func emitSalvRuntime(hm *hir.Module) error {
 		{"title", "ALV Table | Rows: "}, {"first", " | First: "}, {"help", "Up/Down PgUp/PgDn Home/End | Esc/F3/q: Back"},
 		{"cpm_begin", "\x1b[0m\x1b[2J\x1b[H\x1b[?25l"}, {"cpm_end", "\x1b[0m\x1b[?25h\x1b[24;1H\x1b[2K\r\n"},
 	} {
+		if hm.Target == hir.TargetZXSpectrum {
+			if text.name == "title" {
+				text.value = "ALV Rows: "
+			}
+			if text.name == "first" {
+				text.value = " First: "
+			}
+			if text.name == "help" {
+				text.value = "Arrows: scroll  Q: Back"
+			}
+		}
 		symbol := fmt.Sprintf("@mir2.str.%d", len(hm.Strings))
 		hm.Strings = append(hm.Strings, text.value)
 		hm.StrKinds = append(hm.StrKinds, mir2.StrCString)
@@ -259,6 +276,9 @@ func emitSalvRuntime(hm *hir.Module) error {
 			hm.Funcs = append(hm.Funcs, &hir.Func{Name: op.name, Internal: true, RetTy: mir2.TyVoid, Body: &hir.Block{Body: []hir.Stmt{&hir.ExprStmt{Expr: &hir.CallExpr{Fn: op.fn, Ty: mir2.TyU8}}}}})
 		}
 		hm.Funcs = append(hm.Funcs, &hir.Func{Name: "_abap_salv_key_poll", Internal: true, RetTy: mir2.TyU8, Body: &hir.Block{Body: []hir.Stmt{&hir.ReturnStmt{Val: &hir.CallExpr{Fn: "@mir.agon.key.poll", Ty: mir2.TyU8}}}}})
+		return nil
+	}
+	if hm.Target == hir.TargetZXSpectrum {
 		return nil
 	}
 	hm.Funcs = append(hm.Funcs, &hir.Func{Name: "_abap_salv_key_poll", Internal: true, RetTy: mir2.TyU8, Body: &hir.Block{Body: []hir.Stmt{&hir.AsmStmt{Target: "z80", Code: "LD E, 255 / LD C, 6 / CALL 5", RetReg: "A", ClobberRegs: []string{"A", "B", "C", "D", "E", "H", "L"}}}}})

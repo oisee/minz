@@ -473,6 +473,19 @@ func generateSNASnapshot(result *Result) ([]byte, error) {
 		entryPoint = result.Origin
 	}
 
+	// A called native ABAP application needs an actual caller return word.
+	// Package our MIT-owned launcher in reserved RAM below its 0x6000 image;
+	// entering the report directly would RET into an uninitialized address.
+	nativeApplication := false
+	if entry, ok := result.Symbols["__zx_app_entry"]; ok {
+		end, hasEnd := result.Symbols["__zx_app_image_end"]
+		if !hasEnd || result.Origin != 0x6000 || entry != 0x6000 || end > 0xf000 || entryPoint != entry {
+			return nil, fmt.Errorf("invalid native ZX application snapshot layout")
+		}
+		nativeApplication = true
+		entryPoint = 0x5b00
+	}
+
 	// SNA Format: PC is stored on the stack and loaded via RETN
 	// We set SP to $FFFC and store the start address at $FFFC-$FFFD
 	stackAddr := uint16(0xFFFC)
@@ -505,12 +518,23 @@ func generateSNASnapshot(result *Result) ([]byte, error) {
 	snapshot[24] = byte(stackAddr >> 8) // SP (high)
 	snapshot[25] = 0x01                 // Interrupt mode (1)
 	snapshot[26] = 0x07                 // Border color (white)
+	if nativeApplication {
+		snapshot[19] = 0
+		snapshot[26] = 1
+	}
 
 	// Memory content (48K from $4000 to $FFFF)
 	if result.Origin >= 0x4000 {
 		// Copy binary at the correct offset within the 48K memory space
 		offset := 27 + int(result.Origin-0x4000)
 		copy(snapshot[offset:], result.Binary)
+	}
+
+	if nativeApplication {
+		// DI; SP=FF00; IX=1234; IY=5678; CALL6000; save status at5B20;
+		// White/red border signals success/fault; HALT loop at5B1B.
+		launcher := []byte{0xf3, 0x31, 0, 0xff, 0xdd, 0x21, 0x34, 0x12, 0xfd, 0x21, 0x78, 0x56, 0xcd, 0, 0x60, 0x32, 0x20, 0x5b, 0xb7, 0x3e, 7, 0x28, 2, 0x3e, 2, 0xd3, 0xfe, 0x76, 0x18, 0xfd}
+		copy(snapshot[27+0x5b00-0x4000:], launcher)
 	}
 
 	// Store the entry point at SP location for RETN to pop

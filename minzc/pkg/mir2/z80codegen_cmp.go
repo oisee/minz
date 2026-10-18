@@ -635,8 +635,10 @@ func (g *z80cg) genCmp16(inst *Inst) {
 	}
 
 	// A byte lhs must not be extended into HL while rhs still lives there.
+	// Likewise a byte rhs in H/L would be destroyed while loading a word lhs
+	// into HL, and promoting it afterwards would subtract HL from itself.
 	// Stage both values before changing either register (also covers D/E).
-	if rhs == "HL" && (isIXYReg(lhs) || (isSimpleReg(lhs) && !isPairReg(lhs) && lhs != "F")) {
+	if (rhs == "H" || rhs == "L") && lhs != "F" || rhs == "HL" && (isIXYReg(lhs) || (isSimpleReg(lhs) && !isPairReg(lhs) && lhs != "F")) {
 		g.pushWord(lhs)
 		g.pushWord(rhs)
 		g.emit("    POP DE")

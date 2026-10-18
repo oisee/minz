@@ -144,6 +144,10 @@ func Compile(src, name string, target ...uint8) (*hir.Module, error) {
 		return nil, err
 	}
 
+	if err := bindZXFrontendConsole(hm); err != nil {
+		return nil, err
+	}
+
 	namespaceABAPRuntimeBindings(hm)
 
 	// Scan source for assert comments (* assert fn(args) == expected [via mir2|z80]).
@@ -179,6 +183,7 @@ func Compile(src, name string, target ...uint8) (*hir.Module, error) {
 		})
 	}
 
+	pruneZXApplication(hm)
 	return hm, nil
 }
 
@@ -377,8 +382,8 @@ func (l *lowerer) lower() (*hir.Module, error) {
 				found = true
 			}
 		}
-		if !found || (l.hm.Target != hir.TargetCPM && l.hm.Target != hir.TargetAgon) {
-			return nil, fmt.Errorf("ON VALUE-REQUEST FOR %s requires a supported CP/M or Agon TYPE c parameter", name)
+		if !found || (l.hm.Target != hir.TargetCPM && l.hm.Target != hir.TargetAgon && l.hm.Target != hir.TargetZXSpectrum) {
+			return nil, fmt.Errorf("ON VALUE-REQUEST FOR %s requires a supported CP/M, Agon or ZX TYPE c parameter", name)
 		}
 		call, err := l.lowerRegularEvent(event, 0, l.prog.Events[event])
 		if err != nil {

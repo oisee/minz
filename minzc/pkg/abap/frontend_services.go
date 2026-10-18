@@ -162,8 +162,8 @@ func tableFrontendArgs(t *tableObject, kind byte) []hir.Expr {
 	return []hir.Expr{t.base, &hir.AddrOfExpr{Sym: t.count}, charLen(t.capacity), charLen(t.line.size), &hir.IntLitExpr{Val: int64(kind), Ty: mir2.TyU8}}
 }
 func (l *lowerer) lowerFrontendService(s *FrontendServiceStmt) (hir.Stmt, error) {
-	if l.hm.Target != hir.TargetCPM && l.hm.Target != hir.TargetAgon {
-		return nil, fmt.Errorf("%s: frontend filesystem boundary is implemented for CP/M BDOS or explicit Agon native MOS runtime; ZX TR-DOS requires a separate adapter", s.Method)
+	if l.hm.Target != hir.TargetCPM && l.hm.Target != hir.TargetAgon && l.hm.Target != hir.TargetZXSpectrum {
+		return nil, fmt.Errorf("%s: frontend filesystem boundary requires CP/M BDOS, explicit Agon native MOS runtime or ZX sector adapter", s.Method)
 	}
 	l.requireFrontendRuntime()
 	if s.Method == "gui_upload" {

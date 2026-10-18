@@ -1,0 +1,41 @@
+{
+  "capture": "MZX headless CLI, actual native keyboard matrix and sector traps",
+  "original_frames": 500,
+  "sampled_frames": 100,
+  "sample_step": 5,
+  "model": "Pentagon128",
+  "emulated_hz": 50,
+  "gif_duration_ms": 10000,
+  "encoded_gif_frames": 12,
+  "pixel_exact_against_sampled_PNGs": true,
+  "dimensions": [
+    352,
+    304
+  ],
+  "timing": "10 seconds emulated time; offline capture, not wall-clock playback or benchmark",
+  "edits": "none; no crop, scaling, compositing, interpolation or synthetic scenes",
+  "binary_bytes": 34847,
+  "binary_sha256": "2d52a6a2ce7d6dbd57fbfe7b8e6e3b4a26b19edb9bc7d30e88b0a126b74edc74",
+  "source_sha256": "50a48e0726154b3d37115bfdcd09d4f6222c7c2e3380293128cb489c75fb7979",
+  "native_and_public_CLI_ASM_BIN_identical": true,
+  "CLI_grid_SCR_matches_native_oracle": true,
+  "image_end": "0xe81f",
+  "image_bound": "0xf000",
+  "headroom": 2017,
+  "minimum_sp": "0xe7c1",
+  "stack_bottom": "0xe41f",
+  "stack_top": "0xe81f",
+  "measured_stack_bytes": 94,
+  "assets": [
+    {
+      "file": "grid.png",
+      "bytes": 2315,
+      "sha256": "32074be1e5815bd6d524544db069016c15f47a16bda4080da73eff4761402979"
+    },
+    {
+      "file": "session.gif",
+      "bytes": 7060,
+      "sha256": "79ddc87078d0384b7486145d9d9eaf1ad64c30781562aa4bcc86c5183d8e40f7"
+    }
+  ]
+}

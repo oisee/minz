@@ -1,10 +1,10 @@
 # My ABAP Escaped from the Server
 
-*One ABAP report, two native targets: CP/M on Z80 and Agon on eZ80.*
+*One ABAP report, three native targets: CP/M, Agon and ZX Spectrum.*
 
-Press F4, choose a CSV file, load its rows into a typed internal table, and open
+Request value help, choose a CSV file, load its rows into a typed internal table, and open
 an ALV grid. This familiar ABAP workflow now runs as compiled native code in
-MinZ's CP/M and Agon emulators. The same 1,875-byte source builds for both.
+MinZ's CP/M, Agon and ZX Spectrum emulators. The same 1,875-byte source builds for all three.
 
 ![CP/M: the compiled report displays Atlas and Beacon in the native ALV grid](../reports/native-abap/media/f4-csv-alv/cpm-grid.png)
 
@@ -41,6 +41,7 @@ flowchart TD
   M --> Z[Generated Z80 code + compiled Nanz grid]
   Z --> C[CP/M: BDOS files and terminal]
   Z --> A[Agon: MOS FatFS, keyboard and BBC VDU]
+  Z --> X[Spectrum: TRD sector traps, keyboard matrix and ULA]
 ```
 
 The frontend recognizes a bounded set of these APIs and lowers them into typed
@@ -73,6 +74,30 @@ the final frame has a minimal 10 ms hold because its end timestamp is unknown.
 The 80×24 grid uses the top 640×192 of the untouched 640×480 framebuffer.
 Neither clip is a performance benchmark or a physical-hardware demonstration.
 
+### ZX Spectrum, with no DOS ROM
+
+![The same ABAP report in the native Spectrum grid](../reports/native-abap/media/zx-trdos-csv-alv/grid.png)
+
+![MZX: read catalogue, choose CSV, display ALV and return](../reports/native-abap/media/zx-trdos-csv-alv/session.gif)
+
+*MZX headless framebuffer capture, Pentagon 128K with a blank ROM. Ten seconds
+of emulated time, sampled uniformly from 500 original frames; pixels are
+unchanged. The white border at the end marks return to the native launcher.*
+
+F invokes value help on the Spectrum keyboard, 2 chooses FLEET.CSV, and Enter
+accepts it; another Enter runs the report. The Z80 code reads the actual TRD
+catalogue and file sectors through emulator traps. Directory parsing, CSV
+conversion and grid rendering execute in the guest. No external DOS was added.
+The three-letter extension uses the conventional TRD load-address bytes, so the
+filename and ABAP source stay unchanged.
+
+The image is 34,847 bytes with a 1 KiB resident stack; this workload used 94 bytes
+of that stack. Both 48K and 128K execution are verified. Character display
+columns narrow to eight cells while their full values remain stored. The
+[ZX technical report](../reports/native-abap/2026-10-18-zx-trdos-csv-alv.md)
+records pixel checks, crossing a disk-track boundary, error cases and memory
+limits; [build and run the example](../examples/abap/fleet-zx/README.md).
+
 ## What was checked
 
 The runs verify the selected CSV, typed rows and total, native rendering, and
@@ -86,6 +111,7 @@ SAP GUI pixel equivalence.
 |---|---:|---:|---:|
 | CP/M FLEET.COM | 40,257 bytes | 1,024 bytes | 24,511 bytes to measured TPA top FE00 |
 | Agon FLEET.BIN | 45,652 bytes | 1,024 bytes | 15,788 bytes to bank offset F000 |
+| Spectrum native image | 34,847 bytes | 1,024 bytes | 2,017 bytes to admitted image bound F000 |
 
 Agon also requires the pinned MOS long-stack contract. These are image budgets,
 not guarantees for arbitrary firmware or input. The [technical report](../reports/native-abap/2026-10-18-f4-csv-alv-e2e.md)
