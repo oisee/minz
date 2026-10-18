@@ -11,6 +11,12 @@ var runtimeMode string
 var runtimeStackBytes int
 
 func validateCLIRuntime(source string) error {
+	if target == "agon-z80" && filepath.Ext(source) != ".asm" && filepath.Ext(source) != ".a80" {
+		return fmt.Errorf("agon-z80 assembler target requires compiler -t agon -b z80 --runtime=agon-z80")
+	}
+	if runtimeMode == string(mir2.Z80RuntimeAgonZ80) {
+		return validateAgonZ80CLI(source)
+	}
 	if e := mir2.ValidateCPMRuntimeStack(mir2.Z80Runtime(runtimeMode), runtimeStackBytes); e != nil {
 		return e
 	}

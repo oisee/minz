@@ -47,6 +47,15 @@ func (a *Assembler) encodeInstructionTable(line *Line) ([]byte, error) {
 
 	// Parse ADL suffix (e.g., "RST.LIL" -> "RST", ADLSuffixLIL)
 	baseMnemonic, adlSuffix := a.ParseADLSuffix(line.Mnemonic)
+	// MB is an eZ80-only special register, not a Z80 byte-register encoding.
+	// Keep ordinary Z80 symbol resolution (including a label named MB) intact.
+	// ED6E is also present in pinned MOS exec16 at physical $00084B.
+	if a.IsEZ80() && baseMnemonic == "LD" && len(line.Operands) == 2 && strings.EqualFold(strings.TrimSpace(line.Operands[0]), "A") && strings.EqualFold(strings.TrimSpace(line.Operands[1]), "MB") {
+		if adlSuffix != ADLSuffixNone {
+			return nil, fmt.Errorf("explicit width suffix on LD A,MB is unsupported")
+		}
+		return []byte{0xED, 0x6E}, nil
+	}
 	// Prefixes select operand width as well as contributing a byte. Scope
 	// this override to encoding so later instructions and data retain ADL.
 	previousSuffix := a.instructionSuffix
