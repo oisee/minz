@@ -102,3 +102,13 @@ indefinitely. Native filesystem and screen cleanup run on the reset reserved
 application short stack, with the saved long-stack frame restored; the caller's
 short stack is restored only after those calls finish. This preserves caller
 words even at the admitted lower short-stack boundary beside a full-size image.
+
+SALV navigation maps the pinned legacy virtual keys to the shared byte protocol:
+F3 produces ESC O R, Home/End produce ESC [ H/F, and PageUp/PageDown produce
+ESC [ 5 ~/6 ~. Main and keypad variants share each mapping. Up/Down and F4 keep
+the existing sequences. The compiler-owned pending queue holds three tail bytes
+for a four-byte sequence and is drained before accepting a later MOS packet.
+The underlying MOS sysvars expose the latest packet rather than a lossless key
+queue; this adapter does not guarantee recovery of packets overwritten before a
+poll. Native directed tests use genuine SDL events with observed renderer frames
+between key presses.

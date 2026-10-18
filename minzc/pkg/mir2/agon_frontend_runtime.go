@@ -363,13 +363,15 @@ func agonKeyboardRuntime() string {
 	return agonNativeLeaf("__agon_key_poll", `
     LD A, (__agon_key_pending)
     OR A
-    JR Z, __agon_key_snapshot
+    JP Z, __agon_key_snapshot
     DEC A
     LD (__agon_key_pending), A
     LD A, (__agon_key_queue)
     LD B, A
     LD A, (__agon_key_queue+1)
     LD (__agon_key_queue), A
+    LD A, (__agon_key_queue+2)
+    LD (__agon_key_queue+1), A
     LD A, B
     JP __agon_key_done
 __agon_key_snapshot:
@@ -405,24 +407,66 @@ __agon_key_changed:
     OR A
     JP Z, __agon_key_none
     LD A, D
+    CP 161
+    JP Z, __agon_key_f3
+    CP 133
+    JP Z, __agon_key_home
+    CP 134
+    JP Z, __agon_key_home
+    CP 135
+    JP Z, __agon_key_end
+    CP 136
+    JP Z, __agon_key_end
+    CP 146
+    JP Z, __agon_key_pageup
+    CP 147
+    JP Z, __agon_key_pageup
+    CP 148
+    JP Z, __agon_key_pagedown
+    CP 149
+    JP Z, __agon_key_pagedown
     CP 162
-    JR Z, __agon_key_f4
+    JP Z, __agon_key_f4
     CP 150
-    JR Z, __agon_key_up
+    JP Z, __agon_key_up
     CP 151
-    JR Z, __agon_key_up
+    JP Z, __agon_key_up
     CP 152
-    JR Z, __agon_key_down
+    JP Z, __agon_key_down
     CP 153
-    JR Z, __agon_key_down
+    JP Z, __agon_key_down
     CP 143
-    JR Z, __agon_key_enter
+    JP Z, __agon_key_enter
     CP 144
-    JR Z, __agon_key_enter
+    JP Z, __agon_key_enter
     CP 125
-    JR Z, __agon_key_escape
+    JP Z, __agon_key_escape
     LD A, E
     JR __agon_key_done
+__agon_key_f3:
+    LD B, 'O'
+    LD C, 'R'
+    JR __agon_key_sequence
+__agon_key_home:
+    LD B, '['
+    LD C, 'H'
+    JR __agon_key_sequence
+__agon_key_end:
+    LD B, '['
+    LD C, 'F'
+    JR __agon_key_sequence
+__agon_key_pageup:
+    LD C, '5'
+    JR __agon_key_page
+__agon_key_pagedown:
+    LD C, '6'
+__agon_key_page:
+    LD A, '~'
+    LD (__agon_key_queue+2), A
+    LD A, 3
+    LD (__agon_key_pending), A
+    LD B, '['
+    JR __agon_key_store_sequence
 __agon_key_f4:
     LD B, 'O'
     LD C, 'S'
@@ -435,12 +479,13 @@ __agon_key_down:
     LD B, '['
     LD C, 'B'
 __agon_key_sequence:
+    LD A, 2
+    LD (__agon_key_pending), A
+__agon_key_store_sequence:
     LD A, B
     LD (__agon_key_queue), A
     LD A, C
     LD (__agon_key_queue+1), A
-    LD A, 2
-    LD (__agon_key_pending), A
 __agon_key_escape:
     LD A, 27
     JR __agon_key_done
@@ -454,7 +499,7 @@ __agon_key_done:
 __agon_key_initialized: DB 0
 __agon_key_seen: DB 0
 __agon_key_pending: DB 0
-__agon_key_queue: DS 2, 0
+__agon_key_queue: DS 3, 0
 `
 }
 
