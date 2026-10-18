@@ -472,9 +472,16 @@ func (a *Assembler) handleINCBIN(line *Line) error {
 		}
 	}
 
-	// Emit bytes
-	for _, b := range data[offset : offset+length] {
-		a.EmitByte(b)
+	// Record included bytes just like DB/DS, so listings retain complete
+	// address coverage of the compact output, including a trailing INCBIN.
+	if a.pass >= 2 {
+		included := data[offset : offset+length]
+		a.instructions = append(a.instructions, &AssembledInstruction{
+			Address: a.currentAddr,
+			Line:    line,
+			Bytes:   included,
+		})
+		a.output = append(a.output, included...)
 	}
 	a.currentAddr += length
 	return nil

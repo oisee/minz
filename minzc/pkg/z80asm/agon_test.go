@@ -67,8 +67,9 @@ func TestAgonOutputGenerator(t *testing.T) {
 	codeBytes := []byte{0x3E, 0x42, 0xC9} // LD A, 'B' ; RET
 	result := &Result{
 		Binary:     codeBytes,
-		Origin:     0x0000,
-		EntryPoint: 0x0000,
+		Origin:     0x040045,
+		EntryPoint: 0x040045,
+		Listing:    []ListingLine{{Address: 0x040045, Bytes: codeBytes}},
 	}
 
 	output, err := generateAgonBin(result)

@@ -6,7 +6,7 @@
 
 ## The Problem
 
-MinZ's `generateAgonBin()` in `minzc/pkg/z80asm/targets.go` currently returns raw binary with no header. The comment says "Future: could add MOS header for metadata." This document explains exactly what that header must look like.
+MinZ's `generateAgonBin()` in `minzc/pkg/z80asm/targets.go` prepends a 69-byte header to code assembled at `0x040045`. The complete file loads at `0x040000`; its header and encoded code addresses must agree with that physical layout.
 
 Without the header, MOS cannot identify the binary as executable — `RUN` will fail with "Invalid executable."
 
@@ -14,16 +14,16 @@ Without the header, MOS cannot identify the binary as executable — `RUN` will 
 
 ## Binary File Layout (Byte-by-Byte)
 
-Every MOS executable is a flat binary with this exact structure:
+MinZ's ADL MOS output is a flat binary with this structure:
 
 ```
 Offset  Size  Contents                    Description
 ------  ----  --------                    -----------
 0x00    1     0xC3                        JP instruction opcode
-0x01    2     0x45, 0x00                  Jump target (little-endian) = 0x000045
-0x03    1     N                           Length of program name (incl .bin\0)
-0x04    N     "name.bin\0"                Null-terminated program name
-0x04+N  ...   0xFF padding               Fill to offset 0x40
+0x01    3     0x45, 0x00, 0x04            Absolute ADL jump target = 0x040045
+0x04    1     N                           Length of program name (incl .bin\0)
+0x05    N     "name.bin\0"                Null-terminated program name
+0x05+N  ...   0xFF padding               Fill to offset 0x40
 0x40    3     0x4D, 0x4F, 0x53           ASCII "MOS" — magic marker
 0x43    1     0x00                        Header version (always 0)
 0x44    1     0x01                        ADL mode flag: 0x01 = 24-bit, 0x00 = Z80
@@ -37,17 +37,11 @@ Total header: **69 bytes** (0x00–0x44). Code begins at **offset 0x45**.
 For a program named `bbplay.bin`:
 
 ```
-00: C3 45 00                    ; JP 0x000045  (jump over header to code)
-03: 0B                          ; name length = 11 bytes
-04: 62 62 70 6C 61 79 2E 62    ; "bbplay.b"
-0C: 69 6E 00                    ; "in\0"
-0F: FF FF FF FF FF FF FF FF    ; 0xFF padding...
-17: FF FF FF FF FF FF FF FF    ;
-1F: FF FF FF FF FF FF FF FF    ;
-27: FF FF FF FF FF FF FF FF    ;
-2F: FF FF FF FF FF FF FF FF    ;
-37: FF FF FF FF FF FF FF FF    ;
-3F: FF                         ;
+00: C3 45 00 04                 ; JP 0x040045 (absolute 24-bit address)
+04: 0B                          ; name length = 11 bytes
+05: 62 62 70 6C 61 79 2E 62    ; "bbplay.b"
+0D: 69 6E 00                    ; "in\0"
+10: FF ... FF                   ; padding through offset 0x3F
 40: 4D 4F 53                    ; "MOS"
 43: 00                          ; header version 0
 44: 01                          ; ADL mode = true (24-bit)
@@ -57,7 +51,9 @@ For a program named `bbplay.bin`:
 ### What the `generateAgonBin()` Function Should Emit
 
 ```
-header = []byte{0xC3, 0x45, 0x00}          // JP 0x0045
+// Validate origin, contiguous emitted addresses and entry before packaging.
+// entry defaults to 0x040045; END label may select an address inside the code.
+header = []byte{0xC3, byte(entry), byte(entry >> 8), byte(entry >> 16)}
 header = append(header, byte(len(name)+1))  // name length (including \0)
 header = append(header, []byte(name)...)    // "prog.bin"
 header = append(header, 0x00)              // null terminator
@@ -72,7 +68,9 @@ header = append(header, 0x01)              // ADL mode (1 = 24-bit)
 return append(header, result.Binary...)
 ```
 
-That's it. No checksums, no section tables, no relocations. Just this 69-byte header + raw machine code.
+The packager does not relocate instructions or data. It accepts contiguous code assembled at `0x040045`; incompatible explicit origins, gaps and overlapping sections are rejected with a diagnostic. The header jump honors an explicit `END label` inside the code image. Output-format selection alone does not reassemble code at a new origin.
+
+The assembler listing must cover every emitted byte, including `INCBIN` data, so a trailing included file cannot hide an incompatible origin. An explicit `END 0` is an out-of-image entry and is rejected; omitting `END` uses the assembler's resolved default entry.
 
 ---
 
@@ -84,9 +82,11 @@ That's it. No checksums, no section tables, no relocations. Just this 69-byte he
 0x0BC000 - 0x0BFFFF    16 KB   System heap + stack (stack at top, grows down)
 ```
 
-MOS loads the binary to **0x040000**, so all addresses in the code are relative to that base. The linker's ORG should be `0x040000` (or `0x000000` if the assembler adds the base). The agondev toolchain uses ORG `0x040000`.
+MOS loads the complete binary to **0x040000**. MinZ assembles its code payload at **0x040045**, after the separately generated header. Symbols, absolute CALL/JP operands and data pointers therefore refer to the code's final addresses. An explicit `ORG 0x040045` is preserved without applying a second offset.
 
-**Important**: The JP target in the header (0x0045) is a *relative offset within the file*. MOS adds 0x040000 when loading, so the actual jump goes to 0x040045.
+The header JP operand is an **absolute 24-bit address**, normally `0x040045`, encoded as `C3 45 00 04`. It is not a file-relative offset, and the loader does not repair already encoded addresses.
+
+Raw `code`/`.bin` output bypasses MOS header packaging and keeps the assembled bytes. Selecting the Agon target now defaults even raw assembly to `0x040045`; an explicit `ORG` still controls encoded addresses for raw output, including `0x040000`. Such a raw image has no MOS header and is not admitted by the MOS packager unless it satisfies the payload-origin contract above.
 
 ---
 
@@ -280,15 +280,15 @@ Key points:
 
 ## Practical: What MinZ Needs to Change
 
-The current `generateAgonBin()` returns `result.Binary` directly. To produce valid MOS executables:
+Header packaging and code-origin validation are implemented. Executable runtime support additionally requires target-specific startup, MOS calls and correct ADL frame/data widths; a valid header alone does not prove those behaviors. The relevant requirements are:
 
 1. **Prepend the 69-byte header** (JP + name + padding + MOS magic + ADL flag)
-2. **Assemble code with ORG 0x040045** (or ORG 0x040000 and account for the 0x45 header offset)
+2. **Assemble code with ORG 0x040045**; reject incompatible origins instead of shifting assembled bytes
 3. **Emit startup/teardown** prologue/epilogue that saves MB and registers
 4. **Never touch IY** in generated code
 5. **Use 3-byte stack frames** (ADL mode return addresses are 24-bit)
 
-The header is trivial — 10 lines of Go code. The stack frame calculation is the bigger change since the existing Z80 codegen assumes 2-byte return addresses.
+The target-only ABAP path still requires separate MOS console/runtime and ADL semantic validation. Correct placement must not be presented as proof that this path runs on Agon.
 
 ---
 

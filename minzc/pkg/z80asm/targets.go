@@ -18,6 +18,12 @@ const (
 	TargetAgonLight2 Target = "agon"       // Agon Light 2 (eZ80)
 )
 
+const (
+	agonLoadAddress = 0x040000
+	agonHeaderSize  = 0x45
+	agonCodeOrigin  = agonLoadAddress + agonHeaderSize
+)
+
 // TargetConfig represents a specific Z80-based platform configuration
 type TargetConfig struct {
 	Name         string
@@ -231,7 +237,7 @@ var targetRegistry = map[Target]*TargetConfig{
 		Description: "Agon Light 2 computer with eZ80 CPU (24-bit ADL mode)",
 		CPUMode:     CPUModeEZ80ADL,
 		MemoryLayout: MemoryLayout{
-			DefaultOrigin: 0x040000,  // MOS loads executables at 0x040000 in ADL mode
+			DefaultOrigin: agonCodeOrigin, // Code follows the MOS header loaded at 0x040000
 			RAMStart:      0x040000,  // User RAM in ADL mode (0x040000-0x0BDFFF)
 			RAMSize:       0x07E000,  // ~504K user RAM (0x040000-0x0BDFFF)
 			ROMStart:      0x0000,    // MOS in flash (0x000000-0x01FFFF)
@@ -241,6 +247,7 @@ var targetRegistry = map[Target]*TargetConfig{
 		OutputFormat: OutputFormat{
 			Extension:   ".bin",
 			Description: "Agon MOS executable",
+			HeaderSize:  agonHeaderSize,
 			Generator:   generateAgonBin,
 		},
 		Conventions: PlatformConventions{
@@ -434,6 +441,7 @@ var OutputFormats = map[string]OutputFormat{
 	"agon": {
 		Extension:   ".bin",
 		Description: "Agon Light 2 MOS executable",
+		HeaderSize:  agonHeaderSize,
 		Generator:   generateAgonBin,
 	},
 }
@@ -623,7 +631,8 @@ func generateTAPFile(result *Result) ([]byte, error) {
 }
 
 // generateAgonBin creates an Agon Light 2 MOS executable binary with proper header
-// Binary format documented in inbox/agon-mos-binary-format.md
+// Code must already be assembled for its address after the MOS header; this
+// packager does not relocate encoded instructions or data references.
 func generateAgonBin(result *Result) ([]byte, error) {
 	// Agon MOS executables require a 69-byte header
 	// MOS loads them at 0x040000 (in ADL mode address space)
@@ -633,14 +642,34 @@ func generateAgonBin(result *Result) ([]byte, error) {
 	if len(result.Binary) > 480*1024 {
 		return nil, fmt.Errorf("Agon binary too large: %d bytes (max ~480KB)", len(result.Binary))
 	}
+	if result.Origin != agonCodeOrigin {
+		return nil, fmt.Errorf("Agon MOS code must be assembled at $%06X after the %d-byte header, got origin $%06X", agonCodeOrigin, agonHeaderSize, result.Origin)
+	}
+	// ORG directives can change instruction addresses without changing the
+	// result's origin. Validate the actual emitted layout, including data and
+	// later sections, before prepending a header to the compact byte stream.
+	offset := 0
+	for _, line := range result.Listing {
+		if line.Address != agonCodeOrigin+offset {
+			return nil, fmt.Errorf("Agon MOS requires contiguous code at $%06X: line %d assembled at $%06X, expected $%06X", agonCodeOrigin, line.LineNumber, line.Address, agonCodeOrigin+offset)
+		}
+		offset += len(line.Bytes)
+	}
+	if offset != len(result.Binary) {
+		return nil, fmt.Errorf("Agon MOS requires complete binary address coverage: listing covers %d of %d bytes", offset, len(result.Binary))
+	}
+	entry := result.EntryPoint
+	if entry < agonCodeOrigin || entry >= agonCodeOrigin+len(result.Binary) {
+		return nil, fmt.Errorf("Agon MOS entry $%06X is outside code image [$%06X,$%06X)", entry, agonCodeOrigin, agonCodeOrigin+len(result.Binary))
+	}
 
 	// Build the 69-byte MOS header
-	header := make([]byte, 0, 0x45)
+	header := make([]byte, 0, agonHeaderSize)
 
-	// 0x00-0x03: JP 0x040045 (24-bit JP in ADL mode, jump over header to code)
-	// MOS loads executables at 0x040000, code starts at header offset 0x45
+	// 0x00-0x03: JP entry (default 0x040045, or an explicit END label).
+	// MOS loads executables at 0x040000; entry is an absolute ADL address.
 	// In ADL mode, JP is 4 bytes: C3 + 24-bit address (little-endian)
-	header = append(header, 0xC3, 0x45, 0x00, 0x04)
+	header = append(header, 0xC3, byte(entry), byte(entry>>8), byte(entry>>16))
 
 	// 0x04: Length of program name (including null terminator)
 	// Use a default name "program.bin" if none specified
@@ -667,7 +696,7 @@ func generateAgonBin(result *Result) ([]byte, error) {
 	header = append(header, 0x01) // ADL mode enabled
 
 	// Verify header is exactly 0x45 bytes
-	if len(header) != 0x45 {
+	if len(header) != agonHeaderSize {
 		return nil, fmt.Errorf("internal error: MOS header is %d bytes, expected 69", len(header))
 	}
 
