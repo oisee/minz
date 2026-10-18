@@ -1,0 +1,43 @@
+{
+  "source_sha256": "f0bb7f64435733d22e5412e2748405cf7fb202667ed3a160414cd63fcee19b08",
+  "provider": "@abaplint/transpiler + @abaplint/runtime 2.14.8",
+  "node": "v22.23.3",
+  "entry": "full report",
+  "values": {
+    "input": [
+      {
+        "text": "Atlas,North,40                                                                  "
+      },
+      {
+        "text": "Beacon,South,32                                                                 "
+      }
+    ],
+    "raw": {
+      "text": "Beacon,South,32                                                                 "
+    },
+    "fleet": [
+      {
+        "name": "Atlas               ",
+        "route": "North               ",
+        "seats": 40
+      },
+      {
+        "name": "Beacon              ",
+        "route": "South               ",
+        "seats": 32
+      }
+    ],
+    "flight": {
+      "name": "Beacon              ",
+      "route": "South               ",
+      "seats": 32
+    },
+    "total": 72
+  },
+  "sy": {
+    "tabix": 2,
+    "subrc": 0,
+    "index": 0
+  },
+  "output": "Total 72"
+}

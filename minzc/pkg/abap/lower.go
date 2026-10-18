@@ -130,6 +130,9 @@ func Compile(src, name string, target ...uint8) (*hir.Module, error) {
 	if err != nil {
 		return nil, fmt.Errorf("abap lower: %w", err)
 	}
+	if err := emitSalvRuntime(hm); err != nil {
+		return nil, fmt.Errorf("ABAP SALV runtime: %w", err)
+	}
 	if err := emitFrontendRuntime(hm); err != nil {
 		return nil, fmt.Errorf("ABAP frontend runtime: %w", err)
 	}
@@ -189,6 +192,9 @@ func LowerProgramWithTarget(prog *Program, target uint8) (*hir.Module, error) {
 	if err := validateABAPRuntimeNames(prog); err != nil {
 		return nil, err
 	}
+	if err := validateSalvPlacement(prog); err != nil {
+		return nil, err
+	}
 	if err := validateProgramTypes(prog); err != nil {
 		return nil, err
 	}
@@ -206,6 +212,8 @@ func LowerProgramWithTarget(prog *Program, target uint8) (*hir.Module, error) {
 		types:          make(map[string]*abapStruct),
 		structs:        make(map[string]*structObject),
 		tables:         make(map[string]*tableObject),
+		salvRefs:       make(map[string]bool),
+		salvBindings:   make(map[string]*tableObject),
 	}
 	l.hm = &hir.Module{Name: prog.Name, Target: target}
 	return l.lower()
@@ -223,6 +231,8 @@ type internalTable struct {
 }
 
 type lowerer struct {
+	salvRefs           map[string]bool
+	salvBindings       map[string]*tableObject
 	prog               *Program
 	hm                 *hir.Module
 	stringCapacity     int
@@ -796,6 +806,11 @@ func (l *lowerer) abapTypeToHIR(abapTy string, length int) mir2.Ty {
 // ── Globals ──────────────────────────────────────────────────────────────────
 
 func (l *lowerer) lowerGlobal(d *DataDecl) error {
+	if d.SalvRef {
+		l.salvRefs[d.Name] = true
+		delete(l.varTypes, d.Name)
+		return nil
+	}
 	d = l.resolveDataAlias(d)
 	if !l.aggregateDecl(d) {
 		l.varTypes[d.Name] = l.abapTypeToHIR(d.AbapTy, d.Length)
@@ -902,6 +917,9 @@ func (l *lowerer) enterProcedure() func() {
 }
 
 func (l *lowerer) lowerLocalData(d *DataDecl) (hir.Stmt, error) {
+	if d.SalvRef {
+		return nil, fmt.Errorf("SALV: local object references/table escape are not admitted")
+	}
 	d = l.resolveDataAlias(d)
 	if l.localNames[d.Name] {
 		return nil, fmt.Errorf("DATA %s: duplicate procedure object", d.Name)
@@ -1239,6 +1257,9 @@ func (l *lowerer) lowerStmt(s Stmt_) (hir.Stmt, error) {
 	case *WriteStmt:
 		return l.lowerWrite(s)
 	case *ClearStmt:
+		if l.isSalvHandle(s.Target) {
+			return nil, fmt.Errorf("SALV reference %s CLEAR is not admitted", s.Target)
+		}
 		if st, handled, err := l.lowerAggregateClear(s.Target); handled || err != nil {
 			return st, err
 		}
@@ -1286,6 +1307,10 @@ func (l *lowerer) lowerStmt(s Stmt_) (hir.Stmt, error) {
 		return l.lowerCase(s)
 	case *SelectStmt:
 		return l.lowerSelect(s)
+	case *SalvFactoryStmt:
+		return l.lowerSalvFactory(s)
+	case *SalvDisplayStmt:
+		return l.lowerSalvDisplay(s)
 	case *ALVDisplayStmt:
 		return nil, fmt.Errorf("ALV: typed table and layout semantics are not implemented; fixed-slot display prototype is not admitted")
 	case *ExecSQLStmt:
@@ -1350,6 +1375,9 @@ func (l *lowerer) lowerWrite(s *WriteStmt) (hir.Stmt, error) {
 }
 
 func (l *lowerer) lowerAssign(s *AssignStmt) (hir.Stmt, error) {
+	if l.isSalvHandle(s.Target) {
+		return nil, fmt.Errorf("SALV reference %s assignment/aliasing is not admitted", s.Target)
+	}
 	if st, handled, err := l.lowerAggregateAssign(s); handled || err != nil {
 		return st, err
 	}
@@ -2148,6 +2176,9 @@ func (l *lowerer) lowerExpr(e Expr_) (hir.Expr, error) {
 		return &hir.AddrOfExpr{Sym: sym}, nil
 
 	case *VarRef:
+		if l.isSalvHandle(e.Name) {
+			return nil, fmt.Errorf("SALV reference %s cannot escape as an operand", e.Name)
+		}
 		if b, ok := l.characters[e.Name]; ok {
 			return b.ptr, nil
 		}

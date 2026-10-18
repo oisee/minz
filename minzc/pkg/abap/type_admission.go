@@ -41,6 +41,12 @@ func validateProgramTypes(p *Program) error {
 	// DATA admits a flat report structure type and standard tables of one.
 	data := func(d *DataDecl) error {
 		context := "DATA " + d.Name
+		if d.SalvRef {
+			if d.AbapTy != "cl_salv_table" || d.Table != nil || d.Length != 0 || d.Value != nil {
+				return fmt.Errorf("%s: unsupported SALV reference declaration", context)
+			}
+			return nil
+		}
 		if d.Table != nil {
 			if !structures[d.AbapTy] && d.AbapTy != "c" && d.AbapTy != "string" {
 				return fmt.Errorf("%s: table line type %s is not a flat structure declared with TYPES BEGIN OF; tables of elementary or unknown line types are not implemented", context, d.AbapTy)

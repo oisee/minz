@@ -62,10 +62,11 @@ type Decl interface{ abapDecl() }
 
 // DataDecl is a DATA statement: DATA x TYPE i VALUE 42.
 type DataDecl struct {
-	Name   string
-	AbapTy string // "i", "c", "string", "n", "p", "x", "d", "t", "f", etc.
-	Length int    // for TYPE c LENGTH n, TYPE n LENGTH n, TYPE x LENGTH n
-	Value  *Expr_ // initial value (nil = default)
+	SalvRef bool // exact declared TYPE REF TO cl_salv_table subset
+	Name    string
+	AbapTy  string // "i", "c", "string", "n", "p", "x", "d", "t", "f", etc.
+	Length  int    // for TYPE c LENGTH n, TYPE n LENGTH n, TYPE x LENGTH n
+	Value   *Expr_ // initial value (nil = default)
 	// Table is set for DATA ... TYPE STANDARD TABLE OF line; AbapTy then
 	// names the line type. A structure variable has AbapTy = its TYPES name.
 	Table *TableSpec

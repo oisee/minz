@@ -1074,38 +1074,14 @@ func convertStmt(s *StmtNode) (Decl, error) {
 		if strings.Contains(strings.ToLower(joined), "cl_gui_frontend_services") {
 			return parseFrontendService(selectorTokenStrings(s))
 		}
-		if strings.Contains(strings.ToLower(joined), "cl_salv_table") &&
-			strings.Contains(strings.ToLower(joined), "factory") {
-			return parseALVFactory(tokens)
+		if strings.Contains(strings.ToLower(joined), "cl_salv_table") {
+			return parseSalvFactory(selectorTokenStrings(s))
+		}
+		if strings.Contains(joined, "->") {
+			return parseSalvDisplay(selectorTokenStrings(s))
 		}
 		return nil, fmt.Errorf("unsupported: %s", s.Type)
 	}
-}
-
-// parseALVFactory: cl_salv_table=>factory( IMPORTING r_salv_table = lo_salv CHANGING t_table = lt_table ).
-// Simplified: cl_salv_table=>factory( lt_table ).
-func parseALVFactory(tokens []string) (Decl, error) {
-	// Find the table variable — last identifier before ) or .
-	var tableVar string
-	for i := len(tokens) - 1; i >= 0; i-- {
-		t := tokens[i]
-		if t == ")" || t == "." || t == "(" || strings.Contains(t, "=>") ||
-			strings.ToLower(t) == "cl_salv_table" || strings.ToLower(t) == "factory" ||
-			strings.ToUpper(t) == "IMPORTING" || strings.ToUpper(t) == "CHANGING" ||
-			strings.ToUpper(t) == "EXPORTING" || t == "=" {
-			continue
-		}
-		// Skip known keyword params like r_salv_table, lo_salv
-		if strings.HasPrefix(t, "r_") || strings.HasPrefix(t, "lo_") {
-			continue
-		}
-		tableVar = t
-		break
-	}
-	if tableVar == "" {
-		return nil, fmt.Errorf("cl_salv_table: could not find table variable")
-	}
-	return &formBodyDecl{stmt: &ALVDisplayStmt{TableVar: tableVar}}, nil
 }
 
 func collectTokenStrings(s *StmtNode) []string {
@@ -1146,7 +1122,10 @@ func parseDataStmt(tokens []string) (Decl, error) {
 		case "STANDARD", "TABLE", "SORTED", "HASHED", "ANY", "INDEX", "RANGE":
 			return parseTableDeclaration(tokens)
 		case "REF":
-			return nil, fmt.Errorf("DATA %s: TYPE REF TO data references are not implemented", tokens[1])
+			if len(tokens) == 7 && strings.EqualFold(tokens[4], "TO") && strings.EqualFold(tokens[5], "cl_salv_table") && tokens[6] == "." {
+				return &DataDecl{Name: strings.ToLower(tokens[1]), AbapTy: "cl_salv_table", SalvRef: true}, nil
+			}
+			return nil, fmt.Errorf("DATA %s: TYPE REF TO only declared cl_salv_table is admitted; general data references are not implemented", tokens[1])
 		}
 	}
 	name, ty, length, value, err := parseSimpleDeclaration(tokens, "VALUE")
