@@ -100,11 +100,11 @@ func (t *TRDFile) Flush() error {
 
 // ReadSector reads a 256-byte sector from the disk image.
 func (t *TRDFile) ReadSector(track, side, sector int) []byte {
-	offset := ((track*TRDSidesPerDisk+side)*TRDSectorsPerTrack + sector) * TRDSectorSize
-	if offset < 0 || offset+TRDSectorSize > len(t.Data) {
+	if track < 0 || track >= TRDTracksPerSide || side < 0 || side >= TRDSidesPerDisk || sector < 0 || sector >= TRDSectorsPerTrack {
 		empty := make([]byte, TRDSectorSize)
 		return empty
 	}
+	offset := ((track*TRDSidesPerDisk+side)*TRDSectorsPerTrack + sector) * TRDSectorSize
 	result := make([]byte, TRDSectorSize)
 	copy(result, t.Data[offset:offset+TRDSectorSize])
 	return result
@@ -112,10 +112,10 @@ func (t *TRDFile) ReadSector(track, side, sector int) []byte {
 
 // WriteSector writes a 256-byte sector to the disk image.
 func (t *TRDFile) WriteSector(track, side, sector int, data []byte) {
-	offset := ((track*TRDSidesPerDisk+side)*TRDSectorsPerTrack + sector) * TRDSectorSize
-	if offset < 0 || offset+TRDSectorSize > len(t.Data) {
+	if track < 0 || track >= TRDTracksPerSide || side < 0 || side >= TRDSidesPerDisk || sector < 0 || sector >= TRDSectorsPerTrack {
 		return
 	}
+	offset := ((track*TRDSidesPerDisk+side)*TRDSectorsPerTrack + sector) * TRDSectorSize
 	n := TRDSectorSize
 	if len(data) < n {
 		n = len(data)
@@ -387,6 +387,25 @@ func (s *TRDState) dispatch() {
 	}
 }
 
+// Preserve the historical head-grouped trap coordinates. Standard TRD
+// directory readers translate interleaved logical tracks before calling B=1.
+// Preflight the complete group so refusals never partially modify RAM/disk.
+func validTRDTransfer(track, sector, count, address int, read bool) bool {
+	if count == 0 {
+		return true
+	}
+	if track < 0 || track >= 160 || sector < 1 || sector > 16 || count < 0 {
+		return false
+	}
+	if count > 2560-(track*16+sector-1) {
+		return false
+	}
+	if address < 0 || address > 65536-count*256 || read && address < 0x4000 {
+		return false
+	}
+	return true
+}
+
 // readSectors: function $05 — read B sectors from track D, sector E to address HL.
 func (s *TRDState) readSectors() {
 	m := s.machine
@@ -405,6 +424,11 @@ func (s *TRDState) readSectors() {
 		return
 	}
 
+	if !validTRDTransfer(track, sector, count, int(hl), true) {
+		s.setBC(0x0100)
+		emulateRET(m)
+		return
+	}
 	dest := hl
 	for i := 0; i < count; i++ {
 		// TR-DOS uses logical tracks: 0-79 = side 0, 80-159 = side 1
@@ -417,9 +441,6 @@ func (s *TRDState) readSectors() {
 
 		// TR-DOS sectors are 1-based in the API; our image is 0-based
 		secIdx := sector - 1
-		if secIdx < 0 {
-			secIdx = 0
-		}
 
 		data := s.disk.ReadSector(physTrack, side, secIdx)
 		for j := 0; j < TRDSectorSize; j++ {
@@ -452,6 +473,11 @@ func (s *TRDState) writeSectors() {
 	track := int(de >> 8)
 	sector := int(de & 0xFF)
 
+	if !validTRDTransfer(track, sector, count, int(hl), false) {
+		s.setBC(0x0100)
+		emulateRET(m)
+		return
+	}
 	src := hl
 	for i := 0; i < count; i++ {
 		physTrack := track
@@ -461,9 +487,6 @@ func (s *TRDState) writeSectors() {
 			physTrack -= TRDTracksPerSide
 		}
 		secIdx := sector - 1
-		if secIdx < 0 {
-			secIdx = 0
-		}
 
 		data := make([]byte, TRDSectorSize)
 		for j := 0; j < TRDSectorSize; j++ {
