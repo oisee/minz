@@ -1,0 +1,29 @@
+{
+  "source_archive": "grace-reports/2026-10-18/f4-csv-alv-e2e",
+  "assets": [
+    {
+      "file": "cpm-grid.png",
+      "bytes": 3109,
+      "sha256": "8cbca5b542bf9776c643fb1409b13cd37106d74699b1a8b26ef9b7c023d4957d",
+      "original": "cpm/grid.png"
+    },
+    {
+      "file": "cpm-session.gif",
+      "bytes": 7331,
+      "sha256": "900e401f0dea0dccee9a2136c76082fd9978134ec224eab752e649e827f364d5",
+      "original": "cpm/capture.gif"
+    },
+    {
+      "file": "agon-grid.png",
+      "bytes": 2556,
+      "sha256": "1b955cab596eea40cd2057b781e5200859b625e4da975817409946e52083d1f8",
+      "original": "agon-final/grid.png"
+    },
+    {
+      "file": "agon-session.gif",
+      "bytes": 30384,
+      "sha256": "8cdbffa2c2d5f241ee4966e078897d616dd91c70569fb13e41f1d35aece4180c",
+      "original": "agon-final/capture.gif"
+    }
+  ]
+}

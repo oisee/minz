@@ -8,6 +8,15 @@
 
 SAVE files live outside the download in your user configuration directory, so upgrades preserve them. Zork I resumes the session after a clean exit; Zork II uses disk SAVE/RESTORE. [Release verification](reports/zmachine-spectrum128/release/verified.md) · [Full Z-machine status](reports/zmachine-spectrum128/current-status.md).
 
+## Featured article: My ABAP Escaped from the Server
+
+[**F4 → CSV → typed internal table → ALV, compiled for CP/M and Agon**](docs/my-abap-escaped-from-the-server.md).
+One unchanged ABAP report runs as native Z80 code on CP/M and Z80-mode code on
+eZ80/Agon. Read the source, watch both real emulator sessions, and follow the
+[verification report](reports/native-abap/2026-10-18-f4-csv-alv-e2e.md).
+
+[![Real CP/M capture: the ABAP report displays its CSV data in an ALV grid](reports/native-abap/media/f4-csv-alv/cpm-grid.png)](docs/my-abap-escaped-from-the-server.md)
+
 # MinZ
 
 MinZ is an experimental compiler toolchain for writing programs for Z80 machines with modern language features. **Nanz** is its main source language; Frill, C, Pascal, ABAP and other frontends also feed the shared HIR → MIR2 pipeline. The repository includes a Z80 assembler and emulators, so a small program can go from source to execution here.
