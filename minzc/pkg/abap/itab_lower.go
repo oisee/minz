@@ -304,6 +304,9 @@ func (l *lowerer) lowerAggregateClear(target string) (hir.Stmt, bool, error) {
 		}
 		if c.abapTy == "c" || c.abapTy == "string" {
 			b := componentCharacter(obj, c)
+			if b.dynamic {
+				return charCall("_abap_string_clear", b.object), true, nil
+			}
 			return charCall("_abap_char_clear", b.ptr, b.length), true, nil
 		}
 		return &hir.AssignStmt{Target: &hir.DerefExpr{Ptr: offsetPtr(obj.base, c.offset), Ty: mir2.TyI32}, Val: i32Lit(0)}, true, nil

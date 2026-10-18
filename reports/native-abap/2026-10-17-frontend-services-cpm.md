@@ -33,8 +33,12 @@ GUI_UPLOAD strips CRLF/LF (also handles lone CR) and treats ^Z as EOF. Fixed c r
 truncate while consuming the entire input line. Owned bounded strings fault 3 on
 exhaustion; non-ASCII bytes fault 4. Table overflow faults 7 before the next row
 write, closes the file, and bypasses the report suffix. Mapped FILE_OPEN_ERROR and
-OTHERS set SY-SUBRC; unmapped errors fault 8. Checked text-to-i conversion reuses
-the decimal input grammar: invalid text fault 4, signed overflow fault 5.
+OTHERS set SY-SUBRC. When FILE_OPEN_ERROR has no explicit mapping, OTHERS
+handles it; with no applicable mapping the error faults 8. Checked text-to-scalar-i assignment uses an integral ASCII grammar: optional
+leading +/- and surrounding spaces, empty/blank becomes zero. Invalid text,
+decimals and trailing-sign forms fault 4; signed overflow faults 5. Decimal
+rounding/trailing-sign conversion is outside this pilot; full SAP numeric
+conversion is not claimed. Console input retains its prior strict grammar.
 
 ## Implementation boundaries
 
@@ -45,6 +49,12 @@ The six private leaf adapters implement open, close, read, search-first,
 search-next and nonblocking key reads. Read/search temporarily select the private
 DMA and restore CP/M's default 0x80 afterward. This is the explicit adapter
 contract; arbitrary incoming DMA restoration is not claimed.
+
+The picker uses named `frontendEscapePollBudget = 4096` for each continuation
+byte after ESC and after `[`/`O`. Transient zero polls inside that finite budget
+are tolerated; exhausted/partial sequences cancel. A lone ESC must complete even
+when the provider returns zero forever. This is a poll-count contract, not a
+portable wall-clock timeout or a promise to tolerate an arbitrary 250 ms gap.
 
 Native BDOS search FF cannot distinguish an empty match from an underlying
 provider failure. Host catalog helpers retain a separate error, but native
@@ -58,8 +68,12 @@ from I/O errors and advance CR/EX/S2 without wrapping exhausted extents to zero.
 Elementary c/string table rows own their byte images, including bounded string
 headers; APPEND/READ copy values. Runtime locals are namespaced by the independent
 runtime-bindings foundation fix, preserving source globals named n/i/count.
-The line work buffer includes table width even without a line work area; a
-1536-byte row reproduces memory corruption without that bound and passes with it.
+Line/snapshot bounds include declaration widths and implicit-main statement
+operands. A v1 1536-byte upload without a line work area reproduced corruption
+when its bound was omitted. Review also reproduced SPLIT component-only snapshot
+overwrite, CLEAR retaining a string header length, filename capacity below 12,
+and implicit-main string upload capacity 1. Dedicated tests now verify the bounds,
+CLEAR header reset and owned string rows across all engines.
 
 ## Frozen report and real CP/M result
 
@@ -85,9 +99,9 @@ entry diagnostic and bypass report output, then return to CP/M with the fault in
 A and `_abap_error_code`. MZE's shell exit status is 0 for an OS return; it does
 not reinterpret arbitrary application A values as shell errors.
 
-Measured application: COM 32,207 bytes, image end 0x7ECF, resident stack
-0x7ACF..0x7ECF (1024 bytes). Select/cancel minimum SP 0x7E8D (66 bytes used);
-missing/fault cases minimum SP 0x7EA7 (40 bytes used). Native sentinel tests and
+Measured application: COM 32,343 bytes, image end 0x7F57, resident stack
+0x7B57..0x7F57 (1024 bytes). Select/cancel minimum SP 0x7F15 (66 bytes used);
+missing/fault cases minimum SP 0x7F2F (40 bytes used). Native sentinel tests and
 real MZE independently verify return PC/SP, unchanged stack canary A5, and stored
 faults. Real MZE returns PC=0000 / SP=FE00. The application entry additionally
 checks actual CP/M vector/return-span admission; FE00 is a measured emulator TPA,
@@ -99,6 +113,14 @@ Required dependency: reviewed ordinary CP/M application-entry commit
 2aab6f711a4e0080807b2fdca34c0ad460b77df0 over main76495bd8f, applied separately.
 Runtime binding foundation is separately reviewed/integrated3ff9faa33. The final
 frontend patch excludes both dependency changes.
+
+Numeric assignment additionally has 12 SHA-frozen unchanged full-report fixtures
+measured on pinned transpiler/runtime 2.14.8: c/string empty, blank, leading signs
+and signed endpoints. All 32 exploratory oracle cases are retained in evidence.
+The reference runtime itself permits out-of-i32 values and has inconsistent
+padded-c/string trailing-minus handling, so its overflow results are not an oracle.
+Overflow tests use exact signed-i32 bounds; decimal/trailing-sign refusal tests
+record this pilot limit. A real MZE CSV with an empty seats field prints zero.
 
 Tests cover raw/final VM and native Z80 for owned rows, SPLIT remainder/aliasing/
 truncation, numeric conversion, record boundaries, CRLF/LF/^Z, long/empty input,
@@ -115,3 +137,12 @@ an independent red proof. Final gate status and exact commands are preserved in
 `/tmp/minz-abap-f4-alv-evidence/frontend-services`, mirrored by the coordinator to
 the persistent artifact root. No network, commit or push was performed by this
 worker.
+
+
+V3 validation: focused new cases pass raw/final VM and native application entry
+(`v3-green.log`, 22.348 s); seven actual MZE CLI cases pass (`cli-v3-green.log`,
+8.754 s), including fragmented Down, cancellation, empty numeric CSV field and
+terminal faults. The complete required short ABAP suite passed on v2 (213.269 s);
+v3 changes only the frontend continuation/error paths, covered by directed tests.
+The other short package gates and guarded-runtime CLI passed and remain unchanged.
+No new broad test run is required for this narrow review round.

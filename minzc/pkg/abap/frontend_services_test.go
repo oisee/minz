@@ -171,7 +171,7 @@ func runFrontendCase(t *testing.T, c frontendCase) {
 	if len(a.Binary) > 0xd000 {
 		t.Fatalf("image too large: %d", len(a.Binary))
 	}
-	check := func(read func(string, int) []byte, output, wantOutput string) {
+	check := func(t *testing.T, read func(string, int) []byte, output, wantOutput string) {
 		t.Helper()
 		for name, want := range c.text {
 			if got := string(read(name, len(want))); got != want {
@@ -225,12 +225,12 @@ func runFrontendCase(t *testing.T, c frontendCase) {
 			}
 			_, err := v.Call("main", nil)
 			if (err != nil) != (c.fault != 0) {
-				t.Fatalf("VM error %v", err)
+				t.Fatalf("VM error %v fault=%d inputBytes=%d", err, v.ReadHeap(v.GlobalAddr("_abap_error_code"), 1)[0], p.pos)
 			}
 			if p.opened != "" {
 				t.Fatal("VM leaked open file", p.opened)
 			}
-			check(func(name string, n int) []byte { return v.ReadHeap(v.GlobalAddr(name), n) }, out.String(), c.output)
+			check(t, func(name string, n int) []byte { return v.ReadHeap(v.GlobalAddr(name), n) }, out.String(), c.output)
 		})
 	}
 	t.Run("z80", func(t *testing.T) {
@@ -277,7 +277,7 @@ func runFrontendCase(t *testing.T, c frontendCase) {
 		}
 		if c.fault == 0 || c.application {
 			if z.GetPC() != 0xf100 || z.GetSP() != 0xf000 {
-				t.Fatalf("PC=%04x SP=%04x", z.GetPC(), z.GetSP())
+				t.Fatalf("PC=%04x SP=%04x fault=%d", z.GetPC(), z.GetSP(), mem[a.Symbols["_abap_error_code"]])
 			}
 		} else if !z.IsHalted() {
 			t.Fatalf("expected fault PC=%04x", z.GetPC())
@@ -305,7 +305,7 @@ func runFrontendCase(t *testing.T, c frontendCase) {
 			}
 			t.Logf("application imageEnd=%04x stack=%04x..%04x minSP=%04x returnPC=%04x SP=%04x canary=A5", 0x100+len(a.Binary), bottom, top, minSP, z.GetPC(), z.GetSP())
 		}
-		check(func(name string, n int) []byte {
+		check(t, func(name string, n int) []byte {
 			addr, ok := a.Symbols[name]
 			if !ok {
 				addr, ok = a.Symbols["v_"+name]

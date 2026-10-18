@@ -7,6 +7,10 @@ import (
 	"github.com/minz/minzc/pkg/nanz"
 )
 
+// Finite BDOS polling grace for each byte after an ESC prefix. This is a
+// poll budget, not a portable wall-clock timeout; lone ESC still cancels.
+const frontendEscapePollBudget = 4096
+
 // All catalog, line conversion, row ownership and picker semantics run as
 // compiled code. The six leaf BDOS calls below are the per-target boundary.
 const frontendRuntime = `
@@ -197,6 +201,15 @@ fun _abap_fs_key() -> u8 {
  if ch != 0 { return ch } }
  return 0
 }
+fun _abap_fs_escape_next() -> u8 {
+ var polls_remaining: u16 = %d
+ while polls_remaining > 0 {
+  var ch: u8 = _abap_fs_bdos_key()
+  if ch != 0 { return ch }
+  polls_remaining = polls_remaining - 1
+ }
+ return 0
+}
 fun _abap_fs_pick(found: u16, title: ^u8, title_length: u16) -> u16 {
  if title_length > 0 { _abap_char_write(title, title_length) }
  var selected: u16 = 0
@@ -222,11 +235,12 @@ fun _abap_fs_pick(found: u16, title: ^u8, title_length: u16) -> u16 {
   if ch >= 49 && ch <= 57 { var digit: u16 = u16(ch - 49)
   if digit < found { selected = digit } }
   if ch == 27 {
-   var next: u8 = _abap_fs_bdos_key()
+   var next: u8 = _abap_fs_escape_next()
    if next == 0 { return 0 }
    if next != 91 && next != 79 { _abap_fs_key_pending = next
    return 0 }
-   var arrow: u8 = _abap_fs_key()
+   var arrow: u8 = _abap_fs_escape_next()
+   if arrow == 0 { return 0 }
    if arrow == 66 { if selected + 1 < found { selected = selected + 1 } }
    if arrow == 65 { if selected > 0 { selected = selected - 1 } }
   }
@@ -364,7 +378,7 @@ func emitFrontendRuntime(hm *hir.Module) error {
 	if hm.Target != hir.TargetCPM {
 		return fmt.Errorf("frontend filesystem adapter not implemented for target %d", hm.Target)
 	}
-	m, err := nanz.Parse(frontendRuntime, "abap-frontend-runtime.nanz")
+	m, err := nanz.Parse(fmt.Sprintf(frontendRuntime, frontendEscapePollBudget), "abap-frontend-runtime.nanz")
 	if err != nil {
 		return err
 	}

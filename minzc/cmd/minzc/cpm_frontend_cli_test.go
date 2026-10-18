@@ -44,10 +44,12 @@ func TestABAPFrontendCPMCLI(t *testing.T) {
 		fault                           byte
 	}{
 		{name: "select", keys: "\x1bOS\x1b[B\r\r", output: prompt + menu + "\r\n 1 EXTRA.CSV\r\n>2 FLEET.CSV\r\nP_FILE [FLEET.CSV]: \r\n\r\n\r\nAtlas North 40\r\nBeacon South 32\r\nTotal seats: 72"},
+		{name: "fragmented-select", keys: "\x1bOS\x1b\x00\x00[\x00\x00B\r\r", output: prompt + menu + "\r\n 1 EXTRA.CSV\r\n>2 FLEET.CSV\r\nP_FILE [FLEET.CSV]: \r\n\r\n\r\nAtlas North 40\r\nBeacon South 32\r\nTotal seats: 72"},
 		{name: "cancel", keys: "\x1bOS\x1b\r", output: prompt + menu + prompt + "\r\n\r\n\r\nSpare Depot 8\r\nTotal seats: 8"},
 		{name: "missing", keys: "MISSING.CSV\r", output: prompt + "MISSING.CSV\r\n\r\n\r\nFile not found"},
 		{name: "capacity", keys: "\r", replacement: strings.Repeat("A,B,1\r\n", 17), output: prompt + "\r\n\r\nABAP runtime error 0x07\r\n", fault: 7},
 		{name: "invalid-number", keys: "\r", replacement: "A,B,BAD\r\n", output: prompt + "\r\n\r\nABAP runtime error 0x04\r\n", fault: 4},
+		{name: "empty-seat", keys: "\r", replacement: "A,B,\r\n", output: prompt + "\r\n\r\n\r\nA B 0\r\nTotal seats: 0"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			dir := t.TempDir()

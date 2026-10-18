@@ -1365,7 +1365,7 @@ func (l *lowerer) lowerAssign(s *AssignStmt) (hir.Stmt, error) {
 		if l.varTypes[s.Target] != mir2.TyI32 {
 			return nil, fmt.Errorf("assignment to %s: character conversion requires TYPE i", s.Target)
 		}
-		return &hir.AssignStmt{Target: l.variableTarget(s.Target, mir2.TyI32), Val: &hir.CallExpr{Fn: "_abap_parse_text_i32", Args: []hir.Expr{b.ptr, textValueLength(b)}, Ty: mir2.TyI32}}, nil
+		return &hir.AssignStmt{Target: l.variableTarget(s.Target, mir2.TyI32), Val: &hir.CallExpr{Fn: "_abap_parse_assignment_i32", Args: []hir.Expr{b.ptr, textValueLength(b)}, Ty: mir2.TyI32}}, nil
 	}
 	val, err := l.lowerExpr(s.Val)
 	if err != nil {

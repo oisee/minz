@@ -30,6 +30,12 @@ func inferStringCapacity(p *Program) (int, error) {
 		}
 		if v.CanInterface() {
 			switch x := v.Interface().(type) {
+			case formBodyDecl:
+				// Reflection cannot interface through this private wrapper field.
+				// Re-enter through the typed semantic statement so implicit main
+				// calls/literals contribute the same bounds as event bodies.
+				visit(reflect.ValueOf(x.stmt))
+				return
 			case FrontendServiceStmt:
 				if x.Method == "gui_upload" {
 					frontendInput = true
@@ -59,6 +65,10 @@ func inferStringCapacity(p *Program) (int, error) {
 			case TypeComponent:
 				if x.AbapTy == "string" {
 					hasString = true
+					// Frontend directory entries can supply every ASCII 8.3 name.
+					if x.Name == "filename" && capacity < 12 {
+						capacity = 12
+					}
 				}
 				if x.AbapTy == "c" && characterLength(x.Length) > capacity {
 					capacity = characterLength(x.Length)
@@ -87,7 +97,9 @@ func inferStringCapacity(p *Program) (int, error) {
 	}
 	visit(reflect.ValueOf(p))
 	if !hasString {
-		return 1, nil
+		// SPLIT snapshots may still read fixed structure components or FORM
+		// actuals even when there are no dynamic strings/scalar work areas.
+		return capacity, nil
 	}
 	if frontendInput && capacity < 1024 {
 		capacity = 1024

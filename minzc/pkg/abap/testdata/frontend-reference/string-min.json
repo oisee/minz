@@ -1,0 +1,16 @@
+{
+  "source_sha256": "0d033fcfda7ec9434fbac7ec14b3362bd9fee03e08a18b2079ad44bec93a5a8b",
+  "provider": "@abaplint/transpiler + @abaplint/runtime 2.14.8",
+  "node": "v22.23.3",
+  "entry": "full report",
+  "values": {
+    "source": "-2147483648",
+    "result": -2147483648
+  },
+  "sy": {
+    "tabix": 0,
+    "subrc": 0,
+    "index": 0
+  },
+  "output": "-2147483648"
+}

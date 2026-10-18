@@ -186,7 +186,12 @@ func (l *lowerer) lowerFrontendService(s *FrontendServiceStmt) (hir.Stmt, error)
 		}
 		args := []hir.Expr{file.ptr, textValueLength(file)}
 		args = append(args, tableFrontendArgs(t, kind)...)
-		args = append(args, i32Lit(s.Exceptions["file_open_error"]), i32Lit(s.Exceptions["others"]))
+		openError := s.Exceptions["file_open_error"]
+		if openError == 0 {
+			// OTHERS handles any supported exception without an explicit map.
+			openError = s.Exceptions["others"]
+		}
+		args = append(args, i32Lit(openError), i32Lit(s.Exceptions["others"]))
 		return charCall("_abap_fs_upload", args...), nil
 	}
 	t, kind, err := l.frontendTable(s, "file_table")
