@@ -10,7 +10,7 @@ import (
 // processDirective handles assembly directives
 func (a *Assembler) processDirective(line *Line) error {
 	directive := strings.ToUpper(line.Directive)
-	
+
 	switch directive {
 	case "ORG":
 		return a.handleORG(line)
@@ -100,9 +100,9 @@ func (a *Assembler) handleDB(line *Line) error {
 	if len(line.Operands) == 0 {
 		return fmt.Errorf("DB requires at least one operand")
 	}
-	
+
 	var bytes []byte
-	
+
 	for i, operand := range line.Operands {
 		// Check for special macros
 		if operand == "@len" || operand == "@size" || operand == "@len_u8" {
@@ -152,7 +152,7 @@ func (a *Assembler) handleDB(line *Line) error {
 			bytes = append(bytes, byte(val))
 		}
 	}
-	
+
 	if a.pass >= 2 {
 		inst := &AssembledInstruction{
 			Address: a.currentAddr,
@@ -162,7 +162,7 @@ func (a *Assembler) handleDB(line *Line) error {
 		a.instructions = append(a.instructions, inst)
 		a.output = append(a.output, bytes...)
 	}
-	
+
 	a.currentAddr += len(bytes)
 	return nil
 }
@@ -172,9 +172,9 @@ func (a *Assembler) handleDW(line *Line) error {
 	if len(line.Operands) == 0 {
 		return fmt.Errorf("DW requires at least one operand")
 	}
-	
+
 	var bytes []byte
-	
+
 	for i, operand := range line.Operands {
 		// Check for special macros
 		if operand == "@len_u16" || operand == "@size16" {
@@ -218,7 +218,7 @@ func (a *Assembler) handleDW(line *Line) error {
 			bytes = append(bytes, byte(val), byte(val>>8))
 		}
 	}
-	
+
 	if a.pass >= 2 {
 		inst := &AssembledInstruction{
 			Address: a.currentAddr,
@@ -228,7 +228,7 @@ func (a *Assembler) handleDW(line *Line) error {
 		a.instructions = append(a.instructions, inst)
 		a.output = append(a.output, bytes...)
 	}
-	
+
 	a.currentAddr += len(bytes)
 	return nil
 }
@@ -289,13 +289,13 @@ func (a *Assembler) handleDS(line *Line) error {
 	if len(line.Operands) == 0 {
 		return fmt.Errorf("DS requires at least one operand")
 	}
-	
+
 	// Get size
 	size, err := a.resolveValue(line.Operands[0])
 	if err != nil {
 		return fmt.Errorf("invalid DS size: %w", err)
 	}
-	
+
 	// Get fill value (default 0)
 	fillValue := byte(0)
 	if len(line.Operands) > 1 {
@@ -308,13 +308,13 @@ func (a *Assembler) handleDS(line *Line) error {
 		}
 		fillValue = byte(val)
 	}
-	
+
 	if a.pass >= 2 {
 		bytes := make([]byte, size)
 		for i := range bytes {
 			bytes[i] = fillValue
 		}
-		
+
 		inst := &AssembledInstruction{
 			Address: a.currentAddr,
 			Line:    line,
@@ -323,7 +323,7 @@ func (a *Assembler) handleDS(line *Line) error {
 		a.instructions = append(a.instructions, inst)
 		a.output = append(a.output, bytes...)
 	}
-	
+
 	a.currentAddr += size
 	return nil
 }
@@ -336,15 +336,15 @@ func (a *Assembler) handleEQU(line *Line) error {
 	if len(line.Operands) != 1 {
 		return fmt.Errorf("EQU requires exactly one operand")
 	}
-	
+
 	value, err := a.resolveValue(line.Operands[0])
 	if err != nil {
 		return fmt.Errorf("invalid EQU value: %w", err)
 	}
-	
+
 	// Define the symbol
 	label := a.symbolKey(line.Label)
-	
+
 	if a.pass == 1 {
 		if sym, exists := a.symbols[label]; exists && sym.Defined {
 			return fmt.Errorf("symbol '%s' already defined", label)
@@ -361,7 +361,7 @@ func (a *Assembler) handleEQU(line *Line) error {
 			sym.Value = value // Update for multi-pass convergence
 		}
 	}
-	
+
 	return nil
 }
 
@@ -370,22 +370,22 @@ func (a *Assembler) handleALIGN(line *Line) error {
 	if len(line.Operands) != 1 {
 		return fmt.Errorf("ALIGN requires exactly one operand")
 	}
-	
+
 	alignment, err := a.resolveValue(line.Operands[0])
 	if err != nil {
 		return fmt.Errorf("invalid ALIGN value: %w", err)
 	}
-	
+
 	// Check if alignment is power of 2
 	if alignment == 0 || (alignment&(alignment-1)) != 0 {
 		return fmt.Errorf("ALIGN value must be a power of 2")
 	}
-	
+
 	// Calculate padding needed
 	remainder := a.currentAddr % alignment
 	if remainder != 0 {
 		padding := alignment - remainder
-		
+
 		if a.pass >= 2 {
 			bytes := make([]byte, padding)
 			inst := &AssembledInstruction{
@@ -396,10 +396,10 @@ func (a *Assembler) handleALIGN(line *Line) error {
 			a.instructions = append(a.instructions, inst)
 			a.output = append(a.output, bytes...)
 		}
-		
+
 		a.currentAddr += padding
 	}
-	
+
 	return nil
 }
 
@@ -499,27 +499,27 @@ func (a *Assembler) handleMACRO(line *Line) error {
 	if !a.EnableMacros {
 		return fmt.Errorf("macros are disabled")
 	}
-	
+
 	// Parse macro name and parameters
 	if len(line.Operands) < 1 {
 		return fmt.Errorf("MACRO requires a name")
 	}
-	
+
 	macroName := line.Operands[0]
 	var params []string
 	if len(line.Operands) > 1 {
 		params = line.Operands[1:]
 	}
-	
+
 	// Parameters are already parsed into line.Operands
-	
+
 	// Start collecting macro body
 	a.macroDefinition = &macroDefinitionState{
 		name:   macroName,
 		params: params,
 		body:   []string{},
 	}
-	
+
 	return nil
 }
 
@@ -528,21 +528,21 @@ func (a *Assembler) handleENDM(line *Line) error {
 	if !a.EnableMacros {
 		return fmt.Errorf("macros are disabled")
 	}
-	
+
 	if a.macroDefinition == nil {
 		return fmt.Errorf("ENDM without matching MACRO")
 	}
-	
+
 	// Register the macro
 	err := a.macroProcessor.DefineMacro(
 		a.macroDefinition.name,
 		a.macroDefinition.params,
 		a.macroDefinition.body,
 	)
-	
+
 	// Clear definition state
 	a.macroDefinition = nil
-	
+
 	return err
 }
 
@@ -551,7 +551,7 @@ func (a *Assembler) handleENDM(line *Line) error {
 func isString(s string) bool {
 	s = strings.TrimSpace(s)
 	return (strings.HasPrefix(s, "\"") && strings.HasSuffix(s, "\"")) ||
-	       (strings.HasPrefix(s, "'") && strings.HasSuffix(s, "'"))
+		(strings.HasPrefix(s, "'") && strings.HasSuffix(s, "'"))
 }
 
 func parseString(s string) string {
@@ -559,10 +559,10 @@ func parseString(s string) string {
 	if len(s) < 2 {
 		return s
 	}
-	
+
 	// Remove quotes
 	s = s[1 : len(s)-1]
-	
+
 	// Process escape sequences
 	var result []byte
 	for i := 0; i < len(s); i++ {
@@ -598,7 +598,7 @@ func parseString(s string) string {
 			result = append(result, s[i])
 		}
 	}
-	
+
 	return string(result)
 }
 
@@ -607,25 +607,25 @@ func (a *Assembler) handleTARGET(line *Line) error {
 	if len(line.Operands) != 1 {
 		return fmt.Errorf("TARGET requires exactly one operand")
 	}
-	
+
 	targetStr := strings.Trim(line.Operands[0], "\"'")
 	target, err := ParseTarget(targetStr)
 	if err != nil {
 		// Provide helpful error with available targets
 		return fmt.Errorf("unknown target '%s'. Available targets: generic, zxspectrum, cpm, msx, gameboy", targetStr)
 	}
-	
+
 	// Set the target configuration
 	err = a.SetTarget(target)
 	if err != nil {
 		return fmt.Errorf("failed to set target: %w", err)
 	}
-	
+
 	// Log the target selection
 	if a.pass == 1 {
 		a.warnings = append(a.warnings, fmt.Sprintf("Target platform set to: %s", a.target.Name))
 	}
-	
+
 	return nil
 }
 
@@ -634,19 +634,19 @@ func (a *Assembler) handleMODEL(line *Line) error {
 	if len(line.Operands) != 1 {
 		return fmt.Errorf("MODEL requires exactly one operand")
 	}
-	
+
 	if a.target == nil {
 		return fmt.Errorf("MODEL directive requires TARGET to be set first")
 	}
-	
+
 	model := strings.Trim(line.Operands[0], "\"'")
-	
+
 	// Store model in target extensions
 	if a.target.Extensions == nil {
 		a.target.Extensions = make(map[string]interface{})
 	}
 	a.target.Extensions["model"] = model
-	
+
 	// Apply model-specific configurations
 	switch a.target.Name {
 	case "ZX Spectrum":
@@ -658,12 +658,12 @@ func (a *Assembler) handleMODEL(line *Line) error {
 			// 128K specific settings (bank switching required)
 			// Note: Only 64K addressable at once without banking
 			a.target.MemoryLayout.RAMSize = 65535 // Max addressable
-			a.target.Extensions["banks"] = 8 // 8 x 16K banks
+			a.target.Extensions["banks"] = 8      // 8 x 16K banks
 			a.warnings = append(a.warnings, "128K model set - bank switching support limited")
 		case "+2", "+3":
 			// +2/+3 specific settings
 			a.target.MemoryLayout.RAMSize = 65535 // Max addressable
-			a.target.Extensions["banks"] = 8 // 8 x 16K banks
+			a.target.Extensions["banks"] = 8      // 8 x 16K banks
 			a.warnings = append(a.warnings, fmt.Sprintf("%s model set - disk support not yet implemented", model))
 		default:
 			return fmt.Errorf("unknown ZX Spectrum model '%s'. Valid models: 48k, 128k, +2, +3", model)
@@ -674,7 +674,7 @@ func (a *Assembler) handleMODEL(line *Line) error {
 			a.target.MemoryLayout.RAMSize = 32768
 		case "msx2", "msx2+":
 			a.target.MemoryLayout.RAMSize = 65535 // Max addressable
-			a.target.Extensions["vram"] = 131072 // 128K VRAM
+			a.target.Extensions["vram"] = 131072  // 128K VRAM
 		default:
 			return fmt.Errorf("unknown MSX model '%s'. Valid models: msx1, msx2, msx2+", model)
 		}
@@ -687,10 +687,10 @@ func (a *Assembler) handleMODEL(line *Line) error {
 			a.warnings = append(a.warnings, fmt.Sprintf("CP/M version '%s' noted", model))
 		}
 	}
-	
+
 	if a.pass == 1 {
 		a.warnings = append(a.warnings, fmt.Sprintf("Model set to: %s", model))
 	}
-	
+
 	return nil
 }
