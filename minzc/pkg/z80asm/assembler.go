@@ -46,32 +46,32 @@ type Assembler struct {
 
 	// Internal state
 	instructionSuffix byte // Per-instruction operand-width override; never changes persistent ADL.
-	pass          int
-	currentAddr   int
-	origin        int
-	firstOrg      int    // First ORG address (for multi-section code)
-	hasFirstOrg   bool   // Whether firstOrg has been set
-	entryPoint    int    // Entry point from END directive
-	hasEntryPoint bool   // Whether entry point was explicitly set
-	symbols       map[string]*Symbol
-	lines         []*Line
-	output        []byte
-	instructions  []*AssembledInstruction
-	errors        []AssemblerError
-	warnings      []string
-	macroProcessor *MacroProcessor
-	macroDefinition *macroDefinitionState // Current macro being defined
+	pass              int
+	currentAddr       int
+	origin            int
+	firstOrg          int  // First ORG address (for multi-section code)
+	hasFirstOrg       bool // Whether firstOrg has been set
+	entryPoint        int  // Entry point from END directive
+	hasEntryPoint     bool // Whether entry point was explicitly set
+	symbols           map[string]*Symbol
+	lines             []*Line
+	output            []byte
+	instructions      []*AssembledInstruction
+	errors            []AssemblerError
+	warnings          []string
+	macroProcessor    *MacroProcessor
+	macroDefinition   *macroDefinitionState // Current macro being defined
 
 	// Target platform support
-	target        *TargetConfig
+	target *TargetConfig
 
 	// Include file support
-	sourceDir     string            // Directory of the main source file
-	includedFiles map[string]bool   // Set of included files (absolute paths) for circular inclusion guard
+	sourceDir     string          // Directory of the main source file
+	includedFiles map[string]bool // Set of included files (absolute paths) for circular inclusion guard
 
 	// Multi-pass convergence for span-dependent optimization (JJ instruction)
-	instructionSizes map[int]int  // Line number -> instruction size from previous pass
-	sizeChanged      bool         // True if any instruction size changed this pass
+	instructionSizes map[int]int // Line number -> instruction size from previous pass
+	sizeChanged      bool        // True if any instruction size changed this pass
 
 	// JRS context: set per-instruction so encodeJRRel can reserve 3 bytes in pass 1
 	currentFromJRS bool
@@ -86,13 +86,13 @@ type macroDefinitionState struct {
 
 // AssemblerError represents an assembly error
 type AssemblerError struct {
-	Line        int
-	Column      int
-	Message     string
+	Line    int
+	Column  int
+	Message string
 	// Enhanced error context (optional - maintains backward compatibility)
-	Context     string      // Problematic text
-	Suggestion  string      // How to fix
-	Examples    []string    // Valid alternatives
+	Context    string   // Problematic text
+	Suggestion string   // How to fix
+	Examples   []string // Valid alternatives
 }
 
 func (e AssemblerError) Error() string {
@@ -100,7 +100,7 @@ func (e AssemblerError) Error() string {
 	if e.Suggestion == "" && len(e.Examples) == 0 {
 		return fmt.Sprintf("line %d: %s", e.Line, e.Message)
 	}
-	
+
 	// Enhanced format with suggestions
 	return e.FormatEnhanced()
 }
@@ -108,20 +108,20 @@ func (e AssemblerError) Error() string {
 // FormatEnhanced returns detailed error with suggestions
 func (e AssemblerError) FormatEnhanced() string {
 	var buf strings.Builder
-	
+
 	// Main error message
 	fmt.Fprintf(&buf, "Line %d: %s", e.Line, e.Message)
-	
+
 	// Context highlighting
 	if e.Context != "" {
 		fmt.Fprintf(&buf, "\n  Problem: '%s'", e.Context)
 	}
-	
+
 	// Suggestion with visual indicator
 	if e.Suggestion != "" {
 		fmt.Fprintf(&buf, "\n  💡 %s", e.Suggestion)
 	}
-	
+
 	// Examples for guidance
 	if len(e.Examples) > 0 {
 		fmt.Fprintf(&buf, "\n  Examples:")
@@ -129,7 +129,7 @@ func (e AssemblerError) FormatEnhanced() string {
 			fmt.Fprintf(&buf, "\n    • %s", example)
 		}
 	}
-	
+
 	return buf.String()
 }
 
@@ -139,7 +139,7 @@ func (e AssemblerError) FormatEnhanced() string {
 func NewUndefinedSymbolError(line int, symbol string) AssemblerError {
 	var suggestion string
 	var examples []string
-	
+
 	// Pattern-based suggestions
 	switch {
 	case isRegisterIndirect(symbol): // (HL), (BC), etc.
@@ -149,7 +149,7 @@ func NewUndefinedSymbolError(line int, symbol string) AssemblerError {
 			"Verify register indirect is supported for this operation",
 			"Try immediate addressing if applicable",
 		}
-		
+
 	case isMemoryIndirect(symbol): // ($8100), etc.
 		suggestion = "Memory indirect addressing requires proper format and instruction support"
 		examples = []string{
@@ -157,7 +157,7 @@ func NewUndefinedSymbolError(line int, symbol string) AssemblerError {
 			"Check if instruction supports memory indirect",
 			"Consider using defined symbols: LD A, (buffer_addr)",
 		}
-		
+
 	case isLikelyHexAddress(symbol):
 		suggestion = "Address may need parentheses for indirect access or label definition"
 		examples = []string{
@@ -165,7 +165,7 @@ func NewUndefinedSymbolError(line int, symbol string) AssemblerError {
 			"For immediate value: LD HL, $8000",
 			"Define as label: " + symbol + "_addr:",
 		}
-		
+
 	default:
 		suggestion = "Symbol not defined in current scope"
 		examples = []string{
@@ -174,13 +174,13 @@ func NewUndefinedSymbolError(line int, symbol string) AssemblerError {
 			"Verify symbol is defined before use",
 		}
 	}
-	
+
 	return AssemblerError{
-		Line:        line,
-		Message:     fmt.Sprintf("undefined symbol: %s", symbol),
-		Context:     symbol,
-		Suggestion:  suggestion,
-		Examples:    examples,
+		Line:       line,
+		Message:    fmt.Sprintf("undefined symbol: %s", symbol),
+		Context:    symbol,
+		Suggestion: suggestion,
+		Examples:   examples,
 	}
 }
 
@@ -188,10 +188,10 @@ func NewUndefinedSymbolError(line int, symbol string) AssemblerError {
 func NewUnsupportedInstructionError(line int, mnemonic string, operands []string) AssemblerError {
 	opStr := strings.Join(operands, ", ")
 	instruction := fmt.Sprintf("%s %s", mnemonic, opStr)
-	
+
 	var suggestion string
 	var examples []string
-	
+
 	switch strings.ToUpper(mnemonic) {
 	case "LD":
 		suggestion = "This LD instruction pattern is not yet supported"
@@ -207,13 +207,13 @@ func NewUnsupportedInstructionError(line int, mnemonic string, operands []string
 			"Verify operand types match instruction requirements",
 		}
 	}
-	
+
 	return AssemblerError{
-		Line:        line,
-		Message:     fmt.Sprintf("unsupported instruction: %s", instruction),
-		Context:     instruction,
-		Suggestion:  suggestion,
-		Examples:    examples,
+		Line:       line,
+		Message:    fmt.Sprintf("unsupported instruction: %s", instruction),
+		Context:    instruction,
+		Suggestion: suggestion,
+		Examples:   examples,
 	}
 }
 
@@ -226,7 +226,7 @@ func isRegisterIndirect(symbol string) bool {
 	inner := strings.TrimSpace(symbol[1 : len(symbol)-1])
 	upper := strings.ToUpper(inner)
 	return upper == "HL" || upper == "BC" || upper == "DE" || upper == "SP" ||
-		   strings.Contains(upper, "IX") || strings.Contains(upper, "IY")
+		strings.Contains(upper, "IX") || strings.Contains(upper, "IY")
 }
 
 func isMemoryIndirect(symbol string) bool {
@@ -259,48 +259,48 @@ func isAllDigits(s string) bool {
 
 // Result contains the assembled output
 type Result struct {
-	Binary      []byte
-	Origin      int
-	EntryPoint  int    // Entry point address (from END label or first ORG)
-	Size        int
-	Symbols     map[string]int
-	Listing     []ListingLine
-	Errors      []AssemblerError
-	Warnings    []string
+	Binary     []byte
+	Origin     int
+	EntryPoint int // Entry point address (from END label or first ORG)
+	Size       int
+	Symbols    map[string]int
+	Listing    []ListingLine
+	Errors     []AssemblerError
+	Warnings   []string
 }
 
 // ListingLine represents a line in the assembly listing
 type ListingLine struct {
-	Address     int
-	Bytes       []byte
-	LineNumber  int
-	SourceLine  string
-	Label       string
+	Address    int
+	Bytes      []byte
+	LineNumber int
+	SourceLine string
+	Label      string
 }
 
 // AssembledInstruction represents a fully assembled instruction
 type AssembledInstruction struct {
-	Address     int
-	Line        *Line
-	Bytes       []byte
-	Fixups      []Fixup
+	Address int
+	Line    *Line
+	Bytes   []byte
+	Fixups  []Fixup
 }
 
 // Fixup represents a forward reference that needs fixing
 type Fixup struct {
-	Offset      int    // Offset in instruction bytes
-	Symbol      string // Symbol to resolve
-	Type        FixupType
-	Expression  string // For complex expressions
+	Offset     int    // Offset in instruction bytes
+	Symbol     string // Symbol to resolve
+	Type       FixupType
+	Expression string // For complex expressions
 }
 
 // FixupType indicates how to apply the fixup
 type FixupType int
 
 const (
-	FixupByte FixupType = iota   // 8-bit value
-	FixupWord                     // 16-bit value (little-endian)
-	FixupRelative                 // Relative jump offset
+	FixupByte     FixupType = iota // 8-bit value
+	FixupWord                      // 16-bit value (little-endian)
+	FixupRelative                  // Relative jump offset
 )
 
 // NewAssembler creates a new assembler instance
@@ -446,25 +446,25 @@ func (a *Assembler) AssembleFile(filename string) (*Result, error) {
 func (a *Assembler) AssembleString(source string) (*Result, error) {
 	// Reset state
 	a.reset()
-	
+
 	// Parse source into lines
 	lines, err := ParseSource(source)
 	if err != nil {
 		return nil, fmt.Errorf("parse error: %w", err)
 	}
-	
+
 	// Preprocess local labels (expand .loop to main.loop)
 	lines, err = preprocessLocalLabels(lines)
 	if err != nil {
 		return nil, fmt.Errorf("local label error: %w", err)
 	}
-	
+
 	// Expand multi-argument instructions (PUSH AF, BC, DE -> multiple PUSHes)
 	lines = expandMultiArgInstructions(lines)
-	
+
 	// Expand fake instructions (LD HL, DE -> LD H, D : LD L, E)
 	lines = expandFakeInstructions(lines)
-	
+
 	a.lines = lines
 
 	// Multi-pass assembly with convergence for span-dependent optimization
@@ -514,12 +514,12 @@ func (a *Assembler) AssembleString(source string) (*Result, error) {
 			break
 		}
 	}
-	
+
 	// Validate memory layout for target platform
 	if err := a.ValidateMemoryLayout(); err != nil {
 		return nil, fmt.Errorf("memory layout error: %w", err)
 	}
-	
+
 	// Determine entry point: END label > first ORG > origin
 	entryPoint := a.origin
 	if a.hasEntryPoint {
@@ -538,14 +538,14 @@ func (a *Assembler) AssembleString(source string) (*Result, error) {
 		Listing:    make([]ListingLine, 0),
 		Errors:     a.errors,
 	}
-	
+
 	// Copy symbols
 	for name, sym := range a.symbols {
 		if sym.Defined {
 			result.Symbols[name] = sym.Value
 		}
 	}
-	
+
 	// Generate listing
 	for _, inst := range a.instructions {
 		listing := ListingLine{
@@ -557,7 +557,7 @@ func (a *Assembler) AssembleString(source string) (*Result, error) {
 		}
 		result.Listing = append(result.Listing, listing)
 	}
-	
+
 	return result, nil
 }
 
@@ -565,7 +565,7 @@ func (a *Assembler) AssembleString(source string) (*Result, error) {
 func (a *Assembler) reset() {
 	a.pass = 0
 	a.currentAddr = a.origin
-	
+
 	// Preserve target symbols if target is set
 	targetSymbols := make(map[string]*Symbol)
 	if a.target != nil {
@@ -578,7 +578,7 @@ func (a *Assembler) reset() {
 			}
 		}
 	}
-	
+
 	a.symbols = targetSymbols
 	a.output = nil
 	a.instructions = nil
@@ -594,12 +594,12 @@ func (a *Assembler) reset() {
 // performPass executes one assembly pass
 func (a *Assembler) performPass() error {
 	a.currentAddr = a.origin
-	
+
 	for _, line := range a.lines {
 		if err := a.processLine(line); err != nil {
 			// Create enhanced error based on error type
 			var assemblyError AssemblerError
-			
+
 			errMsg := err.Error()
 			if strings.Contains(errMsg, "undefined symbol:") {
 				// Extract symbol name from error message
@@ -624,14 +624,14 @@ func (a *Assembler) performPass() error {
 					Message: errMsg,
 				}
 			}
-			
+
 			a.errors = append(a.errors, assemblyError)
 			if a.Strict {
 				return err
 			}
 		}
 	}
-	
+
 	return nil
 }
 
@@ -641,29 +641,29 @@ func (a *Assembler) processLine(line *Line) error {
 	if line.IsBlank {
 		return nil
 	}
-	
+
 	// Handle directive first if it's EQU (label is handled by EQU itself)
 	if line.Directive == "EQU" {
 		return a.processDirective(line)
 	}
-	
+
 	// Handle label for non-EQU lines
 	if line.Label != "" {
 		if err := a.defineLabel(line.Label); err != nil {
 			return err
 		}
 	}
-	
+
 	// Handle other directives
 	if line.Directive != "" {
 		return a.processDirective(line)
 	}
-	
+
 	// Handle instruction
 	if line.Mnemonic != "" {
 		return a.processInstruction(line)
 	}
-	
+
 	return nil
 }
 
@@ -716,16 +716,16 @@ func (a *Assembler) recalculateSymbols() {
 // resolveSymbol resolves a symbol to its value
 func (a *Assembler) resolveSymbol(name string) (int, error) {
 	name = a.symbolKey(name)
-	
+
 	if sym, exists := a.symbols[name]; exists && sym.Defined {
 		return sym.Value, nil
 	}
-	
+
 	// Try to parse as number
 	if val, err := parseNumber(name); err == nil {
 		return val, nil
 	}
-	
+
 	if a.pass == 1 {
 		// Create forward reference
 		a.symbols[name] = &Symbol{
@@ -734,18 +734,18 @@ func (a *Assembler) resolveSymbol(name string) (int, error) {
 		}
 		return 0, nil
 	}
-	
+
 	return 0, fmt.Errorf("undefined symbol: %s", name)
 }
 
 // formatSourceLine formats a line for listing output
 func formatSourceLine(line *Line) string {
 	var parts []string
-	
+
 	if line.Label != "" {
 		parts = append(parts, line.Label+":")
 	}
-	
+
 	if line.Directive != "" {
 		parts = append(parts, line.Directive)
 		if len(line.Operands) > 0 {
@@ -757,12 +757,12 @@ func formatSourceLine(line *Line) string {
 			parts = append(parts, strings.Join(line.Operands, ", "))
 		}
 	}
-	
+
 	result := strings.Join(parts, " ")
 	if line.Comment != "" {
 		result += " ; " + line.Comment
 	}
-	
+
 	return result
 }
 

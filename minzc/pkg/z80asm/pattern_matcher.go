@@ -101,17 +101,17 @@ func (a *Assembler) matchPattern(pattern InstructionPattern, line *Line) (bool, 
 	if len(pattern.Operands) != len(line.Operands) {
 		return false, nil
 	}
-	
+
 	// No operands - simple match
 	if len(pattern.Operands) == 0 {
 		return true, nil
 	}
-	
+
 	// Match each operand
 	values := make([]interface{}, len(line.Operands))
 	for i, opPattern := range pattern.Operands {
 		operand := line.Operands[i]
-		
+
 		// Parse operand based on expected type
 		value, ok := a.parseOperandAs(operand, opPattern)
 		if !ok {
@@ -119,7 +119,7 @@ func (a *Assembler) matchPattern(pattern InstructionPattern, line *Line) (bool, 
 		}
 		values[i] = value
 	}
-	
+
 	return true, values
 }
 
@@ -139,7 +139,7 @@ func (a *Assembler) parseOperandAs(operand string, pattern OperandPattern) (inte
 			return nil, false
 		}
 		return reg, true
-		
+
 	case OpTypeReg16:
 		reg := parseReg16(operand)
 		if reg == "" {
@@ -150,7 +150,7 @@ func (a *Assembler) parseOperandAs(operand string, pattern OperandPattern) (inte
 			return nil, false
 		}
 		return reg, true
-		
+
 	case OpTypeImm8, OpTypeImm16:
 		// Reject register names — they must match OpTypeReg8/OpTypeReg16, not immediate
 		upper := strings.ToUpper(operand)
@@ -166,21 +166,21 @@ func (a *Assembler) parseOperandAs(operand string, pattern OperandPattern) (inte
 		if err != nil {
 			return nil, false
 		}
-		
+
 		// Check size constraint for 8-bit
 		if pattern.Type == OpTypeImm8 && value > 0xFF {
 			return nil, false
 		}
-		
+
 		return value, true
-		
+
 	case OpTypeIndReg:
 		// Check for indirect register addressing
 		if !strings.HasPrefix(operand, "(") || !strings.HasSuffix(operand, ")") {
 			return nil, false
 		}
 
-		inner := strings.ToUpper(operand[1:len(operand)-1])
+		inner := strings.ToUpper(operand[1 : len(operand)-1])
 		upperOperand := strings.ToUpper(operand)
 
 		// Check constraint if specified (case-insensitive)
@@ -193,12 +193,12 @@ func (a *Assembler) parseOperandAs(operand string, pattern OperandPattern) (inte
 
 		// Check if it's a valid indirect register (case-insensitive)
 		if inner == "HL" || inner == "BC" || inner == "DE" || inner == "SP" ||
-		   inner == "IX" || inner == "IY" || inner == "C" {
+			inner == "IX" || inner == "IY" || inner == "C" {
 			return upperOperand, true
 		}
 
 		return nil, false
-		
+
 	case OpTypeIndImm:
 		// Check for indirect immediate (memory address)
 		if !strings.HasPrefix(operand, "(") || !strings.HasSuffix(operand, ")") {
@@ -227,7 +227,7 @@ func (a *Assembler) parseOperandAs(operand string, pattern OperandPattern) (inte
 		}
 
 		return addr, true
-		
+
 	case OpTypeRelative:
 		// For relative jumps, resolve target and calculate offset
 		target, err := a.resolveValue(operand)
@@ -248,14 +248,14 @@ func (a *Assembler) parseOperandAs(operand string, pattern OperandPattern) (inte
 
 		// In pass 1, just accept it (return absolute address)
 		return target, true
-		
+
 	case OpTypeCondition:
 		// Check if it's a valid condition code
 		cond := strings.ToUpper(operand)
 		if pattern.Constraint != "" && cond != pattern.Constraint {
 			return nil, false
 		}
-		
+
 		// Valid conditions
 		validConds := []string{"NZ", "Z", "NC", "C", "PO", "PE", "P", "M"}
 		for _, valid := range validConds {
@@ -263,9 +263,9 @@ func (a *Assembler) parseOperandAs(operand string, pattern OperandPattern) (inte
 				return cond, true
 			}
 		}
-		
+
 		return nil, false
-		
+
 	case OpTypeIndIdx:
 		// Check for (IX+d) or (IY+d) indexed addressing
 		if !strings.HasPrefix(operand, "(") || !strings.HasSuffix(operand, ")") {
@@ -403,4 +403,3 @@ func (a *Assembler) resolveValue(operand string) (int, error) {
 	// Use the expression evaluator which handles numbers, symbols, and arithmetic
 	return a.EvaluateExpression(operand)
 }
-
