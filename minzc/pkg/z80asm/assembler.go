@@ -45,6 +45,7 @@ type Assembler struct {
 	CPUMode           CPUMode          // CPU mode: Z80, eZ80 Z80-mode, or eZ80 ADL-mode
 
 	// Internal state
+	instructionSuffix byte // Per-instruction operand-width override; never changes persistent ADL.
 	pass          int
 	currentAddr   int
 	origin        int
@@ -346,9 +347,17 @@ func (a *Assembler) GetAddressSize() int {
 	return 2
 }
 
-// emitWord returns value as 2 bytes (Z80) or 3 bytes (ADL mode)
+// emitWord follows the instruction's .IS/.IL operand width when present.
+// Outside instruction encoding, data emission uses the persistent ADL mode.
 func (a *Assembler) emitWord(value int) []byte {
-	if a.CPUMode == CPUModeEZ80ADL {
+	long := a.IsADLMode()
+	switch a.instructionSuffix {
+	case ADLSuffixSIS, ADLSuffixLIS:
+		long = false
+	case ADLSuffixSIL, ADLSuffixLIL:
+		long = true
+	}
+	if long {
 		return []byte{byte(value), byte(value >> 8), byte(value >> 16)}
 	}
 	return []byte{byte(value), byte(value >> 8)}

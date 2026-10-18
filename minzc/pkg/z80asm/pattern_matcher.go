@@ -47,6 +47,11 @@ func (a *Assembler) encodeInstructionTable(line *Line) ([]byte, error) {
 
 	// Parse ADL suffix (e.g., "RST.LIL" -> "RST", ADLSuffixLIL)
 	baseMnemonic, adlSuffix := a.ParseADLSuffix(line.Mnemonic)
+	// Prefixes select operand width as well as contributing a byte. Scope
+	// this override to encoding so later instructions and data retain ADL.
+	previousSuffix := a.instructionSuffix
+	a.instructionSuffix = adlSuffix
+	defer func() { a.instructionSuffix = previousSuffix }()
 
 	// Get all patterns for the base mnemonic (without suffix)
 	patterns := GetInstructionPatterns(baseMnemonic)
