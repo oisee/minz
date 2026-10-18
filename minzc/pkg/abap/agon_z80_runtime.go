@@ -21,6 +21,8 @@ func BindAgonZ80Runtime(m *hir.Module) error {
 	if err := emitInteger32Runtime(canonical, hir.TargetAgon); err != nil {
 		return err
 	}
+	// Match the ordinary compiler's reserved runtime-local transformation.
+	namespaceABAPRuntimeBindings(canonical)
 	known := map[string]bool{}
 	for _, f := range m.Funcs {
 		if want := canonical.FuncByName(f.Name); want != nil {
@@ -59,7 +61,7 @@ func BindAgonZ80Runtime(m *hir.Module) error {
 		live[name] = true
 		if name == "_abap_num_putchar" && known[name] {
 			f.Body = &hir.Block{Body: []hir.Stmt{&hir.ExprStmt{Expr: &hir.CallExpr{
-				Fn: "@mir.io.print.char", Args: []hir.Expr{&hir.VarRefExpr{Name: "ch", Ty: mir2.TyU8}}, Ty: mir2.TyVoid,
+				Fn: "@mir.io.print.char", Args: []hir.Expr{&hir.VarRefExpr{Name: f.Params[0].Name, Ty: mir2.TyU8}}, Ty: mir2.TyVoid,
 			}}}}
 			return nil
 		}
