@@ -17,6 +17,10 @@ source, watch all three real emulator sessions, and follow the
 
 [![Real CP/M capture: the ABAP report displays its CSV data in an ALV grid](reports/native-abap/media/f4-csv-alv/cpm-grid.png)](docs/my-abap-escaped-from-the-server.md)
 
+## Featured design report: Nanz generators on Z80
+
+[**Lazy streams, stackless generators and demand preserving fusion**](reports/2026-10-18-nanz-generators-design.md) — a design proposal for Nanz, with control-flow diagrams, memory estimates, native verification gates and three draft ADRs. `gen/yield` is proposed; the report separates it from existing fused iterator chains and from buffered channels.
+
 # MinZ
 
 MinZ is an experimental compiler toolchain for writing programs for Z80 machines with modern language features. **Nanz** is its main source language; Frill, C, Pascal, ABAP and other frontends also feed the shared HIR → MIR2 pipeline. The repository includes a Z80 assembler and emulators, so a small program can go from source to execution here.

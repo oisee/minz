@@ -28,6 +28,9 @@ We use a lightweight format inspired by Michael Nygard's template:
 | [ADR-0006](0006-ez80-adl-address-widening.md) | eZ80 ADL Address Widening Strategy | Accepted | 2026-02-14 |
 | [ADR-0007](0007-platform-specific-newline-handling.md) | Platform-Specific Newline Handling | Accepted | 2026-02-14 |
 | [ADR-0042](0042-let-vs-var-binding-mutability.md) | Let vs Var Binding Mutability | Proposed | 2026-04-02 |
+| [ADR-0048](0048-nanz-stackless-generators.md) | Nanz stackless generators and caller owned state | Draft | 2026-10-18 |
+| [ADR-0049](0049-nanz-iteration-protocol.md) | Nanz concrete iteration protocol and typed interfaces | Draft | 2026-10-18 |
+| [ADR-0050](0050-nanz-generator-fusion.md) | Nanz demand preserving generator fusion | Draft | 2026-10-18 |
 
 ## Creating a New ADR
 
