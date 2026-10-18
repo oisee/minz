@@ -51,7 +51,15 @@ func main() {
 	setFlag := flag.String("set", "", "Set CPU registers: PC=8000,SP=FFFF,DI,IM=1")
 	runFlag := flag.String("run", "", "Load and run: FILE@ADDR (shortcut)")
 	rzxFlag := flag.String("rzx", "", "Replay RZX recording file (overrides --frames)")
+	keyScriptFlag := flag.String("key-script", "", "Native keyboard-matrix transitions JSON (zero-based frames)")
 	flag.Parse()
+	keys, keyErr := loadKeyScript(*keyScriptFlag)
+	if keyErr != nil {
+		log.Fatal(keyErr)
+	}
+	if *keyScriptFlag != "" && *rzxFlag != "" {
+		log.Fatal("--key-script cannot combine with --rzx")
+	}
 	if *demoList {
 		listDemos()
 		return
@@ -299,6 +307,7 @@ func main() {
 	saved := 0
 
 	for i := 0; i < frames; i++ {
+		keys.apply(i, machine.Keyboard)
 		machine.RunFrame()
 
 		// SCR dump (raw 6912-byte VRAM)

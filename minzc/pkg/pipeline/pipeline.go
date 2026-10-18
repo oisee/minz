@@ -90,6 +90,7 @@ type Options struct {
 	// CPMApplicationEntry selects ordinary native CP/M application entry,
 	// independently of the guarded runtime and semantic bare/called harnesses.
 	CPMApplicationEntry bool            `json:",omitempty"`
+	ZXApplicationEntry  bool            `json:",omitempty"`
 	Runtime             mir2.Z80Runtime `json:",omitempty"`
 	RuntimeStackBytes   int             `json:",omitempty"`
 	// CheckedLocalTablePath opts into admitted leaf function replacements under
@@ -151,7 +152,13 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 	if len(opts) > 0 {
 		opt = opts[0]
 	}
+	if needsZXApplication(hm) && !opt.SkipZ80Emission {
+		opt.ZXApplicationEntry = true
+	}
 	var s Steps
+	if opt.ZXApplicationEntry && (hm.Target != hir.TargetZXSpectrum || opt.Runtime != "" || opt.CPMApplicationEntry || opt.Backend != "" && opt.Backend != "z80" || opt.ProfileSelection != nil || opt.SkipZ80Emission || len(hm.Asserts) > 0 || len(hm.Sandboxes) > 0) {
+		return s, fmt.Errorf("ZX application requires emitted ordinary ZX Z80 without assertion/profile workloads")
+	}
 	if opt.CheckedLocalTableSHA256 != "" && opt.CheckedLocalTablePath == "" {
 		return s, fmt.Errorf("checked local table: SHA256 requires a path")
 	}
@@ -447,6 +454,7 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 			OptimizeForSize:           opt.OptSize,
 			CalledMain:                opt.Backend == "ez80" || opt.CPMApplicationEntry || opt.Runtime == mir2.Z80RuntimeAgonZ80,
 			CPMApplicationEntry:       opt.CPMApplicationEntry,
+			ZXApplicationEntry:        opt.ZXApplicationEntry,
 			Runtime:                   opt.Runtime,
 			RuntimeStackBytes:         opt.RuntimeStackBytes,
 			AnnotateTStates:           opt.AnnotateTStates,
@@ -570,7 +578,7 @@ func CompileHIRWithOptions(hm *hir.Module, opts Options) (string, error) {
 	if err := mir2.ValidateRuntimeStack(opts.Runtime, opts.RuntimeStackBytes); err != nil {
 		return "", err
 	}
-	if opts.UseGrace || opts.Runtime != "" || opts.CPMApplicationEntry || opts.ProfileSelection != nil {
+	if opts.UseGrace || opts.Runtime != "" || opts.CPMApplicationEntry || opts.ZXApplicationEntry || needsZXApplication(hm) || opts.ProfileSelection != nil {
 		steps, err := CompileHIRSteps(hm, opts)
 		return steps.Assembly, err
 	}
@@ -1718,4 +1726,18 @@ func isImportedModuleFunc(name string) bool {
 	// Nanz import mangling uses "__" between module path segments and before
 	// the imported symbol: "lib.math.add" -> "lib__math__add".
 	return !strings.HasPrefix(name, "__") && strings.Count(name, "__") >= 2
+}
+
+// Generated ZX frontend storage marks an ordinary native application even if
+// reachability pruning removed file operations (for example SALV-only code).
+func needsZXApplication(hm *hir.Module) bool {
+	if hm.Target != hir.TargetZXSpectrum {
+		return false
+	}
+	for _, g := range hm.Globals {
+		if g.Name == "_abap_zx_sector_buffer" {
+			return true
+		}
+	}
+	return false
 }

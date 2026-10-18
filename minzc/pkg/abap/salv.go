@@ -221,12 +221,25 @@ func (l *lowerer) lowerSalvDisplay(s *SalvDisplayStmt) (hir.Stmt, error) {
 	if table == nil {
 		return nil, fmt.Errorf("SALV DISPLAY %s appears before a proven FACTORY binding", s.Handle)
 	}
-	if l.hm.Target != hir.TargetCPM && l.hm.Target != hir.TargetAgon {
-		return nil, fmt.Errorf("SALV platform adapter requires CP/M or Agon")
+	if l.hm.Target != hir.TargetCPM && l.hm.Target != hir.TargetAgon && l.hm.Target != hir.TargetZXSpectrum {
+		return nil, fmt.Errorf("SALV platform adapter requires CP/M, Agon or ZX")
 	}
 	descriptor, width, err := salvDescriptor(table.line)
 	if err != nil {
 		return nil, err
+	}
+	if l.hm.Target == hir.TargetZXSpectrum {
+		l.requireFrontendRuntime()
+		width = 1
+		for i := 0; i < len(descriptor); i += 26 {
+			if descriptor[i+5] == 0 && descriptor[i+4] > 8 {
+				descriptor[i+4] = 8
+			}
+			width += int(descriptor[i+4]) + 1
+		}
+		if width > 32 {
+			return nil, fmt.Errorf("SALV ZX layout width%d exceeds32-column viewport", width)
+		}
 	}
 	sym := "_abap_salv_columns_" + table.line.name
 	exists := false

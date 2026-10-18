@@ -10,9 +10,9 @@ SAVE files live outside the download in your user configuration directory, so up
 
 ## Featured article: My ABAP Escaped from the Server
 
-[**F4 → CSV → typed internal table → ALV, compiled for CP/M and Agon**](docs/my-abap-escaped-from-the-server.md).
-One unchanged ABAP report runs as native Z80 code on CP/M and Z80-mode code on
-eZ80/Agon. Read the source, watch both real emulator sessions, and follow the
+[**F4 → CSV → typed internal table → ALV, compiled for CP/M, Agon and ZX Spectrum**](docs/my-abap-escaped-from-the-server.md).
+One unchanged ABAP report runs on CP/M, eZ80/Agon and ZX Spectrum. Read the
+source, watch all three real emulator sessions, and follow the
 [verification report](reports/native-abap/2026-10-18-f4-csv-alv-e2e.md).
 
 [![Real CP/M capture: the ABAP report displays its CSV data in an ALV grid](reports/native-abap/media/f4-csv-alv/cpm-grid.png)](docs/my-abap-escaped-from-the-server.md)
