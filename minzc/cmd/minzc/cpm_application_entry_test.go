@@ -10,7 +10,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"runtime"
 	"strconv"
 	"strings"
 	"testing"
@@ -487,7 +486,7 @@ func TestABAPCPMApplicationRejectsInsufficientTPA(t *testing.T) {
 func buildApplicationMZE(t *testing.T) string {
 	t.Helper()
 	path := filepath.Join(t.TempDir(), "mze")
-	cmd := exec.Command(filepath.Join(runtime.GOROOT(), "bin", "go"), "build", "-o", path, "../mze")
+	cmd := exec.Command("go", "build", "-o", path, "../mze")
 	if out, err := cmd.CombinedOutput(); err != nil {
 		t.Fatalf("build MZE: %v\n%s", err, out)
 	}
