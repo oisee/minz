@@ -588,6 +588,11 @@ func Z80Codegen(m *Module, ar *AllocResult, opts ...Z80CodegenOptions) (string, 
 	}
 	if opt.Runtime == Z80RuntimeAgonZ80 {
 		result += agonZ80Tail(opt.RuntimeStackBytes)
+		var frontendErr error
+		result, frontendErr = addAgonFrontendRuntime(result, m)
+		if frontendErr != nil {
+			return "", frontendErr
+		}
 		if err := validateAgonZ80Image(result); err != nil {
 			return "", err
 		}

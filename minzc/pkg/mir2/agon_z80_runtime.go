@@ -48,6 +48,9 @@ func validateAgonZ80Runtime(m *Module) error {
 					switch i.Sym {
 					case "@mir.io.halt", "@mir.io.print.char", "@mir.io.print.str", "@mir.io.print.sstr", "@mir.io.print.lstr", "@mir.io.print.nl", "@mir.io.print.u8", "@mir.io.print.dec", "console_log":
 					default:
+						if _, native := agonFrontendCalls[i.Sym]; native {
+							continue
+						}
 						if m.FuncByName(i.Sym) == nil {
 							return fmt.Errorf("agon-z80 rejects unresolved call %s", i.Sym)
 						}
@@ -55,6 +58,9 @@ func validateAgonZ80Runtime(m *Module) error {
 				}
 			}
 		}
+	}
+	if _, _, _, e := agonFrontendRequirements(m); e != nil {
+		return e
 	}
 	state := map[string]uint8{}
 	var visit func(string) error

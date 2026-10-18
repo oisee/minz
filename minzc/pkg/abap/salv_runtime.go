@@ -225,10 +225,14 @@ func emitSalvRuntime(hm *hir.Module) error {
 	if !needed {
 		return nil
 	}
-	if hm.Target != hir.TargetCPM {
+	if hm.Target != hir.TargetCPM && hm.Target != hir.TargetAgon {
 		return fmt.Errorf("SALV needs a native target screen/key adapter")
 	}
-	for _, source := range []string{salvRuntime, salvCPMPlatform} {
+	platform := salvCPMPlatform
+	if hm.Target == hir.TargetAgon {
+		platform = salvAgonPlatform
+	}
+	for _, source := range []string{salvRuntime, platform} {
 		parsed, err := nanz.Parse(source, "abap-salv-runtime.nanz")
 		if err != nil {
 			return err
@@ -250,6 +254,26 @@ func emitSalvRuntime(hm *hir.Module) error {
 		hm.Funcs = append(hm.Funcs, &hir.Func{Name: "_abap_salv_" + text.name + "_text", Internal: true, RetTy: mir2.TyPtr, Body: &hir.Block{Body: []hir.Stmt{&hir.ReturnStmt{Val: &hir.AddrOfExpr{Sym: symbol}}}}})
 	}
 	hm.Funcs = append(hm.Funcs, &hir.Func{Name: "_abap_salv_number_data", Internal: true, RetTy: mir2.TyPtr, Body: &hir.Block{Body: []hir.Stmt{&hir.ReturnStmt{Val: &hir.AddrOfExpr{Sym: "_abap_salv_number_buffer"}}}}})
+	if hm.Target == hir.TargetAgon {
+		for _, op := range []struct{ name, fn string }{{"_abap_salv_screen_begin", "@mir.agon.screen.begin"}, {"_abap_salv_screen_end", "@mir.agon.screen.end"}} {
+			hm.Funcs = append(hm.Funcs, &hir.Func{Name: op.name, Internal: true, RetTy: mir2.TyVoid, Body: &hir.Block{Body: []hir.Stmt{&hir.ExprStmt{Expr: &hir.CallExpr{Fn: op.fn, Ty: mir2.TyU8}}}}})
+		}
+		hm.Funcs = append(hm.Funcs, &hir.Func{Name: "_abap_salv_key_poll", Internal: true, RetTy: mir2.TyU8, Body: &hir.Block{Body: []hir.Stmt{&hir.ReturnStmt{Val: &hir.CallExpr{Fn: "@mir.agon.key.poll", Ty: mir2.TyU8}}}}})
+		return nil
+	}
 	hm.Funcs = append(hm.Funcs, &hir.Func{Name: "_abap_salv_key_poll", Internal: true, RetTy: mir2.TyU8, Body: &hir.Block{Body: []hir.Stmt{&hir.AsmStmt{Target: "z80", Code: "LD E, 255 / LD C, 6 / CALL 5", RetReg: "A", ClobberRegs: []string{"A", "B", "C", "D", "E", "H", "L"}}}}})
 	return nil
 }
+
+// Native lifecycle primitives also restore the VDP state during fault cleanup.
+// Cursor positioning is ordinary compiled byte output in zero-based VDU form.
+const salvAgonPlatform = `
+@extern fun _abap_num_putchar(ch: u8) -> void
+
+fun _abap_salv_goto(x: u8, y: u8) -> void {
+ _abap_num_putchar(31)
+ _abap_num_putchar(x)
+ _abap_num_putchar(y)
+}
+
+`
