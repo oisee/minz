@@ -1,0 +1,6 @@
+=== RUN   TestInsertAccSavesModuleRegisterIdentity
+    accsaves_module_test.go:30: foreign pointer overwritten: {0 DE 0} -> {0 D 0}
+--- FAIL: TestInsertAccSavesModuleRegisterIdentity (0.00s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/mir2	0.009s
+FAIL

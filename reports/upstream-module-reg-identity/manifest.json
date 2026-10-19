@@ -1,0 +1,45 @@
+{
+  "base_main": "4743cb7c7712a0d76413ddf041d93dbfa604df06",
+  "files": [
+    {
+      "path": "reports/upstream-module-reg-identity/REPORT.md",
+      "bytes": 2240,
+      "sha256": "89bd56cec8152d2828dedd64f8aa64c1200cc1fdf61d3d68a0c72d60326867ac"
+    },
+    {
+      "path": "reports/upstream-module-reg-identity/after.txt",
+      "bytes": 262,
+      "sha256": "779cd880ea55cb8edb8c778c325d4eb0c6209bf96354f872c9f124f326d149e9"
+    },
+    {
+      "path": "reports/upstream-module-reg-identity/before-native.txt",
+      "bytes": 974,
+      "sha256": "a2fcce3b887bea57ee4ff4283e32ec26cefb159bee7f8072d5ba646884a27c3a"
+    },
+    {
+      "path": "reports/upstream-module-reg-identity/before.txt",
+      "bytes": 244,
+      "sha256": "a1a5247970ac69a59f679a560315e2a30498a581e9fe93f869b204f9d287465b"
+    },
+    {
+      "path": "reports/upstream-module-reg-identity/full-mir2.txt",
+      "bytes": 43,
+      "sha256": "e63b3be8c980411e3dc1a1e65e6559d2262b8f7f08f9c36d916b80797ce313ae"
+    },
+    {
+      "path": "reports/upstream-module-reg-identity/native-pipeline-smoke.txt",
+      "bytes": 320,
+      "sha256": "e268a99e755d1031935922ea4ceb2d7f52f612de1dea4469aa1c19a659257abe"
+    },
+    {
+      "path": "reports/upstream-module-reg-identity/target.a80",
+      "bytes": 419,
+      "sha256": "3decc6d1f410876a9a3e09fb347c41f63ed4099daba4121617e35cd18ab4edca"
+    },
+    {
+      "path": "reports/upstream-module-reg-identity/target.bin",
+      "bytes": 26,
+      "sha256": "b61c7a0ca9d2dbd5cdb9652065b4e7fccc1f7bc2340178606fde9cd58f7edbbf"
+    }
+  ]
+}
