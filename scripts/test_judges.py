@@ -638,6 +638,7 @@ class FuzzTests(unittest.TestCase):
     def test_signed_oracle_boundaries(self):
         oracle = fuzz.SignedInterp('')
         cases = [('x < -2', 0), ('x >= -2', 1), ('z < -2', 1),
+                 ('x < z', 0), ('z < x', 1), ('x == z', 0),
                  ('(z + -1)', 127), ('(x + -3)', -3),
                  ('(-7 / -2)', 3), ('(-7 % -2)', -1),
                  ('((7 as i8) / -2)', -3), ('((7 as i8) % -2)', 1),
@@ -647,6 +648,33 @@ class FuzzTests(unittest.TestCase):
             with self.subTest(expression=expression):
                 self.assertEqual(oracle.ev(expression, {'x': 0, 'z': -128},
                                            {'x': 'i16', 'z': 'i8'}), want)
+
+    def test_signed_mixed_width_calls(self):
+        src = """fun widened(x: i8) -> i16 {
+return x
+}
+fun relay(x: i16) -> i16 {
+return x
+}
+fun f(a: u16, b: u16, c: u16) -> u16 {
+var z: i8 = (c as i8)
+var x: i16 = widened(z)
+x = relay(z)
+if z < x {
+x = 42
+}
+return (x as u16)
+}"""
+        oracle = fuzz.SignedInterp(src)
+        self.assertEqual(oracle.call('widened', [254]), -2)
+        self.assertEqual(oracle.call('relay', [-2]), -2)
+        self.assertEqual(oracle.call('f', [0, 0, 254]), 65534)
+        for seed in range(20):
+            source, _ = fuzz.generated(seed, signed=True)
+            self.assertIn('signed_return(z)', source)
+            self.assertIn('signed_relay(z)', source)
+            self.assertIn('w = z', source)
+            self.assertRegex(source, r'if (?:z [<>=!]+ [xy]|[xy] [<>=!]+ z)')
 
     def test_signed_generation_opt_in(self):
         import hashlib

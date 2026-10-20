@@ -95,9 +95,17 @@ class SignedGen(Gen):
     """Opt-in signed corpus; the original Gen consumes exactly the same RNG."""
     def program(s):
         r = s.r
-        out = ["fun f(a: u16, b: u16, c: u16) -> u16 {",
+        out = ["fun signed_return(x: i8) -> i16 {", "return x", "}",
+               "fun signed_identity(x: i16) -> i16 {", "return x", "}",
+               "fun signed_relay(x: i8) -> i16 {", "return signed_identity(x)", "}",
+               "fun f(a: u16, b: u16, c: u16) -> u16 {",
                "var x: i16 = (a as i16)", "var y: i16 = (b as i16)",
-               "var z: i8 = (c as i8)"]
+               "var z: i8 = (c as i8)", "var w: i16 = z", "w = z",
+               "x = (x + signed_return(z))", "y = (y + signed_relay(z))"]
+        for left, right in [('z', 'x'), ('y', 'z')]:
+            cmp = r.choice(['<', '<=', '>', '>=', '==', '!='])
+            out += [f"if {left} {cmp} {right} {{", "w = signed_identity(z)",
+                    "} else {", "w = (w + -1)", "}"]
         for _ in range(r.randint(3, 7)):
             ty, name = r.choice([('i16', 'x'), ('i16', 'y'), ('i8', 'z')])
             k = r.choice([-1, -2, -3, -7, -127, -128] if ty == 'i8' else
@@ -107,7 +115,7 @@ class SignedGen(Gen):
             peer = r.choice(['x', 'y', 'z']) if ty == 'i16' else 'z'
             out += [f"if {name} {cmp} {k} {{", f"{name} = ({name} {op} {k})",
                     "} else {", f"{name} = ({peer} + {k})", "}"]
-        out += ["return (((x as u16) xor (y as u16)) + (z as u16))", "}"]
+        out += ["return ((((x as u16) xor (y as u16)) + (z as u16)) xor (w as u16))", "}"]
         return '\n'.join(out)
 
 
@@ -229,6 +237,19 @@ class SignedInterp(Interp):
     Remainder is a - trunc(a/b)*b (OpSMod), rather than Python's floor modulo.
     Keep signed values at each operation width, including byte overflow.
     """
+    def __init__(s, src):
+        s.funcs = {}
+        s.return_types = {}
+        for m in re.finditer(r'fun (\w+)\(([^)]*)\) -> ([ui](?:8|16)) \{\n(.*?)\n\}(?=\nfun |\Z)', src, re.S):
+            ps = [(p.split(':')[0].strip(), p.split(':')[1].strip())
+                  for p in m.group(2).split(',') if p.strip()]
+            s.funcs[m.group(1)] = (ps, m.group(4).split('\n'))
+            s.return_types[m.group(1)] = m.group(3)
+        s.steps = 0
+
+    def call(s, name, args):
+        return wrap(super().call(name, args), s.return_types[name])
+
     def ev(s, e, env, ty):
         toks = tokenize(e)
         pos = 0
@@ -248,6 +269,14 @@ class SignedInterp(Interp):
             if t == '(':
                 v, t = full(); assert take() == ')'; return v, t
             if t.isdigit(): return int(t), 'u8' if int(t) <= 255 else 'u16'
+            if peek() == '(' and t in s.funcs:
+                take(); args = []
+                while peek() != ')':
+                    v, _ = full(); args.append(v)
+                    if peek() != ',': break
+                    take()
+                assert take() == ')'
+                return s.call(t, args), s.return_types[t]
             return env[t], ty[t]
         def cast():
             v, t = prim()
