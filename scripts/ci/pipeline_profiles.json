@@ -407,6 +407,7 @@
     "TestZ80ProfileWorkloadRefusals",
     "TestZ80ProfileWorkloadSnapshotSerialization",
     "TestZ80ProfileWorkloadStorageBudgets",
+    "TestZ80SavedByteWordBuildE2E",
     "TestZ80TupleChecksEveryReturn",
     "TestZ80UnsignedDivisionOperandSetup",
     "TestZMachineBankedHighMemoryNative",

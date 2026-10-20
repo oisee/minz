@@ -5,6 +5,8 @@ import (
 	"maps"
 	"slices"
 	"strings"
+
+	"github.com/minz/minzc/pkg/z80spec"
 )
 
 // ── Instructions ──────────────────────────────────────────────────────────────
@@ -35,7 +37,8 @@ func (g *z80cg) genInst(inst *Inst) {
 	// allocated home before another instruction can allocate that scratch. A dead
 	// relocation must not overwrite a newer value that shares the allocated A.
 	// Keep the current destination override: recursive spill staging owns it.
-	liveOverrides := g.regsLiveAfterInst(inst)
+	liveAfter := g.regsLiveAfterInst(inst)
+	liveOverrides := maps.Clone(liveAfter)
 	for _, r := range inst.Uses() {
 		liveOverrides[r] = true
 	}
@@ -57,7 +60,25 @@ func (g *z80cg) genInst(inst *Inst) {
 	// Flag-preserving ops (LD, PUSH, POP, …) leave the tracker intact so that
 	// the Sub+CmpLt flag-fusion peephole can fire across an intervening LD.
 
+	// The allocator cannot see dynamic saves in physOverride. A later
+	// allocated destination may reuse their byte or containing pair, even
+	// while the saved vreg is live. Evict that value before writing the
+	// destination; restoring the pair afterwards would destroy the result.
 	dst := g.loc(inst.Dst)
+	for _, r := range slices.Sorted(maps.Keys(g.physOverride)) {
+		loc := g.physOverride[r]
+		if r == inst.Dst || !liveAfter[r] || isSpill(loc) || !z80spec.Overlaps(dst, loc) {
+			continue
+		}
+		home := g.spillLabel(r)
+		if isPairReg(loc) {
+			g.emitMov(home, loc, 16)
+		} else {
+			g.emitLD8(home, loc) // preserves A and flags via shadow AF
+		}
+		g.comment(fmt.Sprintf("spill saved r%d before destination overwrite", r))
+		g.physOverride[r] = home
+	}
 
 	if g.genWideMemory(inst) {
 		return
