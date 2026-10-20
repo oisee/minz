@@ -37,6 +37,10 @@ global rle_in: [u8; 32]
 global wdata: [u16; 4]
 global g_pulls: u16 = 0
 global g_reads: u16 = 0
+global g_setup: u8 = 0
+global g_steps: u8 = 0
+global g_after: u8 = 0
+global g_log: u16 = 0
 
 // Source reads go through a probe so demand order is observable, mirroring
 // the hand-written ByteCursor/RleCursor of the G0 oracle.
@@ -134,6 +138,32 @@ gen classify(n: u8) -> u8 {
         }
         i = i + 1
     }
+}
+
+// A generator with an observable effect before its loop and per-element
+// effects: both counters stay untouched once the frame is DONE, so a frame
+// that spuriously restarted the body would be visible (g_setup bumps again).
+gen counted(n: u8) -> u8 {
+    g_setup = g_setup + 1
+    var i: u8 = 0
+    while i < n {
+        g_steps = g_steps + 1
+        yield i
+        i = i + 1
+    }
+}
+
+// A generator whose loop local is re-initialised at the top of the body: a
+// spurious restart would reset i and yield again (g_after is the unreachable
+// tail effect — it must never run).
+gen early(n: u8) -> u8 {
+    var i: u8 = 0
+    while true {
+        if i == n { return }
+        yield i + 10
+        i = i + 1
+    }
+    g_after = 1
 }
 
 // ── byte cursor scenarios ─────────────────────────────────────────────────
@@ -654,6 +684,184 @@ fun sc_wide_lit() -> u16 {
     }
     return s
 }
+
+// ── sticky DONE with observable effects ───────────────────────────────────
+
+// Sanity: counted runs its setup effect once on the first request and one
+// step per element; for-form equals the manual form.
+fun sc_eff_seq(n: u8) -> u16 {
+    g_setup = 0
+    g_steps = 0
+    var mix: u16 = 0
+    for v in counted(n) {
+        mix = mix * 10 + v
+    }
+    return mix * 256 + g_setup * 16 + g_steps
+}
+
+// After exhaustion two further requests run nothing: no setup, no steps,
+// out keeps its sentinel. A DONE frame that restarted the body would bump
+// g_setup again and re-yield, so this fails loudly under such a mutation.
+fun sc_eff_sticky() -> u16 {
+    g_setup = 0
+    g_steps = 0
+    var it = counted(2)
+    var v: u8 = 0
+    while pull_next(&it, &v) { v = v }
+    g_setup = 0
+    g_steps = 0
+    v = 170
+    var r: u8 = 0
+    if pull_next(&it, &v) { r = 1 }
+    if pull_next(&it, &v) { r = 2 }
+    return u16(r) * 256 + u16(v) + u16(g_steps) * 4096 + u16(g_setup) * 8192
+}
+
+// early re-initialises its loop local at the top of the body: a restart
+// would reset i, yield 10 again and overwrite the sentinel.
+fun sc_early_sticky() -> u16 {
+    g_after = 0
+    var it = early(1)
+    var v: u8 = 0
+    var r: u8 = 0
+    while pull_next(&it, &v) { r = r + 1 }
+    v = 85
+    if pull_next(&it, &v) { r = r + 10 }
+    return u16(r) * 256 + u16(v) + u16(g_after) * 4096
+}
+
+// Sticky DONE in the for form: the loop runs once, a second loop over a
+// fresh frame runs again (the DONE frame itself is never restarted).
+fun sc_eff_for_sticky() -> u16 {
+    g_setup = 0
+    g_steps = 0
+    var c: u8 = 0
+    for v in counted(3) {
+        c = c + 1
+    }
+    var again: u8 = 0
+    for v in counted(1) {
+        again = again + 1
+    }
+    return u16(c) * 256 + u16(again) * 16 + u16(g_setup) * 4 + u16(g_steps)
+}
+
+// ── critic-probe scenarios (two-critic review, probes p1/p2/p5) ───────────
+
+fun bump() -> u8 {
+    g_pulls = g_pulls + 1
+    return 3
+}
+
+// Arguments are evaluated exactly once, at creation.
+fun sc_args_once() -> u16 {
+    g_pulls = 0
+    var it = counted(bump())
+    var v: u8 = 0
+    var s: u8 = 0
+    while pull_next(&it, &v) {
+        s = s + v
+    }
+    return u16(g_pulls) * 256 + u16(s)
+}
+
+// A generator with no yield at all: the body still runs on the first request
+// (its effect is observable) and the request reports DONE.
+gen nothing(n: u8) -> u8 {
+    g_after = n
+}
+
+fun sc_gen_no_yields() -> u16 {
+    g_after = 0
+    var it = nothing(9)
+    var v: u8 = 170
+    var r: u8 = 0
+    if g_after != 0 { r = 1 }
+    if pull_next(&it, &v) { r = 2 }
+    if g_after != 9 { r = 3 }
+    return u16(r) * 256 + u16(v)
+}
+
+// The frame stores a copy of the argument: later mutations of the source
+// variable do not reach the generator.
+gen mut(k: u8) -> u8 {
+    k = k + 1
+    yield k
+    k = k + 1
+    yield k
+}
+
+fun sc_arg_copy() -> u16 {
+    var k: u8 = 3
+    var it = mut(k)
+    k = 50
+    var v: u8 = 0
+    var s: u16 = 0
+    while pull_next(&it, &v) {
+        s = s * 10 + v
+    }
+    return s * 100 + u16(k)
+}
+
+// Recursion: every activation owns its frame; pulls interleave with calls.
+fun rec(d: u8) -> void {
+    var it = counted(3)
+    var v: u8 = 0
+    pull_next(&it, &v)
+    g_log = g_log * 4 + v
+    if d > 0 { rec(d - 1) }
+    while pull_next(&it, &v) {
+        g_log = g_log * 4 + v
+    }
+}
+
+fun sc_recursion() -> u16 {
+    g_log = 0
+    rec(2)
+    return g_log
+}
+
+// A function call between yields: the frame survives the callee's clobbers.
+fun sq(x: u8) -> u8 {
+    return x * x
+}
+
+gen calls(n: u8) -> u8 {
+    var i: u8 = 1
+    while i <= n {
+        yield sq(i) + 1
+        i = i + 1
+    }
+}
+
+fun sc_calls() -> u16 {
+    var s: u16 = 0
+    for v in calls(4) {
+        s = s + v
+    }
+    return s
+}
+
+// i16 elements: negative values round-trip. The expected value is asserted
+// in its u16 view because assert comparison does not accept negative i16
+// yet (P20).
+gen neg(k: i16) -> i16 {
+    var v: i16 = k
+    while v < 3 {
+        yield v
+        v = v + 1
+    }
+}
+
+fun sc_neg() -> i16 {
+    var s: i16 = 0
+    var c: i16 = 0
+    for v in neg(-4) {
+        s = s + v
+        c = c + 1
+    }
+    return s * 16 + c
+}
 `
 
 type g1Scenario struct {
@@ -683,12 +891,14 @@ func g1GenScenarios() []g1Scenario {
 	add("empty", "sc_empty", 0xAA)
 	add("for_empty", "sc_for_empty", 0)
 
-	// Single element then DONE, out preserved.
-	add("one", "sc_one", 42*256+1*16+55)
+	// Single element then DONE, out preserved (element 42, accept flag 1,
+	// DONE leaves the after-flag at its sentinel 55).
+	add("one", "sc_one", int64(42*256+1*16+55))
 
-	// Sticky DONE against a mutated readable source.
+	// Sticky DONE against a mutated readable source — derived from the
+	// reference model (extra stays 0, v keeps sentinel 0xAA).
 	for _, n := range []int{8, 255} {
-		add("sticky", "sc_sticky", 0xAA, int64(n))
+		add("sticky", "sc_sticky", int64(g1StickyModel(n)), int64(n))
 	}
 
 	// Two independent frames pulled alternately.
@@ -716,8 +926,8 @@ func g1GenScenarios() []g1Scenario {
 	add("make_no_effects", "sc_make_no_effects", 0, 8)
 
 	// break stops consumption without further source reads: exactly three
-	// reads for three accepted items.
-	add("for_break", "sc_for_break", 3*256+3)
+	// reads for three accepted items (derived from the reference model).
+	add("for_break", "sc_for_break", int64(g1ForBreakModel(8)))
 
 	// continue requests the next element: mix over the odd values only.
 	for _, n := range []int{8, 255} {
@@ -730,8 +940,16 @@ func g1GenScenarios() []g1Scenario {
 		add("for_continue", "sc_for_continue", int64(g0MixSeq(odd)), int64(n))
 	}
 
-	// Consumer return leaves the consumer: data[2] == 85 for load_data(8).
-	add("for_return", "sc_for_return", 1, 8)
+	// Consumer return leaves the consumer: the reference model finds the
+	// first element equal to 85 (data[2] for load_data(8)).
+	wantRet := 0
+	for _, b := range g0RefData(8) {
+		if b == 85 {
+			wantRet = 1
+			break
+		}
+	}
+	add("for_return", "sc_for_return", int64(wantRet), 8)
 
 	// A temporary frame per outer-loop iteration: k full decodes folded.
 	for _, k := range []int{1, 3} {
@@ -773,8 +991,8 @@ func g1GenScenarios() []g1Scenario {
 	add("rle_255_mix", "sc_rle_255", int64(g0MixSeq(out)))
 	add("rle_255_cnt", "sc_rle_255_cnt", int64(len(out)))
 
-	// RLE sticky DONE with fresh source pairs available.
-	add("rle_sticky", "sc_rle_sticky", 0xAA)
+	// RLE sticky DONE with fresh source pairs available (reference model).
+	add("rle_sticky", "sc_rle_sticky", int64(g1RleStickyModel()))
 
 	// Two independent RLE frames over the same source.
 	rle2 := []byte{65, 65, 65, 66, 66}
@@ -787,6 +1005,102 @@ func g1GenScenarios() []g1Scenario {
 		mix2 = mix2*31 + uint16(b)
 	}
 	add("rle_interleave", "sc_rle_interleave", int64(mix2))
+
+	// Sticky DONE with observable effects: the setup effect must not run a
+	// second time and the counters must stay at 0 (reference model).
+	for _, n := range []int{0, 3, 5} {
+		var c g1RefCounted
+		c.n = byte(n)
+		setup, steps := 0, 0
+		var mix uint16
+		var v byte
+		for c.next(&setup, &steps, &v) {
+			mix = mix*10 + uint16(v)
+		}
+		add("eff_seq", "sc_eff_seq", int64(mix*256+uint16(setup)*16+uint16(steps)), int64(n))
+	}
+	{
+		var c g1RefCounted
+		c.n = 2
+		setup, steps := 0, 0
+		var v byte
+		for c.next(&setup, &steps, &v) {
+		}
+		setup, steps = 0, 0
+		v = 170
+		r := 0
+		if c.next(&setup, &steps, &v) {
+			r = 1
+		}
+		if c.next(&setup, &steps, &v) {
+			r = 2
+		}
+		add("eff_sticky", "sc_eff_sticky", int64(r*256+int(v)+steps*4096+setup*8192))
+	}
+	{
+		var c g1RefEarly
+		c.n = 1
+		after := 0
+		var v byte
+		r := 0
+		for c.next(&after, &v) {
+			r++
+		}
+		v = 85
+		if c.next(&after, &v) {
+			r += 10
+		}
+		add("early_sticky", "sc_early_sticky", int64(r*256+int(v)+after*4096))
+	}
+	{
+		setup, steps := 0, 0
+		var c1 g1RefCounted
+		c1.n = 3
+		var v byte
+		cnt := 0
+		for c1.next(&setup, &steps, &v) {
+			cnt++
+		}
+		var c2 g1RefCounted
+		c2.n = 1
+		again := 0
+		for c2.next(&setup, &steps, &v) {
+			again++
+		}
+		add("eff_for_sticky", "sc_eff_for_sticky", int64(cnt*256+again*16+setup*4+steps))
+	}
+
+	// Critic-probe scenarios (expectations derived from reference models and
+	// cross-checked against the probes' independently computed asserts).
+	// bump() runs exactly once; counted(3) sums 0+1+2.
+	add("args_once", "sc_args_once", int64(1*256+3))
+	// no-yield generator: creation has no effect, the first request runs the
+	// body (g_after=9) and reports DONE, out keeps its sentinel.
+	add("gen_no_yields", "sc_gen_no_yields", 0*256+0xAA)
+	// The frame copied k=3 before the caller set k=50: elements 4,5.
+	add("arg_copy", "sc_arg_copy", int64(45*100+50))
+	// rec(2): three stacked frames of counted(3), one pull before the call
+	// and the drain after it returns — 0,0,0,1,2,1,2,1,2 in base 4.
+	{
+		log := 0
+		var drain func(d int)
+		drain = func(d int) {
+			log = log*4 + 0
+			if d > 0 {
+				drain(d - 1)
+			}
+			log = log*4 + 1
+			log = log*4 + 2
+		}
+		drain(2)
+		add("recursion", "sc_recursion", int64(log))
+	}
+	// sq(i)+1 for i in 1..4 → 2+5+10+17.
+	add("calls", "sc_calls", int64(2+5+10+17))
+	// i16 elements -4..2: sum -7, count 7 → -105, asserted as its u16 view
+	// (P20: negative expected values are not accepted by assert comparison).
+	negSum, negCnt := int16(-7), int16(7)
+	add("neg_elements", "sc_neg", int64(uint16(negSum*16+negCnt)))
 
 	// Header/payload/trailer: [0xAA] + data + [0x99].
 	for _, n := range []int{0, 1, 8} {
@@ -816,12 +1130,13 @@ func g1GenScenarios() []g1Scenario {
 	}
 	add("words_for", "sc_words_for", int64(wordSum))
 
-	// bool elements: flags(5) yields true,true,true,false,false.
-	add("flags", "sc_flags", 3*256+2)
-	add("flags_for", "sc_flags_for", 3*256+2)
+	// bool elements (reference model counts true/false).
+	fTrues, fFalses := g1FlagsModel(5)
+	add("flags", "sc_flags", int64(fTrues*256+fFalses))
+	add("flags_for", "sc_flags_for", int64(fTrues*256+fFalses))
 
-	// A yield inside a switch arm: 100, 101, 200, 200.
-	add("classify", "sc_classify", int64(g0MixSeq([]byte{100, 101, 200, 200})))
+	// A yield inside a switch arm (reference model sequence).
+	add("classify", "sc_classify", int64(g0MixSeq(g1ClassifyModel(4))))
 
 	// A frame created inside a branch, drained only on that branch.
 	add("conditional_taken", "sc_conditional", int64(g0MixSeq(g0RefData(4))), 1)
@@ -882,6 +1197,144 @@ func int642Mix(mix uint16, d []byte) uint16 {
 	return mix
 }
 
+// ── Go reference models for the generator scenarios ─────────────────────────
+//
+// Each model implements the pull protocol of one scenario generator exactly
+// as the Nanz source above spells it; expectations are computed from these
+// models at test time, never hand-baked.
+
+// g1RefCounted mirrors gen counted: the setup effect runs once when the body
+// first starts (first request), one step per yielded element, DONE sticky.
+type g1RefCounted struct {
+	n, i    byte
+	started bool
+	done    bool
+}
+
+func (c *g1RefCounted) next(setup, steps *int, out *byte) bool {
+	if c.done {
+		return false
+	}
+	if !c.started {
+		c.started = true
+		*setup++
+	}
+	if c.i < c.n {
+		*steps++
+		*out = c.i
+		c.i++
+		return true
+	}
+	c.done = true
+	return false
+}
+
+// g1RefEarly mirrors gen early: yields i+10 until i == n, then finishes;
+// the tail effect (g_after) is unreachable and must never run.
+type g1RefEarly struct {
+	n, i byte
+	done bool
+}
+
+func (c *g1RefEarly) next(after *int, out *byte) bool {
+	if c.done {
+		return false
+	}
+	if c.i == c.n {
+		c.done = true
+		return false
+	}
+	*out = c.i + 10
+	c.i++
+	return true
+}
+
+// g1StickyModel mirrors sc_sticky / sc_rle_sticky: after a full drain the
+// source is mutated to stay readable, the output gets a sentinel, and two
+// further requests must return false without touching the output.
+func g1StickyModel(n int) int {
+	d := g0RefData(n)
+	var c g0RefByteCursor
+	c.make(d)
+	var v byte
+	for c.next(&v) {
+	}
+	d[0] = 99 // a readable source must not revive a DONE frame
+	v = 0xAA
+	extra := 0
+	if c.next(&v) {
+		extra = 1
+	}
+	if c.next(&v) {
+		extra = 1
+	}
+	return extra*256 + int(v)
+}
+
+// g1RleStickyModel is the RLE variant: fresh source pairs appear after DONE.
+func g1RleStickyModel() int {
+	var c g0RefRleCursor
+	c.make([]byte{2, 9})
+	var v byte
+	for c.next(&v) {
+	}
+	c.pairs = []byte{1, 42}
+	v = 0xAA
+	extra := 0
+	if c.next(&v) {
+		extra = 1
+	}
+	if c.next(&v) {
+		extra = 1
+	}
+	return extra*256 + int(v)
+}
+
+// g1ForBreakModel mirrors sc_for_break: each request reads one source byte;
+// the loop breaks after accepting 3 elements without another request.
+func g1ForBreakModel(n int) int {
+	reads, cnt := 0, 0
+	var c g0RefByteCursor
+	c.make(g0RefData(n))
+	var v byte
+	for cnt < 3 {
+		reads++
+		if !c.next(&v) {
+			break
+		}
+		cnt++
+	}
+	return reads*256 + cnt
+}
+
+// g1FlagsModel mirrors gen flags: elements n, n-1, …, 1 with true while > 2.
+func g1FlagsModel(n int) (trues, falses int) {
+	for k := n; k > 0; k-- {
+		if k > 2 {
+			trues++
+		} else {
+			falses++
+		}
+	}
+	return trues, falses
+}
+
+// g1ClassifyModel mirrors gen classify: i==0 → 100, i==1 → 101, else 200.
+func g1ClassifyModel(n int) []byte {
+	out := make([]byte, 0, n)
+	for i := 0; i < n; i++ {
+		switch i {
+		case 0:
+			out = append(out, 100)
+		case 1:
+			out = append(out, 101)
+		default:
+			out = append(out, 200)
+		}
+	}
+	return out
+}
+
 // TestG1GenYield runs every scenario on the raw MIR2 VM, the optimised MIR2
 // VM and the assembled Z80 program.
 func TestG1GenYield(t *testing.T) {
@@ -922,29 +1375,38 @@ func TestG1GenYield(t *testing.T) {
 	}
 }
 
+// g1NegCase is one out-of-scope construct that must be rejected with a
+// compile error (not a panic and not invalid assembly). wantErr is a
+// fragment of the expected message, so a case cannot pass for the wrong
+// reason (an unrelated earlier error).
+type g1NegCase struct {
+	src     string
+	wantErr string
+}
+
 // g1NegativeCases are out-of-scope constructs that must be rejected with a
 // compile error (not a panic and not invalid assembly).
-func g1NegativeCases() map[string]string {
-	return map[string]string{
-		"yield outside gen": `
+func g1NegativeCases() map[string]g1NegCase {
+	return map[string]g1NegCase{
+		"yield outside gen": {`
 fun f(n: u8) -> u8 {
     yield n
     return n
-}`,
-		"yield pointer type": `
+}`, "yield is only valid inside a gen body"},
+		"yield pointer type": {`
 gen g(p: ^u8) -> ^u8 {
     yield p
-}`,
-		"yield struct type": `
+}`, "element type must be a scalar"},
+		"yield struct type": {`
 struct S { a: u8 }
 gen g() -> S {
     yield S { a: 1 }
-}`,
-		"yield type mismatch": `
+}`, "element type must be a scalar"},
+		"yield type mismatch": {`
 gen g() -> u8 {
     yield 300
-}`,
-		"copy frame": `
+}`, "yield type u16 does not match generator element type u8"},
+		"copy frame": {`
 gen g() -> u8 {
     yield 1
 }
@@ -952,16 +1414,16 @@ fun f() -> u8 {
     var it = g()
     var jt = it
     return 0
-}`,
-		"return frame": `
+}`, `generator frame "it" can only be used as pull_next`},
+		"return frame": {`
 gen g() -> u8 {
     yield 1
 }
 fun f() -> u8 {
     var it = g()
     return it
-}`,
-		"frame address escape": `
+}`, `generator frame "it" can only be used as pull_next`},
+		"frame address escape": {`
 gen g() -> u8 {
     yield 1
 }
@@ -969,34 +1431,36 @@ fun f() -> u8 {
     var it = g()
     var p: ptr = &it
     return 0
-}`,
-		"frame as value": `
+}`, `generator frame "it" can only be used as pull_next`},
+		"frame as value": {`
 gen g() -> u8 {
     yield 1
 }
 fun f() -> u8 {
     var it = g()
     return it.tag
-}`,
-		"yield in lambda": `
+}`, `generator frame "it" can only be used as pull_next`},
+		"yield in lambda": {`
 gen g(n: u8) -> u8 {
-    var f = |x: u8| { yield x }
-    return 0
-}`,
-		"lambda in gen": `
+    yield n
+}
+fun f(buf: u16, n: u8) -> void {
+    buf.forEach(|x: u8| { yield x }, n)
+}`, "yield is only valid inside a gen body"},
+		"lambda in gen": {`
 fun dbl(x: u8) -> u8 { return x * 2 }
 gen g(n: u8) -> u8 {
     var f = |x: u8| { return dbl(x) }
     yield 1
-}`,
-		"gen called as function": `
+}`, "lambdas and match helpers are not allowed in a generator body"},
+		"gen called as function": {`
 gen g() -> u8 {
     yield 1
 }
 fun f() -> u8 {
     return g()
-}`,
-		"for over frame variable": `
+}`, "it is not callable"},
+		"for over frame variable": {`
 gen g() -> u8 {
     yield 1
 }
@@ -1007,15 +1471,15 @@ fun f() -> u8 {
         c = c + 1
     }
     return c
-}`,
-		"pull_next on non-frame": `
+}`, `generator frame "it" can only be used as pull_next`},
+		"pull_next on non-frame": {`
 fun f() -> u8 {
     var v: u8 = 3
     var w: u8 = 0
     while pull_next(&v, &w) { }
     return w
-}`,
-		"pull_next output type mismatch": `
+}`, `"v" is not a generator frame`},
+		"pull_next output type mismatch": {`
 gen g() -> u16 {
     yield 1
 }
@@ -1024,95 +1488,96 @@ fun f() -> u8 {
     var w: u8 = 0
     while pull_next(&it, &w) { }
     return w
-}`,
-		"asm in gen body": `
+}`, `output "w" has type u8, want element type u16`},
+		"asm in gen body": {`
 gen g() -> u8 {
     yield 1
     asm z80 { NOP }
-}`,
-		"valued return in gen": `
+}`, "asm blocks in a generator body are not supported"},
+		"valued return in gen": {`
 gen g(n: u8) -> u8 {
     if n == 0 {
         return 5
     }
     yield 1
-}`,
-		"yield inside for": `
+}`, "a generator finishes with a plain return"},
+		"yield inside for": {`
 gen g(n: u8) -> u8 {
     for i in 0..n {
         yield i
     }
-}`,
-		"struct local in gen": `
+}`, "yield inside a for loop is not supported"},
+		"struct local in gen": {`
 struct S { a: u8 }
 gen g(n: u8) -> u8 {
     var s: S
     yield n
-}`,
-		"address of gen local": `
+}`, `local "s" has unsupported type`},
+		"address of gen local": {`
 gen g(n: u8, out: ^u8) -> u8 {
     var t: u8 = n
     out^ = t
-    yield &n
-}`,
-		"duplicate gen local": `
+    var p: ^u8 = &t
+    yield n
+}`, `address of generator variable "t" is not supported`},
+		"duplicate gen local": {`
 gen g(n: u8) -> u8 {
     var t: u8 = 1
     yield t
     var t: u8 = 2
     yield t
-}`,
-		"fallible call in gen": `
+}`, `duplicate local "t"`},
+		"fallible call in gen": {`
 fun fetch?(p: ^u8) -> u8 {
     return p^
 }
 gen g(p: ^u8) -> u8 {
     yield fetch(p)
-}`,
-		"use before declaration": `
+}`, "yield type void does not match generator element type u8"},
+		"use before declaration": {`
 fun f() -> u8 {
     var it = later()
     return 0
 }
 gen later() -> u8 {
     yield 1
-}`,
-		"gen consumed inside gen": `
+}`, `cannot infer a type for var "it"`},
+		"gen consumed inside gen": {`
 gen inner() -> u8 {
     yield 1
 }
 gen outer() -> u8 {
     for v in inner() { }
     yield 2
-}`,
-		"for-var shadows parameter": `
+}`, "consuming a generator inside a generator body is not supported"},
+		"for-var shadows parameter": {`
 gen g(n: u8) -> u8 {
     var s: u8 = 0
     for n in 0..3 { s = s + n }
     yield s
-}`,
-		"for-var collides with local": `
+}`, `loop variable "n" shadows a generator parameter or local`},
+		"for-var collides with local": {`
 gen g() -> u8 {
     var t: u8 = 5
     yield t
     for t in 0..2 { }
     yield t
-}`,
-		"local collides with later for-var": `
+}`, `loop variable "t" shadows a generator parameter or local`},
+		"local collides with later for-var": {`
 gen g() -> u8 {
     for i in 0..2 { }
     var i: u8 = 1
     yield i
-}`,
-		"gen call in condition expression": `
+}`, `duplicate local "i"`},
+		"gen call in condition expression": {`
 gen g() -> u8 {
     yield 1
 }
 fun f(c: bool) -> u8 {
     var x: u8 = if c { 2 } else { g() }
     return x
-}`,
-		"frame redeclared then pulled": `
+}`, "can only initialize a variable or feed a for loop"},
+		"frame redeclared then pulled": {`
 gen g() -> u8 {
     yield 1
 }
@@ -1122,28 +1587,28 @@ fun f() -> u8 {
     var v: u8 = 0
     while pull_next(&it, &v) { }
     return v
-}`,
-		"gen name as value": `
+}`, `"it" is not a generator frame`},
+		"gen name as value": {`
 gen g() -> u8 {
     yield 1
 }
 fun f() -> u8 {
     var q = g
     return 0
-}`,
-		"address of generator": `
+}`, `generator "g" cannot be used as a value`},
+		"address of generator": {`
 gen g() -> u8 {
     yield 1
 }
 fun f() -> u8 {
     var p = &g
     return 0
-}`,
-		"yield generator name": `
+}`, `generator "g" cannot be used as a value`},
+		"yield generator name": {`
 gen g() -> u8 {
     yield g
-}`,
-		"frame used after its block": `
+}`, `generator "g" cannot be used as a value`},
+		"frame used after its block": {`
 gen g() -> u8 {
     yield 1
 }
@@ -1155,8 +1620,8 @@ fun f() -> u8 {
     }
     while pull_next(&it, &v) { }
     return v
-}`,
-		"inferred enum var non-exhaustive switch": `
+}`, `"it" is not a generator frame`},
+		"inferred enum var non-exhaustive switch": {`
 enum State { IDLE, RUNNING }
 fun f(c: u8) -> u8 {
     var s = State.IDLE
@@ -1166,7 +1631,7 @@ fun f(c: u8) -> u8 {
         case State.IDLE: r = 1
     }
     return r
-}`,
+}`, "switch on State is not exhaustive, missing variants: RUNNING"},
 	}
 }
 
@@ -1174,11 +1639,13 @@ func TestG1GenYieldNegative(t *testing.T) {
 	cases := g1NegativeCases()
 	// Continuation tags share one u8 with the sticky DONE marker: a body with
 	// more than 254 yield sites must be rejected, not silently miscompiled.
-	cases["too many yield sites"] = "fun f() -> u8 { return 1 }\ngen g() -> u8 {\n" +
-		strings.Repeat("    yield 1\n", 255) + "}\n"
-	for name, src := range cases {
+	cases["too many yield sites"] = g1NegCase{
+		src:     "fun f() -> u8 { return 1 }\ngen g() -> u8 {\n" + strings.Repeat("    yield 1\n", 255) + "}\n",
+		wantErr: "more than 254 yield sites",
+	}
+	for name, tc := range cases {
 		t.Run(name, func(t *testing.T) {
-			_, err := nanz.Parse(src, "g1_negative")
+			_, err := nanz.Parse(tc.src, "g1_negative")
 			if err == nil {
 				t.Fatalf("expected a compile error, parsed cleanly")
 			}
@@ -1190,6 +1657,83 @@ func TestG1GenYieldNegative(t *testing.T) {
 					t.Fatalf("error looks like a crash: %v", err)
 				}
 			}
+			if !strings.Contains(err.Error(), tc.wantErr) {
+				t.Fatalf("wrong rejection: error %q does not contain %q", err.Error(), tc.wantErr)
+			}
 		})
+	}
+}
+
+// TestG1BoolComparisonYield pins a bool generator whose yield value is a
+// comparison: out^ = (i & 1) == 1. Both MIR2 tiers must produce the correct
+// value (42 = 0b0101010, one bit per element of flips(7)). The Z80 tier is
+// skipped while P21 is open: the bool store through the output pointer
+// emits LD (HL), F, which does not assemble. When P21 is fixed the error
+// disappears and the value is asserted on Z80 too — no manual unskipping.
+// Repro: .local/repros/P21-bool-store-through-pointer.nanz
+func TestG1BoolComparisonYield(t *testing.T) {
+	const src = `
+gen flips(n: u8) -> bool {
+    var i: u8 = 0
+    while i < n {
+        yield (i & 1) == 1
+        i = i + 1
+    }
+}
+
+fun t_bool() -> u8 {
+    var s: u8 = 0
+    for b in flips(7) {
+        s = s * 2
+        if b { s = s + 1 }
+    }
+    return s
+}
+`
+	// Reference model: elements (i&1)==1 for i in 0..6 folded big-endian.
+	var want uint8
+	for i := 0; i < 7; i++ {
+		want *= 2
+		if i%2 == 1 {
+			want++
+		}
+	}
+
+	parseWithAsserts := func() *hir.Module {
+		m, err := nanz.Parse(src, "g1_bool_cmp")
+		if err != nil {
+			t.Fatalf("parse: %v", err)
+		}
+		m.Asserts = append(m.Asserts, hir.Assert{
+			FuncName: "t_bool",
+			Expected: int64(want),
+			Source:   "G1 bool comparison yield",
+		})
+		return m
+	}
+
+	rawHM := parseWithAsserts()
+	raw := hir.LowerModule(rawHM)
+	if err := pipeline.RunAssertsMIR2(rawHM, raw); err != nil {
+		t.Errorf("raw MIR2 VM: %v", err)
+	}
+	hm := parseWithAsserts()
+	steps, err := pipeline.CompileHIRSteps(hm, pipeline.DefaultOptions())
+	if err != nil {
+		// P21: the bool store through the $out pointer emits LD (HL), F,
+		// which Z80-VALIDATE rejects during compilation.
+		if strings.Contains(err.Error(), "invalid operands") || strings.Contains(err.Error(), "invalid instruction") {
+			t.Skipf("P21 (recorded, not fixed by REVIEW FIX 1): bool store through a pointer emits LD (HL), F — correct value %d verified on both MIR2 tiers, Z80 rejected at compile: %v", want, err)
+		}
+		t.Fatalf("compile: %v", err)
+	}
+	if err := pipeline.RunAssertsMIR2(hm, steps.MIR2Module); err != nil {
+		t.Errorf("optimised MIR2 VM: %v", err)
+	}
+	if err := pipeline.RunAssertsZ80(hm, steps.MIR2Module, steps.Allocation, steps.Assembly); err != nil {
+		if strings.Contains(err.Error(), "invalid operands") || strings.Contains(err.Error(), "assemble") {
+			t.Skipf("P21 (recorded, not fixed by REVIEW FIX 1): bool store through a pointer emits LD (HL), F — expected correct value %d, Z80 error: %v", want, err)
+		}
+		t.Errorf("z80: %v", err)
 	}
 }

@@ -3,8 +3,14 @@ package nanz_test
 // G1 measurements (TASK "Measurements"): frame size, next() code bytes and
 // Z80 T-states per element for the generated pull path, compared with the
 // hand-written G0 cursors and with a plain hand-written while loop doing the
-// same work inline (the lower bound). Numbers are logged, not asserted:
-// there is deliberately no performance gate here.
+// same work inline (an approximate lower bound: it runs no pull protocol and
+// keeps all state in registers/globals, which no iterator interface can).
+// Every variant consumes each element into a returned u16 sum, so no read can
+// be optimised away. The hand-written cursors keep their frames in globals
+// (bc1/rc) while generated frames are stack allocas — the tables in PROGRESS
+// note this where the numbers are quoted.
+// Numbers are logged, not asserted: there is deliberately no performance
+// gate here.
 
 import (
 	"sort"
@@ -133,16 +139,17 @@ fun bench_load_rle() -> u16 {
     return 0
 }
 
-// Generated pull frame, manual consumption.
+// Generated pull frame, manual consumption. Each element is consumed into
+// the returned sum so the read cannot be optimised away.
 fun bench_gen_bytes(n: u8) -> u16 {
     load_data(n)
     var it = bytes(&data, n)
     var v: u8 = 0
-    var cnt: u16 = 0
+    var sum: u16 = 0
     while pull_next(&it, &v) {
-        cnt = cnt + 1
+        sum = sum + v
     }
-    return cnt
+    return sum
 }
 
 // Hand-written cursor from the G0 oracle.
@@ -150,67 +157,67 @@ fun bench_man_bytes(n: u8) -> u16 {
     load_data(n)
     bc_make(&bc1, &data, n)
     var v: u8 = 0
-    var cnt: u16 = 0
+    var sum: u16 = 0
     while bc_next(&bc1, &v) != 0 {
-        cnt = cnt + 1
+        sum = sum + v
     }
-    return cnt
+    return sum
 }
 
-// The same work inline: the lower bound.
+// The same work inline: the approximate lower bound. The element read is
+// consumed into the sum.
 fun bench_inline_bytes(n: u8) -> u16 {
     load_data(n)
     var p: ^u8 = &data
     var left: u8 = n
-    var cnt: u16 = 0
+    var sum: u16 = 0
     while left != 0 {
         var v: u8 = p^
         p = p + 1
         left = left - 1
-        cnt = cnt + 1
+        sum = sum + v
     }
-    return cnt
+    return sum
 }
 
 fun bench_gen_rle() -> u16 {
     load_rle()
     var it = run_bytes(&rle_in, 5)
     var v: u8 = 0
-    var cnt: u16 = 0
+    var sum: u16 = 0
     while pull_next(&it, &v) {
-        cnt = cnt + 1
+        sum = sum + v
     }
-    return cnt
+    return sum
 }
 
 fun bench_man_rle() -> u16 {
     load_rle()
     rle_make(&rc, &rle_in, 5)
     var v: u8 = 0
-    var cnt: u16 = 0
+    var sum: u16 = 0
     while rle_next(&rc, &v) != 0 {
-        cnt = cnt + 1
+        sum = sum + v
     }
-    return cnt
+    return sum
 }
 
 fun bench_inline_rle() -> u16 {
     load_rle()
     var p: ^u8 = &rle_in
     var pairs: u8 = 5
-    var cnt: u16 = 0
+    var sum: u16 = 0
     while pairs != 0 {
         var left: u8 = p[0]
         let value: u8 = p[1]
         p = p + 2
         pairs = pairs - 1
         while left != 0 {
-            var v: u8 = value
             left = left - 1
-            cnt = cnt + 1
+            sum = sum + value
         }
     }
-    return cnt
+    return sum
 }
 `
 
@@ -274,7 +281,9 @@ func TestG1GenYieldMeasurements(t *testing.T) {
 
 	// T-states on the Z80 emulator for a fixed workload. The bootstrap
 	// (LD SP, argument setup, CALL, HALT) is common to every measurement and
-	// is reported separately via bench_none.
+	// is reported separately via bench_none. bench_load_* also pays the
+	// bootstrap, so only its net load cost is subtracted — the bootstrap
+	// itself exactly once.
 	const elems = 200
 	measure := func(fn string, args ...int64) (int64, int64) {
 		cycles, ret, err := pipeline.RunZ80Cycles(hm, steps.MIR2Module, steps.Allocation, steps.Assembly, fn, args)
@@ -287,30 +296,40 @@ func TestG1GenYieldMeasurements(t *testing.T) {
 	if baseRet != elems {
 		t.Fatalf("bench_none returned %d", baseRet)
 	}
-	loadBytes, _ := measure("bench_load_bytes", elems)
-	loadRle, _ := measure("bench_load_rle")
-	perElem := func(cycles int64, load int64, n int64) int64 {
-		return (cycles - base - load) / n
+	loadBytesCycles, _ := measure("bench_load_bytes", elems)
+	loadRleCycles, _ := measure("bench_load_rle")
+	netLoadBytes, netLoadRle := loadBytesCycles-base, loadRleCycles-base
+
+	// Every variant returns the sum of the consumed elements; derive the
+	// expected sums from the data pattern, u16 wrap-around included.
+	var wantBytes uint16
+	for i := 0; i < elems; i++ {
+		wantBytes += uint16(byte(i*37 + 11))
+	}
+	wantRle := uint16(255 * 7)
+
+	perElem := func(cycles int64, netLoad int64, n int64) int64 {
+		return (cycles - base - netLoad) / n
 	}
 	for _, tc := range []struct {
-		fn   string
-		args []int64
-		want int64
-		n    int64
-		load int64
+		fn      string
+		args    []int64
+		want    uint16
+		n       int64
+		netLoad int64
 	}{
-		{"bench_gen_bytes", []int64{elems}, elems, elems, loadBytes},
-		{"bench_man_bytes", []int64{elems}, elems, elems, loadBytes},
-		{"bench_inline_bytes", []int64{elems}, elems, elems, loadBytes},
-		{"bench_gen_rle", nil, 255, 255, loadRle},
-		{"bench_man_rle", nil, 255, 255, loadRle},
-		{"bench_inline_rle", nil, 255, 255, loadRle},
+		{"bench_gen_bytes", []int64{elems}, wantBytes, elems, netLoadBytes},
+		{"bench_man_bytes", []int64{elems}, wantBytes, elems, netLoadBytes},
+		{"bench_inline_bytes", []int64{elems}, wantBytes, elems, netLoadBytes},
+		{"bench_gen_rle", nil, wantRle, 255, netLoadRle},
+		{"bench_man_rle", nil, wantRle, 255, netLoadRle},
+		{"bench_inline_rle", nil, wantRle, 255, netLoadRle},
 	} {
 		cycles, ret := measure(tc.fn, tc.args...)
-		if ret != tc.want {
+		if uint16(ret) != tc.want {
 			t.Errorf("%s returned %d, want %d", tc.fn, ret, tc.want)
 		}
-		t.Logf("%s: total T-states=%d (bootstrap %d + load %d), per element=%d",
-			tc.fn, cycles, base, tc.load, perElem(cycles, tc.load, tc.n))
+		t.Logf("%s: total T-states=%d (bootstrap %d + net load %d), per element=%d (approximate for the inline bound)",
+			tc.fn, cycles, base, tc.netLoad, perElem(cycles, tc.netLoad, tc.n))
 	}
 }
