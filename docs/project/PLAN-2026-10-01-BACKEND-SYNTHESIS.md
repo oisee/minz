@@ -1,5 +1,18 @@
 # План: судья, одна машина Z80, единый pattern-backend
 
+> **Ревизия 2026-10-20 (база `67093aa97`, #216).** LIR удалён в #85 (ADR 0044), VIR — офлайн-оракул (ADR 0043/0047); поэтому слияние LIR/VIR в M3 и весь «единый pattern-backend» из LIR+VIR **отменены**, не отложены. Production — HIR → MIR2 → Z80 (PFCCO/PBQP). Трек корректности закрыт спринтом 2026-10-20: #206 P12, #207 P13, #208 P15, #209 (assert-строки после `#import`), #210 (direct-call fuzz блокирует CI), #211 P17, #212 P16, #213 P14 (+`--signed` fuzz), #214 P18, #215 P19; на `605c7e8a2` direct-call 20000/20000, signed 4000/4000. Открыто: P20 (судья не учитывает знаковый тип возврата), P21 (`LD (HL), F`), P22 (паника switch без default), находки аудита G0-3/4/5/8/9, G0-L1..L4.
+>
+> **Новый трек — генераторы** (ADR 0048–0050, `reports/2026-10-18-nanz-generators-design.md`):
+> ```text
+> G  генераторы Nanz
+> ├─ must   G0 ✅ #205 аудит итераций + контракт pull-протокола (эталон)
+> ├─ must   G1 ✅ #216 скалярный gen/yield, caller-owned pull frame; RLE, 3 точки yield, ADR 0050 demand; замеры
+> ├─ should G2    fusion с pull-fallback, равенство упорядоченных трасс (ADR 0050)
+> ├─ should G3    реальная потоковая нагрузка: байты/T-states/RAM/стек
+> └─ nice   G4    bounded queue + ISR/main-loop адаптер
+> ```
+> Дерево ниже сохранено как исторический план от 2026-10-01; актуальное состояние — в [хэндовере 2026-10-20](HANDOVER-2026-10-20-CORRECTNESS-AND-G1.md).
+
 **Дата/база:** 2026-10-01, `main` на `c84079f7`. Основание — [метаанализ backend-компонентов](../../reports/2026-10-01-Backend-Meta-Analysis-RU.md). Z3 исключён (ADR-0043). Production (PFCCO→PBQP→Z80Codegen) остаётся default и мерилом; LIR и VIR не развиваются как конкуренты, а сводятся в один pattern-backend, который растёт под судьёй.
 
 ## Легенда
