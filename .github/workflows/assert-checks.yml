@@ -70,7 +70,7 @@ jobs:
           - job: fuzz
             name: Short fuzz
           - job: fuzz-direct
-            name: Direct-call fuzz findings
+            name: Direct-call fuzz
     steps:
       - uses: actions/checkout@v4
         with:

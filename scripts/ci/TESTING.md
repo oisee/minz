@@ -16,7 +16,8 @@ hardware descriptors and both actual Spectrum ROM/IRQ demos remain fast.
 The assertion judge uses the small tuple-return fixture with both Z80 and MIR2
 and negative controls. PR fuzz count is 300; full/nightly count remains 10000.
 Fuzz workflow success is subject to its existing failure policy, not a claim that
-all cases agree with the oracle. Direct-call findings remain report-only.
+all cases agree with the oracle. Direct-call fuzz uses `--fail-on all`: any
+finding or tool error fails the job.
 
 Deep pipeline tests run in 12 independent jobs on `v*` tags, nightly and manual
 invocation. Release/manual audits also run the full assertion matrix and fuzz;
