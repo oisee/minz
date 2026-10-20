@@ -26,11 +26,46 @@ func TestSignedLiteralContexts(t *testing.T) {
 		{"assignment", `fun run(a:i16)->i16{var x:i16=a;x=-2;return x}`, []int64{0}, 65534},
 		{"argument", `fun ident(a:i16)->i16{return a} fun run(a:i16)->i16{return ident(-2)+a}`, []int64{0}, 65534},
 		{"return", `fun run(a:i16)->i16{return -2}`, []int64{0}, 65534},
-		// Preserve the pre-existing mixed-variable bit-pattern comparison policy.
-		{"mixed_variable_policy", `fun run(a:i16,b:i8)->bool{return a < b}`, []int64{0, -2}, 1},
+		// Implicit signed widening preserves the mathematical value.
+		{"mixed_variable_signed", `fun run(a:i16,b:i8)->bool{return a < b}`, []int64{0, -2}, 0},
+		{"narrow_return", `fun run(a:i8)->i16{return a}`, []int64{-2}, 65534},
+		{"narrow_binding", `fun run(a:i8)->i16{var x:i16=a;return x}`, []int64{-2}, 65534},
+		{"narrow_assignment", `fun run(a:i8)->i16{var x:i16=0;x=a;return x}`, []int64{-2}, 65534},
+		{"narrow_global_assignment", `global x:i16 fun run(a:i8)->i16{x=a;return x}`, []int64{-2}, 65534},
+		{"narrow_argument", `fun ident(a:i16)->i16{return a} fun run(a:i8)->i16{return ident(a)}`, []int64{-2}, 65534},
+		{"narrow_cross_return", `fun ident(a:i8)->i16{return a} fun run(a:i8)->i16{return ident(a)}`, []int64{-2}, 65534},
+		{"narrow_conditional", `fun run(a:i8,b:i16)->i16{let x:i16=if b==0 {b} else {a};return x}`, []int64{-2, 1}, 65534},
+		{"narrow_field_initializer", `struct Cell {v:i16} fun run(a:i8)->i16{let x:Cell=Cell{v:a};return x.v}`, []int64{-2}, 65534},
+		{"narrow_field_assignment", `struct Cell {v:i16} fun run(a:i8)->i16{var x:Cell=Cell{v:0};x.v=a;return x.v}`, []int64{-2}, 65534},
+		{"mixed_equal", `fun run(a:i16,b:i8)->bool{return a == b}`, []int64{-2, -2}, 1},
+		{"mixed_narrow_left", `fun run(a:i8,b:i16)->bool{return a < b}`, []int64{-2, 0}, 1},
+		{"mixed_narrow_left_word", `fun run(a:i8,b:i16)->bool{return a < b}`, []int64{0, 256}, 1},
+		{"mixed_add", `fun run(a:i16,b:i8)->i16{return a+b}`, []int64{1, -2}, 65535},
+		{"mixed_subtract", `fun run(a:i16,b:i8)->i16{return a-b}`, []int64{1, -2}, 3},
 		{"signed_variable_cast", `fun run(a:i16,b:i8)->bool{return a < (b as i16)}`, []int64{0, -2}, 0},
 		{"unsigned_large", `fun run(a:u16)->bool{return a < 1000}`, []int64{999}, 1},
 		{"unsigned_large_left", `fun run(a:u16)->bool{return 1000 > a}`, []int64{999}, 1},
+	}
+	for _, op := range []string{"<", "<=", ">", ">=", "==", "!="} {
+		for _, pair := range [][2]int64{{-2, -2}, {0, -2}, {256, 0}, {-129, -128}, {32767, 127}, {-32768, -128}} {
+			a, b := pair[0], pair[1]
+			for _, reverse := range []bool{false, true} {
+				left, right := a, b
+				params := "a:i16,b:i8"
+				args := []int64{a, b}
+				if reverse {
+					left, right = b, a
+					params = "a:i8,b:i16"
+					args = []int64{b, a}
+				}
+				want := map[string]bool{"<": left < right, "<=": left <= right, ">": left > right, ">=": left >= right, "==": left == right, "!=": left != right}[op]
+				w := int64(0)
+				if want {
+					w = 1
+				}
+				cases = append(cases, literalCase{fmt.Sprintf("mixed/%s/%d/%d/%t", op, a, b, reverse), fmt.Sprintf("fun run(%s)->bool{return a %s b}", params, op), args, w})
+			}
+		}
 	}
 	for _, ty := range []string{"i8", "i16"} {
 		for _, op := range []string{"<", "<=", ">", ">=", "==", "!="} {

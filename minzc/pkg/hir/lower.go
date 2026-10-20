@@ -803,6 +803,12 @@ func (l *lowerer) lowerExprForRet(e Expr) mir2.Reg {
 			return l.bld.Const(literal.Val, ty, classForRet(ty))
 		}
 	}
+	if len(l.bld.F.Contract.Returns) > 0 {
+		ty := l.bld.F.Contract.Returns[0].Ty
+		if mir2.IsInt(e.ExprTy()) && mir2.IsInt(ty) && e.ExprTy().Width() < ty.Width() && mir2.IsSigned(e.ExprTy()) {
+			return l.lowerExprAs(e, ty)
+		}
+	}
 	switch ex := e.(type) {
 	case *LoadExpr:
 		if ex.Ty.Width() <= 8 && !aggregateAddressType(ex.Ty) {
@@ -1137,7 +1143,7 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 				cell := &mir2.StructTy{Fields: []mir2.StructField{{Name: "value", Ty: st.Ty}}}
 				addr := l.fixedStructStorage(cell)
 				if st.Init != nil {
-					value := l.lowerExpr(st.Init)
+					value := l.lowerSignedExprAs(st.Init, st.Ty)
 					l.storeMemory(addr, value, st.Ty, st.Volatile)
 				}
 				l.bind(st.Name, addr, mir2.TyPtr)
@@ -1252,7 +1258,7 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 				if _, ok := expr.(*IntLitExpr); ok {
 					continue // already in initBytes
 				}
-				val := l.lowerExpr(expr)
+				val := l.lowerSignedExprAs(expr, st.Ty)
 				off := i * elemBytes
 				if off == 0 {
 					l.bld.Store(r, val, st.Ty)
@@ -1324,6 +1330,11 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 			}
 		}
 		val := l.lowerExpr(st.Val)
+		valTy := st.Val.ExprTy()
+		if mir2.IsSigned(valTy) && mir2.IsInt(st.Target.ExprTy()) && valTy.Width() < st.Target.ExprTy().Width() {
+			val = l.coerceLocalInteger(val, valTy, st.Target.ExprTy())
+			valTy = st.Target.ExprTy()
+		}
 		if ty, ok := mir2.BaseOf(st.Target.ExprTy()).(*mir2.StructTy); ok {
 			var dest mir2.Reg
 			if tgt, ok := st.Target.(*VarRefExpr); ok {
@@ -1357,7 +1368,7 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 			// Re-bind the local variable to the new vreg (SSA-style rename).
 			// A goto may skip the declaration initializer and reach a full
 			// assignment. The verified target still supplies its lexical type.
-			l.env[tgt.Name] = l.coerceLocalInteger(val, st.Val.ExprTy(), tgt.Ty)
+			l.env[tgt.Name] = l.coerceLocalInteger(val, valTy, tgt.Ty)
 			l.envTy[tgt.Name] = tgt.Ty
 		case *DerefExpr:
 			ptr := l.lowerExpr(tgt.Ptr)
@@ -1385,10 +1396,14 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 			// physical register, causing TermRet to emit invalid parallel copies.
 			regs := make([]mir2.Reg, len(st.Vals))
 			for i, v := range st.Vals {
-				r := l.lowerExpr(v)
-				cls := classForRetPos(v.ExprTy(), i)
+				ty := v.ExprTy()
+				if i < len(l.bld.F.Contract.Returns) {
+					ty = l.bld.F.Contract.Returns[i].Ty
+				}
+				r := l.lowerExprAs(v, ty)
+				cls := classForRetPos(ty, i)
 				if cls != 0 {
-					r = l.bld.Move(r, v.ExprTy(), cls)
+					r = l.bld.Move(r, ty, cls)
 				}
 				regs[i] = r
 			}
@@ -2424,6 +2439,15 @@ func (l *lowerer) coerceLocalInteger(src mir2.Reg, from, to mir2.Ty) mir2.Reg {
 	return src
 }
 
+// lowerSignedExprAs preserves narrow storage for ordinary values while making
+// an implicit signed widening explicit at a typed storage or CFG boundary.
+func (l *lowerer) lowerSignedExprAs(e Expr, wantTy mir2.Ty) mir2.Reg {
+	if mir2.IsInt(e.ExprTy()) && mir2.IsInt(wantTy) && mir2.IsSigned(e.ExprTy()) && e.ExprTy().Width() < wantTy.Width() {
+		return l.lowerExprAs(e, wantTy)
+	}
+	return l.lowerExpr(e)
+}
+
 // lowerExprAs promotes narrow literals and sign-extends signed operands
 // to the expression width. This also handles C integer promotions.
 func (l *lowerer) lowerExprAs(e Expr, wantTy mir2.Ty) mir2.Reg {
@@ -2534,7 +2558,8 @@ func (l *lowerer) lowerExpr(e Expr) mir2.Reg {
 				paramTy = calleeParams[i].Ty
 			}
 			var r mir2.Reg
-			if _, literal := a.(*IntLitExpr); literal && i < len(calleeParams) && mir2.IsInt(paramTy) && mir2.IsInt(calleeParams[i].Ty) {
+			_, literal := a.(*IntLitExpr)
+			if i < len(calleeParams) && mir2.IsInt(paramTy) && mir2.IsInt(calleeParams[i].Ty) && (literal || mir2.IsSigned(paramTy) && paramTy.Width() < calleeParams[i].Ty.Width()) {
 				paramTy = calleeParams[i].Ty
 				r = l.lowerExprAs(a, paramTy)
 			} else {
@@ -2602,10 +2627,14 @@ func (l *lowerer) lowerExpr(e Expr) mir2.Reg {
 		fnPtrReg := l.lowerExpr(ex.FnPtr)
 		args := make([]mir2.Reg, len(ex.Args))
 		for i, a := range ex.Args {
-			r := l.lowerExpr(a)
-			tgtCls := classForParam(a.ExprTy(), i)
-			if tgtCls != classForExpr(a.ExprTy()) {
-				r = l.bld.Move(r, a.ExprTy(), tgtCls)
+			paramTy := a.ExprTy()
+			if ex.Signature != nil && i < len(ex.Signature.Params) {
+				paramTy = ex.Signature.Params[i]
+			}
+			r := l.lowerExprAs(a, paramTy)
+			tgtCls := classForParam(paramTy, i)
+			if tgtCls != classForExpr(paramTy) {
+				r = l.bld.Move(r, paramTy, tgtCls)
 			}
 			args[i] = r
 		}
@@ -2907,7 +2936,7 @@ func (l *lowerer) lowerCondExpr(ex *CondExpr) mir2.Reg {
 	// then-branch
 	thenBlk := l.bld.SwitchToNewBlock(thenLabel)
 	_ = thenBlk
-	thenVal := l.lowerExpr(ex.Then)
+	thenVal := l.lowerSignedExprAs(ex.Then, ex.Ty)
 	if ex.Ty == mir2.TyVoid {
 		l.bld.Jmp(joinLabel)
 	} else {
@@ -2917,7 +2946,7 @@ func (l *lowerer) lowerCondExpr(ex *CondExpr) mir2.Reg {
 	// else-branch
 	elseBlk := l.bld.SwitchToNewBlock(elseLabel)
 	_ = elseBlk
-	elseVal := l.lowerExpr(ex.Else)
+	elseVal := l.lowerSignedExprAs(ex.Else, ex.Ty)
 	if ex.Ty == mir2.TyVoid {
 		l.bld.Jmp(joinLabel)
 	} else {
@@ -3070,6 +3099,9 @@ func (l *lowerer) lowerCond(e Expr) mir2.Reg {
 				operandTy = wordTy
 			}
 		}
+		if mir2.IsSigned(operandTy) && mir2.IsSigned(wordTy) {
+			operandTy = wordTy
+		}
 		signed := mir2.IsSigned(operandTy)
 		switch bin.Op {
 		case "==":
@@ -3103,10 +3135,8 @@ func (l *lowerer) lowerCond(e Expr) mir2.Reg {
 		default:
 			goto fallback
 		}
-		// Nonliteral mixed-width comparisons historically compare stored bit
-		// patterns (ordering reinterprets both at operandTy; equality uses all
-		// bits). Make their zero extension explicit rather than changing that
-		// policy to arithmetic sign extension. Literals retain their value.
+		// Preserve signed values at the common comparison width with explicit
+		// HIR conversions; physical register moves only stage stored bits.
 		lowerOperand := func(e Expr) mir2.Reg {
 			if lit, literal := e.(*IntLitExpr); literal {
 				if lit.Val < 0 {
@@ -3130,6 +3160,9 @@ func (l *lowerer) lowerCond(e Expr) mir2.Reg {
 			}
 			r := l.lowerExpr(e)
 			if mir2.IsInt(e.ExprTy()) && mir2.IsInt(wordTy) && e.ExprTy().Width() < wordTy.Width() {
+				if mir2.IsSigned(e.ExprTy()) {
+					return l.bld.Sext(r, e.ExprTy(), wordTy, classForExpr(wordTy))
+				}
 				return l.bld.Ext(r, e.ExprTy(), wordTy, classForExpr(wordTy))
 			}
 			return r
@@ -4451,7 +4484,7 @@ func (l *lowerer) emitStructLitFields(lit *StructLitExpr, baseProvider func() mi
 			}, volatile || mir2.VolatileStorageByte(lit.St, byteOff))
 			continue
 		}
-		val := l.lowerExpr(fi.Val)
+		val := l.lowerSignedExprAs(fi.Val, fieldTy)
 		base := baseProvider()
 		var addr mir2.Reg
 		if byteOff == 0 {
@@ -4529,7 +4562,7 @@ func (l *lowerer) emitStructLitFieldsChained(lit *StructLitExpr, startAddr mir2.
 			diff := e.byteOff - prevOff
 			addr = l.bld.Field(prevAddr, int64(diff), mir2.ClassPointer)
 		}
-		val := l.lowerExpr(e.valExpr) // lower just before Store — short live range
+		val := l.lowerSignedExprAs(e.valExpr, e.ty) // lower just before Store — short live range
 		l.storeMemory(addr, val, e.ty, volatile || mir2.VolatileStorageByte(lit.St, e.byteOff))
 		prevAddr = addr
 		prevOff = e.byteOff

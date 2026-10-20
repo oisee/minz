@@ -331,8 +331,8 @@ func reachableDominators(f *Func) map[string]map[string]bool {
 }
 
 // Signed narrow operands require an explicit extension before word arithmetic
-// or comparison: sext for arithmetic, ext for the legacy stored-bit comparison
-// policy. Literals are typed in context by HIR. Physical byte moves such as
+// or comparison. HIR emits sext for signed values and types negative literals
+// in context. Physical byte moves such as
 // promote8toPair/loadSpill16 must not guess the semantic conversion.
 func verifySignedWordOperands(f *Func) error {
 	info := collectRegInfo(f)
