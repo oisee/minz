@@ -33,7 +33,9 @@ func TestByteSpillSlotMovesStayInsideSlot(t *testing.T) {
 			t.Fatal(err, a.Errors, asm)
 		}
 		z := emulator.NewRemogattoZ80()
-		z.LoadMemory(0x8000, a.Binary)
+		if err := z.LoadMemory(0x8000, a.Binary); err != nil {
+			t.Fatal(err)
+		}
 		z.SetRegisters(emulator.Registers{PC: 0x8000, SP: 0xf000})
 		for n := 0; n < 200 && !z.IsHalted(); n++ {
 			z.Step()
