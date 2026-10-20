@@ -1665,12 +1665,8 @@ func TestG1GenYieldNegative(t *testing.T) {
 }
 
 // TestG1BoolComparisonYield pins a bool generator whose yield value is a
-// comparison: out^ = (i & 1) == 1. Both MIR2 tiers must produce the correct
-// value (42 = 0b0101010, one bit per element of flips(7)). The Z80 tier is
-// skipped while P21 is open: the bool store through the output pointer
-// emits LD (HL), F, which does not assemble. When P21 is fixed the error
-// disappears and the value is asserted on Z80 too — no manual unskipping.
-// Repro: .local/repros/P21-bool-store-through-pointer.nanz
+// comparison: out^ = (i & 1) == 1. Raw MIR2, optimised MIR2 and Z80 must
+// produce 42 = 0b0101010, one bit per element of flips(7).
 func TestG1BoolComparisonYield(t *testing.T) {
 	const src = `
 gen flips(n: u8) -> bool {
@@ -1720,20 +1716,12 @@ fun t_bool() -> u8 {
 	hm := parseWithAsserts()
 	steps, err := pipeline.CompileHIRSteps(hm, pipeline.DefaultOptions())
 	if err != nil {
-		// P21: the bool store through the $out pointer emits LD (HL), F,
-		// which Z80-VALIDATE rejects during compilation.
-		if strings.Contains(err.Error(), "invalid operands") || strings.Contains(err.Error(), "invalid instruction") {
-			t.Skipf("P21 (recorded, not fixed by REVIEW FIX 1): bool store through a pointer emits LD (HL), F — correct value %d verified on both MIR2 tiers, Z80 rejected at compile: %v", want, err)
-		}
 		t.Fatalf("compile: %v", err)
 	}
 	if err := pipeline.RunAssertsMIR2(hm, steps.MIR2Module); err != nil {
 		t.Errorf("optimised MIR2 VM: %v", err)
 	}
 	if err := pipeline.RunAssertsZ80(hm, steps.MIR2Module, steps.Allocation, steps.Assembly); err != nil {
-		if strings.Contains(err.Error(), "invalid operands") || strings.Contains(err.Error(), "assemble") {
-			t.Skipf("P21 (recorded, not fixed by REVIEW FIX 1): bool store through a pointer emits LD (HL), F — expected correct value %d, Z80 error: %v", want, err)
-		}
-		t.Errorf("z80: %v", err)
+		t.Fatalf("z80: %v", err)
 	}
 }

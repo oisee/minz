@@ -781,8 +781,10 @@ func (g *z80cg) genInst(inst *Inst) {
 		// Resolve the predicate before address setup can overwrite its flags.
 		if value := inst.Src[1]; g.loc(value) == "F" || value == g.pendingFlagReg {
 			if g.pendingFlagReg != value {
-				g.materializePendingFlag(inst)
-				g.pendingFlagReg = value
+				if g.err == nil {
+					g.err = fmt.Errorf("z80 codegen: stale flag store in %s: value r%d is allocated to F, pending flag is r%d", g.fn.Name, value, g.pendingFlagReg)
+				}
+				return
 			}
 			g.materializePendingFlag(inst)
 		}
@@ -1562,10 +1564,10 @@ func (g *z80cg) genInst(inst *Inst) {
 		if inst.Asm != nil {
 			if g.runtime == Z80RuntimeCPM {
 				for _, line := range strings.Split(inst.Asm.Template, "\n") {
-					g.emit("    " + strings.TrimSpace(line))
+					g.emitInlineAsm("    " + strings.TrimSpace(line))
 				}
 			} else {
-				g.emitf("    %s", inst.Asm.Template)
+				g.emitInlineAsm("    " + inst.Asm.Template)
 			}
 		}
 

@@ -144,3 +144,37 @@ func TestFlagStoreAcrossPointerScratch(t *testing.T) {
 		}
 	}
 }
+
+func TestFlagStoreRejectsStalePredicate(t *testing.T) {
+	for _, otherPending := range []bool{false, true} {
+		t.Run(fmt.Sprintf("otherPending=%v", otherPending), func(t *testing.T) {
+			m := &Module{}
+			f := m.AddFunc("stale_flags")
+			b := NewBuilder(f)
+			b.SwitchToNewBlock("entry")
+			ptr := b.Param("ptr", TyPtr, ClassPointer)
+			x := b.Param("x", TyU8, ClassAcc)
+			stale := b.Cmp(CmpEq, x, x, ClassFlag, false)
+			pending := NoReg
+			if otherPending {
+				pending = b.Cmp(CmpNe, x, x, ClassFlag, false)
+			}
+			b.Store(ptr, stale, TyBool)
+			store := b.Cur.Insts[len(b.Cur.Insts)-1]
+			b.Ret()
+			ar := &AllocResult{Locs: map[Reg]PhysLoc{ptr: {Name: "HL"}, x: {Name: "A"}, stale: {Kind: LocFlag, Name: "F"}}}
+			if otherPending {
+				ar.Locs[pending] = PhysLoc{Kind: LocFlag, Name: "F"}
+			}
+			var out strings.Builder
+			g := &z80cg{mod: m, fn: f, ar: ar, sb: &out, curBlock: f.Entry(), liveness: ComputeLiveness(f), regInfo: collectRegInfo(f), holdsPhys: map[string]string{}, physOverride: map[Reg]string{}, constVals: map[Reg]int64{}, pendingFlagReg: pending, pendingAccReg: NoReg}
+			g.genInst(store)
+			if g.err == nil || !strings.Contains(g.err.Error(), "stale flag") {
+				t.Fatalf("expected stale flag store error, got %v; assembly:\n%s", g.err, out.String())
+			}
+			if out.Len() != 0 || g.pendingFlagReg != pending {
+				t.Fatalf("stale store changed codegen state: pending=%v assembly=%s", g.pendingFlagReg, out.String())
+			}
+		})
+	}
+}

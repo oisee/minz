@@ -791,7 +791,8 @@ type z80cg struct {
 }
 
 func (g *z80cg) emit(s string) {
-	// F is an allocator sentinel, never an addressable byte register.
+	// Validate compiler-generated operands only. User assembly uses emitInlineAsm.
+	// F is an allocator sentinel, except in the legal undocumented IN F,(C).
 	// Inspect bare operands only: AF, labels, data and comments are legal.
 	for _, line := range strings.Split(s, "\n") {
 		code, _, _ := strings.Cut(line, ";")
@@ -809,6 +810,11 @@ func (g *z80cg) emit(s string) {
 		}
 		_, operands, _ := strings.Cut(strings.TrimSpace(code), fields[0])
 		parts := strings.Split(operands, ",")
+		if strings.EqualFold(fields[0], "IN") && len(parts) == 2 &&
+			strings.EqualFold(strings.TrimSpace(parts[0]), "F") &&
+			strings.EqualFold(strings.TrimSpace(parts[1]), "(C)") {
+			continue
+		}
 		for index, operand := range parts {
 			if strings.EqualFold(strings.TrimSpace(operand), "F") {
 				if strings.EqualFold(fields[0], "LD") && index == 1 {
@@ -824,6 +830,12 @@ func (g *z80cg) emit(s string) {
 			}
 		}
 	}
+	g.emitInlineAsm(s)
+}
+
+// emitInlineAsm preserves common emission hooks without interpreting user
+// operands as allocator locations. Compiler-generated text must go through emit.
+func (g *z80cg) emitInlineAsm(s string) {
 	if g.runtimeStackBytes != 0 {
 		fields := strings.Fields(s)
 		if len(fields) > 0 && (fields[0] == "PUSH" || fields[0] == "CALL" || fields[0] == "DEC" && len(fields) > 1 && fields[1] == "SP") {
