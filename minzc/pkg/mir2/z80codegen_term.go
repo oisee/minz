@@ -25,12 +25,35 @@ type trampolineBlock struct {
 // to a scratch register in one branch (gcd's else arm) was read from that
 // scratch on paths that never wrote it.
 func (g *z80cg) restoreLiveOutOverrides(f *Func, t Term) {
-	if g.liveness == nil || len(g.physOverride) == 0 {
+	if len(g.physOverride) == 0 {
 		return
 	}
-	liveOut := g.liveness.LiveOutOf(f, g.curBlock)
-	if liveOut == nil {
-		return
+	needed := map[Reg]bool{}
+	if g.liveness != nil {
+		if liveOut := g.liveness.LiveOutOf(f, g.curBlock); liveOut != nil {
+			for r := range g.physOverride {
+				needed[r] = liveOut.Has(r)
+			}
+		}
+	}
+	// Block params and other live values participate in the same shuffle.
+	// DJNZ body params instead receive their next values from its edge copies.
+	skipped := map[Reg]bool{}
+	if td, ok := t.(*TermDJNZ); ok {
+		if body := f.BlockByLabel(td.Body); body != nil {
+			for i := range td.BodyArgs {
+				if i+1 < len(body.Params) {
+					skipped[body.Params[i+1].Dst] = true
+				}
+			}
+		}
+	}
+	for _, bp := range g.curBlock.Params {
+		if skipped[bp.Dst] {
+			delete(g.physOverride, bp.Dst)
+		} else {
+			needed[bp.Dst] = true
+		}
 	}
 	// Terminator operands count too: jmp @head(%r3, …) passes r3 to the param
 	// that is r3 itself after coalescing, and the parallel copy skips it as an
@@ -41,11 +64,12 @@ func (g *z80cg) restoreLiveOutOverrides(f *Func, t Term) {
 	}
 	regs := make([]Reg, 0, len(g.physOverride))
 	for r := range g.physOverride {
-		if liveOut.Has(r) || usedByTerm[r] {
+		if needed[r] || usedByTerm[r] {
 			regs = append(regs, r)
 		}
 	}
 	sort.Slice(regs, func(i, j int) bool { return regs[i] < regs[j] })
+	var copies []parallelCopy
 	for _, r := range regs {
 		scratch := g.physOverride[r]
 		canonLoc := g.ar.Loc(r)
@@ -54,61 +78,22 @@ func (g *z80cg) restoreLiveOutOverrides(f *Func, t Term) {
 			continue
 		}
 		if canon := canonLoc.Name; canon != "" && canon != scratch {
-			width := 8
-			if canon == "HL" || canon == "DE" || canon == "BC" {
-				width = 16
+			ty := TyU8
+			if isPairReg(canon) {
+				ty = TyU16
 			}
-			g.emitMov(canon, scratch, width)
+			copies = append(copies, parallelCopy{srcName: scratch, dstName: canon, ty: ty})
 			g.comment(fmt.Sprintf("restore live-out r%d from scratch", r))
 		}
 	}
+	// Restores are simultaneous: a canonical destination may still contain
+	// another value's scratch source (including a byte half of a pair).
+	g.emitParallelCopy(copies)
 }
 
 // ── Terminators ───────────────────────────────────────────────────────────────
 
 func (g *z80cg) genTerm(f *Func, t Term) {
-	// If any block param was saved to a scratch register (via materializePendingAcc),
-	// restore it to its canonical physical location before any terminal jump or ret.
-	// This ensures live-through values (used in successor blocks without explicit
-	// block params) are in their allocator-assigned locations when those blocks run.
-	// physOverride[r] was valid within this block; canonical location = ar.Loc(r).
-	//
-	// EXCEPTION: For TermDJNZ, do NOT restore block params that are explicitly
-	// passed as body-edge args (BodyArgs).  Those params receive their new values
-	// from the parallel copy emitted by the DJNZ handler.  Restoring them from
-	// scratch would overwrite the computed result with the stale initial value.
-	djnzBodyArgs := map[Reg]bool{}
-	if td, ok := t.(*TermDJNZ); ok {
-		bodyBlock := f.BlockByLabel(td.Body)
-		if bodyBlock != nil {
-			for i, arg := range td.BodyArgs {
-				if i+1 < len(bodyBlock.Params) {
-					djnzBodyArgs[bodyBlock.Params[i+1].Dst] = true
-					_ = arg // only need the param dst
-				}
-			}
-		}
-	}
-	for _, bp := range g.curBlock.Params {
-		if djnzBodyArgs[bp.Dst] {
-			delete(g.physOverride, bp.Dst)
-			continue
-		}
-		if scratch, ok := g.physOverride[bp.Dst]; ok {
-			// Use ar.Loc (static allocation) not g.loc (which returns the override).
-			canonLoc := g.ar.Loc(bp.Dst)
-			delete(g.physOverride, bp.Dst)
-			// Only restore register-backed block params — spilled params
-			// (LocMem) are already in memory and weren't saved to a scratch GPR.
-			if canonLoc.Kind == LocReg || canonLoc.Kind == LocIXY8 {
-				canon := canonLoc.Name
-				if canon != "" && canon != scratch {
-					g.emitMov(canon, scratch, z80ValueWidth(bp.Ty))
-					g.comment("restore block param from scratch")
-				}
-			}
-		}
-	}
 	g.restoreLiveOutOverrides(f, t)
 
 	switch t := t.(type) {
