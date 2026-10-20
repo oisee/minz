@@ -157,9 +157,10 @@ global bc1: ByteCursor
 global bc2: ByteCursor
 global rc: RleCursor
 global g_pulls: u16 = 0
+global g_reads: u16 = 0
 
 // Creation only writes the frame: it reads no source bytes and issues no
-// pulls (observed via g_pulls in sc_make_no_effects).
+// pulls (observed via g_reads/g_pulls in sc_make_no_effects).
 fun bc_make(cur: ^ByteCursor, src: ^u8, n: u8) -> void {
     cur.pos = src
     cur.left = n
@@ -175,6 +176,7 @@ fun bc_next(cur: ^ByteCursor, out: ^u8) -> u8 {
         cur.done = 1
         return 0
     }
+    g_reads = g_reads + 1
     out^ = cur.pos^
     cur.pos = cur.pos + 1
     cur.left = cur.left - 1
@@ -198,6 +200,7 @@ fun rle_next(cur: ^RleCursor, out: ^u8) -> u8 {
             cur.done = 1
             return 0
         }
+        g_reads = g_reads + 2
         cur.left = cur.src[0]
         cur.val = cur.src[1]
         cur.src = cur.src + 2
@@ -272,6 +275,10 @@ fun sc_sticky(n: u8) -> u16 {
     bc_make(&bc1, &data, n)
     var v: u8 = 0
     while bc_next(&bc1, &v) != 0 { v = v }
+    // A reset count and readable source must not revive a DONE frame.
+    bc1.pos = &data
+    bc1.left = 1
+    data[0] = 99
     v = 170
     var extra: u8 = 0
     if bc_next(&bc1, &v) != 0 { extra = 1 }
@@ -377,6 +384,11 @@ fun sc_rle_sticky() -> u16 {
     rle_make(&rc, &rle_in, 1)
     var v: u8 = 0
     while rle_next(&rc, &v) != 0 { v = v }
+    // Both a pending run and new source pairs must be ignored after DONE.
+    rc.left = 1
+    rc.val = 99
+    rc.src = &rle_in
+    rc.pairs = 1
     v = 170
     var extra: u8 = 0
     if rle_next(&rc, &v) != 0 { extra = 1 }
@@ -407,7 +419,7 @@ fun sc_filter_take2() -> u16 {
     return g_pulls * 4096 + acc
 }
 
-// S12: k=3 exhausts the source first: outputs stay [7,8], requests reach 5.
+// S12: k=3 accepts [7,8,9] in 5 requests, without requesting DONE.
 fun sc_filter_take3() -> u16 {
     data[0] = 0
     data[1] = 0
@@ -429,12 +441,35 @@ fun sc_filter_take3() -> u16 {
     return g_pulls * 4096 + acc
 }
 
-// S13: creation issues no requests (no body effects at construction time).
+// S13: observe source-read probes and the freshly created frame. Changing
+// source bytes after make must affect the first pull (no eager cached read).
 fun sc_make_no_effects(n: u8) -> u16 {
-    g_pulls = 0
     load_data(n)
+    g_pulls = 13
+    g_reads = 17
     bc_make(&bc1, &data, n)
-    return g_pulls
+    if g_pulls != 13 { return 1 }
+    if g_reads != 17 { return 2 }
+    if bc1.left != n { return 3 }
+    if bc1.done != 0 { return 4 }
+    if data[0] != 11 { return 5 }
+    data[0] = 99
+    var v: u8 = 170
+    if bc_next(&bc1, &v) == 0 { return 6 }
+    if v != 99 { return 7 }
+    if g_reads != 18 { return 8 }
+    rle_in[0] = 1
+    rle_in[1] = 42
+    rle_make(&rc, &rle_in, 1)
+    if g_reads != 18 { return 9 }
+    if rc.pairs != 1 { return 10 }
+    if rc.left != 0 { return 11 }
+    if rc.done != 0 { return 12 }
+    rle_in[1] = 77
+    if rle_next(&rc, &v) == 0 { return 13 }
+    if v != 77 { return 14 }
+    if g_reads != 20 { return 15 }
+    return 0
 }
 `
 
@@ -445,8 +480,8 @@ type g0Scenario struct {
 	want int64
 }
 
-// g0ContractScenarios computes every expected value from the Go reference so
-// the Nanz numbers are never hand-baked.
+// g0ContractScenarios derives sequence expectations from the Go reference,
+// with additional literal ADR 0050 pins below.
 func g0ContractScenarios() []g0Scenario {
 	var sc []g0Scenario
 	add := func(name, fn string, want int64, args ...int64) {
@@ -528,6 +563,8 @@ func g0ContractScenarios() []g0Scenario {
 		acc = acc*256 + uint16(o)
 	}
 	add("filter_take2", "sc_filter_take2", int64(uint16(pulls))*4096+int64(acc))
+	// Independent literal pin: 4 pulls, outputs [7,8].
+	add("filter_take2_literal", "sc_filter_take2", 4*4096+7*256+8)
 	outs, pulls = g0RefFilterTake(src, pred, 3)
 	acc = 0
 	for _, o := range outs {
@@ -578,5 +615,51 @@ func TestG0GeneratorContract(t *testing.T) {
 	}
 	if err := pipeline.RunAssertsZ80(hm, steps.MIR2Module, steps.Allocation, steps.Assembly); err != nil {
 		t.Errorf("z80: %v", err)
+	}
+}
+
+// Pin the reference itself against literal protocol requirements, including
+// source changes after creation and after DONE.
+func TestG0GeneratorReferencePins(t *testing.T) {
+	outs, pulls := g0RefFilterTake([]byte{0, 0, 7, 8, 9}, func(v byte) bool { return v > 0 }, 2)
+	if pulls != 4 || string(outs) != string([]byte{7, 8}) {
+		t.Fatalf("ADR 0050: want 4 pulls and [7 8], got %d and %v", pulls, outs)
+	}
+	data := []byte{11}
+	var c g0RefByteCursor
+	c.make(data)
+	if c.pos != 0 || c.done || data[0] != 11 {
+		t.Fatal("byte make changed source or consumed input")
+	}
+	data[0] = 99
+	v := byte(170)
+	if !c.next(&v) || v != 99 {
+		t.Fatal("byte make read eagerly")
+	}
+	if c.next(&v) {
+		t.Fatal("expected byte DONE")
+	}
+	c.data = append(c.data, 42)
+	v = 170
+	if c.next(&v) || v != 170 {
+		t.Fatal("byte DONE revived after source extension")
+	}
+	pairs := []byte{1, 42}
+	var r g0RefRleCursor
+	r.make(pairs)
+	if r.left != 0 || r.done || pairs[1] != 42 {
+		t.Fatal("RLE make changed source or consumed input")
+	}
+	pairs[1] = 77
+	if !r.next(&v) || v != 77 {
+		t.Fatal("RLE make read eagerly")
+	}
+	if r.next(&v) {
+		t.Fatal("expected RLE DONE")
+	}
+	r.left, r.val, r.pairs = 1, 99, []byte{1, 42}
+	v = 170
+	if r.next(&v) || v != 170 {
+		t.Fatal("RLE DONE revived after state mutation")
 	}
 }

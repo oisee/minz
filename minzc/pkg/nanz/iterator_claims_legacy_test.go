@@ -161,11 +161,21 @@ fun main() -> void {
 fun log_skip(i: u8, x: u8) -> void {
     asm {
         OUT ($23), A
+        LD A, E
+        OUT ($23), A
     }
 }
 `
-	if _, err := g0LegacyRun(t, src, "main"); err != nil {
-		t.Skip("G0 finding G0-L2: enumerate() with a typed callback emits CALL <unmangled name> (undefined label): ", err)
+	out, err := g0LegacyRun(t, src, "main")
+	if err != nil {
+		if strings.Contains(err.Error(), "unknown instruction or invalid operands: CALL") {
+			t.Skip("G0 finding G0-L2: enumerate() with a typed callback emits CALL <unmangled name> (undefined label): ", err)
+		}
+		t.Fatal(err)
+	}
+	want := []byte{0, 1, 1, 2, 2, 3, 3, 4, 4, 5}
+	if string(out) != string(want) {
+		t.Fatalf("enumerate output: want %v, got %v", want, out)
 	}
 }
 
@@ -187,14 +197,27 @@ fun main() -> void {
     nums[3] = 4
     nums[4] = 5
     let s: u8 = nums.iter().reduce(sum2);
+    emit(s);
     asm {
         DI
         HALT
     }
 }
 `
-	if _, err := g0LegacyRun(t, src, "main"); err != nil {
-		t.Skip("G0 finding G0-L3: reduce(fn) emits CALL <unmangled name> (undefined label): ", err)
+	src += `
+fun emit(c: u8) -> void {
+    asm { OUT ($23), A }
+}
+`
+	out, err := g0LegacyRun(t, src, "main")
+	if err != nil {
+		if strings.Contains(err.Error(), "unknown instruction or invalid operands: CALL") {
+			t.Skip("G0 finding G0-L3: reduce(fn) emits CALL <unmangled name> (undefined label): ", err)
+		}
+		t.Fatal(err)
+	}
+	if string(out) != string([]byte{15}) {
+		t.Fatalf("reduce output: want [15], got %v", out)
 	}
 }
 
@@ -251,21 +274,18 @@ fun main() -> void {
 `
 	m, err := nanz.Parse(src, "iter_foreach")
 	if err != nil {
-		t.Fatalf("nanz parse: %v", err)
+		return // A clean diagnostic is acceptable for unsupported syntax.
 	}
 	steps, err := pipeline.CompileHIRSteps(m, pipeline.DefaultOptions())
-	if err == nil && steps.Assembly != "" {
-		as := z80asm.NewAssembler()
-		res, aerr := as.AssembleString(steps.Assembly)
-		if aerr != nil || len(res.Errors) > 0 {
-			var sb strings.Builder
-			for _, e := range res.Errors {
-				sb.WriteString(e.Error())
-				sb.WriteByte('\n')
-			}
-			t.Skip("G0 finding G0-L1: legacy .minz iterator syntax compiles via the Nanz parser into assembly with undefined labels: ", aerr, sb.String())
-		}
-		return // clean compile and clean assembly: nothing to pin
+	if err != nil {
+		return // Clean rejection is acceptable.
 	}
-	t.Skip("G0 finding G0-L1: legacy .minz iterator syntax is rejected or broken on the production path: ", err)
+	if strings.Contains(steps.Assembly, "?") || g0HasUndefinedIteratorCall(steps.Assembly, "forEach", "iter") {
+		t.Skip("G0 finding G0-L1: production path emits placeholders or undefined legacy iterator calls")
+	}
+	got := g0RunZ80Console(t, src, "main")
+	want := []byte{65, 66, 67, 68, 69}
+	if string(got) != string(want) {
+		t.Fatalf("production iterator output: want %v, got %v", want, got)
+	}
 }

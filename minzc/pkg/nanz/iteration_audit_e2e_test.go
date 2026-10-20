@@ -4,7 +4,8 @@ package nanz_test
 // iteration construct the Nanz frontend recognises (`for i in lo..hi`,
 // `for x in ptr[lo..hi]`, iterator chains map/filter → forEach/mapInPlace/
 // fold/reduce over memory or range() sources, named pipe/trans + .apply())
-// on three tiers: raw MIR2 VM, optimised MIR2 VM, and native Z80.
+// on raw MIR2 VM, optimised MIR2 VM, and native Z80, except the asm
+// console test (Z80-only) and currently skipped findings (see the audit).
 //
 // Findings (bugs) are encoded as tests that expect the CORRECT result and
 // t.Skip with a "G0 finding" marker so the bug is documented without breaking
@@ -273,20 +274,6 @@ fun n255_cnt() -> u16 {
     range(0..255).forEach(cnt_sum)
     return n16
 }
-// n=256 wraps the u8 counter into a full cycle: 256 iterations yielding the
-// multiset {0,1,...,255} (first element 0, then 255 down to 1).
-fun n256_sum() -> u16 {
-    sum16 = 0
-    n16 = 0
-    range(0..256).forEach(cnt_sum)
-    return sum16
-}
-fun n256_cnt() -> u16 {
-    sum16 = 0
-    n16 = 0
-    range(0..256).forEach(cnt_sum)
-    return n16
-}
 assert order_0_5() == 35     // elements 5,4,3,2,1
 assert order_5_0() == 35
 assert order_2_7() == 35     // elements 5,4,3,2,1 (NOT 2..6)
@@ -294,8 +281,6 @@ assert empty() == 77
 assert one() == 1            // single element 1
 assert n255_sum() == 32640   // 255+254+...+1
 assert n255_cnt() == 255
-assert n256_sum() == 32640   // 0+1+...+255 (wrapped counter)
-assert n256_cnt() == 256
 `
 	if err := g0RunAsserts(t, src); err != nil {
 		t.Fatal(err)
@@ -705,20 +690,31 @@ fun step(x: u8) -> void {
 }
 fun main() -> u8 {
     acc = 0
+    for i in 0..8 { src8[i] = i + 1 }
     src8.` + method + `(3).forEach(step)
     return acc
 }
 `
 			m, err := nanz.Parse(src, "g0_unsupported")
 			if err != nil {
-				t.Fatalf("parse: %v", err)
+				return // A clean parse diagnostic also rejects unsupported syntax.
 			}
 			steps, err := pipeline.CompileHIRSteps(m, pipeline.DefaultOptions())
 			if err != nil {
 				return // A clean compile error is the correct rejection.
 			}
-			if !strings.Contains(steps.Assembly, "?") && !strings.Contains(steps.Assembly, "CALL "+method) {
-				return // Genuinely supported: no invalid assembly to pin.
+			if !strings.Contains(steps.Assembly, "?") && !g0HasUndefinedIteratorCall(steps.Assembly, method, "forEach") {
+				want := 6 // take(3): 1+2+3
+				if method == "skip" {
+					want = 30 // 4+5+6+7+8
+				}
+				if method == "iter" || method == "enumerate" {
+					want = 36
+				}
+				if err := g0RunAsserts(t, src+fmt.Sprintf("\nassert main() == %d\n", want)); err != nil {
+					t.Fatal(err)
+				}
+				return
 			}
 			t.Skip("G0 finding G0-5: unsupported iterator method ." + method + "() emits invalid assembly instead of a compile error")
 		})
@@ -753,4 +749,81 @@ fun f(a: u8, x: u8) -> u8 {
 	if _, err := nanz.Parse(src, "g0_parse"); err != nil {
 		t.Skip("G0 finding G0-7: parenthesised multiplication operand before + fails to parse: ", err)
 	}
+	src += "\nassert f(4, 5) == 17\nassert f(0, 9) == 9\nassert f(80, 20) == 4\n"
+	if err := g0RunAsserts(t, src); err != nil {
+		t.Fatal(err)
+	}
+}
+
+// G0-8: CALL cannot preserve the environment of a capturing lambda. Keep
+// the correct sum as an oracle until closure calls or a diagnostic exist.
+func TestG0Finding_CapturingCallbackReturn(t *testing.T) {
+	src := `
+global src8: [u8; 8]
+fun consumer() -> u8 {
+    for i in 0..5 { src8[i] = i + 1 }
+    var sum: u8 = 0
+    src8.forEach(|x: u8| { if x == 3 { return } sum = sum + x }, 5)
+    return sum
+}
+assert consumer() == 12
+`
+	if err := g0RunAsserts(t, src); err != nil {
+		if strings.Contains(err.Error(), "unknown function lambda_") {
+			t.Skip("G0 finding G0-8: capturing callback with early return calls an unlowered lambda: ", err)
+		}
+		t.Fatal(err)
+	}
+}
+
+// G0-9: counts above 255 require a u16 countdown, yielding 256..1,
+// not a truncated first element 0 followed by 255..1.
+func TestG0Finding_RangeCounterWidth(t *testing.T) {
+	src := `
+global total: u16 = 0
+global count: u16 = 0
+global first: u16 = 0
+fun step(x: u16) -> void {
+    if count == 0 { first = x }
+    total = total + x
+    count = count + 1
+}
+fun wide_range() -> u16 {
+    total = 0
+    count = 0
+    first = 0
+    range(0..256).forEach(step)
+    if count != 256 { return 1 }
+    if first != 256 { return 2 }
+    return total
+}
+assert wide_range() == 32896
+`
+	if err := g0RunAsserts(t, src); err != nil {
+		t.Skip("G0 finding G0-9: range count 256 truncates to u8; expected u16 counter yielding 256..1: ", err)
+	}
+}
+
+// Only an unresolved CALL is a finding: a future supported implementation
+// may legitimately emit a CALL to a function defined in the same assembly.
+func g0HasUndefinedIteratorCall(assembly string, names ...string) bool {
+	defined := make(map[string]bool)
+	called := make(map[string]bool)
+	for _, line := range strings.Split(assembly, "\n") {
+		line = strings.TrimSpace(strings.SplitN(line, ";", 2)[0])
+		if colon := strings.IndexByte(line, ':'); colon >= 0 {
+			defined[strings.TrimSpace(line[:colon])] = true
+			line = strings.TrimSpace(line[colon+1:])
+		}
+		fields := strings.Fields(line)
+		if len(fields) == 2 && strings.EqualFold(fields[0], "CALL") {
+			called[fields[1]] = true
+		}
+	}
+	for _, name := range names {
+		if called[name] && !defined[name] {
+			return true
+		}
+	}
+	return false
 }
