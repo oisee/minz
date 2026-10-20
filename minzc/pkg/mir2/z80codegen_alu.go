@@ -22,7 +22,7 @@ func (g *z80cg) emitADDHL(rhs string) {
 		g.emit("    ADD HL, DE")
 		g.emit("    POP DE")
 	} else if isSpill(rhs) {
-		g.emitf("    LD BC, (%s)", rhs)
+		g.loadSpill16("BC", rhs)
 		g.emit("    ADD HL, BC")
 	} else {
 		g.emitf("    ADD HL, %s", rhs)
@@ -44,7 +44,7 @@ func (g *z80cg) emitSBCHL(rhs string) {
 		g.emit("    SBC HL, DE")
 		g.emit("    POP DE")
 	} else if isSpill(rhs) {
-		g.emitf("    LD BC, (%s)", rhs)
+		g.loadSpill16("BC", rhs)
 		g.emit("    SBC HL, BC")
 	} else if isSimpleReg(rhs) && !isPairReg(rhs) {
 		// 8-bit operand: promote to pair via promote8toPair.

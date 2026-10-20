@@ -675,6 +675,12 @@ type z80cg struct {
 	physOverride map[Reg]string
 	regInfo      map[Reg]RegInfo
 
+	// spillWidths caches the declared byte width (z80SpillBytes) of every
+	// vreg spill label in the current function. Slot homes are sized from the
+	// same map, so a width-sensitive emitter can check that its access stays
+	// inside the slot it reads or writes.
+	spillWidths map[string]int
+
 	// liveness gives cross-block live-out sets so that block-local
 	// physOverride relocations can be undone for values a successor reads.
 	liveness *LivenessResult
@@ -958,6 +964,10 @@ func (g *z80cg) genFunc(f *Func) {
 	}
 	g.fn = f
 	g.regInfo = collectRegInfo(f)
+	g.spillWidths = make(map[string]int, len(g.regInfo))
+	for r, info := range g.regInfo {
+		g.spillWidths[g.spillLabel(r)] = z80SpillBytes(info.Ty)
+	}
 	g.cmpSwapped = make(map[Reg]bool)
 	g.cmpAndZero = make(map[Reg]bool)
 	g.cmpNeedsTwo = make(map[Reg]bool)

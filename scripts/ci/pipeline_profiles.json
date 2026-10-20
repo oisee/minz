@@ -395,6 +395,7 @@
     "TestWideGlobalInitializerNativeAndVM",
     "TestWideShiftSourcePhysicalPlacement",
     "TestWidemathMemoryObserverContracts",
+    "TestZ80ByteSpillSlotWordCompareE2E",
     "TestZ80CallIntoSpilledParameter",
     "TestZ80ProfileWorkloadCumulativeLimit",
     "TestZ80ProfileWorkloadDeadExternAndFetchDenial",

@@ -110,6 +110,16 @@ func CheckNativeMemoryAccessMarkers(assembly string, records []NativeMemoryAcces
 }
 
 func (g *z80cg) emitNativeSpill(symbol string, offset, bytes int, write bool, s string) {
+	// A spill home is sized from its vreg type (z80SpillBytes). An access
+	// wider than that home reads or writes the neighbouring slot: the data
+	// section places the slots back to back, so the stray byte is silently
+	// wrong instead of faulting. Reject it here rather than emit bad code.
+	if w := g.spillSlotWidth(symbol); w > 0 && (offset < 0 || bytes < 1 || offset+bytes > w) {
+		if g.err == nil {
+			g.err = fmt.Errorf("spill %q: %d-byte access at offset %d exceeds its %d-byte slot", symbol, bytes, offset, w)
+		}
+		return
+	}
 	if g.nativeMemorySink != nil {
 		var reg Reg
 		found := false
