@@ -220,6 +220,19 @@ func dumpStmt(sb *strings.Builder, s Stmt, indent string) {
 	case *ContinueStmt:
 		fmt.Fprintf(sb, "%scontinue\n", indent)
 
+	case *LabelStmt:
+		fmt.Fprintf(sb, "%s%s:\n", indent, st.Name)
+
+	case *GotoStmt:
+		fmt.Fprintf(sb, "%sgoto %s\n", indent, st.Label)
+
+	case *YieldStmt:
+		fmt.Fprintf(sb, "%syield %s\n", indent, dumpExpr(st.Val))
+
+	case *GenForStmt:
+		fmt.Fprintf(sb, "%sfor %s in %s(...) via frame %s\n", indent, st.Var, st.Gen, st.Frame.Name)
+		dumpBlock(sb, st.Body, indent+"  ")
+
 	default:
 		fmt.Fprintf(sb, "%s<unknown stmt %T>\n", indent, s)
 	}
@@ -284,6 +297,16 @@ func dumpExpr(e Expr) string {
 
 	case *LetInExpr:
 		return fmt.Sprintf("(let %s:%s = %s in %s)", ex.Name, ex.Ty, dumpExpr(ex.Init), dumpExpr(ex.Body))
+
+	case *GenMakeExpr:
+		args := make([]string, len(ex.Args))
+		for i, a := range ex.Args {
+			args[i] = dumpExpr(a)
+		}
+		return fmt.Sprintf("gen-make @%s(%s):%s", ex.Gen, strings.Join(args, ", "), ex.Frame)
+
+	case *GenNextExpr:
+		return fmt.Sprintf("pull-next @%s(&%s, &%s):bool", ex.Gen, dumpExpr(ex.Frame), dumpExpr(ex.Out))
 
 	case nil:
 		return "<nil>"

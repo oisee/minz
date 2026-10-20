@@ -60,7 +60,8 @@ func AnalyzeFacts(m *Module) *Facts {
 			ff.Direct |= UnknownEffect
 		}
 		calls := map[string]bool{}
-		expr := func(e Expr) {
+		var expr func(Expr)
+		expr = func(e Expr) {
 			switch x := e.(type) {
 			case *IntLitExpr, *BoolLitExpr, *ConstPtrExpr, *CastExpr, *BitExpr, *RangeSourceExpr, *CondExpr, *LetInExpr:
 			case *AddrOfExpr:
@@ -94,6 +95,15 @@ func AnalyzeFacts(m *Module) *Facts {
 				ff.Direct |= ReadsMemory | MayTrap
 			case *StructLitExpr:
 				ff.Direct |= WritesMemory | MayTrap
+			case *GenMakeExpr:
+				ff.Direct |= WritesMemory | MayTrap
+				for _, a := range x.Args {
+					expr(a)
+				}
+			case *GenNextExpr:
+				ff.Direct |= ReadsMemory | WritesMemory | MayTrap
+				expr(x.Frame)
+				expr(x.Out)
 			default:
 				ff.Direct |= UnknownEffect
 			}
@@ -127,6 +137,16 @@ func AnalyzeFacts(m *Module) *Facts {
 					ff.Direct |= WritesMemory | MayTrap
 				case *AsmStmt, *LabelStmt, *GotoStmt:
 					ff.Direct |= UnknownEffect
+				case *YieldStmt:
+					// Suspension writes the item and the continuation tag.
+					ff.Direct |= WritesMemory | MayTrap
+					expr(x.Val)
+				case *GenForStmt:
+					ff.Loops++
+					ff.Direct |= ReadsMemory | WritesMemory | MayTrap
+					for _, a := range x.Args {
+						expr(a)
+					}
 				default:
 					ff.Direct |= UnknownEffect
 				}

@@ -21,7 +21,7 @@ func verifyHIRModule(m *Module, annotate bool) error {
 	if m == nil {
 		return fmt.Errorf("HIR: nil module")
 	}
-	v := &hirVerifier{funcs: map[string]*Func{}, globals: map[string]bool{}, active: map[any]bool{}, aliases: map[string]*Func{}, annotateCalls: annotate}
+	v := &hirVerifier{funcs: map[string]*Func{}, globals: map[string]bool{}, active: map[any]bool{}, aliases: map[string]*Func{}, annotateCalls: annotate, gens: map[string]*Func{}}
 	for _, g := range m.Globals {
 		if g.Name == "" || v.globals[g.Name] || nilHIR(g.Ty) {
 			return fmt.Errorf("HIR: invalid or duplicate global %q", g.Name)
@@ -36,6 +36,12 @@ func verifyHIRModule(m *Module, annotate bool) error {
 			return fmt.Errorf("HIR: invalid or duplicate function %q", f.Name)
 		}
 		v.funcs[f.Name] = f
+		if f.IsGen {
+			if nilHIR(f.ElemTy) {
+				return fmt.Errorf("HIR gen %s: missing element type", f.Name)
+			}
+			v.gens[f.Name] = f
+		}
 	}
 	setters, err := smcAccessors(m)
 	if err != nil {
@@ -115,6 +121,7 @@ func verifyHIRModule(m *Module, annotate bool) error {
 type hirVerifier struct {
 	smcSetters       map[string]bool
 	funcs            map[string]*Func
+	gens             map[string]*Func // generator declarations (IsGen)
 	globals          map[string]bool
 	fn               *Func
 	labels           map[string]bool
@@ -492,6 +499,25 @@ func (v *hirVerifier) stmt(s Stmt, env map[string]mir2.Ty, loops int) error {
 		if loops == 0 {
 			return v.fail("%T outside loop", s)
 		}
+	case *YieldStmt:
+		if !v.fn.IsGen {
+			return v.fail("yield outside generator")
+		}
+		if err := v.valueAs(s.Val, v.fn.ElemTy, env); err != nil {
+			return err
+		}
+	case *GenForStmt:
+		if v.gens[s.Gen] == nil {
+			return v.fail("unknown generator %q", s.Gen)
+		}
+		if err := v.exprs(env, s.Args...); err != nil {
+			return err
+		}
+		scope := copyHIRScope(env)
+		if err := v.bind(scope, s.Var, s.ElemTy); err != nil {
+			return err
+		}
+		return v.block(s.Body, scope, loops+1)
 	case *LabelStmt:
 		if s.Name == "" || v.labels[s.Name] {
 			return v.fail("invalid or duplicate label %q", s.Name)
@@ -769,6 +795,30 @@ func (v *hirVerifier) expr(e Expr, env map[string]mir2.Ty) error {
 			return err
 		}
 		return v.valueAs(e.Else, e.Ty, env)
+	case *GenMakeExpr:
+		if g := v.gens[e.Gen]; g != nil {
+			if len(e.Args) != len(g.Params) {
+				return v.fail("generator %s: %d creation arguments, want %d", e.Gen, len(e.Args), len(g.Params))
+			}
+			for i, arg := range e.Args {
+				if err := v.valueAs(arg, g.Params[i].Ty, env); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+		return v.fail("unknown generator %q", e.Gen)
+	case *GenNextExpr:
+		if g := v.gens[e.Gen]; g != nil {
+			if !mir2.IsPointer(e.Frame.ExprTy()) {
+				return v.fail("pull_next frame is not a pointer")
+			}
+			if err := v.expr(e.Frame, env); err != nil {
+				return err
+			}
+			return v.pointee(e.Out, g.ElemTy, env)
+		}
+		return v.fail("unknown generator %q", e.Gen)
 	default:
 		return v.fail("unsupported expression %T", e)
 	}

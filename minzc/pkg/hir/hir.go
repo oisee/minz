@@ -139,6 +139,8 @@ type Func struct {
 	Internal       bool `json:",omitempty"` // compiler/library helper; not an implicit exported pruning root
 	CValueABI      bool `json:",omitempty"` // C by-value aggregate semantics; delay ABI selection until linking
 	FallibleCY     bool // derived CY/error ABI, part of semantic identity
+	IsGen          bool `json:",omitempty"` // generator declaration (gen … -> ElemTy); expanded before lowering
+	ElemTy         mir2.Ty   `json:",omitempty"` // element type when IsGen (RetTy stays TyVoid: `return` is valueless)
 	Name           string
 	Params         []Param
 	Captures       []Param   // explicit lexical dependencies; not ABI parameters
@@ -291,6 +293,30 @@ func (*LabelStmt) hirStmt() {}
 type GotoStmt struct{ Label string }
 
 func (*GotoStmt) hirStmt() {}
+
+// YieldStmt suspends a generator body and publishes one element (ADR 0048).
+// Only legal inside a gen declaration; expandGenerators turns it into an
+// out-store, a continuation-tag store and a boolean return.
+type YieldStmt struct{ Val Expr }
+
+func (*YieldStmt) hirStmt() {}
+
+// GenForStmt consumes a generator immediately:
+//
+//	for x in gen_name(args) { body }
+//
+// The loop owns a temporary frame: break abandons it without resuming the
+// producer, continue requests the next element, return leaves the consumer.
+type GenForStmt struct {
+	Var    string         // element variable name (bound in body)
+	Gen    string         // generator declaration name
+	Frame  *mir2.StructTy // frame layout of Gen
+	Args   []Expr         // creation arguments, evaluated once
+	ElemTy mir2.Ty        // element type of Gen
+	Body   *Block
+}
+
+func (*GenForStmt) hirStmt() {}
 
 // SwitchCase is one arm of a SwitchStmt.
 type SwitchCase struct {
@@ -596,6 +622,36 @@ type RangeSourceExpr struct {
 
 func (*RangeSourceExpr) hirExpr()        {}
 func (*RangeSourceExpr) ExprTy() mir2.Ty { return mir2.TyU8 }
+
+// GenMakeExpr creates a generator frame in place (ADR 0048): arguments are
+// evaluated once and stored together with continuation tag 0. The body does
+// not run until the first request. The expression's value is the frame itself
+// (its struct type), owned by the declaring scope — never a hidden global.
+type GenMakeExpr struct {
+	Gen   string         // generator declaration name
+	Frame *mir2.StructTy // frame layout: continuation tag, params, cross-yield locals
+	Args  []Expr         // creation arguments (one per generator param)
+}
+
+func (*GenMakeExpr) hirExpr()          {}
+func (e *GenMakeExpr) ExprTy() mir2.Ty { return e.Frame }
+
+// GenNextExpr is the compiler-known pull operation of ADR 0049:
+//
+//	pull_next(&frame, &out) -> bool
+//
+// Statically resolved to the generator's concrete next function: true
+// publishes exactly one element through out; false is permanent completion
+// and leaves out unchanged.
+type GenNextExpr struct {
+	Gen    string  // generator declaration name
+	ElemTy mir2.Ty // element type of Gen
+	Frame  Expr    // address of the frame (pointer to Gen's frame struct)
+	Out    Expr    // address of the element output (pointer to ElemTy)
+}
+
+func (*GenNextExpr) hirExpr()          {}
+func (e *GenNextExpr) ExprTy() mir2.Ty { return mir2.TyBool }
 
 // CondExpr is an if-as-expression: if Cond { Then } else { Else }.
 // Both branches must produce the same type Ty.
