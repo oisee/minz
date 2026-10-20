@@ -807,10 +807,12 @@ func (e *genExpander) makeStores(st *VarDeclStmt) ([]Stmt, bool, error) {
 }
 
 // desugarGenFor expands `for x in gen(args) { body }` into a local frame, a
-// local element and `while pull_next(&frame, &x) { body }`. The while gives
-// the required ownership: break abandons the temporary frame without resuming
-// the producer, continue requests the next element, return leaves the
-// consumer function.
+// local element and `while pull_next(&frame, &x) { body }`, wrapped in a block
+// of their own so both bind only for the loop: an outer variable of the same
+// name keeps its value and type afterwards, exactly like the loop variable of
+// a plain `for x in 0..n`. The while gives the required ownership: break
+// abandons the temporary frame without resuming the producer, continue
+// requests the next element, return leaves the consumer function.
 func (e *genExpander) desugarGenFor(st *GenForStmt) ([]Stmt, error) {
 	frame, ok := e.frames[st.Gen]
 	if !ok {
@@ -845,7 +847,7 @@ func (e *genExpander) desugarGenFor(st *GenForStmt) ([]Stmt, error) {
 		},
 		Body: st.Body,
 	})
-	return out, nil
+	return []Stmt{&Block{Body: out}}, nil
 }
 
 // rewritePullExpr replaces GenNextExpr nodes with the concrete next call.

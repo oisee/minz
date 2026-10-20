@@ -314,6 +314,30 @@ fun sc_for_in_loop(k: u8) -> u16 {
     return mix
 }
 
+// The element variable binds only inside the loop: an outer variable of the
+// same name keeps its value and its type (u16, not the u8 element type).
+fun sc_for_shadow() -> u16 {
+    load_data(3)
+    var x: u16 = 1000
+    for x in bytes(&data, 3) {
+        x = x
+    }
+    return x
+}
+
+// The same name may introduce a new element after the loop ends.
+fun sc_for_shadow_reuse() -> u16 {
+    load_data(3)
+    var mix: u16 = 0
+    for v in bytes(&data, 3) {
+        mix = mix * 31 + v
+    }
+    for v in bytes(&data, 2) {
+        mix = mix + v
+    }
+    return mix
+}
+
 // ── RLE scenarios (G1b) ───────────────────────────────────────────────────
 
 fun load_rle_example() -> void {
@@ -651,6 +675,23 @@ func g1GenScenarios() []g1Scenario {
 			mix = int642Mix(mix, d)
 		}
 		add("for_in_loop", "sc_for_in_loop", int64(mix), int64(k))
+	}
+
+	// The element variable is loop-scoped: the outer u16 x survives the loop
+	// with its value and type (the elements are 0..2-sized u8s; without
+	// scoping the last element, 2, would be returned instead of 1000).
+	add("for_shadow", "sc_for_shadow", 1000)
+
+	// Two sequential loops rebinding the same element name: first decode
+	// folded with mix*31, then a plain sum of the first two elements.
+	{
+		d := g0RefData(3)
+		var mix uint16
+		for _, b := range d {
+			mix = mix*31 + uint16(b)
+		}
+		mix += uint16(d[0]) + uint16(d[1])
+		add("for_shadow_reuse", "sc_for_shadow_reuse", int64(mix))
 	}
 
 	// RLE design-report example: [3,65, 0,90, 2,66] → 65,65,65,66,66.

@@ -4676,9 +4676,16 @@ func (p *parser) parseFor() (hir.Stmt, error) {
 			if p.genFrames[varTok.val] != "" {
 				return nil, fmt.Errorf("line %d: loop variable %q shadows a generator frame", varTok.line, varTok.val)
 			}
+			// The element variable binds only inside the loop; the enclosing
+			// binding (if any) is back in scope after it.
+			savedTy, savedHadTy := p.varTypes[varTok.val]
 			p.varTypes[varTok.val] = g.elemTy
 			p.uninitVars = nil
 			body, err := p.parseBlock()
+			p.varTypes[varTok.val] = savedTy
+			if !savedHadTy {
+				delete(p.varTypes, varTok.val)
+			}
 			if err != nil {
 				return nil, err
 			}
