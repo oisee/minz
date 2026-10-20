@@ -653,6 +653,62 @@ class FuzzTests(unittest.TestCase):
                         result = matrix.run_compiler(os.environ['JUDGE_MZ'], path, 30, backend=backend)
                         self.assertTrue(result['pass'], result)
 
+    def test_signed_oracle_boundaries(self):
+        oracle = fuzz.SignedInterp('')
+        cases = [('x < -2', 0), ('x >= -2', 1), ('z < -2', 1),
+                 ('x < z', 0), ('z < x', 1), ('x == z', 0),
+                 ('(z + -1)', 127), ('(x + -3)', -3),
+                 ('(-7 / -2)', 3), ('(-7 % -2)', -1),
+                 ('((7 as i8) / -2)', -3), ('((7 as i8) % -2)', 1),
+                 ('(-128 / -1)', -128), ('(-32768 / -1)', -32768),
+                 ('(z as u16)', 65408), ('(65535 as i16)', -1)]
+        for expression, want in cases:
+            with self.subTest(expression=expression):
+                self.assertEqual(oracle.ev(expression, {'x': 0, 'z': -128},
+                                           {'x': 'i16', 'z': 'i8'}), want)
+
+    def test_signed_mixed_width_calls(self):
+        src = """fun widened(x: i8) -> i16 {
+return x
+}
+fun relay(x: i16) -> i16 {
+return x
+}
+fun f(a: u16, b: u16, c: u16) -> u16 {
+var z: i8 = (c as i8)
+var x: i16 = widened(z)
+x = relay(z)
+if z < x {
+x = 42
+}
+return (x as u16)
+}"""
+        oracle = fuzz.SignedInterp(src)
+        self.assertEqual(oracle.call('widened', [254]), -2)
+        self.assertEqual(oracle.call('relay', [-2]), -2)
+        self.assertEqual(oracle.call('f', [0, 0, 254]), 65534)
+        for seed in range(20):
+            source, _ = fuzz.generated(seed, signed=True)
+            self.assertIn('signed_return(z)', source)
+            self.assertIn('signed_relay(z)', source)
+            self.assertIn('w = z', source)
+            self.assertRegex(source, r'if (?:z [<>=!]+ [xy]|[xy] [<>=!]+ z)')
+
+    def test_signed_generation_opt_in(self):
+        import hashlib
+        fingerprints = {
+            0: 'd2906c41d9b398feb19b0d53afbe7ec8f7fdb1f38ad7e2ac90e8fd7ca05c8c51', 1: '84ff176f5fe0f9261068cac6b32ec51b4893f327125accadd67ccf8d0a7d023f', 56: '85677178f9d51e87bd36b5b272d8a312e66d5be93b893161faa4fd9850c73bf6', 999: 'b1563f84d8d78c98f0d7f045ad09429c1e5dbc317ff290a5bdaeb964b42d79d4',
+        }
+        for seed, digest in fingerprints.items():
+            src, args = fuzz.generated(seed)
+            self.assertEqual(hashlib.sha256((src + repr(args)).encode()).hexdigest(), digest)
+            signed, signed_args = fuzz.generated(seed, signed=True)
+            self.assertEqual(args, signed_args)
+            self.assertIn('i8', signed)
+            self.assertIn('i16', signed)
+            self.assertRegex(signed, r'-[1-9]')
+            self.assertIn('fuzz_entry', fuzz.with_assert(signed, args, 'direct-call'))
+
     def test_cli_exit_policy_preserves_findings(self):
         statuses = ('pass', 'MIR2 != oracle', 'Z80 != MIR2',
                     'assembly failure', 'compiler error', 'oracle error')

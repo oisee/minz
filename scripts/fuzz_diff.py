@@ -91,6 +91,40 @@ class Gen:
         src.append("fun f(a: u16, b: u16, c: u16) -> u16 {\n" + '\n'.join(pre + body) + f"\nreturn ({ret})\n}}")
         return '\n'.join(src)
 
+class SignedGen(Gen):
+    """Opt-in signed corpus; the original Gen consumes exactly the same RNG."""
+    def program(s):
+        r = s.r
+        out = ["fun signed_return(x: i8) -> i16 {", "return x", "}",
+               "fun signed_identity(x: i16) -> i16 {", "return x", "}",
+               "fun signed_relay(x: i8) -> i16 {", "return signed_identity(x)", "}",
+               "fun f(a: u16, b: u16, c: u16) -> u16 {",
+               "var x: i16 = (a as i16)", "var y: i16 = (b as i16)",
+               "var z: i8 = (c as i8)", "var w: i16 = z", "w = z",
+               "x = (x + signed_return(z))", "y = (y + signed_relay(z))"]
+        for left, right in [('z', 'x'), ('y', 'z')]:
+            cmp = r.choice(['<', '<=', '>', '>=', '==', '!='])
+            out += [f"if {left} {cmp} {right} {{", "w = signed_identity(z)",
+                    "} else {", "w = (w + -1)", "}"]
+        for _ in range(r.randint(3, 7)):
+            ty, name = r.choice([('i16', 'x'), ('i16', 'y'), ('i8', 'z')])
+            k = r.choice([-1, -2, -3, -7, -127, -128] if ty == 'i8' else
+                         [-1, -2, -3, -7, -128, -129, -255, -256, -32768])
+            op = r.choice(['+', '-', '*', '/', '%'])
+            cmp = r.choice(['<', '<=', '>', '>=', '==', '!='])
+            peer = r.choice(['x', 'y', 'z']) if ty == 'i16' else 'z'
+            out += [f"if {name} {cmp} {k} {{", f"{name} = ({name} {op} {k})",
+                    "} else {", f"{name} = ({peer} + {k})", "}"]
+        out += ["return ((((x as u16) xor (y as u16)) + (z as u16)) xor (w as u16))", "}"]
+        return '\n'.join(out)
+
+
+def wrap(value, ty):
+    width = 8 if ty.endswith('8') else 16
+    value &= (1 << width) - 1
+    return value - (1 << width) if ty.startswith('i') and value >= 1 << (width - 1) else value
+
+
 # --- tiny interpreter for the generated subset ---
 import re
 def tokenize(t): return re.findall(r'[A-Za-z_]\w*|\d+|==|!=|<=|>=|[-+*/%&|(){}<>,:=]', t)
@@ -106,7 +140,7 @@ class Interp:
         ps, lines = s.funcs[name]
         env = {}; ty = {}
         for (p, t), a in zip(ps, args):
-            env[p] = a & (0xFF if t == 'u8' else M); ty[p] = t
+            env[p] = wrap(a, t); ty[p] = t
         r = s.run(lines, 0, len(lines), env, ty)
         return r[1]
     def match(s, lines, i):
@@ -123,9 +157,9 @@ class Interp:
             l = lines[i].strip(); s.steps += 1
             if not l: i += 1; continue
             if s.steps > 200000: raise Exception('steps')
-            m = re.match(r'(let|var) (\w+): (u8|u16) = (.*)$', l)
+            m = re.match(r'(let|var) (\w+): ([ui]8|[ui]16) = (.*)$', l)
             if m:
-                t = m.group(3); env[m.group(2)] = s.ev(m.group(4), env, ty) & (0xFF if t == 'u8' else M); ty[m.group(2)] = t; i += 1; continue
+                t = m.group(3); env[m.group(2)] = wrap(s.ev(m.group(4), env, ty), t); ty[m.group(2)] = t; i += 1; continue
             m = re.match(r'return (.*)$', l)
             if m: return ('ret', s.ev(m.group(1), env, ty) & M)
             m = re.match(r'(if|while) (.*) \{$', l)
@@ -149,7 +183,7 @@ class Interp:
                 i = j + 1; continue
             m = re.match(r'(\w+) = (.*)$', l)
             if m:
-                t = ty[m.group(1)]; env[m.group(1)] = s.ev(m.group(2), env, ty) & (0xFF if t == 'u8' else M); i += 1; continue
+                t = ty[m.group(1)]; env[m.group(1)] = wrap(s.ev(m.group(2), env, ty), t); i += 1; continue
             raise Exception('bad line ' + l)
     def ev(s, e, env, ty):
         toks = tokenize(e); pos = [0]
@@ -197,6 +231,86 @@ class Interp:
         return v
 
 
+class SignedInterp(Interp):
+    """Typed two's-complement oracle; quotient truncates toward zero as OpSDiv.
+
+    Remainder is a - trunc(a/b)*b (OpSMod), rather than Python's floor modulo.
+    Keep signed values at each operation width, including byte overflow.
+    """
+    def __init__(s, src):
+        s.funcs = {}
+        s.return_types = {}
+        for m in re.finditer(r'fun (\w+)\(([^)]*)\) -> ([ui](?:8|16)) \{\n(.*?)\n\}(?=\nfun |\Z)', src, re.S):
+            ps = [(p.split(':')[0].strip(), p.split(':')[1].strip())
+                  for p in m.group(2).split(',') if p.strip()]
+            s.funcs[m.group(1)] = (ps, m.group(4).split('\n'))
+            s.return_types[m.group(1)] = m.group(3)
+        s.steps = 0
+
+    def call(s, name, args):
+        return wrap(super().call(name, args), s.return_types[name])
+
+    def ev(s, e, env, ty):
+        toks = tokenize(e)
+        pos = 0
+        def peek(): return toks[pos] if pos < len(toks) else None
+        def take():
+            nonlocal pos
+            t = toks[pos]; pos += 1; return t
+        def width(t): return 8 if t.endswith('8') else 16
+        def common(t, u):
+            if 'u16' in (t, u): return 'u16'
+            return u if width(u) > width(t) else t
+        def prim():
+            t = take()
+            if t == '-':
+                v, _ = prim(); v = -v
+                return v, 'i8' if -128 <= v <= 127 else 'i16'
+            if t == '(':
+                v, t = full(); assert take() == ')'; return v, t
+            if t.isdigit(): return int(t), 'u8' if int(t) <= 255 else 'u16'
+            if peek() == '(' and t in s.funcs:
+                take(); args = []
+                while peek() != ')':
+                    v, _ = full(); args.append(v)
+                    if peek() != ',': break
+                    take()
+                assert take() == ')'
+                return s.call(t, args), s.return_types[t]
+            return env[t], ty[t]
+        def cast():
+            v, t = prim()
+            while peek() == 'as':
+                take(); t = take(); v = wrap(v, t)
+            return v, t
+        def full():
+            v, t = cast()
+            while peek() in ('+', '-', '*', '/', '%', '&', '|', 'xor'):
+                op = take(); u, ut = cast(); t = common(t, ut)
+                v, u = wrap(v, t), wrap(u, t)
+                if op == '+': v += u
+                elif op == '-': v -= u
+                elif op == '*': v *= u
+                elif op == '&': v &= u
+                elif op == '|': v |= u
+                elif op == 'xor': v ^= u
+                else:
+                    if u == 0: raise ZeroDivisionError()
+                    q = (abs(v) // abs(u)) * (-1 if (v < 0) != (u < 0) else 1)
+                    v = q if op == '/' else v - q * u
+                v = wrap(v, t)
+            if peek() in ('<', '>', '==', '!=', '<=', '>='):
+                op = take(); u, ut = cast()
+                ct = ut if width(ut) > width(t) else t
+                v, u = wrap(v, ct), wrap(u, ct)
+                v = int({'<': v < u, '>': v > u, '==': v == u, '!=': v != u,
+                         '<=': v <= u, '>=': v >= u}[op]); t = 'u8'
+            return v, t
+        v, _ = full()
+        assert pos == len(toks), (e, toks[pos:])
+        return v
+
+
 import argparse
 import concurrent.futures
 import json
@@ -205,8 +319,8 @@ import tempfile
 from assert_matrix import run_compiler, positive
 
 
-def generated(seed):
-    src = Gen(seed).program()
+def generated(seed, signed=False):
+    src = (SignedGen(seed) if signed else Gen(seed)).program()
     rr = random.Random(seed * 7 + 1)
     args = [rr.randrange(65536) if rr.random() < .6 else rr.randrange(300) for _ in range(3)]
     return src, args
@@ -214,7 +328,7 @@ def generated(seed):
 
 def with_assert(src, args, mode="folded"):
     """Direct calls keep f parameterized when Z80 executes the assertion."""
-    val = Interp(src).call('f', args)
+    val = (SignedInterp(src) if re.search(r'\bi(?:8|16)\b', src) else Interp(src)).call('f', args)
     # Keep the existing wrapper as an emission root in both modes; only the
     # assertion target changes, so direct-call executes f rather than folded g.
     wrapper = f'\nfun g() -> u16 {{ return f({args[0]}, {args[1]}, {args[2]}) }}\n'
@@ -288,8 +402,8 @@ def reduction_check(text, status, check):
     return check(text)
 
 
-def fuzz_one(seed, mz, timeout, output, reduce=True, mode="folded"):
-    src, args = generated(seed)
+def fuzz_one(seed, mz, timeout, output, reduce=True, mode="folded", signed=False):
+    src, args = generated(seed, signed)
     try:
         program = with_assert(src, args, mode)
     except Exception as e:
@@ -327,13 +441,14 @@ def main():
                    help='all: fail on any finding (default); backend: fail on backend/compiler failures or less than 95%% passing seeds; report all findings')
     p.add_argument('--mode', choices=('folded', 'direct-call'), default='folded',
                    help='folded: assert a constant-foldable wrapper; direct-call: execute f with assertion arguments')
+    p.add_argument('--signed', action='store_true', help='opt in to signed variables, negative literals and comparisons; preserves default seeds')
     a = p.parse_args()
     if a.timeout <= 0:
         p.error('--timeout must be positive')
     a.output.mkdir(parents=True, exist_ok=True)
     mz = str(Path(a.mz).resolve())
     with concurrent.futures.ThreadPoolExecutor(max_workers=a.j) as pool:
-        results = list(pool.map(lambda seed: fuzz_one(seed, mz, a.timeout, a.output, not a.no_reduce, a.mode), range(a.seed, a.seed+a.count)))
+        results = list(pool.map(lambda seed: fuzz_one(seed, mz, a.timeout, a.output, not a.no_reduce, a.mode, a.signed), range(a.seed, a.seed+a.count)))
     (a.output / 'results.json').write_text(json.dumps(results, indent=2) + '\n')
     for status in ['pass', 'MIR2 != oracle', 'Z80 != MIR2', 'assembly failure', 'compiler error', 'oracle error']:
         print(f'{status}: {sum(r["status"] == status for r in results)}')

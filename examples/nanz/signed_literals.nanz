@@ -1,0 +1,67 @@
+// Negative literals retain their value when used at word width.
+// Assertions spell negative word results as their unsigned 16-bit patterns.
+fun cnt(a:i16)->u16 {
+ var i:i16 = a
+ var n:u16 = 0
+ while i < -2 { i = i+1
+ n = n+1 }
+ return n
+}
+fun lt(a:i16)->bool { return a < -2 }
+fun le(a:i16)->bool { return a <= -2 }
+fun gt(a:i16)->bool { return a > -2 }
+fun ge(a:i16)->bool { return a >= -2 }
+fun eq(a:i16)->bool { return a == -2 }
+fun ne(a:i16)->bool { return a != -2 }
+fun small(a:i8)->bool { return a < -2 }
+fun add_negative(a:i16)->i16 { return a + -3 }
+fun mul_negative(a:i16)->i16 { return a * -1 }
+fun div_negative(a:i16)->i16 { return a / -2 }
+fun mod_negative(a:i16)->i16 { return a % -2 }
+fun assigned(a:i16)->i16 { var x:i16 = -2
+ return x+a }
+fun ident(a:i16)->i16 { return a }
+fun argument(a:i16)->i16 { return ident(-2)+a }
+fun returned()->i16 { return -2 }
+fun large(a:u16)->bool { return a < 1000 }
+
+assert cnt(-5) == 3 via mir2
+assert cnt(0) == 0 via mir2
+assert lt(-5) == 1 via mir2
+assert lt(0) == 0 via mir2
+assert le(-2) == 1 via mir2
+assert gt(0) == 1 via mir2
+assert ge(-2) == 1 via mir2
+assert eq(-2) == 1 via mir2
+assert ne(-2) == 0 via mir2
+assert small(-5) == 1 via mir2
+assert small(0) == 0 via mir2
+assert add_negative(1) == 65534 via mir2
+assert mul_negative(3) == 65533 via mir2
+assert div_negative(7) == 65533 via mir2
+assert mod_negative(-7) == 65535 via mir2
+assert assigned(0) == 65534 via mir2
+assert argument(0) == 65534 via mir2
+assert returned() == 65534 via mir2
+assert large(999) == 1 via mir2
+assert large(1000) == 0 via mir2
+assert cnt(-5) == 3 via z80
+assert cnt(0) == 0 via z80
+assert lt(-5) == 1 via z80
+assert lt(0) == 0 via z80
+assert le(-2) == 1 via z80
+assert gt(0) == 1 via z80
+assert ge(-2) == 1 via z80
+assert eq(-2) == 1 via z80
+assert ne(-2) == 0 via z80
+assert small(-5) == 1 via z80
+assert small(0) == 0 via z80
+assert add_negative(1) == 65534 via z80
+assert mul_negative(3) == 65533 via z80
+assert div_negative(7) == 65533 via z80
+assert mod_negative(-7) == 65535 via z80
+assert assigned(0) == 65534 via z80
+assert argument(0) == 65534 via z80
+assert returned() == 65534 via z80
+assert large(999) == 1 via z80
+assert large(1000) == 0 via z80

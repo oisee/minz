@@ -59,6 +59,21 @@ as an emission root. CI runs this mode with `--fail-on all`; any finding or
 tool error fails the job. Seeds and inputs are identical across modes; reduction
 preserves the selected mode.
 
+Use `--signed` with either mode to generate an opt-in corpus with `i8`/`i16`
+variables, negative literals, mixed-width variable comparisons, implicit signed
+widening in bindings, assignments, returns and arguments, and calls between
+helpers with signed parameters and return types. For example:
+
+```sh
+python3 scripts/fuzz_diff.py --mz /tmp/main-mz --signed --mode direct-call --seed 0 --count 2000 -j 6 --output /tmp/fuzz-signed
+```
+
+The default unsigned seed-to-program mapping and argument generation are
+unchanged. The signed oracle wraps at each operation width, sign-extends casts,
+compares signed values, and truncates division toward zero. Remainder follows
+`a - trunc(a/b)*b`, including negative dividends. MIR2/oracle disagreements
+remain findings under the existing classification and exit policies.
+
 Run self-tests with `python3 scripts/test_judges.py`; `go test ./pkg/hir` also
 runs them, skipping when Python 3 is unavailable.
 

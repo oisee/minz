@@ -13,9 +13,8 @@ import (
 	"testing"
 )
 
-// Oracle explicitly matches MIR SrcTy, not an invented common language type.
-// Relational comparisons reinterpret BOTH bitpatterns at lhs-selected width.
-// Equality retains complete original values, irrespective of SrcTy.
+// Implicit signed widening preserves each source value before comparison.
+// The oracle sign-extends the narrow input independently of MIR2 lowering.
 func TestSignedMixedComparisonMatchesSourceWidth(t *testing.T) {
 	for _, width := range []int{8, 16, 24} {
 		for _, op := range []string{"<", "<=", ">", ">=", "==", "!="} {
@@ -80,7 +79,7 @@ func TestSignedMixedComparisonMatchesSourceWidth(t *testing.T) {
 					}
 					for _, c := range inputs {
 						x, y := c[0]&mask, c[1]
-						expected := map[string]bool{"lr": relation(x, y, width), "rl": relation(y, x, 32), "widened": relation(uint32(sx(x, width)), y, 32)}
+						expected := map[string]bool{"lr": relation(uint32(sx(x, width)), y, 32), "rl": relation(y, uint32(sx(x, width)), 32), "widened": relation(uint32(sx(x, width)), y, 32)}
 						for _, m := range []*mir2.Module{hir.LowerModule(parse()), s.MIR2Module} {
 							vm := mir2.NewVM(m)
 							off := int64(0)
