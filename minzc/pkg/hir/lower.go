@@ -2442,6 +2442,9 @@ func (l *lowerer) coerceLocalInteger(src mir2.Reg, from, to mir2.Ty) mir2.Reg {
 // lowerSignedExprAs preserves narrow storage for ordinary values while making
 // an implicit signed widening explicit at a typed storage or CFG boundary.
 func (l *lowerer) lowerSignedExprAs(e Expr, wantTy mir2.Ty) mir2.Reg {
+	if lit, ok := e.(*IntLitExpr); ok && lit.Val >= 0 {
+		return l.lowerExpr(e)
+	}
 	if mir2.IsInt(e.ExprTy()) && mir2.IsInt(wantTy) && mir2.IsSigned(e.ExprTy()) && e.ExprTy().Width() < wantTy.Width() {
 		return l.lowerExprAs(e, wantTy)
 	}
@@ -3163,7 +3166,8 @@ func (l *lowerer) lowerCond(e Expr) mir2.Reg {
 				if mir2.IsSigned(e.ExprTy()) {
 					return l.bld.Sext(r, e.ExprTy(), wordTy, classForExpr(wordTy))
 				}
-				return l.bld.Ext(r, e.ExprTy(), wordTy, classForExpr(wordTy))
+				// Unsigned values already have the correct stored bit pattern.
+				// Keep their physical zero extension at the comparison use.
 			}
 			return r
 		}

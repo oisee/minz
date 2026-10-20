@@ -27,3 +27,17 @@ func TestComparisonLiteralKeepsNarrowNonnegativeConstants(t *testing.T) {
 		}
 	}
 }
+
+func TestComparisonKeepsUnsignedVariableWidth(t *testing.T) {
+	m, e := nanz.Parse("fun run(a:u16,b:u8)->bool{return a < b}", "unsigned-compare-width.nanz")
+	if e != nil {
+		t.Fatal(e)
+	}
+	for _, b := range hir.LowerModule(m).FuncByName("run").Blocks {
+		for _, i := range b.Insts {
+			if i.Op == mir2.OpExt {
+				t.Fatal("unsigned comparison should stage its byte operand without a new word register")
+			}
+		}
+	}
+}
