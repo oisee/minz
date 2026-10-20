@@ -3058,8 +3058,8 @@ func (l *lowerer) lowerCond(e Expr) mir2.Reg {
 			return l.lowerLogical(bin)
 		}
 		var cmp mir2.CmpCond
-		// A literal takes the width of its peer before comparison. Keep the
-		// established lhs-selected signed interpretation for nonliteral peers.
+		// Select comparison semantics from the nonliteral peer when the
+		// literal is on the left; keep non-negative constants narrow.
 		operandTy := bin.L.ExprTy()
 		wordTy := operandTy
 		if mir2.IsInt(operandTy) && mir2.IsInt(bin.R.ExprTy()) {
@@ -3108,8 +3108,25 @@ func (l *lowerer) lowerCond(e Expr) mir2.Reg {
 		// bits). Make their zero extension explicit rather than changing that
 		// policy to arithmetic sign extension. Literals retain their value.
 		lowerOperand := func(e Expr) mir2.Reg {
-			if _, literal := e.(*IntLitExpr); literal {
-				return l.lowerExprAs(e, wordTy)
+			if lit, literal := e.(*IntLitExpr); literal {
+				if lit.Val < 0 {
+					return l.lowerExprAs(e, wordTy)
+				}
+				// Non-negative byte constants need no extension at word width.
+				// Mark them unsigned so physical zero extension preserves value.
+				if mir2.IsSigned(lit.Ty) && lit.Ty.Width() < wordTy.Width() {
+					ty := mir2.TyU8
+					switch lit.Ty.Width() {
+					case 16:
+						ty = mir2.TyU16
+					case 24:
+						ty = mir2.TyU24
+					case 32:
+						ty = mir2.TyU32
+					}
+					return l.bld.Const(lit.Val, ty, classForExpr(ty))
+				}
+				return l.lowerExpr(e)
 			}
 			r := l.lowerExpr(e)
 			if mir2.IsInt(e.ExprTy()) && mir2.IsInt(wordTy) && e.ExprTy().Width() < wordTy.Width() {
