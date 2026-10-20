@@ -51,9 +51,28 @@ func RunAsserts(hm *hir.Module, m *mir2.Module, force bool) error {
 			}
 			return fmt.Errorf("line %d: assert %q [wasm]: no return value", a.Line, a.Source)
 		}
-		got := int64(results[0]) & 0xFF
-		if got != a.Expected {
-			return fmt.Errorf("line %d: assert %q [wasm]: got %d, want %d", a.Line, a.Source, got, a.Expected)
+		wants := a.ExpectedMulti
+		if len(wants) == 0 {
+			wants = []int64{a.Expected}
+		}
+		mf := m.FuncByName(a.FuncName)
+		if mf == nil {
+			return fmt.Errorf("line %d: assert %q [wasm]: function %q not found", a.Line, a.Source, a.FuncName)
+		}
+		returns := mf.Contract.Returns
+		if len(results) < len(wants) || len(returns) < len(wants) {
+			return fmt.Errorf("line %d: assert %q [wasm]: function returned %d values, want %d", a.Line, a.Source, len(results), len(wants))
+		}
+		for i, want := range wants {
+			got := int64(results[i])
+			// WASM i32 results arrive zero-extended to uint64; recover the
+			// transport's signed value before validating the declared width.
+			if returns[i].Ty != nil && mir2.IsSigned(mir2.BaseOf(returns[i].Ty)) {
+				got = int64(int32(results[i]))
+			}
+			if !hir.AssertValueMatches(got, want, returns[i].Ty) {
+				return fmt.Errorf("line %d: assert %q [wasm]: return[%d] got %s, want %d", a.Line, a.Source, i, hir.FormatAssertValue(got, returns[i].Ty), want)
+			}
 		}
 		return nil
 	}

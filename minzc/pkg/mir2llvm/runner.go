@@ -68,11 +68,40 @@ func RunAsserts(hm *hir.Module, m *mir2.Module, force bool) error {
 		for i, v := range a.Args {
 			argVals[i] = fmt.Sprintf("%d", v)
 		}
-		py.WriteString(fmt.Sprintf("  result = fn_%s(%s) & 0xFF\n",
-			fnName, strings.Join(argVals, ", ")))
-		py.WriteString(fmt.Sprintf("  if result != %d:\n", a.Expected))
-		py.WriteString(fmt.Sprintf("    print('FAIL: %s [llvm]: got %%d, want %d' %% result)\n",
-			escapePy(a.Source), a.Expected))
+		if len(a.ExpectedMulti) > 1 {
+			return fmt.Errorf("line %d: assert %q [llvm]: tuple returns are unsupported", a.Line, a.Source)
+		}
+		if len(a.ExpectedMulti) == 1 {
+			a.Expected = a.ExpectedMulti[0]
+		}
+		fn := m.FuncByName(fnName)
+		if fn == nil {
+			return fmt.Errorf("line %d: assert %q [llvm]: function %q not found", a.Line, a.Source, fnName)
+		}
+		if len(fn.Contract.Returns) == 0 || fn.Contract.Returns[0].Ty == nil {
+			return fmt.Errorf("line %d: assert %q [llvm]: missing return contract", a.Line, a.Source)
+		}
+		ty := mir2.BaseOf(fn.Contract.Returns[0].Ty)
+		width := ty.Width()
+		py.WriteString(fmt.Sprintf("  raw = fn_%s(%s)\n", fnName, strings.Join(argVals, ", ")))
+		if width <= 0 || width > 32 {
+			return fmt.Errorf("line %d: assert %q [llvm]: unsupported return width %d", a.Line, a.Source, width)
+		}
+		py.WriteString(fmt.Sprintf("  bits = raw & %d\n", (uint64(1)<<uint(width))-1))
+		py.WriteString("  result = bits\n")
+		if mir2.IsSigned(ty) {
+			py.WriteString(fmt.Sprintf("  if bits & %d: result -= %d\n", uint64(1)<<uint(width-1), uint64(1)<<uint(width)))
+			py.WriteString("  valid = raw == bits or raw == result\n")
+		} else {
+			// ctypes.c_int exposes the i32 transport as signed.
+			if width == 32 {
+				py.WriteString("  raw = raw & 0xffffffff\n")
+			}
+			py.WriteString("  valid = raw == bits\n")
+		}
+		py.WriteString(fmt.Sprintf("  if not valid or (%d != bits and %d != result):\n", a.Expected, a.Expected))
+		py.WriteString("    display = str(result) if result == raw else '%d (raw %d)' % (result, raw)\n")
+		py.WriteString(fmt.Sprintf("    print('FAIL: %s [llvm]: got %%s, want %d' %% display)\n", escapePy(a.Source), a.Expected))
 		py.WriteString(fmt.Sprintf("    errors += 1\n"))
 		py.WriteString(fmt.Sprintf("  else:\n"))
 		py.WriteString(fmt.Sprintf("    print('PASS: %s [llvm]')\n", escapePy(a.Source)))
