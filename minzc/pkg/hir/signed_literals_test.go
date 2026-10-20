@@ -34,6 +34,8 @@ func TestSignedLiteralContexts(t *testing.T) {
 		{"narrow_global_assignment", `global x:i16 fun run(a:i8)->i16{x=a;return x}`, []int64{-2}, 65534},
 		{"narrow_argument", `fun ident(a:i16)->i16{return a} fun run(a:i8)->i16{return ident(a)}`, []int64{-2}, 65534},
 		{"narrow_cross_return", `fun ident(a:i8)->i16{return a} fun run(a:i8)->i16{return ident(a)}`, []int64{-2}, 65534},
+		{"conditional_return_wider_else", `fun run(a:u8)->i16{return if a!=0 {-11} else {-129}}`, []int64{0}, 65407},
+		{"conditional_return_narrow_then", `fun run(a:u8)->i16{return if a!=0 {-11} else {-129}}`, []int64{1}, 65525},
 		{"narrow_conditional", `fun run(a:i8,b:i16)->i16{let x:i16=if b==0 {b} else {a};return x}`, []int64{-2, 1}, 65534},
 		{"narrow_field_initializer", `struct Cell {v:i16} fun run(a:i8)->i16{let x:Cell=Cell{v:a};return x.v}`, []int64{-2}, 65534},
 		{"narrow_field_assignment", `struct Cell {v:i16} fun run(a:i8)->i16{var x:Cell=Cell{v:0};x.v=a;return x.v}`, []int64{-2}, 65534},

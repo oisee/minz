@@ -803,7 +803,9 @@ func (l *lowerer) lowerExprForRet(e Expr) mir2.Reg {
 			return l.bld.Const(literal.Val, ty, classForRet(ty))
 		}
 	}
-	if len(l.bld.F.Contract.Returns) > 0 {
+	// Return conditionals lower each branch in the function's return context.
+	// Joining first at the conditional's narrow type can truncate a wider arm.
+	if _, conditional := e.(*CondExpr); !conditional && len(l.bld.F.Contract.Returns) > 0 {
 		ty := l.bld.F.Contract.Returns[0].Ty
 		if mir2.IsInt(e.ExprTy()) && mir2.IsInt(ty) && e.ExprTy().Width() < ty.Width() && mir2.IsSigned(e.ExprTy()) {
 			return l.lowerExprAs(e, ty)
