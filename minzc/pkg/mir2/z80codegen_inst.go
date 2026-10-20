@@ -357,16 +357,27 @@ func (g *z80cg) genInst(inst *Inst) {
 			g.invalidate("HL")
 			g.invalidate(dst)
 		} else {
-			// Z80 NEG always operates on A; ensure source is in A first.
+			// NEG destroys A just like byte binary arithmetic. Save a live
+			// accumulator before loading or negating its operand, and resolve
+			// the source after that save may have relocated it.
+			g.materializePendingAcc(inst)
+			if g.loc(inst.Src[0]) == "A" {
+				g.saveAccOperandIfLive(inst.Src[0], inst)
+			}
+			g.saveABeforeOverwrite(inst)
 			srcLoc := g.loc(inst.Src[0])
 			if srcLoc != "A" && !g.holdsValue("A", srcLoc) {
 				g.emitLDA(srcLoc)
 			}
 			g.emit("    NEG")
 			g.invalidate("A")
-			// Record that inst.Dst is now in A so TermRet can skip the redundant move.
-			if g.loc(inst.Dst) != "A" {
-				g.physOverride[inst.Dst] = "A"
+			// Publish to the allocated home, rather than aliasing a byte
+			// destination to A where the next reload can overwrite it.
+			if dst != "A" {
+				g.emitLD8(dst, "A")
+				g.setCopy(dst, "A")
+			} else {
+				g.pendingAccReg = inst.Dst
 			}
 		}
 
