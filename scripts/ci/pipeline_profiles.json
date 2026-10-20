@@ -88,6 +88,7 @@
     "TestDecimalPrintSourceCompile",
     "TestDecimalPrintSourceNative",
     "TestDefaultRuntimeKeepsProfileIdentity",
+    "TestDivModModuleVMZ80",
     "TestErrorABIRejectsUnimplementedBackend",
     "TestErrorABIRejectsUnsupportedBeforeLowering",
     "TestErrorIntrinsicArgumentsRejectedByBothAPIs",

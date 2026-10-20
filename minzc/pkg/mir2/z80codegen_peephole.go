@@ -430,6 +430,26 @@ func elimSingleJpEqu(lines []string) []string {
 // Before:  JRS Z, .cret0 / JRS C, .cret0 / ... / .cret0: / RET
 // After:   RET Z / RET C / ...  (label+RET removed if dead)
 func elimJrToRet(lines []string) []string {
+	// Dot labels belong to the preceding global label, just as in MZA.
+	// Arithmetic helpers reuse names such as .div16_sign_0 in each function;
+	// a bare RET in one scope says nothing about that label in another scope.
+	var out []string
+	start := 0
+	for i, line := range lines {
+		code := strings.TrimSpace(strings.SplitN(line, ";", 2)[0])
+		if strings.HasSuffix(code, ":") {
+			label := strings.TrimSuffix(code, ":")
+			local := strings.HasPrefix(label, ".") && !strings.Contains(label[1:], ".")
+			if !local {
+				out = append(out, elimJrToRetInScope(lines[start:i])...)
+				start = i
+			}
+		}
+	}
+	return append(out, elimJrToRetInScope(lines[start:])...)
+}
+
+func elimJrToRetInScope(lines []string) []string {
 	// Pass 1: find labels that point to bare RET.
 	retLabels := make(map[string]bool)
 	for i := 0; i < len(lines)-1; i++ {
