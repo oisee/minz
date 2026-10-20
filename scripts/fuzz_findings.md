@@ -105,6 +105,9 @@ must not be interpreted as the count of Z80 codegen discrepancies.
 
 ## CI direct-call verification (C2 FIX1)
 
+Historical results below used the former report-only wrapper. Direct-call CI
+now fails on any finding or tool error with `--fail-on all`.
+
 Compiler tree: current main `04e0ba172fbfbb3af08153d66607ab6874faeeba`. This CI change does
 not change compiler behavior. At four workers, the PR direct-call job ran
 seeds 0–2999 without reduction: raw fuzzer exit 1, report-only wrapper exit 0,
@@ -145,4 +148,5 @@ The disposable XOR→OR codegen mutant becomes a new Z80≠MIR2 mismatch at
 10 previously passing direct-call seeds in 0–299: 20, 28, 76, 85, 97, 164,
 189, 202, 229 and 257. The matrix wrapper also rejects the mutant. These
 mutation checks require new wrong values; existing assembly/execution findings
-cannot satisfy them. Direct-call CI stays report-only until findings are fixed.
+cannot satisfy them. At the time of this verification, direct-call CI remained
+report-only pending compiler fixes.

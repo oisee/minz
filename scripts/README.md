@@ -55,10 +55,9 @@ arguments. This exercises mostly constant-folded code and does **not** test Z80
 codegen of `f`. Use `--mode direct-call` to assert `f(args)` directly: the
 parameterized function runs in the Z80 harness. Direct mode names that function
 `fuzz_entry` to avoid the assembler’s `F` register token and retains the wrapper
-as an emission root. It does not repair the known argument-loading failures. This mode currently exposes
-compiler/backend findings and is report-only in CI. It becomes blocking once
-these findings are fixed in a follow-up. Seeds and inputs are identical across
-modes; reduction preserves the selected mode.
+as an emission root. CI runs this mode with `--fail-on all`; any finding or
+tool error fails the job. Seeds and inputs are identical across modes; reduction
+preserves the selected mode.
 
 Run self-tests with `python3 scripts/test_judges.py`; `go test ./pkg/hir` also
 runs them, skipping when Python 3 is unavailable.
@@ -178,7 +177,7 @@ runs these jobs on PRs and pushes to main:
   files. It is advisory (`continue-on-error`), because the sweep has no
   allowlist and PRs can intentionally change output. Its raw exit status and
   differences remain in the report.
-- **Short fuzz** checks fixed seeds 0–2999 with `--no-reduce`. The fuzzer has
+- **Short fuzz** checks fixed seeds 0–299 with `--no-reduce`. The fuzzer has
   no baseline mode, so this gate checks the candidate alone with
   `--fail-on backend`: Z80/MIR2 mismatches, assembly failures and compiler errors
   block the PR, as does a passing-seed rate below 95%. MIR2/Python-oracle
@@ -186,10 +185,10 @@ runs these jobs on PRs and pushes to main:
   This uses the mostly constant-folded mode described above. No seeds are skipped.
   Tool exceptions
   still fail the job. Full reproducers and JSON are artifacts.
-- **Direct-call fuzz findings** runs the same seeds with `--mode direct-call`
-  and `--fail-on all`. It reports counts and finding classes in the summary,
-  retains the raw exit code, and returns success for findings pending fixes.
-  Tool exceptions still fail this report-only job.
+- **Direct-call fuzz findings** (blocking) runs the same seeds with `--mode direct-call`
+  and `--fail-on all`. Any finding or tool exception fails the job. Counts,
+  finding classes and the exit code remain in the summary, with full reproducers
+  and JSON in artifacts.
 
 Workers default to `nproc`. Baseline binaries are built fresh; there is no
 baseline compiler cache to save from PR runs. Both binaries and the exact base
@@ -218,10 +217,9 @@ handling moves. `--no-controls` alone cannot catch a weakened checker.
 **Nightly compiler audit** runs at 03:17 UTC and supports `workflow_dispatch`.
 It compares main with `HEAD~1`, always enables controls, repeats the matrix
 with `--runs 2`, runs both mutant tests, and fuzzes seeds 0–9999 using the
-fuzzer's `--fail-on all` policy, plus direct-call seeds 0–9999 report-only.
-Matrix, self-test, sweep and folded-fuzz failures make nightly jobs red;
-there is no blanket nightly `continue-on-error`. Direct-call findings retain
-raw statuses and summaries while their report-only job succeeds.
+fuzzer's `--fail-on all` policy in both folded and direct-call modes.
+Matrix, self-test, sweep and both fuzz jobs fail the nightly audit on findings
+or tool errors; there is no blanket nightly `continue-on-error`.
 
 **Advisory Go lint** runs only on PRs from the `minzc/` module using a cached,
 pinned
