@@ -103,7 +103,7 @@ trusted until it is fixed or removed.
 - **[INTERNAL_ARCHITECTURE.md](minzc/docs/INTERNAL_ARCHITECTURE.md)** - Complete compiler internals
 - **[COMPILER_SNAPSHOT.md](docs/_archive/root-legacy/COMPILER_SNAPSHOT.md)** - Historical snapshot; use dated reports for current evidence
 - **[149_World_Class_Multi_Level_Optimization_Guide.md](https://github.com/oisee/minz/blob/main-archive/docs/_archive_2025/2025-08-07-149-World_Class_Multi_Level_Optimization_Guide.md)** - Historical optimization strategy
-- **[Report 097: Rewrite Triad](reports/2026-03-19-097-Rewrite-Triad-Infrastructure.md)** - ISLE+Grace+Datalog declarative optimization engines (infrastructure, not yet in pipeline)
+- **[Report 097: Rewrite Triad](reports/2026-03-19-097-Rewrite-Triad-Infrastructure.md)** - ISLE+Grace+Datalog declarative optimization engines (wired in behind `UseGrace`, see §6)
 - **[Report 111: GPU Regalloc Table](reports/2026-03-24-111-GPU-Precomputed-Regalloc-Table.md)** - Precomputed register allocation from CUDA brute-force (61 entries, O(1) lookup)
 - **[GPU Bruteforce Roadmap](../z80-optimizer/BRUTEFORCE_ROADMAP.md)** - Beyond peephole: constant multiply, division, screen address, sin/cos — all via exhaustive GPU search
 
@@ -167,7 +167,7 @@ trusted until it is fixed or removed.
 ### Advanced Features
 - **Ruby interpolation**: `"Hello #{name}!"` ✅
 - **UFCS**: `obj.method()` via zero-cost interfaces ✅
-- **Lambdas**: Capturing callbacks with early return remain open (G0-8); see the [iteration audit](docs/Nanz_Iteration_Audit.md).
+- **Lambdas**: zero-cost non-capturing and capturing lambdas ✅; open defect: a capturing iterator callback with an early return (G0-8, see the [iteration audit](docs/Nanz_Iteration_Audit.md)).
 - **TRUE SMC**: Self-modifying code optimization ✅
 - **CTIE**: Compile-Time Interface Execution (trait monomorphization) ✅
 - **@extern FFI**: Call external ROM/BIOS functions ✅
@@ -195,7 +195,7 @@ trusted until it is fixed or removed.
 - **@minz[[[...]]]**: Limited compile-time execution
 - **MIR VM**: Arrays/structs working (mirvm package, MZV runner works)
 - **Array literal optimization**: IR skeleton exists, codegen not yet
-- **Rewrite Triad**: ISLE+Grace+Datalog in `pkg/rewrite/` — wired into pipeline (`UseGrace: true`), 94.1% convergence with Go originals on Nanz corpus. 63 rewrites across 89 functions. See §5, [Report 097](reports/2026-03-19-097-Rewrite-Triad-Infrastructure.md)
+- **Rewrite Triad**: ISLE+Grace+Datalog in `pkg/rewrite/` — wired into pipeline (`UseGrace: true`), 94.1% convergence with Go originals on Nanz corpus. 63 rewrites across 89 functions. See §6, [Report 097](reports/2026-03-19-097-Rewrite-Triad-Infrastructure.md)
 - **MZR REPL**: ❌ Broken — `compileModule()` returns empty module, `:run` unimplemented
 
 ---
@@ -274,7 +274,7 @@ CALL func
 ; NOT recursion-safe: nested call overwrites the patched byte!
 ```
 
-**Spill tier hierarchy for VIR Z3 solver:**
+**Spill tier hierarchy (historical: written for the retired VIR Z3 solver; the tiers themselves are Z80 facts):**
 - **L0: Primary regs (A-L)** — 0T, 7 slots
 - **L1: IXH/IXL/IYH/IYL** — 8T, 4 slots, callee-saved, always safe
 - **L2: I register** — 18T, 1 slot, clobbers P/V flag. **UNSAFE in IM 2** (I = interrupt vector table high byte). Safe in IM 0/1 or with DI/EI bracket. CP/M: usually safe. ZX Spectrum IM 2 demos: NEVER touch I.
@@ -288,7 +288,7 @@ CALL func
 
 ## 🏆 Zero-Cost Abstractions on Z80
 
-### ✅ Zero-Cost Lambda Iterators (v0.10.0) 🎊
+### Zero-Cost Lambda Iterators (v0.10.0, historical MIR1 pipeline — see §2 and the iteration audit for current Nanz status)
 ```minz
 numbers.iter()
     .map(|x| x * 2)
@@ -320,8 +320,8 @@ Enables zero-overhead widening/narrowing arithmetic via operator syntax.
 ### GPU-Precomputed Tables (from z80-optimizer)
 | Table | Entries | Source | Used in |
 |-------|---------|--------|---------|
-| mul8 A×K→A | 254/254 | `mulopt8_clobber.json` | VIR pipeline, inlined at `CALL __mul8` |
-| mul16 HL×K→HL | 254/254 | `mulopt16_complete.json` | VIR pipeline, inlined at `CALL __mul16` |
+| mul8 A×K→A | 254/254 | `mulopt8_clobber.json` | tables in `pkg/vir` (VIR backend retired; production use not re-verified) |
+| mul16 HL×K→HL | 254/254 | `mulopt16_complete.json` | tables in `pkg/vir` (VIR backend retired; production use not re-verified) |
 | u32 ops (DEHL) | 13 ops | `u32_ops.json` | Loaded, codegen pending |
 | divmod8 A÷K | WIP | multiply-and-shift (analytical + GPU verify) | Pending |
 
@@ -597,7 +597,7 @@ The fuzz/assert results below are manager-supplied, bounded measurements; see th
 | Production backends | 1 (Z80) + 1 partial (C) + 1 QBE (correctness oracle) + 8 experimental |
 | LIR backend | Retired by #85 / ADR 0044; no current production corpus metric |
 | VIR offline oracle | No current correctness/performance metric; earlier corpus/speed claims retracted (§5) |
-| MIR backend tests | 9/11 pass, 2 known bugs (ADR-0006) |
+| MIR backend tests | 9/11 pass, 2 known bugs (ADR-0006) (historical, not re-measured) |
 | Frontends | 8 (Nanz, C89, PL/M, Lanz, Lizp, Pascal, ABAP, **Frill**) — all route through HIR→MIR2→Z80 |
 | Frill (.frl) | ML-style functional: 38 features — let, if/then/else, pipe \|>, compose >>, match+guards, ADT, lambda, currying, tuples, type classes, QTT linearity (!/~), while, for, mutation, peek/poke, property testing. 1000+ compile-time checks. See [Frill Guide](docs/Frill_Language_Guide.md) |
 
