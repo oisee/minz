@@ -3454,6 +3454,65 @@ type iterChain struct {
 	rangeRev bool // true when range(hi..lo): B starts at lo, counts down to 0 (DJNZ direct)
 }
 
+// iterCallbackNeedsCall reports whether an iterator-chain callback must run as
+// a real CALL instead of being inlined into the fused loop body. Inlined asm
+// blocks keep the standalone-function ABI (parameters in fixed registers) that
+// the loop body does not provide, and a return that is not the callback's
+// final statement would otherwise return from the enclosing consumer instead
+// of ending this element's body.
+func iterCallbackNeedsCall(b *Block) bool {
+	if b == nil {
+		return false
+	}
+	for i, s := range b.Body {
+		if iterStmtNeedsCall(s, i == len(b.Body)-1) {
+			return true
+		}
+	}
+	return false
+}
+
+func iterStmtNeedsCall(s Stmt, trailing bool) bool {
+	switch st := s.(type) {
+	case *AsmStmt:
+		return true
+	case *ReturnStmt:
+		return !trailing
+	case *IfStmt:
+		return iterBlockNeedsCall(st.Then) || iterBlockNeedsCall(st.Else)
+	case *WhileStmt:
+		return iterBlockNeedsCall(st.Body)
+	case *ForEachStmt:
+		return iterBlockNeedsCall(st.Body)
+	case *ForRangeStmt:
+		return iterBlockNeedsCall(st.Body)
+	case *SwitchStmt:
+		for _, c := range st.Cases {
+			if iterBlockNeedsCall(c.Body) {
+				return true
+			}
+		}
+		return iterBlockNeedsCall(st.Default)
+	case *Block:
+		return iterBlockNeedsCall(st)
+	}
+	return false
+}
+
+// iterBlockNeedsCall scans a nested block: a return at any depth here is a
+// conditional early exit of the callback, never a droppable trailing return.
+func iterBlockNeedsCall(b *Block) bool {
+	if b == nil {
+		return false
+	}
+	for _, s := range b.Body {
+		if iterStmtNeedsCall(s, false) {
+			return true
+		}
+	}
+	return false
+}
+
 // tryLowerIterChain detects iterator chain patterns and lowers them to a fused
 // ForEachStmt (avoiding CALL overhead for lambda callbacks).
 // Returns true if the pattern was recognized and lowered.
@@ -3754,8 +3813,8 @@ func (l *lowerer) lowerFusedForEach(chain iterChain) {
 			Target: &VarRefExpr{Name: elemVar, Ty: elemTy},
 			Val:    rhs,
 		})
-	} else if cbFn == nil || cbFn.Body == nil {
-		// Unknown function — emit a call.
+	} else if cbFn == nil || cbFn.Body == nil || iterCallbackNeedsCall(cbFn.Body) {
+		// Unknown or unsafe-to-inline function — emit a call.
 		bodyStmts = append(bodyStmts, &ExprStmt{
 			Expr: &CallExpr{
 				Fn:   chain.cbName,
@@ -3871,7 +3930,7 @@ func (l *lowerer) lowerRangeForEach(chain iterChain) {
 	// Build the loop body by inlining the callback (same as lowerFusedForEach
 	// but without a Load — the element IS the counter).
 	var bodyStmts []Stmt
-	if cbFn != nil && cbFn.Body != nil && len(cbFn.Params) >= 1 {
+	if cbFn != nil && cbFn.Body != nil && !iterCallbackNeedsCall(cbFn.Body) && len(cbFn.Params) >= 1 {
 		paramName := cbFn.Params[0].Name
 		for _, st := range cbFn.Body.Body {
 			if _, isRet := st.(*ReturnStmt); isRet {
