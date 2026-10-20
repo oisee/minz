@@ -6,21 +6,15 @@ This file provides guidance to Claude Code when working with the MinZ compiler r
 
 ## 🚨 CURRENT PRIORITIES
 
-### 1. Register Allocator & Loop Codegen Bugs
-**Status:** Known, not yet fixed. Blocks complex programs.
-- While/for loops: register allocator overwrites operands (same phys reg for two live virtuals)
-- `loadToHL` uses stale HL values in multi-expression contexts
-- Loop rerolling too aggressive across function call boundaries
-- See `docs/adr/` for ADR-0006, ADR-0007
+### 1. Register Allocator & Loop Codegen Correctness
+**Status (2026-10-20):** The correctness sprint #205–#215 is merged; direct-call fuzz is blocking in CI (#210). On `605c7e8a2` (after #215), the manager recorded 20000/20000 direct-call seeds (0–19999), 4000/4000 signed seeds (0–3999), and 1000/1000 folded seeds. After #209, assert_matrix recorded 0 unexpected control passes, exit 0. These supplied results were not rerun for this documentation update and do not prove arbitrary program correctness.
 
-### 2. Iterator Chain Fusion
-**Status:** Pipeline correct (11/11 E2E), fusion optimizer live. ~5x perf overhead from memory-backed registers.
-- 11/11 E2E hex-verified: forEach, take, skip, map, filter, lambda map/filter, multi-stage chains
-- Fusion optimizer inlines small callbacks into DJNZ loops (eliminates CALL/RET)
-- **Broken on Z80:** enumerate (B=counter+index conflict), reduce (A overwritten by 2nd SMC param)
-- **Bottleneck:** Register allocator puts all virtuals through $F0xx memory (~207T actual vs ~43T ideal per element)
-- 87+ tests across 7 layers
-- See [Iterator Implementation Status](docs/Iterator_Implementation_Status.md)
+Remaining reported findings: P20 (assert judge ignores signed return type), P21 (flag-located bool pointer store emits `LD (HL), F`), P22 (all-return switch without default panics), and G0-3/4/5/8/9 plus G0-L1..L4. See the [current handover](docs/project/HANDOVER-2026-10-20-CORRECTNESS-AND-G1.md) for fixes, scope and repro pointers.
+
+### 2. Iterator Chain Fusion (historical MIR1 status)
+The former “11/11 E2E” and enumerate/reduce bug descriptions applied to the retired MIR1 pipeline, not the current Nanz production path. The old B-counter conflict and A-overwrite explanations were refuted by the [G0 iteration audit](docs/Nanz_Iteration_Audit.md) (#205); current legacy findings concern callback linking/ABI and array initialization. The audit records current Nanz semantics and remaining findings.
+
+Scalar `gen`/`yield` with caller-owned pull frames is implemented in G1 (#216). Demand-preserving generator fusion is planned for G2 under [ADR 0050](docs/adr/0050-nanz-generator-fusion.md), with pull fallback; see the [generator design](reports/2026-10-18-nanz-generators-design.md).
 
 ### 3. MIR2 Open Bugs
 **Status:** 8 tracked bugs (4 fixed, 4 open — 1 blocking 🔴). See **[docs/Open_Bugs_RCA.md](docs/Open_Bugs_RCA.md)** for full RCA.
@@ -33,23 +27,8 @@ This file provides guidance to Claude Code when working with the MinZ compiler r
 - ✅ **BUG-004** Non-zero-lo LUT pipeline ordering — fixed 2026-03-12
 - ✅ **BUG-005** `applySubSwapNeg` u16 guard — fixed 2026-03-12
 
-### 4. LIR Backend (Guided PBQP+WFC Register Allocation)
-**Status:** 🚧 Production-matching codegen for leaf functions, 94.6% C89 corpus convergence.
-- **Branch:** `feat/lir-backend` (24+ commits, ~7500 LOC)
-- **Pipeline:** MIR2 → Bridge → Combine(ISLE) → isel(PatternTable) → WFC(PBQP-guided) → peephole → emit
-- **PBQP→WFC synthesis:** PBQP provides global allocation hints, WFC enforces Z80-specific constraints. Output matches production codegen for leaf functions.
-- **Call support:** OpCall lowering with arg setup moves, `DstAllowed` class constraints, tail call opt (CALL+RET → JP, saves 17T)
-- **IXH/IXL L2 spill:** Undocumented IX/IY half-registers as call-safe storage (8T). 4 bytes of fast spill without touching stack. No existing Z80 compiler uses this.
-- **WFC passes:** forward, backward, vregConsistency, clobberPass (call-safe narrowing), Collapse with `pickPreferred(hints)`
-- **Save-before-overwrite:** Bridge-level insertion of save moves for vregs at risk from destructive ALU ops (Z80 accumulator architecture)
-- **Peephole:** LD r,r no-op elimination, tail call CALL+RET→JP
-- **ISLE combining:** load16_le fusion (FatFS ld_word: 8→2 ops), MUL strength reduction
-- **WFC Dimension 2:** Inter-block constraint propagation across CFG edges — `ProgWFC` with RPO collapse, back-edge fixpoint
-- **Z80 descriptor:** 22 locs (GPR + IX/IY halves + spill), 41+ patterns, DD/FD prefix rules
-- **Corpus:** **948/948 pipeline completion** (100%); VM-verified: **97.9%** C89 on risc32 (15 struct/fptr divergences)
-- **Runtime:** `__mul8` (A×B→A, ~80T), `__mul16` (HL×DE→HL, ~200T) — shared routines, emitted once per module
-- **Remaining:** EXX shadow regs (L3), ISLE const-MUL reduction, production switch as default `--lir`
-- See [Architecture](docs/LIR_Backend_Architecture.md), [Reference](docs/LIR_Backend_Reference.md), [Report 094](reports/2026-03-18-094-LIR-100-Percent-C89-Corpus.md), [ADR-0033](docs/adr/0033-lir-pipeline-integration.md)
+### 4. LIR Backend — RETIRED
+**Status:** Retired by PR #85 (2026-10-13), following [ADR 0044](docs/adr/0044-lir-retirement-and-rule-migration.md). LIR experimented with MIR2 bridging, ISLE combining and PBQP-guided WFC allocation. Its pipeline-completion and VM corpus figures were historical experiments, not current production correctness evidence. There is no `--lir` flag or production `feat/lir-backend` path; ADR 0044's earlier CLI compatibility wording predates #85. Useful rules can migrate individually into HIR/MIR after independent checks. Production remains HIR → MIR2 → Z80; VIR is an offline oracle under [ADR 0047](docs/adr/0047-mir-native-candidates-and-offline-vir.md).
 
 ### 5. VIR — retired as a backend, kept as an offline oracle
 **Status:** ⏸️ **Removed from the compiler on 2026-08-21.** See
@@ -103,7 +82,7 @@ trusted until it is fixed or removed.
 - **Pipeline integration:** `Options{UseGrace: true}` enables Grace path. 5 rules (DSE, CondRetSink, SplitJoinRet, DeadBlockArgElim, FuseAbsDiff) with custom Go actions. 370 LOC runner.
 - **Convergence:** 17/17 pass verification (100%), 16/17 byte-identical assembly (94.1%). 89 funcs processed, 63 rewrites applied.
 - **Stats:** `GraceStats` tracks per-rule fire counts across module compilation.
-- **NOT a Z80 constraint solver:** Grace handles CFG patterns. Z80 register constraints / reject+backtrack is done by WFC in LIR (§4 above).
+- **NOT a Z80 constraint solver:** Grace handles CFG patterns. The WFC constraint work in LIR is historical (§4 above); production uses PFCCO/PBQP and Z80 codegen.
 
 ### 7. LSP / DAP / Developer Tooling
 **Status:** Not started. Planned after core language stability.
@@ -118,13 +97,13 @@ trusted until it is fixed or removed.
 
 ## 🏗️ Architecture References
 
-- **[LIR_Backend_Architecture.md](docs/LIR_Backend_Architecture.md)** - PBQP+WFC+ISLE: how three solvers cooperate
-- **[LIR_Backend_Reference.md](docs/LIR_Backend_Reference.md)** - Quick reference: pipeline, DSLs, data structures
-- **VIR Backend** (`pkg/vir/`) - Z3 unified solver: joint isel+regalloc, PFCCO, inline runtime — see §5 in Current Priorities
+- **[LIR_Backend_Architecture.md](docs/LIR_Backend_Architecture.md)** - Historical PBQP+WFC+ISLE design; retired by #85
+- **[LIR_Backend_Reference.md](docs/LIR_Backend_Reference.md)** - Historical pipeline, DSLs and data structures
+- **VIR offline oracle** (`pkg/vir/`) - Research and shared machine data; see §5 in Current Priorities
 - **[INTERNAL_ARCHITECTURE.md](minzc/docs/INTERNAL_ARCHITECTURE.md)** - Complete compiler internals
 - **[COMPILER_SNAPSHOT.md](docs/_archive/root-legacy/COMPILER_SNAPSHOT.md)** - Historical snapshot; use dated reports for current evidence
 - **[149_World_Class_Multi_Level_Optimization_Guide.md](https://github.com/oisee/minz/blob/main-archive/docs/_archive_2025/2025-08-07-149-World_Class_Multi_Level_Optimization_Guide.md)** - Historical optimization strategy
-- **[Report 097: Rewrite Triad](reports/2026-03-19-097-Rewrite-Triad-Infrastructure.md)** - ISLE+Grace+Datalog declarative optimization engines (infrastructure, not yet in pipeline)
+- **[Report 097: Rewrite Triad](reports/2026-03-19-097-Rewrite-Triad-Infrastructure.md)** - ISLE+Grace+Datalog declarative optimization engines (wired in behind `UseGrace`, see §6)
 - **[Report 111: GPU Regalloc Table](reports/2026-03-24-111-GPU-Precomputed-Regalloc-Table.md)** - Precomputed register allocation from CUDA brute-force (61 entries, O(1) lookup)
 - **[GPU Bruteforce Roadmap](../z80-optimizer/BRUTEFORCE_ROADMAP.md)** - Beyond peephole: constant multiply, division, screen address, sin/cos — all via exhaustive GPU search
 
@@ -188,7 +167,7 @@ trusted until it is fixed or removed.
 ### Advanced Features
 - **Ruby interpolation**: `"Hello #{name}!"` ✅
 - **UFCS**: `obj.method()` via zero-cost interfaces ✅
-- **Lambdas**: Full closure support, zero-cost ✅
+- **Lambdas**: zero-cost non-capturing and capturing lambdas ✅; open defect: a capturing iterator callback with an early return (G0-8, see the [iteration audit](docs/Nanz_Iteration_Audit.md)).
 - **TRUE SMC**: Self-modifying code optimization ✅
 - **CTIE**: Compile-Time Interface Execution (trait monomorphization) ✅
 - **@extern FFI**: Call external ROM/BIOS functions ✅
@@ -211,13 +190,12 @@ trusted until it is fixed or removed.
 
 ## 🚧 WIP (In Development)
 
-- **LIR backend**: PBQP→WFC guided regalloc, production-matching leaf codegen, IXH/IXL spill, tail call opt (see §4 above, `feat/lir-backend`)
-- **Iterator chain fusion**: 11/11 E2E correct, fusion optimizer live, ~5x perf overhead (register allocator bottleneck)
+- **Generator fusion (G2)**: planned demand-preserving fusion with pull fallback; scalar G1 is merged (#216). See the [iteration audit](docs/Nanz_Iteration_Audit.md) for existing chain semantics and findings.
 - **Pattern matching**: Syntax parses, codegen partial
 - **@minz[[[...]]]**: Limited compile-time execution
 - **MIR VM**: Arrays/structs working (mirvm package, MZV runner works)
 - **Array literal optimization**: IR skeleton exists, codegen not yet
-- **Rewrite Triad**: ISLE+Grace+Datalog in `pkg/rewrite/` — wired into pipeline (`UseGrace: true`), 94.1% convergence with Go originals on Nanz corpus. 63 rewrites across 89 functions. See §5, [Report 097](reports/2026-03-19-097-Rewrite-Triad-Infrastructure.md)
+- **Rewrite Triad**: ISLE+Grace+Datalog in `pkg/rewrite/` — wired into pipeline (`UseGrace: true`), 94.1% convergence with Go originals on Nanz corpus. 63 rewrites across 89 functions. See §6, [Report 097](reports/2026-03-19-097-Rewrite-Triad-Infrastructure.md)
 - **MZR REPL**: ❌ Broken — `compileModule()` returns empty module, `:run` unimplemented
 
 ---
@@ -227,7 +205,7 @@ trusted until it is fixed or removed.
 - **DAP debugger** - Step-through debugging (native, beyond DeZog)
 - **MZR REPL** - Fix compilation pipeline (semantic analysis not wired)
 - **WASM playground** - Online demo
-- **Generator syntax** - `gen`/`yield` for lazy iteration
+- **Generator follow-ups** - G2 fusion, G3 streaming workload, G4 bounded queue/ISR adapter. Scalar `gen`/`yield` is done (G1, #216).
 
 ---
 
@@ -296,7 +274,7 @@ CALL func
 ; NOT recursion-safe: nested call overwrites the patched byte!
 ```
 
-**Spill tier hierarchy for VIR Z3 solver:**
+**Spill tier hierarchy (historical: written for the retired VIR Z3 solver; the tiers themselves are Z80 facts):**
 - **L0: Primary regs (A-L)** — 0T, 7 slots
 - **L1: IXH/IXL/IYH/IYL** — 8T, 4 slots, callee-saved, always safe
 - **L2: I register** — 18T, 1 slot, clobbers P/V flag. **UNSAFE in IM 2** (I = interrupt vector table high byte). Safe in IM 0/1 or with DI/EI bracket. CP/M: usually safe. ZX Spectrum IM 2 demos: NEVER touch I.
@@ -310,7 +288,7 @@ CALL func
 
 ## 🏆 Zero-Cost Abstractions on Z80
 
-### ✅ Zero-Cost Lambda Iterators (v0.10.0) 🎊
+### Zero-Cost Lambda Iterators (v0.10.0, historical MIR1 pipeline — see §2 and the iteration audit for current Nanz status)
 ```minz
 numbers.iter()
     .map(|x| x * 2)
@@ -342,8 +320,8 @@ Enables zero-overhead widening/narrowing arithmetic via operator syntax.
 ### GPU-Precomputed Tables (from z80-optimizer)
 | Table | Entries | Source | Used in |
 |-------|---------|--------|---------|
-| mul8 A×K→A | 254/254 | `mulopt8_clobber.json` | VIR pipeline, inlined at `CALL __mul8` |
-| mul16 HL×K→HL | 254/254 | `mulopt16_complete.json` | VIR pipeline, inlined at `CALL __mul16` |
+| mul8 A×K→A | 254/254 | `mulopt8_clobber.json` | tables in `pkg/vir` (VIR backend retired; production use not re-verified) |
+| mul16 HL×K→HL | 254/254 | `mulopt16_complete.json` | tables in `pkg/vir` (VIR backend retired; production use not re-verified) |
 | u32 ops (DEHL) | 13 ops | `u32_ops.json` | Loaded, codegen pending |
 | divmod8 A÷K | WIP | multiply-and-shift (analytical + GPU verify) | Pending |
 
@@ -598,11 +576,17 @@ fun main() {
 
 ---
 
-## 📊 Current Metrics (v0.24.0+, sessions 12-15)
+## 📊 Current Metrics (snapshot 2026-10-20)
+
+The fuzz/assert results below are manager-supplied, bounded measurements; see the [handover](docs/project/HANDOVER-2026-10-20-CORRECTNESS-AND-G1.md) for provenance and commands. Other retained corpus, tool and feature counts below are historical claims from the previous table, not re-measured in this update; they are not current acceptance evidence.
 
 | Metric | Value |
 |--------|-------|
-| Nanz examples | **35/35** (100%) — all compile + assemble. [Report #110](reports/2026-03-24-110-Reliability-Sprint-35-of-35.md) |
+| Direct-call fuzz | **20000/20000**, seeds 0–19999 on `605c7e8a2` (manager result, 2026-10-20; #215 baseline) |
+| Signed direct-call fuzz | **4000/4000**, seeds 0–3999, `--signed`, same baseline/source |
+| Folded fuzz | **1000/1000**, same baseline/source; mostly constant-folded, not parameterized Z80 coverage |
+| Assert matrix | **0 unexpected control passes; exit 0**, manager result after #209, 2026-10-20 |
+| Nanz examples | **35/35** (historical, 2026-03, not re-measured). [Report #110](reports/2026-03-24-110-Reliability-Sprint-35-of-35.md) |
 | Core examples | 71/73 (97%) |
 | All examples | 131/173 (75%) — failures in agon, cpm, feature_tests, zvdb, zx_demos |
 | Stdlib modules | 12 documented (real), ~35-40 of 55 files compile |
@@ -611,9 +595,9 @@ fun main() {
 | GPU mul tables | 254 mul8 (A×K→A) + 254 mul16 (HL×K→HL) + 13 u32 ops |
 | Scalar op overload | `fun *(a: u8, b: u8) -> u16` — widening arithmetic via operator syntax |
 | Production backends | 1 (Z80) + 1 partial (C) + 1 QBE (correctness oracle) + 8 experimental |
-| LIR backend | **948/948 pipeline** (100%), **97.9% VM-verified** (C89/risc32) — PBQP→WFC guided, IXH/IXL spill, __mul8/__mul16, tail call opt |
-| VIR backend | **645/645 functions** (100%), **55/55 Z80-verified**, **-60% vs SDCC** — Z3 unified solver, Z3-PFCCO, inline runtime, zero PBQP fallback |
-| MIR backend tests | 9/11 pass, 2 known bugs (ADR-0006) |
+| LIR backend | Retired by #85 / ADR 0044; no current production corpus metric |
+| VIR offline oracle | No current correctness/performance metric; earlier corpus/speed claims retracted (§5) |
+| MIR backend tests | 9/11 pass, 2 known bugs (ADR-0006) (historical, not re-measured) |
 | Frontends | 8 (Nanz, C89, PL/M, Lanz, Lizp, Pascal, ABAP, **Frill**) — all route through HIR→MIR2→Z80 |
 | Frill (.frl) | ML-style functional: 38 features — let, if/then/else, pipe \|>, compose >>, match+guards, ADT, lambda, currying, tuples, type classes, QTT linearity (!/~), while, for, mutation, peek/poke, property testing. 1000+ compile-time checks. See [Frill Guide](docs/Frill_Language_Guide.md) |
 
@@ -636,7 +620,7 @@ fun main() {
 | E2E Z80 tests | 24 (fibonacci, flag-return, div8, div16, mod8, divmod-combined + 6502) |
 | Parser | Participle (native Go, zero deps) |
 | Toolchain binaries | 10 working (mz, mza, mze, mzx, mzd, mzn, mzlsp, mzrun, mztap, mzv) + vir-oracle (offline) + mzv1 (MIR1) + mzr (broken) |
-| Go test packages | 26/26 pass, 0 fail |
+| Go test packages | Not measured in this update; prior package count removed |
 
 ---
 
