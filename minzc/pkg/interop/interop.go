@@ -28,7 +28,8 @@ import (
 
 // importRe matches: #import "filename.ext"
 // Works in C (#import), and can be used as // #import in other languages.
-var importRe = regexp.MustCompile(`(?m)^\s*#\s*import\s+"([^"]+)"\s*$`)
+// Horizontal whitespace only: consuming newlines shifts assertions after imports.
+var importRe = regexp.MustCompile(`(?m)^[ \t]*#[ \t]*import[ \t]+"([^"\r\n]+)"[ \t]*\r?$`)
 
 // CompileFunc compiles a source file and returns an HIR module.
 // The resolver uses this callback to dispatch to the right frontend.
