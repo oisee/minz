@@ -136,11 +136,11 @@ func (m *Module) FuncByName(name string) *Func {
 
 // Func is a HIR function.
 type Func struct {
-	Internal       bool `json:",omitempty"` // compiler/library helper; not an implicit exported pruning root
-	CValueABI      bool `json:",omitempty"` // C by-value aggregate semantics; delay ABI selection until linking
-	FallibleCY     bool // derived CY/error ABI, part of semantic identity
-	IsGen          bool `json:",omitempty"` // generator declaration (gen … -> ElemTy); expanded before lowering
-	ElemTy         mir2.Ty   `json:",omitempty"` // element type when IsGen (RetTy stays TyVoid: `return` is valueless)
+	Internal       bool    `json:",omitempty"` // compiler/library helper; not an implicit exported pruning root
+	CValueABI      bool    `json:",omitempty"` // C by-value aggregate semantics; delay ABI selection until linking
+	FallibleCY     bool    // derived CY/error ABI, part of semantic identity
+	IsGen          bool    `json:",omitempty"` // generator declaration (gen … -> ElemTy); expanded before lowering
+	ElemTy         mir2.Ty `json:",omitempty"` // element type when IsGen (RetTy stays TyVoid: `return` is valueless)
 	Name           string
 	Params         []Param
 	Captures       []Param   // explicit lexical dependencies; not ABI parameters
