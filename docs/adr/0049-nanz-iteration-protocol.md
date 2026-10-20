@@ -2,7 +2,9 @@
 
 ## Status
 
-Draft. Date: 2026-10-18. Proposed protocol, not implemented syntax or a public ABI.
+Draft. Date: 2026-10-18. The baseline operation is implemented in stage G1 as the
+compiler-known `pull_next(&frame, &out) -> bool` (concrete `name$next` function).
+ERROR/PENDING states and typed interfaces remain proposed, not implemented.
 
 ## Context
 

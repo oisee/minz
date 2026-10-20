@@ -1,0 +1,126 @@
+// Nanz — scalar generators (gen/yield, ADR 0048/0049).
+//
+// A gen declaration is a factory for a single-pass concrete iterator. The
+// frame is caller-owned state: creation stores the arguments once and runs
+// no body; every request (pull_next) runs the body to the next yield or to
+// completion; DONE is sticky and leaves the output unchanged. The `for x in
+// g(args)` form owns a temporary frame with the same meaning.
+
+global data: [u8; 16]
+global rle_in: [u8; 8]
+
+gen bytes(src: ^u8, n: u8) -> u8 {
+    while n != 0 {
+        yield src[0]
+        src = src + 1
+        n = n - 1
+    }
+}
+
+// RLE over [count,value] pairs: nested loops, a yield inside the inner loop,
+// zero-length runs yield nothing.
+gen run_bytes(src: ^u8, pairs: u8) -> u8 {
+    while pairs != 0 {
+        var left: u8 = src[0]
+        let value: u8 = src[1]
+        src = src + 2
+        pairs = pairs - 1
+        while left != 0 {
+            yield value
+            left = left - 1
+        }
+    }
+}
+
+fun load_data(n: u8) -> void {
+    for i in 0..n {
+        data[i] = i * 37 + 11
+    }
+}
+
+fun manual_mix(n: u8) -> u16 {
+    load_data(n)
+    var it = bytes(&data, n)
+    var v: u8 = 0
+    var mix: u16 = 0
+    while pull_next(&it, &v) {
+        mix = mix * 31 + v
+    }
+    return mix
+}
+
+fun for_mix(n: u8) -> u16 {
+    load_data(n)
+    var mix: u16 = 0
+    for v in bytes(&data, n) {
+        mix = mix * 31 + v
+    }
+    return mix
+}
+
+fun sticky_done() -> u16 {
+    load_data(4)
+    var it = bytes(&data, 4)
+    var v: u8 = 0
+    while pull_next(&it, &v) { v = v }
+    data[0] = 99
+    v = 170
+    var extra: u8 = 0
+    if pull_next(&it, &v) { extra = 1 }
+    if pull_next(&it, &v) { extra = 1 }
+    return extra * 256 + v
+}
+
+fun rle_mix() -> u16 {
+    rle_in[0] = 3
+    rle_in[1] = 65
+    rle_in[2] = 0
+    rle_in[3] = 90
+    rle_in[4] = 2
+    rle_in[5] = 66
+    var it = run_bytes(&rle_in, 3)
+    var v: u8 = 0
+    var mix: u16 = 0
+    while pull_next(&it, &v) {
+        mix = mix * 31 + v
+    }
+    return mix
+}
+
+// break stops consumption: the third element is read and the loop leaves the
+// temporary frame without resuming the producer again.
+fun for_break_mix() -> u16 {
+    load_data(8)
+    var mix: u16 = 0
+    var cnt: u8 = 0
+    for v in bytes(&data, 8) {
+        cnt = cnt + 1
+        if cnt == 3 { break }
+        mix = mix * 31 + v
+    }
+    return mix
+}
+
+fun main() -> void {
+    @print("manual_mix(8) low byte = ")
+    @print_u8(u8(manual_mix(8)))
+    @print_nl()
+    @print("sticky_done = ")
+    @print_u8(u8(sticky_done()))
+    @print_nl()
+}
+
+assert manual_mix(8) == 27924 via mir2
+assert manual_mix(8) == 27924 via z80
+assert for_mix(8) == 27924 via mir2
+assert for_mix(8) == 27924 via z80
+assert manual_mix(0) == 0 via mir2
+assert manual_mix(0) == 0 via z80
+assert manual_mix(1) == 11 via mir2
+assert manual_mix(1) == 11 via z80
+assert sticky_done() == 170 via mir2
+assert sticky_done() == 170 via z80
+assert rle_mix() == 32801 via mir2
+assert rle_mix() == 32801 via z80
+assert for_break_mix() == 389 via mir2
+assert for_break_mix() == 389 via z80

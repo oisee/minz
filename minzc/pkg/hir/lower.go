@@ -45,6 +45,9 @@ import (
 
 // LowerModule converts a HIR module to a MIR2 module.
 func LowerModule(hm *Module) *mir2.Module {
+	if err := ExpandGenerators(hm); err != nil {
+		panic(err)
+	}
 	if err := ResolveErrorABI(hm); err != nil {
 		panic(err)
 	}

@@ -216,6 +216,11 @@ func TestShowcaseExecutableOracleCatalog(t *testing.T) {
 			row.Workload = "main; screen RAM seeded a5"
 			row.Model = "All 6912 ZX screen bytes from independent row/col/color formula; macro counter 3"
 			row.Requirement = "pkg/lizp TestZXExamplesFullScreenVMZ80; no ULA/contention/hardware claim"
+		case "examples/nanz/gen_yield.nanz":
+			row.NativeBehavior = "executed-independent-vm-z80"
+			row.Workload = "14 source asserts (7 via mir2, 7 via z80): manual and for consumption of bytes/run_bytes, sticky DONE, RLE decode, early break"
+			row.Model = "Go reference mix = mix*31+v over data[i]=(i*37+11)&0xFF, RLE [3,65,0,90,2,66]→65,65,65,66,66, break after 3 reads"
+			row.Requirement = "minzc/pkg/nanz TestG1GenYield differential gate; the example asserts are the same values the Go reference model derives"
 		}
 		if row.Path == "examples/nanz/cpm_leaf_console.nanz" {
 			row.NativeBehavior = "executed-native-cpm-runtime"
@@ -238,7 +243,7 @@ func TestShowcaseExecutableOracleCatalog(t *testing.T) {
 		counts[row.NativeBehavior]++
 		catalog = append(catalog, row)
 	}
-	if len(catalog) != 200 {
+	if len(catalog) != 201 {
 		t.Fatalf("corpus changed: %d paths; refresh catalog intentionally", len(catalog))
 	}
 	for name, count := range counts {
@@ -249,7 +254,7 @@ func TestShowcaseExecutableOracleCatalog(t *testing.T) {
 			Base    string               `json:"base_commit"`
 			Scope   string               `json:"scope"`
 			Entries []oracleCatalogEntry `json:"entries"`
-		}{"ee21cae8", "All 200 paths retained (the previous 199 paths plus signed_literals.nanz). Reviewed evidence proves only named entries/workloads; discovered test references, source assertions and main declarations are not native execution proofs. Derived CP/M main is separate evidence, never transferred to original source.", catalog}, "", "  ")
+		}{"ee21cae8", "All 201 paths retained (the previous 199 paths plus signed_literals.nanz and the gen_yield scalar generator example). Reviewed evidence proves only named entries/workloads; discovered test references, source assertions and main declarations are not native execution proofs. Derived CP/M main is separate evidence, never transferred to original source.", catalog}, "", "  ")
 		if e != nil {
 			t.Fatal(e)
 		}

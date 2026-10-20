@@ -929,6 +929,61 @@ func runOneAssertZ80(z *emulator.RemogattoZ80, a hir.Assert,
 	return checkAssertZ80Result(z, a, mf, hirFuncs)
 }
 
+// RunZ80Cycles executes one call of fnName with literal arguments on a fresh
+// emulator, exactly as an assertion would, and reports the T-states spent
+// plus the single return value. It exists for measurements: correctness
+// verdicts belong to RunAssertsZ80.
+func RunZ80Cycles(hm *hir.Module, m *mir2.Module, ar *mir2.AllocResult, asmSrc, fnName string, args []int64) (cycles int64, ret int64, err error) {
+	mir2Funcs := make(map[string]*mir2.Func, len(m.Funcs))
+	for _, f := range m.Funcs {
+		mir2Funcs[f.Name] = f
+	}
+	hirFuncs := make(map[string]*hir.Func, len(hm.Funcs))
+	for _, f := range hm.Funcs {
+		hirFuncs[f.Name] = f
+	}
+	mf := mir2Funcs[fnName]
+	if mf == nil {
+		return 0, 0, fmt.Errorf("z80 cycles: function %q not found in MIR2", fnName)
+	}
+	a := hir.Assert{FuncName: fnName, Args: args, Source: "z80 cycles"}
+	z := emulator.NewRemogattoZ80()
+	if err := runOneAssertZ80Raw(z, a, mf, hirFuncs, ar, asmSrc); err != nil {
+		return 0, 0, err
+	}
+	if len(mf.Contract.Returns) == 0 {
+		return int64(z.GetCycles()), 0, nil
+	}
+	value, err := readAssertZ80Return(z, mf.Contract.Returns[0])
+	if err != nil {
+		return 0, 0, err
+	}
+	return int64(z.GetCycles()), value, nil
+}
+
+// runOneAssertZ80Raw is runOneAssertZ80 without the result check.
+func runOneAssertZ80Raw(z *emulator.RemogattoZ80, a hir.Assert, mf *mir2.Func,
+	hirFuncs map[string]*hir.Func, ar *mir2.AllocResult, asmSrc string) error {
+	boot := buildAssertBootstrap(assertLoadAddr, a, mf, ar)
+	src := boot + "\n" + asmSrc
+	as := z80asm.NewAssembler()
+	res, err := as.AssembleString(src)
+	if err != nil {
+		return fmt.Errorf("assert %q [z80]: assemble: %w", a.Source, err)
+	}
+	if len(res.Errors) > 0 {
+		return fmt.Errorf("assert %q [z80]: assemble errors: %v", a.Source, res.Errors[0])
+	}
+	if lerr := z.LoadMemory(assertLoadAddr, res.Binary); lerr != nil {
+		return fmt.Errorf("assert %q [z80]: load: %w", a.Source, lerr)
+	}
+	z.SetPC(assertLoadAddr)
+	if rerr := z.Run(); rerr != nil {
+		return fmt.Errorf("assert %q [z80]: run: %w", a.Source, rerr)
+	}
+	return nil
+}
+
 // runOneAssertZ80Sandbox runs a single assert on a shared emulator (sandbox).
 // Uses a NOP-padded trampoline sized for every assert in the sandbox so the
 // code section (and globals) always lives at the same addresses.

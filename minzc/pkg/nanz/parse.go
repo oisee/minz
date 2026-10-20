@@ -566,6 +566,7 @@ type parser struct {
 	callableAliases map[string]*hir.CallSignature
 	varCallables    map[string]*hir.CallSignature
 	lastCallable    *hir.CallSignature          // result metadata of the most recent parseType
+	lastEnumVariant string                      // enum name when the most recent primary was Enum.VARIANT
 	typeAliases     map[string]mir2.Ty          // type X = Y — structural alias
 	enums           map[string]map[string]int64 // enumName → {variantName → value}
 	enumBaseTy      map[string]mir2.Ty          // enumName → base type (default TyU8)
@@ -581,6 +582,25 @@ type parser struct {
 	adtCtors     map[string]*nanzADTCtor // constructor name → ctor (for match + expr)
 	autoFuncs    []*hir.Func             // auto-generated helpers (__tag, __payload, lambdas)
 	localArrayID int                     // counter for mangled local array globals
+	// Generators (gen/yield, ADR 0048/0049). Declarations are module-local and
+	// must precede their uses; frames are per-consuming-scope.
+	gens       map[string]*nanzGen // gen name → declaration (frame layout + element type)
+	genFrames  map[string]string   // current function scope: frame var name → gen name
+	inGenBody  bool                // parsing a gen body (admits `yield`)
+	curGen     *nanzGen            // the gen whose body is being parsed
+	inPullArgs int                 // parsing pull_next(...) arguments (admits &frame)
+}
+
+// nanzGen records one `gen name(params) -> ElemTy` declaration.
+type nanzGen struct {
+	name   string
+	params []hir.Param
+	elemTy mir2.Ty
+	// frame is the frontend's storage superset (tag + params + all body
+	// locals); the HIR expansion computes the precise live-across-yield set
+	// and rebuilds the layout it actually lowers with.
+	frame *mir2.StructTy
+	line  int
 }
 
 // pipeStep is one stage in a named pipe/trans declaration.
@@ -745,6 +765,8 @@ func (p *parser) parseModule() (*hir.Module, error) {
 	p.metaFuncs = make(map[string]string)
 	p.adts = make(map[string]*nanzADT)
 	p.adtCtors = make(map[string]*nanzADTCtor)
+	p.gens = make(map[string]*nanzGen)
+	p.genFrames = make(map[string]string)
 	// Borrow visible types, with independent map storage. Generated declarations
 	// retain their own namespace and cannot mutate the caller's method registry.
 	if context := p.typeContext; context != nil {
@@ -795,6 +817,13 @@ func (p *parser) parseModule() (*hir.Module, error) {
 				return nil, err
 			}
 			m.Globals = append(m.Globals, g)
+
+		case t.kind == tokIdent && t.val == "gen":
+			f, err := p.parseGenDecl()
+			if err != nil {
+				return nil, err
+			}
+			m.Funcs = append(m.Funcs, f)
 
 		case t.kind == tokIdent && t.val == "fun":
 			// Check for metafunction: fun @name(...)
@@ -1112,6 +1141,20 @@ func (p *parser) parseModule() (*hir.Module, error) {
 	m.Funcs = append(m.Funcs, p.lambdas...)
 	// Append auto-generated helpers (__tag, __payload, match payload wrappers).
 	m.Funcs = append(m.Funcs, p.autoFuncs...)
+
+	// A generator may not be called as a function: its only uses are frame
+	// creation and the for form (both rewritten during parsing). Anything left
+	// over — including a use before the gen declaration — is a source error.
+	if len(p.gens) > 0 {
+		for _, f := range m.Funcs {
+			if f.Body == nil || f.IsGen {
+				continue
+			}
+			if err := rejectDirectGenCalls(f, p.gens); err != nil {
+				return nil, fmt.Errorf("%s: %w", f.Name, err)
+			}
+		}
+	}
 
 	// Extern symbols have one ABI; ordinary function overloads do not define
 	// overload semantics for host/assembly symbols. Validate after imports and
@@ -2913,7 +2956,8 @@ func (p *parser) parseFunDecl(isExtern bool) (*hir.Func, error) {
 	p.varInterfaceTypes = make(map[string]string)
 	p.varPtrElem = make(map[string]*mir2.StructTy)
 	p.varEnumType = make(map[string]string)
-	p.uninitVars = make(map[string]int) // fresh tracking per function
+	p.genFrames = make(map[string]string) // generator frames are per consuming scope
+	p.uninitVars = make(map[string]int)   // fresh tracking per function
 	// Re-populate param enum types from the saved map
 	for _, param := range params {
 		if eName, ok := savedEnumTypes[param.Name]; ok {
@@ -2949,6 +2993,582 @@ func (p *parser) parseFunDecl(isExtern bool) (*hir.Func, error) {
 	}
 	f.Body = body
 	return f, nil
+}
+
+// ── Generators (gen/yield, ADR 0048/0049) ─────────────────────────────────────
+
+// genMaxYieldSites keeps continuation tags 1..N distinct from the sticky DONE
+// marker (255) inside the u8 tag field.
+const genMaxYieldSites = 254
+
+// yieldSites counts yield statements transitively.
+func yieldSites(b *hir.Block) int {
+	n := 0
+	var walk func(blk *hir.Block)
+	walk = func(blk *hir.Block) {
+		for _, s := range blk.Body {
+			switch st := s.(type) {
+			case *hir.YieldStmt:
+				n++
+			case *hir.Block:
+				walk(st)
+			case *hir.IfStmt:
+				walk(st.Then)
+				if st.Else != nil {
+					walk(st.Else)
+				}
+			case *hir.WhileStmt:
+				walk(st.Body)
+			case *hir.ForRangeStmt:
+				walk(st.Body)
+			case *hir.ForEachStmt:
+				walk(st.Body)
+			case *hir.SwitchStmt:
+				for _, c := range st.Cases {
+					walk(c.Body)
+				}
+				if st.Default != nil {
+					walk(st.Default)
+				}
+			}
+		}
+	}
+	walk(b)
+	return n
+}
+
+// rejectDirectGenCalls reports any remaining call to a generator declaration.
+func rejectDirectGenCalls(f *hir.Func, gens map[string]*nanzGen) error {
+	found := firstGenCall(f.Body, gens)
+	if found != "" {
+		return fmt.Errorf("generator %s(...) can only create a frame (var it = %s(...)) or feed a for loop; it is not callable",
+			found, found)
+	}
+	return nil
+}
+
+// firstGenCall reports the first direct generator call in a body, covering
+// every expression position a call can appear in.
+func firstGenCall(b *hir.Block, gens map[string]*nanzGen) string {
+	var visitExpr func(e hir.Expr) string
+	visitExpr = func(e hir.Expr) string {
+		if e == nil {
+			return ""
+		}
+		switch ex := e.(type) {
+		case *hir.CallExpr:
+			if gens[ex.Fn] != nil {
+				return ex.Fn
+			}
+			for _, a := range ex.Args {
+				if n := visitExpr(a); n != "" {
+					return n
+				}
+			}
+		case *hir.CallIndirectExpr:
+			for _, x := range append([]hir.Expr{ex.FnPtr}, ex.Args...) {
+				if n := visitExpr(x); n != "" {
+					return n
+				}
+			}
+		case *hir.BinExpr:
+			for _, x := range []hir.Expr{ex.L, ex.R} {
+				if n := visitExpr(x); n != "" {
+					return n
+				}
+			}
+		case *hir.UnaryExpr, *hir.CastExpr, *hir.LoadExpr, *hir.DerefExpr:
+			return visitExpr(exprChild(e))
+		case *hir.IndexExpr:
+			for _, x := range []hir.Expr{ex.Base, ex.Idx} {
+				if n := visitExpr(x); n != "" {
+					return n
+				}
+			}
+		case *hir.FieldExpr, *hir.BitExpr, *hir.AddrOfExpr:
+			return visitExpr(exprChild(e))
+		case *hir.CondExpr:
+			for _, x := range []hir.Expr{ex.Cond, ex.Then, ex.Else} {
+				if n := visitExpr(x); n != "" {
+					return n
+				}
+			}
+		case *hir.LetInExpr:
+			for _, x := range []hir.Expr{ex.Init, ex.Body} {
+				if n := visitExpr(x); n != "" {
+					return n
+				}
+			}
+		case *hir.StructLitExpr:
+			for _, fld := range ex.Fields {
+				if n := visitExpr(fld.Val); n != "" {
+					return n
+				}
+			}
+		}
+		return ""
+	}
+	var visitBlock func(b *hir.Block) string
+	visitBlock = func(b *hir.Block) string {
+		for _, s := range b.Body {
+			var exprs []hir.Expr
+			var blocks []*hir.Block
+			switch st := s.(type) {
+			case *hir.VarDeclStmt:
+				exprs = append([]hir.Expr{st.Init}, st.Initial...)
+			case *hir.AssignStmt:
+				exprs = []hir.Expr{st.Target, st.Val}
+			case *hir.ExprStmt:
+				exprs = []hir.Expr{st.Expr}
+			case *hir.ReturnStmt:
+				exprs = append([]hir.Expr{st.Val}, st.Vals...)
+			case *hir.TupleLetStmt:
+				exprs = []hir.Expr{st.Call}
+			case *hir.StoreStmt:
+				exprs = []hir.Expr{st.Ptr, st.Val}
+			case *hir.IfStmt:
+				exprs = []hir.Expr{st.Cond}
+				blocks = append(blocks, st.Then, st.Else)
+			case *hir.WhileStmt:
+				exprs = []hir.Expr{st.Cond}
+				blocks = append(blocks, st.Body)
+			case *hir.ForRangeStmt:
+				exprs = []hir.Expr{st.Start, st.End}
+				blocks = append(blocks, st.Body)
+			case *hir.ForEachStmt:
+				exprs = []hir.Expr{st.Ptr, st.Start, st.Len}
+				blocks = append(blocks, st.Body)
+			case *hir.GenForStmt:
+				exprs = append([]hir.Expr(nil), st.Args...)
+				blocks = append(blocks, st.Body)
+			case *hir.Block:
+				blocks = append(blocks, st)
+			case *hir.SwitchStmt:
+				exprs = []hir.Expr{st.Val}
+				for _, c := range st.Cases {
+					blocks = append(blocks, c.Body)
+				}
+				blocks = append(blocks, st.Default)
+			}
+			for _, e := range exprs {
+				if n := visitExpr(e); n != "" {
+					return n
+				}
+			}
+			for _, blk := range blocks {
+				if blk != nil {
+					if n := visitBlock(blk); n != "" {
+						return n
+					}
+				}
+			}
+		}
+		return ""
+	}
+	return visitBlock(b)
+}
+
+// exprChild returns the single sub-expression of a unary wrapper node.
+func exprChild(e hir.Expr) hir.Expr {
+	switch ex := e.(type) {
+	case *hir.UnaryExpr:
+		return ex.X
+	case *hir.CastExpr:
+		return ex.X
+	case *hir.LoadExpr:
+		return ex.Ptr
+	case *hir.DerefExpr:
+		return ex.Ptr
+	case *hir.FieldExpr:
+		return ex.X
+	case *hir.BitExpr:
+		return ex.X
+	case *hir.AddrOfExpr:
+		return ex.X
+	}
+	return nil
+}
+
+// genElemTypeOK admits the scalar element types of stage G1.
+func genElemTypeOK(ty mir2.Ty) bool {
+	switch ty {
+	case mir2.TyU8, mir2.TyU16, mir2.TyI8, mir2.TyI16, mir2.TyBool:
+		return true
+	}
+	return false
+}
+
+// intLitFits reports whether the integer literal value is representable in
+// the scalar type ty.
+func intLitFits(v int64, ty mir2.Ty) bool {
+	switch ty {
+	case mir2.TyU8:
+		return v >= 0 && v <= 0xFF
+	case mir2.TyU16:
+		return v >= 0 && v <= 0xFFFF
+	case mir2.TyI8:
+		return v >= -128 && v <= 127
+	case mir2.TyI16:
+		return v >= -32768 && v <= 32767
+	}
+	return false
+}
+
+// genFieldTyOK admits generator parameter and frame-local types: scalars and
+// raw pointers. Structs, arrays and nested frames are rejected.
+func genFieldTyOK(ty mir2.Ty) bool {
+	switch mir2.BaseOf(ty).(type) {
+	case *mir2.StructTy, *mir2.ArrayTy, *mir2.SliceTy:
+		return false
+	}
+	return ty != nil && ty != mir2.TyVoid && (mir2.IsInt(ty) || ty == mir2.TyBool || mir2.IsPointer(ty))
+}
+
+// parseGenDecl parses `gen name(params) -> ElemTy { body }`. The declaration
+// is module-local and must precede its uses; `yield` is only legal inside it.
+func (p *parser) parseGenDecl() (*hir.Func, error) {
+	if err := p.l.eatIdent("gen"); err != nil {
+		return nil, err
+	}
+	nameTok, err := p.l.eat(tokIdent)
+	if err != nil {
+		return nil, err
+	}
+	if _, dup := p.gens[nameTok.val]; dup {
+		return nil, fmt.Errorf("line %d: duplicate generator %q", nameTok.line, nameTok.val)
+	}
+	if _, clash := p.funcSigs[nameTok.val]; clash {
+		return nil, fmt.Errorf("line %d: generator %q shares a name with a function", nameTok.line, nameTok.val)
+	}
+	if _, err := p.l.eat(tokLParen); err != nil {
+		return nil, err
+	}
+	var params []hir.Param
+	for !p.l.is(tokRParen) && !p.l.is(tokEOF) {
+		pname, err := p.l.eat(tokIdent)
+		if err != nil {
+			return nil, err
+		}
+		if pname.val == "tag" {
+			return nil, fmt.Errorf("line %d: gen %s: parameter name %q is reserved by the frame", pname.line, nameTok.val, pname.val)
+		}
+		if _, err := p.l.eat(tokColon); err != nil {
+			return nil, err
+		}
+		pty, err := p.parseType()
+		if err != nil {
+			return nil, err
+		}
+		if !genFieldTyOK(pty) {
+			return nil, fmt.Errorf("line %d: gen %s: parameter %q has unsupported type %s (scalar or pointer)", pname.line, nameTok.val, pname.val, pty)
+		}
+		params = append(params, hir.Param{Name: pname.val, Ty: pty})
+		if p.l.is(tokComma) {
+			p.l.next()
+		}
+	}
+	if _, err := p.l.eat(tokRParen); err != nil {
+		return nil, err
+	}
+	if _, err := p.l.eat(tokArrow); err != nil {
+		return nil, fmt.Errorf("line %d: gen %s: expected -> ElemType", nameTok.line, nameTok.val)
+	}
+	elemTy, err := p.parseType()
+	if err != nil {
+		return nil, err
+	}
+	if !genElemTypeOK(elemTy) {
+		return nil, fmt.Errorf("line %d: gen %s: element type must be a scalar (u8, u16, i8, i16, bool), got %s", nameTok.line, nameTok.val, elemTy)
+	}
+
+	g := &nanzGen{name: nameTok.val, params: params, elemTy: elemTy, line: nameTok.line}
+	p.gens[nameTok.val] = g
+
+	// Enter a fresh scope, like parseFunDecl; `yield` is admitted only here.
+	savedVarTypes, savedGenFrames := p.varTypes, p.genFrames
+	savedArrayElems, savedPtrElem := p.localArrayElems, p.varPtrElem
+	savedInterface, savedUninit := p.varInterfaceTypes, p.uninitVars
+	p.varTypes = make(map[string]mir2.Ty)
+	p.genFrames = make(map[string]string)
+	p.localArrayElems = make(map[string]mir2.Ty)
+	p.varPtrElem = make(map[string]*mir2.StructTy)
+	p.varInterfaceTypes = make(map[string]string)
+	p.uninitVars = make(map[string]int)
+	for _, param := range params {
+		p.varTypes[param.Name] = param.Ty
+	}
+	wasInGen, wasCurGen := p.inGenBody, p.curGen
+	lambdasBefore, autoBefore := len(p.lambdas), len(p.autoFuncs)
+	p.inGenBody = true
+	p.curGen = g
+	body, err := p.parseBlock()
+	p.inGenBody = wasInGen
+	p.curGen = wasCurGen
+	p.varTypes, p.genFrames = savedVarTypes, savedGenFrames
+	p.localArrayElems, p.varPtrElem = savedArrayElems, savedPtrElem
+	p.varInterfaceTypes, p.uninitVars = savedInterface, savedUninit
+	if err != nil {
+		return nil, err
+	}
+	if len(p.lambdas) != lambdasBefore || len(p.autoFuncs) != autoBefore {
+		return nil, fmt.Errorf("line %d: gen %s: lambdas and match helpers are not allowed in a generator body", g.line, g.name)
+	}
+	if err := p.checkGenBody(g, body); err != nil {
+		return nil, err
+	}
+
+	// Frontend frame superset for typing creation sites; the expansion lowers
+	// with the precise live-across-yield layout.
+	fields := []mir2.StructField{{Name: "tag", Ty: mir2.TyU8}}
+	for _, param := range params {
+		fields = append(fields, mir2.StructField{Name: param.Name, Ty: param.Ty})
+	}
+	var walkLocals func(b *hir.Block)
+	walkLocals = func(b *hir.Block) {
+		for _, s := range b.Body {
+			switch st := s.(type) {
+			case *hir.VarDeclStmt:
+				if st.ArrayLen == 0 {
+					fields = append(fields, mir2.StructField{Name: st.Name, Ty: st.Ty})
+				}
+			case *hir.Block:
+				walkLocals(st)
+			case *hir.IfStmt:
+				walkLocals(st.Then)
+				if st.Else != nil {
+					walkLocals(st.Else)
+				}
+			case *hir.WhileStmt:
+				walkLocals(st.Body)
+			case *hir.ForRangeStmt:
+				walkLocals(st.Body)
+			case *hir.ForEachStmt:
+				walkLocals(st.Body)
+			case *hir.SwitchStmt:
+				for _, c := range st.Cases {
+					walkLocals(c.Body)
+				}
+				if st.Default != nil {
+					walkLocals(st.Default)
+				}
+			}
+		}
+	}
+	walkLocals(body)
+	g.frame = &mir2.StructTy{Name: g.name + "$frame", Fields: fields}
+
+	// Continuation tags share one u8 with the sticky DONE marker.
+	if yieldSites(body) > genMaxYieldSites {
+		return nil, fmt.Errorf("line %d: gen %s: more than %d yield sites", g.line, g.name, genMaxYieldSites)
+	}
+
+	return &hir.Func{
+		Name:   g.name,
+		Params: params,
+		RetTy:  mir2.TyVoid, // a gen finishes with a plain return; ElemTy carries the element
+		ElemTy: elemTy,
+		IsGen:  true,
+		Body:   body,
+	}, nil
+}
+
+// checkGenBody rejects the constructs stage G1 does not lower: valued
+// returns, asm, tuple-let and let-in bindings, yields inside for loops,
+// address-of a generator local, and non-scalar locals.
+func (p *parser) checkGenBody(g *nanzGen, body *hir.Block) error {
+	seen := map[string]bool{"tag": true}
+	for _, param := range g.params {
+		seen[param.Name] = true
+	}
+	var checkBlock func(b *hir.Block, inFor int) error
+	checkExpr := func(e hir.Expr, genScope map[string]bool) error {
+		var bad error
+		var visit func(x hir.Expr)
+		visit = func(x hir.Expr) {
+			switch ex := x.(type) {
+			case *hir.LetInExpr:
+				bad = fmt.Errorf("gen %s: let-in expressions in a generator body are not supported", g.name)
+			case *hir.AddrOfExpr:
+				if ex.Sym != "" && genScope[ex.Sym] {
+					bad = fmt.Errorf("gen %s: address of generator variable %q is not supported", g.name, ex.Sym)
+				}
+				if ex.X != nil {
+					visit(ex.X)
+				}
+			case *hir.CallExpr:
+				for _, a := range ex.Args {
+					visit(a)
+				}
+			case *hir.CallIndirectExpr:
+				visit(ex.FnPtr)
+				for _, a := range ex.Args {
+					visit(a)
+				}
+			case *hir.CondExpr:
+				visit(ex.Cond)
+				visit(ex.Then)
+				visit(ex.Else)
+			}
+		}
+		visit(e)
+		return bad
+	}
+	hasYield := func(b *hir.Block) bool {
+		found := false
+		var walk func(blk *hir.Block)
+		walk = func(blk *hir.Block) {
+			for _, s := range blk.Body {
+				switch st := s.(type) {
+				case *hir.YieldStmt:
+					found = true
+				case *hir.Block:
+					walk(st)
+				case *hir.IfStmt:
+					walk(st.Then)
+					if st.Else != nil {
+						walk(st.Else)
+					}
+				case *hir.WhileStmt:
+					walk(st.Body)
+				case *hir.ForRangeStmt:
+					walk(st.Body)
+				case *hir.ForEachStmt:
+					walk(st.Body)
+				case *hir.SwitchStmt:
+					for _, c := range st.Cases {
+						walk(c.Body)
+					}
+					if st.Default != nil {
+						walk(st.Default)
+					}
+				}
+			}
+		}
+		walk(b)
+		return found
+	}
+	genScope := func() map[string]bool { return seen }
+	checkBlock = func(b *hir.Block, inFor int) error {
+		for _, s := range b.Body {
+			switch st := s.(type) {
+			case *hir.YieldStmt:
+				if inFor > 0 {
+					return fmt.Errorf("gen %s: yield inside a for loop is not supported (use while)", g.name)
+				}
+				if err := checkExpr(st.Val, genScope()); err != nil {
+					return err
+				}
+			case *hir.ReturnStmt:
+				if st.Val != nil || len(st.Vals) > 0 {
+					return fmt.Errorf("gen %s: a generator finishes with a plain return", g.name)
+				}
+			case *hir.AsmStmt:
+				return fmt.Errorf("gen %s: asm blocks in a generator body are not supported", g.name)
+			case *hir.TupleLetStmt:
+				return fmt.Errorf("gen %s: tuple bindings in a generator body are not supported", g.name)
+			case *hir.VarDeclStmt:
+				if st.ArrayLen > 0 || !genFieldTyOK(st.Ty) {
+					return fmt.Errorf("gen %s: local %q has unsupported type %s (scalar or pointer)", g.name, st.Name, st.Ty)
+				}
+				if seen[st.Name] {
+					return fmt.Errorf("gen %s: duplicate local %q (generator variables share one frame)", g.name, st.Name)
+				}
+				seen[st.Name] = true
+				if st.Init != nil {
+					if err := checkExpr(st.Init, genScope()); err != nil {
+						return err
+					}
+				}
+			case *hir.Block:
+				if err := checkBlock(st, inFor); err != nil {
+					return err
+				}
+			case *hir.IfStmt:
+				if err := checkExpr(st.Cond, genScope()); err != nil {
+					return err
+				}
+				if err := checkBlock(st.Then, inFor); err != nil {
+					return err
+				}
+				if st.Else != nil {
+					if err := checkBlock(st.Else, inFor); err != nil {
+						return err
+					}
+				}
+			case *hir.WhileStmt:
+				if err := checkExpr(st.Cond, genScope()); err != nil {
+					return err
+				}
+				if err := checkBlock(st.Body, inFor); err != nil {
+					return err
+				}
+			case *hir.ForRangeStmt:
+				if err := checkExpr(st.Start, genScope()); err != nil {
+					return err
+				}
+				if err := checkExpr(st.End, genScope()); err != nil {
+					return err
+				}
+				if seen[st.Var] {
+					return fmt.Errorf("gen %s: loop variable %q shadows a generator parameter or local; rename it", g.name, st.Var)
+				}
+				seen[st.Var] = true
+				if hasYield(st.Body) {
+					return fmt.Errorf("gen %s: yield inside a for loop is not supported (use while)", g.name)
+				}
+				if err := checkBlock(st.Body, inFor+1); err != nil {
+					return err
+				}
+			case *hir.ForEachStmt:
+				for _, e := range []hir.Expr{st.Ptr, st.Start, st.Len} {
+					if err := checkExpr(e, genScope()); err != nil {
+						return err
+					}
+				}
+				if seen[st.Var] {
+					return fmt.Errorf("gen %s: loop variable %q shadows a generator parameter or local; rename it", g.name, st.Var)
+				}
+				seen[st.Var] = true
+				if hasYield(st.Body) {
+					return fmt.Errorf("gen %s: yield inside a for loop is not supported (use while)", g.name)
+				}
+				if err := checkBlock(st.Body, inFor+1); err != nil {
+					return err
+				}
+			case *hir.GenForStmt:
+				return fmt.Errorf("gen %s: consuming a generator inside a generator body is not supported", g.name)
+			case *hir.SwitchStmt:
+				if err := checkExpr(st.Val, genScope()); err != nil {
+					return err
+				}
+				for _, c := range st.Cases {
+					if err := checkBlock(c.Body, inFor); err != nil {
+						return err
+					}
+				}
+				if st.Default != nil {
+					if err := checkBlock(st.Default, inFor); err != nil {
+						return err
+					}
+				}
+			case *hir.AssignStmt:
+				if err := checkExpr(st.Val, genScope()); err != nil {
+					return err
+				}
+			case *hir.ExprStmt:
+				if err := checkExpr(st.Expr, genScope()); err != nil {
+					return err
+				}
+			case *hir.StoreStmt:
+				if err := checkExpr(st.Ptr, genScope()); err != nil {
+					return err
+				}
+			case *hir.LabelStmt, *hir.GotoStmt, *hir.BreakStmt, *hir.ContinueStmt:
+			}
+		}
+		return nil
+	}
+	return checkBlock(body, 0)
 }
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -3268,20 +3888,55 @@ func (p *parser) parseRangedType(base mir2.Ty) (mir2.Ty, error) {
 
 // ── Block & statements ────────────────────────────────────────────────────────
 
+// cloneStrMap and cloneTyMap copy a parser scope map for block scoping.
+func cloneStrMap(in map[string]string) map[string]string {
+	out := make(map[string]string, len(in))
+	for k, v := range in {
+		out[k] = v
+	}
+	return out
+}
+
+func cloneTyMap(in map[string]mir2.Ty) map[string]mir2.Ty {
+	out := make(map[string]mir2.Ty, len(in))
+	for k, v := range in {
+		out[k] = v
+	}
+	return out
+}
+
 func (p *parser) parseBlock() (*hir.Block, error) {
 	if _, err := p.l.eat(tokLBrace); err != nil {
 		return nil, err
+	}
+	// Declarations are lexically scoped with the block. Generator frames must
+	// be (a frame declared inside is no longer tracked once the block ends,
+	// and a same-named ordinary variable inside the block does not disturb an
+	// enclosing frame); varTypes/varEnumType follow so the types after the
+	// block match the HIR, where the block lowering restores bindings.
+	savedGenFrames := p.genFrames
+	savedVarTypes := p.varTypes
+	savedEnumTypes := p.varEnumType
+	p.genFrames = cloneStrMap(savedGenFrames)
+	p.varTypes = cloneTyMap(savedVarTypes)
+	p.varEnumType = cloneStrMap(savedEnumTypes)
+	restore := func() {
+		p.genFrames = savedGenFrames
+		p.varTypes = savedVarTypes
+		p.varEnumType = savedEnumTypes
 	}
 	var stmts []hir.Stmt
 	for !p.l.is(tokRBrace) && !p.l.is(tokEOF) {
 		s, err := p.parseStmt()
 		if err != nil {
+			restore()
 			return nil, err
 		}
 		if s != nil {
 			stmts = append(stmts, s)
 		}
 	}
+	restore()
 	if _, err := p.l.eat(tokRBrace); err != nil {
 		return nil, err
 	}
@@ -3363,6 +4018,9 @@ func (p *parser) parseStmt() (stmt hir.Stmt, err error) {
 		name := p.l.peekN(1)
 		if name.kind == tokIdent {
 			if metaSrc, ok := p.metaFuncs[name.val]; ok {
+				if p.inGenBody {
+					return nil, fmt.Errorf("line %d: metafunction expansion is not allowed in a generator body", t.line)
+				}
 				return p.parseMetaStmt(metaSrc, name.val)
 			}
 		}
@@ -3381,6 +4039,29 @@ func (p *parser) parseStmt() (stmt hir.Stmt, err error) {
 		return p.parseLoop()
 	case t.kind == tokIdent && t.val == "for":
 		return p.parseFor()
+	case t.kind == tokIdent && t.val == "yield":
+		p.l.next()
+		if !p.inGenBody {
+			return nil, fmt.Errorf("line %d: yield is only valid inside a gen body", t.line)
+		}
+		val, err := p.parseExpr()
+		if err != nil {
+			return nil, err
+		}
+		if p.curGen != nil {
+			// Widen an in-range literal to the element type, exactly like
+			// `var x: u16 = 1` does: `gen w() -> u16 { yield 1 }` is legal.
+			if lit, isLit := val.(*hir.IntLitExpr); isLit && intLitFits(lit.Val, p.curGen.elemTy) {
+				lit.Ty = p.curGen.elemTy
+			}
+			if val.ExprTy() != p.curGen.elemTy {
+				return nil, fmt.Errorf("line %d: yield type %s does not match generator element type %s", t.line, val.ExprTy(), p.curGen.elemTy)
+			}
+		}
+		if !genElemTypeOK(val.ExprTy()) {
+			return nil, fmt.Errorf("line %d: yield needs a scalar value (u8, u16, i8, i16, bool), got %s", t.line, val.ExprTy())
+		}
+		return &hir.YieldStmt{Val: val}, nil
 	case t.kind == tokIdent && t.val == "return":
 		return p.parseReturn()
 	case t.kind == tokIdent && t.val == "break":
@@ -3504,6 +4185,7 @@ func (p *parser) parseLetDecl() (hir.Stmt, error) {
 	if err := p.l.eatIdent("let"); err != nil {
 		return nil, err
 	}
+	p.lastEnumVariant = "" // only a fresh Enum.VARIANT initializer counts
 
 	// Tuple destructuring: let (a, b) = fn(...)
 	if p.l.is(tokLParen) {
@@ -3566,11 +4248,16 @@ func (p *parser) parseLetDecl() (hir.Stmt, error) {
 			if p.uninitVars != nil {
 				delete(p.uninitVars, nameTok.val)
 			}
+			delete(p.genFrames, nameTok.val) // an array cannot be a frame
 			return d, nil
 		}
 	}
 
 	init, err := p.parseExpr()
+	if err != nil {
+		return nil, err
+	}
+	init, err = p.maybeGenMake(init)
 	if err != nil {
 		return nil, err
 	}
@@ -3584,6 +4271,13 @@ func (p *parser) parseLetDecl() (hir.Stmt, error) {
 	// Infer type from RHS if not given.
 	if ty == nil {
 		ty = init.ExprTy()
+		// `let s = State.IDLE` infers the enum type like `let s: State`:
+		// register it so the exhaustive-switch check applies.
+		if _, isLit := init.(*hir.IntLitExpr); isLit && p.lastEnumVariant != "" {
+			if _, isEnum := p.enums[p.lastEnumVariant]; isEnum {
+				p.varEnumType[nameTok.val] = p.lastEnumVariant
+			}
+		}
 	}
 	// fold/reduce returns the accumulator type (inferred from callback return).
 	if ty == nil || ty == mir2.TyVoid {
@@ -3621,6 +4315,15 @@ func (p *parser) parseLetDecl() (hir.Stmt, error) {
 		d.Ty = ty
 		d.Init = init
 		p.varTypes[nameTok.val] = ty
+	}
+	if mk, isMake := init.(*hir.GenMakeExpr); isMake {
+		if ty != mk.Frame {
+			return nil, fmt.Errorf("line %d: let %q has type %s, but %s creates a %s frame",
+				nameTok.line, nameTok.val, ty, mk.Gen, mk.Frame)
+		}
+		p.genFrames[nameTok.val] = mk.Gen
+	} else {
+		delete(p.genFrames, nameTok.val)
 	}
 	return d, nil
 }
@@ -3695,38 +4398,45 @@ func (p *parser) parseVarDecl() (hir.Stmt, error) {
 	if err := p.l.eatIdent("var"); err != nil {
 		return nil, err
 	}
+	p.lastEnumVariant = "" // only a fresh Enum.VARIANT initializer counts
 	nameTok, err := p.l.eat(tokIdent)
 	if err != nil {
 		return nil, err
 	}
-	if _, err := p.l.eat(tokColon); err != nil {
-		return nil, err
-	}
-	// Track enum type name for exhaustive switch check
-	if tname := p.l.peek(); tname.kind == tokIdent {
-		if _, isEnum := p.enums[tname.val]; isEnum {
-			p.varEnumType[nameTok.val] = tname.val
+	var ty mir2.Ty
+	if p.l.is(tokColon) {
+		p.l.next()
+		// Track enum type name for exhaustive switch check
+		if tname := p.l.peek(); tname.kind == tokIdent {
+			if _, isEnum := p.enums[tname.val]; isEnum {
+				p.varEnumType[nameTok.val] = tname.val
+			}
 		}
-	}
-	ty, err := p.parseType()
-	if p.lastCallable != nil {
-		p.varCallables[nameTok.val] = p.lastCallable
-	}
-	if err != nil {
-		return nil, err
+		ty, err = p.parseType()
+		if p.lastCallable != nil {
+			p.varCallables[nameTok.val] = p.lastCallable
+		}
+		if err != nil {
+			return nil, err
+		}
+	} else if !p.l.is(tokEq) {
+		return nil, fmt.Errorf("line %d: var needs a type or an initializer", nameTok.line)
 	}
 
 	d := &hir.VarDeclStmt{Name: nameTok.val}
 
-	// Unwrap array type
-	if at, ok := ty.(*mir2.ArrayTy); ok {
-		d.Ty = at.Elem
-		d.ArrayLen = at.Len
-		p.varTypes[nameTok.val] = at.Elem
-		p.localArrayElems[nameTok.val] = at.Elem
-	} else {
-		d.Ty = ty
-		p.varTypes[nameTok.val] = ty
+	// Declarations without a type parse the initializer first; the type (and
+	// generator frame bookkeeping) is resolved from it below.
+	if ty != nil {
+		if at, ok := ty.(*mir2.ArrayTy); ok {
+			d.Ty = at.Elem
+			d.ArrayLen = at.Len
+			p.varTypes[nameTok.val] = at.Elem
+			p.localArrayElems[nameTok.val] = at.Elem
+		} else {
+			d.Ty = ty
+			p.varTypes[nameTok.val] = ty
+		}
 	}
 
 	// Track this var as uninitialized until we see an init or at(addr).
@@ -3784,8 +4494,42 @@ func (p *parser) parseVarDecl() (hir.Stmt, error) {
 			if err != nil {
 				return nil, err
 			}
+			init, err = p.maybeGenMake(init)
+			if err != nil {
+				return nil, err
+			}
 			d.Init = init
 		}
+	}
+
+	// Infer the type from the initializer when it was omitted.
+	if ty == nil {
+		if d.Init == nil {
+			return nil, fmt.Errorf("line %d: var %q needs a type or an initializer", nameTok.line, nameTok.val)
+		}
+		ty = d.Init.ExprTy()
+		if ty == nil || ty == mir2.TyVoid {
+			return nil, fmt.Errorf("line %d: cannot infer a type for var %q", nameTok.line, nameTok.val)
+		}
+		d.Ty = ty
+		p.varTypes[nameTok.val] = ty
+		// `var s = State.IDLE` infers the enum type like `var s: State`:
+		// register it so the exhaustive-switch check applies.
+		if _, isLit := d.Init.(*hir.IntLitExpr); isLit && p.lastEnumVariant != "" {
+			if _, isEnum := p.enums[p.lastEnumVariant]; isEnum {
+				p.varEnumType[nameTok.val] = p.lastEnumVariant
+			}
+		}
+	}
+	if mk, isMake := d.Init.(*hir.GenMakeExpr); isMake {
+		if ty != mk.Frame {
+			return nil, fmt.Errorf("line %d: var %q has type %s, but %s creates a %s frame",
+				nameTok.line, nameTok.val, ty, mk.Gen, mk.Frame)
+		}
+		p.genFrames[nameTok.val] = mk.Gen
+	} else {
+		// Redeclaration of a former frame name is an ordinary variable now.
+		delete(p.genFrames, nameTok.val)
 	}
 
 	return d, nil
@@ -3996,6 +4740,41 @@ func (p *parser) parseFor() (hir.Stmt, error) {
 	p.warnUninitInExpr(base)
 	p.uninitVars = nil // stop tracking inside loops (conservative)
 
+	// ── for x in gen(args) { body } → GenForStmt ──
+	// The loop owns a temporary frame; break abandons it without resuming.
+	if call, ok := base.(*hir.CallExpr); ok {
+		if g, isGen := p.gens[call.Fn]; isGen {
+			if len(call.Args) != len(g.params) {
+				return nil, fmt.Errorf("line %d: generator %s takes %d arguments, got %d",
+					varTok.line, g.name, len(g.params), len(call.Args))
+			}
+			if p.genFrames[varTok.val] != "" {
+				return nil, fmt.Errorf("line %d: loop variable %q shadows a generator frame", varTok.line, varTok.val)
+			}
+			// The element variable binds only inside the loop; the enclosing
+			// binding (if any) is back in scope after it.
+			savedTy, savedHadTy := p.varTypes[varTok.val]
+			p.varTypes[varTok.val] = g.elemTy
+			p.uninitVars = nil
+			body, err := p.parseBlock()
+			p.varTypes[varTok.val] = savedTy
+			if !savedHadTy {
+				delete(p.varTypes, varTok.val)
+			}
+			if err != nil {
+				return nil, err
+			}
+			return &hir.GenForStmt{
+				Var:    varTok.val,
+				Gen:    g.name,
+				Frame:  g.frame,
+				Args:   call.Args,
+				ElemTy: g.elemTy,
+				Body:   body,
+			}, nil
+		}
+	}
+
 	// ── for x: T in ptr[start..end] → ForEachStmt ──
 	if p.l.is(tokLBrack) {
 		p.l.next()
@@ -4119,6 +4898,11 @@ func (p *parser) parsePostfixNoBrack(base hir.Expr) (hir.Expr, error) {
 			base = p.makeFieldExpr(base, fieldTok.val)
 		case tokLParen:
 			p.l.next()
+			pullArgs := false
+			if vr, ok := base.(*hir.VarRefExpr); ok && vr.Name == "pull_next" {
+				pullArgs = true
+				p.inPullArgs++
+			}
 			var args []hir.Expr
 			for !p.l.is(tokRParen) && !p.l.is(tokEOF) {
 				a, err := p.parseExpr()
@@ -4132,6 +4916,9 @@ func (p *parser) parsePostfixNoBrack(base hir.Expr) (hir.Expr, error) {
 			}
 			if _, err := p.l.eat(tokRParen); err != nil {
 				return nil, err
+			}
+			if pullArgs {
+				p.inPullArgs--
 			}
 			var err error
 			base, err = p.resolveCall(base, args)
@@ -4995,6 +5782,10 @@ func (p *parser) parseUnary() (hir.Expr, error) {
 		}
 		switch target := target.(type) {
 		case *hir.VarRefExpr:
+			if p.genFrames[target.Name] != "" && p.inPullArgs == 0 {
+				return nil, fmt.Errorf("line %d: address of generator frame %q is only valid inside pull_next(&%s, &out)",
+					t.line, target.Name, target.Name)
+			}
 			ty := p.exprTy(target)
 			if elem := p.localArrayElems[target.Name]; elem != nil {
 				ty = elem
@@ -5311,6 +6102,11 @@ func (p *parser) parsePostfix(base hir.Expr) (hir.Expr, error) {
 			}
 			// call: base must be VarRefExpr (function name)
 			p.l.next()
+			pullArgs := false
+			if vr, ok := base.(*hir.VarRefExpr); ok && vr.Name == "pull_next" {
+				pullArgs = true
+				p.inPullArgs++
+			}
 			var args []hir.Expr
 			for !p.l.is(tokRParen) && !p.l.is(tokEOF) {
 				a, err := p.parseExpr()
@@ -5324,6 +6120,9 @@ func (p *parser) parsePostfix(base hir.Expr) (hir.Expr, error) {
 			}
 			if _, err := p.l.eat(tokRParen); err != nil {
 				return nil, err
+			}
+			if pullArgs {
+				p.inPullArgs--
 			}
 			var err error
 			base, err = p.resolveCall(base, args)
@@ -5518,6 +6317,9 @@ func (p *parser) parsePrimary() (hir.Expr, error) {
 			if !ok {
 				return nil, fmt.Errorf("line %d: %s.%s: unknown variant", vTok.line, t.val, vTok.val)
 			}
+			// Remember the enum so an inferred `var s = State.IDLE` registers
+			// its enum type for the exhaustive-switch check, like `var s: State`.
+			p.lastEnumVariant = t.val
 			return &hir.IntLitExpr{Val: val, Ty: p.enumBaseTy[t.val]}, nil
 		}
 		// Struct literal: StructName { field: val, ... }
@@ -5530,6 +6332,20 @@ func (p *parser) parsePrimary() (hir.Expr, error) {
 			return lit, nil
 		}
 		p.l.next()
+		// A generator declaration is not a value: its only uses are frame
+		// creation `g(args)` (rewritten during parsing) and the for form.
+		// Anything else — including `var q = g` and `&g`, which used to reach
+		// the HIR lowerer and panic on the unknown name — is a source error.
+		if _, isGen := p.gens[t.val]; isGen && !p.l.is(tokLParen) {
+			return nil, fmt.Errorf("line %d: generator %q cannot be used as a value; create a frame with `var it = %s(...)` or consume it with `for x in %s(...)`",
+				t.line, t.val, t.val, t.val)
+		}
+		// A generator frame is not a value: only pull_next(&frame, &out) may
+		// name it. Everything else is a compile error, not a silent copy.
+		if p.genFrames[t.val] != "" && p.inPullArgs == 0 {
+			return nil, fmt.Errorf("line %d: generator frame %q can only be used as pull_next(&%s, &out)",
+				t.line, t.val, t.val)
+		}
 		// Bare function name used as a value (not followed by '(' call) →
 		// function pointer.  Emit AddrOfExpr so MIR2 generates LD HL, label.
 		_, localValue := p.varTypes[t.val]
@@ -5812,6 +6628,11 @@ func (p *parser) resolveCall(base hir.Expr, args []hir.Expr) (hir.Expr, error) {
 		name = resolved
 	}
 
+	// pull_next(&frame, &out) — the compiler-known pull operation (ADR 0049).
+	if name == "pull_next" {
+		return p.resolvePullNext(args)
+	}
+
 	// Partial application: detect _ placeholders
 	// add(5, _) desugars to: fun lambda_N(p0: u8) -> retTy { return add(5, p0) }
 	if name != "" {
@@ -5883,6 +6704,72 @@ func (p *parser) resolveCall(base hir.Expr, args []hir.Expr) (hir.Expr, error) {
 		return &hir.CallExpr{Fn: name, Args: args, Ty: callTy}, nil
 	}
 	return &hir.CallExpr{Fn: name, Args: args, Ty: callTy}, nil
+}
+
+// maybeGenMake turns a direct `gen(args)` initializer into a frame creation.
+// A generator call nested inside a larger expression is a source error.
+func (p *parser) maybeGenMake(init hir.Expr) (hir.Expr, error) {
+	if call, ok := init.(*hir.CallExpr); ok {
+		if g, isGen := p.gens[call.Fn]; isGen {
+			if len(call.Args) != len(g.params) {
+				return nil, fmt.Errorf("line %d: generator %s takes %d arguments, got %d",
+					p.l.peek().line, g.name, len(g.params), len(call.Args))
+			}
+			return &hir.GenMakeExpr{Gen: g.name, Frame: g.frame, Args: call.Args}, nil
+		}
+		return init, nil
+	}
+	// Nested misuse: any generator call that is not the whole initializer.
+	if bad := firstGenCall(hir.Blk(&hir.ExprStmt{Expr: init}), p.gens); bad != "" {
+		return nil, fmt.Errorf("line %d: generator %s(...) can only initialize a variable or feed a for loop",
+			p.l.peek().line, bad)
+	}
+	return init, nil
+}
+
+// resolvePullNext resolves pull_next(&frame, &out) to the generator's
+// concrete continuation. The frame must be a generator frame created in this
+// scope; the output must be a distinct scalar lvalue of the element type.
+func (p *parser) resolvePullNext(args []hir.Expr) (hir.Expr, error) {
+	line := p.l.peek().line
+	bad := func(format string, a ...any) (hir.Expr, error) {
+		return nil, fmt.Errorf("line %d: pull_next: %s", line, fmt.Sprintf(format, a...))
+	}
+	if len(args) != 2 {
+		return bad("expects pull_next(&frame, &out), got %d arguments", len(args))
+	}
+	frame, ok := args[0].(*hir.AddrOfExpr)
+	if !ok || frame.Sym == "" {
+		return bad("first argument must be the address of a generator frame")
+	}
+	genName, known := p.genFrames[frame.Sym]
+	if !known {
+		return bad("%q is not a generator frame (create one with `var %s = gen(...)`)", frame.Sym, frame.Sym)
+	}
+	g := p.gens[genName]
+	out, ok := args[1].(*hir.AddrOfExpr)
+	if !ok || out.Sym == "" {
+		return bad("second argument must be the address of a scalar variable")
+	}
+	if p.genFrames[out.Sym] != "" {
+		return bad("output overlaps generator frame %q", out.Sym)
+	}
+	outTy, hasTy := p.varTypes[out.Sym]
+	if !hasTy {
+		outTy, hasTy = p.globalTypes[out.Sym]
+	}
+	if !hasTy {
+		return bad("output %q is not a declared variable", out.Sym)
+	}
+	if outTy != g.elemTy {
+		return bad("output %q has type %s, want element type %s", out.Sym, outTy, g.elemTy)
+	}
+	return &hir.GenNextExpr{
+		Gen:    g.name,
+		ElemTy: g.elemTy,
+		Frame:  frame,
+		Out:    out,
+	}, nil
 }
 
 // paramTysFromFunc extracts parameter types from an HIR function.

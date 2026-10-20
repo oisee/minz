@@ -2,7 +2,21 @@
 
 ## Status
 
-Draft. Date: 2026-10-18. No generator syntax or lowering is implemented by this ADR.
+Draft. Date: 2026-10-18. Stage G1 is implemented: scalar `gen`/`yield` lowers to a
+caller-owned frame plus a concrete `next(frame, out) -> bool` (`minzc/pkg/hir/lower_gen.go`,
+`minzc/pkg/nanz/parse.go`; differential gate `minzc/pkg/nanz/gen_yield_e2e_test.go` on raw
+MIR2 VM, optimised MIR2 VM and Z80). Fusion (ADR 0050) and fallible sources remain proposed.
+
+**Known deviation (recorded 2026-10-20, REVIEW FIX 1):** this ADR requires rejecting
+unknown pointer provenance for borrowed sources ("accept only statically established
+source lifetimes … reject unknown pointer provenance unless a separate explicit unsafe
+contract is introduced"). The G1 implementation accepts any `^u8`/`^u16` source without
+a provenance check: the frontend only rejects struct/array frame fields, address-of a
+gen local, and frame copies/escapes — nothing establishes that a borrowed source
+outlives its frame. Storing a source that dangles at resume time is therefore possible
+today and is NOT caught. This deviation is deliberate (a provenance analysis does not
+exist yet in the Nanz frontend) and must be closed — or moved under an explicit unsafe
+contract — before generators leave the experimental profile.
 
 ## Context
 

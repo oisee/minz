@@ -2,7 +2,11 @@
 
 ## Status
 
-Draft. Date: 2026-10-18. Existing array iterator fusion is implemented; generalized generator fusion described here is proposed.
+Draft. Date: 2026-10-18. Existing array iterator fusion is implemented; generalized
+generator fusion described here is proposed. Stage G1 lowered only the pull path —
+`for x in gen(args)` desugars to a local frame plus `while pull_next(&frame, &x)`,
+with no fusion, so the measured pull overhead (see the G1 progress notes) is the
+baseline a fusion pass must beat.
 
 ## Context
 
