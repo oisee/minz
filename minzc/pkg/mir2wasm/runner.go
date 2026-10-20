@@ -51,9 +51,19 @@ func RunAsserts(hm *hir.Module, m *mir2.Module, force bool) error {
 			}
 			return fmt.Errorf("line %d: assert %q [wasm]: no return value", a.Line, a.Source)
 		}
-		got := int64(results[0]) & 0xFF
-		if got != a.Expected {
-			return fmt.Errorf("line %d: assert %q [wasm]: got %d, want %d", a.Line, a.Source, got, a.Expected)
+		wants := a.ExpectedMulti
+		if len(wants) == 0 {
+			wants = []int64{a.Expected}
+		}
+		returns := m.FuncByName(a.FuncName).Contract.Returns
+		if len(results) < len(wants) || len(returns) < len(wants) {
+			return fmt.Errorf("line %d: assert %q [wasm]: function returned %d values, want %d", a.Line, a.Source, len(results), len(wants))
+		}
+		for i, want := range wants {
+			got := int64(results[i])
+			if !hir.AssertValueMatches(got, want, returns[i].Ty) {
+				return fmt.Errorf("line %d: assert %q [wasm]: return[%d] got %d, want %d", a.Line, a.Source, i, got, want)
+			}
 		}
 		return nil
 	}

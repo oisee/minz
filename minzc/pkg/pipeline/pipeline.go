@@ -787,19 +787,20 @@ func runOneAssertMIR2(vm *mir2.VM, a hir.Assert) error {
 	if len(rets) == 0 {
 		return fmt.Errorf("line %d: assert %q [mir2]: function returned no value", a.Line, a.Source)
 	}
+	returns := vm.Module.FuncByName(a.FuncName).Contract.Returns
 	if len(a.ExpectedMulti) > 0 {
 		if len(rets) < len(a.ExpectedMulti) {
 			return fmt.Errorf("line %d: assert %q [mir2]: function returned %d values, want %d",
 				a.Line, a.Source, len(rets), len(a.ExpectedMulti))
 		}
 		for i, want := range a.ExpectedMulti {
-			if rets[i].I != want {
+			if !hir.AssertValueMatches(rets[i].I, want, returns[i].Ty) {
 				return fmt.Errorf("line %d: assert %q [mir2]: return[%d] got %d, want %d",
 					a.Line, a.Source, i, rets[i].I, want)
 			}
 		}
 	} else {
-		if rets[0].I != a.Expected {
+		if !hir.AssertValueMatches(rets[0].I, a.Expected, returns[0].Ty) {
 			return fmt.Errorf("line %d: assert %q [mir2]: got %d, want %d",
 				a.Line, a.Source, rets[0].I, a.Expected)
 		}
@@ -1171,7 +1172,7 @@ func checkAssertZ80Result(z *emulator.RemogattoZ80, a hir.Assert,
 				return err
 			}
 
-			if value != want {
+			if !hir.AssertValueMatches(value, want, ret.Ty) {
 				return fmt.Errorf("line %d: assert %q [z80]: return[%d] got %d, want %d",
 					a.Line, a.Source, i, value, want)
 			}
@@ -1190,7 +1191,7 @@ func checkAssertZ80Result(z *emulator.RemogattoZ80, a hir.Assert,
 		if err != nil {
 			return err
 		}
-		if got != a.Expected {
+		if !hir.AssertValueMatches(got, a.Expected, ret.Ty) {
 			return fmt.Errorf("line %d: assert %q [z80]: got %d, want %d",
 				a.Line, a.Source, got, a.Expected)
 		}
