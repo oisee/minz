@@ -185,7 +185,7 @@ runs these jobs on PRs and pushes to main:
   This uses the mostly constant-folded mode described above. No seeds are skipped.
   Tool exceptions
   still fail the job. Full reproducers and JSON are artifacts.
-- **Direct-call fuzz** runs the same seeds with `--mode direct-call`
+- **Direct-call fuzz findings** (blocking) runs the same seeds with `--mode direct-call`
   and `--fail-on all`. Any finding or tool exception fails the job. Counts,
   finding classes and the exit code remain in the summary, with full reproducers
   and JSON in artifacts.
