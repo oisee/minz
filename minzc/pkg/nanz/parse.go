@@ -4181,12 +4181,22 @@ func (p *parser) parseReturn() (hir.Stmt, error) {
 			}
 			return &hir.ReturnStmt{Vals: vals}, nil
 		}
-		// Single parenthesised expression — consume ')' and treat as single return.
+		// A scalar return may continue after the closing parenthesis with
+		// postfix operations, casts, or binary operators. Reuse the ordinary
+		// expression tails so tuple disambiguation does not truncate it.
 		if _, err2 := p.l.eat(tokRParen); err2 != nil {
 			return nil, err2
 		}
-		p.warnUninitInExpr(first)
-		return &hir.ReturnStmt{Val: first}, nil
+		first, err = p.parsePostfix(first)
+		if err != nil {
+			return nil, err
+		}
+		val, err := p.parseBinaryTail(first, 0)
+		if err != nil {
+			return nil, err
+		}
+		p.warnUninitInExpr(val)
+		return &hir.ReturnStmt{Val: val}, nil
 	}
 	val, err := p.parseExpr()
 	if err != nil {
@@ -4845,6 +4855,12 @@ func (p *parser) parseBinary(minPrec int) (hir.Expr, error) {
 	if err != nil {
 		return nil, err
 	}
+	return p.parseBinaryTail(lhs, minPrec)
+}
+
+// parseBinaryTail continues an already parsed operand with the usual Pratt
+// precedence rules, including casts, pipes, and overloaded operators.
+func (p *parser) parseBinaryTail(lhs hir.Expr, minPrec int) (hir.Expr, error) {
 	for {
 		t := p.l.peek()
 		// "expr as type" cast — high precedence postfix.

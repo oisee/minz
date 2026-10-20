@@ -277,6 +277,7 @@
     "TestPFCCOOriginalTokenizerRenderingConsumer",
     "TestPFCCOProspectiveHeldout",
     "TestPLMModuleEntryNative",
+    "TestParenthesizedReturnOptInlineZ80",
     "TestPascalCPMAdapterNearMisses",
     "TestPascalCPMMainAdmission",
     "TestPascalCanonicalDeadRuntimeAdmissionAndDenial",
