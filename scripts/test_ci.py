@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Exercise CI tree selection, controls filtering and bounded summaries."""
+"""Exercise CI gates, tree selection, controls filtering and bounded summaries."""
 import json
 import io
 import os
@@ -53,6 +53,48 @@ os.execv({sys.executable!r}, [{sys.executable!r}] + sys.argv[1:])
                     else:
                         self.assertNotIn('--glob', argv)
                     self.assertIn('--controls', argv)
+
+    def test_direct_call_gate_preserves_exit_status_and_reports(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            bins = root / 'bins'
+            bins.mkdir()
+            candidate = bins / 'candidate-mz'
+            (bins / 'baseline-mz').write_text('unused baseline fixture')
+            compiler = f'''#!{sys.executable}
+import os, sys
+from pathlib import Path
+assert 'assert fuzz_entry(' in Path(sys.argv[1]).read_text()
+if os.environ['FAKE_FINDING'] == 'true' and sys.argv[sys.argv.index('--asserts-force') + 1] == 'z80':
+    print('error: assert [z80]: got 1, want 2', file=sys.stderr)
+    print('ASSERTS: executed=1 passed=0 failed=1', file=sys.stderr)
+    raise SystemExit(1)
+print('ASSERTS: executed=1 passed=1 failed=0', file=sys.stderr)
+'''
+            for name, expected in [('pass', 0), ('finding', 1), ('tool-error', 2)]:
+                with self.subTest(name=name):
+                    # An executable without a valid header raises a tool error.
+                    candidate.write_text('invalid executable' if expected == 2 else compiler)
+                    report = root / name
+                    env = dict(os.environ, CI_BIN=str(bins), REPORT_DIR=str(report),
+                               FUZZ_COUNT='1', JOBS='1', FAKE_FINDING=str(expected == 1).lower(),
+                               GITHUB_STEP_SUMMARY=str(root / 'step-summary.md'))
+                    proc = subprocess.run(['bash', str(ROOT / 'scripts/ci/run.sh'), 'fuzz-direct'],
+                                          cwd=ROOT, env=env, capture_output=True, text=True)
+                    self.assertEqual(proc.returncode, expected, proc.stdout + proc.stderr)
+                    summary = (report / 'summary.md').read_text()
+                    self.assertIn(f'fuzz-direct — exit {expected}', summary)
+                    self.assertIn(f'fuzz-direct: exit {expected}', (report / 'log.txt').read_text())
+                    self.assertIn(summary, (root / 'step-summary.md').read_text())
+                    if expected != 2:
+                        results = json.loads((report / 'results.json').read_text())
+                        self.assertEqual(results[0]['status'], 'Z80 != MIR2' if expected else 'pass')
+                        self.assertIn('Direct-call findings and tool errors fail the job.', summary)
+                    if expected == 1:
+                        self.assertIn('seed 0: Z80 != MIR2', summary)
+                        self.assertTrue((report / 'seed-0.nanz').exists())
+                    elif expected == 2:
+                        self.assertIn('tool error:', summary)
 
     def test_merge_parent_and_controls_filter(self):
         with tempfile.TemporaryDirectory() as temp:

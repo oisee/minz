@@ -14,8 +14,7 @@ assembled Z80 in the three test files under `minzc/pkg/nanz`:
 `generator_contract_e2e_test.go`. `TestG0IterChainAsmCallback` and legacy
 execution tests are **Z80-only**. G0-5 and G0-L1 currently pin invalid
 assembly/rejection; clean acceptance must execute and check semantics.
-G0-7 currently pins a **parser-only** failure; once parsing succeeds it
-must evaluate on all three tiers. Skipped findings stop at the first
+G0-7 is fixed (P17): the test now parses and evaluates on all three tiers. Skipped findings stop at the first
 observed failure, so a skip does not establish results on later tiers.
 The callback `break` panic and exact `$F018` index address below are
 inspection observations, not executable pins. The historical 0/11 corpus
@@ -104,10 +103,10 @@ Recorded, not fixed here:
   acceptance checks take(3)=6, skip(3)=30, iter/enumerate traversal sum=36
   on input [1..8]).
 - **G0-6 (withdrawn):** u16 overflow truncates consistently to 24464 on all tiers.
-- **G0-7** — parser: `return (a * 3) + x` is rejected ("unexpected token +")
-  while `return a * 3 + x` parses; a parenthesised multiplication operand
-  before `+` breaks expression parsing (assignments too). Test:
-  `TestG0Finding_ParenMulPlusParses` (skip).
+- **G0-7 (fixed by P17)** — a scalar `return` stopped after its first
+  parenthesised operand (`return (a * 3) + x`, `return (b+b)-(a+a)`), so the
+  rest became an unreachable statement or a parse error; the parser now reads
+  the complete expression. Test: `TestG0Finding_ParenMulPlusParses` (passes).
 - **G0-8** — capturing `forEach` lambdas containing a non-trailing return
   (or asm) require CALL, but `LowerModule` omits capturing lambdas as
   standalone functions. Minimal repro:

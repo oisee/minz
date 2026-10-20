@@ -43,7 +43,7 @@ elif job == 'sweep' and (root / 'sweep.json').exists():
     lines += [f'- `{r["file"]}`' for r in report['output_changes'][:100]] or ['None.']
 elif job in ('fuzz', 'fuzz-direct') and (root / 'results.json').exists():
     if job == 'fuzz-direct':
-        lines += ['Direct-call findings are report-only pending compiler fixes; tool errors still fail the job.', '']
+        lines += ['Direct-call findings and tool errors fail the job.', '']
     counts = {}
     failures = []
     for r in json.loads((root / 'results.json').read_text()):
