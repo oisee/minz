@@ -125,8 +125,9 @@ fun same_two()->u16{return 7}`
 // The relocated unit-RHS correction (2dbe4355) changes only native emission;
 // reports/hardware-parser-reference retains unchanged source/MIR/allocation,
 // old/new ASM/BIN, and all three route comparisons.
-// P12 byte spill slot width fix, oracle unchanged, -3844 T / -14 bytes.
-// Remeasurement matches clean origin/main: this cost drift predates P12.
+// Refreshed 2026-10-20 (-3844 T / -14 bytes, oracle unchanged): clean
+// origin/main dde023f4 already emitted this exact binary; the byte spill slot
+// width fix leaves it unchanged.
 func assertCurrentMemoryHostParserReference(t *testing.T, target *MemoryHostTargetEvidence) {
 	t.Helper()
 	if target.TotalTStates != 1284928 || len(target.Binary) != 2354 || target.BinarySHA256 != "29922da40df51e65b4d9701e6b57e1960a2d000a0191fbfbc6a5ae09e04843d8" {

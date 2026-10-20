@@ -21,8 +21,9 @@
 
 Полные JSON-наблюдения находятся в persistent checkpoints `hardware-parser-reference-refresh/before` и `/after`, скопированы на шару вместе с этим отчётом. Полный pipeline и CI в рамках обновления не перезапускались; прежний общий прогон закончился timeout, поэтому этот focused PASS не объявляется общим PASS.
 
-P12 byte spill slot width fix, oracle unchanged, -3844 T / -14 bytes.
-Clean origin/main produces the identical native artifact: this cost drift predates P12.
+Refresh 2026-10-20: -3844 T / -14 bytes, oracle unchanged. Clean origin/main dde023f4
+already emitted this exact binary (the drift predates the byte spill slot width fix,
+which leaves it unchanged).
 The current parser reference is 1284928 T / 2354 bytes, SHA256
 `29922da40df51e65b4d9701e6b57e1960a2d000a0191fbfbc6a5ae09e04843d8`.
 The archived measurements, logs, binaries, audit, and manifest above retain their
