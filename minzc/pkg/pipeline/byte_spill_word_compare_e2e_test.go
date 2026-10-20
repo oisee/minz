@@ -56,7 +56,7 @@ assert fuzz_entry(37858, 28825, 59858) == 17044 via z80
 		t.Fatalf("assert stats = %+v", hm.AssertStats)
 	}
 	if !containsByteSlot(steps.Assembly, "fuzz_entry") {
-		t.Logf("note: allocator gave fuzz_entry no byte-wide spill slot")
+		t.Fatal("allocator gave fuzz_entry no byte-wide spill slot; regression no longer exercises a byte home")
 	}
 }
 

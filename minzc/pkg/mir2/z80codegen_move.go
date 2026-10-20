@@ -912,6 +912,7 @@ func (g *z80cg) emitMov(dst, src string, widthBits int) {
 				g.emit("    EX AF, AF'")
 				g.storeSpill8(dst, "L")
 				g.emit("    EX AF, AF'")
+				g.invalidate("A") // The copy was made in shadow A, now exchanged out.
 				g.emit("    POP HL")
 			default:
 				g.emit("    PUSH HL")
@@ -938,6 +939,7 @@ func (g *z80cg) emitMov(dst, src string, widthBits int) {
 				g.emit("    EX AF, AF'")
 				g.storeSpill8(dst, lowByte(src))
 				g.emit("    EX AF, AF'")
+				g.invalidate("A") // The copy was made in shadow A, now exchanged out.
 				break
 			}
 			g.emitNativeSpillf(dst, 0, 2, true, "    LD (%s), %s", dst, src)

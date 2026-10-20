@@ -1449,6 +1449,7 @@ func (g *z80cg) genInst(inst *Inst) {
 				g.emit("    EX AF, AF'")
 				g.storeSpill8(slotLoc, "L")
 				g.emit("    EX AF, AF'")
+				g.invalidate("A") // The copy was made in shadow A, now exchanged out.
 			} else {
 				g.emitf("    LD (%s), HL", slotLoc)
 			}
