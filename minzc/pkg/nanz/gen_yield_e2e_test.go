@@ -622,6 +622,38 @@ fun sc_block_frame_outer() -> u16 {
     }
     return s
 }
+
+// ── element types (inferred enum variables, widened literals) ─────────────
+
+enum Mode { OFF, ON, AUTO }
+
+// An inferred "var m = Mode.OFF" carries its enum type like "var m: Mode":
+// switching on it must stay exhaustive (checked by the negative case).
+fun sc_enum_infer(c: u8) -> u8 {
+    var m = Mode.OFF
+    if c == 1 { m = Mode.ON }
+    if c == 2 { m = Mode.AUTO }
+    switch m {
+        case Mode.OFF: return 10
+        case Mode.ON: return 20
+        default: return 30
+    }
+}
+
+// In-range literals widen to the element type, like "var x: u16 = 1".
+gen wide_lit() -> u16 {
+    yield 1
+    yield 40000
+    yield 65535
+}
+
+fun sc_wide_lit() -> u16 {
+    var s: u16 = 0
+    for v in wide_lit() {
+        s = s * 3 + v
+    }
+    return s
+}
 `
 
 type g1Scenario struct {
@@ -821,6 +853,22 @@ func g1GenScenarios() []g1Scenario {
 			s = s*31 + uint16(b)
 		}
 		add("block_frame_outer", "sc_block_frame_outer", int64(s))
+	}
+
+	// An inferred `var m = Mode.OFF` keeps its enum type: the switch maps
+	// OFF→10, ON→20, AUTO→30.
+	modeVal := map[int64]int64{0: 10, 1: 20, 2: 30}
+	for c, want := range modeVal {
+		add("enum_infer", "sc_enum_infer", want, c)
+	}
+
+	// Widened yield literals: 1, 40000, 65535 folded with s = s*3 + v (u16).
+	{
+		var s uint16
+		for _, v := range []uint16{1, 40000, 65535} {
+			s = s*3 + v
+		}
+		add("wide_lit", "sc_wide_lit", int64(s))
 	}
 
 	return sc
@@ -1107,6 +1155,17 @@ fun f() -> u8 {
     }
     while pull_next(&it, &v) { }
     return v
+}`,
+		"inferred enum var non-exhaustive switch": `
+enum State { IDLE, RUNNING }
+fun f(c: u8) -> u8 {
+    var s = State.IDLE
+    if c != 0 { s = State.RUNNING }
+    var r: u8 = 0
+    switch s {
+        case State.IDLE: r = 1
+    }
+    return r
 }`,
 	}
 }

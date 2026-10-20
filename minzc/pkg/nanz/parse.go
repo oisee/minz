@@ -566,6 +566,7 @@ type parser struct {
 	callableAliases map[string]*hir.CallSignature
 	varCallables    map[string]*hir.CallSignature
 	lastCallable    *hir.CallSignature          // result metadata of the most recent parseType
+	lastEnumVariant string                      // enum name when the most recent primary was Enum.VARIANT
 	typeAliases     map[string]mir2.Ty          // type X = Y — structural alias
 	enums           map[string]map[string]int64 // enumName → {variantName → value}
 	enumBaseTy      map[string]mir2.Ty          // enumName → base type (default TyU8)
@@ -3197,6 +3198,22 @@ func genElemTypeOK(ty mir2.Ty) bool {
 	return false
 }
 
+// intLitFits reports whether the integer literal value is representable in
+// the scalar type ty.
+func intLitFits(v int64, ty mir2.Ty) bool {
+	switch ty {
+	case mir2.TyU8:
+		return v >= 0 && v <= 0xFF
+	case mir2.TyU16:
+		return v >= 0 && v <= 0xFFFF
+	case mir2.TyI8:
+		return v >= -128 && v <= 127
+	case mir2.TyI16:
+		return v >= -32768 && v <= 32767
+	}
+	return false
+}
+
 // genFieldTyOK admits generator parameter and frame-local types: scalars and
 // raw pointers. Structs, arrays and nested frames are rejected.
 func genFieldTyOK(ty mir2.Ty) bool {
@@ -4031,8 +4048,15 @@ func (p *parser) parseStmt() (stmt hir.Stmt, err error) {
 		if err != nil {
 			return nil, err
 		}
-		if p.curGen != nil && val.ExprTy() != p.curGen.elemTy {
-			return nil, fmt.Errorf("line %d: yield type %s does not match generator element type %s", t.line, val.ExprTy(), p.curGen.elemTy)
+		if p.curGen != nil {
+			// Widen an in-range literal to the element type, exactly like
+			// `var x: u16 = 1` does: `gen w() -> u16 { yield 1 }` is legal.
+			if lit, isLit := val.(*hir.IntLitExpr); isLit && intLitFits(lit.Val, p.curGen.elemTy) {
+				lit.Ty = p.curGen.elemTy
+			}
+			if val.ExprTy() != p.curGen.elemTy {
+				return nil, fmt.Errorf("line %d: yield type %s does not match generator element type %s", t.line, val.ExprTy(), p.curGen.elemTy)
+			}
 		}
 		if !genElemTypeOK(val.ExprTy()) {
 			return nil, fmt.Errorf("line %d: yield needs a scalar value (u8, u16, i8, i16, bool), got %s", t.line, val.ExprTy())
@@ -4161,6 +4185,7 @@ func (p *parser) parseLetDecl() (hir.Stmt, error) {
 	if err := p.l.eatIdent("let"); err != nil {
 		return nil, err
 	}
+	p.lastEnumVariant = "" // only a fresh Enum.VARIANT initializer counts
 
 	// Tuple destructuring: let (a, b) = fn(...)
 	if p.l.is(tokLParen) {
@@ -4246,6 +4271,13 @@ func (p *parser) parseLetDecl() (hir.Stmt, error) {
 	// Infer type from RHS if not given.
 	if ty == nil {
 		ty = init.ExprTy()
+		// `let s = State.IDLE` infers the enum type like `let s: State`:
+		// register it so the exhaustive-switch check applies.
+		if _, isLit := init.(*hir.IntLitExpr); isLit && p.lastEnumVariant != "" {
+			if _, isEnum := p.enums[p.lastEnumVariant]; isEnum {
+				p.varEnumType[nameTok.val] = p.lastEnumVariant
+			}
+		}
 	}
 	// fold/reduce returns the accumulator type (inferred from callback return).
 	if ty == nil || ty == mir2.TyVoid {
@@ -4366,6 +4398,7 @@ func (p *parser) parseVarDecl() (hir.Stmt, error) {
 	if err := p.l.eatIdent("var"); err != nil {
 		return nil, err
 	}
+	p.lastEnumVariant = "" // only a fresh Enum.VARIANT initializer counts
 	nameTok, err := p.l.eat(tokIdent)
 	if err != nil {
 		return nil, err
@@ -4480,6 +4513,13 @@ func (p *parser) parseVarDecl() (hir.Stmt, error) {
 		}
 		d.Ty = ty
 		p.varTypes[nameTok.val] = ty
+		// `var s = State.IDLE` infers the enum type like `var s: State`:
+		// register it so the exhaustive-switch check applies.
+		if _, isLit := d.Init.(*hir.IntLitExpr); isLit && p.lastEnumVariant != "" {
+			if _, isEnum := p.enums[p.lastEnumVariant]; isEnum {
+				p.varEnumType[nameTok.val] = p.lastEnumVariant
+			}
+		}
 	}
 	if mk, isMake := d.Init.(*hir.GenMakeExpr); isMake {
 		if ty != mk.Frame {
@@ -6277,6 +6317,9 @@ func (p *parser) parsePrimary() (hir.Expr, error) {
 			if !ok {
 				return nil, fmt.Errorf("line %d: %s.%s: unknown variant", vTok.line, t.val, vTok.val)
 			}
+			// Remember the enum so an inferred `var s = State.IDLE` registers
+			// its enum type for the exhaustive-switch check, like `var s: State`.
+			p.lastEnumVariant = t.val
 			return &hir.IntLitExpr{Val: val, Ty: p.enumBaseTy[t.val]}, nil
 		}
 		// Struct literal: StructName { field: val, ... }
