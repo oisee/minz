@@ -20,3 +20,11 @@
 - `reference-after.txt`: PASS 6,071 с; `unit-native.txt`: PASS 0,011 с.
 
 Полные JSON-наблюдения находятся в persistent checkpoints `hardware-parser-reference-refresh/before` и `/after`, скопированы на шару вместе с этим отчётом. Полный pipeline и CI в рамках обновления не перезапускались; прежний общий прогон закончился timeout, поэтому этот focused PASS не объявляется общим PASS.
+
+P12 byte spill slot width fix, oracle unchanged, -3844 T / -14 bytes.
+Clean origin/main produces the identical native artifact: this cost drift predates P12.
+The current parser reference is 1284928 T / 2354 bytes, SHA256
+`29922da40df51e65b4d9701e6b57e1960a2d000a0191fbfbc6a5ae09e04843d8`.
+The archived measurements, logs, binaries, audit, and manifest above retain their
+historical values; the executable pin is in
+`minzc/pkg/pipeline/memory_host_baseline_test.go`.

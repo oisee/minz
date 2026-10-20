@@ -1442,7 +1442,16 @@ func (g *z80cg) genInst(inst *Inst) {
 			g.smcPatchers = append(g.smcPatchers, smcPatcherInfo{sym: inst.Sym, eqLabel: eqLabel})
 		}
 		if restore != nil {
-			g.emitf("    LD (%s), HL", g.loc(inst.Dst))
+			slotLoc := g.loc(inst.Dst)
+			if g.spillSlotWidth(slotLoc) == 1 {
+				// Byte-typed slot: a word store would overwrite the
+				// neighbouring home. Keep the write inside the slot.
+				g.emit("    EX AF, AF'")
+				g.storeSpill8(slotLoc, "L")
+				g.emit("    EX AF, AF'")
+			} else {
+				g.emitf("    LD (%s), HL", slotLoc)
+			}
 			restore()
 		}
 

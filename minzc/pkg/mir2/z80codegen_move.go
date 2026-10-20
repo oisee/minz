@@ -311,14 +311,41 @@ func (g *z80cg) storeSpill8(dst, src string) {
 	}
 }
 
-// loadSpill16 loads a 16-bit spill value into a register pair.
+// spillSlotWidth reports the declared byte width of a spill label, or 0 when
+// the label is not one of this function's vreg homes (offset accesses such as
+// label+2, raw $F0xx addresses, or labels of other functions).
+func (g *z80cg) spillSlotWidth(label string) int {
+	if g.spillWidths == nil && g.fn != nil && g.regInfo != nil {
+		// Hand-built codegen contexts (tests) set regInfo without the cache.
+		g.spillWidths = make(map[string]int, len(g.regInfo))
+		for r, info := range g.regInfo {
+			g.spillWidths[g.spillLabel(r)] = z80SpillBytes(info.Ty)
+		}
+	}
+	return g.spillWidths[label]
+}
+
+// loadSpill16 loads a spilled value into a register pair for a word-width use.
+// A byte-typed vreg keeps a one-byte home, so the second byte of a plain
+// LD rr,(nn) belongs to the neighbouring slot; extend the stored byte instead,
+// exactly as promote8toPair extends a byte register.
 func (g *z80cg) loadSpill16(dst, src string) {
 	if pair := g.tsmcPairByAddr(src); pair != nil {
 		label := g.tsmcReloadLabel(pair.reg, g.blockIdx, g.curInstIdx, 0)
 		if label != "" {
-			g.emitTSMCReload(label, dst, 16)
+			if pair.width <= 8 {
+				g.emitTSMCReload(label, lowByte(dst), 8)
+				g.emitf("    LD %s, 0", highByte(dst))
+			} else {
+				g.emitTSMCReload(label, dst, 16)
+			}
 			return
 		}
+	}
+	if g.spillSlotWidth(src) == 1 {
+		g.emitLD8(lowByte(dst), src)
+		g.emitf("    LD %s, 0", highByte(dst))
+		return
 	}
 	g.emitNativeSpillf(src, 0, 2, false, "    LD %s, (%s)", dst, src)
 }
@@ -864,19 +891,39 @@ func (g *z80cg) emitMov(dst, src string, widthBits int) {
 			g.emitf("    LD %s, 0", hi)
 			break
 		}
-		// Spill-to-spill: route through HL.
+		// Spill-to-spill: route through HL, but only across the bytes each
+		// home declares. The byte after a one-byte home belongs to the
+		// neighbouring slot, so a word copy would both read and write it.
+		// Widen with zero-extension and narrow by truncation, matching the
+		// register moves below.
 		if isSpill(src) && isSpill(dst) {
-			// HL is implicit scratch, not a defined MIR destination. Preserve
-			// a live pointer (including a later argument shuffle source).
-			g.emit("    PUSH HL")
-			g.emitNativeSpillf(src, 0, 2, false, "    LD HL, (%s)", src)
-			g.emitNativeSpillf(dst, 0, 2, true, "    LD (%s), HL", dst)
-			g.emit("    POP HL")
+			switch srcByte, dstByte := g.spillSlotWidth(src) == 1, g.spillSlotWidth(dst) == 1; {
+			case srcByte && dstByte:
+				g.emitLD8(dst, src)
+			case srcByte:
+				g.emit("    PUSH HL")
+				g.emitLD8("L", src)
+				g.emit("    LD H, 0")
+				g.emitNativeSpillf(dst, 0, 2, true, "    LD (%s), HL", dst)
+				g.emit("    POP HL")
+			case dstByte:
+				g.emit("    PUSH HL")
+				g.loadSpill16("HL", src)
+				g.emit("    EX AF, AF'")
+				g.storeSpill8(dst, "L")
+				g.emit("    EX AF, AF'")
+				g.emit("    POP HL")
+			default:
+				g.emit("    PUSH HL")
+				g.emitNativeSpillf(src, 0, 2, false, "    LD HL, (%s)", src)
+				g.emitNativeSpillf(dst, 0, 2, true, "    LD (%s), HL", dst)
+				g.emit("    POP HL")
+			}
 			break
 		}
 		// LocMem spill slot → register pair: use LD rr, (nn).
 		if isSpill(src) {
-			g.emitNativeSpillf(src, 0, 2, false, "    LD %s, (%s)", dst, src)
+			g.loadSpill16(dst, src)
 			break
 		}
 		// register pair → LocMem spill slot: use LD (nn), rr.
@@ -884,6 +931,13 @@ func (g *z80cg) emitMov(dst, src string, widthBits int) {
 			if !isPairReg(src) {
 				g.emitLD8(dst, src)
 				g.emitLD8(highByte(dst), "0")
+				break
+			}
+			if g.spillSlotWidth(dst) == 1 {
+				// Byte home: a word store would overwrite the neighbour.
+				g.emit("    EX AF, AF'")
+				g.storeSpill8(dst, lowByte(src))
+				g.emit("    EX AF, AF'")
 				break
 			}
 			g.emitNativeSpillf(dst, 0, 2, true, "    LD (%s), %s", dst, src)
