@@ -1,0 +1,15 @@
+// A missing default preserves the unmatched path even when every case returns.
+fun switch_value(v: u8) -> u8 {
+    switch v {
+        case 1: return 1
+        case 2: return 2
+    }
+    return 0
+}
+
+assert switch_value(1) == 1 via mir2
+assert switch_value(1) == 1 via z80
+assert switch_value(2) == 2 via mir2
+assert switch_value(2) == 2 via z80
+assert switch_value(3) == 0 via mir2
+assert switch_value(3) == 0 via z80

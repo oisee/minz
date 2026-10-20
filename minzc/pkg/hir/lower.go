@@ -1637,7 +1637,15 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 		return true // break is a terminator
 
 	case *ContinueStmt:
+		// Switch contexts intercept break, but continue belongs to the
+		// nearest enclosing loop and must use that loop's carried values.
 		ctx := l.curLoop()
+		for i := len(l.loopStack) - 1; i >= 0; i-- {
+			if l.loopStack[i].headLabel != "" {
+				ctx = &l.loopStack[i]
+				break
+			}
+		}
 		oldEnv, oldTy, oldAlias, oldArrays := l.env, l.envTy, l.fnAliases, l.localArrays
 		l.env = cloneMap(l.env)
 		l.envTy = maps.Clone(l.envTy)
@@ -1655,8 +1663,7 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 		return true // continue is a terminator
 
 	case *SwitchStmt:
-		l.lowerSwitch(st)
-		return false
+		return l.lowerSwitch(st)
 
 	case *LabelStmt:
 		label := "label_" + st.Name
@@ -2321,7 +2328,7 @@ func (l *lowerer) lowerForEachByteCountdown(st *ForEachStmt, envBefore map[strin
 //	join: ...
 //
 // For variables mutated in any case, join block receives them as block params.
-func (l *lowerer) lowerSwitch(st *SwitchStmt) {
+func (l *lowerer) lowerSwitch(st *SwitchStmt) bool {
 	envBefore := cloneMap(l.env)
 
 	// Collect all mutations across all case bodies.
@@ -2375,18 +2382,25 @@ func (l *lowerer) lowerSwitch(st *SwitchStmt) {
 		}
 	}
 
+	// An empty dispatch still transfers to the default (or directly to join).
+	if len(st.Cases) == 0 {
+		var args []mir2.Reg
+		if defaultLabel == joinLabel {
+			args = l.collectArgs(mutated)
+		}
+		l.bld.Jmp(defaultLabel, args...)
+	}
+
 	// Push switch as a "loop" context so that break inside case bodies
 	// jumps to joinLabel (C semantics: break exits the switch).
 	l.pushLoop(loopCtx{headLabel: "", exitLabel: joinLabel, mutated: mutated})
 
 	// Emit case bodies.
-	var envsFinal []map[string]mir2.Reg
 	for i, c := range st.Cases {
 		l.bld.SwitchToNewBlock(caseLabels[i])
 		l.env = cloneMap(envBefore)
 		done := l.lowerBlock(c.Body)
 		if !done {
-			envsFinal = append(envsFinal, cloneMap(l.env))
 			l.bld.Jmp(joinLabel, l.collectArgs(mutated)...)
 		}
 	}
@@ -2397,21 +2411,29 @@ func (l *lowerer) lowerSwitch(st *SwitchStmt) {
 		l.env = cloneMap(envBefore)
 		done := l.lowerBlock(st.Default)
 		if !done {
-			envsFinal = append(envsFinal, cloneMap(l.env))
 			l.bld.Jmp(joinLabel, l.collectArgs(mutated)...)
 		}
 	}
 
 	l.popLoop()
 
-	// Join block: only reachable if at least one case (or default) fell through.
-	joinReachable := len(envsFinal) > 0
+	// Count actual incoming edges: unmatched dispatch, case/default
+	// fallthrough and break all reach the join. A terminating body alone
+	// does not tell us whether it returned or broke out of this switch.
+	joinReachable := false
+	for _, block := range l.bld.F.Blocks {
+		for _, target := range block.Successors() {
+			if target == joinLabel {
+				joinReachable = true
+			}
+		}
+	}
 	join := l.bld.SwitchToNewBlock(joinLabel)
 	if !joinReachable {
 		// All paths returned → join is dead; emit Unreachable so Verify passes.
 		l.bld.Unreachable()
 		l.env = cloneMap(envBefore)
-		return
+		return true
 	}
 	joinEnv := cloneMap(envBefore)
 	for _, name := range mutated {
@@ -2421,6 +2443,7 @@ func (l *lowerer) lowerSwitch(st *SwitchStmt) {
 	}
 	_ = join
 	l.env = joinEnv
+	return false
 }
 
 // ── Expression lowering ───────────────────────────────────────────────────────
