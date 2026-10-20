@@ -52,6 +52,9 @@ func Verify(m *Module) error {
 				return fmt.Errorf("invalid fallible CY ABI: %s", f.Name)
 			}
 		}
+		if err := verifySignedWordOperands(f); err != nil {
+			return err
+		}
 		info := collectRegInfo(f)
 		for _, b := range f.Blocks {
 			if term, ok := b.Term.(*TermErrorRet); ok {
@@ -325,4 +328,37 @@ func reachableDominators(f *Func) map[string]map[string]bool {
 		}
 	}
 	return dom
+}
+
+// Signed narrow operands require an explicit extension before word arithmetic
+// or comparison: sext for arithmetic, ext for the legacy stored-bit comparison
+// policy. Literals are typed in context by HIR. Physical byte moves such as
+// promote8toPair/loadSpill16 must not guess the semantic conversion.
+func verifySignedWordOperands(f *Func) error {
+	info := collectRegInfo(f)
+	for _, b := range f.Blocks {
+		for _, i := range b.Insts {
+			switch i.Op {
+			case OpAdd, OpSub, OpMul, OpDiv, OpMod, OpSDiv, OpSMod, OpAnd, OpOr, OpXor, OpCmp:
+			default:
+				continue
+			}
+			width := 0
+			if i.Op == OpCmp {
+				for _, r := range i.Src {
+					if t := info[r].Ty; t != nil && t.Width() > width {
+						width = t.Width()
+					}
+				}
+			} else if i.Ty != nil {
+				width = i.Ty.Width()
+			}
+			for _, r := range i.Src {
+				if t := info[r].Ty; t != nil && IsSigned(t) && t.Width() < width {
+					return fmt.Errorf("mir2: func @%s: %s signed operand %d requires explicit extension to %d bits", f.Name, i.Op, r, width)
+				}
+			}
+		}
+	}
+	return nil
 }

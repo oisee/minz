@@ -3058,7 +3058,19 @@ func (l *lowerer) lowerCond(e Expr) mir2.Reg {
 			return l.lowerLogical(bin)
 		}
 		var cmp mir2.CmpCond
-		signed := mir2.IsSigned(bin.L.ExprTy())
+		// A literal takes the width of its peer before comparison. Keep the
+		// established lhs-selected signed interpretation for nonliteral peers.
+		operandTy := bin.L.ExprTy()
+		wordTy := operandTy
+		if mir2.IsInt(operandTy) && mir2.IsInt(bin.R.ExprTy()) {
+			if bin.R.ExprTy().Width() > wordTy.Width() {
+				wordTy = bin.R.ExprTy()
+			}
+			if _, literal := bin.L.(*IntLitExpr); literal {
+				operandTy = wordTy
+			}
+		}
+		signed := mir2.IsSigned(operandTy)
 		switch bin.Op {
 		case "==":
 			cmp = mir2.CmpEq
@@ -3091,10 +3103,24 @@ func (l *lowerer) lowerCond(e Expr) mir2.Reg {
 		default:
 			goto fallback
 		}
-		lReg := l.lowerExpr(bin.L)
-		rReg := l.lowerExpr(bin.R)
+		// Nonliteral mixed-width comparisons historically compare stored bit
+		// patterns (ordering reinterprets both at operandTy; equality uses all
+		// bits). Make their zero extension explicit rather than changing that
+		// policy to arithmetic sign extension. Literals retain their value.
+		lowerOperand := func(e Expr) mir2.Reg {
+			if _, literal := e.(*IntLitExpr); literal {
+				return l.lowerExprAs(e, wordTy)
+			}
+			r := l.lowerExpr(e)
+			if mir2.IsInt(e.ExprTy()) && mir2.IsInt(wordTy) && e.ExprTy().Width() < wordTy.Width() {
+				return l.bld.Ext(r, e.ExprTy(), wordTy, classForExpr(wordTy))
+			}
+			return r
+		}
+		lReg := lowerOperand(bin.L)
+		rReg := lowerOperand(bin.R)
 		if signed {
-			return l.bld.CmpWithSrcTy(cmp, lReg, rReg, mir2.ClassFlag, false, bin.L.ExprTy())
+			return l.bld.CmpWithSrcTy(cmp, lReg, rReg, mir2.ClassFlag, false, operandTy)
 		}
 		return l.bld.Cmp(cmp, lReg, rReg, mir2.ClassFlag, false)
 	}

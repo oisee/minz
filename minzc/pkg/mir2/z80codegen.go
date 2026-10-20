@@ -229,6 +229,11 @@ func ValidateZ80Symbols(m *Module) error {
 // callers that don't need options can omit it entirely.
 // Invalid symbols return an error and no assembly.
 func Z80Codegen(m *Module, ar *AllocResult, opts ...Z80CodegenOptions) (string, error) {
+	for _, f := range m.Funcs {
+		if err := verifySignedWordOperands(f); err != nil {
+			return "", err
+		}
+	}
 	if err := VerifyGlobalRelocations(m); err != nil {
 		return "", err
 	}
