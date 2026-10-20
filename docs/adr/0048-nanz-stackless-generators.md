@@ -2,7 +2,10 @@
 
 ## Status
 
-Draft. Date: 2026-10-18. No generator syntax or lowering is implemented by this ADR.
+Draft. Date: 2026-10-18. Stage G1 is implemented: scalar `gen`/`yield` lowers to a
+caller-owned frame plus a concrete `next(frame, out) -> bool` (`minzc/pkg/hir/lower_gen.go`,
+`minzc/pkg/nanz/parse.go`; differential gate `minzc/pkg/nanz/gen_yield_e2e_test.go` on raw
+MIR2 VM, optimised MIR2 VM and Z80). Fusion (ADR 0050) and fallible sources remain proposed.
 
 ## Context
 

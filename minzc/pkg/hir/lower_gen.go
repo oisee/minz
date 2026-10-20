@@ -398,8 +398,10 @@ func (r *genRewriter) flattenStmt(s Stmt) {
 
 	case *SwitchStmt:
 		// Compare chain over a value evaluated once. Non-constant cases are
-		// rejected by the frontend; default is optional.
-		tmp := r.freshLabel("gen_sw_val") // local name, not a label
+		// rejected by the frontend; default is optional. The temp name is
+		// unspellable in source ($ is not an identifier character).
+		tmp := fmt.Sprintf("$gen_sw_%d", len(r.labelUsed))
+		r.labelUsed[tmp] = true
 		r.emit(&VarDeclStmt{Name: tmp, Ty: st.Val.ExprTy(), Init: r.expr(st.Val)})
 		joinL := r.freshLabel("gen_sw_join")
 		caseLabels := make([]string, len(st.Cases))
@@ -834,7 +836,7 @@ func (e *genExpander) desugarGenFor(st *GenForStmt) ([]Stmt, error) {
 	}, elem)
 	out = append(out, &WhileStmt{
 		Cond: &CallExpr{
-			Fn:   genNextName(st.Gen),
+			Fn: genNextName(st.Gen),
 			Args: []Expr{
 				&AddrOfExpr{Sym: temp},
 				&AddrOfExpr{Sym: st.Var, Ty: mir2.PointerTo(st.ElemTy)},

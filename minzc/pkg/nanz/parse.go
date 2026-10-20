@@ -2996,90 +2996,194 @@ func (p *parser) parseFunDecl(isExtern bool) (*hir.Func, error) {
 
 // ── Generators (gen/yield, ADR 0048/0049) ─────────────────────────────────────
 
+// genMaxYieldSites keeps continuation tags 1..N distinct from the sticky DONE
+// marker (255) inside the u8 tag field.
+const genMaxYieldSites = 254
+
+// yieldSites counts yield statements transitively.
+func yieldSites(b *hir.Block) int {
+	n := 0
+	var walk func(blk *hir.Block)
+	walk = func(blk *hir.Block) {
+		for _, s := range blk.Body {
+			switch st := s.(type) {
+			case *hir.YieldStmt:
+				n++
+			case *hir.Block:
+				walk(st)
+			case *hir.IfStmt:
+				walk(st.Then)
+				if st.Else != nil {
+					walk(st.Else)
+				}
+			case *hir.WhileStmt:
+				walk(st.Body)
+			case *hir.ForRangeStmt:
+				walk(st.Body)
+			case *hir.ForEachStmt:
+				walk(st.Body)
+			case *hir.SwitchStmt:
+				for _, c := range st.Cases {
+					walk(c.Body)
+				}
+				if st.Default != nil {
+					walk(st.Default)
+				}
+			}
+		}
+	}
+	walk(b)
+	return n
+}
+
 // rejectDirectGenCalls reports any remaining call to a generator declaration.
 func rejectDirectGenCalls(f *hir.Func, gens map[string]*nanzGen) error {
-	var found string
-	var visitExpr func(e hir.Expr)
-	visitExpr = func(e hir.Expr) {
-		if found != "" || e == nil {
-			return
+	found := firstGenCall(f.Body, gens)
+	if found != "" {
+		return fmt.Errorf("generator %s(...) can only create a frame (var it = %s(...)) or feed a for loop; it is not callable",
+			found, found)
+	}
+	return nil
+}
+
+// firstGenCall reports the first direct generator call in a body, covering
+// every expression position a call can appear in.
+func firstGenCall(b *hir.Block, gens map[string]*nanzGen) string {
+	var visitExpr func(e hir.Expr) string
+	visitExpr = func(e hir.Expr) string {
+		if e == nil {
+			return ""
 		}
 		switch ex := e.(type) {
 		case *hir.CallExpr:
 			if gens[ex.Fn] != nil {
-				found = ex.Fn
+				return ex.Fn
 			}
 			for _, a := range ex.Args {
-				visitExpr(a)
+				if n := visitExpr(a); n != "" {
+					return n
+				}
+			}
+		case *hir.CallIndirectExpr:
+			for _, x := range append([]hir.Expr{ex.FnPtr}, ex.Args...) {
+				if n := visitExpr(x); n != "" {
+					return n
+				}
 			}
 		case *hir.BinExpr:
-			visitExpr(ex.L)
-			visitExpr(ex.R)
-		case *hir.UnaryExpr:
-			visitExpr(ex.X)
-		case *hir.CastExpr:
-			visitExpr(ex.X)
+			for _, x := range []hir.Expr{ex.L, ex.R} {
+				if n := visitExpr(x); n != "" {
+					return n
+				}
+			}
+		case *hir.UnaryExpr, *hir.CastExpr, *hir.LoadExpr, *hir.DerefExpr:
+			return visitExpr(exprChild(e))
 		case *hir.IndexExpr:
-			visitExpr(ex.Base)
-			visitExpr(ex.Idx)
-		case *hir.FieldExpr:
-			visitExpr(ex.X)
-		case *hir.LoadExpr, *hir.DerefExpr:
-		}
-	}
-	var visitBlock func(b *hir.Block)
-	visitBlock = func(b *hir.Block) {
-		for _, s := range b.Body {
-			switch st := s.(type) {
-			case *hir.VarDeclStmt:
-				visitExpr(st.Init)
-				for _, e := range st.Initial {
-					visitExpr(e)
+			for _, x := range []hir.Expr{ex.Base, ex.Idx} {
+				if n := visitExpr(x); n != "" {
+					return n
 				}
-			case *hir.AssignStmt:
-				visitExpr(st.Val)
-			case *hir.ExprStmt:
-				visitExpr(st.Expr)
-			case *hir.ReturnStmt:
-				visitExpr(st.Val)
-				for _, v := range st.Vals {
-					visitExpr(v)
+			}
+		case *hir.FieldExpr, *hir.BitExpr, *hir.AddrOfExpr:
+			return visitExpr(exprChild(e))
+		case *hir.CondExpr:
+			for _, x := range []hir.Expr{ex.Cond, ex.Then, ex.Else} {
+				if n := visitExpr(x); n != "" {
+					return n
 				}
-			case *hir.StoreStmt:
-				visitExpr(st.Val)
-			case *hir.IfStmt:
-				visitExpr(st.Cond)
-				visitBlock(st.Then)
-				if st.Else != nil {
-					visitBlock(st.Else)
+			}
+		case *hir.LetInExpr:
+			for _, x := range []hir.Expr{ex.Init, ex.Body} {
+				if n := visitExpr(x); n != "" {
+					return n
 				}
-			case *hir.WhileStmt:
-				visitExpr(st.Cond)
-				visitBlock(st.Body)
-			case *hir.ForRangeStmt:
-				visitExpr(st.Start)
-				visitExpr(st.End)
-				visitBlock(st.Body)
-			case *hir.ForEachStmt:
-				visitExpr(st.Ptr)
-				visitBlock(st.Body)
-			case *hir.Block:
-				visitBlock(st)
-			case *hir.SwitchStmt:
-				visitExpr(st.Val)
-				for _, c := range st.Cases {
-					visitBlock(c.Body)
-				}
-				if st.Default != nil {
-					visitBlock(st.Default)
+			}
+		case *hir.StructLitExpr:
+			for _, fld := range ex.Fields {
+				if n := visitExpr(fld.Val); n != "" {
+					return n
 				}
 			}
 		}
+		return ""
 	}
-	visitBlock(f.Body)
-	if found != "" {
-		return fmt.Errorf("generator %s(...) can only create a frame (var it = %s(...)) or feed a for loop; it is not callable",
-			found, found)
+	var visitBlock func(b *hir.Block) string
+	visitBlock = func(b *hir.Block) string {
+		for _, s := range b.Body {
+			var exprs []hir.Expr
+			var blocks []*hir.Block
+			switch st := s.(type) {
+			case *hir.VarDeclStmt:
+				exprs = append([]hir.Expr{st.Init}, st.Initial...)
+			case *hir.AssignStmt:
+				exprs = []hir.Expr{st.Target, st.Val}
+			case *hir.ExprStmt:
+				exprs = []hir.Expr{st.Expr}
+			case *hir.ReturnStmt:
+				exprs = append([]hir.Expr{st.Val}, st.Vals...)
+			case *hir.TupleLetStmt:
+				exprs = []hir.Expr{st.Call}
+			case *hir.StoreStmt:
+				exprs = []hir.Expr{st.Ptr, st.Val}
+			case *hir.IfStmt:
+				exprs = []hir.Expr{st.Cond}
+				blocks = append(blocks, st.Then, st.Else)
+			case *hir.WhileStmt:
+				exprs = []hir.Expr{st.Cond}
+				blocks = append(blocks, st.Body)
+			case *hir.ForRangeStmt:
+				exprs = []hir.Expr{st.Start, st.End}
+				blocks = append(blocks, st.Body)
+			case *hir.ForEachStmt:
+				exprs = []hir.Expr{st.Ptr, st.Start, st.Len}
+				blocks = append(blocks, st.Body)
+			case *hir.GenForStmt:
+				exprs = append([]hir.Expr(nil), st.Args...)
+				blocks = append(blocks, st.Body)
+			case *hir.Block:
+				blocks = append(blocks, st)
+			case *hir.SwitchStmt:
+				exprs = []hir.Expr{st.Val}
+				for _, c := range st.Cases {
+					blocks = append(blocks, c.Body)
+				}
+				blocks = append(blocks, st.Default)
+			}
+			for _, e := range exprs {
+				if n := visitExpr(e); n != "" {
+					return n
+				}
+			}
+			for _, blk := range blocks {
+				if blk != nil {
+					if n := visitBlock(blk); n != "" {
+						return n
+					}
+				}
+			}
+		}
+		return ""
+	}
+	return visitBlock(b)
+}
+
+// exprChild returns the single sub-expression of a unary wrapper node.
+func exprChild(e hir.Expr) hir.Expr {
+	switch ex := e.(type) {
+	case *hir.UnaryExpr:
+		return ex.X
+	case *hir.CastExpr:
+		return ex.X
+	case *hir.LoadExpr:
+		return ex.Ptr
+	case *hir.DerefExpr:
+		return ex.Ptr
+	case *hir.FieldExpr:
+		return ex.X
+	case *hir.BitExpr:
+		return ex.X
+	case *hir.AddrOfExpr:
+		return ex.X
 	}
 	return nil
 }
@@ -3236,6 +3340,11 @@ func (p *parser) parseGenDecl() (*hir.Func, error) {
 	walkLocals(body)
 	g.frame = &mir2.StructTy{Name: g.name + "$frame", Fields: fields}
 
+	// Continuation tags share one u8 with the sticky DONE marker.
+	if yieldSites(body) > genMaxYieldSites {
+		return nil, fmt.Errorf("line %d: gen %s: more than %d yield sites", g.line, g.name, genMaxYieldSites)
+	}
+
 	return &hir.Func{
 		Name:   g.name,
 		Params: params,
@@ -3383,6 +3492,10 @@ func (p *parser) checkGenBody(g *nanzGen, body *hir.Block) error {
 				if err := checkExpr(st.End, genScope()); err != nil {
 					return err
 				}
+				if seen[st.Var] {
+					return fmt.Errorf("gen %s: loop variable %q shadows a generator parameter or local; rename it", g.name, st.Var)
+				}
+				seen[st.Var] = true
 				if hasYield(st.Body) {
 					return fmt.Errorf("gen %s: yield inside a for loop is not supported (use while)", g.name)
 				}
@@ -3395,12 +3508,18 @@ func (p *parser) checkGenBody(g *nanzGen, body *hir.Block) error {
 						return err
 					}
 				}
+				if seen[st.Var] {
+					return fmt.Errorf("gen %s: loop variable %q shadows a generator parameter or local; rename it", g.name, st.Var)
+				}
+				seen[st.Var] = true
 				if hasYield(st.Body) {
 					return fmt.Errorf("gen %s: yield inside a for loop is not supported (use while)", g.name)
 				}
 				if err := checkBlock(st.Body, inFor+1); err != nil {
 					return err
 				}
+			case *hir.GenForStmt:
+				return fmt.Errorf("gen %s: consuming a generator inside a generator body is not supported", g.name)
 			case *hir.SwitchStmt:
 				if err := checkExpr(st.Val, genScope()); err != nil {
 					return err
@@ -4069,6 +4188,7 @@ func (p *parser) parseLetDecl() (hir.Stmt, error) {
 			if p.uninitVars != nil {
 				delete(p.uninitVars, nameTok.val)
 			}
+			delete(p.genFrames, nameTok.val) // an array cannot be a frame
 			return d, nil
 		}
 	}
@@ -4135,6 +4255,8 @@ func (p *parser) parseLetDecl() (hir.Stmt, error) {
 				nameTok.line, nameTok.val, ty, mk.Gen, mk.Frame)
 		}
 		p.genFrames[nameTok.val] = mk.Gen
+	} else {
+		delete(p.genFrames, nameTok.val)
 	}
 	return d, nil
 }
@@ -4330,6 +4452,9 @@ func (p *parser) parseVarDecl() (hir.Stmt, error) {
 				nameTok.line, nameTok.val, ty, mk.Gen, mk.Frame)
 		}
 		p.genFrames[nameTok.val] = mk.Gen
+	} else {
+		// Redeclaration of a former frame name is an ordinary variable now.
+		delete(p.genFrames, nameTok.val)
 	}
 
 	return d, nil
@@ -6502,31 +6627,7 @@ func (p *parser) maybeGenMake(init hir.Expr) (hir.Expr, error) {
 		return init, nil
 	}
 	// Nested misuse: any generator call that is not the whole initializer.
-	var bad string
-	var visit func(e hir.Expr)
-	visit = func(e hir.Expr) {
-		if bad != "" || e == nil {
-			return
-		}
-		switch ex := e.(type) {
-		case *hir.CallExpr:
-			if p.gens[ex.Fn] != nil {
-				bad = ex.Fn
-			}
-			for _, a := range ex.Args {
-				visit(a)
-			}
-		case *hir.BinExpr:
-			visit(ex.L)
-			visit(ex.R)
-		case *hir.UnaryExpr:
-			visit(ex.X)
-		case *hir.CastExpr:
-			visit(ex.X)
-		}
-	}
-	visit(init)
-	if bad != "" {
+	if bad := firstGenCall(hir.Blk(&hir.ExprStmt{Expr: init}), p.gens); bad != "" {
 		return nil, fmt.Errorf("line %d: generator %s(...) can only initialize a variable or feed a for loop",
 			p.l.peek().line, bad)
 	}

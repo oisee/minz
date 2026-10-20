@@ -60,6 +60,82 @@ gen bytes(src: ^u8, n: u8) -> u8 {
     }
 }
 
+// G1b: RLE over [count,value] pairs — nested loops, yield inside the inner
+// loop, zero-length runs yield nothing (design report example).
+gen run_bytes(src: ^u8, pairs: u8) -> u8 {
+    while pairs != 0 {
+        var left: u8 = peek(src)
+        let value: u8 = peek(src + 1)
+        src = src + 2
+        pairs = pairs - 1
+        while left != 0 {
+            yield value
+            left = left - 1
+        }
+    }
+}
+
+// G1b: three distinct yield sites — header, payload loop, trailer.
+gen framed(src: ^u8, n: u8) -> u8 {
+    yield 170
+    while n != 0 {
+        yield peek(src)
+        src = src + 1
+        n = n - 1
+    }
+    yield 153
+}
+
+// ADR 0050 demand example as a generator: only positive values are yielded,
+// so a consumer that stops early stops the source reads with them.
+gen filter_pos(src: ^u8, n: u8) -> u8 {
+    while n != 0 {
+        var v: u8 = peek(src)
+        src = src + 1
+        n = n - 1
+        if v > 0 {
+            yield v
+        }
+    }
+}
+
+// u16 elements and a frame-resident index local.
+gen words(src: ^u16, n: u8) -> u16 {
+    var i: u8 = 0
+    while i < n {
+        yield src[i]
+        i = i + 1
+    }
+}
+
+// bool elements with two yield sites.
+gen flags(n: u8) -> bool {
+    while n != 0 {
+        if n > 2 {
+            yield true
+        } else {
+            yield false
+        }
+        n = n - 1
+    }
+}
+
+// A yield inside a switch arm.
+gen classify(n: u8) -> u8 {
+    var i: u8 = 0
+    while i < n {
+        switch i {
+            case 0:
+                yield 100
+            case 1:
+                yield 101
+            default:
+                yield 200
+        }
+        i = i + 1
+    }
+}
+
 // ── byte cursor scenarios ─────────────────────────────────────────────────
 
 fun sc_seq_mix(n: u8) -> u16 {
@@ -237,6 +313,257 @@ fun sc_for_in_loop(k: u8) -> u16 {
     }
     return mix
 }
+
+// ── RLE scenarios (G1b) ───────────────────────────────────────────────────
+
+fun load_rle_example() -> void {
+    rle_in[0] = 3
+    rle_in[1] = 65
+    rle_in[2] = 0
+    rle_in[3] = 90
+    rle_in[4] = 2
+    rle_in[5] = 66
+}
+
+fun sc_rle() -> u16 {
+    load_rle_example()
+    var it = run_bytes(&rle_in, 3)
+    var v: u8 = 0
+    var mix: u16 = 0
+    while pull_next(&it, &v) {
+        mix = mix * 31 + v
+    }
+    return mix
+}
+
+fun sc_rle_for() -> u16 {
+    load_rle_example()
+    var mix: u16 = 0
+    for v in run_bytes(&rle_in, 3) {
+        mix = mix * 31 + v
+    }
+    return mix
+}
+
+fun load_rle_255() -> void {
+    var i: u8 = 0
+    while i < 5 {
+        rle_in[i * 2] = 51
+        rle_in[i * 2 + 1] = 7
+        i = i + 1
+    }
+}
+
+fun sc_rle_255() -> u16 {
+    load_rle_255()
+    var it = run_bytes(&rle_in, 5)
+    var v: u8 = 0
+    var mix: u16 = 0
+    while pull_next(&it, &v) {
+        mix = mix * 31 + v
+    }
+    return mix
+}
+
+fun sc_rle_255_cnt() -> u16 {
+    load_rle_255()
+    var it = run_bytes(&rle_in, 5)
+    var v: u8 = 0
+    var cnt: u16 = 0
+    while pull_next(&it, &v) {
+        cnt = cnt + 1
+    }
+    return cnt
+}
+
+fun sc_rle_sticky() -> u16 {
+    rle_in[0] = 2
+    rle_in[1] = 9
+    var it = run_bytes(&rle_in, 1)
+    var v: u8 = 0
+    while pull_next(&it, &v) { v = v }
+    // Fresh source pairs must be ignored after DONE.
+    rle_in[2] = 1
+    rle_in[3] = 42
+    v = 170
+    var extra: u8 = 0
+    if pull_next(&it, &v) { extra = 1 }
+    if pull_next(&it, &v) { extra = 1 }
+    return extra * 256 + v
+}
+
+// Two independent RLE frames over the same source, pulled alternately.
+fun sc_rle_interleave() -> u16 {
+    load_rle_example()
+    var it1 = run_bytes(&rle_in, 3)
+    var it2 = run_bytes(&rle_in, 3)
+    var v: u8 = 0
+    var mix: u16 = 0
+    var a1: u8 = 1
+    var a2: u8 = 1
+    while (a1 != 0) || (a2 != 0) {
+        if a1 != 0 {
+            if pull_next(&it1, &v) { mix = mix * 31 + v } else { a1 = 0 }
+        }
+        if a2 != 0 {
+            if pull_next(&it2, &v) { mix = mix * 31 + v } else { a2 = 0 }
+        }
+    }
+    return mix
+}
+
+// ── multiple yield sites (G1b) ────────────────────────────────────────────
+
+fun sc_framed(n: u8) -> u16 {
+    load_data(n)
+    var it = framed(&data, n)
+    var v: u8 = 0
+    var mix: u16 = 0
+    while pull_next(&it, &v) {
+        mix = mix * 31 + v
+    }
+    return mix
+}
+
+fun sc_framed_empty() -> u16 {
+    var it = framed(&data, 0)
+    var v: u8 = 0
+    var mix: u16 = 0
+    while pull_next(&it, &v) {
+        mix = mix * 31 + v
+    }
+    return mix
+}
+
+// ── ADR 0050 demand example as a generator (G1b) ──────────────────────────
+
+fun sc_filter_take2() -> u16 {
+    data[0] = 0
+    data[1] = 0
+    data[2] = 7
+    data[3] = 8
+    data[4] = 9
+    g_reads = 0
+    var it = filter_pos(&data, 5)
+    var v: u8 = 170
+    var got: u8 = 0
+    var acc: u16 = 0
+    while got < 2 {
+        if !pull_next(&it, &v) { break }
+        if v > 0 {
+            acc = acc * 256 + v
+            got = got + 1
+        }
+    }
+    return g_reads * 4096 + acc
+}
+
+fun sc_filter_take3() -> u16 {
+    data[0] = 0
+    data[1] = 0
+    data[2] = 7
+    data[3] = 8
+    data[4] = 9
+    g_reads = 0
+    var it = filter_pos(&data, 5)
+    var v: u8 = 170
+    var got: u8 = 0
+    var acc: u16 = 0
+    while got < 3 {
+        if !pull_next(&it, &v) { break }
+        if v > 0 {
+            acc = acc * 256 + v
+            got = got + 1
+        }
+    }
+    return g_reads * 4096 + acc
+}
+
+// ── element types (G1b) ───────────────────────────────────────────────────
+
+fun sc_words() -> u16 {
+    wdata[0] = 1000
+    wdata[1] = 37
+    wdata[2] = 65535
+    wdata[3] = 7
+    var it = words(&wdata, 4)
+    var v: u16 = 0
+    var mix: u16 = 0
+    while pull_next(&it, &v) {
+        mix = mix * 31 + v
+    }
+    return mix
+}
+
+fun sc_words_for() -> u16 {
+    wdata[0] = 1000
+    wdata[1] = 37
+    wdata[2] = 65535
+    wdata[3] = 7
+    var mix: u16 = 0
+    for v in words(&wdata, 4) {
+        mix = mix + v
+    }
+    return mix
+}
+
+fun sc_flags() -> u16 {
+    var it = flags(5)
+    var b: bool = false
+    var trues: u8 = 0
+    var falses: u8 = 0
+    while pull_next(&it, &b) {
+        if b { trues = trues + 1 } else { falses = falses + 1 }
+    }
+    return trues * 256 + falses
+}
+
+fun sc_flags_for() -> u16 {
+    var trues: u8 = 0
+    var falses: u8 = 0
+    for b in flags(5) {
+        if b { trues = trues + 1 } else { falses = falses + 1 }
+    }
+    return trues * 256 + falses
+}
+
+fun sc_classify() -> u16 {
+    var it = classify(4)
+    var v: u8 = 0
+    var mix: u16 = 0
+    while pull_next(&it, &v) {
+        mix = mix * 31 + v
+    }
+    return mix
+}
+
+// A frame created inside an if branch is scoped like any other local.
+fun sc_conditional(c: u8) -> u16 {
+    load_data(4)
+    var mix: u16 = 0
+    if c != 0 {
+        var it = bytes(&data, 4)
+        var v: u8 = 0
+        while pull_next(&it, &v) {
+            mix = mix * 31 + v
+        }
+    } else {
+        mix = 7
+    }
+    return mix
+}
+
+// Nested consumption: one generator drained inside the loop of another.
+fun sc_nested() -> u16 {
+    load_data(4)
+    var outer_mix: u16 = 0
+    for o in bytes(&data, 4) {
+        for i in bytes(&data, 2) {
+            outer_mix = outer_mix + o * i
+        }
+    }
+    return outer_mix
+}
 `
 
 type g1Scenario struct {
@@ -325,6 +652,85 @@ func g1GenScenarios() []g1Scenario {
 		}
 		add("for_in_loop", "sc_for_in_loop", int64(mix), int64(k))
 	}
+
+	// RLE design-report example: [3,65, 0,90, 2,66] → 65,65,65,66,66.
+	rleWant := int64(g0MixSeq([]byte{65, 65, 65, 66, 66}))
+	add("rle", "sc_rle", rleWant)
+	add("rle_for", "sc_rle_for", rleWant)
+
+	// RLE with exactly 255 outputs.
+	var c g0RefRleCursor
+	pairs := []byte{51, 7, 51, 7, 51, 7, 51, 7, 51, 7}
+	c.make(pairs)
+	out := g0RefDecodeAll(c.next)
+	add("rle_255_mix", "sc_rle_255", int64(g0MixSeq(out)))
+	add("rle_255_cnt", "sc_rle_255_cnt", int64(len(out)))
+
+	// RLE sticky DONE with fresh source pairs available.
+	add("rle_sticky", "sc_rle_sticky", 0xAA)
+
+	// Two independent RLE frames over the same source.
+	rle2 := []byte{65, 65, 65, 66, 66}
+	var mix2 uint16
+	inter := make([]byte, 0, 2*len(rle2))
+	for _, b := range rle2 {
+		inter = append(inter, b, b)
+	}
+	for _, b := range inter {
+		mix2 = mix2*31 + uint16(b)
+	}
+	add("rle_interleave", "sc_rle_interleave", int64(mix2))
+
+	// Header/payload/trailer: [0xAA] + data + [0x99].
+	for _, n := range []int{0, 1, 8} {
+		seq := append([]byte{0xAA}, g0RefData(n)...)
+		seq = append(seq, 0x99)
+		add("framed", "sc_framed", int64(g0MixSeq(seq)), int64(n))
+	}
+	add("framed_empty", "sc_framed_empty", int64(g0MixSeq([]byte{0xAA, 0x99})))
+
+	// ADR 0050 demand example as a generator: take(2) over [0,0,7,8,9]
+	// accepts [7,8] having read exactly the four needed source bytes.
+	take2 := uint16(7)*256 + 8
+	take3 := take2*256 + 9
+	add("filter_take2", "sc_filter_take2", 4*4096+int64(take2))
+	add("filter_take3", "sc_filter_take3", 5*4096+int64(take3))
+
+	// u16 elements.
+	w := []uint16{1000, 37, 65535, 7}
+	var wmix uint16
+	for _, x := range w {
+		wmix = wmix*31 + x
+	}
+	add("words", "sc_words", int64(wmix))
+	wordSum := uint16(0)
+	for _, x := range w {
+		wordSum += x
+	}
+	add("words_for", "sc_words_for", int64(wordSum))
+
+	// bool elements: flags(5) yields true,true,true,false,false.
+	add("flags", "sc_flags", 3*256+2)
+	add("flags_for", "sc_flags_for", 3*256+2)
+
+	// A yield inside a switch arm: 100, 101, 200, 200.
+	add("classify", "sc_classify", int64(g0MixSeq([]byte{100, 101, 200, 200})))
+
+	// A frame created inside a branch, drained only on that branch.
+	add("conditional_taken", "sc_conditional", int64(g0MixSeq(g0RefData(4))), 1)
+	add("conditional_not_taken", "sc_conditional", 7, 0)
+
+	// Nested for-loops over independent temporary frames: for each of the 4
+	// outer elements, the inner 2-element decode. `o * i` is u8 arithmetic in
+	// Nanz, so the reference wraps each product mod 256.
+	var nested uint16
+	inner := g0RefData(2)
+	for _, o := range g0RefData(4) {
+		for _, i := range inner {
+			nested += uint16(byte(uint16(o) * uint16(i)))
+		}
+	}
+	add("nested", "sc_nested", int64(nested))
 
 	return sc
 }
@@ -532,11 +938,62 @@ fun f() -> u8 {
 gen later() -> u8 {
     yield 1
 }`,
+		"gen consumed inside gen": `
+gen inner() -> u8 {
+    yield 1
+}
+gen outer() -> u8 {
+    for v in inner() { }
+    yield 2
+}`,
+		"for-var shadows parameter": `
+gen g(n: u8) -> u8 {
+    var s: u8 = 0
+    for n in 0..3 { s = s + n }
+    yield s
+}`,
+		"for-var collides with local": `
+gen g() -> u8 {
+    var t: u8 = 5
+    yield t
+    for t in 0..2 { }
+    yield t
+}`,
+		"local collides with later for-var": `
+gen g() -> u8 {
+    for i in 0..2 { }
+    var i: u8 = 1
+    yield i
+}`,
+		"gen call in condition expression": `
+gen g() -> u8 {
+    yield 1
+}
+fun f(c: bool) -> u8 {
+    var x: u8 = if c { 2 } else { g() }
+    return x
+}`,
+		"frame redeclared then pulled": `
+gen g() -> u8 {
+    yield 1
+}
+fun f() -> u8 {
+    var it = g()
+    var it: u8 = 7
+    var v: u8 = 0
+    while pull_next(&it, &v) { }
+    return v
+}`,
 	}
 }
 
 func TestG1GenYieldNegative(t *testing.T) {
-	for name, src := range g1NegativeCases() {
+	cases := g1NegativeCases()
+	// Continuation tags share one u8 with the sticky DONE marker: a body with
+	// more than 254 yield sites must be rejected, not silently miscompiled.
+	cases["too many yield sites"] = "fun f() -> u8 { return 1 }\ngen g() -> u8 {\n" +
+		strings.Repeat("    yield 1\n", 255) + "}\n"
+	for name, src := range cases {
 		t.Run(name, func(t *testing.T) {
 			_, err := nanz.Parse(src, "g1_negative")
 			if err == nil {
