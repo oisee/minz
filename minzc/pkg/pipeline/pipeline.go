@@ -768,6 +768,26 @@ func prepareVM(vm *mir2.VM) {
 
 // runOneAssertMIR2 evaluates a single compile-time assertion on the given VM.
 func runOneAssertMIR2(vm *mir2.VM, a hir.Assert) error {
+	if vm == nil || vm.Module == nil {
+		return fmt.Errorf("line %d: assert %q [mir2]: missing module", a.Line, a.Source)
+	}
+	fn := vm.Module.FuncByName(a.FuncName)
+	if fn == nil {
+		return fmt.Errorf("line %d: assert %q [mir2]: function %q not found", a.Line, a.Source, a.FuncName)
+	}
+	wants := a.ExpectedMulti
+	if len(wants) == 0 {
+		wants = []int64{a.Expected}
+	}
+	returns := fn.Contract.Returns
+	if len(returns) < len(wants) {
+		return fmt.Errorf("line %d: assert %q [mir2]: return contract has %d values, want %d", a.Line, a.Source, len(returns), len(wants))
+	}
+	for i := range wants {
+		if returns[i].Ty == nil {
+			return fmt.Errorf("line %d: assert %q [mir2]: return[%d] has no type", a.Line, a.Source, i)
+		}
+	}
 	args := make([]mir2.Value, len(a.Args))
 	for i, v := range a.Args {
 		args[i] = mir2.Value{I: v}
@@ -787,7 +807,6 @@ func runOneAssertMIR2(vm *mir2.VM, a hir.Assert) error {
 	if len(rets) == 0 {
 		return fmt.Errorf("line %d: assert %q [mir2]: function returned no value", a.Line, a.Source)
 	}
-	returns := vm.Module.FuncByName(a.FuncName).Contract.Returns
 	if len(a.ExpectedMulti) > 0 {
 		if len(rets) < len(a.ExpectedMulti) {
 			return fmt.Errorf("line %d: assert %q [mir2]: function returned %d values, want %d",
@@ -795,14 +814,14 @@ func runOneAssertMIR2(vm *mir2.VM, a hir.Assert) error {
 		}
 		for i, want := range a.ExpectedMulti {
 			if !hir.AssertValueMatches(rets[i].I, want, returns[i].Ty) {
-				return fmt.Errorf("line %d: assert %q [mir2]: return[%d] got %d, want %d",
-					a.Line, a.Source, i, rets[i].I, want)
+				return fmt.Errorf("line %d: assert %q [mir2]: return[%d] got %s, want %d",
+					a.Line, a.Source, i, hir.FormatAssertValue(rets[i].I, returns[i].Ty), want)
 			}
 		}
 	} else {
 		if !hir.AssertValueMatches(rets[0].I, a.Expected, returns[0].Ty) {
-			return fmt.Errorf("line %d: assert %q [mir2]: got %d, want %d",
-				a.Line, a.Source, rets[0].I, a.Expected)
+			return fmt.Errorf("line %d: assert %q [mir2]: got %s, want %d",
+				a.Line, a.Source, hir.FormatAssertValue(rets[0].I, returns[0].Ty), a.Expected)
 		}
 	}
 	return nil
@@ -1173,8 +1192,8 @@ func checkAssertZ80Result(z *emulator.RemogattoZ80, a hir.Assert,
 			}
 
 			if !hir.AssertValueMatches(value, want, ret.Ty) {
-				return fmt.Errorf("line %d: assert %q [z80]: return[%d] got %d, want %d",
-					a.Line, a.Source, i, value, want)
+				return fmt.Errorf("line %d: assert %q [z80]: return[%d] got %s, want %d",
+					a.Line, a.Source, i, hir.FormatAssertValue(value, ret.Ty), want)
 			}
 		}
 	} else {
@@ -1192,8 +1211,8 @@ func checkAssertZ80Result(z *emulator.RemogattoZ80, a hir.Assert,
 			return err
 		}
 		if !hir.AssertValueMatches(got, a.Expected, ret.Ty) {
-			return fmt.Errorf("line %d: assert %q [z80]: got %d, want %d",
-				a.Line, a.Source, got, a.Expected)
+			return fmt.Errorf("line %d: assert %q [z80]: got %s, want %d",
+				a.Line, a.Source, hir.FormatAssertValue(got, ret.Ty), a.Expected)
 		}
 	}
 	return nil
@@ -1264,8 +1283,8 @@ func readAssertZ80Return(z *emulator.RemogattoZ80, ret mir2.Return) (int64, erro
 			return 0, fmt.Errorf("unsupported wide return location %s", location)
 		}
 	}
-	if width > 0 && width < 64 {
-		value &= (uint64(1) << uint(width)) - 1
+	if width == 24 {
+		value &= 0xffffff // The ABI returns three bytes, not the fourth shadow-register byte.
 	}
 	return int64(value), nil
 }
