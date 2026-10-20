@@ -502,6 +502,24 @@ print('ASSERTS: executed=3 passed=3 failed=0', file=sys.stderr)
                 self.assertEqual(proc.returncode,0,proc.stderr)
                 self.assertEqual('ASSERTS:' in proc.stderr,expected)
 
+    @unittest.skipUnless(os.environ.get('JUDGE_MZ'), 'set JUDGE_MZ for real compiler integration')
+    def test_real_c_import_assert_coordinates_and_controls(self):
+        root = Path(__file__).resolve().parents[1]
+        path = root / 'examples/c89/import_test.c'
+        for backend in ('mir2', 'z80'):
+            for line in (18, 19):
+                with self.subTest(backend=backend, line=line):
+                    result = matrix.run_compiler(os.environ['JUDGE_MZ'], path, 30,
+                                                 lines=[line], backend=backend)
+                    self.assertTrue(result['pass'], result)
+                    self.assertEqual(result['executed'], 1, result)
+                    control = matrix.run_compiler(os.environ['JUDGE_MZ'], path, 30,
+                                                  lines=[line], control=line, backend=backend)
+                    self.assertNotEqual(control['exit_code'], 0, control)
+                    self.assertEqual(control['executed'], 1, control)
+                    self.assertEqual(control['failed'], 1, control)
+                    self.assertIn('want 4294967', control['error'])
+
     @unittest.skipUnless(os.environ.get('JUDGE_MZ'),'set JUDGE_MZ for real compiler integration')
     def test_real_frontends_listing_execution_sandbox_controls(self):
         mz=os.environ['JUDGE_MZ']
