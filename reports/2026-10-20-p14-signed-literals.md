@@ -1,5 +1,7 @@
 # P14 signed literal comparison repair
 
+Historical initial implementation. The mixed-variable policy and final validation below are superseded by [review fix 1](2026-10-20-p14-review-fix-1.md).
+
 Baseline: origin/main `bd61dfc5f`. Branch: `fix/P14-signed-narrow-const`.
 
 ## Root cause and implementation
