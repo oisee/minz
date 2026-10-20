@@ -241,6 +241,16 @@ func (g *z80cg) genInst(inst *Inst) {
 		g.materializePendingFlag(inst)
 		g.lastFlagsLhs = ""
 		g.lastFlagsRhs = ""
+		// Bit extraction destroys A even when its result has another home.
+		// Preserve both a live source and values carried across CFG edges.
+		g.materializePendingAcc(inst)
+		if g.loc(inst.Src[0]) == "A" {
+			g.saveAccOperandIfLive(inst.Src[0], inst)
+		}
+		g.saveABeforeOverwrite(inst)
+		if restore := g.saveAccIfLive(inst); restore != nil {
+			defer restore()
+		}
 		src := g.loc(inst.Src[0])
 		bit := int(inst.Imm)
 		byteOffset := bit / 8
@@ -365,6 +375,9 @@ func (g *z80cg) genInst(inst *Inst) {
 				g.saveAccOperandIfLive(inst.Src[0], inst)
 			}
 			g.saveABeforeOverwrite(inst)
+			if restore := g.saveAccIfLive(inst); restore != nil {
+				defer restore()
+			}
 			srcLoc := g.loc(inst.Src[0])
 			if srcLoc != "A" && !g.holdsValue("A", srcLoc) {
 				g.emitLDA(srcLoc)
