@@ -777,6 +777,15 @@ func (g *z80cg) genInst(inst *Inst) {
 		}
 
 	case OpStore:
+		// Every store path needs a byte, including direct globals and fields.
+		// Resolve the predicate before address setup can overwrite its flags.
+		if value := inst.Src[1]; g.loc(value) == "F" || value == g.pendingFlagReg {
+			if g.pendingFlagReg != value {
+				g.materializePendingFlag(inst)
+				g.pendingFlagReg = value
+			}
+			g.materializePendingFlag(inst)
+		}
 		if g.runtime == Z80RuntimeCPM {
 			g.genCPMGlobalStoreGuard(inst)
 		}
@@ -1258,6 +1267,8 @@ func (g *z80cg) genInst(inst *Inst) {
 		}
 
 	case OpPtrAdd:
+		// Address arithmetic overwrites carry used by a pending store predicate.
+		g.materializePendingFlag(inst)
 		// Runtime pointer advance: dst = base_ptr + offset_u16.
 		// Z80 ONLY has ADD HL, rr — there is no ADD DE,rr or ADD BC,rr.
 		// Strategy: get base into HL, offset into DE (or BC), emit ADD HL,rr,
@@ -1276,7 +1287,7 @@ func (g *z80cg) genInst(inst *Inst) {
 		preserveHL := false
 		if dst != "HL" && g.ptrAddPushHL != inst.Dst {
 			for r := range g.regsLiveAfterInst(inst) {
-				if r != inst.Dst && g.loc(r) == "HL" {
+				if loc := g.loc(r); r != inst.Dst && (loc == "HL" || parentPair(loc) == "HL") {
 					preserveHL = true
 					break
 				}
