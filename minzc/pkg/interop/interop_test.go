@@ -1,6 +1,7 @@
 package interop
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/minz/minzc/pkg/hir"
@@ -86,5 +87,28 @@ func TestMergeInto(t *testing.T) {
 	}
 	if target.Funcs[0].Name != "main" || target.Funcs[1].Name != "helper" {
 		t.Errorf("unexpected func order: %s, %s", target.Funcs[0].Name, target.Funcs[1].Name)
+	}
+}
+
+// Import removal must preserve assertion and diagnostic source coordinates.
+func TestExtractImportsPreservesLines(t *testing.T) {
+	for _, newline := range []string{"\n", "\r\n"} {
+		src := strings.Join([]string{"", "/* entry */", "", "  #import \"math.c\"  ", "", "\t#import \"other.c\"", "", "// assert cube(3) == 27 via mir2", ""}, newline)
+		imports, cleaned := ExtractImports(src)
+		if len(imports) != 2 {
+			t.Fatalf("imports: %v", imports)
+		}
+		before, after := strings.Split(src, "\n"), strings.Split(cleaned, "\n")
+		if len(before) != len(after) {
+			t.Fatalf("line count changed: %d -> %d: %q", len(before), len(after), cleaned)
+		}
+		for i := range before {
+			if i == 3 || i == 5 {
+				continue
+			}
+			if before[i] != after[i] {
+				t.Errorf("line %d: got %q, want %q", i+1, after[i], before[i])
+			}
+		}
 	}
 }
