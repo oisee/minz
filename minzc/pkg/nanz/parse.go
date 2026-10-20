@@ -3871,20 +3871,55 @@ func (p *parser) parseRangedType(base mir2.Ty) (mir2.Ty, error) {
 
 // ── Block & statements ────────────────────────────────────────────────────────
 
+// cloneStrMap and cloneTyMap copy a parser scope map for block scoping.
+func cloneStrMap(in map[string]string) map[string]string {
+	out := make(map[string]string, len(in))
+	for k, v := range in {
+		out[k] = v
+	}
+	return out
+}
+
+func cloneTyMap(in map[string]mir2.Ty) map[string]mir2.Ty {
+	out := make(map[string]mir2.Ty, len(in))
+	for k, v := range in {
+		out[k] = v
+	}
+	return out
+}
+
 func (p *parser) parseBlock() (*hir.Block, error) {
 	if _, err := p.l.eat(tokLBrace); err != nil {
 		return nil, err
+	}
+	// Declarations are lexically scoped with the block. Generator frames must
+	// be (a frame declared inside is no longer tracked once the block ends,
+	// and a same-named ordinary variable inside the block does not disturb an
+	// enclosing frame); varTypes/varEnumType follow so the types after the
+	// block match the HIR, where the block lowering restores bindings.
+	savedGenFrames := p.genFrames
+	savedVarTypes := p.varTypes
+	savedEnumTypes := p.varEnumType
+	p.genFrames = cloneStrMap(savedGenFrames)
+	p.varTypes = cloneTyMap(savedVarTypes)
+	p.varEnumType = cloneStrMap(savedEnumTypes)
+	restore := func() {
+		p.genFrames = savedGenFrames
+		p.varTypes = savedVarTypes
+		p.varEnumType = savedEnumTypes
 	}
 	var stmts []hir.Stmt
 	for !p.l.is(tokRBrace) && !p.l.is(tokEOF) {
 		s, err := p.parseStmt()
 		if err != nil {
+			restore()
 			return nil, err
 		}
 		if s != nil {
 			stmts = append(stmts, s)
 		}
 	}
+	restore()
 	if _, err := p.l.eat(tokRBrace); err != nil {
 		return nil, err
 	}
@@ -6254,6 +6289,14 @@ func (p *parser) parsePrimary() (hir.Expr, error) {
 			return lit, nil
 		}
 		p.l.next()
+		// A generator declaration is not a value: its only uses are frame
+		// creation `g(args)` (rewritten during parsing) and the for form.
+		// Anything else — including `var q = g` and `&g`, which used to reach
+		// the HIR lowerer and panic on the unknown name — is a source error.
+		if _, isGen := p.gens[t.val]; isGen && !p.l.is(tokLParen) {
+			return nil, fmt.Errorf("line %d: generator %q cannot be used as a value; create a frame with `var it = %s(...)` or consume it with `for x in %s(...)`",
+				t.line, t.val, t.val, t.val)
+		}
 		// A generator frame is not a value: only pull_next(&frame, &out) may
 		// name it. Everything else is a compile error, not a silent copy.
 		if p.genFrames[t.val] != "" && p.inPullArgs == 0 {

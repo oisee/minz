@@ -588,6 +588,40 @@ fun sc_nested() -> u16 {
     }
     return outer_mix
 }
+
+// ── block scoping of frame names ──────────────────────────────────────────
+
+// A frame declared inside a block shadows an outer scalar only for the block;
+// afterwards the outer variable is itself again (value and type).
+fun sc_block_frame_inner() -> u16 {
+    load_data(3)
+    var it: u8 = 4
+    var mix: u16 = 0
+    {
+        var it = bytes(&data, 3)
+        var v: u8 = 0
+        while pull_next(&it, &v) {
+            mix = mix * 31 + v
+        }
+    }
+    return mix * 4 + it
+}
+
+// A scalar declared inside a block does not disturb an enclosing frame.
+fun sc_block_frame_outer() -> u16 {
+    load_data(2)
+    var it = bytes(&data, 2)
+    var v: u8 = 0
+    var s: u16 = 0
+    {
+        var it: u8 = 7
+        s = it
+    }
+    while pull_next(&it, &v) {
+        s = s * 31 + v
+    }
+    return s
+}
 `
 
 type g1Scenario struct {
@@ -772,6 +806,22 @@ func g1GenScenarios() []g1Scenario {
 		}
 	}
 	add("nested", "sc_nested", int64(nested))
+
+	// Block scoping: a frame shadows an outer scalar for the block only — the
+	// decode runs inside, the outer value survives afterwards (u16 arithmetic
+	// wraps: 12144*4+4 = 48580 fits).
+	{
+		mix := g0MixSeq(g0RefData(3))
+		add("block_frame_inner", "sc_block_frame_inner", int64(uint16(mix*4+4)))
+	}
+	// …and an inner scalar does not disturb an enclosing frame.
+	{
+		var s uint16 = 7
+		for _, b := range g0RefData(2) {
+			s = s*31 + uint16(b)
+		}
+		add("block_frame_outer", "sc_block_frame_outer", int64(s))
+	}
 
 	return sc
 }
@@ -1022,6 +1072,39 @@ fun f() -> u8 {
     var it = g()
     var it: u8 = 7
     var v: u8 = 0
+    while pull_next(&it, &v) { }
+    return v
+}`,
+		"gen name as value": `
+gen g() -> u8 {
+    yield 1
+}
+fun f() -> u8 {
+    var q = g
+    return 0
+}`,
+		"address of generator": `
+gen g() -> u8 {
+    yield 1
+}
+fun f() -> u8 {
+    var p = &g
+    return 0
+}`,
+		"yield generator name": `
+gen g() -> u8 {
+    yield g
+}`,
+		"frame used after its block": `
+gen g() -> u8 {
+    yield 1
+}
+fun f() -> u8 {
+    var v: u8 = 0
+    {
+        var it = g()
+        pull_next(&it, &v)
+    }
     while pull_next(&it, &v) { }
     return v
 }`,
