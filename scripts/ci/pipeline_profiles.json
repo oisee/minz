@@ -399,6 +399,7 @@
     "TestZ80ByteSpillSlotWordCompareE2E",
     "TestZ80CallIntoSpilledParameter",
     "TestZ80InPlaceByteLiveAccumulatorE2E",
+    "TestZ80LiveOutRestoreParallelE2E",
     "TestZ80NegLiveAccumulatorE2E",
     "TestZ80ProfileWorkloadCumulativeLimit",
     "TestZ80ProfileWorkloadDeadExternAndFetchDenial",
