@@ -18,7 +18,6 @@ import (
 
 	"github.com/minz/minzc/pkg/emulator"
 	"github.com/minz/minzc/pkg/hir"
-	"github.com/minz/minzc/pkg/mir2"
 	"github.com/minz/minzc/pkg/nanz"
 	"github.com/minz/minzc/pkg/pipeline"
 	"github.com/minz/minzc/pkg/z80asm"
@@ -726,30 +725,18 @@ fun main() -> u8 {
 	}
 }
 
-// TestG0Finding_RangeOverflowReturnWidth: a u8 overflow counter check. The
-// raw VM does not truncate a function result to the declared return width
-// while Z80 does; programs that compute out-of-range values diverge between
-// tiers. Pinned here so the divergence is visible; the value is out of
-// contract either way.
-func TestG0Finding_RangeOverflowReturnWidth(t *testing.T) {
+// TestG0WideMulReturnTruncates pins u16 multiplication overflow on all tiers.
+func TestG0WideMulReturnTruncates(t *testing.T) {
 	src := `
 fun wide() -> u16 {
     return 300 * 300
 }
-assert wide() == 33792
+fun mulv(a: u16, b: u16) -> u16 {
+    return a * b
+}
+assert wide() == 24464
+assert mulv(300, 300) == 24464
 `
-	m, err := nanz.Parse(src, "g0_width")
-	if err != nil {
-		t.Fatalf("parse: %v", err)
-	}
-	raw := hir.LowerModule(m)
-	got, err := mir2.NewVM(raw).Call("wide", nil)
-	if err != nil || len(got) != 1 {
-		t.Fatalf("raw VM call: %v %v", got, err)
-	}
-	if got[0].I != 33792 {
-		t.Skipf("G0 finding G0-6: raw VM returns %d, does not truncate to declared u16 return (Z80 returns 33792)", got[0].I)
-	}
 	if err := g0RunAsserts(t, src); err != nil {
 		t.Fatal(err)
 	}

@@ -91,11 +91,7 @@ Recorded, not fixed here:
   `LD A, ?` invalid instructions and undefined labels — one such call anywhere
   breaks the whole module's assembly. Correct behaviour: a source-level
   diagnostic. Test: `TestG0Finding_UnsupportedMethodRejected` (skip).
-- **G0-6** — a function whose result exceeds its declared `u16` return width
-  returns an incorrect value on the raw MIR2 VM (`300*300` → 24464 in the
-  current regression run) while Z80 returns the truncated 33792. Out-of-contract input, but the VM
-  should mirror target truncation. Test: `TestG0Finding_RangeOverflowReturnWidth`
-  (skip).
+- **G0-6 (withdrawn):** u16 overflow truncates consistently to 24464 on all tiers.
 - **G0-7** — parser: `return (a * 3) + x` is rejected ("unexpected token +")
   while `return a * 3 + x` parses; a parenthesised multiplication operand
   before `+` breaks expression parsing (assignments too). Test:
