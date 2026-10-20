@@ -70,7 +70,9 @@ func TestByteSpillSlotWordReadExtends(t *testing.T) {
 				}
 				for _, value := range []uint16{0, 1, 2, 3, 4, 254, 255, 256, 257, 511, 512, 32768, 65535} {
 					z := emulator.NewRemogattoZ80()
-					z.LoadMemory(0x8000, a.Binary)
+					if err := z.LoadMemory(0x8000, a.Binary); err != nil {
+						t.Fatal(err)
+					}
 					z.SetRegisters(emulator.Registers{PC: 0x8000, SP: 0xf000, BC: value})
 					for n := 0; n < 1000 && !z.IsHalted(); n++ {
 						z.Step()

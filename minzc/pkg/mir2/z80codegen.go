@@ -824,6 +824,9 @@ func (g *z80cg) comment(s string)            { g.emitf("    ; %s", s) }
 //   - OpAdd/OpSub with Src[1]==const, value==1, and lhs/dst at the same physical
 //     location → INC/DEC fires (no register needed).
 //
+// Classify each operand occurrence by position: Src[0] still needs a register
+// even when it names the same constant as the foldable Src[1]. Other immediate
+// RHS paths (bitwise, division, store, multiply and shifts) are checked below.
 // Constants with zero uses are also suppressed.
 func computeDeadConsts(f *Func, ar *AllocResult) map[Reg]bool {
 	// Collect all OpConst dsts and their immediate values.
@@ -859,7 +862,7 @@ func computeDeadConsts(f *Func, ar *AllocResult) map[Reg]bool {
 					// call args are never peephole-foldable
 				}
 			}
-			for _, src := range inst.Src {
+			for operand, src := range inst.Src {
 				cv, isConst := constVal[src]
 				if !isConst {
 					continue
@@ -872,7 +875,7 @@ func computeDeadConsts(f *Func, ar *AllocResult) map[Reg]bool {
 					// must be in a register and cannot be folded.
 					// Note: inst.Ty is bool (the result), so check the constant
 					// value and its allocation to determine operand width.
-					if src == inst.Src[1] && cv >= 0 && cv <= 0xFF && (inst.SrcTy == nil || inst.SrcTy.Width() <= 8) {
+					if operand == 1 && cv >= 0 && cv <= 0xFF && (inst.SrcTy == nil || inst.SrcTy.Width() <= 8) {
 						// Also verify lhs is in an 8-bit register (not a pair).
 						lhsLoc := physName(inst.Src[0])
 						if lhsLoc == "A" || lhsLoc == "B" || lhsLoc == "C" ||
@@ -883,7 +886,7 @@ func computeDeadConsts(f *Func, ar *AllocResult) map[Reg]bool {
 					}
 				case OpAdd, OpSub:
 					// INC/DEC: fires when rhs==1 and the op is in-place (lhs phys == dst phys).
-					if src == inst.Src[1] && cv == 1 &&
+					if operand == 1 && cv == 1 &&
 						physName(inst.Src[0]) == physName(inst.Dst) &&
 						inst.Ty.Width() <= 16 && !isSpill(physName(inst.Dst)) &&
 						physName(inst.Dst) != "F" {
@@ -891,29 +894,29 @@ func computeDeadConsts(f *Func, ar *AllocResult) map[Reg]bool {
 					}
 				case OpDiv, OpSDiv, OpMod, OpSMod:
 					signed := inst.Op == OpSDiv || inst.Op == OpSMod
-					if src == inst.Src[1] && cv > 0 && cv&(cv-1) == 0 && inst.Ty.Width() <= 16 && (!signed || cv < int64(1)<<(inst.Ty.Width()-1)) {
+					if operand == 1 && cv > 0 && cv&(cv-1) == 0 && inst.Ty.Width() <= 16 && (!signed || cv < int64(1)<<(inst.Ty.Width()-1)) {
 						foldedUses[src]++
 					}
 				case OpAnd, OpOr, OpXor:
 					// The 8/16-bit paths emit immediate bytes; wider paths read registers.
-					if src == inst.Src[1] && inst.Ty.Width() <= 16 {
+					if operand == 1 && inst.Ty.Width() <= 16 {
 						foldedUses[src]++
 					}
 				case OpStore:
 					// LD (HL),n / LD (IX+d),n — 8-bit stores can take an immediate
 					// operand directly; no register needed for the value.
-					if src == inst.Src[1] && inst.Ty.Width() <= 8 {
+					if operand == 1 && inst.Ty.Width() <= 8 {
 						foldedUses[src]++
 					}
 				case OpMul:
 					// genMul folds constant Src[1] into shift sequences.
-					if src == inst.Src[1] {
+					if operand == 1 {
 						foldedUses[src]++
 					}
 				case OpShl, OpShr, OpSar:
 					// genShift/genShift32 consume the constant count directly
 					// when emitting the repeated single-bit shifts.
-					if src == inst.Src[1] {
+					if operand == 1 {
 						foldedUses[src]++
 					}
 				}
