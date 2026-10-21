@@ -1,0 +1,52 @@
+{
+  "cases": [
+    {
+      "file": "abs_diff.a80",
+      "sha256": "294ccaca516329d3e37fbe26dbf2abb9f776573a5a2954e41886378a03f86acd"
+    },
+    {
+      "file": "bitwise8reg.a80",
+      "sha256": "6f9f4b91cc1ff1d7e1e69e4cc1ac1f10ea2b44294b06b6bfcdc91aab98227424"
+    },
+    {
+      "file": "copy_bytes.a80",
+      "sha256": "75d562d95e26b53f7434dfcb97a417c5cc858f3bb709613edb05fb4db782fa86"
+    },
+    {
+      "file": "crc8.a80",
+      "sha256": "e499953a3a8fb005320bd0a26df9dae79f3673f07beb87885f9f5fb46fff4c40"
+    },
+    {
+      "file": "fat12_decode.a80",
+      "sha256": "0425a68a7b50d5214b3ce022a736bf01e7f454a62fce4a6b60aa1935693b0177"
+    },
+    {
+      "file": "gcd.a80",
+      "sha256": "5903a40f9f3f2fa716a348d936e2322d523cf15e051fa96e4831139696b345d3"
+    },
+    {
+      "file": "memset_fill.a80",
+      "sha256": "f23be1bdfd0968959d6cc2147250a8b05d9db8bc271ddd5e0b1562ed55ddead5"
+    },
+    {
+      "file": "mul8x8.a80",
+      "sha256": "4147f569834b9c61bb429ca750b86672f5c9da3b0228ced93dc98126e1d72f29"
+    },
+    {
+      "file": "reverse_loop11.a80",
+      "sha256": "595160f6b6ec7011195ffaf8cecfb72cddaacb7d74d8a3dabfc94efe72302fce"
+    },
+    {
+      "file": "strlen_bytes.a80",
+      "sha256": "c2b5a6ae50c3b1c676935bdd73f2798f6143fbafb3694d494086980b10a06b62"
+    },
+    {
+      "file": "struct_roundtrip.a80",
+      "sha256": "9e5dd18f5c1cf78d0c1028c0a4404a5c5f3eac0debfccb0cea20342e2dea9cdc"
+    },
+    {
+      "file": "sum_array.a80",
+      "sha256": "1bdbe71f80d95c3ac954a576691e7f52c6f5e85b0fc75d681a37d6f5ec26967b"
+    }
+  ]
+}

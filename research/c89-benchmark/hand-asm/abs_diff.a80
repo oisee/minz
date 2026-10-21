@@ -1,0 +1,21 @@
+; Hand-written Z80 reference; globals remain unchanged except specified output.
+ORG 0x8000
+execute:
+    LD A,[v_b]
+    LD C,A
+    LD A,[v_a]
+    SUB C
+    JR NC,done
+    NEG
+done:
+    LD L,A
+    LD H,0
+    LD [result],HL
+    RET
+
+v_a:
+    DS 1,0
+v_b:
+    DS 1,0
+result:
+    DW 0

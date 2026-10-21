@@ -1,0 +1,32 @@
+; Hand-written Z80 reference; globals remain unchanged except specified output.
+ORG 0x8000
+execute:
+    LD A,[n]
+    OR A
+    JR Z,done
+    LD B,A
+    LD L,A
+    LD H,0
+    ADD HL,HL
+    LD DE,target
+    ADD HL,DE
+    LD C,A
+loop:
+    DEC C
+    DEC HL
+    LD [HL],0
+    DEC HL
+    LD [HL],C
+    DJNZ loop
+done:
+    LD L,A
+    LD H,0
+    LD [result],HL
+    RET
+
+target:
+    DS 512,0
+n:
+    DS 1,0
+result:
+    DW 0

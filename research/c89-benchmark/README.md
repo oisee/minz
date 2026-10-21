@@ -69,6 +69,18 @@ and a pointer-range foreach for sum_array. The copy loop preserves forward
 order. No inline asm, SMC, lookup table or benchmark-specific specialization
 is introduced.
 
+Add `--include-refs` for twelve separately SHA256-pinned idiomatic Nanz sources
+(`nanz-idiom`: default and grace) and twelve complete hand-written Z80 modules
+(`hand`: asm). These references cover only main cases, including when `--suite all`
+is selected; `--suite heldout` adds no reference rows. This flag is independent of
+`--include-nanz`. The driver builds mza, saves its hash and commands, and assembles
+hand modules at 0x8000. Their binary/symbol hashes are attested and checked before
+the same native result, global-memory and PC/SP checks as external C images;
+Nanz additionally retains raw/final MIR VM checks. A failed reference makes the
+driver exit nonzero after saving the complete summary. See [REFS-NOTES.md](REFS-NOTES.md)
+for the main-suite comparison and compiler findings. T columns there sum all
+calls in each case's unchanged workload.
+
 Add `--sdcc45-root /path/to/sdcc45/root` to run both SDCC releases in one
 matrix. That root uses the same `usr/bin` and `usr/share/sdcc/lib/z80` layout
 as the 4.2 package. For a locally installed official release, a `root/usr`
