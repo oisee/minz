@@ -144,7 +144,10 @@ func TestMetaSpecializeSpectrumSpeedAndBudget(t *testing.T) {
 		selected int
 		success  bool
 	}{
-		{"size", 0, 1, true}, {"speed", 0, 0, true}, {"budget", 32000, 1, true}, {"budget", 29700, 0, true}, {"budget", 1, -1, false},
+		// The 28200-T budget must sit between the two candidates' measured max
+		// full busy T (27718 unrolled, 28689 compact after pair-move codegen) so
+		// only the faster candidate fits.
+		{"size", 0, 1, true}, {"speed", 0, 0, true}, {"budget", 32000, 1, true}, {"budget", 28200, 0, true}, {"budget", 1, -1, false},
 	} {
 		t.Run(fmt.Sprintf("%s-%d", tc.goal, tc.budget), func(t *testing.T) {
 			dir := t.TempDir()
