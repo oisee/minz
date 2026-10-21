@@ -22,7 +22,7 @@ func truncatedArithmeticFixture(op Op) (*Module, *Func, *Inst) {
 // C90 6.2.1.1 promotes both bytes to int. Sums 0..510 and differences
 // -255..255 fit int16; conversion back to unsigned char is modulo 256.
 func TestNarrowByteArithmeticAllPairs(t *testing.T) {
-	for _, op := range []Op{OpAdd, OpSub} {
+	for _, op := range []Op{OpAdd, OpSub, OpAnd, OpOr, OpXor} {
 		m, f, i := truncatedArithmeticFixture(op)
 		wide := *f.Blocks[0].Insts[2]
 		if !SimplifyIdentities(f) || i.Op != op || i.Src != [2]Reg{1, 2} || i.SrcTy != TyU8 || i.SrcLine != 11 || i.SrcFile != "arithmetic.c" || !reflect.DeepEqual(wide, *f.Blocks[0].Insts[2]) {
@@ -35,8 +35,15 @@ func TestNarrowByteArithmeticAllPairs(t *testing.T) {
 		for x := int64(0); x < 256; x++ {
 			for y := int64(0); y < 256; y++ {
 				want := x + y
-				if op == OpSub {
+				switch op {
+				case OpSub:
 					want = x - y
+				case OpAnd:
+					want = x & y
+				case OpOr:
+					want = x | y
+				case OpXor:
+					want = x ^ y
 				}
 				out, e := vm.Call("arith", []Value{{I: x}, {I: y}})
 				if e != nil || len(out) != 2 || out[0].I != int64(uint8(want)) || out[1].I != int64(uint16(want)) {
@@ -48,7 +55,7 @@ func TestNarrowByteArithmeticAllPairs(t *testing.T) {
 }
 
 func TestNarrowByteArithmeticRefusals(t *testing.T) {
-	for _, kind := range []string{"signed-source", "sext", "hard-ext", "hard-wide", "hard-trunc", "late-wide", "mixed-type", "word-result", "redefined-source", "redefined-ext", "redefined-wide", "asm", "flag-return", "fallible"} {
+	for _, kind := range []string{"signed-source", "sext", "hard-ext", "hard-wide", "hard-trunc", "late-wide", "mixed-type", "word-result", "redefined-source", "redefined-ext", "redefined-wide", "redefined-trunc", "asm", "flag-return", "fallible"} {
 		t.Run(kind, func(t *testing.T) {
 			_, f, i := truncatedArithmeticFixture(OpSub)
 			b := f.Blocks[0]
@@ -75,6 +82,8 @@ func TestNarrowByteArithmeticRefusals(t *testing.T) {
 				b.Insts = append(b.Insts, &Inst{Op: OpConst, Dst: 3, Ty: TyI16, Imm: 999})
 			case "redefined-wide":
 				b.Insts = append(b.Insts, &Inst{Op: OpConst, Dst: 5, Ty: TyI16, Imm: 999})
+			case "redefined-trunc":
+				b.Insts = append(b.Insts, &Inst{Op: OpConst, Dst: 6, Ty: TyU8, Imm: 9})
 			case "asm":
 				b.Insts = append(b.Insts, &Inst{Op: OpAsm, Asm: &AsmExtra{Template: "ADC A,0"}})
 			case "flag-return":
@@ -87,5 +96,158 @@ func TestNarrowByteArithmeticRefusals(t *testing.T) {
 				t.Fatal("unsafe rewrite", kind)
 			}
 		})
+	}
+}
+
+// Exercise promoted C expression trees while preserving a second word user.
+func TestDemandedLowByteArithmetic(t *testing.T) {
+	for _, op := range []Op{OpAdd, OpSub, OpAnd, OpOr, OpXor, OpShl, OpShr, OpSar} {
+		t.Run(op.String(), func(t *testing.T) {
+			m, f, trunc := truncatedArithmeticFixture(op)
+			b := f.Blocks[0]
+			b.Insts[1] = &Inst{Op: OpConst, Dst: 4, Ty: TyI16, Imm: 3}
+			b.Insts = append(b.Insts[:3], &Inst{Op: OpConst, Dst: 7, Ty: TyI16, Imm: 263}, &Inst{Op: OpXor, Dst: 8, Ty: TyI16, Src: [2]Reg{5, 7}}, trunc)
+			trunc.Src[0] = 8
+			if !narrowTruncatedByteArithmetic(f) || trunc.Op != OpXor {
+				t.Fatal("promoted tree was not narrowed")
+			}
+			if err := Verify(m); err != nil {
+				t.Fatal(err)
+			}
+			vm := NewVM(m)
+			for x := int64(0); x < 256; x++ {
+				var wide int64
+				switch op {
+				case OpAdd:
+					wide = x + 3
+				case OpSub:
+					wide = x - 3
+				case OpAnd:
+					wide = x & 3
+				case OpOr:
+					wide = x | 3
+				case OpXor:
+					wide = x ^ 3
+				case OpShl:
+					wide = x << 3
+				case OpShr, OpSar:
+					wide = x >> 3
+				}
+				out, err := vm.Call("arith", []Value{{I: x}, {I: 0}})
+				if err != nil || len(out) != 2 || out[0].I != int64(uint8(wide^263)) || out[1].I != int64(uint16(wide)) {
+					t.Fatal(x, out, err, wide)
+				}
+			}
+		})
+	}
+}
+
+func TestDemandedLowByteShiftRefusals(t *testing.T) {
+	for _, op := range []Op{OpShl, OpShr, OpSar} {
+		for _, k := range []int64{-1, 8, 16, 256} {
+			_, f, _ := truncatedArithmeticFixture(op)
+			f.Blocks[0].Insts[1] = &Inst{Op: OpConst, Dst: 4, Ty: TyI16, Imm: k}
+			if narrowTruncatedByteArithmetic(f) {
+				t.Fatal(op, k)
+			}
+		}
+	}
+	for _, op := range []Op{OpShr, OpSar} {
+		_, f, _ := truncatedArithmeticFixture(op)
+		f.Blocks[0].Insts[0] = &Inst{Op: OpConst, Dst: 3, Ty: TyI16, Imm: 0x100}
+		f.Blocks[0].Insts[1] = &Inst{Op: OpConst, Dst: 4, Ty: TyI16, Imm: 1}
+		if narrowTruncatedByteArithmetic(f) {
+			t.Fatal("right shift needs the high byte", op)
+		}
+	}
+}
+
+func TestDemandedLowByteConsumers(t *testing.T) {
+	for _, op := range []Op{OpStore, OpCmp} {
+		m, f, trunc := truncatedArithmeticFixture(OpAdd)
+		b := f.Blocks[0]
+		// Two byte consumers of the same wide result reuse one clone, while
+		// the word return and comparison still see the unmodified sum.
+		f.Contract.Params = append(f.Contract.Params, Param{Reg: 9, Ty: TyPtr, Class: ClassPointer})
+		b.Insts = append(b.Insts[:3], &Inst{Op: OpStore, Ty: TyU8, Src: [2]Reg{9, 5}}, trunc,
+			&Inst{Op: OpCmp, Dst: 10, Ty: TyBool, SrcTy: TyI16, Cond: CmpEq, Src: [2]Reg{5, 3}})
+		if op == OpCmp {
+			b.Insts[3] = &Inst{Op: OpCmp, Dst: 11, Ty: TyBool, SrcTy: TyU8, Cond: CmpEq, Src: [2]Reg{3, 4}}
+		}
+		if !narrowTruncatedByteArithmetic(f) {
+			t.Fatal("no rewrite")
+		}
+		byteAdds := 0
+		for _, i := range b.Insts {
+			if i.Dst == 10 && i.Src != [2]Reg{5, 3} {
+				t.Fatal("word compare narrowed")
+			}
+			if i.Op == OpStore && i.Src[1] == 5 {
+				t.Fatal("store still consumes the word sum")
+			}
+			if i.Dst == 11 && i.Src != [2]Reg{1, 2} {
+				t.Fatal("byte compare retains zero extensions")
+			}
+			if i.Op == OpAdd && i.Ty == TyU8 {
+				byteAdds++
+			}
+		}
+		if byteAdds != 1 {
+			t.Fatal("byte consumers should share one byte sum", byteAdds)
+		}
+		if err := Verify(m); err != nil {
+			t.Fatal(err)
+		}
+		vm := NewVM(m)
+		for x := int64(0); x < 256; x++ {
+			out, err := vm.Call("arith", []Value{{I: x}, {I: 255}, {I: 0}})
+			if err != nil || len(out) != 2 || out[0].I != int64(uint8(x+255)) || out[1].I != x+255 {
+				t.Fatal(op, x, out, err)
+			}
+			if op == OpStore && vm.ReadHeap(0, 1)[0] != byte(x+255) {
+				t.Fatal("store", x)
+			}
+		}
+	}
+}
+
+func TestDemandedLowByteDepthLimit(t *testing.T) {
+	_, f, trunc := truncatedArithmeticFixture(OpAdd)
+	b := f.Blocks[0]
+	b.Insts = b.Insts[:3]
+	r := Reg(5)
+	for n := Reg(10); n < 24; n++ {
+		b.Insts = append(b.Insts, &Inst{Op: OpXor, Dst: n, Ty: TyI16, Src: [2]Reg{r, 3}})
+		r = n
+	}
+	trunc.Src[0] = r
+	b.Insts = append(b.Insts, trunc)
+	if narrowTruncatedByteArithmetic(f) {
+		t.Fatal("excessive recursion")
+	}
+}
+
+func TestDemandedLowByteRightShiftOfSumRefused(t *testing.T) {
+	for _, op := range []Op{OpShr, OpSar} {
+		_, f, trunc := truncatedArithmeticFixture(OpAdd)
+		b := f.Blocks[0]
+		b.Insts = append(b.Insts[:3], &Inst{Op: OpConst, Dst: 7, Ty: TyI16, Imm: 1}, &Inst{Op: op, Dst: 8, Ty: TyI16, Src: [2]Reg{5, 7}}, trunc)
+		trunc.Src[0] = 8
+		if narrowTruncatedByteArithmetic(f) {
+			t.Fatal("sum may carry into high byte", op)
+		}
+	}
+}
+
+func TestDemandedLowByteLeavesAreNotRoots(t *testing.T) {
+	for _, op := range []Op{OpExt, OpConst} {
+		_, f, trunc := truncatedArithmeticFixture(OpAdd)
+		trunc.Src[0] = 3
+		if op == OpConst {
+			f.Blocks[0].Insts[0] = &Inst{Op: OpConst, Dst: 3, Ty: TyI16, Imm: 263}
+		}
+		if narrowTruncatedByteArithmetic(f) {
+			t.Fatal("standalone conversion belongs to conversion folding", op)
+		}
 	}
 }
