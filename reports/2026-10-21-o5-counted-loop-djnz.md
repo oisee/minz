@@ -572,3 +572,15 @@ nested wins and this case without a heuristic.
 `TestCountedLoopHoistAndNestProfitabilityVMZ80` (hoist, swap1, nest; T and
 module bytes against the `DisableCountedLoops` build) fails without the
 term.go change (`hoist` 446 → 450 T).
+
+Fourth critic (same day): correct, campaign confirmed (1800/1800, 242,538,544 T,
+one function +2.1%), but a rejected hoist left native memory records from the
+trial emission, so `Z80Codegen` with `NativeMemoryAccesses` failed with a
+missing/duplicate marker on 4 campaign seeds (build error, no miscompile). The
+trial emission now snapshots and restores the native record sink, spill counter
+and block T-state accumulator (`trialEmission`). New failing-first tests:
+`TestCountedLoopRejectedHoistNativeMarkers` (critic q3_9) and
+`TestCountedLoopInnermostOnlyVMZ80` (critic q103_8: 22,011 → 24,834 T without
+the nest rule, 14,835 T with it). Lost win noted by the critic: an inner
+non-counted `while` also keeps the outer loop ordinary (`w1`: 7,993 T possible,
+9,806 T kept, same as main).

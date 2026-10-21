@@ -585,3 +585,117 @@ func TestCountedLoopHoistAndNestProfitabilityVMZ80(t *testing.T) {
 		}
 	}
 }
+
+// A rejected DJNZ hoist must not leave native memory records behind: the
+// trampoline emits the same spill copies again under their own markers.
+const countedRejectedHoistSource = `
+fun q3_9(x: u8, y: u8) -> u16 {
+ var a: u8 = 191
+ var b: u8 = 224
+ var c: u8 = 77
+ var d: u8 = 110
+ var w: u16 = 0
+ for i0 in 0..3 {
+  var t0_0: u8 = a
+  var t0_1: u8 = b
+  var t0_2: u8 = c
+  var t0_3: u8 = d
+  a = t0_1 xor 110
+  b = t0_3 xor 34
+  c = t0_2
+  d = t0_0 | 52
+  w = w + t0_3 as u16
+ }
+ var h: u8 = x
+ h = (h + a) xor 29
+ h = h + h
+ h = (h + b) xor 29
+ h = h + h
+ h = (h + c) xor 29
+ h = h + h
+ h = (h + d) xor 29
+ h = h + h
+ h = h xor y
+ return w + h as u16
+}
+`
+
+func TestCountedLoopRejectedHoistNativeMarkers(t *testing.T) {
+	h, err := nanz.Parse(countedRejectedHoistSource, "q3_9.nanz")
+	if err != nil {
+		t.Fatal(err)
+	}
+	s, err := CompileHIRSteps(h, Options{AssertMode: "none"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	records := []mir2.NativeMemoryAccess{}
+	if _, err := mir2.Z80Codegen(s.MIR2Module, s.Allocation, mir2.Z80CodegenOptions{NativeMemoryAccessOrigins: map[*mir2.Inst]mir2.GlobalMemoryOrigin{}, NativeMemoryAccesses: &records}); err != nil {
+		t.Fatal(err)
+	}
+}
+
+// An outer counted loop must leave B to its inner loop. With both canonicalised
+// the inner counter landed in A and this nest ran slower than ordinary lowering.
+const countedNestSource = `
+fun q103_8(x: u8, y: u8) -> u16 {
+ var a: u8 = 243
+ var b: u8 = 211
+ var c: u8 = 194
+ var d: u8 = 141
+ var w: u16 = 0
+ for i0 in 0..13 {
+  var t0_0: u8 = a
+  var t0_1: u8 = b
+  var t0_2: u8 = c
+  var t0_3: u8 = d
+  a = t0_3 | 3
+  b = t0_0 | 204
+  c = t0_2 xor 188
+  d = t0_1 - 218
+  for i1 in 0..7 {
+   var t1_0: u8 = a
+   var t1_1: u8 = b
+   var t1_2: u8 = c
+   var t1_3: u8 = d
+   a = t1_2
+   b = t1_3 + 112
+   c = t1_0
+   d = t1_1
+  }
+ }
+ var h: u8 = x
+ h = (h + a) xor 29
+ h = h + h
+ h = (h + b) xor 29
+ h = h + h
+ h = (h + c) xor 29
+ h = h + h
+ h = (h + d) xor 29
+ h = h + h
+ h = h xor y
+ return w + h as u16
+}
+`
+
+func TestCountedLoopInnermostOnlyVMZ80(t *testing.T) {
+	h, err := nanz.Parse(countedNestSource, "q103_8.nanz")
+	if err != nil {
+		t.Fatal(err)
+	}
+	s, err := CompileHIRSteps(h, Options{AssertMode: "none"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	old, err := CompileHIRSteps(h, Options{AssertMode: "none", DisableCountedLoops: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	args := []int64{9, 93}
+	beforeT, beforeB := measureGraceZ80Compiled(t, h, old, "q103_8", args, nil, 145, 2000000)
+	afterT, afterB := measureGraceZ80Compiled(t, h, s, "q103_8", args, nil, 145, 2000000)
+	t.Logf("q103_8: T %d -> %d; module bytes %d -> %d", beforeT, afterT, beforeB, afterB)
+	if afterT > beforeT || afterB > beforeB {
+		t.Errorf("nest regressed")
+	}
+}

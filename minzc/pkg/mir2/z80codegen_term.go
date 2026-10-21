@@ -307,6 +307,7 @@ func (g *z80cg) genTerm(f *Func, t Term) {
 				outer := g.sb
 				var hoist strings.Builder
 				g.sb = &hoist
+				restore := g.trialEmission()
 				g.emitParallelCopy(bodyCopies)
 				g.sb = outer
 				if g.djnzTargetWithinRangeAfter(bodyLabel, hoist.String()) {
@@ -314,6 +315,8 @@ func (g *z80cg) genTerm(f *Func, t Term) {
 					exitCopies = adjusted
 					bodyCopies = nil
 					needsBodyCopy = false
+				} else {
+					restore()
 				}
 			}
 		}
@@ -734,4 +737,24 @@ func effectiveCopyCount(copies []parallelCopy) int {
 		}
 	}
 	return n
+}
+
+// trialEmission snapshots the bookkeeping that emission records outside the
+// text buffer. The returned function discards what a rejected trial added,
+// so native memory markers and T-state annotations match the final text.
+func (g *z80cg) trialEmission() func() {
+	sinkLen := -1
+	if g.nativeMemorySink != nil {
+		sinkLen = len(*g.nativeMemorySink)
+	}
+	spills, blockT := g.nativeSpillCount, g.blockT
+	return func() {
+		if sinkLen >= 0 {
+			for _, r := range (*g.nativeMemorySink)[sinkLen:] {
+				delete(g.nativeOrphanLabels, r.ID)
+			}
+			*g.nativeMemorySink = (*g.nativeMemorySink)[:sinkLen]
+		}
+		g.nativeSpillCount, g.blockT = spills, blockT
+	}
 }
