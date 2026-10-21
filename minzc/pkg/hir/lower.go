@@ -2589,8 +2589,9 @@ func (l *lowerer) lowerExpr(e Expr) mir2.Reg {
 				paramTy = calleeParams[i].Ty
 			}
 			var r mir2.Reg
+			// Normalize narrow integer arguments before ABI placement and inlining.
 			_, literal := a.(*IntLitExpr)
-			if i < len(calleeParams) && mir2.IsInt(paramTy) && mir2.IsInt(calleeParams[i].Ty) && (literal || mir2.IsSigned(paramTy) && paramTy.Width() < calleeParams[i].Ty.Width()) {
+			if i < len(calleeParams) && mir2.IsInt(paramTy) && mir2.IsInt(calleeParams[i].Ty) && (literal || paramTy.Width() < calleeParams[i].Ty.Width()) {
 				paramTy = calleeParams[i].Ty
 				r = l.lowerExprAs(a, paramTy)
 			} else {

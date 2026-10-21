@@ -1,0 +1,15 @@
+// Keep byte arithmetic at byte width, then zero-extend at the call boundary.
+fun complement(x:u16)->u16 { return (x | 65535)-x }
+fun branch(x:u16)->u16 {
+    if x == 0 { return 1234 }
+    return x + 1000
+}
+fun byte_expression(a:u8)->u16 { return complement(a xor 2) }
+fun byte_wrap(a:u8)->u16 { return complement(a + a) }
+fun byte_variable(a:u8)->u16 { return branch(a) }
+assert byte_expression(7) == 65530
+assert byte_expression(255) == 65282
+assert byte_wrap(255) == 65281
+assert byte_wrap(128) == 65535
+assert byte_variable(0) == 1234
+assert byte_variable(255) == 1255
