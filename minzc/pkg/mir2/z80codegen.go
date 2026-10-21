@@ -871,8 +871,8 @@ func (g *z80cg) comment(s string)            { g.emitf("    ; %s", s) }
 // because every use of the constant is already handled by a codegen peephole:
 //
 //   - OpCmp with Src[1] being the const → CP imm8 fires (no register needed).
-//   - OpAdd/OpSub with Src[1]==const, value==1, and lhs/dst at the same physical
-//     location → INC/DEC fires (no register needed).
+//   - OpAdd/OpSub with a small constant RHS → INC/DEC fires for words with
+//     unobserved flags, or in-place bytes with RHS 1 (no register needed).
 //
 // Classify each operand occurrence by position: Src[0] still needs a register
 // even when it names the same constant as the foldable Src[1]. Other immediate
@@ -935,10 +935,15 @@ func computeDeadConsts(f *Func, ar *AllocResult) map[Reg]bool {
 						}
 					}
 				case OpAdd, OpSub:
+					if operand == 1 && inst.Ty.Width() == 16 && smallWordStep(cv) &&
+						wordMaskFlagsUnobserved(f, inst.Dst) {
+						foldedUses[src]++
+						break
+					}
 					// INC/DEC: fires when rhs==1 and the op is in-place (lhs phys == dst phys).
 					if operand == 1 && cv == 1 &&
 						physName(inst.Src[0]) == physName(inst.Dst) &&
-						inst.Ty.Width() <= 16 && !isSpill(physName(inst.Dst)) &&
+						inst.Ty.Width() <= 8 && !isSpill(physName(inst.Dst)) &&
 						physName(inst.Dst) != "F" {
 						foldedUses[src]++
 					}

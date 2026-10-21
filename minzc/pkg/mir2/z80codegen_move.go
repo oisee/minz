@@ -510,6 +510,15 @@ func (g *z80cg) genExt(inst *Inst) {
 // destination may overlap either bank of its narrow operand. LD and EXX do not
 // change flags; the outer AF save also preserves an unrelated accumulator.
 func (g *z80cg) genUnsignedExtBytes(dst, src string, srcW, dstW int) {
+	// These byte loads need neither A as scratch nor a snapshot: read the
+	// source into the low half before clearing the high half, even for H/D/B.
+	if srcW == 8 && dstW == 16 && (dst == "BC" || dst == "DE" || dst == "HL") &&
+		(src == "A" || src == "B" || src == "C" || src == "D" || src == "E" || src == "H" || src == "L") {
+		g.emitLD8(lowByte(dst), src)
+		g.emitLD8(highByte(dst), "0")
+		g.invalidate(dst)
+		return
+	}
 	byteLoc := func(loc string, width, i int) string {
 		if isSpill(loc) {
 			if i == 0 {
@@ -968,7 +977,15 @@ func (g *z80cg) emitMov(dst, src string, widthBits int) {
 			g.emitf("    LD %s, 0", highByte(dst))
 			break
 		}
-		// General 16-bit move via PUSH/POP.
+		// Primary pairs have disjoint byte registers. The parallel-copy
+		// scheduler resolves cycles before calling this sequential move.
+		if (src == "BC" || src == "DE" || src == "HL") &&
+			(dst == "BC" || dst == "DE" || dst == "HL") {
+			g.emitLD8(lowByte(dst), lowByte(src))
+			g.emitLD8(highByte(dst), highByte(src))
+			break
+		}
+		// Index pairs still need PUSH/POP: prefixes cannot copy H/L to IX/IY halves.
 		g.emitf("    PUSH %s", src)
 		g.emitf("    POP %s", dst)
 	}

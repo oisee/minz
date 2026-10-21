@@ -50,7 +50,7 @@ func TestMeasureLoopCostModel(t *testing.T) {
 			wantPointer += 7
 		}
 		if row.Path == "fallback" || row.Path == "wrap" {
-			wantPointer = 258 + 191*row.N
+			wantPointer = 258 + 178*row.N
 		}
 		if row.Original != wantOriginal || row.Pointer != wantPointer {
 			t.Fatalf("independent ASM cost disagrees: %+v want %d/%d", row, wantOriginal, wantPointer)
@@ -59,7 +59,7 @@ func TestMeasureLoopCostModel(t *testing.T) {
 			t.Fatal("execution binaries not bound to evidence")
 		}
 	}
-	if model.OriginalEntry != 41 || model.OriginalIteration != 54 || model.FastEntry != 241 || model.FastIteration != 37 || model.FastZeroEntry != 232 || !model.FastZeroMeasured || model.EqualEntryExtra != 7 || model.FallbackEntry != 258 || model.FallbackIteration != 191 || !model.FallbackMeasured {
+	if model.OriginalEntry != 41 || model.OriginalIteration != 54 || model.FastEntry != 241 || model.FastIteration != 37 || model.FastZeroEntry != 232 || !model.FastZeroMeasured || model.EqualEntryExtra != 7 || model.FallbackEntry != 258 || model.FallbackIteration != 178 || !model.FallbackMeasured {
 		t.Fatalf("unexpected measured coefficients: %+v", model)
 	}
 	if len(evidence.Rows) != 1022 || model.OriginalBytes != uint64(len(evidence.OriginalBinary)) || model.PointerBytes != uint64(len(evidence.PointerBinary)) {

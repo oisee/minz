@@ -1305,11 +1305,19 @@ func (g *z80cg) genInst(inst *Inst) {
 		}
 
 		// Determine the offset pair: must be a 16-bit pair ≠ HL.
-		// Choose DE; fall back to BC if DE is the base (moving base to HL would
-		// clobber DE, so the offset must already be safe there) or same as dst.
-		offPair := "DE"
-		if base == "DE" {
-			offPair = "BC"
+		// Reuse an existing BC/DE offset; moving the base to HL leaves it
+		// intact. Otherwise choose a scratch pair distinct from the base.
+		// A byte offset is reused only via zero-extension: a pair holding a
+		// byte value has no guaranteed-zero high byte.
+		offPair := off
+		if info, ok := g.regInfo[inst.Src[1]]; ok && z80ValueWidth(info.Ty) <= 8 {
+			offPair = ""
+		}
+		if offPair != "BC" && offPair != "DE" {
+			offPair = "DE"
+			if base == "DE" {
+				offPair = "BC"
+			}
 		}
 
 		preserveOffsetPair := false
