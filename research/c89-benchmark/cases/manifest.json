@@ -24,6 +24,30 @@
     {
       "file": "sum_array.c",
       "sha256": "38c71b12b18062652cbdc3d21d0a9b6a83d55940d5e8b99b7047390e265647bb"
+    },
+    {
+      "file": "bitwise8reg.c",
+      "sha256": "1d6145189f25832e96c0c14f8c8e1a42c7a293d1e32f45482111de01f3e5fad5"
+    },
+    {
+      "file": "reverse_loop11.c",
+      "sha256": "a9ac60276aaf49d739af9ca668d92440e275bf582f5fb6c8be5b33f775fb04fb"
+    },
+    {
+      "file": "crc8.c",
+      "sha256": "2d46caee09d4f3870c307b058b7250e39e732be68b7bf6d66d5df7a0cd6b6db7"
+    },
+    {
+      "file": "mul8x8.c",
+      "sha256": "0c4ff4825c20396b758c3a5eecb3b2a62cf8035ef2b796eb6c59d376114d5271"
+    },
+    {
+      "file": "strlen_bytes.c",
+      "sha256": "64758eb517619190227f65677f53ab396b896355778768d5773aec5f782bd245"
+    },
+    {
+      "file": "memset_fill.c",
+      "sha256": "6173d2bbbdcd8b8a24267ac5bd379d015d208d7f30493f5a0e6bdeea34f17f4c"
     }
   ]
 }

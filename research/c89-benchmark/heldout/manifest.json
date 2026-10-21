@@ -8,6 +8,18 @@
     {
       "file": "in_interval.c",
       "sha256": "cd7b0731b715de905adaf5d5ad062ed32a730ae579b2d9051658e8994be7273f"
+    },
+    {
+      "file": "popcount8.c",
+      "sha256": "b593030f55ec8242803427d5467feac3a61479ffda547d8622df631a6150e701"
+    },
+    {
+      "file": "find_max.c",
+      "sha256": "1116abdb4680c68bd0a596fe3bb42719aebf939a4ab2e19a8700bb4a63b69d1b"
+    },
+    {
+      "file": "checksum16.c",
+      "sha256": "05267c6e1f8615d20b57d74e04acb74f15cd26b37df22b00858b302946827d9a"
     }
   ]
 }
