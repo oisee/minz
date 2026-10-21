@@ -245,7 +245,7 @@ trusted until it is fixed or removed.
   - Full Lua scripting for complex metaprogramming
   - Has emit() function for code generation
 
-The former `docs/Metafunction_Design_Decisions.md` was removed in the docs migration (1ce0edaa4); see [ADR 0023](docs/adr/0023-comptime-metafunctions-via-lanz.md) for the current compile-time metafunction design.
+The former `docs/Metafunction_Design_Decisions.md` was renamed in the docs migration (1ce0edaa4) and later dropped; see [ADR 0023](docs/adr/0023-comptime-metafunctions-via-lanz.md) for the current compile-time metafunction design.
 
 ## 🚀 TSMC: Revolutionary Paradigm
 
@@ -253,7 +253,7 @@ The former `docs/Metafunction_Design_Decisions.md` was removed in the docs migra
 - **Smart Patching**: Single-byte opcode changes (7-20 T-states vs 44+)
 - **Parameter Injection**: Values patched into instruction immediates
 - **Behavioral Morphing**: One function, infinite behaviors
-- Docs: [ADR 0038 — TSMC spill tiers](docs/adr/0038-tsmc-spill-tiers.md), [TSMC reference plan](docs/technical/TSMC_REFERENCE_IMPLEMENTATION_PLAN.md) (the former `docs/145_TSMC_Complete_Philosophy.md` was removed in the docs migration)
+- Docs: [ADR 0038 — TSMC spill tiers](docs/adr/0038-tsmc-spill-tiers.md), [TSMC reference plan](docs/technical/TSMC_REFERENCE_IMPLEMENTATION_PLAN.md) (the former `docs/145_TSMC_Complete_Philosophy.md` was renamed in 1ce0edaa4 and later dropped)
 
 ### TSMC Tunnels (Register Preservation Across CALLs)
 
