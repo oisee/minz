@@ -9,7 +9,7 @@ This file provides guidance to Claude Code when working with the MinZ compiler r
 ### 1. Register Allocator & Loop Codegen Correctness
 **Status (2026-10-20):** The correctness sprint #205–#215 is merged; direct-call fuzz is blocking in CI (#210). On `605c7e8a2` (after #215), the manager recorded 20000/20000 direct-call seeds (0–19999), 4000/4000 signed seeds (0–3999), and 1000/1000 folded seeds. After #209, assert_matrix recorded 0 unexpected control passes, exit 0. These supplied results were not rerun for this documentation update and do not prove arbitrary program correctness.
 
-Remaining reported findings: P20 (assert judge ignores signed return type), P21 (flag-located bool pointer store emits `LD (HL), F`), P22 (all-return switch without default panics), and G0-3/4/5/8/9 plus G0-L1..L4. See the [current handover](docs/project/HANDOVER-2026-10-20-CORRECTNESS-AND-G1.md) for fixes, scope and repro pointers.
+P20–P22 fixed in #218–#220 (2026-10-21); on `3124c9b81` direct-call 0–19999 = 20000/20000, `--signed` 0–3999 = 4000/4000, assert_matrix controls 0 unexpected passes. Remaining findings: G0-3/4/5/8/9 plus G0-L1..L4. See the [current handover](docs/project/HANDOVER-2026-10-20-CORRECTNESS-AND-G1.md) for fixes, scope and repro pointers.
 
 ### 2. Iterator Chain Fusion (historical MIR1 status)
 The former “11/11 E2E” and enumerate/reduce bug descriptions applied to the retired MIR1 pipeline, not the current Nanz production path. The old B-counter conflict and A-overwrite explanations were refuted by the [G0 iteration audit](docs/Nanz_Iteration_Audit.md) (#205); current legacy findings concern callback linking/ABI and array initialization. The audit records current Nanz semantics and remaining findings.

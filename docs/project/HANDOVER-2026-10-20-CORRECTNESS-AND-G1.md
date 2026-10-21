@@ -115,9 +115,9 @@ statuses were queried in this documentation pass.
 
 | Item | Failure / next action | Repro pointer |
 |---|---|---|
-| P20 | Assertion comparison ignores the declared signed return type: `fun f() -> i16 { return 0 - 495 }` with `assert f() == -495` reports "got 65041" on mir2 and z80 (the computed bits are right). | Fix on branch `fix/P20-assert-signed-compare` (critic GO with one must-fix: the first version masked bool results to 1 bit, so a bool returned as 2 matched `== 0` — the judge must never get looser; review fix in progress). |
-| P21 | Storing a flag-located bool through a pointer emits invalid `LD (HL), F`: `p^ = (i & 1) == 1` assembles on MIR2 but not on Z80; also blocks bool generators that `yield <comparison>`. | Fix committed locally on branch `fix/P21-store-cmp-through-ptr`, not yet judged or reviewed. `TestG1BoolComparisonYield` (gen_yield_e2e_test.go) skips on Z80 until it lands and then un-skips itself. |
-| P22 | MIR2 panic `appending instruction to sealed block @sw_join` on a switch without default whose cases all return. | Repro: `fun f(v: u8) -> u8 { switch v { case 1: return 1 case 2: return 2 } return 0 }`. Not started. |
+| P20 | **Fixed in #218** (2026-10-21): assert results are compared in the declared type; bits above the declared width must be the correct extension and bool must be exactly 0/1, so the judge did not get looser. | — |
+| P21 | **Fixed in #219**: flag-located bools are materialised to 0/1 before stores (also fixed a silent `life_simple.minz` miscompile); bool `yield <comparison>` works on Z80 and `TestG1BoolComparisonYield` now runs on Z80 and passes (it fails rather than skips if the bug returns). | — |
+| P22 | **Fixed in #220**: switch join edges come from real CFG edges and termination propagates; `continue` inside a switch in a loop targets the enclosing loop. Follow-ups: missing-return diagnostic for a non-exhaustive switch at function end; `hir.Verify` rejects `break` from a switch outside loops. | — |
 | G0-3/4/9 | Narrow length/count underflow or wrap. | `TestG0Finding_ReversedSliceIsEmpty`, `TestG0Finding_CrossedRangeBounds`, `TestG0Finding_RangeCounterWidth` in [`iteration_audit_e2e_test.go`](../../minzc/pkg/nanz/iteration_audit_e2e_test.go). |
 | G0-5 | Unsupported iterator methods emit invalid assembly. | `TestG0Finding_UnsupportedMethodRejected` in that file; reject cleanly or implement semantics. |
 | G0-8 | Capturing callback with early return lacks a valid CALL fallback. | `TestG0Finding_CapturingCallbackReturn` in that file. |
@@ -133,7 +133,7 @@ G2 is demand-preserving fusion with a valid pull fallback under
 creation without body effects, early stop and source demand; compare manual
 fused/pull and generated pull/fused consumers before making performance claims.
 G3 is a real streaming workload; G4 is a bounded queue/ISR adapter. Resolve
-P20–P22 and remaining audit findings alongside this track. The
+the remaining audit findings alongside this track (P20–P22 are fixed, see below). The
 [revised plan](PLAN-2026-10-01-BACKEND-SYNTHESIS.md) keeps shared-spec and
 production-rule work without resurrecting LIR.
 
@@ -158,7 +158,17 @@ release merge, and `v0.25.4` to `d2d8f7ba3`. These tags establish release histor
 not current corpus correctness. Do not restart from the peer's older checkout
 or its design-only generator status.
 
-## State at pause (2026-10-20, end of session)
+## Update 2026-10-21: goal complete
+
+P20 (#218), P21 (#219) and P22 (#220) are merged; the branches listed in the
+pause table below are done. On main `3124c9b81` (measured 2026-10-21, `-j 6`):
+direct-call fuzz seeds 0–19999 **20000/20000**, `--signed` seeds 0–3999
+**4000/4000**, folded 0–999 1000/1000, assert_matrix negative controls 1739 per
+backend with **0 unexpected passes**. Next track: C benchmarks (MinZ C frontend
+vs SDCC `--opt-code-size`/`--opt-code-speed`) and optimisations through Grace
+rules / HIR facts, one per PR under the same judge gate; G2 fusion in parallel.
+
+## State at pause (2026-10-20, historical)
 
 Work was paused at the owner's request after G1 merged. Nothing is half-merged;
 open branches are local/remote work in progress:
