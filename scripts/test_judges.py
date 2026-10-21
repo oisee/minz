@@ -709,6 +709,29 @@ return (x as u16)
             self.assertRegex(signed, r'-[1-9]')
             self.assertIn('fuzz_entry', fuzz.with_assert(signed, args, 'direct-call'))
 
+    def test_masked_loop_generation_opt_in(self):
+        predicates = set()
+        for seed in range(100):
+            src, args = fuzz.generated(seed, masked_loops=True)
+            self.assertEqual(args, fuzz.generated(seed)[1])
+            self.assertEqual((src, args), fuzz.generated(seed, masked_loops=True))
+            self.assertIn('while x != 0 {', src)
+            import re
+            mask, predicate = re.search(r'if \(x & (\d+)\) (.*) \{', src).groups()
+            mask = int(mask)
+            predicates.add((mask, predicate))
+            weight, x, result = args[0], args[1] & 255, args[2]
+            while x:
+                yes = ((x & mask) != 0 if predicate == '!= 0' else
+                       (x & mask) == 0 if predicate == '== 0' else (x & mask) == mask)
+                if yes:
+                    result = (result + weight) & 65535
+                weight = (weight + weight) & 65535
+                x //= 2
+            self.assertEqual(fuzz.Interp(src).call('f', args), result)
+            self.assertIn('assert fuzz_entry(', fuzz.with_assert(src, args, 'direct-call'))
+        self.assertEqual(len(predicates), 12)
+
     def test_cli_exit_policy_preserves_findings(self):
         statuses = ('pass', 'MIR2 != oracle', 'Z80 != MIR2',
                     'assembly failure', 'compiler error', 'oracle error')

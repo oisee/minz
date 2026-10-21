@@ -91,6 +91,26 @@ class Gen:
         src.append("fun f(a: u16, b: u16, c: u16) -> u16 {\n" + '\n'.join(pre + body) + f"\nreturn ({ret})\n}}")
         return '\n'.join(src)
 
+class MaskedLoopGen(Gen):
+    """Opt-in byte predicates with a live accumulator and word loop state."""
+    def program(s):
+        mask = s.r.choice([1, 2, 128, 15])
+        predicate = s.r.choice(['!= 0', '== 0', f'== {mask}'])
+        return f"""fun f(a: u16, b: u16, c: u16) -> u16 {{
+var weight: u16 = a
+var x: u8 = (b as u8)
+var result: u16 = c
+while x != 0 {{
+if (x & {mask}) {predicate} {{
+result = (result + weight)
+}}
+weight = (weight + weight)
+x = (x / 2)
+}}
+return result
+}}"""
+
+
 class SignedGen(Gen):
     """Opt-in signed corpus; the original Gen consumes exactly the same RNG."""
     def program(s):
@@ -319,8 +339,9 @@ import tempfile
 from assert_matrix import run_compiler, positive
 
 
-def generated(seed, signed=False):
-    src = (SignedGen(seed) if signed else Gen(seed)).program()
+def generated(seed, signed=False, masked_loops=False):
+    gen = MaskedLoopGen if masked_loops else SignedGen if signed else Gen
+    src = gen(seed).program()
     rr = random.Random(seed * 7 + 1)
     args = [rr.randrange(65536) if rr.random() < .6 else rr.randrange(300) for _ in range(3)]
     return src, args
@@ -402,8 +423,8 @@ def reduction_check(text, status, check):
     return check(text)
 
 
-def fuzz_one(seed, mz, timeout, output, reduce=True, mode="folded", signed=False):
-    src, args = generated(seed, signed)
+def fuzz_one(seed, mz, timeout, output, reduce=True, mode="folded", signed=False, masked_loops=False):
+    src, args = generated(seed, signed, masked_loops)
     try:
         program = with_assert(src, args, mode)
     except Exception as e:
@@ -441,14 +462,16 @@ def main():
                    help='all: fail on any finding (default); backend: fail on backend/compiler failures or less than 95%% passing seeds; report all findings')
     p.add_argument('--mode', choices=('folded', 'direct-call'), default='folded',
                    help='folded: assert a constant-foldable wrapper; direct-call: execute f with assertion arguments')
-    p.add_argument('--signed', action='store_true', help='opt in to signed variables, negative literals and comparisons; preserves default seeds')
+    corpus = p.add_mutually_exclusive_group()
+    corpus.add_argument('--masked-loops', action='store_true', help='opt in to masked byte predicates inside while loops; preserves default and signed seeds')
+    corpus.add_argument('--signed', action='store_true', help='opt in to signed variables, negative literals and comparisons; preserves default seeds')
     a = p.parse_args()
     if a.timeout <= 0:
         p.error('--timeout must be positive')
     a.output.mkdir(parents=True, exist_ok=True)
     mz = str(Path(a.mz).resolve())
     with concurrent.futures.ThreadPoolExecutor(max_workers=a.j) as pool:
-        results = list(pool.map(lambda seed: fuzz_one(seed, mz, a.timeout, a.output, not a.no_reduce, a.mode, a.signed), range(a.seed, a.seed+a.count)))
+        results = list(pool.map(lambda seed: fuzz_one(seed, mz, a.timeout, a.output, not a.no_reduce, a.mode, a.signed, a.masked_loops), range(a.seed, a.seed+a.count)))
     (a.output / 'results.json').write_text(json.dumps(results, indent=2) + '\n')
     for status in ['pass', 'MIR2 != oracle', 'Z80 != MIR2', 'assembly failure', 'compiler error', 'oracle error']:
         print(f'{status}: {sum(r["status"] == status for r in results)}')

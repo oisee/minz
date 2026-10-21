@@ -231,6 +231,33 @@ func (g *z80cg) genCmp(inst *Inst) {
 	// Relocated values use a free scratch register through physOverride; on
 	// exhaustion, stack restoration preserves A and the new comparison flags.
 	g.materializePendingFlag(inst)
+	// A fused BIT preserves A. Emit it before CP setup can relocate its live
+	// source to an index half (which BIT cannot address). The fusion scan has
+	// already suppressed the mask/zero producers, so a late CP fallback would
+	// read values that were never materialized.
+	if pat, ok := g.bitCmpPat[inst.Dst]; ok {
+		if pat.useMem {
+			ptr := g.loc(pat.ptrReg)
+			if isSpill(ptr) {
+				g.emitf("    LD HL, (%s)   ; reload spilled ptr", ptr)
+				g.invalidate("HL")
+				ptr = "HL"
+			}
+			if g.emitBitMemOp("BIT", pat.bit, ptr, pat.byteOffset) {
+				g.pendingFlagReg = inst.Dst
+				return
+			}
+		} else {
+			src := g.loc(pat.srcReg)
+			src = selectBitReg(src, pat.byteOffset)
+			if isSimpleReg(src) && !isSpill(src) && !isIXYReg(src) {
+				g.emitf("    BIT %d, %s", pat.bit, src)
+				g.pendingFlagReg = inst.Dst
+				return
+			}
+		}
+	}
+
 	// A byte comparison against a right operand already in A can retain A:
 	// CP lhs sets the reversed predicate without writing either operand.
 	// Decide before relocating a live accumulator, otherwise the relocation
@@ -267,29 +294,6 @@ func (g *z80cg) genCmp(inst *Inst) {
 	if g.wideComparisonOperand(inst, inst.Src[0]) || g.wideComparisonOperand(inst, inst.Src[1]) {
 		g.genCmp32(inst)
 		return
-	}
-
-	if pat, ok := g.bitCmpPat[inst.Dst]; ok {
-		if pat.useMem {
-			ptr := g.loc(pat.ptrReg)
-			if isSpill(ptr) {
-				g.emitf("    LD HL, (%s)   ; reload spilled ptr", ptr)
-				g.invalidate("HL")
-				ptr = "HL"
-			}
-			if g.emitBitMemOp("BIT", pat.bit, ptr, pat.byteOffset) {
-				g.pendingFlagReg = inst.Dst
-				return
-			}
-		} else {
-			src := g.loc(pat.srcReg)
-			src = selectBitReg(src, pat.byteOffset)
-			if isSimpleReg(src) && !isSpill(src) && !isIXYReg(src) {
-				g.emitf("    BIT %d, %s", pat.bit, src)
-				g.pendingFlagReg = inst.Dst
-				return
-			}
-		}
 	}
 
 	// Preserve semantic word width when an operand lives in a spill slot.
