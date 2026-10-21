@@ -74,6 +74,20 @@ compares signed values, and truncates division toward zero. Remainder follows
 `a - trunc(a/b)*b`, including negative dividends. MIR2/oracle disagreements
 remain findings under the existing classification and exit policies.
 
+Use `--masked-loops --mode direct-call` for masked byte tests (`!= 0`, `== 0`,
+`== mask`, masks 1, 2, 128 and 15) inside a byte-controlled while loop with
+live word state. For example:
+
+```sh
+python3 scripts/fuzz_diff.py --mz /tmp/main-mz --masked-loops --mode direct-call --seed 0 --count 1000 -j 4 --output /tmp/fuzz-masked
+```
+
+This is a separate opt-in corpus, mutually exclusive with `--signed`; both
+existing corpora retain their seed-to-source and argument mappings. The original
+`Gen.cmp` only compares bare u16 variables from `vs`, never masked expressions
+or the byte variables in `v8`. Its loop counters are also u16. Consequently,
+more original direct-call seeds cannot cover masked byte predicates in loops.
+
 Run self-tests with `python3 scripts/test_judges.py`; `go test ./pkg/hir` also
 runs them, skipping when Python 3 is unavailable.
 

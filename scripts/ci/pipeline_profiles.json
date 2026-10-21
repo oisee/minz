@@ -222,6 +222,8 @@
     "TestLocalArrayLoopPointerWidthVMZ80",
     "TestLocalIntegerBindingWidths",
     "TestMIRGraceAssemblyAPIUsesSameNativePipeline",
+    "TestMaskedByteMultiplyRepro",
+    "TestMaskedBytePredicatesVMZ80",
     "TestMaterializedBooleanBranchZ80",
     "TestMeasureLoopCostModelRefusals",
     "TestMeasureProfileVariantSetsCaller",
