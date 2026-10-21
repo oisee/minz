@@ -170,3 +170,25 @@ func TestFoldCondCall_NoFoldWhenMismatch(t *testing.T) {
 		t.Fatalf("should NOT fold when skip label doesn't match:\n%s", got)
 	}
 }
+
+func TestElimJumpToNextLabel(t *testing.T) {
+	for _, tc := range []struct {
+		src    string
+		remove bool
+	}{
+		{"    JP .exit\n.exit:\n    RET", true},
+		{"main:\n    JP other\nother:\n    RET", false},
+		{"    JRS .exit ; done\n ; comment\n\n.exit:\n    RET", true},
+		{"    JR .exit\n.exit:\n    RET", true},
+		{"    JP NZ, .exit\n.exit:\n    RET", false},
+		{"    DJNZ .exit\n.exit:\n    RET", false},
+		{"    JP .exit\n    DB 0\n.exit:\n    RET", false},
+		{"    JP .exit\n    INC A\n.exit:\n    RET", false},
+		{"    JP (HL)\n.exit:\n    RET", false},
+	} {
+		got := strings.Join(elimJumpToNextLabel(strings.Split(tc.src, "\n")), "\n")
+		if (got != tc.src) != tc.remove {
+			t.Fatalf("remove=%v\ninput:\n%s\noutput:\n%s", tc.remove, tc.src, got)
+		}
+	}
+}

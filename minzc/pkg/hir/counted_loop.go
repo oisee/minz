@@ -210,6 +210,11 @@ func (l *lowerer) tryCountedLoop(st *WhileStmt) bool {
 	if references[iv.Name] {
 		return false
 	}
+	// B removes BC from the word allocator. Keep the ordinary loop when
+	// word state and expression intermediates exceed the two main pairs.
+	if !l.countedLoopPairBudget(body, references) {
+		return false
+	}
 	var count, hiReg mir2.Reg
 	if ty == mir2.TyU16 {
 		// Literal endpoints prove a non-wrapping distance no greater than 255.
@@ -237,9 +242,7 @@ func (l *lowerer) tryCountedLoop(st *WhileStmt) bool {
 	for name := range muts {
 		used[name] = true
 	}
-	// If the body ignores i, reconstruct its final value on the taken exit.
-	// This avoids a dead cyclic +1 recurrence that local DCE cannot eliminate.
-	usesIV := used[iv.Name]
+	// The unused-IV gate lets the taken exit reconstruct its final value.
 	delete(used, iv.Name)
 	carried := sortedKeys(used, envBefore)
 	bodyLabel, exitLabel := l.fresh("count_body"), l.fresh("count_exit")
@@ -249,9 +252,6 @@ func (l *lowerer) tryCountedLoop(st *WhileStmt) bool {
 	}
 	cond := l.bld.Cmp(pred, initial, hiReg, mir2.ClassFlag, false)
 	args := append([]mir2.Reg{count}, l.collectArgs(carried)...)
-	if usesIV {
-		args = append(args, initial)
-	}
 	zeroExit := append(l.collectArgs(carried), initial)
 	l.bld.BrIf(cond, bodyLabel, args, exitLabel, zeroExit)
 	loop := l.bld.SwitchToNewBlock(bodyLabel)
@@ -266,24 +266,14 @@ func (l *lowerer) tryCountedLoop(st *WhileStmt) bool {
 	for _, name := range carried {
 		env[name] = l.bld.BlockParam(loop, l.envTy[name], classForLoop(l.envTy[name], name))
 	}
-	if usesIV {
-		env[iv.Name] = l.bld.BlockParam(loop, ty, classForLoop(ty, iv.Name))
-	}
 	l.env = env
 	previous := l.inLoopContext
 	l.inLoopContext = true
 	l.lowerBlock(body)
 	l.inLoopContext = previous
 	finalIV := hiReg
-	if usesIV {
-		oneReg := l.bld.Const(1, ty, classForExpr(ty))
-		finalIV = l.bld.Add(l.env[iv.Name], oneReg, ty, classForLoop(ty, iv.Name))
-	}
 	updates := l.collectArgs(carried)
 	back := append([]mir2.Reg{}, updates...)
-	if usesIV {
-		back = append(back, finalIV)
-	}
 	exitArgs := append(updates, finalIV)
 	l.bld.DJNZ(cnt, bodyLabel, back, exitLabel, exitArgs)
 	exit := l.bld.SwitchToNewBlock(exitLabel)
@@ -365,4 +355,38 @@ func (l *lowerer) countedEndpointConstant(r mir2.Reg) (int64, bool) {
 		}
 	}
 	return 0, false
+}
+
+// This deliberately conservative pressure estimate counts distinct word state
+// and local temporaries, plus a word intermediate nested inside another word
+// operation. It is a profitability policy, not a semantic range proof. Simple
+// word accumulation still fits DE/HL; recurrences needing a third pair retain
+// the ordinary lowering where BC is available.
+func (l *lowerer) countedLoopPairBudget(body *Block, references map[string]bool) bool {
+	words := map[string]bool{}
+	for name := range references {
+		if ty := l.envTy[name]; ty != nil && ty.Width() > 8 {
+			words[name] = true
+		}
+	}
+	extra := 0
+	walkGraceBlocks(body, "", func(_ string, block *Block) {
+		for _, st := range block.Body {
+			if d, ok := st.(*VarDeclStmt); ok && d.Ty.Width() > 8 {
+				words[d.Name] = true
+			}
+			visitStmtExprs(st, func(e Expr) {
+				b, ok := e.(*BinExpr)
+				if !ok || b.Ty.Width() <= 8 {
+					return
+				}
+				for _, operand := range []Expr{b.L, b.R} {
+					if nested, ok := operand.(*BinExpr); ok && nested.Ty.Width() > 8 {
+						extra = 1
+					}
+				}
+			})
+		}
+	})
+	return len(words)+extra <= 2
 }

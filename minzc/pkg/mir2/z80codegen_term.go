@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+
+	"github.com/minz/minzc/pkg/z80spec"
 )
 
 // trampolineBlock is emitted after all regular blocks of a function.
@@ -295,6 +297,16 @@ func (g *z80cg) genTerm(f *Func, t Term) {
 				needsBodyCopy = true
 			}
 		}
+		// Hoist the back-edge shuffle only after proving the exit can still
+		// read its original operands. Rewrite exit sources to their new homes.
+		if counter == "B" && needsBodyCopy {
+			if adjusted, ok := g.hoistedDJNZExitCopies(f, t, bodyCopies, exitCopies); ok {
+				g.emitParallelCopy(bodyCopies)
+				exitCopies = adjusted
+				bodyCopies = nil
+				needsBodyCopy = false
+			}
+		}
 		bodyLabel := blockLabel(f.Name, t.Body)
 		if counter == "B" && (needsBodyCopy || !g.djnzTargetWithinRange(bodyLabel)) {
 			// DJNZ cannot be promoted to a long branch. Keep its taken
@@ -329,8 +341,8 @@ func (g *z80cg) genTerm(f *Func, t Term) {
 			}
 			g.emitf("    JRS NZ, %s", bodyLabel)
 		}
-		// Body copies execute only on the taken edge. Otherwise they can
-		// overwrite a value needed by ExitArgs (or the counter itself).
+		// Exit copies use the adjusted homes after a proven hoist; otherwise
+		// body copies remain on the taken edge to preserve exit operands.
 		g.emitParallelCopy(exitCopies)
 		if oldCounter != "" || !g.isFallThrough(f, t.Exit) || len(exitCopies) != 0 {
 			g.emitf("    JP %s", blockLabel(f.Name, t.Exit))
@@ -627,4 +639,73 @@ func (g *z80cg) emitSignedBranch(f *Func, cond Reg, thenLbl, elseLbl string) {
 	g.emitf(".sbranch_neg_%d:", idx)
 	g.emitf("    JP PO, %s", lt)
 	g.emitf("    JRS %s", ge)
+}
+
+// hoistedDJNZExitCopies refuses partial aliases, wide/shadow moves, and writes
+// to B or reads of its post-decrement value. For a destroyed exit source it requires an exact, same-width copy of
+// that source in a surviving destination. Other successor live-ins must remain
+// at their allocated homes. A failed proof leaves the edge-local trampoline.
+func (g *z80cg) hoistedDJNZExitCopies(f *Func, t *TermDJNZ, body, exit []parallelCopy) ([]parallelCopy, bool) {
+	changed := func(c parallelCopy) bool { return c.isImm || c.srcName != c.dstName }
+	overlaps := func(name string) bool {
+		for _, c := range body {
+			if changed(c) && (name == c.dstName || z80spec.Overlaps(name, c.dstName)) {
+				return true
+			}
+		}
+		return false
+	}
+	// Copy expansion may borrow shadow A (index halves, spills and cycles).
+	// Its implicit scratch writes must not destroy exit values or operands.
+	for _, copies := range [][]parallelCopy{body, exit} {
+		for _, c := range copies {
+			if z80ValueWidth(c.ty) > 16 || strings.Contains(c.srcName, "'") || strings.Contains(c.dstName, "'") {
+				return nil, false
+			}
+		}
+	}
+	for _, c := range body {
+		if changed(c) && (z80ValueWidth(c.ty) > 16 || z80spec.Overlaps(c.dstName, "B") || (!c.isImm && z80spec.Overlaps(c.srcName, "B")) || c.dstName == "F" || c.srcName == "F" || isSpill(c.dstName)) {
+			return nil, false
+		}
+	}
+	if g.liveness == nil {
+		return nil, false
+	}
+	if live := g.liveness.LiveInOf(f, f.BlockByLabel(t.Exit)); live != nil {
+		for _, r := range live.Slice() {
+			loc := g.ar.Loc(r)
+			if loc.Kind == LocShadow || loc.Kind == LocDWord || overlaps(g.loc(r)) {
+				return nil, false
+			}
+		}
+	}
+	adjusted := append([]parallelCopy(nil), exit...)
+	for i, c := range adjusted {
+		if c.isImm || !overlaps(c.srcName) {
+			continue
+		}
+		found := false
+		for _, b := range body {
+			if !b.isImm && b.srcName == c.srcName && b.ty == c.ty {
+				// All destinations describe the simultaneous result of the shuffle.
+				// Refuse a second destination that partially overwrites this new home.
+				intact := true
+				for _, other := range body {
+					if changed(other) && other.dstName != b.dstName && z80spec.Overlaps(other.dstName, b.dstName) {
+						intact = false
+					}
+				}
+				if intact {
+					adjusted[i].srcName = b.dstName
+					found = true
+					break
+				}
+			}
+		}
+		if !found {
+			return nil, false
+		}
+	}
+	return adjusted, true
 }

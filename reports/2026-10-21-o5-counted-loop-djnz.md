@@ -1,7 +1,8 @@
 # O5: HIR counted loops to DJNZ (2026-10-21)
 
-The original O5 record below is historical. The O5b follow-up at the end
-supersedes its admission policy and records measurements against dda8fab65.
+The O5 and O5b records below are historical. The O5c follow-up at the end
+supersedes their admission policy and records fresh measurements against
+origin/main 213080842.
 
 The HIR lowerer recognises unsigned byte `while i < hi` / `while i != hi`
 loops with a trailing `i = i + 1`, including the C89 frontend's postfix
@@ -295,3 +296,240 @@ hit its 30-minute cumulative timeout. The probe performance/size requirements,
 all 36 main-suite MinZ measurements, compiler/assembler suites, new focused
 checks, CI inventory and bounded judges pass. No functional failure preceded
 the timeout. No push; the follow-up is committed locally.
+
+
+## O5c: latch copies and a word-pressure admission gate (2026-10-21)
+
+This section supersedes the O5b performance policy and validation status above.
+Baseline is fresh detached origin/main `213080842`, in
+`/mnt/ssd-510/minz/tmp/o5c-base`; starting branch HEAD is `d09488b4d`.
+The critic directories were read only. No push, heldout benchmark, larger fuzz
+campaign or assertion matrix is part of this follow-up.
+
+### Implementation and legality
+
+The Z80 terminator emitter hoists a DJNZ back-edge parallel copy into the
+latch when its physical destinations preserve B, it does not read B's
+post-decrement value, and exit-path reads remain available. Destroyed exit
+argument sources must have an exact same-width surviving copy; exit copies
+then read that new home. Non-argument exit live-ins must retain their allocated
+homes. Shadow and wide exit operands/live-ins refuse hoisting too: copy
+expansion can borrow shadow A implicitly. Partial source aliases without an
+exact proof, flag materialization,
+wide/shadow moves and spill destinations retain the existing trampoline.
+Parallel-copy resolution still handles simultaneous swaps. The branch-range
+check runs after the hoisted instructions have been emitted; long branches
+retain the adjacent DJNZ trampoline. Counter homes other than B retain their
+existing lowering.
+
+A generic peephole removes unconditional JP/JR/JRS to the immediately following
+function-local label, looking through only comments and blank lines. It runs after single-JP
+function alias folding so existing EQU aliases survive. Data, instructions,
+conditional branches and DJNZ are barriers. Top-level labels are also barriers
+so adjacent entry points retain their distinct addresses.
+
+After codegen alone, Fibonacci and wide multiply-accumulate still regressed.
+The HIR gate now budgets the two main word pairs available without BC: it
+counts referenced word variables and word locals, plus an extra pair for a
+word binary expression nested inside another word binary expression. More
+than two retains ordinary lowering. This is a deliberately limited
+profitability heuristic, not a new semantic proof or a guarantee about every
+possible unmeasured program. It also gives up c9's measured win rather than
+adding a special case. The constant-endpoint and unused-IV gates remain;
+the unreachable usesIV lowering branches have been removed. No function or
+benchmark name participates in either proof or policy.
+
+### Full critic probe measurements
+
+T-states use the critic's measureGraceZ80Compiled convention, function entry
+through RET. Bytes cover complete modules, including helper/spill storage.
+Fresh baseline measurements are `/tmp/o5c-base-probes.log`; the supplied O5b
+column is from the read-only critic `new.out`. Codegen-only measurements are
+`/tmp/o5c-codegen-probes.log`; final differential MIR/Z80 measurements are
+`/tmp/o5c-focused-final.log`. Every final probe is no slower than fresh base,
+and none of the three modules grows. The C/Nanz source, arguments and Go
+references from the second critic harness are committed in the profitability
+test, alongside the seven original dynamic-loop probes and their boundaries.
+
+| Nanz probe (arguments) | Base T | O5b T | Codegen only T | O5c T |
+|---|---:|---:|---:|---:|
+| c1() | 496 | 285 | 275 | 275 |
+| c2(7) | 11,792 | 6,997 | 6,987 | 6,987 |
+| c3(3) | 134,943 | 137,984 | 134,918 | 134,918 |
+| c4(200,3) | 61,214 | 57,787 | 57,777 | 57,777 |
+| c5() | 21,543 | 6,064 | 5,894 | 5,894 |
+| c6(3) | 35,952 | 35,952 | 35,952 | 35,952 |
+| c6b(3) | 35,789 | 6,152 | 6,142 | 6,142 |
+| c7() | 458 | 458 | 458 | 458 |
+| c8(165) | 649 | 566 | 464 | 464 |
+| c9(7) | 5,289 | 4,432 | 4,422 | 5,289 |
+| c10(3,5) | 16,131 | 12,261 | 12,251 | 12,251 |
+| c11() | 949 | 1,418 | 1,180 | 949 |
+| c12(9) | 133 | 66 | 48 | 48 |
+| c13() | 649 | 323 | 313 | 313 |
+| c14() | 587 | 283 | 273 | 273 |
+| c15(11) | 38,807 | 53,837 | 53,827 | 38,807 |
+| c16(5) | 104,068 | 93,449 | 93,439 | 93,439 |
+| c17() | 4,364 | 4,364 | 4,364 | 4,364 |
+| c18() | 2,952 | 2,044 | 1,944 | 1,944 |
+| **Module bytes** | **642** | **561** | **496** | **497** |
+
+| C probe (arguments) | Base T | O5b T | Codegen only T | O5c T |
+|---|---:|---:|---:|---:|
+| f1() | 689 | 363 | 353 | 353 |
+| f2(3) | 12,900 | 7,053 | 7,043 | 7,043 |
+| f3(165) | 789 | 686 | 584 | 584 |
+| f4() | 11,629 | 4,310 | 4,300 | 4,300 |
+| f5() | 1,081 | 1,081 | 1,081 | 1,081 |
+| f6(3) | 33,169 | 33,169 | 33,169 | 33,169 |
+| f7() | 1,264 | 1,264 | 1,264 | 1,264 |
+| f8() | 1,190 | 1,190 | 1,190 | 1,190 |
+| f9() | 1,266 | 533 | 483 | 483 |
+| **Module bytes** | **375** | **337** | **315** | **315** |
+
+| Original critic probe (arguments) | Base T | O5c T |
+|---|---:|---:|
+| m8(100,3) | 53,541 | 53,541 |
+| rng(5,200) | 9,190 | 9,190 |
+| cnt(200) | 11,241 | 11,241 |
+| xr(200) | 8,241 | 8,241 |
+| fib(20) | 942 | 942 |
+| tri(60) | 144,482 | 144,482 |
+| many(100,3,5) | 19,724 | 19,724 |
+| **Module bytes** | **223** | **223** |
+
+The final admission gate adds one byte to the Nanz module relative to the
+unprofitable codegen-only candidate, while removing both residual time regressions.
+It remains 145 bytes smaller than origin/main. popcount8 retains DJNZ and
+measures **708 → 407 T; 24 → 17 bytes** on each of six emulator samples;
+its MIR VM reference check covers all 256 byte inputs. crc8 is measured in
+the main-suite table below.
+
+### Failing-first evidence and focused checks
+
+`TestZ80DJNZHoistedParallelCopies` fails on clean origin/main: all four
+initial counts (1, 2, 5, 255) lack `EX DE, HL` immediately before direct
+`DJNZ .swap_loop_body` (`/tmp/o5c-failing-origin.log`). Reversing just the
+terminator patch with `git diff > /tmp/o5c-term.patch; git apply -R ...`
+reproduces the same failures (`/tmp/o5c-failing-reverted.log`); the patch was
+then reapplied. An earlier attempt to reverse both codegen files could not
+build the new standalone peephole test because its helper was absent; that
+build failure is not the failing-first evidence.
+
+The final test also checks MIR and machine results after simultaneous pair
+swaps, refuses hoisting when the exit reads a non-argument live-in, and
+refuses it when the implicit decremented counter must move from B to A.
+Existing edge-copy tests continue to check distinct old/back-edge values,
+explicit old-counter arguments, every byte counter home, spills and long loops.
+`TestElimJumpToNextLabel` checks branch/data/instruction and top-level entry
+barriers. The entry case failed on the first peephole: `main: JP other`
+followed by `other:` became two labels at the same address
+(`/tmp/o5c-entry-before.log`). Restricting removal to function-local targets
+preserves entry identity and retains all measured loop-exit savings.
+
+A final proof audit exposed an additional clobber: IX-half copies borrow
+shadow A even when no explicit destination names it. The added emulator test
+TestZ80DJNZHoistPreservesShadowExit reproduces **A=39 instead of saved A=83**
+on the first O5c candidate (`/tmp/o5c-shadow-before.log`). The final helper
+refuses shadow/wide copy operands and shadow/wide non-argument exit live-ins;
+this preserves the exit's original shadow state. That regression and the
+existing hoisting tests PASS after the guard. This is a low-level MIR/assembly
+case, independent of HIR admission and benchmark names.
+
+`TestCountedLoopUsedIVFallback` fails when only the unused-IV gate is
+temporarily disabled: “body uses IV: must retain ordinary lowering”
+(`/tmp/o5c-unused-gate-removed.log`). The gate was restored. Its endpoints
+are constant and its body has no word pressure, so the other gates cannot
+mask this failure. The dead usesIV paths are absent from production lowering.
+
+Final focused checks PASS: all TestZ80DJNZ*/TestElim* and all
+TestCountedLoop* tests, including the complete differential probe modules,
+MIR verification/VM and Z80 results. Logs: `/tmp/o5c-focused-mir.log` and
+`/tmp/o5c-focused-final.log`. All 837 pipeline inventory entries are classified;
+the three new pipeline tests are in sorted fast. The actual Go listing was
+checked against the manifest (`/tmp/o5c-pipeline-inventory.log`).
+
+### O5c main benchmark and complete validation
+
+Before: fresh detached origin/main `213080842`, output
+`/mnt/ssd-510/minz/bench/o5c-before`. After: final O5c compiler sources,
+output `/mnt/ssd-510/minz/bench/o5c-after`. Both used the requested
+`nice -n 19 python3 research/c89-benchmark/run.py --out ... --sdcc-root /
+--suite main --jobs 4`. All 36 MinZ cells PASS. Matching source/workload
+hashes were checked, as were non-increasing ProgramBytes and TotalT in every
+cell. No heldout benchmark was run. Default/size crc8 saves 55,324,800 T
+(33.41%) and 18 bytes; Grace saves 43,737,600 T (28.61%) and eight bytes.
+O5c improves on O5b's default crc8 result by another 1,632,000 T.
+Cells are ProgramBytes; total workload T-states, before → after.
+
+| Case | Default bytes; T | Size bytes; T | Grace bytes; T |
+|---|---|---|---|
+| abs_diff | 27→27; 220,904→220,904 | 27→27; 220,904→220,904 | 27→27; 220,904→220,904 |
+| bitwise8reg | 101→101; 872,448→872,448 | 101→101; 872,448→872,448 | 101→101; 872,448→872,448 |
+| copy_bytes | 182→182; 301,600→301,600 | 182→182; 301,600→301,600 | 182→182; 301,600→301,600 |
+| crc8 | 340→322; 165,616,162→110,291,362 | 340→322; 165,616,162→110,291,362 | 326→318; 152,877,602→109,140,002 |
+| fat12_decode | 167→167; 30,336→30,336 | 167→167; 30,336→30,336 | 167→167; 30,336→30,336 |
+| gcd | 57→57; 4,953,966→4,953,966 | 57→57; 4,953,966→4,953,966 | 51→51; 3,067,013→3,067,013 |
+| memset_fill | 299→299; 18,403,840→18,403,840 | 299→299; 18,403,840→18,403,840 | 299→299; 18,403,840→18,403,840 |
+| mul8x8 | 47→47; 1,167,872→1,167,872 | 47→47; 1,167,872→1,167,872 | 47→47; 1,167,872→1,167,872 |
+| reverse_loop11 | 561→561; 23,644,160→23,644,160 | 561→561; 23,644,160→23,644,160 | 561→561; 23,644,160→23,644,160 |
+| strlen_bytes | 293→293; 19,468,800→19,468,800 | 293→293; 19,468,800→19,468,800 | 293→293; 19,468,800→19,468,800 |
+| struct_roundtrip | 71→71; 612,352→612,352 | 71→71; 612,352→612,352 | 71→71; 612,352→612,352 |
+| sum_array | 313→313; 7,581,952→7,581,952 | 313→313; 7,581,952→7,581,952 | 313→313; 7,581,952→7,581,952 |
+
+The initial compiler-suite run found a new interaction in
+TestElimSingleJpEqu_Basic: removing the adjacent jump before alias folding
+lost the expected EQU. Moving jump removal after alias folding fixes this.
+The complete required command was rerun on the final compiler sources and
+PASSes: MIR2 186.892s, HIR 76.403s, C89 140.732s, Nanz 190.504s,
+z80asm 0.148s, assembler regressions 0.013s. Log:
+`/tmp/o5c-units-final.log`. This replaces the failed initial run, which is
+retained in `/tmp/o5c-units.log`.
+
+The bounded judges both PASS, exit 0: direct-call seeds 0–499, `-j 4`,
+500/500; folded seeds 0–99, `-j 4`, 100/100. Both report zero MIR/oracle
+mismatches, Z80/MIR mismatches, assembly failures, compiler errors and oracle
+errors. Logs: `/tmp/o5c-judge-direct.log` and `/tmp/o5c-judge-folded.log`.
+No larger judge campaign or assertion matrix was run.
+
+The first full pipeline run was interrupted after 1330.068s to fix the
+shadow-exit issue found by the proof audit. It completed 253 top-level tests with PASS, had no earlier FAIL lines and
+was in TestMemoryHostPolicySelectorFixedPolicy/0/speed. Its log is retained
+at `/tmp/o5c-pipeline-pre-shadow.log`; it is not reported as a complete pass.
+A second run was interrupted after 341.905s to restrict adjacent-jump removal
+to function-local labels (`/tmp/o5c-pipeline-pre-local.log`), also without an
+earlier FAIL. All validation phases are rerun after both safety guards. The
+final complete pipeline command (`nice -n 19 go test ./pkg/pipeline/
+-count=1 -timeout 30m -v`) timed out after **1800.025s**, exit 1. It
+completed **259 top-level tests with PASS**, including all eight counted-loop
+tests, with no earlier FAIL lines. The active case was
+TestMemoryHostArenaAppendPrototypeOriginal30, running for 15 seconds when
+the package-wide deadline expired. Log: `/tmp/o5c-pipeline.log`.
+This is an incomplete full suite, not a green complete pipeline run.
+The active-at-timeout case passes in isolation on both final O5c (26.759s)
+and fresh origin/main (26.780s), using `-run
+'^TestMemoryHostArenaAppendPrototypeOriginal30$' -count=1 -timeout 10m -v`.
+All four masks have identical T-states, bytes and emitted assembly hashes
+on both branches. Logs: `/tmp/o5c-isolated-head.log` and
+`/tmp/o5c-isolated-base.log`. This establishes that the active case passes
+alone; it does not establish a complete baseline or candidate pipeline pass.
+
+Files touched by O5c:
+
+- minzc/pkg/hir/counted_loop.go
+- minzc/pkg/mir2/z80codegen_term.go
+- minzc/pkg/mir2/z80codegen_peephole.go
+- minzc/pkg/mir2/z80codegen_djnz_location_test.go
+- minzc/pkg/mir2/asmpeephole_test.go
+- minzc/pkg/pipeline/counted_loop_profitability_test.go
+- scripts/ci/pipeline_profiles.json
+- reports/2026-10-21-o5-counted-loop-djnz.md
+
+
+O5c final status: **EXIT 1**, because the required complete pipeline run hit
+its cumulative 30-minute timeout. The completed tests reported no functional
+failure; remaining full-suite tests were not completed. The legal copy proof,
+all 35 critic probe performance/module-size requirements, all 36 main-suite
+MinZ cells, focused MIR/Z80 checks, compiler/assembler suites and bounded
+judges pass. The active-at-timeout test passes on both branches in isolation.
+Changes are committed locally; no push.
