@@ -1305,11 +1305,14 @@ func (g *z80cg) genInst(inst *Inst) {
 		}
 
 		// Determine the offset pair: must be a 16-bit pair ≠ HL.
-		// Choose DE; fall back to BC if DE is the base (moving base to HL would
-		// clobber DE, so the offset must already be safe there) or same as dst.
-		offPair := "DE"
-		if base == "DE" {
-			offPair = "BC"
+		// Reuse an existing BC/DE offset; moving the base to HL leaves it
+		// intact. Otherwise choose a scratch pair distinct from the base.
+		offPair := off
+		if offPair != "BC" && offPair != "DE" {
+			offPair = "DE"
+			if base == "DE" {
+				offPair = "BC"
+			}
 		}
 
 		preserveOffsetPair := false

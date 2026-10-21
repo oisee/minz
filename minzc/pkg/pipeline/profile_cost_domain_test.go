@@ -95,7 +95,7 @@ func TestSumProfileCostFullU8Domain(t *testing.T) {
 			if (path == "fast" || path == "last-fast") && measured[1] != expectedFast {
 				t.Fatalf("fast model n=%d got=%d", n, measured[1])
 			}
-			if (path == "fallback" || path == "wrap") && measured[1] != 258+191*n {
+			if (path == "fallback" || path == "wrap") && measured[1] != 258+178*n {
 				t.Fatalf("fallback model n=%d got=%d", n, measured[1])
 			}
 			rows = append(rows, row{N: n, Base: base, Path: path, Original: measured[0], Pointer: measured[1], Result: want})

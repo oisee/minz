@@ -128,9 +128,12 @@ fun same_two()->u16{return 7}`
 // Refreshed 2026-10-20 (-3844 T / -14 bytes, oracle unchanged): clean
 // origin/main dde023f4 already emitted this exact binary; the byte spill slot
 // width fix leaves it unchanged.
+// Refreshed 2026-10-21 for pair-move and word-step codegen (-23,858 T /
+// -54 bytes). Source, MIR, allocation, independent state/event oracle, and
+// equality of the direct/factory/instrumented routes were checked unchanged.
 func assertCurrentMemoryHostParserReference(t *testing.T, target *MemoryHostTargetEvidence) {
 	t.Helper()
-	if target.TotalTStates != 1284928 || len(target.Binary) != 2354 || target.BinarySHA256 != "29922da40df51e65b4d9701e6b57e1960a2d000a0191fbfbc6a5ae09e04843d8" {
+	if target.TotalTStates != 1261070 || len(target.Binary) != 2300 || target.BinarySHA256 != "a6c913b709ef84d81e563e63a286f8fd85cddb2948cf4fa17b839c06517b6507" {
 		t.Fatal("current parser target drift", target.TotalTStates, len(target.Binary), target.BinarySHA256)
 	}
 	if fmt.Sprintf("%x", sha256.Sum256(target.Binary)) != target.BinarySHA256 {

@@ -14,8 +14,8 @@ func TestDeadConstsConsumerAudit(t *testing.T) {
 	}{
 		{"add16_inc", OpAdd, TyU16, "HL", "HL", true},
 		{"sub16_dec", OpSub, TyU16, "DE", "DE", true},
-		{"add16_other", OpAdd, TyU16, "DE", "HL", false},
-		{"sub16_spill", OpSub, TyU16, "$F000", "$F000", false},
+		{"add16_other", OpAdd, TyU16, "DE", "HL", true},
+		{"sub16_spill", OpSub, TyU16, "$F000", "$F000", true},
 		{"add32", OpAdd, TyU32, "HL", "HL", false},
 		{"sub32", OpSub, TyU32, "HL", "HL", false},
 		{"and32", OpAnd, TyU32, "HL", "HL", false},

@@ -82,20 +82,27 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 	if w == 16 {
 		defer g.saveWrittenScratch(inst)()
 		// Constant suppression is decided before codegen relocates values.
-		// Consume a unit RHS directly even when an originally in-place
-		// operation now has a spilled source or destination; its allocated
-		// RHS home may never have been initialized.
-		if cv, ok := g.constVals[rhsReg]; ok && cv == 1 && (mnem == "ADD" || mnem == "SUB") {
+		// Consume small RHS constants directly, including after relocation to
+		// spills. INC/DEC rr preserve flags, so only use them when callers
+		// observe the value rather than the arithmetic flags.
+		if cv, ok := g.constVals[rhsReg]; ok && (mnem == "ADD" || mnem == "SUB") &&
+			smallWordStep(cv) && wordMaskFlagsUnobserved(g.fn, inst.Dst) {
 			work := dst
 			if isSpill(work) {
 				work = "HL"
 			}
 			g.emitMov(work, lhs, 16)
-			op := "INC"
+			step := int64(int16(cv)) // arithmetic wraps modulo 65536
 			if mnem == "SUB" {
-				op = "DEC"
+				step = -step
 			}
-			g.emitf("    %s %s", op, work)
+			op := "INC"
+			if step < 0 {
+				op, step = "DEC", -step
+			}
+			for i := int64(0); i < step; i++ {
+				g.emitf("    %s %s", op, work)
+			}
 			g.emitMov(dst, work, 16)
 			g.invalidate(work)
 			g.invalidate(dst)
@@ -402,7 +409,7 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 		}
 
 		// 16-bit peephole: INC/DEC rr when adding/subtracting 1 in-place.
-		if rhsReg == inst.Src[1] && lhs == dst && !isSpill(dst) && dst != "F" {
+		if rhsReg == inst.Src[1] && lhs == dst && !isSpill(dst) && dst != "F" && wordMaskFlagsUnobserved(g.fn, inst.Dst) {
 			if cv, ok := g.constVals[inst.Src[1]]; ok {
 				if mnem == "ADD" && cv == 1 {
 					g.emitf("    INC %s", dst)
@@ -1243,4 +1250,10 @@ func (g *z80cg) emitDyingPairExchange(inst *Inst, dst, src string, width int) bo
 	g.invalidate("DE")
 	g.invalidate("HL")
 	return true
+}
+
+// smallWordStep recognizes signed and unsigned encodings of ±1/±2.
+func smallWordStep(value int64) bool {
+	v := int16(value)
+	return v >= -2 && v <= 2 && v != 0
 }

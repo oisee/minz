@@ -49,8 +49,9 @@ func TestProfileGuidedSumVMZ80(t *testing.T) {
 	profileJSON, _ := json.MarshalIndent(profileRun.Profile, "", "  ")
 	// The counted-pointer pass improves the ordinary loop as well as copy.
 	// These coefficients were remeasured over all 1022 length/address cases;
-	// the guarded variant and its fallback retain their previous costs.
-	model := hir.LoopCostModel{CompilerID: context.CompilerID, SemanticsID: context.SemanticsID, Function: "sum_array", HIRSHA256: profileRun.Profile.Compatibility.HIRSHA256, TargetID: context.TargetID, EvidenceID: "sum-array-z80-counted-pointer-v8", OriginalBytes: 198, PointerBytes: 277, OriginalEntry: 41, OriginalIteration: 54, EqualEntryExtra: 7, FastEntry: 241, FastIteration: 37, FastZeroEntry: 232, FastZeroMeasured: true, FallbackEntry: 258, FallbackIteration: 191, FallbackMeasured: true}
+	// pair-move codegen also removes 27 module bytes and 13T per fallback
+	// iteration. Guarded fast-path costs are unchanged.
+	model := hir.LoopCostModel{CompilerID: context.CompilerID, SemanticsID: context.SemanticsID, Function: "sum_array", HIRSHA256: profileRun.Profile.Compatibility.HIRSHA256, TargetID: context.TargetID, EvidenceID: "sum-array-z80-pair-moves-v9", OriginalBytes: 171, PointerBytes: 250, OriginalEntry: 41, OriginalIteration: 54, EqualEntryExtra: 7, FastEntry: 241, FastIteration: 37, FastZeroEntry: 232, FastZeroMeasured: true, FallbackEntry: 258, FallbackIteration: 178, FallbackMeasured: true}
 	decisions, e := hir.SelectLoopVariants(bytes.NewReader(profileJSON), input, context, model, false)
 	if e != nil {
 		t.Fatal(e)
