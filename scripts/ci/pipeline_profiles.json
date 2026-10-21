@@ -306,6 +306,7 @@
     "TestPublicCPMTetrisNative",
     "TestRangeForEachCapturedStagesVMZ80",
     "TestRangeForEachStageOrderVMZ80",
+    "TestRangeLiteralWidthVMZ80",
     "TestRawPointerBoundaryVMZ80",
     "TestReadmeCPMRuntimeAdmission",
     "TestReadmeCPMSourceAssertions",

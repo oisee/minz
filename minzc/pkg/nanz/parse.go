@@ -4830,7 +4830,16 @@ func (p *parser) parseFor() (hir.Stmt, error) {
 		if err != nil {
 			return nil, err
 		}
+		// Bounds are parsed in the enclosing scope; the induction binding
+		// applies only to the body, including nested expressions and calls.
+		savedTy, savedHadTy := p.varTypes[varTok.val]
+		p.varTypes[varTok.val] = hir.RangeType(base, end)
 		body, err := p.parseBlock()
+		if savedHadTy {
+			p.varTypes[varTok.val] = savedTy
+		} else {
+			delete(p.varTypes, varTok.val)
+		}
 		if err != nil {
 			return nil, err
 		}

@@ -247,6 +247,18 @@ type ForRangeStmt struct {
 
 func (*ForRangeStmt) hirStmt() {}
 
+// RangeType is the common integer type of the two range bounds. A small
+// start literal must not force a wide end into a byte counter (or vice versa).
+// The wider operand wins; equal-width mixed
+// signedness uses unsigned comparison.
+func RangeType(start, end Expr) mir2.Ty {
+	a, b := start.ExprTy(), end.ExprTy()
+	if b.Width() > a.Width() || (b.Width() == a.Width() && !mir2.IsSigned(b)) {
+		return b
+	}
+	return a
+}
+
 // ExprStmt evaluates an expression for its side effects (typically a call).
 type ExprStmt struct{ Expr Expr }
 

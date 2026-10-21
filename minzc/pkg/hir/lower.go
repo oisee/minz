@@ -2040,14 +2040,13 @@ func (l *lowerer) saveLexicalName(name string) func() {
 // the body's scratch uses of A (loads, mul16 counter, etc.).
 func (l *lowerer) lowerForRange(st *ForRangeStmt) {
 	defer l.saveLexicalName(st.Var)()
-	var ty mir2.Ty = mir2.TyU8
-	if st.End != nil {
-		ty = st.End.ExprTy()
-	}
-	initReg := l.lowerExpr(st.Start)
+	ty := RangeType(st.Start, st.End)
+	initReg := l.lowerExprAs(st.Start, ty)
 
+	// Both SSA values must have the binding's width, including a byte start
+	// with a word end. Merely recording envTy does not widen the register.
 	// Precompute the loop upper bound once, outside the loop.
-	endReg := l.lowerExpr(st.End)
+	endReg := l.lowerExprAs(st.End, ty)
 	l.bind(st.Var, initReg, ty)
 	endName := l.fresh("__for_hi_")
 	defer l.saveLexicalName(endName)()
