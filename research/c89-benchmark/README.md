@@ -103,5 +103,11 @@ result bytes) and the signed countdown array fill (explicit 16-bit elements).
 Byte-buffer counts range from 0 to 255; strlen buffers always terminate, including
 a terminator at index 255. Workloads use at most 2048 calls per new case, with
 byte boundaries 0, 1, 127, 128, 255 and full tail-memory checks for writes.
-Checksum16 sums big-endian pairs with end-around carry, zero-pads an odd final
-byte in the low position, and does not complement the sum.
+Checksum16 sums big-endian pairs with end-around carry; an odd final byte is the
+high byte of its word (the missing low byte counts as zero); the sum is not complemented.
+
+**Heldout discipline.** Optimisation work measures `--suite main` only. Heldout
+(`--suite heldout`) is looked at once per optimisation PR, after the change is final,
+and must not get worse; it is never used to choose or tune a rule. Before/after
+comparisons must use the same compiler set (with or without sccz80/nanz rows).
+`plot_summary.py` and `publish_snapshot.py` still assume the 6-case 2026-10-16 matrix.

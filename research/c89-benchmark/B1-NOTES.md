@@ -1,6 +1,6 @@
 # B1 corpus verification
 
-The corpus was frozen in commit `ddb93f8a3` before compiler experiments. No
+The corpus was frozen in commit `fa523ff15` before compiler experiments. No
 optimization work or compiler changes were made. Main now has 12 cases; heldout
 has 5, including its 2 existing cases. Sources were unchanged after freezing.
 
