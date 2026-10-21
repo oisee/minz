@@ -1,0 +1,295 @@
+{
+  "version": "gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+  "results": [
+    {
+      "case": "abs_diff",
+      "calls": 2048,
+      "status": "PASS",
+      "source_sha256": "797200976ad2f54c936f593b225328d084ee435e5e91136ba06632103ff28aeb",
+      "command": [
+        "gcc",
+        "-std=c89",
+        "-pedantic-errors",
+        "-O2",
+        "-shared",
+        "-fPIC",
+        "/mnt/ssd-510/minz/final-e41e0ca20/research/c89-benchmark/cases/abs_diff.c",
+        "-o",
+        "/mnt/ssd-510/minz/final-out/bench/host-oracle/abs_diff.so"
+      ]
+    },
+    {
+      "case": "copy_bytes",
+      "calls": 130,
+      "status": "PASS",
+      "source_sha256": "f86ef9fea5e75ee7360505f1c7c8fb65099907aede479fb67c1949d0b483d2c9",
+      "command": [
+        "gcc",
+        "-std=c89",
+        "-pedantic-errors",
+        "-O2",
+        "-shared",
+        "-fPIC",
+        "/mnt/ssd-510/minz/final-e41e0ca20/research/c89-benchmark/cases/copy_bytes.c",
+        "-o",
+        "/mnt/ssd-510/minz/final-out/bench/host-oracle/copy_bytes.so"
+      ]
+    },
+    {
+      "case": "fat12_decode",
+      "calls": 64,
+      "status": "PASS",
+      "source_sha256": "4a7338748721cbacb1766df589a1374358f8e209265a9a64cc43561d72dae050",
+      "command": [
+        "gcc",
+        "-std=c89",
+        "-pedantic-errors",
+        "-O2",
+        "-shared",
+        "-fPIC",
+        "/mnt/ssd-510/minz/final-e41e0ca20/research/c89-benchmark/cases/fat12_decode.c",
+        "-o",
+        "/mnt/ssd-510/minz/final-out/bench/host-oracle/fat12_decode.so"
+      ]
+    },
+    {
+      "case": "gcd",
+      "calls": 2048,
+      "status": "PASS",
+      "source_sha256": "34cc83bcd467c8d5008df94c60371a3b7bdf16ecab65e5a38ea655878fbc2fdb",
+      "command": [
+        "gcc",
+        "-std=c89",
+        "-pedantic-errors",
+        "-O2",
+        "-shared",
+        "-fPIC",
+        "/mnt/ssd-510/minz/final-e41e0ca20/research/c89-benchmark/cases/gcd.c",
+        "-o",
+        "/mnt/ssd-510/minz/final-out/bench/host-oracle/gcd.so"
+      ]
+    },
+    {
+      "case": "struct_roundtrip",
+      "calls": 2048,
+      "status": "PASS",
+      "source_sha256": "719ab06cf429dd76e1bcca42e837ec2a64cf7b494ce958a3dae0135074f46689",
+      "command": [
+        "gcc",
+        "-std=c89",
+        "-pedantic-errors",
+        "-O2",
+        "-shared",
+        "-fPIC",
+        "/mnt/ssd-510/minz/final-e41e0ca20/research/c89-benchmark/cases/struct_roundtrip.c",
+        "-o",
+        "/mnt/ssd-510/minz/final-out/bench/host-oracle/struct_roundtrip.so"
+      ]
+    },
+    {
+      "case": "sum_array",
+      "calls": 512,
+      "status": "PASS",
+      "source_sha256": "38c71b12b18062652cbdc3d21d0a9b6a83d55940d5e8b99b7047390e265647bb",
+      "command": [
+        "gcc",
+        "-std=c89",
+        "-pedantic-errors",
+        "-O2",
+        "-shared",
+        "-fPIC",
+        "/mnt/ssd-510/minz/final-e41e0ca20/research/c89-benchmark/cases/sum_array.c",
+        "-o",
+        "/mnt/ssd-510/minz/final-out/bench/host-oracle/sum_array.so"
+      ]
+    },
+    {
+      "case": "bitwise8reg",
+      "calls": 2048,
+      "status": "PASS",
+      "source_sha256": "1d6145189f25832e96c0c14f8c8e1a42c7a293d1e32f45482111de01f3e5fad5",
+      "command": [
+        "gcc",
+        "-std=c89",
+        "-pedantic-errors",
+        "-O2",
+        "-shared",
+        "-fPIC",
+        "/mnt/ssd-510/minz/final-e41e0ca20/research/c89-benchmark/cases/bitwise8reg.c",
+        "-o",
+        "/mnt/ssd-510/minz/final-out/bench/host-oracle/bitwise8reg.so"
+      ]
+    },
+    {
+      "case": "reverse_loop11",
+      "calls": 1280,
+      "status": "PASS",
+      "source_sha256": "a9ac60276aaf49d739af9ca668d92440e275bf582f5fb6c8be5b33f775fb04fb",
+      "command": [
+        "gcc",
+        "-std=c89",
+        "-pedantic-errors",
+        "-O2",
+        "-shared",
+        "-fPIC",
+        "/mnt/ssd-510/minz/final-e41e0ca20/research/c89-benchmark/cases/reverse_loop11.c",
+        "-o",
+        "/mnt/ssd-510/minz/final-out/bench/host-oracle/reverse_loop11.so"
+      ]
+    },
+    {
+      "case": "crc8",
+      "calls": 1280,
+      "status": "PASS",
+      "source_sha256": "2d46caee09d4f3870c307b058b7250e39e732be68b7bf6d66d5df7a0cd6b6db7",
+      "command": [
+        "gcc",
+        "-std=c89",
+        "-pedantic-errors",
+        "-O2",
+        "-shared",
+        "-fPIC",
+        "/mnt/ssd-510/minz/final-e41e0ca20/research/c89-benchmark/cases/crc8.c",
+        "-o",
+        "/mnt/ssd-510/minz/final-out/bench/host-oracle/crc8.so"
+      ]
+    },
+    {
+      "case": "mul8x8",
+      "calls": 2048,
+      "status": "PASS",
+      "source_sha256": "0c4ff4825c20396b758c3a5eecb3b2a62cf8035ef2b796eb6c59d376114d5271",
+      "command": [
+        "gcc",
+        "-std=c89",
+        "-pedantic-errors",
+        "-O2",
+        "-shared",
+        "-fPIC",
+        "/mnt/ssd-510/minz/final-e41e0ca20/research/c89-benchmark/cases/mul8x8.c",
+        "-o",
+        "/mnt/ssd-510/minz/final-out/bench/host-oracle/mul8x8.so"
+      ]
+    },
+    {
+      "case": "strlen_bytes",
+      "calls": 1280,
+      "status": "PASS",
+      "source_sha256": "64758eb517619190227f65677f53ab396b896355778768d5773aec5f782bd245",
+      "command": [
+        "gcc",
+        "-std=c89",
+        "-pedantic-errors",
+        "-O2",
+        "-shared",
+        "-fPIC",
+        "/mnt/ssd-510/minz/final-e41e0ca20/research/c89-benchmark/cases/strlen_bytes.c",
+        "-o",
+        "/mnt/ssd-510/minz/final-out/bench/host-oracle/strlen_bytes.so"
+      ]
+    },
+    {
+      "case": "memset_fill",
+      "calls": 1280,
+      "status": "PASS",
+      "source_sha256": "6173d2bbbdcd8b8a24267ac5bd379d015d208d7f30493f5a0e6bdeea34f17f4c",
+      "command": [
+        "gcc",
+        "-std=c89",
+        "-pedantic-errors",
+        "-O2",
+        "-shared",
+        "-fPIC",
+        "/mnt/ssd-510/minz/final-e41e0ca20/research/c89-benchmark/cases/memset_fill.c",
+        "-o",
+        "/mnt/ssd-510/minz/final-out/bench/host-oracle/memset_fill.so"
+      ]
+    },
+    {
+      "case": "count_less",
+      "calls": 4608,
+      "status": "PASS",
+      "source_sha256": "07c0dfbcbb9c199eb8a5e8e1259c87fd0486b08e21fdf8a8c5089d83105615b6",
+      "command": [
+        "gcc",
+        "-std=c89",
+        "-pedantic-errors",
+        "-O2",
+        "-shared",
+        "-fPIC",
+        "/mnt/ssd-510/minz/final-e41e0ca20/research/c89-benchmark/heldout/count_less.c",
+        "-o",
+        "/mnt/ssd-510/minz/final-out/bench/host-oracle/count_less.so"
+      ]
+    },
+    {
+      "case": "in_interval",
+      "calls": 2048,
+      "status": "PASS",
+      "source_sha256": "cd7b0731b715de905adaf5d5ad062ed32a730ae579b2d9051658e8994be7273f",
+      "command": [
+        "gcc",
+        "-std=c89",
+        "-pedantic-errors",
+        "-O2",
+        "-shared",
+        "-fPIC",
+        "/mnt/ssd-510/minz/final-e41e0ca20/research/c89-benchmark/heldout/in_interval.c",
+        "-o",
+        "/mnt/ssd-510/minz/final-out/bench/host-oracle/in_interval.so"
+      ]
+    },
+    {
+      "case": "popcount8",
+      "calls": 1280,
+      "status": "PASS",
+      "source_sha256": "b593030f55ec8242803427d5467feac3a61479ffda547d8622df631a6150e701",
+      "command": [
+        "gcc",
+        "-std=c89",
+        "-pedantic-errors",
+        "-O2",
+        "-shared",
+        "-fPIC",
+        "/mnt/ssd-510/minz/final-e41e0ca20/research/c89-benchmark/heldout/popcount8.c",
+        "-o",
+        "/mnt/ssd-510/minz/final-out/bench/host-oracle/popcount8.so"
+      ]
+    },
+    {
+      "case": "find_max",
+      "calls": 1280,
+      "status": "PASS",
+      "source_sha256": "1116abdb4680c68bd0a596fe3bb42719aebf939a4ab2e19a8700bb4a63b69d1b",
+      "command": [
+        "gcc",
+        "-std=c89",
+        "-pedantic-errors",
+        "-O2",
+        "-shared",
+        "-fPIC",
+        "/mnt/ssd-510/minz/final-e41e0ca20/research/c89-benchmark/heldout/find_max.c",
+        "-o",
+        "/mnt/ssd-510/minz/final-out/bench/host-oracle/find_max.so"
+      ]
+    },
+    {
+      "case": "checksum16",
+      "calls": 1280,
+      "status": "PASS",
+      "source_sha256": "05267c6e1f8615d20b57d74e04acb74f15cd26b37df22b00858b302946827d9a",
+      "command": [
+        "gcc",
+        "-std=c89",
+        "-pedantic-errors",
+        "-O2",
+        "-shared",
+        "-fPIC",
+        "/mnt/ssd-510/minz/final-e41e0ca20/research/c89-benchmark/heldout/checksum16.c",
+        "-o",
+        "/mnt/ssd-510/minz/final-out/bench/host-oracle/checksum16.so"
+      ]
+    }
+  ],
+  "total_calls": 26562
+}
