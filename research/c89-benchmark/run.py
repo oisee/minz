@@ -17,7 +17,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--out', type=Path, required=True)
     ap.add_argument('--sdcc-root', type=Path, required=True)
-    ap.add_argument('--z88dk-root', type=Path, required=True)
+    ap.add_argument('--z88dk-root', type=Path, help='optional; without it the sccz80 profile is skipped')
     ap.add_argument('--go', default='go')
     ap.add_argument('--jobs', type=int, default=2)
     ap.add_argument('--sdcc45-root', type=Path)
@@ -35,17 +35,20 @@ def main():
     out = args.out.resolve()
     out.mkdir(parents=True, exist_ok=True)
     sdcc = args.sdcc_root.resolve() / 'usr/bin/sdcc'
-    zroot = args.z88dk_root.resolve()
-    helper = zroot / 'lib/z80_compiler_helpers.lib'
-    assert helper.is_file(), 'Build official crt0_z80.lst helper archive; see README.'
-    env = dict(os.environ, PATH=str(zroot/'bin')+os.pathsep+os.environ['PATH'], ZCCCFG=str(zroot/'lib/config'))
+    zroot = args.z88dk_root.resolve() if args.z88dk_root else None
+    helper = zroot / 'lib/z80_compiler_helpers.lib' if zroot else None
+    if zroot:
+        assert helper.is_file(), 'Build official crt0_z80.lst helper archive; see README.'
+        env = dict(os.environ, PATH=str(zroot/'bin')+os.pathsep+os.environ['PATH'], ZCCCFG=str(zroot/'lib/config'))
+    else:
+        env = dict(os.environ)
     subprocess.run([args.go, '-C', str(root/'minzc'), 'build', '-o', str(out/'measure'), str(root/'research/c89-benchmark/measure.go')], check=True, env=env)
     meta = {
         'minz_commit': subprocess.check_output(['git','rev-parse','HEAD'], cwd=root, text=True).strip(),
         'sdcc_version': subprocess.check_output([str(sdcc), '--version'], text=True).strip(),
-        'z88dk_commit': subprocess.check_output(['git','rev-parse','HEAD'], cwd=zroot,text=True).strip(),
-        'zcc_version': subprocess.check_output([str(zroot/'bin/zcc'), '+z80','-h'],env=env,text=True,stderr=subprocess.STDOUT).splitlines()[0],
-        'helper_archive_sha256': sha(helper),
+        'z88dk_commit': subprocess.check_output(['git','rev-parse','HEAD'], cwd=zroot,text=True).strip() if zroot else None,
+        'zcc_version': subprocess.check_output([str(zroot/'bin/zcc'), '+z80','-h'],env=env,text=True,stderr=subprocess.STDOUT).splitlines()[0] if zroot else None,
+        'helper_archive_sha256': sha(helper) if zroot else None,
         'runner_sha256': sha(root/'research/c89-benchmark/measure.go'),
         'driver_sha256': sha(__file__),
         'sources': frozen,
@@ -55,7 +58,9 @@ def main():
     if args.sdcc45_root:
         meta['sdcc45_version'] = subprocess.check_output([str(args.sdcc45_root.resolve()/'usr/bin/sdcc'),'--version'],text=True).strip()
     (out/'toolchains.json').write_text(json.dumps(meta,indent=2)+'\n')
-    profiles = [('minz','default'),('minz','size'),('minz','grace'),('sdcc','size'),('sdcc','speed'),('sccz80','o3')]
+    profiles = [('minz','default'),('minz','size'),('minz','grace'),('sdcc','size'),('sdcc','speed')]
+    if zroot:
+        profiles.append(('sccz80','o3'))
 
     def run_one(task):
         compiler, profile, case = task

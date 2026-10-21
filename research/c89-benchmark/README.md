@@ -6,7 +6,7 @@ before measurement. Unsupported inputs stay in the output table. See the
 [measured report](../../reports/2026-10-16-c89-identical-c-benchmark.md).
 
 Requirements: Python 3, Go, a standalone SDCC installation including Z80 libraries,
-and built z88dk `zcc`, `sccz80`, `copt`, `ucpp`, `zpragma`, `z80asm` tools. Host GCC
+and (optional — without `--z88dk-root` the sccz80 profile is skipped) built z88dk `zcc`, `sccz80`, `copt`, `ucpp`, `zpragma`, `z80asm` tools. Host GCC
 is needed only for the independent host replay. No external solver is used.
 
 For the bare Z80 sccz80 link, build the compiler's **official helper archive** from
