@@ -23,8 +23,17 @@ def main():
     out=args.out.resolve()/'host-oracle'
     out.mkdir(parents=True,exist_ok=True)
     rows=[]
-    for case in json.loads((cases/'manifest.json').read_text())['cases']:
-        source=cases/case['file']
+    if args.cases:
+        frozen = [(cases, c) for c in json.loads((cases/'manifest.json').read_text())['cases']]
+    else:
+        selected = json.loads((args.out/'toolchains.json').read_text())['sources']
+        frozen = []
+        for case in selected:
+            matches = [folder for folder in (cases, cases.parent/'heldout') if (folder/case['file']).is_file()]
+            assert len(matches) == 1, case
+            frozen.append((matches[0], case))
+    for folder, case in frozen:
+        source=folder/case['file']
         assert hashlib.sha256(source.read_bytes()).hexdigest()==case['sha256']
         name=source.stem
         shared=out/(name+'.so')

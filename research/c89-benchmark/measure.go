@@ -80,6 +80,138 @@ func writeJSON(path string, v any) {
 func fixtures(name string) ([]sample, map[string]int) {
 	sizes := map[string]int{"result": 2}
 	samples := []sample{}
+	if name == "mul8x8" || name == "bitwise8reg" {
+		if name == "mul8x8" {
+			sizes["a"], sizes["b"] = 1, 1
+		} else {
+			for _, key := range []string{"c0", "c1", "c2", "c3"} {
+				sizes[key] = 1
+			}
+		}
+		for x := 0; x < 256; x++ {
+			for _, y := range []int{0, 1, 2, 63, 127, 128, 254, 255} {
+				in := map[string][]byte{"a": {byte(x)}, "b": {byte(y)}}
+				want := uint16(x * y)
+				if name == "bitwise8reg" {
+					c2, c3 := byte(x^y), byte(x+y)
+					in = map[string][]byte{"c0": {byte(x)}, "c1": {byte(y)}, "c2": {c2}, "c3": {c3}}
+					t0, t1, t2, t3 := byte(x+1), byte(y+1), c2+1, c3+1
+					want = uint16((t0&t1)+(t2&t3)) | uint16((t0|t1)+(t2|t3))<<8
+				}
+				samples = append(samples, sample{fmt.Sprintf("x=%d,y=%d", x, y), in, want, in})
+			}
+		}
+		return samples, sizes
+	}
+	if name == "memset_fill" || name == "reverse_loop11" {
+		sizes["n"], sizes["target"] = 1, 256
+		patterns := []int{0, 1, 127, 128, 255}
+		if name == "reverse_loop11" {
+			sizes["target"] = 512
+		} else {
+			sizes["v"] = 1
+		}
+		for _, v := range patterns {
+			for n := 0; n < 256; n++ {
+				dst := make([]byte, sizes["target"])
+				for i := range dst {
+					dst[i] = byte(i*73 + v)
+				}
+				in := map[string][]byte{"n": {byte(n)}, "target": dst}
+				after := map[string][]byte{"n": {byte(n)}, "target": append([]byte(nil), dst...)}
+				if name == "memset_fill" {
+					in["v"], after["v"] = []byte{byte(v)}, []byte{byte(v)}
+					for i := 0; i < n; i++ {
+						after["target"][i] = byte(v)
+					}
+				} else {
+					for i := 0; i < n; i++ {
+						binary.LittleEndian.PutUint16(after["target"][2*i:], uint16(i))
+					}
+				}
+				samples = append(samples, sample{fmt.Sprintf("v=%d,n=%d", v, n), in, uint16(n), after})
+			}
+		}
+		return samples, sizes
+	}
+	if name == "crc8" || name == "strlen_bytes" || name == "popcount8" || name == "find_max" || name == "checksum16" {
+		sizes["values"] = 256
+		if name != "strlen_bytes" {
+			sizes["n"] = 1
+		}
+		for dataset := 0; dataset < 5; dataset++ {
+			for n := 0; n < 256; n++ {
+				data := make([]byte, 256)
+				for i := range data {
+					switch dataset {
+					case 0:
+						data[i] = byte(i*73 + 19)
+					case 1:
+						data[i] = []byte{0, 1, 127, 128, 255}[i%5]
+					case 2:
+						data[i] = 255
+					case 3:
+						data[i] = 0
+					case 4:
+						data[i] = byte((i * 31) ^ 0xa5)
+					}
+					if name == "strlen_bytes" && data[i] == 0 {
+						data[i] = 1
+					}
+				}
+				in := map[string][]byte{"values": data}
+				var want uint16
+				if name == "strlen_bytes" {
+					data[n] = 0
+					want = uint16(n)
+				} else {
+					in["n"] = []byte{byte(n)}
+					switch name {
+					case "crc8":
+						crc := byte(0)
+						for _, v := range data[:n] {
+							crc ^= v
+							for bit := 0; bit < 8; bit++ {
+								if crc&128 != 0 {
+									crc = crc<<1 ^ 7
+								} else {
+									crc <<= 1
+								}
+							}
+						}
+						want = uint16(crc)
+					case "popcount8":
+						for _, v := range data[:n] {
+							for bit := 0; bit < 8; bit++ {
+								want += uint16((v >> bit) & 1)
+							}
+						}
+					case "find_max":
+						for _, v := range data[:n] {
+							if uint16(v) > want {
+								want = uint16(v)
+							}
+						}
+					case "checksum16":
+						// Wider independent accumulator, folded after all pairs.
+						sum := uint32(0)
+						for i := 0; i < n; i += 2 {
+							sum += uint32(data[i]) << 8
+							if i+1 < n {
+								sum += uint32(data[i+1])
+							}
+						}
+						for sum > 65535 {
+							sum = (sum & 65535) + (sum >> 16)
+						}
+						want = uint16(sum)
+					}
+				}
+				samples = append(samples, sample{fmt.Sprintf("dataset=%d,n=%d", dataset, n), in, want, in})
+			}
+		}
+		return samples, sizes
+	}
 	if name == "in_interval" {
 		sizes["a"] = 1
 		sizes["b"] = 1
@@ -538,6 +670,9 @@ func main() {
 	}
 	if e != nil {
 		r.Status = "ERROR"
+		if p == nil && (*compiler == "minz" || *compiler == "nanz") {
+			r.Status = "COMPILE_ERROR"
+		}
 		r.Error = e.Error()
 	}
 	writeJSON(filepath.Join(*out, "measurements.json"), r)
