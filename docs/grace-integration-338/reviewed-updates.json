@@ -350,9 +350,9 @@
     "native_behavior": "executed-independent-vm-z80",
     "workload": "sum_array: lengths 0,1,5,16,64,255; ramp resource",
     "independent_model": "n*(n+1)/2 modulo 256; VM/native baseline and chosen transformations",
-    "boundary": "Named sum_array entry; original main not executed. Cost coefficients refreshed after counted-pointer lowering: baseline 41+54*n, guarded profitability boundary 11/12 independently executed; historical costs are not current evidence.",
+    "boundary": "Named sum_array entry; original main not executed. Cost coefficients refreshed after counted-pointer lowering: baseline 41+54*n, guarded profitability boundary 11/12 independently executed; pair-move codegen (O3) re-measured the fallback at 178T/iteration and 171 module bytes, fast path unchanged; historical costs are not current evidence.",
     "evidence": {
-      "minzc/pkg/pipeline/profile_guided_sum_test.go": "4548a92d0fe1c2ca497c384e74b1ac3c729096d30bf91ebd1c3d192b8083352f",
+      "minzc/pkg/pipeline/profile_guided_sum_test.go": "f7428392bc6c3df6801a16996f51c82af04f72faf88f41d8a1472a6941b17348",
       "reports/profile-coalesced-edge-costs/root.txt": "7685133d9d5ccb2e269f3b444ec9dfe4be6d6977348fcffe4fae6766fe9a3eb1",
       "reports/copy-fat12-optimization/validation/minz-copy-fat-cost-regression.log": "c5c82ca7bd785f30c0c0f7cc700494df2609870fadec8db408fca0327067a18c"
     }
