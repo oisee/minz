@@ -406,6 +406,7 @@
     "TestWideGlobalInitializerNativeAndVM",
     "TestWideShiftSourcePhysicalPlacement",
     "TestWidemathMemoryObserverContracts",
+    "TestWordCompareBranchVMZ80",
     "TestZ80ByteSpillSlotWordCompareE2E",
     "TestZ80CallIntoSpilledParameter",
     "TestZ80InPlaceByteLiveAccumulatorE2E",

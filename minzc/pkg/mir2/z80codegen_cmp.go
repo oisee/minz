@@ -281,6 +281,9 @@ func (g *z80cg) genCmp(inst *Inst) {
 		g.pendingFlagReg = inst.Dst
 		return
 	}
+	if g.tryWordSignZero(inst) {
+		return
+	}
 	g.materializePendingAcc(inst)
 	if restore := g.saveAccForCondRet(inst); restore != nil {
 		defer restore()
@@ -452,6 +455,71 @@ func (g *z80cg) genCmp(inst *Inst) {
 	g.pendingFlagReg = inst.Dst
 }
 
+// branchOnlyCmp requires an immediately consumed flag with no value uses, even
+// on successor edges. Nothing may overwrite S/PV between subtraction and br_if.
+func (g *z80cg) branchOnlyCmp(inst *Inst) bool {
+	return comparisonBranchOnly(g.fn, g.curBlock, inst)
+}
+
+func comparisonBranchOnly(f *Func, b *Block, inst *Inst) bool {
+	if b == nil || len(b.Insts) == 0 || b.Insts[len(b.Insts)-1] != inst {
+		return false
+	}
+	term, ok := b.Term.(*TermBrIf)
+	if !ok || term.Cond != inst.Dst {
+		return false
+	}
+	uses := 0
+	for _, block := range f.Blocks {
+		for _, i := range block.Insts {
+			for _, r := range i.Uses() {
+				if r == inst.Dst {
+					uses++
+				}
+			}
+		}
+		if block.Term != nil {
+			for _, r := range block.Term.termUses() {
+				if r == inst.Dst {
+					uses++
+				}
+			}
+		}
+	}
+	return uses == 1
+}
+
+func (g *z80cg) setCmpBranchCC(r Reg, cc string) {
+	if g.cmpBranchCC == nil {
+		g.cmpBranchCC = make(map[Reg]string)
+	}
+	g.cmpBranchCC[r] = cc
+}
+
+// Native pairs allow a sign test without touching A or the operand.
+func (g *z80cg) tryWordSignZero(inst *Inst) bool {
+	if !isSignedOrdering(inst) || inst.SrcTy.Width() != 16 || !g.branchOnlyCmp(inst) {
+		return false
+	}
+	cv, ok := g.constVals[inst.Src[1]]
+	lhs := g.loc(inst.Src[0])
+	if !ok || cv != 0 || (lhs != "HL" && lhs != "DE" && lhs != "BC") {
+		return false
+	}
+	cc := "NZ"
+	switch inst.Cond {
+	case CmpLt:
+	case CmpGe:
+		cc = "Z"
+	default:
+		return false
+	}
+	g.emitf("    BIT 7, %s", highByte(lhs))
+	g.setCmpBranchCC(inst.Dst, cc)
+	g.pendingFlagReg = inst.Dst
+	return true
+}
+
 func isSignedOrdering(inst *Inst) bool {
 	if inst.SrcTy == nil || !IsSigned(inst.SrcTy) {
 		return false
@@ -465,6 +533,10 @@ func isSignedOrdering(inst *Inst) bool {
 // <= and >). SCF/CCF preserve S, Z and P/V and do not change A or HL.
 func (g *z80cg) normalizeSignedCmp(inst *Inst) {
 	if !isSignedOrdering(inst) {
+		return
+	}
+	if inst.SrcTy.Width() == 16 && g.branchOnlyCmp(inst) {
+		g.setCmpBranchCC(inst.Dst, "signed")
 		return
 	}
 	idx := g.trampIdx
@@ -490,6 +562,9 @@ func (g *z80cg) normalizeSignedCmp(inst *Inst) {
 // For ClassFlag returns from CALL instructions, callFlags[cond] holds the
 // agreed FlagCond directly — no AND A / CP 0 is needed at the call site.
 func (g *z80cg) condCode(f *Func, cond Reg) string {
+	if cc := g.cmpBranchCC[cond]; cc != "" && cc != "signed" {
+		return cc
+	}
 	// Fast path: call result with ClassFlag return — condition already in F.
 	if fc, ok := g.callFlags[cond]; ok {
 		return cmpCondCode(fc)
@@ -610,11 +685,53 @@ func cmpCondCode(c CmpCond) string {
 //	C flag set   → lhs < rhs (CmpUlt / CmpUge after negation)
 //	Z flag set   → lhs == rhs
 //
-// Signed comparisons with an explicit signed SrcTy normalize S⊕V to carry
-// after restoring HL, so the branch/materialization paths share one contract.
+// Signed comparisons consumed only by br_if retain S/PV. Value consumers
+// normalize S xor V to carry for the existing materialization contract.
 func (g *z80cg) genCmp16(inst *Inst) {
 	lhs := g.loc(inst.Src[0])
 	rhs := g.loc(inst.Src[1])
+	if cv, ok := g.constVals[inst.Src[1]]; ok && cv == 0 && isSignedOrdering(inst) &&
+		inst.SrcTy.Width() == 16 && g.branchOnlyCmp(inst) && (isPairReg(lhs) || isIXY(lhs)) {
+		hi := highByte(lhs)
+		if isIXY(lhs) {
+			g.emitf("    LD A, %s", hi)
+			g.invalidate("A")
+			hi = "A"
+		}
+		g.emitf("    BIT 7, %s", hi)
+		cc := "NZ"
+		switch inst.Cond {
+		case CmpGe:
+			cc = "Z"
+		case CmpGt, CmpLe:
+			idx := g.trampIdx
+			g.trampIdx++
+			g.emitf("    JRS NZ, .word_nonpositive_%d", idx)
+			g.emitf("    LD A, %s", highByte(lhs))
+			g.emitf("    OR %s", lowByte(lhs))
+			g.emitf("    JRS .word_zero_done_%d", idx)
+			g.emitf(".word_nonpositive_%d:", idx)
+			g.emit("    XOR A")
+			g.emitf(".word_zero_done_%d:", idx)
+			if inst.Cond == CmpLe {
+				cc = "Z"
+			}
+			g.invalidate("A")
+		}
+		g.setCmpBranchCC(inst.Dst, cc)
+		g.pendingFlagReg = inst.Dst
+		return
+	}
+	// Equality only needs the pair's combined zero flag. A was preserved by
+	// genCmp; index halves are legal LD/OR operands too.
+	if cv, ok := g.constVals[inst.Src[1]]; ok && cv == 0 &&
+		(inst.Cond == CmpEq || inst.Cond == CmpNe) && (isPairReg(lhs) || isIXY(lhs)) {
+		g.emitf("    LD A, %s", highByte(lhs))
+		g.emitf("    OR %s", lowByte(lhs))
+		g.invalidate("A")
+		g.pendingFlagReg = inst.Dst
+		return
+	}
 	defer g.saveWrittenScratch(inst)()
 
 	// CmpGt/CmpLe traditionally swap operands so SBC HL,rr gives the C flag

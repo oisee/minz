@@ -650,6 +650,7 @@ type z80cg struct {
 	mod                                   *Module                    // parent module (for callee contract lookup at call sites)
 	fn                                    *Func                      // current function
 	blockIdx                              int                        // index of current block in fn.Blocks (for fall-through)
+	cmpBranchCC                           map[Reg]string             // branch-only word predicates
 	cmpSwapped                            map[Reg]bool               // dst reg → operands were swapped in genCmp
 	cmpAndZero                            map[Reg]bool               // dst reg → comparison used AND A (rhs=0), use NZ/Z not NC/C
 	cmpNeedsTwo                           map[Reg]bool               // dst reg → CmpGt/CmpLe with lhs in A, needs two-JP in BrIf
@@ -920,6 +921,16 @@ func computeDeadConsts(f *Func, ar *AllocResult) map[Reg]bool {
 				totalUses[src]++
 				switch inst.Op {
 				case OpCmp:
+					// Word zero tests do not read the RHS allocation. Require the
+					// same pair/consumer shape as genCmp16 before eliding LD.
+					lhs := physName(inst.Src[0])
+					if operand == 1 && cv == 0 && inst.SrcTy != nil && inst.SrcTy.Width() == 16 &&
+						(isPairReg(lhs) || isIXY(lhs)) &&
+						(inst.Cond == CmpEq || inst.Cond == CmpNe ||
+							isSignedOrdering(inst) && comparisonBranchOnly(f, b, inst)) {
+						foldedUses[src]++
+						break
+					}
 					// CP imm8: fires when rhs (Src[1]) is a known constant
 					// that fits in 8 bits. 16-bit cmp uses SBC HL,DE — rhs
 					// must be in a register and cannot be folded.
@@ -1027,6 +1038,7 @@ func (g *z80cg) genFunc(f *Func) {
 		g.spillWidths[g.spillLabel(r)] = z80SpillBytes(info.Ty)
 	}
 	g.cmpSwapped = make(map[Reg]bool)
+	g.cmpBranchCC = make(map[Reg]string)
 	g.cmpAndZero = make(map[Reg]bool)
 	g.cmpNeedsTwo = make(map[Reg]bool)
 	g.callFlags = make(map[Reg]CmpCond)
