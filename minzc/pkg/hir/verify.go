@@ -472,7 +472,7 @@ func (v *hirVerifier) stmt(s Stmt, env map[string]mir2.Ty, loops int) error {
 			return err
 		}
 		scope := copyHIRScope(env)
-		if err := v.bind(scope, s.Var, s.Start.ExprTy()); err != nil {
+		if err := v.bind(scope, s.Var, RangeType(s.Start, s.End)); err != nil {
 			return err
 		}
 		return v.block(s.Body, scope, loops+1)

@@ -1,0 +1,5 @@
+fun probe() -> u16 {
+    var s: u16 = 0
+    for i in 300..310 { s = s + i }
+    return s
+}

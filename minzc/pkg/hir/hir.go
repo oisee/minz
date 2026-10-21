@@ -247,6 +247,75 @@ type ForRangeStmt struct {
 
 func (*ForRangeStmt) hirStmt() {}
 
+// RangeType gives literal bounds the other bound's signedness, widening when
+// necessary. Typed mixed bounds use the smallest signed type holding both
+// domains. If none exists (u32 with a signed bound), retain the historical
+// end-bound type.
+func RangeType(start, end Expr) mir2.Ty {
+	a, b := start.ExprTy(), end.ExprTy()
+	signed := []mir2.Ty{mir2.TyI8, mir2.TyI16, mir2.TyI24, mir2.TyI32}
+	unsigned := []mir2.Ty{mir2.TyU8, mir2.TyU16, mir2.TyU24, mir2.TyU32}
+	fits := func(v int64, ty mir2.Ty) bool {
+		bits := ty.Width()
+		min, max := int64(0), (int64(1)<<bits)-1
+		if mir2.IsSigned(ty) {
+			min, max = -(int64(1) << (bits - 1)), (int64(1)<<(bits-1))-1
+		}
+		return v >= min && v <= max
+	}
+	al, aLit := start.(*IntLitExpr)
+	bl, bLit := end.(*IntLitExpr)
+	if aLit && bLit {
+		candidates := unsigned
+		if al.Val < 0 || bl.Val < 0 {
+			candidates = signed
+		}
+		for _, ty := range candidates {
+			if fits(al.Val, ty) && fits(bl.Val, ty) {
+				return ty
+			}
+		}
+		// The parser diagnoses values outside the widest supported domain.
+		return candidates[len(candidates)-1]
+	}
+	if aLit != bLit {
+		lit, other := al, b
+		if bLit {
+			lit, other = bl, a
+		}
+		if fits(lit.Val, other) {
+			return other
+		}
+		candidates := unsigned
+		if mir2.IsSigned(other) {
+			candidates = signed
+		}
+		for _, ty := range candidates {
+			if ty.Width() >= other.Width() && fits(lit.Val, ty) {
+				return ty
+			}
+		}
+		// Keep the contextual signedness so the parser diagnoses overflow.
+		return other
+	}
+	if mir2.IsSigned(a) != mir2.IsSigned(b) {
+		st, ut := a, b
+		if !mir2.IsSigned(st) {
+			st, ut = ut, st
+		}
+		for _, ty := range signed {
+			if ty.Width() >= st.Width() && ty.Width() > ut.Width() {
+				return ty
+			}
+		}
+		return b
+	}
+	if b.Width() > a.Width() {
+		return b
+	}
+	return a
+}
+
 // ExprStmt evaluates an expression for its side effects (typically a call).
 type ExprStmt struct{ Expr Expr }
 
