@@ -1931,6 +1931,9 @@ func (l *lowerer) lowerWhile(st *WhileStmt) {
 
 // A desugared range loop must run its increment even when the body continues.
 func (l *lowerer) lowerWhileWithContinue(st *WhileStmt, continueStep Stmt) {
+	if l.tryCountedLoop(st) {
+		return
+	}
 	envBefore := cloneMap(l.env)
 
 	// Collect ALL env vars used (read or written) anywhere in the loop.

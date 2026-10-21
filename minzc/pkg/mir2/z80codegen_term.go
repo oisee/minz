@@ -48,8 +48,15 @@ func (g *z80cg) restoreLiveOutOverrides(f *Func, t Term) {
 			}
 		}
 	}
+	// A loop parameter overwritten on the next iteration may still be a
+	// source of another back-edge argument or the exit value (parallel state
+	// updates such as Fibonacci). Preserve its old value until those reads.
+	usedByTerm := map[Reg]bool{}
+	for _, r := range t.termUses() {
+		usedByTerm[r] = true
+	}
 	for _, bp := range g.curBlock.Params {
-		if skipped[bp.Dst] {
+		if skipped[bp.Dst] && !needed[bp.Dst] && !usedByTerm[bp.Dst] {
 			delete(g.physOverride, bp.Dst)
 		} else {
 			needed[bp.Dst] = true
@@ -58,10 +65,6 @@ func (g *z80cg) restoreLiveOutOverrides(f *Func, t Term) {
 	// Terminator operands count too: jmp @head(%r3, …) passes r3 to the param
 	// that is r3 itself after coalescing, and the parallel copy skips it as an
 	// identity move, so r3 must already sit in its allocated register.
-	usedByTerm := map[Reg]bool{}
-	for _, r := range t.termUses() {
-		usedByTerm[r] = true
-	}
 	regs := make([]Reg, 0, len(g.physOverride))
 	for r := range g.physOverride {
 		if needed[r] || usedByTerm[r] {
