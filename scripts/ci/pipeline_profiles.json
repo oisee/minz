@@ -148,6 +148,7 @@
     "TestGraceConvergence",
     "TestGraceE2E_GCD",
     "TestGraceE2E_Showcase",
+    "TestGracePreservesInfiniteLoops",
     "TestGraceShowcase",
     "TestGraceTailRecursionSuccessorParameters",
     "TestGraceVerify",
