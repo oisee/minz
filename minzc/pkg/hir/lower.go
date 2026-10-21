@@ -3128,6 +3128,12 @@ func (l *lowerer) lowerCond(e Expr) mir2.Reg {
 				wordTy = bin.R.ExprTy()
 			}
 			if _, literal := bin.L.(*IntLitExpr); literal {
+				// On a width tie the peer supplies signedness, not the
+				// literal's default unsigned type (e.g. 32767 < x:i16).
+				// Keep a wider literal's type and width unchanged.
+				if bin.R.ExprTy().Width() == wordTy.Width() {
+					wordTy = bin.R.ExprTy()
+				}
 				operandTy = wordTy
 			}
 		}
