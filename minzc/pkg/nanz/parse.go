@@ -4836,25 +4836,36 @@ func (p *parser) parseFor() (hir.Stmt, error) {
 			if !mir2.IsInt(elemTy) {
 				return nil, fmt.Errorf("range element type must be an integer")
 			}
-			ty = elemTy
-			base = &hir.CastExpr{X: base, Ty: ty}
-			end = &hir.CastExpr{X: end, Ty: ty}
-		} else {
-			// Retype literal values before lowering so their default type
-			// cannot truncate or sign-extend a contextual literal incorrectly.
+			// An explicit induction type must hold both bounds: a narrowing
+			// cast here would silently change the trip count.
 			for _, bound := range []hir.Expr{base, end} {
-				if lit, ok := bound.(*hir.IntLitExpr); ok {
-					bits := ty.Width()
-					min, max := int64(0), (int64(1)<<bits)-1
-					if mir2.IsSigned(ty) {
-						min, max = -(int64(1) << (bits - 1)), (int64(1)<<(bits-1))-1
-					}
-					if lit.Val < min || lit.Val > max {
-						return nil, fmt.Errorf("range literal %d does not fit %s", lit.Val, ty)
-					}
-					lit.Ty = ty
+				if _, ok := bound.(*hir.IntLitExpr); ok {
+					continue
+				}
+				if bt := bound.ExprTy(); mir2.IsInt(bt) && !rangeBoundFits(bt, elemTy) {
+					return nil, fmt.Errorf("range bound of type %s does not fit induction type %s", bt, elemTy)
 				}
 			}
+			ty = elemTy
+		}
+		// Retype literal values before lowering so their default type
+		// cannot truncate or sign-extend a contextual literal incorrectly.
+		for _, bound := range []hir.Expr{base, end} {
+			if lit, ok := bound.(*hir.IntLitExpr); ok {
+				bits := ty.Width()
+				min, max := int64(0), (int64(1)<<bits)-1
+				if mir2.IsSigned(ty) {
+					min, max = -(int64(1) << (bits - 1)), (int64(1)<<(bits-1))-1
+				}
+				if lit.Val < min || lit.Val > max {
+					return nil, fmt.Errorf("range literal %d does not fit %s", lit.Val, ty)
+				}
+				lit.Ty = ty
+			}
+		}
+		if explicitElemTy {
+			base = &hir.CastExpr{X: base, Ty: ty}
+			end = &hir.CastExpr{X: end, Ty: ty}
 		}
 		// Bounds are parsed in the enclosing scope; the induction binding
 		// applies only to the body, including nested expressions and calls.
@@ -7576,4 +7587,18 @@ func (p *parser) cSourceResolver(sourceFile string) *interop.Resolver {
 		return c89.CompileWithOpts(src, name, c89.CompileOpts{DeferAggregateABI: true, BaseDir: filepath.Dir(name), IncludePaths: []string{filepath.Dir(name)}, PrivatePrefix: fmt.Sprintf("__c_%x__", identity[:16])})
 	}
 	return &interop.Resolver{BaseDir: filepath.Dir(sourceFile), Compilers: compilers}
+}
+
+// rangeBoundFits reports whether every value of src is representable in dst.
+func rangeBoundFits(src, dst mir2.Ty) bool {
+	if src == dst {
+		return true
+	}
+	if mir2.IsSigned(src) {
+		return mir2.IsSigned(dst) && dst.Width() >= src.Width()
+	}
+	if mir2.IsSigned(dst) {
+		return dst.Width() > src.Width()
+	}
+	return dst.Width() >= src.Width()
 }

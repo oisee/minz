@@ -124,7 +124,7 @@ func TestRangeLiteralWidthVMZ80(t *testing.T) {
 		{"signed_literal_widen", `fun probe()->i16 { var s:i16=0; let lo:i8=125; for i in lo..130 { s=s+i }; return s }`, "probe()", mir2.TyI16, 635},
 		{"signed_literal_widen24", `fun probe()->u16 { var s:u16=0; let lo:i16=32765; for i in lo..32770 { s=s+i }; return s }`, "probe()", mir2.TyI24, 32763},
 		{"signed_literal_pair", `fun probe()->i16 { var s:i16=0; for i in (-3)..130 { s=s+i }; return s }`, "probe()", mir2.TyI16, 8379},
-		{"explicit_narrow", `fun probe()->u16 { var s:u16=0; for i:u8 in 250..260 { s=s+i }; return s }`, "probe()", mir2.TyU8, 0},
+		{"explicit_wide_var", `fun probe(n:u8)->u16 { var s:u16=0; for i:u16 in 250..n { s=s+i }; return s }`, "probe(255)", mir2.TyU16, 1260},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			tc.src = strings.ReplaceAll(tc.src, ";", "\n")
@@ -169,19 +169,36 @@ func TestRangeLiteralWidthVMZ80(t *testing.T) {
 		for _, src := range []string{
 			"fun probe(n:i8)->void { for i in n..2147483648 {} }",
 			"fun probe(n:u8)->void { for i in (-1)..n {} }",
+			// An explicit induction type must not truncate its bounds.
+			"fun probe()->void { for i:u8 in 250..260 {} }",
+			"fun probe()->void { for i:u8 in 0..300 {} }",
+			"fun probe()->void { for i:i8 in 0..200 {} }",
 		} {
 			if _, err := nanz.Parse(src, "range-overflow.nanz"); err == nil || !strings.Contains(err.Error(), "range literal") {
 				t.Errorf("expected range literal diagnostic, got %v", err)
 			}
 		}
+		for _, src := range []string{
+			"fun probe(n:u16)->void { for i:u8 in 0..n {} }",
+			"fun probe(n:i8)->void { for i:u8 in 0..n {} }",
+			"fun probe(n:u8)->void { for i:i8 in 0..n {} }",
+			"fun probe(n:i16)->void { for i:i8 in n..0 {} }",
+		} {
+			if _, err := nanz.Parse(src, "range-narrow.nanz"); err == nil || !strings.Contains(err.Error(), "does not fit induction type") {
+				t.Errorf("%s: expected induction type diagnostic, got %v", src, err)
+			}
+		}
 	})
 	t.Run("range_source_wide_followup", func(t *testing.T) {
-		t.Skip("range-source fusion has a separate byte-only count/element lowering; follow-up must widen that loop as well as ExprTy")
+		// range(lo..hi) yields the countdown hi-lo, ..., 1 (Nanz book ch. 6), so
+		// range(300..310) correctly sums to 55. The open defect is the trip
+		// count: more than 255 iterations truncate (G0-9).
+		t.Skip("G0-9: range-source counts above 255 truncate; see TestG0Finding_RangeCounterWidth")
 		src := `fun probe()->u16 { var s:u16=0
-range(300..310).forEach(|i| { s=s+i })
+range(0..300).forEach(|i| { s=s+1 })
 return s }
-assert probe() == 3045 via mir2
-assert probe() == 3045 via z80`
+assert probe() == 300 via mir2
+assert probe() == 300 via z80`
 		h, err := nanz.Parse(src, "range-source.nanz")
 		if err != nil {
 			t.Fatal(err)

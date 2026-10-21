@@ -151,27 +151,31 @@ supported type of the required signedness is rejected with a
 `range literal ... does not fit ...` diagnostic.
 
 The parser retypes literal bounds before binding the loop variable, keeping
-parser, verifier and lowerer consistent. An explicit `for i: T` converts both
-bounds to T and binds the body at T, including explicit truncation. No arithmetic
+parser, verifier and lowerer consistent. An explicit `for i: T` binds the body at T and
+requires both bounds to fit T: a literal outside T is the same `range literal
+... does not fit ...` error, and a typed bound that T cannot hold (for example a
+u16 bound under `for i: u8`, or an i8 bound under `for i: u8`) is a
+`range bound of type ... does not fit induction type ...` error. A narrowing
+cast would silently change the trip count, so it is rejected instead. No arithmetic
 optimization or benchmark-name match is involved.
 
 The five critic repros were copied without modifying their originals to
 `/mnt/ssd-510/minz/tmp/p26b-evidence/`. Findings 1, 2, 3 and 5 are fixed and
 covered by MIR2 and Z80 assertions under all three profiles. Additional cases
 cover mixed byte/word bounds, signed literal widening to i16/i24, signed literal pairs, explicit
-narrowing, and diagnostics for unrepresentable literals. All are subtests of the
+widening of a byte bound, and diagnostics for unrepresentable literals and for
+bounds an explicit induction type cannot hold. All are subtests of the
 existing `TestRangeLiteralWidthVMZ80`, already in the fast CI inventory.
 
-Finding 4 is a separate range-source fusion follow-up. `RangeSourceExpr.ExprTy`
-is hard-coded u8, but changing that alone is insufficient: `lowerRangeLoop`
-also hard-codes its count parameter and zero comparison to u8/ClassCounter and
-uses DJNZ. It computes `Hi-Lo` for a forward range but exposes the remaining
-count as its element, without applying the lower-bound offset; 300..310 thus
-exposes 10..1 and sums to 55. Callback parameter inference and count/element
-lowering must be corrected together, with explicit tests for source direction
-and filter/fold semantics. This patch leaves that path unchanged and records the exact
-300..310 expected-3045 reproducer as skipped subtest
-`range_source_wide_followup`, with both MIR2 and Z80 assertions ready to enable.
+Finding 4 is not a width defect. `range(lo..hi)` yields the countdown
+`hi-lo, ..., 1` (Nanz book chapter 6, `docs/Nanz_Iteration_Audit.md`), so
+`range(300..310).forEach` summing to 55 is the documented result, the same as
+`range(0..10)`. The real defect on that path is G0-9: a range-source count above
+255 truncates (`range(0..300)` runs 44 times) because `lowerRangeLoop` keeps its
+count in a byte DJNZ counter. This patch leaves that path unchanged; the skipped
+subtest `range_source_wide_followup` now holds the G0-9 reproducer
+(`range(0..300)` counting 300) next to the existing skipped
+`TestG0Finding_RangeCounterWidth`.
 
 Failing-first evidence: `failing-origin-main-final.log` runs the final test against detached
 origin/main 213080842 and fails (including i8 start and explicit word cases).
