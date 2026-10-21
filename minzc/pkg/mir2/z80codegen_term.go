@@ -167,7 +167,9 @@ func (g *z80cg) genTerm(f *Func, t Term) {
 		// CGT = NC && NZ (a > b); CLE = C || Z (a ≤ b).
 		// Note: CLE/CGT need two jumps — first uses JR, second uses JR too.
 		// MZA auto-promotes any JR to JP when out of range.
-		if cc == "CLE" {
+		if g.cmpBranchCC[t.Cond] == "signed" {
+			g.emitSignedBranch(f, t.Cond, thenLbl, elseLbl)
+		} else if cc == "CLE" {
 			// a ≤ b: branch to then if C (a<b) or Z (a==b).
 			g.emitf("    JRS C, %s", thenLbl)
 			g.emitf("    JRS Z, %s", thenLbl)
@@ -588,4 +590,38 @@ func (g *z80cg) djnzTargetWithinRange(label string) bool {
 		}
 	}
 	return true
+}
+
+// Branch on S xor V directly. Both paths leave flags and registers untouched;
+// edge copies still run through the ordinary branch trampolines.
+func (g *z80cg) emitSignedBranch(f *Func, cond Reg, thenLbl, elseLbl string) {
+	var c CmpCond
+	for _, b := range f.Blocks {
+		for _, i := range b.Insts {
+			if i.Op == OpCmp && i.Dst == cond {
+				c = i.Cond
+			}
+		}
+	}
+	if g.cmpSwapped[cond] {
+		c = c.Swap()
+	}
+	lt, ge := thenLbl, elseLbl
+	if c == CmpGe || c == CmpGt {
+		lt, ge = elseLbl, thenLbl
+	}
+	if c == CmpLe {
+		g.emitf("    JRS Z, %s", thenLbl)
+	}
+	if c == CmpGt {
+		g.emitf("    JRS Z, %s", elseLbl)
+	}
+	idx := g.trampIdx
+	g.trampIdx++
+	g.emitf("    JP M, .sbranch_neg_%d", idx)
+	g.emitf("    JP PE, %s", lt)
+	g.emitf("    JRS %s", ge)
+	g.emitf(".sbranch_neg_%d:", idx)
+	g.emitf("    JP PO, %s", lt)
+	g.emitf("    JRS %s", ge)
 }
