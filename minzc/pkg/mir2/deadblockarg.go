@@ -11,6 +11,16 @@ package mir2
 //
 // Must run after DeadStoreElim (which may expose dead block params).
 func DeadBlockArgElim(f *Func) bool {
+	changed := false
+	// Removing an incoming argument can make a predecessor parameter dead.
+	// Recount uses after every round until no more parameters can be removed.
+	for deadBlockArgElimRound(f) {
+		changed = true
+	}
+	return changed
+}
+
+func deadBlockArgElimRound(f *Func) bool {
 	// Compute global use counts for all registers across the whole function.
 	uses := countRegUses(f)
 

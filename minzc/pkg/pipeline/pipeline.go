@@ -349,6 +349,11 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 				tr.FuseAbsDiff++
 			}
 		}
+		// Return sinking/splitting (including Grace rewrites) can leave newly
+		// dead edge arguments. Remove them before allocation sees their copies.
+		if mir2.DeadBlockArgElim(f) {
+			tr.DeadBlockArg++
+		}
 		// Run after DSE exposes the byte subtractions in both returning arms.
 		// This whole-CFG proof is independent of the Go/Grace pass driver.
 		if mir2.FuseByteAbsDiffCFG(f) {
@@ -635,6 +640,7 @@ func CompileHIRWithOptions(hm *hir.Module, opts Options) (string, error) {
 		if mir2.CondRetSink(f) {
 			mir2.EliminateDeadBlocks(f)
 		}
+		mir2.DeadBlockArgElim(f)
 		mir2.FuseAbsDiff(f)
 		mir2.FuseByteAbsDiffCFG(f)
 		mir2.StrengthReduceCountedPointers(f)
