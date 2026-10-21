@@ -116,7 +116,7 @@ statuses were queried in this documentation pass.
 | Item | Failure / next action | Repro pointer |
 |---|---|---|
 | P20 | **Fixed in #218** (2026-10-21): assert results are compared in the declared type; bits above the declared width must be the correct extension and bool must be exactly 0/1, so the judge did not get looser. | — |
-| P21 | **Fixed in #219**: flag-located bools are materialised to 0/1 before stores (also fixed a silent `life_simple.minz` miscompile); bool `yield <comparison>` works on Z80 and `TestG1BoolComparisonYield` now fails instead of skipping. | — |
+| P21 | **Fixed in #219**: flag-located bools are materialised to 0/1 before stores (also fixed a silent `life_simple.minz` miscompile); bool `yield <comparison>` works on Z80 and `TestG1BoolComparisonYield` now runs on Z80 and passes (it fails rather than skips if the bug returns). | — |
 | P22 | **Fixed in #220**: switch join edges come from real CFG edges and termination propagates; `continue` inside a switch in a loop targets the enclosing loop. Follow-ups: missing-return diagnostic for a non-exhaustive switch at function end; `hir.Verify` rejects `break` from a switch outside loops. | — |
 | G0-3/4/9 | Narrow length/count underflow or wrap. | `TestG0Finding_ReversedSliceIsEmpty`, `TestG0Finding_CrossedRangeBounds`, `TestG0Finding_RangeCounterWidth` in [`iteration_audit_e2e_test.go`](../../minzc/pkg/nanz/iteration_audit_e2e_test.go). |
 | G0-5 | Unsupported iterator methods emit invalid assembly. | `TestG0Finding_UnsupportedMethodRejected` in that file; reject cleanly or implement semantics. |
@@ -177,7 +177,7 @@ open branches are local/remote work in progress:
 |---|---|---|
 | `fix/P20-assert-signed-compare` | Not pushed. Fix committed (dca6f2a3c); a review fix (never mask bits above the declared width; bool must be exactly 0/1) was in progress by codex at pause | Re-judge (`assert_matrix` with controls, Go tests), re-run critic, open PR |
 | `fix/P21-store-cmp-through-ptr` | One local commit by codex, judges/critic pending | Run judges and a critic; then un-skip check of `TestG1BoolComparisonYield` |
-| P22 | **Fixed in #220**: switch join edges come from real CFG edges and termination propagates; `continue` inside a switch in a loop targets the enclosing loop. Follow-ups: missing-return diagnostic for a non-exhaustive switch at function end; `hir.Verify` rejects `break` from a switch outside loops. | — |
+| P22 | Not started | Write a failing test from the repro above |
 | `docs/D1-handover-plan-metrics` | This handover, the plan revision and the CLAUDE.md status rewrite | — |
 
 Generator line next: G2 fusion under ADR 0050 (see above). Workers' worktrees
