@@ -188,6 +188,28 @@ func (l *lowerer) tryCountedLoop(st *WhileStmt) bool {
 	if !safe {
 		return false
 	}
+	// Dynamic trip counts introduce an entry subtraction, a second live
+	// counter and a zero-trip merge. Their allocation/copy costs can exceed
+	// the saved compare even when the source IV is unused. Until lowering
+	// can price those costs, retain ordinary while lowering. Literal bounds
+	// keep the constant-count path used by fixed-count bit loops.
+	if _, fixed := bound.(*IntLitExpr); !fixed {
+		b, ok := bound.(*VarRefExpr)
+		if !ok {
+			return false
+		}
+		if _, known := l.countedEndpointConstant(l.env[b.Name]); !known {
+			return false
+		}
+	}
+	if _, known := l.countedEndpointConstant(initial); !known {
+		return false
+	}
+	// Retaining a separately incremented IV removes much of DJNZ's benefit
+	// and adds register pressure. Only replace loops whose body ignores it.
+	if references[iv.Name] {
+		return false
+	}
 	var count, hiReg mir2.Reg
 	if ty == mir2.TyU16 {
 		// Literal endpoints prove a non-wrapping distance no greater than 255.
@@ -309,4 +331,38 @@ func (l *lowerer) countedRegHasType(r mir2.Reg, ty mir2.Ty) bool {
 		}
 	}
 	return false
+}
+
+// countedEndpointConstant follows only conversions that preserve a known,
+// nonnegative integer value. C initializers commonly lower 0 as trunc(i16 0).
+// A wrapping truncation, negative value or sign-changing extension is refused.
+func (l *lowerer) countedEndpointConstant(r mir2.Reg) (int64, bool) {
+	for _, block := range l.bld.F.Blocks {
+		for _, inst := range block.Insts {
+			if inst.Dst != r || !mir2.IsInt(inst.Ty) {
+				continue
+			}
+			bits := inst.Ty.Width()
+			if mir2.IsSigned(inst.Ty) {
+				bits--
+			}
+			if bits <= 0 || bits > 32 {
+				return 0, false
+			}
+			v := inst.Imm
+			switch inst.Op {
+			case mir2.OpConst:
+			case mir2.OpTrunc, mir2.OpExt, mir2.OpMove:
+				var known bool
+				v, known = l.countedEndpointConstant(inst.Src[0])
+				if !known {
+					return 0, false
+				}
+			default:
+				return 0, false
+			}
+			return v, v >= 0 && v < int64(1)<<bits
+		}
+	}
+	return 0, false
 }

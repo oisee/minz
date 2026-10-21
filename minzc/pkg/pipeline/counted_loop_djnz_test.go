@@ -26,8 +26,8 @@ func TestCountedLoopDJNZVMZ80(t *testing.T) {
 				found = true
 			}
 		}
-		if !found {
-			t.Fatal("counted loop must lower to TermDJNZ", op)
+		if found {
+			t.Fatal("dynamic trip count must retain ordinary lowering", op)
 		}
 		points := []int64{0, 1, 7, 8, 127, 128, 254, 255}
 		for _, s := range points {
@@ -117,8 +117,8 @@ func TestCountedLoopC89AndRangeShape(t *testing.T) {
 			count++
 		}
 	}
-	if count != 2 {
-		t.Fatalf("C counted loops: got %d DJNZ, want 2", count)
+	if count != 1 {
+		t.Fatalf("C counted loops: got %d DJNZ, want 1", count)
 	}
 	for _, n := range []int64{0, 1, 8, 128, 255} {
 		got, err := mir2.NewVM(m).Call("probe", []mir2.Value{{I: n}})
@@ -140,7 +140,7 @@ func TestCountedLoopC89AndRangeShape(t *testing.T) {
 				count++
 			}
 		}
-		if (!control && count != 1) || (control && count != 0) {
+		if count != 0 {
 			t.Fatal("range fallback", control, count)
 		}
 		for _, n := range []int64{0, 1, 8, 255} {

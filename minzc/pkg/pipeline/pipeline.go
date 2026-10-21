@@ -87,6 +87,8 @@ type FuncTrace struct {
 
 // Options configures optional pipeline passes.
 type Options struct {
+	// DisableCountedLoops is an internal differential-testing switch.
+	DisableCountedLoops bool `json:",omitempty"`
 	// CPMApplicationEntry selects ordinary native CP/M application entry,
 	// independently of the guarded runtime and semantic bare/called harnesses.
 	CPMApplicationEntry bool            `json:",omitempty"`
@@ -257,7 +259,7 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 		return s, err
 	}
 	// Lower HIR → MIR2 (raw, before optimisation).
-	m := hir.LowerModule(hm)
+	m := hir.LowerModuleWithOptions(hm, hir.LowerOptions{DisableCountedLoops: opt.DisableCountedLoops})
 	s.MIR2Raw = m.Dump()
 
 	// Initialize per-function traces.
@@ -606,7 +608,7 @@ func CompileHIRWithOptions(hm *hir.Module, opts Options) (string, error) {
 		return "", err
 	}
 	// Lower HIR → MIR2.
-	m := hir.LowerModule(hm)
+	m := hir.LowerModuleWithOptions(hm, hir.LowerOptions{DisableCountedLoops: opts.DisableCountedLoops})
 
 	// Per-function optimisation passes.
 	for _, f := range m.Funcs {

@@ -89,6 +89,8 @@
     "TestCopyAndPackedNativeWrapCAndNanz",
     "TestCountedLoopC89AndRangeShape",
     "TestCountedLoopDJNZVMZ80",
+    "TestCountedLoopFixedProfitability",
+    "TestCountedLoopProfitabilityVMZ80",
     "TestCountedLoopProofAndFallback",
     "TestCountedPointerWalkNativeOverlapCAndNanz",
     "TestDWordCycleOrdinarySource",

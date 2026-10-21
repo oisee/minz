@@ -71,3 +71,76 @@ func TestZ80LiveOutRestoreParallel(t *testing.T) {
 		})
 	}
 }
+
+// Exercise override restoration directly, without HIR loop recognition,
+// allocation or DJNZ emission. An overwritten parameter can still be read by
+// the current terminator or by a dominated successor.
+func TestZ80LiveOutRestoreOverwrittenParam(t *testing.T) {
+	for _, mode := range []string{"backArgument", "exitArgument", "liveOut", "dead", "jump", "return"} {
+		t.Run(mode, func(t *testing.T) {
+			m := &Module{Name: "restore_param"}
+			f := m.AddFunc("restore_param")
+			b := NewBuilder(f)
+			body := b.SwitchToNewBlock("body")
+			count := b.BlockParam(body, TyU8, ClassCounter)
+			old := b.BlockParam(body, TyU8, ClassGeneral)
+			next := b.Const(7, TyU8, ClassGeneral)
+			exit := f.NewBlock("exit")
+			out := b.BlockParam(exit, TyU8, ClassGeneral)
+			backArg, exitArg := next, next
+			if mode == "backArgument" {
+				backArg = old
+			}
+			if mode == "exitArgument" {
+				exitArg = old
+			}
+			switch mode {
+			case "jump":
+				b.Jmp("exit", old)
+			case "return":
+				b.Ret(old)
+			default:
+				b.DJNZ(count, "body", []Reg{backArg}, "exit", []Reg{exitArg})
+			}
+			b.SwitchTo(exit)
+			if mode == "liveOut" {
+				b.Ret(old)
+			} else {
+				b.Ret(out)
+			}
+			var sb strings.Builder
+			g := &z80cg{sb: &sb, fn: f, curBlock: body, ar: &AllocResult{Locs: map[Reg]PhysLoc{old: {Kind: LocReg, Name: "A"}}}, liveness: ComputeLiveness(f), physOverride: map[Reg]string{old: "E"}, holdsPhys: map[string]string{}}
+			g.restoreLiveOutOverrides(f, body.Term)
+			if len(g.physOverride) != 0 {
+				t.Fatalf("override not resolved: %v", g.physOverride)
+			}
+			want := byte(0x53)
+			if mode == "dead" {
+				want = 0x27
+				if strings.Contains(sb.String(), "LD A, E") {
+					t.Fatal("restored dead parameter")
+				}
+			}
+			asm := "ORG 0x8000\n" + sb.String() + "DI\nHALT\n"
+			res, err := z80asm.NewAssembler().AssembleString(asm)
+			if err != nil || len(res.Errors) != 0 {
+				t.Fatalf("assemble: %v %v", err, res.Errors)
+			}
+			z := emulator.NewRemogattoZ80()
+			if err := z.LoadMemory(0x8000, res.Binary); err != nil {
+				t.Fatal(err)
+			}
+			z.SetRegisters(emulator.Registers{PC: 0x8000, SP: 0xff00, A: 0x27, F: 0xa5, DE: 0x0053})
+			for steps := 0; !z.IsHalted(); steps++ {
+				if steps > 100 {
+					t.Fatal("did not halt")
+				}
+				z.Step()
+			}
+			got := z.GetRegisters()
+			if got.A != want || got.F != 0xa5 || got.SP != 0xff00 {
+				t.Fatalf("restored state %+v want A=%02x\n%s", got, want, asm)
+			}
+		})
+	}
+}
