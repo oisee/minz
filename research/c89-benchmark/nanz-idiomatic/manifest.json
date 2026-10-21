@@ -1,0 +1,52 @@
+{
+  "cases": [
+    {
+      "file": "abs_diff.nanz",
+      "sha256": "e593313aa8d9cb2ad125584ddc1601c3a7decf8b1ec7adc9590be03973023bbd"
+    },
+    {
+      "file": "bitwise8reg.nanz",
+      "sha256": "62ebeb7abe8e0f813456fcf19c0105a0f824fb2a8c97606a02583b13cd65cf1c"
+    },
+    {
+      "file": "copy_bytes.nanz",
+      "sha256": "1894ef9cc7ab7b32e0c8d40717da18a19da6bf35265464206eda3cbef23dc2cb"
+    },
+    {
+      "file": "crc8.nanz",
+      "sha256": "f373a19d769da7cee3b870ede0581c969dd7f305ff1e37336edeaf521b31caa5"
+    },
+    {
+      "file": "fat12_decode.nanz",
+      "sha256": "5f43ae7f72baaf7fb1cab6311fea3a456171a492eaeed8621c96634f1091fa59"
+    },
+    {
+      "file": "gcd.nanz",
+      "sha256": "87b7a3fc9dbd58b5343f22ae517874749d4b9f127d41d02ce2950d7c0c489fc9"
+    },
+    {
+      "file": "memset_fill.nanz",
+      "sha256": "ce825a141f491298b7212a490e9276a4d73d2743377fbed344046f40c16ef304"
+    },
+    {
+      "file": "mul8x8.nanz",
+      "sha256": "f7d3146d22dd29dd9f7926ca3bad194296f050974b2594b52607519d9940777e"
+    },
+    {
+      "file": "reverse_loop11.nanz",
+      "sha256": "36d461127c88d671da9a2b11cec0b1b10cc6f77e6615bb1dac6ea0a72a2917e0"
+    },
+    {
+      "file": "strlen_bytes.nanz",
+      "sha256": "9ef106f9a214d3822f8680d57fa73c8b3e2dcee6acb1dd17fa7386b4f7564358"
+    },
+    {
+      "file": "struct_roundtrip.nanz",
+      "sha256": "b35a6b5048aa289a9d3435ca13a468ddb707790412baf3a1b2b6fa656168f10e"
+    },
+    {
+      "file": "sum_array.nanz",
+      "sha256": "31692c9503d78066f1020ee04dfc19ba3f204d5a8dc971023967fccad682e648"
+    }
+  ]
+}

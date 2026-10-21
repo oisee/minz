@@ -1,0 +1,24 @@
+global c0: u8 = 0
+global c1: u8 = 0
+global c2: u8 = 0
+global c3: u8 = 0
+global result: u16 = 0
+fun and8() -> u8 {
+    let t0: u8 = c0 + 1
+    let t1: u8 = c1 + 1
+    let t2: u8 = c2 + 1
+    let t3: u8 = c3 + 1
+    return (t0 & t1) + (t2 & t3)
+}
+fun or8() -> u8 {
+    let t0: u8 = c0 + 1
+    let t1: u8 = c1 + 1
+    let t2: u8 = c2 + 1
+    let t3: u8 = c3 + 1
+    return (t0 | t1) + (t2 | t3)
+}
+fun execute() {
+    let low: u8 = and8()
+    let high: u8 = or8()
+    result = u16(low) | (u16(high) << 8)
+}

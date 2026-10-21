@@ -1,0 +1,11 @@
+global target: [u8; 256]
+global n: u8 = 0
+global v: u8 = 0
+global result: u16 = 0
+fun fill(p: ^u8, count: u8, value: u8) {
+    for i: u8 in 0..count { p[i] = value }
+}
+fun execute() {
+    fill(&target, n, v)
+    result = u16(n)
+}

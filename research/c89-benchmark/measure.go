@@ -434,7 +434,8 @@ func parseExternal(compiler, image, symbols string) (*program, error) {
 				p.storage[base+i] = true
 			}
 		}
-	} else if compiler == "sccz80" {
+	} else if compiler == "sccz80" || compiler == "hand" {
+		// Both z88dk maps and mza symbol tables use "name = $hex" records.
 		for i, v := range read(image) {
 			p.image[0x8000+i] = v
 		}
@@ -587,7 +588,7 @@ func measure(p *program, samples []sample, sizes map[string]int, r *report) erro
 	return nil
 }
 func main() {
-	compiler := flag.String("compiler", "minz", "minz, sdcc, sccz80")
+	compiler := flag.String("compiler", "minz", "minz, nanz, sdcc, sccz80, hand")
 	profile := flag.String("profile", "default", "declared build profile")
 	source := flag.String("source", "", "identical C input")
 	out := flag.String("out", "", "artifact directory")

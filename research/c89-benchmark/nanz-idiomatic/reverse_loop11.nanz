@@ -1,0 +1,10 @@
+global target: [u16; 256]
+global n: u8 = 0
+global result: u16 = 0
+fun execute() {
+    range(0..n).forEach(|counter: u8| {
+        let i: u8 = counter - 1
+        target[i] = u16(i)
+    })
+    result = u16(n)
+}

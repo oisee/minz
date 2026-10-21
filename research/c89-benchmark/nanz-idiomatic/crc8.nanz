@@ -1,0 +1,15 @@
+global values: [u8; 256]
+global n: u8 = 0
+global result: u16 = 0
+fun crc8(p: ^u8, count: u8) -> u8 {
+    var crc: u8 = 0
+    for value: u8 in p[0..count] {
+        crc = crc xor value
+        range(0..8).forEach(|bit: u8| {
+            if (crc & 128) != 0 { crc = (crc << 1) xor 7 }
+            else { crc = crc << 1 }
+        })
+    }
+    return crc
+}
+fun execute() { result = u16(crc8(&values, n)) }

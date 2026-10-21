@@ -1,0 +1,8 @@
+global values: [u8; 256]
+global result: u16 = 0
+fun strlen(p: ^u8) -> u16 {
+    var length: u16 = 0
+    while p[length] != 0 { length = length + 1 }
+    return length
+}
+fun execute() { result = strlen(&values) }

@@ -22,6 +22,7 @@ def main():
     ap.add_argument('--jobs', type=int, default=2)
     ap.add_argument('--sdcc45-root', type=Path)
     ap.add_argument('--include-nanz', action='store_true')
+    ap.add_argument('--include-refs', action='store_true', help='main-suite Nanz idiom and hand assembly references')
     ap.add_argument('--suite', choices=['main', 'heldout', 'all'], default='main')
     args = ap.parse_args()
     root = Path(__file__).resolve().parents[2]
@@ -40,6 +41,16 @@ def main():
     nfrozen = json.loads((nanz_cases/'manifest.json').read_text())['cases'] if args.include_nanz else []
     for case in nfrozen:
         assert sha(nanz_cases/case['file']) == case['sha256']
+    refs = {}
+    if args.include_refs and args.suite != 'heldout':
+        main_names = {Path(c['file']).stem for c in json.loads((bench/'cases/manifest.json').read_text())['cases']}
+        for compiler, folder in [('nanz-idiom', 'nanz-idiomatic'), ('hand', 'hand-asm')]:
+            entries = json.loads((bench/folder/'manifest.json').read_text())['cases']
+            assert len(entries) == len(main_names)
+            assert {Path(c['file']).stem for c in entries} == main_names
+            for case in entries:
+                assert sha(bench/folder/case['file']) == case['sha256']
+            refs[compiler] = entries
     out = args.out.resolve()
     out.mkdir(parents=True, exist_ok=True)
     sdcc = args.sdcc_root.resolve() / 'usr/bin/sdcc'
@@ -51,6 +62,8 @@ def main():
     else:
         env = dict(os.environ)
     subprocess.run([args.go, '-C', str(root/'minzc'), 'build', '-o', str(out/'measure'), str(root/'research/c89-benchmark/measure.go')], check=True, env=env)
+    if 'hand' in refs:
+        subprocess.run([args.go, '-C', str(root/'minzc'), 'build', '-o', str(out/'mza'), './cmd/mza'], check=True, env=env)
     meta = {
         'minz_commit': subprocess.check_output(['git','rev-parse','HEAD'], cwd=root, text=True).strip(),
         'sdcc_version': subprocess.check_output([str(sdcc), '--version'], text=True).strip(),
@@ -62,6 +75,8 @@ def main():
         'suite': args.suite,
         'sources': frozen,
         'nanz_sources': nfrozen,
+        'reference_sources': refs,
+        'mza_sha256': sha(out/'mza') if 'hand' in refs else None,
         'nanz_tuple_sources': json.loads((root/'research/c89-benchmark/nanz-tuple/manifest.json').read_text())['cases'] if args.include_nanz else [],
     }
     if args.sdcc45_root:
@@ -73,10 +88,14 @@ def main():
 
     def run_one(task):
         compiler, profile, case = task
-        source = (root/'research/c89-benchmark/nanz-tuple' if compiler == 'nanz-tuple' else nanz_cases if compiler == 'nanz' else source_dirs[case['file']])/case['file']
+        language_dirs = {'nanz': nanz_cases, 'nanz-tuple': bench/'nanz-tuple',
+                         'nanz-idiom': bench/'nanz-idiomatic', 'hand': bench/'hand-asm'}
+        source = (language_dirs[compiler] if compiler in language_dirs else source_dirs[case['file']])/case['file']
         assert sha(source) == case['sha256']
         dest = out/compiler/profile/source.stem
         dest.mkdir(parents=True, exist_ok=True)
+        # A crashed invocation must not reuse a measurement from an earlier run.
+        (dest/'measurements.json').unlink(missing_ok=True)
         # Store the exact source bytes with every build, before invoking a compiler.
         (dest/('input'+source.suffix)).write_bytes(source.read_bytes())
         commands=[]
@@ -85,6 +104,9 @@ def main():
             image,symbols=dest/'program.ihx',dest/'program.noi'
             sdroot = args.sdcc45_root.resolve() if compiler == 'sdcc45' else args.sdcc_root.resolve()
             commands.append([str(sdroot/'usr/bin/sdcc'),'-mz80','--std-c89','--opt-code-'+profile,'--no-std-crt0','--code-loc','0x8000','--data-loc','0xC000','--lib-path',str(sdroot/'usr/share/sdcc/lib/z80'),'-o',str(image),str(source)])
+        elif compiler == 'hand':
+            image,symbols=dest/'program.bin',dest/'program.sym'
+            commands.append([str(out/'mza'),'-t','generic','-f','bin','-o',str(image),'-s',str(symbols),str(source)])
         elif compiler == 'sccz80':
             image,symbols=dest/'program.bin',dest/'program.map'
             commands.append([str(zroot/'bin/zcc'),'+z80','-clib=classic','-compiler=sccz80','-O3','-S','-o',str(dest/'program.asm'),str(source)])
@@ -97,7 +119,7 @@ def main():
                     failed={'Compiler':compiler,'Profile':profile,'Case':source.stem,'SourceSHA256':sha(source),'Status':'COMPILE_ERROR','Error':f'exit {proc.returncode}; see build.log'}
                     break
         assert sha(source) == case['sha256']
-        measure=[str(out/'measure'),'-compiler',('sdcc' if compiler == 'sdcc45' else 'nanz' if compiler == 'nanz-tuple' else compiler),'-profile',profile,'-source',str(source),'-out',str(dest)]
+        measure=[str(out/'measure'),'-compiler',('sdcc' if compiler == 'sdcc45' else 'nanz' if compiler in ('nanz-tuple', 'nanz-idiom') else compiler),'-profile',profile,'-source',str(source),'-out',str(dest)]
         if failed is None and image:
             info={key+'_sha256':sha(path) for key,path in [('source',source),('image',image),('symbols',symbols)]}
             (dest/'build-info.json').write_text(json.dumps(info,indent=2)+'\n')
@@ -124,6 +146,8 @@ def main():
         tasks += [('nanz',p,c) for p in ['default','size','grace'] for c in nfrozen]
         tuple_cases=json.loads((root/'research/c89-benchmark/nanz-tuple/manifest.json').read_text())['cases']
         tasks += [('nanz-tuple',p,c) for p in ['default','size','grace'] for c in tuple_cases]
+    for compiler, entries in refs.items():
+        tasks += [(compiler, p, c) for p in (['asm'] if compiler == 'hand' else ['default', 'grace']) for c in entries]
     if args.sdcc45_root: tasks += [('sdcc45',p,c) for p in ['size','speed'] for c in frozen]
     with concurrent.futures.ThreadPoolExecutor(max_workers=args.jobs) as pool:
         results=list(pool.map(run_one,tasks))
@@ -132,6 +156,10 @@ def main():
     for case in frozen:
         hashes={r['WorkloadSHA256'] for r in results if r['Case']==Path(case['file']).stem and 'WorkloadSHA256' in r}
         assert len(hashes)==1, ('workload mismatch',case)
+    failed_refs = [(r['Compiler'], r['Profile'], r['Case'], r['Status'])
+                   for r in results if r['Compiler'] in refs and r['Status'] != 'PASS']
+    if failed_refs:
+        raise SystemExit(f'reference failures: {failed_refs}')
 
 if __name__ == '__main__':
     main()
