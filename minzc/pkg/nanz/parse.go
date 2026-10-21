@@ -4674,6 +4674,7 @@ func (p *parser) parseFor() (hir.Stmt, error) {
 	// If T is ^StructName, we set elemStride = sizeof(StructName) for
 	// pointer-to-struct iteration (e.g. for node: ^BlockNode in nodes[0..n]).
 	var elemTy mir2.Ty = mir2.TyU8
+	explicitElemTy := p.l.is(tokColon)
 	var elemStride int
 	var ptrStructName string // for tracking struct pointer receiver
 	if p.l.is(tokColon) {
@@ -4830,10 +4831,35 @@ func (p *parser) parseFor() (hir.Stmt, error) {
 		if err != nil {
 			return nil, err
 		}
+		ty := hir.RangeType(base, end)
+		if explicitElemTy {
+			if !mir2.IsInt(elemTy) {
+				return nil, fmt.Errorf("range element type must be an integer")
+			}
+			ty = elemTy
+			base = &hir.CastExpr{X: base, Ty: ty}
+			end = &hir.CastExpr{X: end, Ty: ty}
+		} else {
+			// Retype literal values before lowering so their default type
+			// cannot truncate or sign-extend a contextual literal incorrectly.
+			for _, bound := range []hir.Expr{base, end} {
+				if lit, ok := bound.(*hir.IntLitExpr); ok {
+					bits := ty.Width()
+					min, max := int64(0), (int64(1)<<bits)-1
+					if mir2.IsSigned(ty) {
+						min, max = -(int64(1) << (bits - 1)), (int64(1)<<(bits-1))-1
+					}
+					if lit.Val < min || lit.Val > max {
+						return nil, fmt.Errorf("range literal %d does not fit %s", lit.Val, ty)
+					}
+					lit.Ty = ty
+				}
+			}
+		}
 		// Bounds are parsed in the enclosing scope; the induction binding
 		// applies only to the body, including nested expressions and calls.
 		savedTy, savedHadTy := p.varTypes[varTok.val]
-		p.varTypes[varTok.val] = hir.RangeType(base, end)
+		p.varTypes[varTok.val] = ty
 		body, err := p.parseBlock()
 		if savedHadTy {
 			p.varTypes[varTok.val] = savedTy

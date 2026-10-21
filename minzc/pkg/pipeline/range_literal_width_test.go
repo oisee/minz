@@ -110,6 +110,86 @@ func TestRangeLiteralWidthVMZ80(t *testing.T) {
 			}
 		})
 	}
+	for _, tc := range []struct {
+		name, src, call string
+		ty              mir2.Ty
+		want            int64
+	}{
+		{"i8_end", `fun probe(n:i8)->u16 { var s:u16=0; for i in 0..n { s=s+1 }; return s }`, "probe(-1)", mir2.TyI8, 0},
+		{"mixed_word_end", `fun probe(n:i16)->u16 { var s:u16=0; let lo:u16=0; for i in lo..n { s=s+1 }; return s }`, "probe(-1)", mir2.TyI24, 0},
+		{"mixed_word_positive", `fun probe(n:i16)->u16 { var s:u16=0; let lo:u16=0; for i in lo..n { s=s+1 }; return s }`, "probe(3)", mir2.TyI24, 3},
+		{"i8_start", `fun probe()->i16 { var s:i16=0; let lo:i8=-3; for i in lo..2 { s=s+i }; return s }`, "probe()", mir2.TyI8, -5},
+		{"explicit_word", `fun probe()->u16 { var s:u16=0; for i:u16 in 250..255 { s=s+i*2 }; return s }`, "probe()", mir2.TyU16, 2520},
+		{"mixed_byte", `fun probe()->i16 { var s:i16=0; let lo:i8=-3; let hi:u8=2; for i in lo..hi { s=s+i }; return s }`, "probe()", mir2.TyI16, -5},
+		{"signed_literal_widen", `fun probe()->i16 { var s:i16=0; let lo:i8=125; for i in lo..130 { s=s+i }; return s }`, "probe()", mir2.TyI16, 635},
+		{"signed_literal_widen24", `fun probe()->u16 { var s:u16=0; let lo:i16=32765; for i in lo..32770 { s=s+i }; return s }`, "probe()", mir2.TyI24, 32763},
+		{"signed_literal_pair", `fun probe()->i16 { var s:i16=0; for i in (-3)..130 { s=s+i }; return s }`, "probe()", mir2.TyI16, 8379},
+		{"explicit_narrow", `fun probe()->u16 { var s:u16=0; for i:u8 in 250..260 { s=s+i }; return s }`, "probe()", mir2.TyU8, 0},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			tc.src = strings.ReplaceAll(tc.src, ";", "\n")
+			h, err := nanz.Parse(tc.src, tc.name+".nanz")
+			if err != nil {
+				t.Fatal(err)
+			}
+			for _, st := range h.Funcs[0].Body.Body {
+				if loop, ok := st.(*hir.ForRangeStmt); ok && tc.name != "i8_end" && tc.name != "mixed_word_end" && tc.name != "mixed_word_positive" {
+					ref := loop.Body.Body[0].(*hir.AssignStmt).Val.(*hir.BinExpr).R
+					if mul, ok := ref.(*hir.BinExpr); ok {
+						ref = mul.L
+					}
+					if got := ref.ExprTy(); got != tc.ty {
+						t.Errorf("range type %s, want %s", got, tc.ty)
+					}
+				}
+			}
+			for _, mode := range []struct {
+				name string
+				opts Options
+			}{
+				{"default", DefaultOptions()}, {"size", Options{ContractOpt: true, OptSize: true}}, {"grace", Options{ContractOpt: true, UseGrace: true, UseHIRGrace: true}},
+			} {
+				t.Run(mode.name, func(t *testing.T) {
+					a, err := nanz.Parse(tc.src+fmt.Sprintf("\nassert %s == %d via mir2\nassert %s == %d via z80\n", tc.call, tc.want, tc.call, tc.want), tc.name+".nanz")
+					if err != nil {
+						t.Fatal(err)
+					}
+					a.AssertStats = &hir.AssertStats{}
+					if _, err := CompileHIRSteps(a, mode.opts); err != nil {
+						t.Error(err)
+					}
+					if *a.AssertStats != (hir.AssertStats{Executed: 2, Passed: 2}) {
+						t.Errorf("assert stats %+v", a.AssertStats)
+					}
+				})
+			}
+		})
+	}
+	t.Run("unrepresentable_literal", func(t *testing.T) {
+		for _, src := range []string{
+			"fun probe(n:i8)->void { for i in n..2147483648 {} }",
+			"fun probe(n:u8)->void { for i in (-1)..n {} }",
+		} {
+			if _, err := nanz.Parse(src, "range-overflow.nanz"); err == nil || !strings.Contains(err.Error(), "range literal") {
+				t.Errorf("expected range literal diagnostic, got %v", err)
+			}
+		}
+	})
+	t.Run("range_source_wide_followup", func(t *testing.T) {
+		t.Skip("range-source fusion has a separate byte-only count/element lowering; follow-up must widen that loop as well as ExprTy")
+		src := `fun probe()->u16 { var s:u16=0
+range(300..310).forEach(|i| { s=s+i })
+return s }
+assert probe() == 3045 via mir2
+assert probe() == 3045 via z80`
+		h, err := nanz.Parse(src, "range-source.nanz")
+		if err != nil {
+			t.Fatal(err)
+		}
+		if _, err := CompileHIRSteps(h, DefaultOptions()); err != nil {
+			t.Fatal(err)
+		}
+	})
 	t.Run("c_unsigned_control", func(t *testing.T) {
 		src := `unsigned probe(void) { unsigned s=0; for(unsigned i=300;i<310;i++) s+=i; return s; }`
 		h, e := c89.CompileWithOpts(src, "range.c", c89.CompileOpts{NoLibc: true})

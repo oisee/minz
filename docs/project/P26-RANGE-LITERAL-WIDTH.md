@@ -35,8 +35,9 @@ which explains why the malformed IR happens to pass the VM assertion.
 ## Fix and scope
 
 The parser binds the induction variable while parsing the body and restores
-any enclosing type afterward. A shared HIR `RangeType` selects the wider bound
-type, with unsigned comparison for equal-width mixed signedness. The parser,
+any enclosing type afterward. The original shared HIR `RangeType` selected the wider bound
+type, with unsigned comparison for equal-width mixed signedness (superseded by
+the P26b rules below after the critic found signed-range regressions). The parser,
 verifier and lowerer use it. Lowering explicitly widens both initial bounds:
 previously `0..n` with n:u16 bound a byte SSA register as a word, while a wide
 start with a byte end selected a byte comparison. Bounds are still evaluated
@@ -126,3 +127,112 @@ summary are retained in `pipeline-shards/` under the evidence directory.
 Final failing-first logs are `failing-first-final.log` (production patch
 reversed, exit 1) and `focused-final.log` (patch reapplied, PASS). Both execute
 the final test source, including the 256..10 empty range and C loop declaration.
+
+## P26b critic corrections (origin/main 213080842)
+
+The original P26 commit incorrectly let a literal's provisional u8 type choose
+unsigned comparisons for `0..n` with n:i8. It also chose u16 for a typed u16/i16
+pair, losing the historical signed end comparison. Both execute an empty range
+as 255 or 65535 iterations when n is -1.
+
+`RangeType` now treats integer literal bounds as values. One literal adopts the
+other bound's type when representable; otherwise it widens with that bound's
+signedness through the supported 8/16/24/32-bit integer types. Two literals
+choose the smallest supported type holding both values (signed when either is
+negative). Typed mixed bounds use the smallest signed type holding both domains:
+u8/i8 uses i16, u16/i16 uses i24, and u24/i24 uses i32. Thus a u16 lower bound of
+zero and an i16 upper bound of -1 still produce an empty range, preserving the
+correct origin/main result without a lossy i16 conversion. Typed pairs involving
+u32 and a signed bound have no supported common type holding both domains:
+these deliberately retain origin/main's **end-bound type**, including its
+bit-pattern interpretation of out-of-domain values. This is a compatibility
+fallback, not a claim of lossless promotion. A literal which cannot fit any
+supported type of the required signedness is rejected with a
+`range literal ... does not fit ...` diagnostic.
+
+The parser retypes literal bounds before binding the loop variable, keeping
+parser, verifier and lowerer consistent. An explicit `for i: T` converts both
+bounds to T and binds the body at T, including explicit truncation. No arithmetic
+optimization or benchmark-name match is involved.
+
+The five critic repros were copied without modifying their originals to
+`/mnt/ssd-510/minz/tmp/p26b-evidence/`. Findings 1, 2, 3 and 5 are fixed and
+covered by MIR2 and Z80 assertions under all three profiles. Additional cases
+cover mixed byte/word bounds, signed literal widening to i16/i24, signed literal pairs, explicit
+narrowing, and diagnostics for unrepresentable literals. All are subtests of the
+existing `TestRangeLiteralWidthVMZ80`, already in the fast CI inventory.
+
+Finding 4 is a separate range-source fusion follow-up. `RangeSourceExpr.ExprTy`
+is hard-coded u8, but changing that alone is insufficient: `lowerRangeLoop`
+also hard-codes its count parameter and zero comparison to u8/ClassCounter and
+uses DJNZ. It computes `Hi-Lo` for a forward range but exposes the remaining
+count as its element, without applying the lower-bound offset; 300..310 thus
+exposes 10..1 and sums to 55. Callback parameter inference and count/element
+lowering must be corrected together, with explicit tests for source direction
+and filter/fold semantics. This patch leaves that path unchanged and records the exact
+300..310 expected-3045 reproducer as skipped subtest
+`range_source_wide_followup`, with both MIR2 and Z80 assertions ready to enable.
+
+Failing-first evidence: `failing-origin-main-final.log` runs the final test against detached
+origin/main 213080842 and fails (including i8 start and explicit word cases).
+`failing-p26-head-final.log` runs the final tests after reversing the P26b production
+patch with `git apply -R` and fails: negative ends produce 255/65535, signed i8
+start produces 0 instead of -5, explicit u16 produces 1240 instead of 2520.
+`production-final.patch` was reapplied afterward. `focused-final.log` records the passing
+implementation. Evidence is in `/mnt/ssd-510/minz/tmp/p26b-evidence/`.
+
+The `byte_shapes.go` check compiles literal `0..10`, `0..n` with n:u8, and
+nested byte loops using default, size and Grace options on both worktrees.
+`diff -qr byte-before byte-after` is empty: all nine assembly files are identical.
+
+The main-suite benchmarks were rerun at
+`/mnt/ssd-510/minz/bench/p26b-{before,after}`. Before uses a separate detached
+origin/main worktree under the SSD tmp directory. All 36 MinZ case/profile pairs
+PASS with identical bytes and T-states. No heldout suite was run.
+
+| Case | Default bytes; T | Size bytes; T | Grace bytes; T |
+|---|---:|---:|---:|
+| abs_diff | 27→27; 220904→220904 | 27→27; 220904→220904 | 27→27; 220904→220904 |
+| bitwise8reg | 101→101; 872448→872448 | 101→101; 872448→872448 | 101→101; 872448→872448 |
+| copy_bytes | 182→182; 301600→301600 | 182→182; 301600→301600 | 182→182; 301600→301600 |
+| crc8 | 340→340; 165616162→165616162 | 340→340; 165616162→165616162 | 326→326; 152877602→152877602 |
+| fat12_decode | 167→167; 30336→30336 | 167→167; 30336→30336 | 167→167; 30336→30336 |
+| gcd | 57→57; 4953966→4953966 | 57→57; 4953966→4953966 | 51→51; 3067013→3067013 |
+| memset_fill | 299→299; 18403840→18403840 | 299→299; 18403840→18403840 | 299→299; 18403840→18403840 |
+| mul8x8 | 47→47; 1167872→1167872 | 47→47; 1167872→1167872 | 47→47; 1167872→1167872 |
+| reverse_loop11 | 561→561; 23644160→23644160 | 561→561; 23644160→23644160 | 561→561; 23644160→23644160 |
+| strlen_bytes | 293→293; 19468800→19468800 | 293→293; 19468800→19468800 | 293→293; 19468800→19468800 |
+| struct_roundtrip | 71→71; 612352→612352 | 71→71; 612352→612352 | 71→71; 612352→612352 |
+| sum_array | 313→313; 7581952→7581952 | 313→313; 7581952→7581952 | 313→313; 7581952→7581952 |
+
+The requested full pipeline command (`-count=1 -timeout 30m -v`) reached its
+aggregate timeout on both this branch (1800.020s) and detached origin/main
+213080842 (1800.026s). Each completed 247 passing and 12 skipped top-level tests,
+with no assertion failures. Both were executing
+`TestMemoryHostPolicySelectorLateMutationAndSharing/24` at timeout; the parent
+test had been running for 1m55s on the branch and 1m49s on main. The stacks are
+in the existing automatic profile compatibility compilation helper. Both runs
+used GOMAXPROCS=2 and GOFLAGS=-p=2, for at most four concurrent jobs in total.
+Logs are `pipeline.log` and `pipeline-origin-main.log` in the evidence directory.
+This reproduces the aggregate timeout without P26/P26b; full pipeline coverage
+remains incomplete, so the task gate is **EXIT 1** despite no observed semantic
+or benchmark regression.
+
+Final-source validation: the final 24/32-bit widening review followed the
+aggregate pipeline runs above. The focused test and full compiler package gate
+were rerun after that review; aggregate pipeline coverage remains partial.
+`focused-final.log` passes the critic corrections and additional i24 boundary
+case under default, size and Grace, with both assertion engines; only the
+explicitly documented range-source follow-up is skipped. The final
+`failing-p26-head-final.log` and `failing-origin-main-final.log` both exit 1
+with the exact final test source; `production-final.patch` is the reversible
+production diff used for that check.
+
+Final package gate (`unit-final.log`, -count=1): mir2 PASS 152.835s, hir PASS
+71.795s, c89 PASS 117.106s, nanz PASS 156.879s, z80asm PASS 0.105s and
+z80asm/regression PASS 0.020s. Final quick judges (`direct-final.log`,
+`folded-final.log`) are 500/500 seeds 0–499 and 100/100 seeds 0–99, respectively,
+with -j 4 and zero mismatch/compiler/assembler/oracle errors. Final benchmark
+JSON was rechecked: all 36 cells remain identical to the table. A final
+byte-assembly comparison also returns an empty diff for all nine files.
+No heldout benchmark suite, assert_matrix, larger seed range or push was run.
