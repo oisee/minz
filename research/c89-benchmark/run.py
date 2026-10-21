@@ -22,12 +22,20 @@ def main():
     ap.add_argument('--jobs', type=int, default=2)
     ap.add_argument('--sdcc45-root', type=Path)
     ap.add_argument('--include-nanz', action='store_true')
+    ap.add_argument('--suite', choices=['main', 'heldout', 'all'], default='main')
     args = ap.parse_args()
     root = Path(__file__).resolve().parents[2]
-    cases = root / 'research/c89-benchmark/cases'
-    frozen = json.loads((cases / 'manifest.json').read_text())['cases']
-    for case in frozen:
-        assert sha(cases / case['file']) == case['sha256'], case
+    bench = root / 'research/c89-benchmark'
+    folders = ['cases', 'heldout'] if args.suite == 'all' else ['heldout' if args.suite == 'heldout' else 'cases']
+    frozen = []
+    source_dirs = {}
+    for folder in folders:
+        cases = bench / folder
+        for case in json.loads((cases / 'manifest.json').read_text())['cases']:
+            assert sha(cases / case['file']) == case['sha256'], case
+            assert case['file'] not in source_dirs, ('duplicate case', case)
+            source_dirs[case['file']] = cases
+            frozen.append(case)
     nanz_cases = root / 'research/c89-benchmark/nanz-cases'
     nfrozen = json.loads((nanz_cases/'manifest.json').read_text())['cases'] if args.include_nanz else []
     for case in nfrozen:
@@ -51,6 +59,7 @@ def main():
         'helper_archive_sha256': sha(helper) if zroot else None,
         'runner_sha256': sha(root/'research/c89-benchmark/measure.go'),
         'driver_sha256': sha(__file__),
+        'suite': args.suite,
         'sources': frozen,
         'nanz_sources': nfrozen,
         'nanz_tuple_sources': json.loads((root/'research/c89-benchmark/nanz-tuple/manifest.json').read_text())['cases'] if args.include_nanz else [],
@@ -64,7 +73,7 @@ def main():
 
     def run_one(task):
         compiler, profile, case = task
-        source = (root/'research/c89-benchmark/nanz-tuple' if compiler == 'nanz-tuple' else nanz_cases if compiler == 'nanz' else cases)/case['file']
+        source = (root/'research/c89-benchmark/nanz-tuple' if compiler == 'nanz-tuple' else nanz_cases if compiler == 'nanz' else source_dirs[case['file']])/case['file']
         assert sha(source) == case['sha256']
         dest = out/compiler/profile/source.stem
         dest.mkdir(parents=True, exist_ok=True)

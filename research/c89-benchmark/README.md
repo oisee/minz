@@ -1,7 +1,7 @@
 # Identical-C Z80 benchmark
 
 This is a manual research harness, not part of the ordinary compiler or PR gate.
-All tools compile the same six source files; `cases/manifest.json` pins their bytes
+All tools compile the same twelve main source files; `cases/manifest.json` pins their bytes
 before measurement. Unsupported inputs stay in the output table. See the
 [measured report](../../reports/2026-10-16-c89-identical-c-benchmark.md).
 
@@ -89,3 +89,19 @@ is kept intact as the prefix of each common C harness; the manifest also fixes
 independent inputs and expected outputs. `measure.go -workload file.json` accepts
 these explicit workloads (`samples` and named region `sizes`) and retains the
 same native, raw/final VM, memory and PC/SP checks as the original benchmark.
+
+## Corpus suites
+
+`--suite main|heldout|all` selects the twelve main cases, five heldout cases,
+or both (default: main). All use the same profiles and output layout; case names
+are unique across suites. The host replay follows the selected sources recorded
+in `toolchains.json`. Both manifests freeze source SHA256 before measurement;
+the B1 additions were committed before running any compiler experiments.
+
+The B1 ports retain the byte-bitwise AND/OR kernels (packed into the low/high
+result bytes) and the signed countdown array fill (explicit 16-bit elements).
+Byte-buffer counts range from 0 to 255; strlen buffers always terminate, including
+a terminator at index 255. Workloads use at most 2048 calls per new case, with
+byte boundaries 0, 1, 127, 128, 255 and full tail-memory checks for writes.
+Checksum16 sums big-endian pairs with end-around carry, zero-pads an odd final
+byte in the low position, and does not complement the sum.
