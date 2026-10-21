@@ -216,6 +216,7 @@
     "TestLetInShadowRestoresOuterBinding",
     "TestLineFallPolicyNativeVM",
     "TestLineGaugeOwnedMemoryNativeVM",
+    "TestLiteralLeftSignedCompareVMZ80",
     "TestLizpErasedCallbackSignatureDiagnostic",
     "TestLizpLastFormEffectsNative",
     "TestLizpTokenizerIndependentOracleControls",
