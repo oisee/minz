@@ -299,15 +299,24 @@ func (g *z80cg) genTerm(f *Func, t Term) {
 		}
 		// Hoist the back-edge shuffle only after proving the exit can still
 		// read its original operands. Rewrite exit sources to their new homes.
+		bodyLabel := blockLabel(f.Name, t.Body)
 		if counter == "B" && needsBodyCopy {
-			if adjusted, ok := g.hoistedDJNZExitCopies(f, t, bodyCopies, exitCopies); ok {
+			// The hoist only pays when DJNZ can still reach the body directly
+			// and the exit does not need more copies than it had before.
+			if adjusted, ok := g.hoistedDJNZExitCopies(f, t, bodyCopies, exitCopies); ok && effectiveCopyCount(adjusted) <= effectiveCopyCount(exitCopies) {
+				outer := g.sb
+				var hoist strings.Builder
+				g.sb = &hoist
 				g.emitParallelCopy(bodyCopies)
-				exitCopies = adjusted
-				bodyCopies = nil
-				needsBodyCopy = false
+				g.sb = outer
+				if g.djnzTargetWithinRangeAfter(bodyLabel, hoist.String()) {
+					g.sb.WriteString(hoist.String())
+					exitCopies = adjusted
+					bodyCopies = nil
+					needsBodyCopy = false
+				}
 			}
 		}
-		bodyLabel := blockLabel(f.Name, t.Body)
 		if counter == "B" && (needsBodyCopy || !g.djnzTargetWithinRange(bodyLabel)) {
 			// DJNZ cannot be promoted to a long branch. Keep its taken
 			// label adjacent, even when edge copies need a distant target.
@@ -577,7 +586,13 @@ func (g *z80cg) detectDJNZPeephole(f *Func, b *Block) djnzPeepholeResult {
 // keeps small backwards DJNZ loops unchanged; uncertain or forward spans
 // use a nearby taken label and a relaxable JRS to the real body.
 func (g *z80cg) djnzTargetWithinRange(label string) bool {
-	text := g.sb.String()
+	return g.djnzTargetWithinRangeAfter(label, "")
+}
+
+// djnzTargetWithinRangeAfter applies the same bound as if pending were
+// already emitted before the DJNZ.
+func (g *z80cg) djnzTargetWithinRangeAfter(label, pending string) bool {
+	text := g.sb.String() + pending
 	at := strings.LastIndex(text, "\n"+label+":")
 	if at < 0 {
 		return false
@@ -708,4 +723,15 @@ func (g *z80cg) hoistedDJNZExitCopies(f *Func, t *TermDJNZ, body, exit []paralle
 		}
 	}
 	return adjusted, true
+}
+
+// effectiveCopyCount counts the copies that emit code.
+func effectiveCopyCount(copies []parallelCopy) int {
+	n := 0
+	for _, c := range copies {
+		if c.isImm || c.srcName != c.dstName {
+			n++
+		}
+	}
+	return n
 }

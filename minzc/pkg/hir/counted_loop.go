@@ -134,15 +134,11 @@ func (l *lowerer) tryCountedLoop(st *WhileStmt) bool {
 	walkGraceBlocks(body, "", func(_ string, block *Block) {
 		for _, s := range block.Body {
 			switch x := s.(type) {
-			case *Block, *IfStmt, *WhileStmt:
-			case *ForRangeStmt:
-				if x.Var == iv.Name || x.Var == boundName {
-					safe = false
-				}
-			case *ForEachStmt:
-				if x.Var == iv.Name || x.Var == boundName {
-					safe = false
-				}
+			case *Block, *IfStmt:
+			case *WhileStmt, *ForRangeStmt, *ForEachStmt:
+				// B serves the innermost loop; an outer DJNZ would push the
+				// inner counter into A or a spill slot.
+				safe = false
 			case *VarDeclStmt:
 				// Shadowing needs binding-aware mutation proofs.
 				if x.Name == iv.Name || x.Name == boundName || x.Volatile {

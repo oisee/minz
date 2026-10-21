@@ -511,3 +511,77 @@ func TestCountedLoopBitLoopProfitabilityVMZ80(t *testing.T) {
 		}
 	}
 }
+
+// A back-edge shuffle hoisted before DJNZ must not leave an empty trampoline
+// or grow the exit copies (hoist), and an outer loop must not take B from an
+// inner one (nest). Both shapes came from a random campaign.
+const countedHoistNestSource = `
+fun hoist(x: u8, y: u8) -> u8 { var a: u8 = 209
+ var b: u8 = 93
+ var c: u8 = 31
+ var d: u8 = 21
+ var e: u8 = 111
+ for i in 0..1 { var t0: u8 = a
+  var t1: u8 = b
+  var t2: u8 = c
+  var t3: u8 = d
+  var t4: u8 = e
+  a = t2
+  b = t3 + 241
+  c = t0 - 213
+  d = t4 - 66
+  e = t1 }
+ return (a + x) xor (b + y) xor (c + d) xor e }
+fun swap1(x: u8, y: u8) -> u8 { var a: u8 = x
+ var b: u8 = y
+ for i in 0..1 { var t: u8 = a
+  a = b
+  b = t }
+ return a xor (b + b) }
+fun nest(x: u8, y: u8) -> u8 { var a: u8 = 58
+ var b: u8 = 56
+ var c: u8 = 10
+ for i0 in 0..255 { var t0: u8 = a
+  var t1: u8 = b
+  var t2: u8 = c
+  a = t0 | 103
+  b = t2 - 43
+  c = t1
+  for i1 in 0..7 { var u0: u8 = a
+   var u1: u8 = b
+   var u2: u8 = c
+   a = u2 & 50
+   b = u0
+   c = u1 & 117 } }
+ return ((x + a) xor 29) + ((y + b) xor c) }
+`
+
+func TestCountedLoopHoistAndNestProfitabilityVMZ80(t *testing.T) {
+	h, err := nanz.Parse(countedHoistNestSource, "hoist.nanz")
+	if err != nil {
+		t.Fatal(err)
+	}
+	s, err := CompileHIRSteps(h, Options{AssertMode: "none"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	old, err := CompileHIRSteps(h, Options{AssertMode: "none", DisableCountedLoops: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	raw := hir.LowerModule(h)
+	for _, f := range []string{"hoist", "swap1", "nest"} {
+		args := []int64{17, 99}
+		got, err := mir2.NewVM(raw).Call(f, []mir2.Value{{I: 17}, {I: 99}})
+		if err != nil || len(got) != 1 {
+			t.Fatalf("%s MIR: %v %v", f, got, err)
+		}
+		want := got[0].I
+		beforeT, beforeB := measureGraceZ80Compiled(t, h, old, f, args, nil, want, 2000000)
+		afterT, afterB := measureGraceZ80Compiled(t, h, s, f, args, nil, want, 2000000)
+		t.Logf("%s: T %d -> %d; module bytes %d -> %d", f, beforeT, afterT, beforeB, afterB)
+		if afterT > beforeT || afterB > beforeB {
+			t.Errorf("%s regressed", f)
+		}
+	}
+}

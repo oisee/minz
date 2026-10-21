@@ -533,3 +533,42 @@ all 35 critic probe performance/module-size requirements, all 36 main-suite
 MinZ cells, focused MIR/Z80 checks, compiler/assembler suites and bounded
 judges pass. The active-at-timeout test passes on both branches in isolation.
 Changes are committed locally; no push.
+
+## O5d: third-critic fixes (2026-10-22)
+
+The third critic found no miscompile but one profitability defect: the
+back-edge shuffle was hoisted before the DJNZ range check, so a large shuffle
+could still fall back to the trampoline (now empty) while the exit paid the
+remapped copies. On `hoist` (critic `r1`) O5c was 450 T / 102 B against 446 T /
+94 B on origin/main.
+
+Changes:
+
+- `z80codegen_term.go`: the shuffle is emitted into a scratch buffer and
+  accepted only if DJNZ still reaches the body with it in place
+  (`djnzTargetWithinRangeAfter`) and the remapped exit copies are not more than
+  the original ones (`effectiveCopyCount`).
+- `counted_loop.go`: a loop that contains another loop is not canonicalised,
+  so B serves the innermost loop. In the campaign every remaining slowdown was
+  a nest whose inner counter landed in A with shadow-A trampolines.
+
+Critic campaign (seeds 1000–1149, 1800 functions, `TestZZGen`), total T and
+functions slower than origin/main:
+
+| Build | Total T | Slower than main | Worst |
+|---|---:|---:|---:|
+| origin/main | 332,490,893 | — | — |
+| O5b | 232,913,788 | 13 | +30.3% |
+| O5c | 231,377,252 | 53 | +28.7% |
+| O5c + hoist fix | 231,567,974 | 13 | +29.6% |
+| O5d (hoist fix + innermost only) | 242,538,544 | 1 | +2.1% |
+
+All 1800 results were correct in every build. The one remaining case
+(`q9_11`) carries five live bytes beside the B counter; a byte-pressure gate
+that removed it (≤4 carried bytes) raised the campaign total to 305.6M T, so it
+was not kept. Per-function variant search is the planned way to take both the
+nested wins and this case without a heuristic.
+
+`TestCountedLoopHoistAndNestProfitabilityVMZ80` (hoist, swap1, nest; T and
+module bytes against the `DisableCountedLoops` build) fails without the
+term.go change (`hoist` 446 → 450 T).
