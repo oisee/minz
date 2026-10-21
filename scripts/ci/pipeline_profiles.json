@@ -37,6 +37,7 @@
     "TestCPMTetrisInvalidBoardStoreBeforeWrite",
     "TestCallLiteralTokenizerProspective",
     "TestCallSpillLifecycleRefusals",
+    "TestCallUnsignedArgumentWideningVMZ80",
     "TestCaptureAndCallableContractVMZ80",
     "TestCaretXORAndPointerDereferenceVMZ80",
     "TestCheckedActualWordMultiplication",
