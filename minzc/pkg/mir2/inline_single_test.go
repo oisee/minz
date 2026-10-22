@@ -1,6 +1,9 @@
 package mir2
 
-import "testing"
+import (
+	"github.com/minz/minzc/pkg/emulator"
+	"testing"
+)
 
 func TestSingleCallSiteProofBoundaries(t *testing.T) {
 	for _, kind := range []string{"private", "exported", "twice", "recursive", "address", "relocation", "asm"} {
@@ -53,6 +56,61 @@ func TestSingleCallSiteProofBoundaries(t *testing.T) {
 			}
 			if err := Verify(m); err != nil {
 				t.Fatal(err)
+			}
+		})
+	}
+}
+
+func TestInlineGlobalCSEMemoryBarriersVMZ80(t *testing.T) {
+	for _, kind := range []string{"ordinary", "store", "volatile"} {
+		t.Run(kind, func(t *testing.T) {
+			m := &Module{Globals: []Global{{Name: "cell", Ty: TyU8, Init: []byte{3}, Volatile: kind == "volatile"}}}
+			f := m.AddFunc("reads")
+			b := NewBuilder(f)
+			b.SwitchToNewBlock("entry")
+			p := b.AddrOf("cell", ClassPointer)
+			first := b.Load(p, TyU8, ClassGeneral)
+			written := NoReg
+			if kind == "store" {
+				written = b.Const(5, TyU8, ClassGeneral)
+				b.Store(p, written, TyU8)
+			}
+			second := b.Load(p, TyU8, ClassGeneral)
+			result := b.BinOp(OpAdd, first, second, TyU8, ClassAcc)
+			b.Ret(result)
+			f.Contract.Returns = []Return{{Ty: TyU8, Class: ClassAcc}}
+			localInlineCSE(m, f)
+			loads := 0
+			for _, x := range f.Entry().Insts {
+				if x.Op == OpLoad {
+					loads++
+				}
+			}
+			wantLoads, want := 1, int64(6)
+			if kind != "ordinary" {
+				wantLoads = 2
+			}
+			if kind == "store" {
+				want = 8
+			}
+			if loads != wantLoads {
+				t.Fatalf("loads=%d want=%d", loads, wantLoads)
+			}
+			values, err := NewVM(m).Call("reads", nil)
+			if err != nil || values[0].I != want {
+				t.Fatal(values, err, want)
+			}
+			ar := &AllocResult{Locs: map[Reg]PhysLoc{p: {Name: "HL"}, first: {Name: "C"}, second: {Name: "D"}, result: {Name: "A"}}}
+			if written != NoReg {
+				ar.Locs[written] = PhysLoc{Name: "E"}
+			}
+			asm, err := Z80Codegen(m, ar)
+			if err != nil {
+				t.Fatal(err)
+			}
+			got := runRAFragment(t, asm, emulator.Registers{})
+			if int64(got.A) != want {
+				t.Fatal(got, want, asm)
 			}
 		})
 	}

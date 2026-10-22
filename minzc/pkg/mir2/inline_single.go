@@ -2,10 +2,15 @@ package mir2
 
 import "fmt"
 
+type SingleCallInlineStats struct {
+	DisableExportCopies bool
+	ExportCopies        int
+}
+
 // InlineSingleCallSites removes the size limit for private single-use bodies.
 // Exported straight-line, parameterless leaf helpers may be copied, but their
 // callable definitions are retained by the ordinary export/pruning roots.
-func InlineSingleCallSites(m *Module, exported map[string]bool) bool {
+func InlineSingleCallSites(m *Module, exported map[string]bool, stats ...*SingleCallInlineStats) bool {
 	counts := map[string]int{}
 	address := map[string]bool{}
 	opaque := false
@@ -93,6 +98,9 @@ func InlineSingleCallSites(m *Module, exported map[string]bool) bool {
 			}
 		}
 		if exported[f.Name] {
+			if len(stats) > 0 && stats[0] != nil && stats[0].DisableExportCopies {
+				continue
+			}
 			if len(f.Blocks) != 1 || len(f.Contract.Params) != 0 {
 				safe = false
 			}
@@ -145,6 +153,9 @@ func InlineSingleCallSites(m *Module, exported map[string]bool) bool {
 						inlineCFGCall(caller, block, index, callee, call)
 					}
 					localInlineCSE(m, caller)
+					if exported[callee.Name] && len(stats) > 0 && stats[0] != nil {
+						stats[0].ExportCopies++
+					}
 					delete(eligible, callee.Name)
 					progress = true
 					changed = true

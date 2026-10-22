@@ -146,6 +146,7 @@ type Options struct {
 
 	// Internal baseline compilation for the affine-pointer size comparison.
 	disableAffinePointers bool
+	disableExportCopies   bool
 	// Backend selects the codegen backend: "z80" (default), "ez80".
 	// When "ez80", the pipeline generates eZ80 ADL assembly instead of Z80.
 	Backend string
@@ -315,7 +316,8 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 // contract, allocation and codegen pipeline, so spills count toward the gate.
 func compileMIRSteps(hm *hir.Module, opt Options, s Steps, splitInfo map[string]hir.SplitResult, m *mir2.Module) (Steps, error) {
 	initialSteps := s
-	mir2.InlineSingleCallSites(m, functionPruneRoots(hm))
+	inlineStats := &mir2.SingleCallInlineStats{DisableExportCopies: opt.disableExportCopies || opt.Backend != "" && opt.Backend != "z80" || opt.SkipZ80Emission}
+	mir2.InlineSingleCallSites(m, functionPruneRoots(hm), inlineStats)
 	s.Traces = make(map[string]*FuncTrace)
 	affineChanged := false
 	var err error
@@ -430,10 +432,12 @@ func compileMIRSteps(hm *hir.Module, opt Options, s Steps, splitInfo map[string]
 		}
 		if opt.Backend == "" || opt.Backend == "z80" {
 			mir2.ReuseAdjacentPointers(f)
-			mir2.PackBytePairs(f)
 		}
 		if opt.FuseByteWords {
 			mir2.FuseSequentialByteWords(f)
+		}
+		if opt.Backend == "" || opt.Backend == "z80" {
+			mir2.PackBytePairs(f)
 		}
 		// Re-count cond_ret after optimization (CondRetSink creates them)
 		tr.CondRets = 0
@@ -606,6 +610,24 @@ func compileMIRSteps(hm *hir.Module, opt Options, s Steps, splitInfo map[string]
 		}
 	}
 
+	// Retained exported bodies make inlining a code-growth tradeoff. Assemble
+	// both real allocated products; never keep a larger exported-copy variant.
+	if inlineStats.ExportCopies > 0 && !opt.disableExportCopies && !opt.SkipZ80Emission && (opt.Backend == "" || opt.Backend == "z80") {
+		baselineOpt := opt
+		baselineOpt.disableExportCopies = true
+		baselineOpt.GraceStats = nil
+		baselineModule := hir.LowerModuleWithOptions(hm, hir.LowerOptions{DisableCountedLoops: opt.DisableCountedLoops})
+		baseline, err := compileMIRSteps(hm, baselineOpt, initialSteps, splitInfo, baselineModule)
+		if err != nil {
+			return s, err
+		}
+		candidateBytes, candidateErrors := Assemble(s.Assembly, "z80")
+		baselineBytes, baselineErrors := Assemble(baseline.Assembly, "z80")
+		if len(candidateErrors) != 0 || len(baselineErrors) != 0 || len(candidateBytes) > len(baselineBytes) {
+			return baseline, nil
+		}
+	}
+
 	if opt.OptSize && !opt.disableAffinePointers && affineChanged && !opt.SkipZ80Emission && (opt.Backend == "" || opt.Backend == "z80") {
 		baselineOpt := opt
 		baselineOpt.disableAffinePointers = true
@@ -746,10 +768,12 @@ func CompileHIRWithOptions(hm *hir.Module, opts Options) (string, error) {
 		mir2.StrengthReduceCountedPointers(f)
 		if opts.Backend == "" || opts.Backend == "z80" {
 			mir2.ReuseAdjacentPointers(f)
-			mir2.PackBytePairs(f)
 		}
 		if opts.FuseByteWords {
 			mir2.FuseSequentialByteWords(f)
+		}
+		if opts.Backend == "" || opts.Backend == "z80" {
+			mir2.PackBytePairs(f)
 		}
 	}
 

@@ -6,6 +6,7 @@ func PackBytePairs(f *Func) int {
 	if f == nil || verifyFunc(f) != nil {
 		return 0
 	}
+	info := collectRegInfo(f)
 	uses := countRegUses(f)
 	changed := 0
 	for _, b := range f.Blocks {
@@ -14,7 +15,7 @@ func PackBytePairs(f *Func) int {
 			if (x.Op == OpOr || x.Op == OpAdd) && x.Ty != nil && x.Ty.Width() == 16 && !x.ClsHard && wordMaskFlagsUnobserved(f, x.Dst) {
 				byteOf := func(r Reg) Reg {
 					d := defs[r]
-					if d != nil && d.Op == OpExt && d.SrcTy == TyU8 && d.Ty != nil && d.Ty.Width() == 16 && !d.ClsHard && uses[r] == 1 {
+					if d != nil && d.Op == OpExt && d.SrcTy == TyU8 && byteLaneType(info[d.Src[0]].Ty) && d.Ty != nil && d.Ty.Width() == 16 && !d.ClsHard && uses[r] == 1 {
 						return d.Src[0]
 					}
 					return NoReg
@@ -78,3 +79,8 @@ func (g *z80cg) genPackBytes(inst *Inst) {
 	g.emitParallelCopy([]parallelCopy{{srcName: source(inst.Src[0]), dstName: lo, ty: TyU8}, {srcName: source(inst.Src[1]), dstName: hi, ty: TyU8}})
 	g.invalidate(dst)
 }
+
+// Signed byte values are stored as their eight-bit representation too. An
+// explicit unsigned extension can consume such a value after a same-width
+// C reinterpretation cast; the extension, not the register type, proves zext.
+func byteLaneType(ty Ty) bool { return IsInt(BaseOf(ty)) && ty.Width() == 8 }

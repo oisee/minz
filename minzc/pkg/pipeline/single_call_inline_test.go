@@ -52,7 +52,11 @@ func TestSingleCallExportCopiesVMZ80(t *testing.T) {
  fun right()->u8 {return (a+1)|(b+1)}
  fun combined(x:u8,y:u8)->u16 {a=x b=y let lo:u8=left() let hi:u8=right() return (lo as u16)|((hi as u16)<<8)}`)
 	raw := hir.LowerModule(h)
-	s, err := CompileHIRSteps(h, Options{ContractOpt: true, AssertMode: "none"})
+	candidate := hir.LowerModule(h)
+	mir2.InlineSingleCallSites(candidate, functionPruneRoots(h))
+	// Compile the transformed MIR directly to exercise retained copies even
+	// when the production byte-cost gate chooses the original call shape.
+	s, err := compileMIRSteps(h, Options{ContractOpt: true, AssertMode: "none", disableExportCopies: true}, Steps{}, nil, candidate)
 	if err != nil {
 		t.Fatal(err)
 	}

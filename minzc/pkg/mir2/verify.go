@@ -63,8 +63,8 @@ func Verify(m *Module) error {
 				}
 			}
 			for _, i := range b.Insts {
-				if i.Op == OpPackBytes && (i.Ty == nil || i.Ty.Width() != 16 || info[i.Src[0]].Ty != TyU8 || info[i.Src[1]].Ty != TyU8) {
-					return fmt.Errorf("invalid byte pack in %s", f.Name)
+				if i.Op == OpPackBytes && (i.Ty == nil || i.Ty.Width() != 16 || !byteLaneType(info[i.Src[0]].Ty) || !byteLaneType(info[i.Src[1]].Ty)) {
+					return fmt.Errorf("invalid byte pack in %s: %s inputs %v/%v", f.Name, DumpInst(i), info[i.Src[0]].Ty, info[i.Src[1]].Ty)
 				}
 				callee := m.FuncByName(i.Sym)
 				if i.FallibleCY {

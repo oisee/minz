@@ -3,7 +3,7 @@ package mir2
 import "testing"
 
 func TestBytePairProofBoundaries(t *testing.T) {
-	for _, kind := range []string{"or", "add", "signed", "shift", "shared", "flags"} {
+	for _, kind := range []string{"or", "add", "reinterpret", "signed", "shift", "shared", "flags"} {
 		t.Run(kind, func(t *testing.T) {
 			m := &Module{}
 			f := m.AddFunc("pack")
@@ -23,6 +23,9 @@ func TestBytePairProofBoundaries(t *testing.T) {
 			out := b.BinOp(op, l, shift, TyU16, ClassPair)
 			b.Ret(out)
 			switch kind {
+			case "reinterpret":
+				f.Contract.Params[0].Ty = TyI8
+				f.Contract.Params[1].Ty = TyI8
 			case "signed":
 				f.Blocks[0].Insts[1].Op = OpSext
 				f.Blocks[0].Insts[1].SrcTy = TyI8
@@ -35,8 +38,13 @@ func TestBytePairProofBoundaries(t *testing.T) {
 			}
 			n := PackBytePairs(f)
 			want := 0
-			if kind == "or" || kind == "add" {
+			if kind == "or" || kind == "add" || kind == "reinterpret" {
 				want = 1
+			}
+			if n == 1 {
+				if err := Verify(m); err != nil {
+					t.Fatal(err)
+				}
 			}
 			if n != want {
 				t.Fatalf("pack count=%d want=%d", n, want)
