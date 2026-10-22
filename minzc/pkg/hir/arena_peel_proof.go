@@ -145,7 +145,7 @@ func arenaPeelOriginalShape() *Func {
 	v := Var
 	i, n := v("i", mir2.TyU8), v("len", mir2.TyU8)
 	peek := func(x Expr) Expr { return &CallExpr{Fn: "peek", Args: []Expr{x}, Ty: mir2.TyU8} }
-	left := Add(v("arena_p", mir2.TyU16), U8(1), mir2.TyU16)
+	left := Add(v("arena_p", mir2.TyU16), sourceU8(1), mir2.TyU16)
 	right := Add(v("src_buf", mir2.TyU16), v("src_start", mir2.TyU16), mir2.TyU16)
-	return &Func{Name: "region_match", Params: []Param{{Name: "arena_p", Ty: mir2.TyU16}, {Name: "src_start", Ty: mir2.TyU16}, {Name: "len", Ty: mir2.TyU8}}, RetTy: mir2.TyU8, Body: Blk(Decl("i", mir2.TyU8, U8(0)), While(Lt(i, n), Blk(If(Ne(peek(Add(left, i, mir2.TyU16)), peek(Add(right, i, mir2.TyU16))), Blk(&ReturnStmt{Val: U8(0)}), nil), Assign(i, Add(i, U8(1), mir2.TyU8)))), &ReturnStmt{Val: U8(1)})}
+	return &Func{Name: "region_match", Params: []Param{{Name: "arena_p", Ty: mir2.TyU16}, {Name: "src_start", Ty: mir2.TyU16}, {Name: "len", Ty: mir2.TyU8}}, RetTy: mir2.TyU8, Body: Blk(Decl("i", mir2.TyU8, sourceU8(0)), While(Lt(i, n), Blk(If(Ne(peek(Add(left, i, mir2.TyU16)), peek(Add(right, i, mir2.TyU16))), Blk(&ReturnStmt{Val: sourceU8(0)}), nil), Assign(i, Add(i, sourceU8(1), mir2.TyU8)))), &ReturnStmt{Val: sourceU8(1)})}
 }

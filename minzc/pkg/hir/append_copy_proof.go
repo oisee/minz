@@ -187,8 +187,8 @@ func appendCopyOriginalShape() *Func {
 	poke := func(a, b Expr) Stmt { return &ExprStmt{Expr: Call("poke", mir2.TyVoid, a, b)} }
 	return &Func{Name: "intern_region", Params: []Param{{Name: "start", Ty: mir2.TyU16}, {Name: "len", Ty: mir2.TyU8}}, RetTy: mir2.TyU16, Body: Blk(
 		Decl("p", mir2.TyU16, v("str_arena", mir2.TyU16)),
-		While(Lt(p, bump), Blk(Decl("slen", mir2.TyU8, peek(p)), If(Eq(v("slen", mir2.TyU8), n), Blk(If(Eq(Call("region_match", mir2.TyU8, p, start, n), U8(1)), Blk(Ret(p)), nil)), nil), Assign(p, add(add(p, U8(1)), v("slen", mir2.TyU8))))),
-		Decl("new_p", mir2.TyU16, bump), poke(bump, n), Decl("j", mir2.TyU8, U8(0)),
-		While(Lt(j, n), Blk(poke(add(add(bump, U8(1)), j), peek(add(add(v("src_buf", mir2.TyU16), start), j))), Assign(j, Add(j, U8(1), mir2.TyU8)))),
-		Assign(bump, add(add(bump, U8(1)), n)), Ret(v("new_p", mir2.TyU16)))}
+		While(Lt(p, bump), Blk(Decl("slen", mir2.TyU8, peek(p)), If(Eq(v("slen", mir2.TyU8), n), Blk(If(Eq(Call("region_match", mir2.TyU8, p, start, n), sourceU8(1)), Blk(Ret(p)), nil)), nil), Assign(p, add(add(p, sourceU8(1)), v("slen", mir2.TyU8))))),
+		Decl("new_p", mir2.TyU16, bump), poke(bump, n), Decl("j", mir2.TyU8, sourceU8(0)),
+		While(Lt(j, n), Blk(poke(add(add(bump, sourceU8(1)), j), peek(add(add(v("src_buf", mir2.TyU16), start), j))), Assign(j, Add(j, sourceU8(1), mir2.TyU8)))),
+		Assign(bump, add(add(bump, sourceU8(1)), n)), Ret(v("new_p", mir2.TyU16)))}
 }

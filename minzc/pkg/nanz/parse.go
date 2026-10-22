@@ -532,6 +532,7 @@ type nanzADTCtor struct {
 }
 
 type parser struct {
+	literalTypeErr   error   // delayed diagnostic after forward signatures are known
 	typeContext      *parser // visible caller types/methods for generated declarations
 	metaBindingCount int     // deterministic private bindings for structured emit
 
@@ -1196,6 +1197,9 @@ func (p *parser) parseModule() (*hir.Module, error) {
 	// happens when function A calls function B that is declared later in the
 	// file — at parse time B's signature wasn't in funcSigs yet.
 	p.fixForwardCallTypes(m)
+	if p.literalTypeErr != nil {
+		return nil, p.literalTypeErr
+	}
 	for _, f := range p.lambdas {
 		if outer, ok := p.lambdaScopes[f]; ok {
 			if err := hir.InferCaptures(m, f, outer); err != nil {
@@ -1330,8 +1334,13 @@ func (p *parser) fixExprCallTypes(e hir.Expr) {
 	case *hir.BinExpr:
 		p.fixExprCallTypes(ex.L)
 		p.fixExprCallTypes(ex.R)
-		if ex.Ty == nil || ex.Ty == mir2.TyVoid {
-			ex.Ty = resultTy(ex.L.ExprTy(), ex.R.ExprTy(), ex.Op)
+		if ex.Op != "&&" && ex.Op != "||" {
+			if err := checkLiteralDomain(ex.L, ex.R); err != nil {
+				p.literalTypeErr = err
+			}
+		}
+		if ex.Ty == nil || ex.Ty == mir2.TyVoid || hir.LiteralPeerType(ex.L, ex.R) != nil {
+			ex.Ty = binaryResultTy(ex.L, ex.R, ex.Op)
 		}
 	case *hir.UnaryExpr:
 		p.fixExprCallTypes(ex.X)
@@ -3201,17 +3210,7 @@ func genElemTypeOK(ty mir2.Ty) bool {
 // intLitFits reports whether the integer literal value is representable in
 // the scalar type ty.
 func intLitFits(v int64, ty mir2.Ty) bool {
-	switch ty {
-	case mir2.TyU8:
-		return v >= 0 && v <= 0xFF
-	case mir2.TyU16:
-		return v >= 0 && v <= 0xFFFF
-	case mir2.TyI8:
-		return v >= -128 && v <= 127
-	case mir2.TyI16:
-		return v >= -32768 && v <= 32767
-	}
-	return false
+	return hir.IntLiteralFits(v, ty)
 }
 
 // genFieldTyOK admits generator parameter and frame-local types: scalars and
@@ -4831,6 +4830,19 @@ func (p *parser) parseFor() (hir.Stmt, error) {
 		if err != nil {
 			return nil, err
 		}
+		// Preserve the established range admission policy: an unsigned bound
+		// needs an explicit signed induction type before accepting negatives.
+		// Range widening itself supports the wider bound types tested by P26.
+		if !explicitElemTy {
+			for _, pair := range [][2]hir.Expr{{base, end}, {end, base}} {
+				lit, isLiteral := pair[0].(*hir.IntLitExpr)
+				_, peerLiteral := pair[1].(*hir.IntLitExpr)
+				peer := pair[1].ExprTy()
+				if isLiteral && !peerLiteral && lit.Val < 0 && mir2.IsInt(peer) && !mir2.IsSigned(peer) {
+					return nil, fmt.Errorf("range literal %d requires an explicit signed induction type with %s", lit.Val, peer)
+				}
+			}
+		}
 		ty := hir.RangeType(base, end)
 		if explicitElemTy {
 			if !mir2.IsInt(elemTy) {
@@ -4852,12 +4864,7 @@ func (p *parser) parseFor() (hir.Stmt, error) {
 		// cannot truncate or sign-extend a contextual literal incorrectly.
 		for _, bound := range []hir.Expr{base, end} {
 			if lit, ok := bound.(*hir.IntLitExpr); ok {
-				bits := ty.Width()
-				min, max := int64(0), (int64(1)<<bits)-1
-				if mir2.IsSigned(ty) {
-					min, max = -(int64(1) << (bits - 1)), (int64(1)<<(bits-1))-1
-				}
-				if lit.Val < min || lit.Val > max {
+				if !hir.IntLiteralFits(lit.Val, ty) {
 					return nil, fmt.Errorf("range literal %d does not fit %s", lit.Val, ty)
 				}
 				lit.Ty = ty
@@ -5751,7 +5758,10 @@ func (p *parser) parseBinaryTail(lhs hir.Expr, minPrec int) (hir.Expr, error) {
 			if err != nil {
 				return nil, err
 			}
-			ty := resultTy(lhs.ExprTy(), rhs.ExprTy(), "^")
+			if err := checkLiteralDomain(lhs, rhs); err != nil {
+				return nil, err
+			}
+			ty := binaryResultTy(lhs, rhs, "^")
 			lhs = &hir.BinExpr{Op: "^", L: lhs, R: rhs, Ty: ty}
 			continue
 		}
@@ -5770,12 +5780,20 @@ func (p *parser) parseBinaryTail(lhs hir.Expr, minPrec int) (hir.Expr, error) {
 		if ovs, hasOv := p.opTable[bo.op]; hasOv {
 			lTy := p.exprTy(lhs)
 			rTy := p.exprTy(rhs)
+			if common := hir.LiteralPeerType(lhs, rhs); common != nil {
+				lTy, rTy = common, common
+			}
 			if ov, found := matchOpOverload(ovs, lTy, rTy); found {
 				lhs = &hir.CallExpr{Fn: ov.funcName, Args: []hir.Expr{lhs, rhs}, Ty: ov.retTy}
 				continue
 			}
 		}
-		ty := resultTy(lhs.ExprTy(), rhs.ExprTy(), bo.op)
+		if bo.op != "&&" && bo.op != "||" {
+			if err := checkLiteralDomain(lhs, rhs); err != nil {
+				return nil, err
+			}
+		}
+		ty := binaryResultTy(lhs, rhs, bo.op)
 		lhs = &hir.BinExpr{Op: bo.op, L: lhs, R: rhs, Ty: ty}
 	}
 	return lhs, nil
@@ -5792,17 +5810,11 @@ func (p *parser) parseUnary() (hir.Expr, error) {
 		}
 		if literal, ok := x.(*hir.IntLitExpr); ok && mir2.IsInt(literal.Ty) {
 			value := -literal.Val
-			ty := mir2.Ty(mir2.TyI8)
-			if value < -128 || value > 127 {
-				ty = mir2.TyI16
+			ty := hir.DefaultLiteralType(value)
+			if ty == nil {
+				return nil, fmt.Errorf("integer literal %d exceeds supported integer range", value)
 			}
-			if value < -32768 || value > 32767 {
-				ty = mir2.TyI24
-			}
-			if value < -8388608 || value > 8388607 {
-				ty = mir2.TyI32
-			}
-			return &hir.IntLitExpr{Val: value, Ty: ty}, nil
+			return &hir.IntLitExpr{Val: value, Ty: ty, Untyped: literal.Untyped}, nil
 		}
 		return &hir.UnaryExpr{Op: "-", X: x, Ty: x.ExprTy()}, nil
 	case tokBang:
@@ -6221,17 +6233,11 @@ func (p *parser) parsePrimary() (hir.Expr, error) {
 		if err != nil {
 			return nil, fmt.Errorf("line %d: bad integer %q: %v", t.line, t.val, err)
 		}
-		ty := mir2.Ty(mir2.TyU8)
-		if v > 255 || v < 0 {
-			ty = mir2.TyU16
+		ty := hir.DefaultLiteralType(v)
+		if ty == nil {
+			return nil, fmt.Errorf("integer literal %d exceeds supported integer range", v)
 		}
-		if v > 65535 {
-			ty = mir2.TyU24
-		}
-		if v > 16777215 {
-			ty = mir2.TyU32
-		}
-		return &hir.IntLitExpr{Val: v, Ty: ty}, nil
+		return &hir.IntLitExpr{Val: v, Ty: ty, Untyped: true}, nil
 
 	case tokIdent:
 		switch t.val {
@@ -6982,6 +6988,50 @@ func matchOpOverload(ovs []opOverload, lTy, rTy mir2.Ty) (opOverload, bool) {
 		}
 	}
 	return opOverload{}, false
+}
+
+func checkLiteralDomain(l, r hir.Expr) error {
+	if !mir2.IsInt(l.ExprTy()) || !mir2.IsInt(r.ExprTy()) {
+		return nil
+	}
+	al, a := l.(*hir.IntLitExpr)
+	bl, b := r.(*hir.IntLitExpr)
+	aUntyped, bUntyped := a && al.Untyped, b && bl.Untyped
+	if aUntyped || bUntyped {
+		common := hir.LiteralPeerType(l, r)
+		if common == nil {
+			return fmt.Errorf("integer literal and peer have no lossless common integer type; use an explicit cast")
+		}
+		if aUntyped != bUntyped {
+			peer := l.ExprTy()
+			if aUntyped {
+				peer = r.ExprTy()
+			}
+			if peer.Width() <= 16 && common.Width() > 16 {
+				return fmt.Errorf("integer literal requires implicit widening beyond 16 bits; use an explicit wide cast")
+			}
+		}
+	}
+	return nil
+}
+
+// binaryResultTy resolves source literals before their default storage types
+// can determine the signedness or width of a larger expression.
+func binaryResultTy(l, r hir.Expr, op string) mir2.Ty {
+	switch op {
+	case "==", "!=", "<", "<=", ">", ">=", "&&", "||":
+		return mir2.TyBool
+	}
+	// Do not infer a local's type from the literal's storage default while
+	// a forward call still has no return type. The signature repair pass will
+	// resolve the binary expression and its inferred binding together.
+	if (l.ExprTy() == nil || r.ExprTy() == nil || l.ExprTy() == mir2.TyVoid || r.ExprTy() == mir2.TyVoid) && !mir2.IsPointer(l.ExprTy()) && !mir2.IsPointer(r.ExprTy()) {
+		return mir2.TyVoid
+	}
+	if ty := hir.LiteralPeerType(l, r); ty != nil {
+		return ty
+	}
+	return resultTy(l.ExprTy(), r.ExprTy(), op)
 }
 
 func resultTy(l, r mir2.Ty, op string) mir2.Ty {

@@ -816,7 +816,7 @@ func (l *lowerer) lowerExprForRet(e Expr) mir2.Reg {
 	if literal, ok := e.(*IntLitExpr); ok && len(l.bld.F.Contract.Returns) > 0 {
 		ty := l.bld.F.Contract.Returns[0].Ty
 		if mir2.IsInt(literal.Ty) && mir2.IsInt(ty) {
-			return l.bld.Const(literal.Val, ty, classForRet(ty))
+			return l.bld.Const(literalValueAs(literal, ty), ty, classForRet(ty))
 		}
 	}
 	// Return conditionals lower each branch in the function's return context.
@@ -2497,8 +2497,13 @@ func (l *lowerer) lowerSignedExprAs(e Expr, wantTy mir2.Ty) mir2.Reg {
 // lowerExprAs promotes narrow literals and sign-extends signed operands
 // to the expression width. This also handles C integer promotions.
 func (l *lowerer) lowerExprAs(e Expr, wantTy mir2.Ty) mir2.Reg {
-	if lit, ok := e.(*IntLitExpr); ok && lit.Ty != wantTy && lit.Ty.Width() < wantTy.Width() {
-		return l.bld.Const(lit.Val, wantTy, classForExpr(wantTy))
+	if lit, ok := e.(*IntLitExpr); ok {
+		// A source literal has an exact mathematical value. Fold its contextual
+		// integer conversion here, including narrowing, before ABI placement or
+		// inlining can substitute a register with the literal's default width.
+		if lit.Untyped && mir2.IsInt(wantTy) || lit.Ty != wantTy && lit.Ty.Width() < wantTy.Width() {
+			return l.bld.Const(literalValueAs(lit, wantTy), wantTy, classForExpr(wantTy))
+		}
 	}
 	src := l.lowerExpr(e)
 	srcTy := e.ExprTy()
@@ -3020,6 +3025,9 @@ func (l *lowerer) lowerBinExpr(ex *BinExpr) mir2.Reg {
 	}
 
 	ty := ex.Ty
+	if common := LiteralPeerType(ex.L, ex.R); common != nil {
+		ty = common
+	}
 	// Use ClassAcc for 8-bit ALU results outside loop contexts — Z80 ALU ops
 	// always write to A, avoiding a spurious LD C,A.  Inside loops (head
 	// condition or body) values may be loop-carried or live across ALU ops
@@ -3062,7 +3070,7 @@ func (l *lowerer) lowerBinExpr(ex *BinExpr) mir2.Reg {
 	case "<<":
 		return l.bld.Shl(lReg, rReg, ty, cls)
 	case ">>":
-		if mir2.IsSigned(ex.L.ExprTy()) {
+		if mir2.IsSigned(ex.L.ExprTy()) || LiteralPeerType(ex.L, ex.R) != nil && mir2.IsSigned(ty) {
 			return l.bld.Sar(lReg, rReg, ty, cls)
 		}
 		return l.bld.Shr(lReg, rReg, ty, cls)
@@ -3154,6 +3162,9 @@ func (l *lowerer) lowerCond(e Expr) mir2.Reg {
 		}
 		if mir2.IsSigned(operandTy) && mir2.IsSigned(wordTy) {
 			operandTy = wordTy
+		}
+		if common := LiteralPeerType(bin.L, bin.R); common != nil {
+			operandTy, wordTy = common, common
 		}
 		signed := mir2.IsSigned(operandTy)
 		switch bin.Op {
@@ -4305,7 +4316,7 @@ func renameExpr(e Expr, from, to string) Expr {
 	}
 	switch ex := e.(type) {
 	case *IntLitExpr:
-		return &IntLitExpr{Val: ex.Val, Ty: ex.Ty}
+		return &IntLitExpr{Val: ex.Val, Ty: ex.Ty, Untyped: ex.Untyped}
 	case *BoolLitExpr:
 		return &BoolLitExpr{Val: ex.Val}
 	case *VarRefExpr:

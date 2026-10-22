@@ -40,7 +40,7 @@ func findRegionCompare(f *Func, reserved map[string]bool) *regionComparePlan {
 	idx := func(base string, off Expr) Expr {
 		return &IndexExpr{Base: Var(base, mir2.TyPtr), Idx: off, ElemTy: mir2.TyU8}
 	}
-	expected := Blk(Decl(p.index, mir2.TyU8, U8(0)), While(Lt(i, n), Blk(If(Ne(idx(p.left, Add(Var(p.start, mir2.TyU16), i, mir2.TyU16)), idx(p.right, Add(Add(Var(p.offset, mir2.TyU16), U8(1), mir2.TyU16), i, mir2.TyU16))), Blk(&ReturnStmt{Val: U8(0)}), nil), Assign(i, Add(i, U8(1), mir2.TyU8)))), &ReturnStmt{Val: U8(1)})
+	expected := Blk(Decl(p.index, mir2.TyU8, sourceU8(0)), While(Lt(i, n), Blk(If(Ne(idx(p.left, Add(Var(p.start, mir2.TyU16), i, mir2.TyU16)), idx(p.right, Add(Add(Var(p.offset, mir2.TyU16), sourceU8(1), mir2.TyU16), i, mir2.TyU16))), Blk(&ReturnStmt{Val: sourceU8(0)}), nil), Assign(i, Add(i, sourceU8(1), mir2.TyU8)))), &ReturnStmt{Val: sourceU8(1)})
 	if !reflect.DeepEqual(f.Body, expected) {
 		return nil
 	}
