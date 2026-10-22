@@ -84,7 +84,9 @@ func FoldConditionalCalls(f *Func) int {
 				continue
 			}
 			callInst := callBlock.Insts[0]
-			if callInst.Op != OpCall {
+			// Bulk memory calls expand inline and carry byte-origin metadata. Keep
+			// their explicit CFG guard rather than rebuilding them as ABI CALL cc.
+			if callInst.Op != OpCall || callInst.ByteLoop != nil {
 				continue
 			}
 			// For now, only fold void calls (no return value needed conditionally).

@@ -33,6 +33,10 @@ func AnalyzeNaturalLoops(f *Func) []*NaturalLoop {
 	pred := map[string][]*Block{}
 	defs := map[Reg]*Block{}
 	insts := map[Reg]*Inst{}
+	types := map[Reg]Ty{}
+	for _, p := range f.Contract.Params {
+		types[p.Reg] = p.Ty
+	}
 	for _, b := range f.Blocks {
 		if b.Term != nil {
 			for _, s := range b.Term.Successors() {
@@ -41,11 +45,13 @@ func AnalyzeNaturalLoops(f *Func) []*NaturalLoop {
 		}
 		for _, p := range b.Params {
 			defs[p.Dst] = b
+			types[p.Dst] = p.Ty
 		}
 		for _, x := range b.Insts {
 			if x.Dst != NoReg {
 				defs[x.Dst] = b
 				insts[x.Dst] = x
+				types[x.Dst] = x.Ty
 			}
 		}
 	}
@@ -107,7 +113,10 @@ func AnalyzeNaturalLoops(f *Func) []*NaturalLoop {
 		}
 		for i, p := range head.Params {
 			initial, known := l.Invariant[incoming[i]]
-			same := known
+			// An entering edge may narrow or otherwise convert a block argument.
+			// Unchanged backedges preserve that converted value, not the source SSA
+			// value. Only an identity-typed edge can be replaced by its root.
+			same := known && types[incoming[i]] == p.Ty
 			args, ok := invariantEdgeArgs(latch.Term, head.Label)
 			// DJNZ's first header argument is implicit and post-decremented. The
 			// explicit body arguments begin at parameter 1, unlike ordinary edges.

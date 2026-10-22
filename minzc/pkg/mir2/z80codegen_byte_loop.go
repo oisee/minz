@@ -44,6 +44,7 @@ func (g *z80cg) genByteLoop(x *Inst) {
 func (g *z80cg) genFillBytes(x *Inst) {
 	restore := g.saveByteLoopScratch(x, "AF", "HL", "DE", "BC")
 	e := x.ByteLoop
+	preserveValueA := e.CountTy == TyU8 && e.CountSymbol == "" && e.ValueSymbol == ""
 	moves := []parallelCopy{{srcName: g.loc(x.Args[0]), dstName: "HL", ty: TyPtr}}
 	if e.CountSymbol == "" {
 		dst := "BC"
@@ -53,7 +54,11 @@ func (g *z80cg) genFillBytes(x *Inst) {
 		moves = append(moves, parallelCopy{srcName: g.loc(x.Args[1]), dstName: dst, ty: e.CountTy})
 	}
 	if e.ValueSymbol == "" {
-		moves = append(moves, parallelCopy{srcName: g.loc(x.Args[2]), dstName: "E", ty: TyU8})
+		valueHome := "E"
+		if preserveValueA {
+			valueHome = "A"
+		}
+		moves = append(moves, parallelCopy{srcName: g.loc(x.Args[2]), dstName: valueHome, ty: TyU8})
 	}
 	g.emitParallelCopy(moves)
 	if e.CountSymbol != "" {
@@ -63,18 +68,25 @@ func (g *z80cg) genFillBytes(x *Inst) {
 	if e.CountTy == TyU8 {
 		g.emit("    LD B, 0")
 	}
-	g.emit("    LD A, C")
-	if e.CountTy == TyU8 {
-		g.emit("    OR A")
+	if preserveValueA {
+		// INC/DEC tests the original byte count without destroying the fill value
+		// in A. In particular, 255 wraps to 0 then back to 255 and stays nonzero.
+		g.emit("    INC C")
+		g.emit("    DEC C")
 	} else {
-		g.emit("    OR B")
+		g.emit("    LD A, C")
+		if e.CountTy == TyU8 {
+			g.emit("    OR A")
+		} else {
+			g.emit("    OR B")
+		}
 	}
 	label := g.trampIdx
 	g.trampIdx++
 	g.emitf("    JRS Z, .byte_fill_done_%d", label)
 	if e.ValueSymbol != "" {
 		g.emitf("    LD A, (%s)", e.ValueSymbol)
-	} else {
+	} else if !preserveValueA {
 		g.emit("    LD A, E")
 	}
 	g.emit("    LD (HL), A")

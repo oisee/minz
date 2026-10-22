@@ -150,7 +150,7 @@ func TestByteScanZeroCPIRNative(t *testing.T) {
 func TestByteFillLDIRNative(t *testing.T) {
 	for _, language := range []string{"c", "nanz"} {
 		for _, mode := range []string{"default", "size", "grace"} {
-			for _, form := range []string{"index", "pointer", "global"} {
+			for _, form := range []string{"index", "pointer", "global", "byte_count"} {
 				t.Run(language+"/"+mode+"/"+form, func(t *testing.T) {
 					var source string
 					if language == "c" {
@@ -173,9 +173,16 @@ func TestByteFillLDIRNative(t *testing.T) {
 							source = strings.Replace(byteLoopNanzGlobals, "global n:u16", "global n:u8", 1) + "fun execute(){var i:u8=0\nwhile i<n {buffer[i]=value\ni=i+1}\nresult=u16(n)}"
 						}
 					}
+					if form == "byte_count" {
+						if language == "c" {
+							source = byteLoopCGlobals + `void fill(unsigned char *p,unsigned char count,unsigned char v){unsigned char i;for(i=0;i<count;i++)p[i]=v;}void execute(void){fill(buffer+dst_off,(unsigned char)n,value);result=n;}`
+						} else {
+							source = byteLoopNanzGlobals + "fun fill(p:^u8,count:u8,v:u8){for i:u8 in 0..count {p[i]=v}}\nfun execute(){fill(&buffer+dst_off,u8(n),value)\nresult=n}"
+						}
+					}
 					var cases []byteLoopCase
 					for _, n := range []int{0, 1, 2, 255, 256, 2047} {
-						if form == "global" && n > 255 {
+						if (form == "global" || form == "byte_count") && n > 255 {
 							continue
 						}
 						dst := 17
@@ -201,8 +208,8 @@ func TestByteFillLDIRNative(t *testing.T) {
 func TestByteCopyOrderedLDIRNative(t *testing.T) {
 	for _, language := range []string{"c", "nanz"} {
 		for _, mode := range []string{"default", "size", "grace"} {
-			for _, form := range []string{"index", "pointer", "foreach"} {
-				if language == "c" && form == "foreach" {
+			for _, form := range []string{"index", "pointer", "foreach", "foreach_void"} {
+				if language == "c" && strings.HasPrefix(form, "foreach") {
 					continue
 				}
 				t.Run(language+"/"+mode+"/"+form, func(t *testing.T) {
@@ -223,9 +230,12 @@ func TestByteCopyOrderedLDIRNative(t *testing.T) {
 						}
 						source = byteLoopNanzGlobals + "fun transfer(dst:^u8,src:^u8,count:u16)->u16 {" + body + "}\nfun execute(){result=transfer(&buffer+dst_off,&buffer+src_off,n)}"
 					}
+					if form == "foreach_void" {
+						source = byteLoopNanzGlobals + "fun transfer(dst:^u8,src:^u8,count:u8){var i:u8=0\nfor v:u8 in src[0..count] {dst[i]=v\ni=i+1}}\nfun execute(){transfer(&buffer+dst_off,&buffer+src_off,u8(n))\nresult=n}"
+					}
 					var cases []byteLoopCase
 					for _, n := range []int{0, 1, 2, 255, 256, 2047} {
-						if form == "foreach" && n > 255 {
+						if strings.HasPrefix(form, "foreach") && n > 255 {
 							continue
 						}
 						for _, delta := range []int{-17, -1, 0, 1, 17} {

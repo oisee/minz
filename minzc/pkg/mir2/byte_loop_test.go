@@ -362,7 +362,7 @@ func TestByteFillLiteralInBody(t *testing.T) {
 }
 
 func TestByteCopyRefusals(t *testing.T) {
-	for _, mode := range []string{"volatile", "signed", "inclusive", "extra-load", "varying-store", "wide-bound", "nonunit", "call"} {
+	for _, mode := range []string{"volatile", "signed", "inclusive", "extra-load", "varying-store", "wide-bound", "compare-width", "nonunit", "call"} {
 		t.Run(mode, func(t *testing.T) {
 			m, f := countedPointerFixture()
 			head, body := f.BlockByLabel("head"), f.BlockByLabel("body")
@@ -378,6 +378,8 @@ func TestByteCopyRefusals(t *testing.T) {
 				body.Insts = append(body.Insts, &Inst{Op: OpLoad, Dst: r, Src: [2]Reg{f.Contract.Params[0].Reg}, Ty: TyU8})
 			case "varying-store":
 				body.Insts[4].Src[1] = head.Params[0].Dst
+			case "compare-width":
+				head.Insts[0].SrcTy = TyU16
 			case "wide-bound":
 				f.Contract.Params[2].Ty = TyU16
 				head.Params[1].Ty = TyU16
@@ -506,5 +508,104 @@ func TestByteLoopVerifierRejectsMalformedIntrinsics(t *testing.T) {
 				t.Fatal("malformed operation accepted")
 			}
 		})
+	}
+}
+
+// Block arguments have numeric conversion semantics even though structural
+// verification does not require equal types. Forwarding a u16 through an
+// unchanged u8 parameter is not invariance of the original u16 value.
+func TestByteLoopRejectsNarrowedInvariantParameter(t *testing.T) {
+	m, f := fillLoopFixture(true)
+	head, body := f.BlockByLabel("head"), f.BlockByLabel("body")
+	narrowed := f.AllocReg()
+	head.Params = append(head.Params, BlockParam{Dst: narrowed, Ty: TyU8, Class: ClassGeneral})
+	f.Entry().Term.(*TermJmp).Args = append(f.Entry().Term.(*TermJmp).Args, f.Contract.Params[1].Reg)
+	body.Term.(*TermJmp).Args = append(body.Term.(*TermJmp).Args, narrowed)
+	head.Insts[0].Src[1] = narrowed
+	if err := Verify(m); err != nil {
+		t.Fatal(err)
+	}
+	before := m.Dump()
+	vm := NewVM(m)
+	vm.EnsureHeap(1024)
+	got, err := vm.Call("paint", []Value{{I: 7}, {I: 300}, {I: 0xd3}})
+	if err != nil || len(got) != 1 || got[0].I != 44 {
+		t.Fatal("scalar narrowing oracle", got, err)
+	}
+	if RecognizeByteLoops(f) != 0 || before != m.Dump() {
+		t.Fatal("narrowed header parameter incorrectly treated as original invariant")
+	}
+}
+
+func TestByteLoopSequentialExitBound(t *testing.T) {
+	m := &Module{}
+	f := m.AddFunc("sequential")
+	b := NewBuilder(f)
+	entry := b.SwitchToNewBlock("entry")
+	base := b.Param("p", TyPtr, ClassPointer)
+	count := b.Param("n", TyU8, ClassCounter)
+	value := b.Param("v", TyU8, ClassAcc)
+	zero := b.Const(0, TyU8, ClassGeneral)
+	head1 := f.NewBlock("head1")
+	body1 := f.NewBlock("body1")
+	pre2 := f.NewBlock("pre2")
+	head2 := f.NewBlock("head2")
+	body2 := f.NewBlock("body2")
+	i := b.BlockParam(head1, TyU8, ClassGeneral)
+	j := b.BlockParam(head2, TyU8, ClassGeneral)
+	bound := b.BlockParam(head2, TyU8, ClassGeneral)
+	b.SwitchTo(entry)
+	b.Jmp("head1", zero)
+	b.SwitchTo(head1)
+	cmp := b.CmpWithSrcTy(CmpUlt, i, count, ClassFlag, false, TyU8)
+	head1.Term = &TermBrIf{Cond: cmp, Then: "body1", Else: "pre2"}
+	b.SwitchTo(body1)
+	addr := b.PtrAdd(base, i, ClassPointer)
+	b.Store(addr, value, TyU8)
+	one := b.Const(1, TyU8, ClassGeneral)
+	next := b.Add(i, one, TyU8, ClassGeneral)
+	b.Jmp("head1", next)
+	b.SwitchTo(pre2)
+	offset := b.Const(64, TyU16, ClassIndex)
+	second := b.PtrAdd(base, offset, ClassPointer)
+	b.Jmp("head2", zero, i)
+	b.SwitchTo(head2)
+	cmp = b.CmpWithSrcTy(CmpUlt, j, bound, ClassFlag, false, TyU8)
+	head2.Term = &TermCondRet{Cond: cmp, Then: "body2", Vals: []Reg{j}}
+	b.SwitchTo(body2)
+	addr = b.PtrAdd(second, j, ClassPointer)
+	b.Store(addr, value, TyU8)
+	one = b.Const(1, TyU8, ClassGeneral)
+	next = b.Add(j, one, TyU8, ClassGeneral)
+	b.Jmp("head2", next, bound)
+	f.Contract.Returns = []Return{{Ty: TyU8, Class: ClassAcc}}
+	run := func(n int) ([]Value, []byte) {
+		vm := NewVM(m)
+		vm.heap = bytes.Repeat([]byte{0x5a}, 512)
+		r, e := vm.Call("sequential", []Value{{I: 7}, {I: int64(n)}, {I: 0xd3}})
+		if e != nil {
+			t.Fatal(e)
+		}
+		return r, bytes.Clone(vm.heap)
+	}
+	before := map[int][]byte{}
+	for _, n := range []int{0, 1, 5, 255} {
+		r, ram := run(n)
+		if len(r) != 1 || r[0].I != int64(n) {
+			t.Fatal("raw exit bound", n, r)
+		}
+		before[n] = ram
+	}
+	if RecognizeByteLoops(f) != 2 {
+		t.Fatal("both loops must match")
+	}
+	if e := Verify(m); e != nil {
+		t.Fatal(e)
+	}
+	for _, n := range []int{0, 1, 5, 255} {
+		r, ram := run(n)
+		if len(r) != 1 || r[0].I != int64(n) || !bytes.Equal(before[n], ram) {
+			t.Fatal("stale facts changed second loop", n, r)
+		}
 	}
 }

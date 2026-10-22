@@ -416,6 +416,7 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 		ct = mir2.Z80CostTable{}
 	}
 	if opt.ContractOpt {
+		mir2.PrepareByteLoopContracts(m)
 		cs := optimizePipelineContracts(m, ct, opt.ContractStrategy)
 		mir2.ApplyContracts(m, cs)
 	}
@@ -677,6 +678,7 @@ func CompileHIRWithOptions(hm *hir.Module, opts Options) (string, error) {
 	// Run BEFORE LUTGen so synthetic LUT functions keep their original param class
 	// and are not re-assigned a conflicting one (BUG-004).
 	if opts.ContractOpt {
+		mir2.PrepareByteLoopContracts(m)
 		cs := optimizePipelineContracts(m, ct, opts.ContractStrategy)
 		mir2.ApplyContracts(m, cs)
 	}

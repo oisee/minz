@@ -204,6 +204,7 @@ func ApplyContracts(m *Module, cs ContractSet) {
 		// causes PBQP to allocate to the original class while TermRet codegen generates
 		// copies to the (now wrong) contract location — the multi-return clobber bug.
 	}
+	retargetBulkByteArguments(m, false)
 }
 
 // ── Internals ─────────────────────────────────────────────────────────────────
@@ -518,8 +519,26 @@ func inferNaturalClassSeen(f *Func, r Reg, m *Module, seen map[Reg]bool) RegClas
 					return inferNaturalClassSeen(f, inst.Dst, m, seen)
 				}
 			case OpCall:
-				if inst.ByteLoop != nil && len(inst.Args) > 0 && inst.Args[0] == r {
-					return ClassPointer
+				if inst.ByteLoop != nil {
+					if len(inst.Args) > 0 && inst.Args[0] == r {
+						if inst.Sym == copyBytesIntrinsic {
+							return ClassIndex
+						}
+						return ClassPointer
+					}
+					if len(inst.Args) == 3 {
+						if inst.Args[1] == r && inst.ByteLoop.CountTy == TyU8 {
+							return ClassRegC
+						}
+						if inst.Args[2] == r {
+							if inst.Sym == copyBytesIntrinsic {
+								return ClassPointer
+							}
+							if inst.ByteLoop.CountTy == TyU8 && inst.ByteLoop.CountSymbol == "" {
+								return ClassAcc
+							}
+						}
+					}
 				}
 				// If r is passed as arg[i] to a known callee, the natural
 				// class is whatever the callee expects at that position.
@@ -626,4 +645,87 @@ func bestLocForClass(cls RegClass, ct CostTable) PhysLoc {
 		}
 	}
 	return best
+}
+
+// Bulk formation changes a scalar helper's register demands. Its callers can
+// still carry positional staging preferences from HIR. Retarget only exclusive
+// byte-load/move argument chains to the selected convention, preserving hard
+// constraints, memory order, and every producer with another consumer.
+// PrepareByteLoopContracts exposes the new fixed operand demands to contract
+// search before positional HIR staging preferences can bias its edge costs.
+func PrepareByteLoopContracts(m *Module) { retargetBulkByteArguments(m, true) }
+
+func retargetBulkByteArguments(m *Module, natural bool) {
+	addrTaken := addrTakenFuncs(m)
+	bulk := map[string]bool{}
+	for _, f := range m.Funcs {
+		for _, b := range f.Blocks {
+			for _, x := range b.Insts {
+				if x.ByteLoop != nil {
+					bulk[f.Name] = true
+				}
+			}
+		}
+	}
+	if len(bulk) == 0 {
+		return
+	}
+
+	for _, f := range m.Funcs {
+		uses := countRegUses(f)
+		defs := map[Reg]*Inst{}
+		for _, b := range f.Blocks {
+			for _, x := range b.Insts {
+				if x.Dst != NoReg {
+					defs[x.Dst] = x
+				}
+			}
+		}
+		for _, b := range f.Blocks {
+			for _, call := range b.Insts {
+				if call.Op != OpCall || !bulk[call.Sym] {
+					continue
+				}
+				callee := m.FuncByName(call.Sym)
+				if callee == nil {
+					continue
+				}
+				if natural && (callee.Attrs.FixedIndirectABI || callee.Attrs.FallibleCY || callee.Attrs.IsExtern || funcHasAsm(callee) || addrTaken[callee.Name]) {
+					continue
+				}
+				for i, arg := range call.Args {
+					if i >= len(callee.Contract.Params) {
+						break
+					}
+					p := callee.Contract.Params[i]
+					wanted := p.Class
+					if natural {
+						if p.ClassHard {
+							continue
+						}
+						wanted = inferNaturalClass(callee, p.Reg, m)
+						if wanted != ClassAcc && wanted != ClassRegC {
+							continue
+						}
+					}
+					x := defs[arg]
+					if p.Ty != TyU8 || x == nil || x.Ty != TyU8 || x.ClsHard || uses[arg] != 1 {
+						continue
+					}
+					load := x
+					if x.Op == OpMove {
+						load = defs[x.Src[0]]
+						if load == nil || uses[x.Src[0]] != 1 {
+							continue
+						}
+					}
+					if load.Op != OpLoad || load.Ty != TyU8 || load.ClsHard {
+						continue
+					}
+					x.Cls = wanted
+					load.Cls = wanted
+				}
+			}
+		}
+	}
 }

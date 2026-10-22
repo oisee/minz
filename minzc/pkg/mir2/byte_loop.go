@@ -28,29 +28,36 @@ func RecognizeByteLoops(f *Func) int {
 		return 0
 	}
 	changed := 0
-	for _, l := range AnalyzeNaturalLoops(f) {
-		if l.Opaque {
-			continue
+	for {
+		matched := false
+		for _, l := range AnalyzeNaturalLoops(f) {
+			if l.Opaque {
+				continue
+			}
+			c := newByteLoopContext(f, l)
+			if c.countdownCopy() {
+				matched = true
+				break
+			}
+			if len(l.Blocks) != 2 || l.Back == nil || l.Back.Target != l.Header.Label || len(l.Exits) != 1 || l.Exits[0] != l.Header {
+				continue
+			}
+			if c.scanZero() || c.fillBytes() || c.copyBytes() {
+				matched = true
+				break
+			}
 		}
-		c := newByteLoopContext(f, l)
-		if c.countdownCopy() {
-			changed++
-			continue
+		if !matched {
+			return changed
 		}
-		if l.Opaque || len(l.Blocks) != 2 || l.Back == nil || l.Back.Target != l.Header.Label || len(l.Exits) != 1 || l.Exits[0] != l.Header {
-			continue
-		}
-		if c.scanZero() || c.fillBytes() || c.copyBytes() {
-			changed++
-		}
-	}
-	if changed > 0 {
+		changed++
 		EliminateDeadBlocks(f)
 		PropagateCopies(f)
 		DeadStoreElim(f)
 		DeadBlockArgElim(f)
+		// Replacing an exit IV can change a later loop's entering values. Facts
+		// must be rebuilt after each rewrite, never reused from the old CFG.
 	}
-	return changed
 }
 
 type byteLoopContext struct {
@@ -323,6 +330,9 @@ func (c *byteLoopContext) countedBytes(copying bool) bool {
 	}
 	for _, iv := range l.Inductions {
 		if iv.Param.Dst != cmp.Src[0] || iv.Step != 1 || !c.constant(iv.Initial, 0) || (iv.Param.Ty != TyU8 && iv.Param.Ty != TyU16) {
+			continue
+		}
+		if cmp.SrcTy != nil && cmp.SrcTy != iv.Param.Ty {
 			continue
 		}
 		count := c.root(cmp.Src[1])
