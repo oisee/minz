@@ -19,6 +19,7 @@ func asmPeepholePassWithSize(src string, optimizeForSize bool) string {
 	lines = elimOverwrittenByteLiterals(lines)
 	lines = elimDoubleExDeHl(lines)
 	lines = elimSingleJpEqu(lines)
+	lines = elimJumpToNextLabel(lines)
 	lines = elimCallRet(lines)
 	lines = foldCondCall(lines)
 	lines = elimJrToRet(lines)
@@ -575,4 +576,30 @@ func elimJrToRetInScope(lines []string) []string {
 		final = append(final, out[i])
 	}
 	return final
+}
+
+// Removing a branch to the next label preserves flags and every register.
+// Only function-local labels may be folded: top-level entry points must not
+// acquire the same address. Data and intervening instructions are barriers.
+func elimJumpToNextLabel(lines []string) []string {
+	out := make([]string, 0, len(lines))
+	for i, line := range lines {
+		code := strings.TrimSpace(strings.SplitN(line, ";", 2)[0])
+		fields := strings.Fields(code)
+		remove := false
+		if len(fields) == 2 && strings.HasPrefix(fields[1], ".") && (fields[0] == "JP" || fields[0] == "JR" || fields[0] == "JRS") && !strings.ContainsAny(fields[1], ",()") {
+			for _, next := range lines[i+1:] {
+				next = strings.TrimSpace(strings.SplitN(next, ";", 2)[0])
+				if next == "" {
+					continue
+				}
+				remove = next == fields[1]+":"
+				break
+			}
+		}
+		if !remove {
+			out = append(out, line)
+		}
+	}
+	return out
 }

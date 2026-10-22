@@ -43,8 +43,19 @@ import (
 
 // ── Public entry point ────────────────────────────────────────────────────────
 
+// LowerOptions configures optional HIR lowering transformations.
+type LowerOptions struct {
+	// DisableCountedLoops retains ordinary while lowering for differential checks.
+	DisableCountedLoops bool
+}
+
 // LowerModule converts a HIR module to a MIR2 module.
 func LowerModule(hm *Module) *mir2.Module {
+	return LowerModuleWithOptions(hm, LowerOptions{})
+}
+
+// LowerModuleWithOptions converts HIR with explicit lowering options.
+func LowerModuleWithOptions(hm *Module, opts LowerOptions) *mir2.Module {
 	if err := ExpandGenerators(hm); err != nil {
 		panic(err)
 	}
@@ -95,7 +106,7 @@ func LowerModule(hm *Module) *mir2.Module {
 		if hasFreeVars(f, globalNames, funcNames) {
 			continue
 		}
-		lowerFuncWithFuncNames(m, f, funcNames, hirFuncs, hm.LoopLineage)
+		lowerFuncWithFuncNames(m, f, funcNames, hirFuncs, hm.LoopLineage, opts)
 	}
 	for _, f := range hm.Funcs {
 		for _, p := range f.Params {
@@ -297,6 +308,7 @@ type loopCtx struct {
 }
 
 type lowerer struct {
+	disableCountedLoops bool
 	// Only active within one literal-address read/modify/write assignment.
 	// Memory operations retain their order; the pure address is computed once.
 	literalStorePointers map[int64]mir2.Reg
@@ -567,10 +579,10 @@ func (l *lowerer) lowerBitAssign(tgt *BitExpr, val Expr) {
 // ── Function lowering ─────────────────────────────────────────────────────────
 
 func lowerFunc(m *mir2.Module, f *Func) {
-	lowerFuncWithFuncNames(m, f, nil, nil)
+	lowerFuncWithFuncNames(m, f, nil, nil, nil, LowerOptions{})
 }
 
-func lowerFuncWithFuncNames(m *mir2.Module, f *Func, funcNames map[string]bool, hirFuncs map[string]*Func, lineage ...map[Stmt]LoopLineage) {
+func lowerFuncWithFuncNames(m *mir2.Module, f *Func, funcNames map[string]bool, hirFuncs map[string]*Func, lineage map[Stmt]LoopLineage, opts LowerOptions) {
 	mf := m.AddFunc(f.Name)
 	mf.Attrs.FallibleCY = f.FallibleCY
 	if f.IsExtern {
@@ -606,24 +618,25 @@ func lowerFuncWithFuncNames(m *mir2.Module, f *Func, funcNames map[string]bool, 
 
 	bld := mir2.NewBuilder(mf)
 	l := &lowerer{
-		hf:           f,
-		m:            m,
-		mf:           mf,
-		bld:          bld,
-		target:       m.Target,
-		env:          make(map[string]mir2.Reg),
-		envTy:        make(map[string]mir2.Ty),
-		hirFuncNames: funcNames,
-		hirFuncs:     hirFuncs,
-		fnAliases:    make(map[string]string),
-		localArrays:  make(map[string]bool),
-		localCells:   make(map[string]bool),
-		addressTaken: make(map[string]bool),
+		hf:                  f,
+		disableCountedLoops: opts.DisableCountedLoops,
+		m:                   m,
+		mf:                  mf,
+		bld:                 bld,
+		target:              m.Target,
+		env:                 make(map[string]mir2.Reg),
+		envTy:               make(map[string]mir2.Ty),
+		hirFuncNames:        funcNames,
+		hirFuncs:            hirFuncs,
+		fnAliases:           make(map[string]string),
+		localArrays:         make(map[string]bool),
+		localCells:          make(map[string]bool),
+		addressTaken:        make(map[string]bool),
 	}
 
-	if len(lineage) > 0 {
+	if lineage != nil {
 		l.lineage = map[Stmt]LoopLineage{}
-		for node, origin := range lineage[0] {
+		for node, origin := range lineage {
 			l.lineage[node] = origin
 		}
 	}
@@ -1931,6 +1944,9 @@ func (l *lowerer) lowerWhile(st *WhileStmt) {
 
 // A desugared range loop must run its increment even when the body continues.
 func (l *lowerer) lowerWhileWithContinue(st *WhileStmt, continueStep Stmt) {
+	if !l.disableCountedLoops && l.tryCountedLoop(st) {
+		return
+	}
 	envBefore := cloneMap(l.env)
 
 	// Collect ALL env vars used (read or written) anywhere in the loop.

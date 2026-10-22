@@ -212,3 +212,153 @@ func TestZ80DJNZLongBody(t *testing.T) {
 		})
 	}
 }
+
+// Swapping the carried pairs destroys both original homes. The exit must
+// receive its old first value from the second home after the hoisted EX.
+func TestZ80DJNZHoistedParallelCopies(t *testing.T) {
+	for _, tc := range []struct {
+		n           int
+		liveExit    bool
+		counterMove bool
+	}{
+		{1, false, false}, {2, false, false}, {5, false, false}, {255, false, false},
+		{1, true, false}, {2, true, false}, {5, true, false}, {255, true, false},
+		{1, false, true}, {2, false, true}, {5, false, true}, {255, false, true},
+	} {
+		n := tc.n
+		t.Run(fmt.Sprintf("n%d/live%v/move%v", n, tc.liveExit, tc.counterMove), func(t *testing.T) {
+			m := &mir2.Module{Name: "hoist"}
+			f := m.AddFunc("swap_loop")
+			f.Contract.Returns = []mir2.Return{{Ty: mir2.TyU16, Class: mir2.ClassPointer}}
+			b := mir2.NewBuilder(f)
+			b.SwitchToNewBlock("entry")
+			input := b.Param("n", mir2.TyU8, mir2.ClassCounter)
+			x := b.Param("x", mir2.TyU16, mir2.ClassPointer)
+			y := b.Param("y", mir2.TyU16, mir2.ClassPointer)
+			body, exit := f.NewBlock("body"), f.NewBlock("exit")
+			count := b.BlockParam(body, mir2.TyU8, mir2.ClassCounter)
+			a := b.BlockParam(body, mir2.TyU16, mir2.ClassPointer)
+			c := b.BlockParam(body, mir2.TyU16, mir2.ClassPointer)
+			out := b.BlockParam(exit, mir2.TyU16, mir2.ClassPointer)
+			b.Jmp("body", input, x, y)
+			b.SwitchTo(body)
+			decremented := count
+			if tc.counterMove {
+				decremented = b.Move(count, mir2.TyU8, mir2.ClassCounter)
+			}
+			b.DJNZ(decremented, "body", []mir2.Reg{c, a}, "exit", []mir2.Reg{a})
+			b.SwitchTo(exit)
+			if tc.liveExit {
+				b.Ret(a)
+			} else {
+				b.Ret(out)
+			}
+			want := uint16(0x1234)
+			if n%2 == 0 {
+				want = 0x5678
+			}
+			got, err := mir2.NewVM(m).Call("swap_loop", []mir2.Value{{I: int64(n)}, {I: 0x1234}, {I: 0x5678}})
+			if err != nil || len(got) != 1 || got[0].I != int64(want) {
+				t.Fatalf("MIR: %v %v", got, err)
+			}
+			ar := &mir2.AllocResult{Locs: map[mir2.Reg]mir2.PhysLoc{}}
+			for _, r := range []mir2.Reg{input, count} {
+				ar.Locs[r] = mir2.PhysLoc{Kind: mir2.LocReg, Name: "B"}
+			}
+			if tc.counterMove {
+				ar.Locs[input] = mir2.PhysLoc{Kind: mir2.LocReg, Name: "A"}
+				ar.Locs[count] = ar.Locs[input]
+				ar.Locs[decremented] = mir2.PhysLoc{Kind: mir2.LocReg, Name: "B"}
+			}
+			for _, r := range []mir2.Reg{x, a, out} {
+				ar.Locs[r] = mir2.PhysLoc{Kind: mir2.LocReg, Name: "HL"}
+			}
+			for _, r := range []mir2.Reg{y, c} {
+				ar.Locs[r] = mir2.PhysLoc{Kind: mir2.LocReg, Name: "DE"}
+			}
+			code := mustZ80Asm(mir2.Z80Codegen(m, ar))
+			if strings.Contains(code, "EX DE, HL\n    DJNZ .swap_loop_body") != (!tc.liveExit && !tc.counterMove) {
+				t.Fatalf("copies must precede direct DJNZ\n%s", code)
+			}
+			home := "B"
+			if tc.counterMove {
+				home = "A"
+			}
+			asm := fmt.Sprintf("ORG 0x8000\nLD SP,0xFF00\nLD %s,%d\nLD HL,0x1234\nLD DE,0x5678\nCALL swap_loop\nDI\nHALT\n", home, n) + code
+			res, err := z80asm.NewAssembler().AssembleString(asm)
+			if err != nil || len(res.Errors) != 0 {
+				t.Fatalf("assemble: %v %v\n%s", err, res.Errors, asm)
+			}
+			z := emulator.NewRemogattoZ80()
+			z.Reset()
+			z.LoadMemory(0x8000, res.Binary)
+			z.SetRegisters(emulator.Registers{PC: 0x8000, SP: 0xFF00})
+			for steps := 0; !z.IsHalted(); steps++ {
+				if steps > 10000 {
+					t.Fatal("no termination")
+				}
+				z.Step()
+			}
+			regs := z.GetRegisters()
+			if regs.HL != want || regs.SP != 0xFF00 {
+				t.Fatalf("HL=%04x SP=%04x want %04x\n%s", regs.HL, regs.SP, want, asm)
+			}
+		})
+	}
+}
+
+// IX-half copies borrow shadow A. A final-iteration hoist must not clobber
+// an exit live-in there, even though no explicit copy targets that register.
+func TestZ80DJNZHoistPreservesShadowExit(t *testing.T) {
+	m := &mir2.Module{Name: "shadow_exit"}
+	f := m.AddFunc("shadow_loop")
+	f.Contract.Returns = []mir2.Return{{Ty: mir2.TyU8, Class: mir2.ClassAcc}}
+	b := mir2.NewBuilder(f)
+	b.SwitchToNewBlock("entry")
+	input := b.Param("n", mir2.TyU8, mir2.ClassCounter)
+	saved := b.Param("saved", mir2.TyU8, mir2.ClassAccShadow)
+	initial := b.Param("initial", mir2.TyU8, mir2.ClassGeneral)
+	next := b.Param("next", mir2.TyU8, mir2.ClassGeneral)
+	body, exit := f.NewBlock("body"), f.NewBlock("exit")
+	count := b.BlockParam(body, mir2.TyU8, mir2.ClassCounter)
+	carried := b.BlockParam(body, mir2.TyU8, mir2.ClassGeneral)
+	b.Jmp("body", input, initial)
+	b.SwitchTo(body)
+	b.DJNZ(count, "body", []mir2.Reg{next}, "exit", nil)
+	b.SwitchTo(exit)
+	result := b.Asm("EX AF, AF'\nLD C, A\nEX AF, AF'", []mir2.Reg{saved}, nil, 0, mir2.TyU8, mir2.ClassGeneral)
+	b.Ret(result)
+	ar := &mir2.AllocResult{Locs: map[mir2.Reg]mir2.PhysLoc{}}
+	for _, r := range []mir2.Reg{input, count} {
+		ar.Locs[r] = mir2.PhysLoc{Kind: mir2.LocReg, Name: "B"}
+	}
+	for _, r := range []mir2.Reg{initial, carried} {
+		ar.Locs[r] = mir2.PhysLoc{Kind: mir2.LocReg, Name: "H"}
+	}
+	ar.Locs[saved] = mir2.PhysLoc{Kind: mir2.LocShadow, Name: "A'"}
+	ar.Locs[next] = mir2.PhysLoc{Kind: mir2.LocIXY8, Name: "IXH"}
+	ar.Locs[result] = mir2.PhysLoc{Kind: mir2.LocReg, Name: "C"}
+	code := mustZ80Asm(mir2.Z80Codegen(m, ar))
+	asm := "ORG 0x8000\nLD SP,0xFF00\nLD A,83\nEX AF, AF'\nLD A,17\nLD B,1\nLD H,9\nLD IXH,39\nCALL shadow_loop\nDI\nHALT\n" + code
+	res, err := z80asm.NewAssembler().AssembleString(asm)
+	if err != nil || len(res.Errors) != 0 {
+		t.Fatalf("assemble: %v %v\n%s", err, res.Errors, asm)
+	}
+	z := emulator.NewRemogattoZ80()
+	z.Reset()
+	z.LoadMemory(0x8000, res.Binary)
+	z.SetRegisters(emulator.Registers{PC: 0x8000, SP: 0xFF00})
+	for steps := 0; !z.IsHalted(); steps++ {
+		if steps > 1000 {
+			t.Fatal("no termination")
+		}
+		z.Step()
+	}
+	r := z.GetRegisters()
+	if r.A != 83 || r.SP != 0xFF00 {
+		t.Fatalf("A=%d SP=%04x want 83/ff00\n%s", r.A, r.SP, asm)
+	}
+	if strings.Contains(code, "DJNZ .shadow_loop_body") {
+		t.Fatalf("shadow exit requires edge-local copies\n%s", code)
+	}
+}

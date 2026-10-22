@@ -51,7 +51,7 @@ func TestProfileGuidedSumVMZ80(t *testing.T) {
 	// These coefficients were remeasured over all 1022 length/address cases;
 	// pair-move codegen also removes 27 module bytes and 13T per fallback
 	// iteration. Guarded fast-path costs are unchanged.
-	model := hir.LoopCostModel{CompilerID: context.CompilerID, SemanticsID: context.SemanticsID, Function: "sum_array", HIRSHA256: profileRun.Profile.Compatibility.HIRSHA256, TargetID: context.TargetID, EvidenceID: "sum-array-z80-pair-moves-v9", OriginalBytes: 171, PointerBytes: 250, OriginalEntry: 41, OriginalIteration: 54, EqualEntryExtra: 7, FastEntry: 241, FastIteration: 37, FastZeroEntry: 232, FastZeroMeasured: true, FallbackEntry: 258, FallbackIteration: 178, FallbackMeasured: true}
+	model := hir.LoopCostModel{CompilerID: context.CompilerID, SemanticsID: context.SemanticsID, Function: "sum_array", HIRSHA256: profileRun.Profile.Compatibility.HIRSHA256, TargetID: context.TargetID, EvidenceID: "sum-array-z80-pair-moves-v9", OriginalBytes: 171, PointerBytes: 247, OriginalEntry: 41, OriginalIteration: 54, EqualEntryExtra: 7, FastEntry: 231, FastIteration: 37, FastZeroEntry: 232, FastZeroMeasured: true, FallbackEntry: 258, FallbackIteration: 178, FallbackMeasured: true}
 	decisions, e := hir.SelectLoopVariants(bytes.NewReader(profileJSON), input, context, model, false)
 	if e != nil {
 		t.Fatal(e)
@@ -174,7 +174,7 @@ func TestProfileGuidedSumVMZ80(t *testing.T) {
 			expected := 41 + 54*int(n)
 			expectedSize := int(model.OriginalBytes)
 			if variant != "original" {
-				expected = 241 + 37*int(n)
+				expected = int(model.FastEntry) + int(model.FastIteration)*int(n)
 				if n == 0 {
 					expected = 232
 				}
@@ -249,7 +249,7 @@ func TestProfileGuidedSumVMZ80(t *testing.T) {
 			wantCycles := 41 + 54*int(n)
 			wantBytes := int(model.OriginalBytes)
 			if expectedVariant == "pointer-walk" {
-				wantCycles = 241 + 37*int(n)
+				wantCycles = int(model.FastEntry) + int(model.FastIteration)*int(n)
 				if n == 0 {
 					wantCycles = 232
 				}
