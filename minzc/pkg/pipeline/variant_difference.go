@@ -9,7 +9,8 @@ import (
 
 // A maximum-path score alone cannot compare unknown branch arms: a lower
 // maximum could hide a slower cheap arm. Fixed straight-line loops have exact
-// costs. Branchy comparisons additionally require a refusing path difference
+// controller costs; recognized helpers contribute their worst-case cost.
+// Branchy comparisons additionally require a refusing path difference
 // proof. The first stage proves byte-register leaf CFGs with at most one
 // unknown loop; other changed branchy shapes retain the incumbent.
 type variantRegions struct {

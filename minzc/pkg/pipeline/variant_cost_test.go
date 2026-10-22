@@ -103,3 +103,63 @@ func TestVariantSearchRefusesCrossingPaths(t *testing.T) {
 		t.Fatal("changed external context accepted")
 	}
 }
+
+func TestVariantSearchEntryABIRefusals(t *testing.T) {
+	// A complete product can publish a new ABI for an independent entry. A
+	// direct caller, address constant, hard convention or opaque ASM forbids it.
+	image := func(reg, suffix string) *variantImage {
+		t.Helper()
+		im, err := assembleVariant(Steps{Assembly: "; fun probe(k: u8 = " + reg + ") -> u8 = A ; clobbers: A, F\nprobe:\n    RET\n" + suffix})
+		if err != nil {
+			t.Fatal(err)
+		}
+		return im
+	}
+	for _, tc := range []struct {
+		name, suffix string
+		allowed      bool
+	}{
+		{"independent", "", true},
+		{"direct-call", "; fun caller() -> u8 = A ; clobbers: A, F\ncaller:\n    CALL probe\n    RET\n", false},
+		{"address-data", "; globals\nentry_address: DW probe\n", false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			a, b := image("A", tc.suffix), image("B", tc.suffix)
+			if a.sameContext(b, "probe") {
+				t.Fatal("strict ABI gate changed")
+			}
+			if got := a.sameContext(b, "probe", true); got != tc.allowed {
+				t.Fatalf("entry admission %v want %v", got, tc.allowed)
+			}
+		})
+	}
+	h, err := nanz.Parse(`fun probe(k:u8)->u8 { return k+1 }`, "entry_abi.nanz")
+	if err != nil {
+		t.Fatal(err)
+	}
+	s, err := CompileHIRSteps(h, Options{AssertMode: "none", DisableVariantSearch: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	m := s.MIR2Module
+	if !sameVariantEntryABI(m, m, "probe") {
+		t.Fatal("independent scalar entry refused")
+	}
+	param := &m.FuncByName("probe").Contract.Params[0]
+	param.ClassHard = true
+	if sameVariantEntryABI(m, m, "probe") {
+		t.Fatal("hard entry convention accepted")
+	}
+	param.ClassHard = false
+	for _, op := range []mir2.Op{mir2.OpCall, mir2.OpAddrOf, mir2.OpAsm} {
+		peer := &mir2.Func{Name: "peer", Blocks: []*mir2.Block{{Label: "entry", Insts: []*mir2.Inst{{Op: op, Sym: "probe"}}}}}
+		if op == mir2.OpAsm {
+			peer.Blocks[0].Insts[0].Sym = "alias EQU probe\nCALL alias"
+		}
+		m.Funcs = append(m.Funcs, peer)
+		if sameVariantEntryABI(m, m, "probe") {
+			t.Errorf("incoming %v admitted", op)
+		}
+		m.Funcs = m.Funcs[:len(m.Funcs)-1]
+	}
+}

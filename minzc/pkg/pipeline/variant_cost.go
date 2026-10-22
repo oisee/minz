@@ -1,6 +1,7 @@
 package pipeline
 
 import (
+	"bytes"
 	"fmt"
 	"regexp"
 	"sort"
@@ -139,6 +140,11 @@ func assembleVariant(s Steps) (*variantImage, error) {
 			if b != 0x18 {
 				add(next, nt)
 			}
+		case b == 0xcd: // Unconditional direct CALL, including its actual helper body.
+			target := int(line.Bytes[1]) | int(line.Bytes[2])<<8
+			if cost, ok := im.byteMultiplyCost(target); ok {
+				add(next, t+cost)
+			}
 		case mnemonic == "CALL" || mnemonic == "RST" || mnemonic == "JP" || mnemonic == "HALT" || mnemonic == "LDIR" || mnemonic == "LDDR" || mnemonic == "CPIR" || mnemonic == "CPDR" || mnemonic == "INIR" || mnemonic == "INDR" || mnemonic == "OTIR" || mnemonic == "OTDR" || mnemonic == "RETI" || mnemonic == "RETN":
 			// Helpers, indirect jumps, I/O repetition, and internal repeat counts need
 			// their own context model. They refuse scoring rather than costing zero.
@@ -151,8 +157,42 @@ func assembleVariant(s Steps) (*variantImage, error) {
 	return im, nil
 }
 
-func (a *variantImage) sameContext(b *variantImage, name string) bool {
-	if a.abi[name] == "" || a.abi[name] != b.abi[name] {
+// byteMultiplyCost recognizes the complete encoded add-and-shift leaf, independent
+// of its symbol name. D starts at eight and is decremented exactly once per bit;
+// only B's bits affect timing. Charge the all-ones path (463T, including RET),
+// never the stale ~80T runtime comment. Any changed opcode/branch refuses scoring.
+// Caller setup, preservation of B/BC/DE and restoration remain ordinary CFG nodes.
+func (im *variantImage) byteMultiplyCost(target int) (int, bool) {
+	body := []byte{0x0e, 0, 0x16, 8, 0xcb, 0x38, 0x30, 5,
+		0x5f, 0x79, 0x83, 0x4f, 0x7b, 0x87, 0x15, 0x20, 0xf3, 0x79, 0xc9}
+	offset := target - 0x8000
+	if offset < 0 || offset+len(body) > len(im.binary) || !bytes.Equal(im.binary[offset:offset+len(body)], body) {
+		return 0, false
+	}
+	return 14 + 8*(8+7+20+4+4+12) - 5 + 4 + 10, true
+}
+
+// Unreferenced entries have a compiler-selected calling convention published in
+// Steps. Other owners must not mention the symbol at all (including data/ASM),
+// so an ABI change cannot silently invalidate an unchanged caller or pointer.
+func (im *variantImage) unreferencedEntry(name string) bool {
+	ref := regexp.MustCompile(`(?i)(^|[^A-Za-z0-9_.$])` + regexp.QuoteMeta(name) + `([^A-Za-z0-9_.$]|$)`)
+	for owner, body := range im.context {
+		if owner == name {
+			continue
+		}
+		for _, line := range body {
+			if ref.MatchString(line) {
+				return false
+			}
+		}
+	}
+	return true
+}
+
+func (a *variantImage) sameContext(b *variantImage, name string, allowEntryABI ...bool) bool {
+	entryABI := len(allowEntryABI) > 0 && allowEntryABI[0] && a.unreferencedEntry(name) && b.unreferencedEntry(name)
+	if a.abi[name] == "" || b.abi[name] == "" || a.abi[name] != b.abi[name] && !entryABI {
 		return false
 	}
 	if len(a.context) != len(b.context) {
@@ -192,7 +232,8 @@ func addVariantCost(a, b int64) (int64, bool) {
 // Constant loops use proved trip counts (ordinary has N backedges; DJNZ N-1).
 // Unknown loops use 16 backedges and can compare only to unchanged source
 // conditions/identities. Cycles without metadata, irreducibility, multiple
-// entries/exits, missing labels and calls are unsupported.
+// entries/exits, missing labels and unrecognized calls are unsupported.
+// Recognized byte multiplication uses its worst-case eight-bit helper cost.
 func (im *variantImage) score(f *mir2.Func) (int64, bool) {
 	if f == nil {
 		return 0, false
