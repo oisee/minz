@@ -136,6 +136,13 @@ func (m *Module) FuncByName(name string) *Func {
 
 // Func is a HIR function.
 type Func struct {
+	// Private proves module-local linkage, not absence of address/ASM references.
+	// Internal only controls implicit pruning roots; runtime helpers use it too.
+	Private bool `json:",omitempty"`
+	// ReferencedByName retains a callable entry for providers and other lookups
+	// outside the IR call graph. It takes precedence over Private and Internal.
+	ReferencedByName bool `json:",omitempty"`
+
 	Internal       bool    `json:",omitempty"` // compiler/library helper; not an implicit exported pruning root
 	CValueABI      bool    `json:",omitempty"` // C by-value aggregate semantics; delay ABI selection until linking
 	FallibleCY     bool    // derived CY/error ABI, part of semantic identity

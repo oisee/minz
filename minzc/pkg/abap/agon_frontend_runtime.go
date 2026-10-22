@@ -169,6 +169,9 @@ func emitAgonFrontendRuntime(hm *hir.Module) error {
 	for _, f := range m.Funcs {
 		if !f.IsExtern {
 			f.Internal = true
+			// Providers and VM clients call this compiled API by name as well
+			// as through the report's call graph.
+			f.ReferencedByName = true
 			hm.Funcs = append(hm.Funcs, f)
 		}
 	}
@@ -178,7 +181,7 @@ func emitAgonFrontendRuntime(hm *hir.Module) error {
 	}{{"info", 278}, {"name", 13}, {"records", 128 * 11}, {"scratch", 11}} {
 		sym := "_abap_fs_agon_" + b.name + "_buffer"
 		hm.Globals = append(hm.Globals, mir2.Global{Name: sym, Ty: mir2.NewArray(mir2.TyU8, b.size)})
-		hm.Funcs = append(hm.Funcs, &hir.Func{Name: "_abap_fs_agon_" + b.name, Internal: true, RetTy: mir2.TyPtr, Body: &hir.Block{Body: []hir.Stmt{&hir.ReturnStmt{Val: &hir.AddrOfExpr{Sym: sym}}}}})
+		hm.Funcs = append(hm.Funcs, &hir.Func{Name: "_abap_fs_agon_" + b.name, Internal: true, ReferencedByName: true, RetTy: mir2.TyPtr, Body: &hir.Block{Body: []hir.Stmt{&hir.ReturnStmt{Val: &hir.AddrOfExpr{Sym: sym}}}}})
 	}
 	for _, op := range []struct {
 		name, fn string
@@ -189,7 +192,7 @@ func emitAgonFrontendRuntime(hm *hir.Module) error {
 		{"_abap_agon_native_open", "@mir.agon.fs.open"}, {"_abap_agon_native_close", "@mir.agon.fs.close"},
 		{"_abap_agon_native_dir_open", "@mir.agon.dir.open"}, {"_abap_agon_native_dir_read", "@mir.agon.dir.read"}, {"_abap_agon_native_dir_close", "@mir.agon.dir.close"},
 	} {
-		hm.Funcs = append(hm.Funcs, &hir.Func{Name: op.name, Internal: true, RetTy: mir2.TyU8, Body: &hir.Block{Body: []hir.Stmt{&hir.ReturnStmt{Val: &hir.CallExpr{Fn: op.fn, Ty: mir2.TyU8}}}}})
+		hm.Funcs = append(hm.Funcs, &hir.Func{Name: op.name, Internal: true, ReferencedByName: true, RetTy: mir2.TyU8, Body: &hir.Block{Body: []hir.Stmt{&hir.ReturnStmt{Val: &hir.CallExpr{Fn: op.fn, Ty: mir2.TyU8}}}}})
 	}
 	return nil
 }

@@ -893,11 +893,18 @@ func isRecursive(f *Func) bool {
 // caller that remain live after the call, including arguments reused later.
 // The call results are excluded because their definitions begin after CALL.
 func (g *z80cg) callerSavePairs(inst *Inst, callee *Func) []string {
-	// Unknown and compiled callees remain conservative. Only an explicit
-	// extern implementation contract can narrow the callee's write set.
+	// Start from the conservative ABI. Explicit extern contracts and the
+	// checked emitted-leaf proof below can narrow the write set.
 	clobberedRegs := map[string]bool{}
 	for _, name := range computeClobbers(callee, g.ar) {
 		clobberedRegs[name] = true
+	}
+	// These cached writes are certified from the fully emitted leaf body.
+	// With no parameters there is no argument shuffle to add hidden writes.
+	if callee != nil && len(inst.Args) == 0 && len(inst.ExtraRets) == 0 {
+		if exact, ok := g.clobberCache[callee.Name]; ok {
+			clobberedRegs = exact
+		}
 	}
 
 	// The declaration describes the callee, not the argument shuffle. Include

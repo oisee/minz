@@ -117,7 +117,7 @@ func variantAssemblyKey(asm string) [32]byte {
 	return sha256.Sum256([]byte(b.String()))
 }
 
-const variantCostModel = "z80-loop-max-v1" // unknown trips: 16; unknown arms: max
+const variantCostModel = "z80-loop-max-v2" // unknown trips: 16; unknown arms: max
 
 func variantFor(o Options, name string) FunctionVariant {
 	if v, ok := o.FunctionVariants[name]; ok {
@@ -285,25 +285,41 @@ func compileVariantSearch(source *hir.Module, options ...Options) (Steps, error)
 	}
 	sort.Strings(names)
 	var decisions []VariantDecision
-	recipesChanged := false
 	for _, name := range names {
-		if best.MIR2Module.FuncByName(name) == nil {
-			continue
-		} // inlined or pruned
-		current := variantFor(o, name)
-		d := VariantDecision{Function: name, Recipe: current, Model: variantCostModel}
-		oldCost, supported := image.score(best.MIR2Module.FuncByName(name))
-		if o.OptSize {
-			oldCost = int64(len(image.binary))
+		f := best.MIR2Module.FuncByName(name)
+		if f == nil {
+			continue // inlined or pruned
 		}
-		d.Before, d.After = oldCost, oldCost
+		cost, supported := image.score(f)
+		if o.OptSize {
+			cost = int64(len(image.binary))
+		}
+		d := VariantDecision{Function: name, Recipe: variantFor(o, name), Model: variantCostModel, Before: cost, After: cost}
 		if !o.OptSize && !supported {
 			d.Rejected = []string{"baseline cost unsupported"}
-			decisions = append(decisions, d)
-			continue
 		}
-		// One serial deterministic coordinate sweep, within the module-wide cap.
-		for axis := 0; axis < 4; axis++ {
+		decisions = append(decisions, d)
+	}
+	recipesChanged := false
+	// Sweep each lowering axis across the module before optional Grace toggles.
+	// Otherwise cheap early Grace trials can exhaust the cap before a later
+	// function gets even its ordinary-loop alternative. Ordering and cap remain
+	// deterministic; every accepted recipe is still a fresh complete product.
+	for axis := 0; axis < 4; axis++ {
+		for i := range decisions {
+			d := &decisions[i]
+			name := d.Function
+			current := variantFor(o, name)
+			f := best.MIR2Module.FuncByName(name)
+			if f == nil {
+				continue // an earlier complete-module choice may have pruned it
+			}
+			oldCost, supported := image.score(f)
+			if o.OptSize {
+				oldCost = int64(len(image.binary))
+			} else if !supported {
+				continue
+			}
 			candidate := current
 			switch axis {
 			case 0:
@@ -318,12 +334,12 @@ func compileVariantSearch(source *hir.Module, options ...Options) (Steps, error)
 			if candidate == current {
 				continue
 			}
-			if axis < 2 && len(best.MIR2Module.FuncByName(name).StaticLoops) == 0 || axis == 2 && !mirChanges[name] && !recipesChanged {
+			if axis < 2 && len(f.StaticLoops) == 0 || axis == 2 && !mirChanges[name] && !recipesChanged {
 				continue
 			}
 			if searchStats.CandidateCompilations >= searchStats.Limit {
 				searchStats.Exhausted = true
-				break
+				continue
 			}
 			o.FunctionVariants[name] = candidate
 			// These axes affect only HIR/lowering before MIR optimization. Exact
@@ -360,7 +376,7 @@ func compileVariantSearch(source *hir.Module, options ...Options) (Steps, error)
 				trialImage, e = assembleVariant(trial)
 				if e != nil {
 					reason = "assembly unsupported"
-				} else if !image.sameContext(trialImage, name) {
+				} else if !image.sameContext(trialImage, name, sameVariantEntryABI(best.MIR2Module, trial.MIR2Module, name)) {
 					reason = "changed boundary/caller/context"
 				}
 			}
@@ -389,7 +405,6 @@ func compileVariantSearch(source *hir.Module, options ...Options) (Steps, error)
 			}
 			o.FunctionVariants[name] = current
 		}
-		decisions = append(decisions, d)
 	}
 	best.VariantDecisions = decisions
 	best.VariantSearch = searchStats
@@ -439,6 +454,39 @@ func finishVariantSearch(h *hir.Module, s Steps, mode string) (Steps, error) {
 		}
 	}
 	return s, nil
+}
+
+// Only an unreferenced entry with the same logical signature can change its
+// allocated entry registers. Fixed/explicit conventions retain the strict gate.
+func sameVariantEntryABI(before, after *mir2.Module, name string) bool {
+	for _, m := range []*mir2.Module{before, after} {
+		for _, f := range m.Funcs {
+			if f.Attrs.HasAsm {
+				return false // opaque assembly may reference the entry through aliases
+			}
+			for _, block := range f.Blocks {
+				for _, inst := range block.Insts {
+					if inst.Op == mir2.OpAsm || inst.Sym == name {
+						return false
+					}
+				}
+			}
+		}
+	}
+	a, b := before.FuncByName(name), after.FuncByName(name)
+	if a == nil || b == nil || a.Attrs.HasAsm || b.Attrs.HasAsm || a.Attrs.FixedIndirectABI || b.Attrs.FixedIndirectABI || a.Attrs.IsExtern || b.Attrs.IsExtern || a.Attrs.FallibleCY || b.Attrs.FallibleCY {
+		return false
+	}
+	if len(a.Contract.StructReturnBuffers) != 0 || len(b.Contract.StructReturnBuffers) != 0 || len(a.Contract.Params) != len(b.Contract.Params) || !reflect.DeepEqual(a.Contract.Returns, b.Contract.Returns) {
+		return false
+	}
+	for i, p := range a.Contract.Params {
+		q := b.Contract.Params[i]
+		if p.ClassHard || q.ClassHard || !reflect.DeepEqual(p.Ty, q.Ty) {
+			return false
+		}
+	}
+	return true
 }
 
 func sameVariantLoops(a, b *mir2.Func) bool {

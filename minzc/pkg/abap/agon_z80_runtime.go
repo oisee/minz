@@ -92,6 +92,15 @@ func BindAgonZ80Runtime(m *hir.Module) error {
 	if err := visit("main"); err != nil {
 		return err
 	}
+	// Provider entry points can be invoked independently of the report. Keep
+	// their supported runtime dependencies during platform binding as well.
+	for _, f := range m.Funcs {
+		if f.ReferencedByName {
+			if err := visit(f.Name); err != nil {
+				return err
+			}
+		}
+	}
 	funcs := m.Funcs[:0]
 	for _, f := range m.Funcs {
 		if live[f.Name] {

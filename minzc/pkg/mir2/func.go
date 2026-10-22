@@ -82,6 +82,11 @@ type Return struct {
 // IsLeaf and IsRecursive are computed by analysis; the rest are set during
 // code generation from the source AST.
 type FuncAttrs struct {
+	// Private is positive frontend proof of module-local linkage.
+	Private bool `json:",omitempty"`
+	// ReferencedByName is an external entry even without an IR call/address edge.
+	// It overrides Private and must survive inlining and reachability pruning.
+	ReferencedByName bool `json:",omitempty"`
 	// FixedIndirectABI fixes canonical physical parameters for address-taken
 	// functions; contract classes alone are allocator preferences.
 	FixedIndirectABI bool `json:",omitempty"`

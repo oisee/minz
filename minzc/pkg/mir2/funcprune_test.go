@@ -39,3 +39,29 @@ func TestPruneUnreachableFuncsBoundIntrinsicAndConditionalCall(t *testing.T) {
 		}
 	}
 }
+
+// MIR-only producers must not need a parallel HIR root to protect an entry.
+func TestPruneUnreachableFuncsNamedEntry(t *testing.T) {
+	m := &Module{Funcs: []*Func{
+		{Name: "provider", Attrs: FuncAttrs{Private: true, ReferencedByName: true}, Blocks: []*Block{{Insts: []*Inst{{Op: OpCall, Sym: "dependency"}}}}},
+		{Name: "dependency"}, {Name: "dead"},
+	}}
+	if !PruneUnreachableFuncs(m, nil) || len(m.Funcs) != 2 || m.FuncByName("provider") == nil || m.FuncByName("dependency") == nil {
+		t.Fatal("name-based entry or its dependency pruned")
+	}
+}
+
+func TestCPMRuntimeClosureNamedEntry(t *testing.T) {
+	m := &Module{Funcs: []*Func{
+		{Name: "main"},
+		{Name: "provider", Attrs: FuncAttrs{Private: true, ReferencedByName: true}, Blocks: []*Block{{Insts: []*Inst{{Op: OpCall, Sym: "dependency"}}}}},
+		{Name: "dependency"}, {Name: "dead"},
+	}}
+	linked, err := cpmRuntimeClosure(m, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(m.Funcs) != 4 || len(linked.Funcs) != 3 || linked.FuncByName("provider") == nil || linked.FuncByName("dependency") == nil {
+		t.Fatal("runtime closure discarded named entry or modified source")
+	}
+}

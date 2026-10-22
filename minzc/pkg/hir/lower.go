@@ -590,6 +590,8 @@ func lowerFunc(m *mir2.Module, f *Func) {
 
 func lowerFuncWithFuncNames(m *mir2.Module, f *Func, funcNames map[string]bool, hirFuncs map[string]*Func, lineage map[Stmt]LoopLineage, opts LowerOptions) {
 	mf := m.AddFunc(f.Name)
+	mf.Attrs.Private = f.Private
+	mf.Attrs.ReferencedByName = f.ReferencedByName
 	mf.Attrs.FallibleCY = f.FallibleCY
 	if f.IsExtern {
 		mf.Attrs.IsExtern = true

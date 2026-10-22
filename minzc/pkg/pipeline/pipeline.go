@@ -146,6 +146,7 @@ type Options struct {
 
 	// Internal baseline compilation for the affine-pointer size comparison.
 	disableAffinePointers bool
+	disableExportCopies   bool
 	// Backend selects the codegen backend: "z80" (default), "ez80".
 	// When "ez80", the pipeline generates eZ80 ADL assembly instead of Z80.
 	Backend string
@@ -310,11 +311,55 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 	return compileMIRSteps(hm, opt, s, splitInfo, m)
 }
 
+// Compile alternatives without executing user assertions. Only the selected
+// product owns assertion execution and its invocation-local receipt.
+func compileMIRSteps(hm *hir.Module, opt Options, s Steps, splitInfo map[string]hir.SplitResult, m *mir2.Module) (Steps, error) {
+	s, err := compileMIRProductSteps(hm, opt, s, splitInfo, m)
+	if err != nil {
+		return s, err
+	}
+	m = s.MIR2Module
+	// MIR2 VM assertion checks (skip "z80"-only asserts).
+	if opt.AssertMode != "z80" && opt.AssertMode != "none" {
+		if err := RunAssertsMIR2(hm, m); err != nil {
+			return s, err
+		}
+	}
+	if !opt.SkipZ80Emission || NeedsZ80Asserts(hm, opt.AssertMode) {
+		// Z80 binary assertion checks (skip for eZ80 — different encoding).
+		if opt.Backend != "ez80" && opt.AssertMode != "mir2" && opt.AssertMode != "none" && opt.AssertMode != "wasm" {
+			if err := RunAssertsZ80(hm, m, s.Allocation, s.Assembly); err != nil {
+				return s, err
+			}
+		}
+	}
+	// WASM assertion checks — only when explicit "via wasm" or --asserts-force wasm.
+	if opt.AssertMode == "wasm" {
+		if err := mir2wasm.RunAsserts(hm, m, true); err != nil {
+			return s, err
+		}
+	}
+
+	// LLVM assertion checks — only when explicit "via llvm" or --asserts-force llvm.
+	if opt.AssertMode == "llvm" {
+		if err := mir2llvm.RunAsserts(hm, m, true); err != nil {
+			return s, err
+		}
+	}
+
+	return s, nil
+}
+
 // The size baseline starts at the same lowered HIR, without repeating source
 // transformations or profile selection. Both alternatives run the full MIR,
 // contract, allocation and codegen pipeline, so spills count toward the gate.
-func compileMIRSteps(hm *hir.Module, opt Options, s Steps, splitInfo map[string]hir.SplitResult, m *mir2.Module) (Steps, error) {
+func compileMIRProductSteps(hm *hir.Module, opt Options, s Steps, splitInfo map[string]hir.SplitResult, m *mir2.Module) (Steps, error) {
 	initialSteps := s
+	inlineStats := &mir2.SingleCallInlineStats{DisableExportCopies: opt.disableExportCopies || opt.Backend != "" && opt.Backend != "z80" || opt.SkipZ80Emission}
+	mir2.InlineSingleCallSites(m, functionPruneRoots(hm), inlineStats)
+	for _, f := range m.Funcs {
+		mir2.EliminateDeadGlobalLoads(m, f)
+	}
 	s.Traces = make(map[string]*FuncTrace)
 	affineChanged := false
 	var err error
@@ -427,8 +472,14 @@ func compileMIRSteps(hm *hir.Module, opt Options, s Steps, splitInfo map[string]
 		if opt.OptSize {
 			mir2.MergeConstantReturnTails(f)
 		}
+		if opt.Backend == "" || opt.Backend == "z80" {
+			mir2.ReuseAdjacentPointers(f)
+		}
 		if opt.FuseByteWords {
 			mir2.FuseSequentialByteWords(f)
+		}
+		if opt.Backend == "" || opt.Backend == "z80" {
+			mir2.PackBytePairs(f)
 		}
 		// Re-count cond_ret after optimization (CondRetSink creates them)
 		tr.CondRets = 0
@@ -505,13 +556,6 @@ func compileMIRSteps(hm *hir.Module, opt Options, s Steps, splitInfo map[string]
 	}
 	s.Allocation = combined
 
-	// MIR2 VM assertion checks (skip "z80"-only asserts).
-	if opt.AssertMode != "z80" && opt.AssertMode != "none" {
-		if err := RunAssertsMIR2(hm, m); err != nil {
-			return s, err
-		}
-	}
-
 	if !opt.SkipZ80Emission || NeedsZ80Asserts(hm, opt.AssertMode) {
 		// Generate the complete production module, including runtime routines.
 		for _, f := range m.Funcs {
@@ -579,25 +623,26 @@ func compileMIRSteps(hm *hir.Module, opt Options, s Steps, splitInfo map[string]
 				"__agon_entry:\n    PUSH IY\n    CALL main\n    POP IY\n    LD HL, 0\n    RET\n\n" + s.Assembly
 		}
 
-		// Z80 binary assertion checks (skip for eZ80 — different encoding).
-		if opt.Backend != "ez80" && opt.AssertMode != "mir2" && opt.AssertMode != "none" && opt.AssertMode != "wasm" {
-			if err := RunAssertsZ80(hm, m, combined, s.Assembly); err != nil {
-				return s, err
-			}
-		}
 	}
 
-	// WASM assertion checks — only when explicit "via wasm" or --asserts-force wasm.
-	if opt.AssertMode == "wasm" {
-		if err := mir2wasm.RunAsserts(hm, m, true); err != nil {
+	// Retained exported bodies make inlining a code-growth tradeoff. Assemble
+	// both real allocated products; never keep a larger exported-copy variant.
+	if inlineStats.ExportCopies > 0 && !opt.disableExportCopies && !opt.SkipZ80Emission && (opt.Backend == "" || opt.Backend == "z80") {
+		baselineOpt := opt
+		baselineOpt.disableExportCopies = true
+		baselineOpt.GraceStats = nil
+		// Mandatory size comparisons must produce complete allocated code even
+		// when a search trial's MIR was seen before.
+		baselineOpt.variantMIRReady = nil
+		baselineModule := hir.LowerModuleWithOptions(hm, hir.LowerOptions{DisableCountedLoops: opt.DisableCountedLoops, CountedLoopPolicy: variantCountedPolicies(opt)})
+		baseline, err := compileMIRProductSteps(hm, baselineOpt, initialSteps, splitInfo, baselineModule)
+		if err != nil {
 			return s, err
 		}
-	}
-
-	// LLVM assertion checks — only when explicit "via llvm" or --asserts-force llvm.
-	if opt.AssertMode == "llvm" {
-		if err := mir2llvm.RunAsserts(hm, m, true); err != nil {
-			return s, err
+		candidateBytes, candidateErrors := Assemble(s.Assembly, "z80")
+		baselineBytes, baselineErrors := Assemble(baseline.Assembly, "z80")
+		if len(candidateErrors) != 0 || len(baselineErrors) != 0 || len(candidateBytes) > len(baselineBytes) {
+			return baseline, nil
 		}
 	}
 
@@ -609,7 +654,7 @@ func compileMIRSteps(hm *hir.Module, opt Options, s Steps, splitInfo map[string]
 		// Refusing it at a cached MIR checkpoint would yield an empty product.
 		baselineOpt.variantMIRReady = nil
 		baselineModule := hir.LowerModuleWithOptions(hm, hir.LowerOptions{DisableCountedLoops: opt.DisableCountedLoops, CountedLoopPolicy: variantCountedPolicies(opt)})
-		baseline, err := compileMIRSteps(hm, baselineOpt, initialSteps, splitInfo, baselineModule)
+		baseline, err := compileMIRProductSteps(hm, baselineOpt, initialSteps, splitInfo, baselineModule)
 		if err != nil {
 			return s, err
 		}
@@ -739,8 +784,14 @@ func CompileHIRWithOptions(hm *hir.Module, opts Options) (string, error) {
 			mir2.RecognizeByteLoops(f)
 		}
 		mir2.StrengthReduceCountedPointers(f)
+		if opts.Backend == "" || opts.Backend == "z80" {
+			mir2.ReuseAdjacentPointers(f)
+		}
 		if opts.FuseByteWords {
 			mir2.FuseSequentialByteWords(f)
+		}
+		if opts.Backend == "" || opts.Backend == "z80" {
+			mir2.PackBytePairs(f)
 		}
 	}
 
@@ -1866,7 +1917,7 @@ func functionPruneRoots(hm *hir.Module) map[string]bool {
 		// Root explicit user-declared functions from the current module.
 		// Imported module functions and compiler-generated helpers are kept only
 		// when reachable from these roots, asserts, or address-taken edges.
-		if !f.Internal && isUserFacingPruneRoot(f.Name) {
+		if f.ReferencedByName || !f.Private && !f.Internal && isUserFacingPruneRoot(f.Name) {
 			roots[f.Name] = true
 		}
 	}

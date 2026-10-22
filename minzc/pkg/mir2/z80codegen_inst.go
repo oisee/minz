@@ -12,6 +12,9 @@ import (
 // ── Instructions ──────────────────────────────────────────────────────────────
 
 func (g *z80cg) genInst(inst *Inst) {
+	if g.widenedByteAdds[inst] {
+		return
+	}
 	// Instructions merged into a page-aligned LUT load are skipped here;
 	// their code is emitted by the Load case below.
 	if g.lutSkip[inst.Dst] {
@@ -32,6 +35,16 @@ func (g *z80cg) genInst(inst *Inst) {
 	if inst.Op != OpStore && g.globalFieldSkip[inst.Dst] {
 		return
 	}
+
+	// Suppressed immediates do not write their allocated home. In particular,
+	// they must not evict a relocated load before its immediate consumer.
+	if inst.Op == OpConst && g.deadConsts[inst.Dst] && g.loc(inst.Dst) != "F" {
+		if !g.blockParamRegs[inst.Dst] {
+			g.constVals[inst.Dst] = inst.Imm
+		}
+		return
+	}
+	g.preferByteLoadStepHome(inst)
 
 	// Scratch relocations of A are instruction-local. Return them to their
 	// allocated home before another instruction can allocate that scratch. A dead
@@ -419,7 +432,12 @@ func (g *z80cg) genInst(inst *Inst) {
 		g.lastFlagsRhs = ""
 		g.genShift("SRA", inst)
 
+	case OpPackBytes:
+		g.genPackBytes(inst)
 	case OpExt:
+		if g.genWideningByteAdd(inst) {
+			return
+		}
 		// Zero-extend srcTy → Ty.  Primary case: u8 → u16 into HL.
 		// genExt may emit XOR (flag-clobbering) — clear to be safe.
 		g.lastFlagsLhs = ""

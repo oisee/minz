@@ -95,8 +95,26 @@ func TestFAT12BytePackingRetainsNativeAccessesAndWrap(t *testing.T) {
 	if !strings.Contains(selected, "pack disjoint byte lanes") {
 		t.Fatal("actual unchanged helper did not pack", selected)
 	}
-	// Exact prior production final-OR sequence; all earlier source operations unchanged.
-	baseline := strings.Replace(selected, "    LD L, C    ; pack disjoint byte lanes", "    LD A, H\n    OR B\n    LD H, A\n    LD A, L\n    OR C\n    LD L, A", 1)
+	// Recorded original unfused helper from origin/main. Keep an independent
+	// native oracle even when MIR packing removes the old intermediate words.
+	baseline := `ld_word:
+    LD C, (HL)
+    LD B, 0
+    LD DE, 1
+    ADD HL, DE
+    LD D, (HL)
+    LD L, D
+    LD H, 0
+    LD H, L
+    LD L, 0
+    LD A, H
+    OR B
+    LD H, A
+    LD A, L
+    OR C
+    LD L, A
+    RET
+`
 	selectedBin, err := z80asm.NewAssembler().AssembleString("ORG 1024\n" + selected)
 	if err != nil || len(selectedBin.Errors) > 0 {
 		t.Fatal(err, selectedBin.Errors)
@@ -151,7 +169,7 @@ func TestFAT12BytePackingRetainsNativeAccessesAndWrap(t *testing.T) {
 	a, _ := z80asm.NewAssembler().AssembleString(selected)
 	b, _ := z80asm.NewAssembler().AssembleString(baseline)
 	t.Logf("unchanged fat12 ld_word %d exhaustive selected VM/native cases incl ffff wrap; ordered reads and denied-second prefix PASS; helper %d→%d T/%d→%d B", cases, baseT, selectedT, len(b.Binary), len(a.Binary))
-	if baseT-selectedT != 20 || len(b.Binary)-len(a.Binary) != 5 {
+	if baseT-selectedT != 45 || len(b.Binary)-len(a.Binary) != 12 {
 		t.Fatal("unexpected measured delta", baseT, selectedT)
 	}
 	if dir := os.Getenv("MINZ_BYTE_PACK_ARTIFACTS"); dir != "" {
