@@ -34,7 +34,7 @@ def check(rows, limit=1.05, output=sys.stdout):
             raise ValueError(f'workload mismatch: {case}/{profile}')
         ratio = nanz['TotalT'] / c['TotalT']
         tuple_row = index.get(('nanz-tuple', profile, case))
-        tuple_ratio = '—'
+        tuple_ratio = 'n/a'
         if tuple_row is not None:
             if tuple_row.get('Status') != 'PASS' or tuple_row.get('TotalT', 0) <= 0:
                 failed = True
@@ -45,6 +45,8 @@ def check(rows, limit=1.05, output=sys.stdout):
                 tuple_ratio = f"{nanz['TotalT'] / tuple_row['TotalT']:.4f}×"
         status = 'FAIL' if ratio > limit or tuple_ratio == 'FAIL' else 'PASS'
         failed |= status == 'FAIL'
+        if status == 'PASS' and tuple_row is None:
+            status = 'PASS (C only; tuple n/a)'
         print(f'| {case} | {profile} | {ratio:.4f}× | {tuple_ratio} | {status} |', file=output)
     return int(failed)
 

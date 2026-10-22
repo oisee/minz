@@ -37,6 +37,11 @@ class ParityTest(unittest.TestCase):
         rows.append(dict(rows[0], Case='missing_idiom'))
         self.assertEqual(parity.check(rows, output=io.StringIO()), 1)
 
+    def test_missing_tuple_is_not_a_tuple_pass(self):
+        output = io.StringIO()
+        self.assertEqual(parity.check(self.rows()[:2], output=output), 0)
+        self.assertIn('1.0500× | n/a | PASS (C only; tuple n/a)', output.getvalue())
+
     def test_requires_idioms_and_unique_measurements(self):
         with self.assertRaisesRegex(ValueError, 'no idiomatic'):
             parity.check([], output=io.StringIO())

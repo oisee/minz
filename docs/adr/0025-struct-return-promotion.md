@@ -16,8 +16,10 @@ pointer/out-parameter recognition stays C-specific. Typed address-based paramete
 are scalarized only for read-only bodies without calls or writes, with direct,
 materialized arguments and no effectful sibling arguments; mutation and escape
 retain storage rather than acquiring C-copy semantics. Captures, partial/repeated
-literals and explicit layouts retain the conservative memory path. Typed return
-initializers are materialized in source order before tuple extraction, preserving
+literals and explicit layouts retain the conservative memory path. Explicit
+register/SMC parameter annotations retain their original ABI. Until P36 fixes
+Z80 multi-bool tuple returns, typed scalarization also excludes any bool field
+beyond the first two tuple slots. Typed return initializers are materialized in source order before tuple extraction, preserving
 effects and field-width conversion. Actual result transfers depend on compatible
 caller/callee contracts; zero moves are a possible result, not a guarantee.
 
@@ -249,8 +251,10 @@ typedef struct { u8 a, b, c, d, e; } Big;  // >4 bytes, won't fit registers
 - Recursive functions excluded in v1
 
 ### Neutral
-- Only affects C frontend — Nanz/Lanz/Pascal already use tuple returns natively
-- Whole new code is in C frontend analysis pass, no backend changes
+- Linked typed aggregate admission applies across frontends; legacy C adapters stay C-specific.
+- MIR2 single-bit canonicalization is also shared: C spellings such as `(x & 128) == 128`
+  can change emitted code. Byte-identical output on a measured C corpus is not a
+  guarantee for arbitrary C inputs.
 
 ## Effort Estimate
 
