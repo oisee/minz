@@ -67,7 +67,7 @@ func InlineSingleCallSites(m *Module, exported map[string]bool, stats ...*Single
 	}
 	eligible := map[string]*Func{}
 	for _, f := range m.Funcs {
-		if counts[f.Name] != 1 || address[f.Name] || f.Attrs.FixedIndirectABI || f.Attrs.IsExtern || f.Attrs.IsRecursive || f.Attrs.FallibleCY || len(f.Contract.StructReturnBuffers) > 0 || len(f.Blocks) == 0 || len(f.Entry().Params) > 0 || recursive(f.Name) {
+		if counts[f.Name] != 1 || address[f.Name] || f.Attrs.FixedIndirectABI || f.Attrs.IsExtern || f.Attrs.IsComptime || f.Attrs.IsRecursive || f.Attrs.FallibleCY || len(f.Contract.StructReturnBuffers) > 0 || len(f.Blocks) == 0 || len(f.Entry().Params) > 0 || recursive(f.Name) {
 			continue
 		}
 		safe := true
@@ -125,7 +125,7 @@ func InlineSingleCallSites(m *Module, exported map[string]bool, stats ...*Single
 			for _, block := range caller.Blocks {
 				for index, call := range block.Insts {
 					callee := eligible[call.Sym]
-					if call.Op != OpCall || callee == nil || caller == callee || call.CallAttr.IsHost || len(call.Args) != len(callee.Contract.Params) {
+					if call.Op != OpCall || callee == nil || caller == callee || call.CallAttr.IsHost || call.CallAttr.IsComptime || len(call.Args) != len(callee.Contract.Params) {
 						continue
 					}
 					pendingDependency := false

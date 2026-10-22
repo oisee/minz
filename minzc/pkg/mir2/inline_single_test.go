@@ -6,10 +6,11 @@ import (
 )
 
 func TestSingleCallSiteProofBoundaries(t *testing.T) {
-	for _, kind := range []string{"private", "exported", "twice", "recursive", "address", "relocation", "asm"} {
+	for _, kind := range []string{"private", "comptime", "comptime-call", "exported", "twice", "recursive", "address", "relocation", "asm"} {
 		t.Run(kind, func(t *testing.T) {
 			m := &Module{}
 			f := m.AddFunc("helper")
+			f.Attrs.IsComptime = kind == "comptime"
 			b := NewBuilder(f)
 			b.SwitchToNewBlock("entry")
 			x := b.Param("x", TyU8, ClassGeneral)
@@ -39,7 +40,7 @@ func TestSingleCallSiteProofBoundaries(t *testing.T) {
 			if kind == "twice" {
 				c.Call("helper", []Reg{arg}, TyU8, ClassAcc, CallAttrs{})
 			}
-			result := c.Call("helper", []Reg{arg}, TyU8, ClassAcc, CallAttrs{})
+			result := c.Call("helper", []Reg{arg}, TyU8, ClassAcc, CallAttrs{IsComptime: kind == "comptime" || kind == "comptime-call"})
 			c.Ret(result)
 			caller.Contract.Returns = f.Contract.Returns
 			roots := map[string]bool{"caller": true}
