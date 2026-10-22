@@ -130,3 +130,40 @@ func TestByteScanZeroCPIRNative(t *testing.T) {
 		}
 	}
 }
+
+func TestByteFillLDIRNative(t *testing.T) {
+	for _, language := range []string{"c", "nanz"} {
+		for _, mode := range []string{"default", "size", "grace"} {
+			for _, form := range []string{"index", "pointer"} {
+				t.Run(language+"/"+mode+"/"+form, func(t *testing.T) {
+					var source string
+					if language == "c" {
+						body := `unsigned short i;for(i=0;i<count;i++)p[i]=v;return i;`
+						if form == "pointer" {
+							body = `unsigned short i;for(i=0;i<count;i++){*p=v;p++;}return i;`
+						}
+						source = byteLoopCGlobals + `unsigned short fill(unsigned char *p,unsigned short count,unsigned char v){` + body + `}void execute(void){result=fill(buffer+dst_off,n,value);}`
+					} else {
+						body := "var i:u16=0\nwhile i<count {p[i]=v\ni=i+1}\nreturn i"
+						if form == "pointer" {
+							body = "var i:u16=0\nwhile i<count {p^=v\np=p+1\ni=i+1}\nreturn i"
+						}
+						source = byteLoopNanzGlobals + "fun fill(p:^u8,count:u16,v:u8)->u16 {" + body + "}\nfun execute(){result=fill(&buffer+dst_off,n,value)}"
+					}
+					var cases []byteLoopCase
+					for _, n := range []int{0, 1, 2, 255, 256, 2047} {
+						for _, v := range []byte{0, 0x81, 0xff} {
+							initial := bytes.Repeat([]byte{0x5a}, 4096)
+							want := bytes.Clone(initial)
+							for i := 0; i < n; i++ {
+								want[17+i] = v
+							}
+							cases = append(cases, byteLoopCase{initial: initial, want: want, dst: 17, n: n, value: v, result: n})
+						}
+					}
+					byteLoopNative(t, language, mode, source, "LDIR", cases)
+				})
+			}
+		}
+	}
+}

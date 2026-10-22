@@ -185,6 +185,19 @@ func AnalyzeNaturalLoops(f *Func) []*NaturalLoop {
 				}
 			}
 		}
+		// Edge arguments into an exit block are escaping uses too, even when the
+		// exit block immediately renames them to new SSA parameters.
+		for _, b := range l.Exits {
+			b.Term.ForEachEdge(func(target string, args []Reg, _ int) {
+				if !l.Blocks[target] {
+					for _, r := range args {
+						if d := defs[r]; d != nil && l.Blocks[d.Label] {
+							l.LiveOut[r] = true
+						}
+					}
+				}
+			})
+		}
 		// A conditional return is itself an exit and can observe loop SSA values.
 		for _, b := range l.Exits {
 			if t, ok := b.Term.(*TermCondRet); ok {

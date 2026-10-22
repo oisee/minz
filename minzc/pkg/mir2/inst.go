@@ -167,6 +167,9 @@ func (inst *Inst) Uses() []Reg {
 		// no uses (pops from implicit stack)
 		return nil
 	case OpCall:
+		if inst.ByteLoop != nil {
+			return filterNoReg(inst.Args...)
+		}
 		return inst.Args
 	case OpCallCond:
 		// Both the branch predicate and every argument are live uses.

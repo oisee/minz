@@ -20,6 +20,7 @@
     "TestBoolStructAddressableFieldsNative",
     "TestBoolWideExtensionSourceNative",
     "TestByteAbsDiffCFGNativeCAndNanz",
+    "TestByteFillLDIRNative",
     "TestByteLoadSpillKeepsLiveAccumulator",
     "TestByteLowBitBeforeShiftNativeVM",
     "TestBytePackSourceCallAndConditionNative",

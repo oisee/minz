@@ -3,6 +3,9 @@ package mir2
 import "fmt"
 
 func (vm *VM) execByteLoop(fr *frame, x *Inst) error {
+	if x.Sym == fillBytesIntrinsic {
+		return vm.execFillBytes(fr, x)
+	}
 	if x.Sym != scanZeroIntrinsic || x.ByteLoop == nil || x.ByteLoop.Load == nil || len(x.Args) != 1 {
 		return fmt.Errorf("invalid byte scan")
 	}
@@ -38,4 +41,54 @@ func (vm *VM) execByteLoop(fr *frame, x *Inst) error {
 		fr.set(x.Dst, Value{I: length})
 	}
 	return nil
+}
+
+// Each byte is authorized and committed separately, retaining the successful
+// prefix on faults. Symbol reloads preserve the original header/body traffic.
+func (vm *VM) byteLoopAccess(x *Inst, addr int64, value byte) (byte, error) {
+	if !vm.wrappedHeapRangeValid(addr, 1, 65535) {
+		return 0, fmt.Errorf("byte loop: out-of-bounds address %d", addr)
+	}
+	if vm.CheckDataAccess != nil {
+		if e := vm.CheckDataAccess(x, addr); e != nil {
+			return 0, e
+		}
+	}
+	if x.Op == OpLoad {
+		value = vm.heap[int(addr)]
+	} else {
+		vm.heap[int(addr)] = value
+	}
+	if vm.ObserveDataAccess != nil {
+		vm.ObserveDataAccess(VMDataAccess{Op: x.Op, Addr: addr, Value: value})
+	}
+	return value, nil
+}
+func (vm *VM) execFillBytes(fr *frame, x *Inst) error {
+	e := x.ByteLoop
+	dst := fr.get(x.Args[0]).I
+	count := fr.get(x.Args[1]).I
+	value := byte(fr.get(x.Args[2]).I)
+	for i := int64(0); ; i++ {
+		if e.CountLoad != nil {
+			v, err := vm.byteLoopAccess(e.CountLoad, vm.GlobalAddr(e.CountSymbol), 0)
+			if err != nil {
+				return err
+			}
+			count = int64(v)
+		}
+		if i >= count {
+			return nil
+		}
+		if e.ValueLoad != nil {
+			v, err := vm.byteLoopAccess(e.ValueLoad, vm.GlobalAddr(e.ValueSymbol), 0)
+			if err != nil {
+				return err
+			}
+			value = v
+		}
+		if _, err := vm.byteLoopAccess(e.Store, (dst+i)&65535, value); err != nil {
+			return err
+		}
+	}
 }

@@ -141,3 +141,102 @@ func TestByteScanZeroRefusals(t *testing.T) {
 		})
 	}
 }
+
+func fillLoopFixture(wide bool) (*Module, *Func) {
+	ty := TyU8
+	if wide {
+		ty = TyU16
+	}
+	m := &Module{}
+	f := m.AddFunc("paint")
+	b := NewBuilder(f)
+	entry := b.SwitchToNewBlock("entry")
+	base := b.Param("p", TyPtr, ClassPointer)
+	count := b.Param("n", ty, ClassPair)
+	value := b.Param("v", TyU8, ClassAcc)
+	zero := b.Const(0, ty, ClassGeneral)
+	head := f.NewBlock("head")
+	body := f.NewBlock("body")
+	idx := b.BlockParam(head, ty, ClassGeneral)
+	b.SwitchTo(entry)
+	b.Jmp("head", zero)
+	b.SwitchTo(head)
+	cmp := b.CmpWithSrcTy(CmpUlt, idx, count, ClassFlag, false, ty)
+	head.Term = &TermCondRet{Cond: cmp, Then: "body", Vals: []Reg{idx}}
+	b.SwitchTo(body)
+	addr := b.PtrAdd(base, idx, ClassPointer)
+	b.Store(addr, value, TyU8)
+	one := b.Const(1, ty, ClassGeneral)
+	next := b.Add(idx, one, ty, ClassGeneral)
+	b.Jmp("head", next)
+	f.Contract.Returns = []Return{{Ty: ty, Class: ClassAcc}}
+	return m, f
+}
+func TestByteFillVMZeroWrapAndFault(t *testing.T) {
+	for _, wide := range []bool{false, true} {
+		for _, count := range []int{0, 1, 2, 255, 256, 4096, 65535} {
+			if !wide && count > 255 {
+				continue
+			}
+			for _, denied := range []bool{false, true} {
+				m, f := fillLoopFixture(wide)
+				type observation struct {
+					values []Value
+					events []VMDataAccess
+					ram    []byte
+					failed bool
+				}
+				run := func() observation {
+					vm := NewVM(m)
+					vm.MaxSteps = 2000000
+					vm.heap = bytes.Repeat([]byte{0x5a}, 65536)
+					var o observation
+					vm.ObserveDataAccess = func(a VMDataAccess) { o.events = append(o.events, a) }
+					vm.CheckDataAccess = func(x *Inst, a int64) error {
+						if x.Op != OpStore || x.Ty != TyU8 {
+							t.Fatal("unexpected byte operation")
+						}
+						if denied && a == 0 {
+							return &MemoryFaultForTest{}
+						}
+						return nil
+					}
+					v, e := vm.Call("paint", []Value{{I: 65535}, {I: int64(count)}, {I: 0xd3}})
+					o.values = v
+					o.failed = e != nil
+					o.ram = bytes.Clone(vm.heap)
+					return o
+				}
+				before := run()
+				if RecognizeByteLoops(f) != 1 {
+					t.Fatal("fill not recognized", wide, count)
+				}
+				if e := Verify(m); e != nil {
+					t.Fatal(e)
+				}
+				after := run()
+				if !reflect.DeepEqual(before, after) {
+					t.Fatalf("fill changed wide=%v count=%d denied=%v", wide, count, denied)
+				}
+				if count == 0 && len(after.events) != 0 {
+					t.Fatal("zero count accessed memory")
+				}
+			}
+		}
+	}
+}
+func TestByteFillRejectsAliasedReload(t *testing.T) {
+	m, f := fillLoopFixture(false)
+	body := f.BlockByLabel("body")
+	value := f.AllocReg()
+	body.Insts = append([]*Inst{{Op: OpLoad, Dst: value, Src: [2]Reg{f.Contract.Params[0].Reg}, Ty: TyU8}}, body.Insts...)
+	for _, x := range body.Insts {
+		if x.Op == OpStore {
+			x.Src[1] = value
+		}
+	}
+	before := m.Dump()
+	if RecognizeByteLoops(f) != 0 || m.Dump() != before {
+		t.Fatal("aliasing value reload admitted")
+	}
+}
