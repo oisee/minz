@@ -1,0 +1,52 @@
+{
+  "cases": [
+    {
+      "file": "fusion_dot_product.nanz",
+      "sha256": "70b3abe8b73fef1544a15655f9f619a4dd9f1e37cdf40bda810653591bca1a0a",
+      "workload": "workloads/fusion_dot_product.json",
+      "workload_sha256": "2412bf1b449bd48bde2524363a46966d0562652488ba54ccd69ce412c7767e6b"
+    },
+    {
+      "file": "fusion_filter_count.nanz",
+      "sha256": "a5b1369ad1a828d9bb7d5150d98e97fda98cba839b383a40265a6d56da2633db",
+      "workload": "workloads/fusion_filter_count.json",
+      "workload_sha256": "17c1a6614da22ec9505dbb7bb62899efbbe3bd12872887064cd3c808984519ce"
+    },
+    {
+      "file": "fusion_filter_map_sum.nanz",
+      "sha256": "49079a95efe5ce19d1f16fdc53b8de06536c4cab1267fd4f76663f53db8e6d75",
+      "workload": "workloads/fusion_filter_map_sum.json",
+      "workload_sha256": "c3aa72caf15785a4809899eed93254576f9508be7448967ff17a7647d14454e5"
+    },
+    {
+      "file": "fusion_fold_max.nanz",
+      "sha256": "0a6bd3a331ef1b07008307ec5b6e6a0fb0c0ec9df6c34fe4a1862bfdd66a724c",
+      "workload": "workloads/fusion_fold_max.json",
+      "workload_sha256": "470b9ee2442f14119b52d301c43b4a2f0897f99ad914636d4101e06d9d4b727c"
+    },
+    {
+      "file": "fusion_fold_min.nanz",
+      "sha256": "8cf76327a6ca3ed1caafb45d4209ebbfda28c8a3f9ccda37e4470bb44b20b457",
+      "workload": "workloads/fusion_fold_min.json",
+      "workload_sha256": "31cc8ec9689cbee968ea8a53aeb613ecce908cea585b97d56ced923c750a0cad"
+    },
+    {
+      "file": "fusion_map_filter_sum.nanz",
+      "sha256": "a00af87db0976f78b82ed753354412c8ef501d41705f66ca1e573cfa8a66241f",
+      "workload": "workloads/fusion_map_filter_sum.json",
+      "workload_sha256": "3d3719a4bd2fc1fe20d8f13deb28b27ad29c9470b2baf7b9f1d7c78b85f3d3c6"
+    },
+    {
+      "file": "fusion_map_store.nanz",
+      "sha256": "3c7cbcd53be54ed429c585af1864fc7f57b8b7012d5c0e913277a945afafa053",
+      "workload": "workloads/fusion_map_store.json",
+      "workload_sha256": "3c6b50b052d361bfdc639d0852c5a3b7d4cc53de5816411014d17898db206f6f"
+    },
+    {
+      "file": "fusion_window_sum.nanz",
+      "sha256": "b720507774759867d27040145087eb8af1687242987263cbd7b089547a40101e",
+      "workload": "workloads/fusion_window_sum.json",
+      "workload_sha256": "67a02381ac61acc882d6eeced353795fa5e225396e2bd4e46eefbe8453f454c8"
+    }
+  ]
+}

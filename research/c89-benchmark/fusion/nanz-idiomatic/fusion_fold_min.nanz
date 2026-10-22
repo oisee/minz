@@ -1,0 +1,11 @@
+global source: [u8; 256]
+global n: u16
+global result: u16
+fun smaller(a: u8, x: u8) -> u8 {
+    if x < a { return x }
+    return a
+}
+fun execute() {
+    let value: u8 = source.fold(u8(255), smaller, n)
+    result = u16(value)
+}

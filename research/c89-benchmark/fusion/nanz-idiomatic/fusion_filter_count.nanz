@@ -1,0 +1,9 @@
+global source: [u8; 256]
+global n: u16
+global result: u16
+global k: u8
+fun execute() {
+    var count: u16 = 0
+    source.filter(|x: u8| x == k).forEach(|x: u8| { count = count + 1 }, n)
+    result = count
+}

@@ -1,0 +1,72 @@
+Failing-first (driver patch reversed)
+
+--- FAIL: TestFusionBenchmarkCorpus (0.04s)
+    fusion_benchmark_corpus_test.go:28: benchmark driver must expose --suite fusion: <nil>
+        usage: run.py [-h] --out OUT --sdcc-root SDCC_ROOT [--z88dk-root Z88DK_ROOT]
+                      [--go GO] [--jobs JOBS] [--sdcc45-root SDCC45_ROOT]
+                      [--grace-ablation] [--include-nanz] [--include-refs]
+                      [--suite {main,heldout,all}]
+
+        options:
+          -h, --help            show this help message and exit
+          --out OUT
+          --sdcc-root SDCC_ROOT
+          --z88dk-root Z88DK_ROOT
+                                optional; without it the sccz80 profile is skipped
+          --go GO
+          --jobs JOBS
+          --sdcc45-root SDCC45_ROOT
+          --grace-ablation      also measure MIR-only and HIR-only Grace on the
+                                selected suite
+          --include-nanz
+          --include-refs        main-suite Nanz idiom and hand assembly references
+          --suite {main,heldout,all}
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	0.050s
+FAIL
+
+
+Required unit packages
+
+ok  	github.com/minz/minzc/pkg/mir2	111.136s
+ok  	github.com/minz/minzc/pkg/hir	49.703s
+ok  	github.com/minz/minzc/pkg/c89	101.556s
+ok  	github.com/minz/minzc/pkg/nanz	137.263s
+ok  	github.com/minz/minzc/pkg/z80asm	0.078s
+ok  	github.com/minz/minzc/pkg/z80asm/regression	0.008s
+
+
+Focused new and related pipeline tests
+
+ok  	github.com/minz/minzc/pkg/pipeline	1.085s
+
+
+Direct-call 0-499
+
+pass: 500
+MIR2 != oracle: 0
+Z80 != MIR2: 0
+assembly failure: 0
+compiler error: 0
+oracle error: 0
+Passing seeds: 500/500; minimum 95%; mode: direct-call
+
+
+Folded 0-99
+
+pass: 100
+MIR2 != oracle: 0
+Z80 != MIR2: 0
+assembly failure: 0
+compiler error: 0
+oracle error: 0
+Passing seeds: 100/100; minimum 95%; mode: folded
+
+
+CI inventory: PASS, 881 entries, 510 fast, TestFusionBenchmarkCorpus registered; fast list sorted.
+
+git diff --check: PASS.
+
+Main-suite control: all 72 statuses identical; source/workload hashes, calls, bytes and T identical where present; all 48 MinZ rows PASS.
+
+Fusion matrix: 80/80 PASS, 7200 native calls; GCC oracle: 720/720 PASS.

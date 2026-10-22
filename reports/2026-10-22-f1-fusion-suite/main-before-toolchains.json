@@ -1,0 +1,65 @@
+{
+  "minz_commit": "33418f9057450ef422ed349594e0bce408b9c881",
+  "sdcc_version": "SDCC : mcs51/z80/z180/r2k/r2ka/r3ka/sm83/tlcs90/ez80_z80/z80n/ds390/TININative/ds400/hc08/s08/stm8/pdk13/pdk14/pdk15/mos6502 4.2.0 #13081 (Linux)\npublished under GNU General Public License (GPL)",
+  "z88dk_commit": null,
+  "zcc_version": null,
+  "helper_archive_sha256": null,
+  "runner_sha256": "71c44edc561f89cb9a2b7864d1992169019fea91d88690057b28c21a79c77fe4",
+  "driver_sha256": "e4d3f7e89b5df774f871ccf5ea843f57c9f6df9a3234c0904bf58ed5b7ce274d",
+  "suite": "main",
+  "grace_ablation": false,
+  "sources": [
+    {
+      "file": "abs_diff.c",
+      "sha256": "797200976ad2f54c936f593b225328d084ee435e5e91136ba06632103ff28aeb"
+    },
+    {
+      "file": "copy_bytes.c",
+      "sha256": "f86ef9fea5e75ee7360505f1c7c8fb65099907aede479fb67c1949d0b483d2c9"
+    },
+    {
+      "file": "fat12_decode.c",
+      "sha256": "4a7338748721cbacb1766df589a1374358f8e209265a9a64cc43561d72dae050"
+    },
+    {
+      "file": "gcd.c",
+      "sha256": "34cc83bcd467c8d5008df94c60371a3b7bdf16ecab65e5a38ea655878fbc2fdb"
+    },
+    {
+      "file": "struct_roundtrip.c",
+      "sha256": "719ab06cf429dd76e1bcca42e837ec2a64cf7b494ce958a3dae0135074f46689"
+    },
+    {
+      "file": "sum_array.c",
+      "sha256": "38c71b12b18062652cbdc3d21d0a9b6a83d55940d5e8b99b7047390e265647bb"
+    },
+    {
+      "file": "bitwise8reg.c",
+      "sha256": "1d6145189f25832e96c0c14f8c8e1a42c7a293d1e32f45482111de01f3e5fad5"
+    },
+    {
+      "file": "reverse_loop11.c",
+      "sha256": "a9ac60276aaf49d739af9ca668d92440e275bf582f5fb6c8be5b33f775fb04fb"
+    },
+    {
+      "file": "crc8.c",
+      "sha256": "2d46caee09d4f3870c307b058b7250e39e732be68b7bf6d66d5df7a0cd6b6db7"
+    },
+    {
+      "file": "mul8x8.c",
+      "sha256": "0c4ff4825c20396b758c3a5eecb3b2a62cf8035ef2b796eb6c59d376114d5271"
+    },
+    {
+      "file": "strlen_bytes.c",
+      "sha256": "64758eb517619190227f65677f53ab396b896355778768d5773aec5f782bd245"
+    },
+    {
+      "file": "memset_fill.c",
+      "sha256": "6173d2bbbdcd8b8a24267ac5bd379d015d208d7f30493f5a0e6bdeea34f17f4c"
+    }
+  ],
+  "nanz_sources": [],
+  "reference_sources": {},
+  "mza_sha256": null,
+  "nanz_tuple_sources": []
+}

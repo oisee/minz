@@ -125,3 +125,28 @@ high byte of its word (the missing low byte counts as zero); the sum is not comp
 and must not get worse; it is never used to choose or tune a rule. Before/after
 comparisons must use the same compiler set (with or without sccz80/nanz rows).
 `plot_summary.py` and `publish_snapshot.py` still assume the 6-case 2026-10-16 matrix.
+
+## Iterator fusion showcase
+
+`--suite fusion` is a separate eight-case corpus. It leaves `main`, `heldout`,
+and `all` unchanged (`all` still means main + heldout). It automatically adds
+its own idiomatic Nanz default/size/grace and hand Z80 reference rows; neither
+`--include-refs` nor `--include-nanz` is needed. The latter is rejected for
+fusion because it selects the unrelated main Nanz ports.
+
+```sh
+export TMPDIR=/mnt/ssd-510/minz/tmp GOCACHE=/mnt/ssd-510/minz/gocache
+nice -n 19 python3 research/c89-benchmark/run.py \
+  --suite fusion --jobs 4 --sdcc-root ~/opt/sdcc-4.6.0-root \
+  --out /mnt/ssd-510/minz/bench/f1-fusion
+nice -n 19 python3 research/c89-benchmark/check_host.py \
+  --out /mnt/ssd-510/minz/bench/f1-fusion
+```
+
+See [fusion/README.md](fusion/README.md) for contracts, frozen workload format,
+unsupported combinator substitutions, and regeneration policy, and the
+[F1 measurements](../../reports/2026-10-22-f1-fusion-suite.md) for every profile
+and emitted hot loop. Source and workload hashes are checked before compiling;
+all fusion rows must pass for a successful driver exit. The focused Go test
+`TestFusionBenchmarkCorpus` checks frozen identities, boundary coverage, fusion
+shape and every Nanz workload on raw MIR, final MIR and Z80.

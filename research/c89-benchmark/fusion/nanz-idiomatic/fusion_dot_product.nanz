@@ -1,0 +1,13 @@
+global source: [u8; 256]
+global n: u16
+global result: u16
+global other: [u8; 256]
+fun execute() {
+    var sum: u16 = 0
+    var rhs: ^u8 = &other
+    source.forEach(|x: u8| {
+        sum = sum + u16(x) * u16(rhs^)
+        rhs = rhs + 1
+    }, n)
+    result = sum
+}

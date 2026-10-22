@@ -1,0 +1,142 @@
+{
+  "version": "gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+  "results": [
+    {
+      "case": "fusion_dot_product",
+      "calls": 60,
+      "status": "PASS",
+      "source_sha256": "1704fc5eabfe9dee609afc197f86059bb1ad73f20913354ebfadcdf11ba25b88",
+      "command": [
+        "gcc",
+        "-std=c89",
+        "-pedantic-errors",
+        "-O2",
+        "-shared",
+        "-fPIC",
+        "/home/alice/dev/minz/.local/worktrees/F1/research/c89-benchmark/fusion/cases/fusion_dot_product.c",
+        "-o",
+        "/mnt/ssd-510/minz/bench/f1-fusion-v2/host-oracle/fusion_dot_product.so"
+      ]
+    },
+    {
+      "case": "fusion_filter_count",
+      "calls": 180,
+      "status": "PASS",
+      "source_sha256": "63bed2ac1f167b6fd286edb85770f03770789d5a24e54283b6133d34e02cc6e6",
+      "command": [
+        "gcc",
+        "-std=c89",
+        "-pedantic-errors",
+        "-O2",
+        "-shared",
+        "-fPIC",
+        "/home/alice/dev/minz/.local/worktrees/F1/research/c89-benchmark/fusion/cases/fusion_filter_count.c",
+        "-o",
+        "/mnt/ssd-510/minz/bench/f1-fusion-v2/host-oracle/fusion_filter_count.so"
+      ]
+    },
+    {
+      "case": "fusion_filter_map_sum",
+      "calls": 60,
+      "status": "PASS",
+      "source_sha256": "d9d58e148111463d590b37c13b7eb570c9cd4ed19efe8b9afaa99053723a725b",
+      "command": [
+        "gcc",
+        "-std=c89",
+        "-pedantic-errors",
+        "-O2",
+        "-shared",
+        "-fPIC",
+        "/home/alice/dev/minz/.local/worktrees/F1/research/c89-benchmark/fusion/cases/fusion_filter_map_sum.c",
+        "-o",
+        "/mnt/ssd-510/minz/bench/f1-fusion-v2/host-oracle/fusion_filter_map_sum.so"
+      ]
+    },
+    {
+      "case": "fusion_fold_max",
+      "calls": 60,
+      "status": "PASS",
+      "source_sha256": "ab4565d33b72a15ff84c56bd3b770ba991c34fbf79270af8808121947021a04c",
+      "command": [
+        "gcc",
+        "-std=c89",
+        "-pedantic-errors",
+        "-O2",
+        "-shared",
+        "-fPIC",
+        "/home/alice/dev/minz/.local/worktrees/F1/research/c89-benchmark/fusion/cases/fusion_fold_max.c",
+        "-o",
+        "/mnt/ssd-510/minz/bench/f1-fusion-v2/host-oracle/fusion_fold_max.so"
+      ]
+    },
+    {
+      "case": "fusion_fold_min",
+      "calls": 60,
+      "status": "PASS",
+      "source_sha256": "25d8481ef54f86b58346c7ada6edbeb62f87dadb96c9c056d6b63114d09540a8",
+      "command": [
+        "gcc",
+        "-std=c89",
+        "-pedantic-errors",
+        "-O2",
+        "-shared",
+        "-fPIC",
+        "/home/alice/dev/minz/.local/worktrees/F1/research/c89-benchmark/fusion/cases/fusion_fold_min.c",
+        "-o",
+        "/mnt/ssd-510/minz/bench/f1-fusion-v2/host-oracle/fusion_fold_min.so"
+      ]
+    },
+    {
+      "case": "fusion_map_filter_sum",
+      "calls": 60,
+      "status": "PASS",
+      "source_sha256": "d5c3abd932d052e6926b32b26e68246a84b0fde643b1b57faf7f61cd4f863ca4",
+      "command": [
+        "gcc",
+        "-std=c89",
+        "-pedantic-errors",
+        "-O2",
+        "-shared",
+        "-fPIC",
+        "/home/alice/dev/minz/.local/worktrees/F1/research/c89-benchmark/fusion/cases/fusion_map_filter_sum.c",
+        "-o",
+        "/mnt/ssd-510/minz/bench/f1-fusion-v2/host-oracle/fusion_map_filter_sum.so"
+      ]
+    },
+    {
+      "case": "fusion_map_store",
+      "calls": 60,
+      "status": "PASS",
+      "source_sha256": "dd8c6ee329d5b9b27ef7c9e9d0aa01de3166141555e549fc56d2aa0ad3156f69",
+      "command": [
+        "gcc",
+        "-std=c89",
+        "-pedantic-errors",
+        "-O2",
+        "-shared",
+        "-fPIC",
+        "/home/alice/dev/minz/.local/worktrees/F1/research/c89-benchmark/fusion/cases/fusion_map_store.c",
+        "-o",
+        "/mnt/ssd-510/minz/bench/f1-fusion-v2/host-oracle/fusion_map_store.so"
+      ]
+    },
+    {
+      "case": "fusion_window_sum",
+      "calls": 180,
+      "status": "PASS",
+      "source_sha256": "715afe86f847e160f258e2a3f3d86349f5fc2b0d4cf7e40c56a00acf93693ed1",
+      "command": [
+        "gcc",
+        "-std=c89",
+        "-pedantic-errors",
+        "-O2",
+        "-shared",
+        "-fPIC",
+        "/home/alice/dev/minz/.local/worktrees/F1/research/c89-benchmark/fusion/cases/fusion_window_sum.c",
+        "-o",
+        "/mnt/ssd-510/minz/bench/f1-fusion-v2/host-oracle/fusion_window_sum.so"
+      ]
+    }
+  ],
+  "total_calls": 720
+}

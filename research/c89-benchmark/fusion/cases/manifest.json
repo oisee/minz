@@ -1,0 +1,52 @@
+{
+  "cases": [
+    {
+      "file": "fusion_dot_product.c",
+      "sha256": "1704fc5eabfe9dee609afc197f86059bb1ad73f20913354ebfadcdf11ba25b88",
+      "workload": "workloads/fusion_dot_product.json",
+      "workload_sha256": "2412bf1b449bd48bde2524363a46966d0562652488ba54ccd69ce412c7767e6b"
+    },
+    {
+      "file": "fusion_filter_count.c",
+      "sha256": "63bed2ac1f167b6fd286edb85770f03770789d5a24e54283b6133d34e02cc6e6",
+      "workload": "workloads/fusion_filter_count.json",
+      "workload_sha256": "17c1a6614da22ec9505dbb7bb62899efbbe3bd12872887064cd3c808984519ce"
+    },
+    {
+      "file": "fusion_filter_map_sum.c",
+      "sha256": "d9d58e148111463d590b37c13b7eb570c9cd4ed19efe8b9afaa99053723a725b",
+      "workload": "workloads/fusion_filter_map_sum.json",
+      "workload_sha256": "c3aa72caf15785a4809899eed93254576f9508be7448967ff17a7647d14454e5"
+    },
+    {
+      "file": "fusion_fold_max.c",
+      "sha256": "ab4565d33b72a15ff84c56bd3b770ba991c34fbf79270af8808121947021a04c",
+      "workload": "workloads/fusion_fold_max.json",
+      "workload_sha256": "470b9ee2442f14119b52d301c43b4a2f0897f99ad914636d4101e06d9d4b727c"
+    },
+    {
+      "file": "fusion_fold_min.c",
+      "sha256": "25d8481ef54f86b58346c7ada6edbeb62f87dadb96c9c056d6b63114d09540a8",
+      "workload": "workloads/fusion_fold_min.json",
+      "workload_sha256": "31cc8ec9689cbee968ea8a53aeb613ecce908cea585b97d56ced923c750a0cad"
+    },
+    {
+      "file": "fusion_map_filter_sum.c",
+      "sha256": "d5c3abd932d052e6926b32b26e68246a84b0fde643b1b57faf7f61cd4f863ca4",
+      "workload": "workloads/fusion_map_filter_sum.json",
+      "workload_sha256": "3d3719a4bd2fc1fe20d8f13deb28b27ad29c9470b2baf7b9f1d7c78b85f3d3c6"
+    },
+    {
+      "file": "fusion_map_store.c",
+      "sha256": "dd8c6ee329d5b9b27ef7c9e9d0aa01de3166141555e549fc56d2aa0ad3156f69",
+      "workload": "workloads/fusion_map_store.json",
+      "workload_sha256": "3c6b50b052d361bfdc639d0852c5a3b7d4cc53de5816411014d17898db206f6f"
+    },
+    {
+      "file": "fusion_window_sum.c",
+      "sha256": "715afe86f847e160f258e2a3f3d86349f5fc2b0d4cf7e40c56a00acf93693ed1",
+      "workload": "workloads/fusion_window_sum.json",
+      "workload_sha256": "67a02381ac61acc882d6eeced353795fa5e225396e2bd4e46eefbe8453f454c8"
+    }
+  ]
+}
