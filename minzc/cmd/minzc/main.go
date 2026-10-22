@@ -84,7 +84,8 @@ var (
 	checkedLocalSolver            string // Z3 executable for offline generation
 	checkedLocalTableSHA256       string // optional content pin
 	checkedLocalTablePath         string // --checked-local-table: admitted leaf OptSize candidates
-	optSize                       bool   // -Osize: optimize for code size (Grace reroll, DJNZ loops)
+	disableVariantSearch          bool
+	optSize                       bool // -Osize: optimize for code size (Grace reroll, DJNZ loops)
 	fuseByteWords                 bool
 	useGrace                      bool // --grace: run all Grace MIR2 passes
 	noGrace                       bool // --no-grace: disable MIR and HIR Grace
@@ -280,6 +281,7 @@ func init() {
 	rootCmd.Flags().StringVar(&checkedLocalSolver, "checked-local-solver", "z3", "Z3 executable for offline local table generation")
 	rootCmd.Flags().StringVar(&checkedLocalTableSHA256, "checked-local-table-sha256", "", "pin exact checked table JSON content (required for measured HIR profile replay)")
 	rootCmd.Flags().StringVar(&checkedLocalTablePath, "checked-local-table", "", "use checked local register table for smaller leaf Z80 functions (requires --Osize)")
+	rootCmd.Flags().BoolVar(&disableVariantSearch, "no-variant-search", false, "disable per-function static variant search")
 	rootCmd.Flags().BoolVar(&optSize, "Osize", false, "optimize for code size: Grace reroll; skip HIR Grace's versioned pointer loops")
 	rootCmd.Flags().BoolVar(&useGrace, "grace", true, "run Grace MIR2 optimizations (disable with --grace=false)")
 	rootCmd.Flags().BoolVar(&noGrace, "no-grace", false, "disable both MIR and HIR Grace optimizations")
@@ -1111,6 +1113,7 @@ func compileViaHIR(sourceFile string) error {
 		ContractStrategy:        contractStrategy,
 		ContractOpt:             true,
 		AnnotateTStates:         annotateTStates,
+		DisableVariantSearch:    disableVariantSearch,
 		OptSize:                 optSize, // --Osize enables Grace reroll
 		FuseByteWords:           fuseByteWords,
 		UseGrace:                useGrace && !noGrace,

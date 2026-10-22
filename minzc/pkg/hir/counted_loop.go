@@ -21,7 +21,7 @@ func countedValue(e Expr) Expr {
 // control flow, memory bounds, aliasing, signed ranges and wide counts keep
 // while lowering. Variable bounds must already be immutable SSA values.
 // It never rewrites source HIR, which may be reused by another compilation.
-func (l *lowerer) tryCountedLoop(st *WhileStmt) bool {
+func (l *lowerer) tryCountedLoop(st *WhileStmt, fact mir2.StaticLoop) bool {
 	cmp, ok := st.Cond.(*BinExpr)
 	if !ok || (cmp.Op != "<" && cmp.Op != "!=") || len(st.Body.Body) == 0 {
 		return false
@@ -138,7 +138,9 @@ func (l *lowerer) tryCountedLoop(st *WhileStmt) bool {
 			case *WhileStmt, *ForRangeStmt, *ForEachStmt:
 				// B serves the innermost loop; an outer DJNZ would push the
 				// inner counter into A or a spill slot.
-				safe = false
+				if !l.permitCountedLoops {
+					safe = false
+				}
 			case *VarDeclStmt:
 				// Shadowing needs binding-aware mutation proofs.
 				if x.Name == iv.Name || x.Name == boundName || x.Volatile {
@@ -208,7 +210,7 @@ func (l *lowerer) tryCountedLoop(st *WhileStmt) bool {
 	}
 	// B removes BC from the word allocator. Keep the ordinary loop when
 	// word state and expression intermediates exceed the two main pairs.
-	if !l.countedLoopPairBudget(body, references) {
+	if !l.permitCountedLoops && !l.countedLoopPairBudget(body, references) {
 		return false
 	}
 	var count, hiReg mir2.Reg
@@ -250,6 +252,8 @@ func (l *lowerer) tryCountedLoop(st *WhileStmt) bool {
 	args := append([]mir2.Reg{count}, l.collectArgs(carried)...)
 	zeroExit := append(l.collectArgs(carried), initial)
 	l.bld.BrIf(cond, bodyLabel, args, exitLabel, zeroExit)
+	fact.Counted = true
+	l.recordStaticLoop(bodyLabel, fact)
 	loop := l.bld.SwitchToNewBlock(bodyLabel)
 	if origin, ok := l.lineage[st]; ok {
 		if l.mf.LoopOrigins == nil {

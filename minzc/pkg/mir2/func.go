@@ -10,7 +10,19 @@ type LoopOrigin struct {
 
 // Func is a MIR2 function. The first block is the entry. Register numbering is
 // monotonically increasing (module-wide when created via Module.AddFunc).
+// StaticLoop describes a source loop for the refusing final-code cost model.
+// Trips == -1 means unknown. This is diagnostic metadata, not permission to
+// transform a loop. Missing/deleted labels make scoring unsupported.
+type StaticLoop struct {
+	ID        int
+	Condition string
+	Trips     int64
+	Counted   bool
+}
+
 type Func struct {
+	StaticLoops map[string]StaticLoop
+
 	SMCSetterFor string                `json:",omitempty"` // compiler-owned named immediate accessor
 	LoopOrigins  map[string]LoopOrigin // attribution of existing block labels
 	Name         string

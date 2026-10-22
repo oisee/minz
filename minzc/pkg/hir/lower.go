@@ -47,6 +47,10 @@ import (
 type LowerOptions struct {
 	// DisableCountedLoops retains ordinary while lowering for differential checks.
 	DisableCountedLoops bool
+	// CountedLoopPolicy is per function: zero preserves the production policy,
+	// CountedOrdinary refuses canonicalisation; CountedPermit bypasses only
+	// pressure/nesting profitability gates, never semantic admission.
+	CountedLoopPolicy map[string]CountedLoopPolicy
 }
 
 // LowerModule converts a HIR module to a MIR2 module.
@@ -309,6 +313,8 @@ type loopCtx struct {
 
 type lowerer struct {
 	disableCountedLoops bool
+	permitCountedLoops  bool
+	loopCostIndex       int
 	// Only active within one literal-address read/modify/write assignment.
 	// Memory operations retain their order; the pure address is computed once.
 	literalStorePointers map[int64]mir2.Reg
@@ -619,7 +625,8 @@ func lowerFuncWithFuncNames(m *mir2.Module, f *Func, funcNames map[string]bool, 
 	bld := mir2.NewBuilder(mf)
 	l := &lowerer{
 		hf:                  f,
-		disableCountedLoops: opts.DisableCountedLoops,
+		disableCountedLoops: opts.DisableCountedLoops || opts.CountedLoopPolicy[f.Name] == CountedOrdinary,
+		permitCountedLoops:  opts.CountedLoopPolicy[f.Name] == CountedPermit,
 		m:                   m,
 		mf:                  mf,
 		bld:                 bld,
@@ -1948,7 +1955,8 @@ func (l *lowerer) lowerWhile(st *WhileStmt) {
 
 // A desugared range loop must run its increment even when the body continues.
 func (l *lowerer) lowerWhileWithContinue(st *WhileStmt, continueStep Stmt) {
-	if !l.disableCountedLoops && l.tryCountedLoop(st) {
+	fact := l.staticLoopFact(st)
+	if !l.disableCountedLoops && l.tryCountedLoop(st, fact) {
 		return
 	}
 	envBefore := cloneMap(l.env)
@@ -1965,6 +1973,7 @@ func (l *lowerer) lowerWhileWithContinue(st *WhileStmt, continueStep Stmt) {
 	mutated := sortedKeys(allUsed, envBefore)
 
 	headLabel := l.fresh("loop_head")
+	l.recordStaticLoop(headLabel, fact)
 	bodyLabel := l.fresh("loop_body")
 	exitLabel := l.fresh("loop_exit")
 
