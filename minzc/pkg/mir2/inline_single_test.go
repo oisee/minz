@@ -6,10 +6,12 @@ import (
 )
 
 func TestSingleCallSiteProofBoundaries(t *testing.T) {
-	for _, kind := range []string{"private", "comptime", "comptime-call", "exported", "twice", "recursive", "address", "relocation", "asm"} {
+	for _, kind := range []string{"private", "unknown-linkage", "named-entry", "comptime", "comptime-call", "exported", "twice", "recursive", "address", "relocation", "asm"} {
 		t.Run(kind, func(t *testing.T) {
 			m := &Module{}
 			f := m.AddFunc("helper")
+			f.Attrs.Private = kind != "unknown-linkage"
+			f.Attrs.ReferencedByName = kind == "named-entry"
 			f.Attrs.IsComptime = kind == "comptime"
 			b := NewBuilder(f)
 			b.SwitchToNewBlock("entry")
@@ -52,7 +54,7 @@ func TestSingleCallSiteProofBoundaries(t *testing.T) {
 				t.Fatalf("inline=%v", changed)
 			}
 			PruneUnreachableFuncs(m, roots)
-			if kind == "relocation" && m.FuncByName("helper") == nil {
+			if (kind == "relocation" || kind == "named-entry") && m.FuncByName("helper") == nil {
 				t.Fatal("addressed private definition pruned")
 			}
 			if err := Verify(m); err != nil {

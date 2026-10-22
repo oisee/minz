@@ -615,6 +615,7 @@ func (l *lowerer) lowerFunc(fd *cc.FunctionDefinition) (*hir.Func, error) {
 
 	return &hir.Func{
 		Internal: fd.Declarator.IsStatic(),
+		Private:  fd.Declarator.IsStatic(),
 		Name:     l.symbolName(name),
 		Params:   params,
 		RetTy:    retTy,

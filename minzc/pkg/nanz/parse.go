@@ -1836,6 +1836,16 @@ func (p *parser) parseImport() error {
 		mangledName := modPrefix + f.Name
 		nameMap[origName] = mangledName
 		f.Name = mangledName
+		// Nanz helpers hidden by a selective import have no exported entry in
+		// the importing module. C imports retain their declared linkage: only
+		// C static definitions supply private proof. Name references override it.
+		visible := globImport
+		for _, sym := range selected {
+			visible = visible || sym.name == origName
+		}
+		if !visible && (filepath.Ext(filePath) == ".nanz" || filepath.Ext(filePath) == ".minz") {
+			f.Private = true
+		}
 
 		// Register mangled function signature
 		pty := paramTysFromFunc(f)

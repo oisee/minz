@@ -38,6 +38,9 @@ func PruneUnreachableFuncs(m *Module, roots map[string]bool) bool {
 	}
 
 	for _, f := range m.Funcs {
+		if f.Attrs.ReferencedByName {
+			enqueue(f.Name)
+		}
 		for _, b := range f.Blocks {
 			for _, inst := range b.Insts {
 				if inst.Op == OpAddrOf && inst.Sym != "" && m.FuncByName(inst.Sym) != nil {

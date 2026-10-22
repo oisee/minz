@@ -67,6 +67,11 @@ func InlineSingleCallSites(m *Module, exported map[string]bool, stats ...*Single
 	}
 	eligible := map[string]*Func{}
 	for _, f := range m.Funcs {
+		// Absence from the pruning roots is not evidence of private linkage.
+		// Runtime helpers may be Internal yet callable by a provider's name.
+		if f.Attrs.ReferencedByName || !f.Attrs.Private && !exported[f.Name] {
+			continue
+		}
 		if counts[f.Name] != 1 || address[f.Name] || f.Attrs.FixedIndirectABI || f.Attrs.IsExtern || f.Attrs.IsComptime || f.Attrs.IsRecursive || f.Attrs.FallibleCY || len(f.Contract.StructReturnBuffers) > 0 || len(f.Blocks) == 0 || len(f.Entry().Params) > 0 || recursive(f.Name) {
 			continue
 		}

@@ -109,3 +109,38 @@ func TestAgonFrontendRejectsModifiedStringConsoleLeaf(t *testing.T) {
 		t.Fatalf("tampered canonical string console admitted: %v", e)
 	}
 }
+
+// A provider may be the only client of this compiled runtime API. Neither
+// platform binding nor MIR inlining/pruning may infer privacy from main.
+func TestAgonFrontendNamedEntryWithoutReportCalls(t *testing.T) {
+	src, err := os.ReadFile("../../../examples/abap/zpickfile_cpm.abap")
+	if err != nil {
+		t.Fatal(err)
+	}
+	m, err := Compile(string(src), "zpickfile_cpm", hir.TargetAgon)
+	if err != nil {
+		t.Fatal(err)
+	}
+	m.FuncByName("main").Body = hir.Blk(hir.RetVoid())
+	if err := BindAgonZ80Runtime(m); err != nil {
+		t.Fatal(err)
+	}
+	s, err := pipeline.CompileHIRSteps(m, pipeline.Options{Backend: "z80", Runtime: mir2.Z80RuntimeAgonZ80, AssertMode: "none"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, name := range []string{"_abap_fs_agon_encode", "_abap_fs_agon_insert", "_abap_fs_agon_info", "_abap_fs_agon_scratch"} {
+		if s.MIR2Module.FuncByName(name) == nil {
+			t.Fatalf("provider entry %s removed", name)
+		}
+	}
+	// Empty native info buffer is not a valid 8.3 name. No filesystem host
+	// callback or report call is needed to execute the retained encoder.
+	got, err := mir2.NewVM(s.MIR2Module).Call("_abap_fs_agon_encode", nil)
+	if err != nil || len(got) != 1 || got[0].I != 0 {
+		t.Fatalf("encode empty name: %v %v", got, err)
+	}
+	if !strings.Contains(s.Assembly, "_abap_fs_agon_encode:") {
+		t.Fatal("native provider entry label removed")
+	}
+}

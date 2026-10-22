@@ -4,6 +4,9 @@ import (
 	"github.com/minz/minzc/pkg/c89"
 	"github.com/minz/minzc/pkg/hir"
 	"github.com/minz/minzc/pkg/mir2"
+	"github.com/minz/minzc/pkg/nanz"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 )
@@ -12,11 +15,19 @@ func TestSingleCallSiteInlineVMZ80(t *testing.T) {
 	for _, language := range []string{"c", "nanz"} {
 		var h *hir.Module
 		var err error
+		helperName := "helper"
 		if language == "c" {
 			h, err = c89.CompileWithOpts(`static unsigned short helper(unsigned char x) { if(x<128) return ((unsigned short)x<<8)+x; return 65535-x; } unsigned short wrapper(unsigned char x){return helper(x)+1;}`, "single.c", c89.CompileOpts{NoLibc: true})
 		} else {
-			h = graceMeasureParse(t, `fun helper(x:u8)->u16 { if x<128 { return ((x as u16)<<8)+(x as u16) } return 65535-(x as u16) } fun wrapper(x:u8)->u16 { return helper(x)+1 }`)
-			h.FuncByName("helper").Internal = true
+			dir := t.TempDir()
+			if err := os.Mkdir(filepath.Join(dir, "lib"), 0700); err != nil {
+				t.Fatal(err)
+			}
+			if err := os.WriteFile(filepath.Join(dir, "lib", "runtime.nanz"), []byte(`fun helper(x:u8)->u16 { if x<128 { return ((x as u16)<<8)+(x as u16) } return 65535-(x as u16) } fun apply(x:u8)->u16 { return helper(x)+1 }`), 0600); err != nil {
+				t.Fatal(err)
+			}
+			h, err = nanz.ParseWithOpts(`import lib.runtime { apply } fun wrapper(x:u8)->u16 { return apply(x) }`, "single.nanz", nanz.ParseOpts{BaseDir: dir})
+			helperName = "lib__runtime__helper"
 		}
 		if err != nil {
 			t.Fatal(err)
@@ -26,7 +37,7 @@ func TestSingleCallSiteInlineVMZ80(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		if strings.Contains(s.MIR2Module.Dump(), "call @helper") || s.MIR2Module.FuncByName("helper") != nil {
+		if strings.Contains(s.MIR2Module.Dump(), "call @"+helperName) || s.MIR2Module.FuncByName(helperName) != nil {
 			t.Fatalf("private single call was not inlined:\n%s", s.MIR2Module.Dump())
 		}
 		vms := []*mir2.VM{mir2.NewVM(raw), mir2.NewVM(s.MIR2Module)}

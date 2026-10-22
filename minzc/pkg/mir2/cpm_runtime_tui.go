@@ -142,6 +142,9 @@ func cpmRuntimeClosure(m *Module, ar *AllocResult) (*Module, error) {
 		}
 	}
 	for _, f := range m.Funcs {
+		if f.Attrs.ReferencedByName {
+			enqueue(f.Name)
+		}
 		for _, b := range f.Blocks {
 			for _, i := range b.Insts {
 				if i.Op == OpAddrOf {
