@@ -133,3 +133,52 @@ func TestByteSmallStepDoesNotReuseCarry(t *testing.T) {
 		}
 	}
 }
+
+func TestByteSmallStepIndexTransferNative(t *testing.T) {
+	for _, homes := range [][2]string{{"IXH", "C"}, {"C", "IXH"}, {"IYL", "D"}, {"E", "IYL"}} {
+		m := &Module{}
+		f := m.AddFunc("index_step")
+		b := NewBuilder(f)
+		block := b.SwitchToNewBlock("entry")
+		x := b.Param("x", TyU8, ClassGeneral)
+		k := b.Const(1, TyU8, ClassGeneral)
+		v := b.BinOp(OpAdd, x, k, TyU8, ClassGeneral)
+		b.Ret(v)
+		inst := block.Insts[1]
+		ar := &AllocResult{Locs: map[Reg]PhysLoc{x: {Name: homes[0]}, k: {Name: "A"}, v: {Name: homes[1]}}}
+		var out strings.Builder
+		g := &z80cg{sb: &out, fn: f, curBlock: block, curInstIdx: 1, ar: ar, regInfo: collectRegInfo(f), constVals: map[Reg]int64{k: 1}, deadConsts: map[Reg]bool{k: true}, holdsPhys: map[string]string{}, physOverride: map[Reg]string{}}
+		g.genBinOp("ADD", inst)
+		if !strings.Contains(out.String(), "INC "+homes[1]) || strings.Contains(out.String(), "ADD A") {
+			t.Fatalf("index transfer still uses A:\n%s", out.String())
+		}
+		vm := NewVM(m)
+		for xval := 0; xval < 256; xval++ {
+			initial := emulator.Registers{A: 0x5a, F: 1}
+			switch homes[0] {
+			case "IXH":
+				initial.IX = uint16(xval) << 8
+			case "IYL":
+				initial.IY = uint16(xval)
+			case "C":
+				initial.BC = uint16(xval)
+			case "E":
+				initial.DE = uint16(xval)
+			}
+			z := runRAFragment(t, out.String(), initial)
+			got := byte(z.BC)
+			switch homes[1] {
+			case "IXH":
+				got = byte(z.IX >> 8)
+			case "D":
+				got = byte(z.DE >> 8)
+			case "IYL":
+				got = byte(z.IY)
+			}
+			values, err := vm.Call(f.Name, []Value{{I: int64(xval)}})
+			if err != nil || values[0].I != int64(byte(xval+1)) || got != byte(xval+1) || z.A != 0x5a || z.F&1 != 1 {
+				t.Fatal(xval, values, err, z, out.String())
+			}
+		}
+	}
+}

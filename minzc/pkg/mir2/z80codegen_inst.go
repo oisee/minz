@@ -36,6 +36,16 @@ func (g *z80cg) genInst(inst *Inst) {
 		return
 	}
 
+	// Suppressed immediates do not write their allocated home. In particular,
+	// they must not evict a relocated load before its immediate consumer.
+	if inst.Op == OpConst && g.deadConsts[inst.Dst] && g.loc(inst.Dst) != "F" {
+		if !g.blockParamRegs[inst.Dst] {
+			g.constVals[inst.Dst] = inst.Imm
+		}
+		return
+	}
+	g.preferByteLoadStepHome(inst)
+
 	// Scratch relocations of A are instruction-local. Return them to their
 	// allocated home before another instruction can allocate that scratch. A dead
 	// relocation must not overwrite a newer value that shares the allocated A.

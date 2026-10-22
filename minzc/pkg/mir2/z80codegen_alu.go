@@ -1288,7 +1288,7 @@ func smallWordStep(value int64) bool {
 }
 
 // byteSmallStep is shared by emission and constant-load suppression. Cross-home
-// copies are restricted to primary bytes, whose LD does not need scratch A.
+// copies use directly encodable byte moves, without scratch A.
 func byteSmallStep(f *Func, inst *Inst, cv int64, lhs, dst string) bool {
 	if (inst.Op != OpAdd && inst.Op != OpSub) || inst.Ty == nil || inst.Ty.Width() != 8 || cv < 1 || cv > 3 || !wordMaskFlagsUnobserved(f, inst.Dst) {
 		return false
@@ -1300,5 +1300,7 @@ func byteSmallStep(f *Func, inst *Inst, cv int64, lhs, dst string) bool {
 		}
 		return false
 	}
-	return primary(lhs) && primary(dst) || lhs == dst && isIXYReg(dst)
+	indexHalf := func(s string) bool { return s == "IXH" || s == "IXL" || s == "IYH" || s == "IYL" }
+	ordinary := func(s string) bool { return s == "A" || s == "B" || s == "C" || s == "D" || s == "E" }
+	return primary(lhs) && primary(dst) || indexHalf(lhs) && ordinary(dst) || ordinary(lhs) && indexHalf(dst) || indexHalf(lhs) && indexHalf(dst) && lhs[:2] == dst[:2]
 }
