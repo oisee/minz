@@ -98,7 +98,11 @@ helper (g3) generators had found on main. The generators are to become standard 
 
 ## Full fuzz on main
 
-On main `33418f905` (after O8 #243 and A1 #244), on the i10 gate host:
+On main `fe3f327fb` (after O9 #245), on the i5 gate host: direct-call seeds 0–19999
+**20000/20000**, `--signed` 0–3999 **4000/4000**, folded 0–999 **1000/1000**, `--masked-loops`
+0–999 **1000/1000**.
+
+Earlier, on main `33418f905` (after O8 #243 and A1 #244), on the i10 gate host:
 direct-call seeds 0–19999 **20000/20000**, `--signed` 0–3999 **4000/4000**, folded 0–999
 **1000/1000**, `--masked-loops` 0–999 **1000/1000**. Earlier full runs: `dda8fab65` (goal start,
 direct-call 0–29999 30000/30000), `66ecc77b4` (after O5) and `2b70eaa74` (after O4+), all clean.
