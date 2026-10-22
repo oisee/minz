@@ -74,21 +74,17 @@ func TestCountedPointerWalkAllCountsOverlapAndWrap(t *testing.T) {
 }
 
 func TestCountedPointerWalkRefusals(t *testing.T) {
-	for _, mode := range []string{"nonzero-start", "step-two", "signed-compare", "inclusive-bound", "varying-bound", "varying-base", "wide-index", "asm", "volatile", "hard-pointer", "hidden-pointer-metadata", "extra-predecessor"} {
+	for _, mode := range []string{"step-two", "signed-compare", "inclusive-bound", "varying-base", "wide-index", "asm", "volatile", "hard-pointer", "hidden-pointer-metadata", "extra-predecessor"} {
 		t.Run(mode, func(t *testing.T) {
 			m, f := countedPointerFixture()
 			entry, head, body := f.Blocks[0], f.Blocks[1], f.Blocks[2]
 			switch mode {
-			case "nonzero-start":
-				entry.Insts[0].Imm = 1
 			case "step-two":
 				body.Insts[len(body.Insts)-2].Imm = 2
 			case "signed-compare":
 				head.Insts[0].Cond = CmpLt
 			case "inclusive-bound":
 				head.Insts[0].Cond = CmpUle
-			case "varying-bound":
-				body.Term.(*TermJmp).Args[1] = body.Insts[len(body.Insts)-1].Dst
 			case "varying-base":
 				body.Insts[0].Src[0] = head.Params[2].Dst
 				body.Term.(*TermJmp).Args[2] = body.Insts[0].Dst

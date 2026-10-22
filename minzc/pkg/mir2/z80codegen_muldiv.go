@@ -1038,6 +1038,13 @@ func (g *z80cg) saveWrittenScratch(inst *Inst) func() {
 	return func() {
 		g.sb = outer
 		writes := scratchSequenceWrites(body.String())
+		// A primary word store temporarily advances HL and restores it itself.
+		// Counting both INC and DEC as lasting writes would add a redundant
+		// PUSH/POP around every store through a loop-carried pointer.
+		if inst.Op == OpStore && inst.Ty == TyU16 && restoredHLWordStore(body.String()) {
+			delete(writes, "H")
+			delete(writes, "L")
+		}
 		var pairs []string
 		for _, pair := range []string{"AF", "HL", "DE", "BC", "IX", "IY"} {
 			for r, loc := range locs {
@@ -1116,4 +1123,27 @@ func scratchSequenceWrites(asm string) map[string]bool {
 		}
 	}
 	return writes
+}
+
+// Admit only the straight-line, canonical four-instruction word store. No
+// branch, aliasing byte write or unrelated pointer arithmetic can hide here.
+func restoredHLWordStore(asm string) bool {
+	var lines []string
+	for _, line := range strings.Split(asm, "\n") {
+		line = strings.Join(strings.Fields(strings.SplitN(line, ";", 2)[0]), " ")
+		if line != "" {
+			lines = append(lines, line)
+		}
+	}
+	if len(lines) != 4 || lines[1] != "INC HL" || lines[3] != "DEC HL" {
+		return false
+	}
+	valid := func(line string) bool {
+		switch line {
+		case "LD (HL), B", "LD (HL), C", "LD (HL), D", "LD (HL), E", "LD (HL), A":
+			return true
+		}
+		return false
+	}
+	return valid(lines[0]) && valid(lines[2])
 }
