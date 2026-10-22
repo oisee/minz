@@ -41,6 +41,7 @@ type Result struct {
 // Steps holds the intermediate outputs of each pipeline stage.
 type Steps struct {
 	VariantDecisions []VariantDecision
+	VariantSearch    VariantSearchStats
 
 	UnsignedPairComparePolicy mir2.UnsignedPairComparePolicy // resolved policy replayed by native re-codegen
 	ProfileDecisions          []hir.ProfileDecision
@@ -96,6 +97,11 @@ type Options struct {
 	// FunctionVariants overrides recipes in complete-module candidate compiles.
 	FunctionVariants map[string]FunctionVariant `json:",omitempty"`
 	variantCandidate bool
+	// Search-only checkpoint: false refuses a trial before native compilation.
+	variantPrepared          bool
+	variantRawCallers        map[string]bool
+	variantMIRReady          func(*mir2.Module, bool) bool
+	variantBranchEquivMisses map[[32]byte]bool
 
 	// DisableCountedLoops is an internal differential-testing switch.
 	DisableCountedLoops bool `json:",omitempty"`
@@ -219,15 +225,19 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 	if opt.CheckedLocalTablePath != "" && (!opt.OptSize || opt.Backend != "" && opt.Backend != "z80" || opt.SkipZ80Emission || opt.ProfileSelection != nil && opt.CheckedLocalTableSHA256 == "") {
 		return s, fmt.Errorf("checked local tables require emitted Z80 OptSize and a content pin for PGO")
 	}
-	hir.OptimizeCAggregateABI(hm)
+	if !opt.variantPrepared {
+		hir.OptimizeCAggregateABI(hm)
+	}
 	if err := hir.Verify(hm); err != nil {
 		return Steps{}, fmt.Errorf("c aggregate ABI: %w", err)
 	}
 	s.UnsignedPairComparePolicy = policy
 	s.Traces = make(map[string]*FuncTrace)
 
-	if err := hir.ResolveErrorABI(hm); err != nil {
-		return s, err
+	if !opt.variantPrepared {
+		if err := hir.ResolveErrorABI(hm); err != nil {
+			return s, err
+		}
 	}
 	if opt.Backend != "" && opt.Backend != "z80" {
 		for _, f := range hm.Funcs {
@@ -236,8 +246,10 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 			}
 		}
 	}
-	if err := hir.ResolveCallSignatures(hm); err != nil {
-		return s, err
+	if !opt.variantPrepared {
+		if err := hir.ResolveCallSignatures(hm); err != nil {
+			return s, err
+		}
 	}
 
 	if opt.CollectHIRSites {
@@ -280,6 +292,19 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 	// Lower HIR → MIR2 (raw, before optimisation).
 	m := hir.LowerModuleWithOptions(hm, hir.LowerOptions{DisableCountedLoops: opt.DisableCountedLoops, CountedLoopPolicy: variantCountedPolicies(opt)})
 	s.MIR2Raw = m.Dump()
+	// Record call dependencies before constant folding can erase them. A global
+	// dry Grace toggle alone cannot establish a caller's axis is an identity.
+	if opt.variantRawCallers != nil {
+		for _, f := range m.Funcs {
+			for _, b := range f.Blocks {
+				for _, inst := range b.Insts {
+					if inst.Op == mir2.OpCall || inst.Op == mir2.OpCallIndirect {
+						opt.variantRawCallers[f.Name] = true
+					}
+				}
+			}
+		}
+	}
 	return compileMIRSteps(hm, opt, s, splitInfo, m)
 }
 
@@ -342,7 +367,7 @@ func compileMIRSteps(hm *hir.Module, opt Options, s Steps, splitInfo map[string]
 			mergeGraceStats(opt.GraceStats, localGrace)
 			applyGraceStatsToTrace(tr, localGrace)
 			mir2.EliminateDeadBlocks(f)
-			if mir2.BranchEquiv(m, f) {
+			if runVariantBranchEquiv(m, f, opt.variantBranchEquivMisses) {
 				tr.BranchEquiv++
 				mir2.EliminateDeadBlocks(f)
 				localGrace = mir2.NewGraceStats()
@@ -361,7 +386,7 @@ func compileMIRSteps(hm *hir.Module, opt Options, s Steps, splitInfo map[string]
 			if mir2.DeadBlockArgElim(f) {
 				tr.DeadBlockArg++
 			}
-			if mir2.BranchEquiv(m, f) {
+			if runVariantBranchEquiv(m, f, opt.variantBranchEquivMisses) {
 				tr.BranchEquiv++
 				mir2.EliminateDeadBlocks(f)
 				mir2.DeadStoreElim(f)
@@ -418,6 +443,10 @@ func compileMIRSteps(hm *hir.Module, opt Options, s Steps, splitInfo map[string]
 
 	s.MIR2Opt = m.Dump()
 	s.MIR2Module = m
+
+	if opt.variantMIRReady != nil && !opt.variantMIRReady(m, opt.OptSize && affineChanged && !opt.disableAffinePointers) {
+		return s, nil
+	}
 
 	// Structural verification.
 	if err := mir2.Verify(m); err != nil {
@@ -574,6 +603,9 @@ func compileMIRSteps(hm *hir.Module, opt Options, s Steps, splitInfo map[string]
 		baselineOpt := opt
 		baselineOpt.disableAffinePointers = true
 		baselineOpt.GraceStats = nil
+		// This is the native size gate's mandatory comparison, not a search trial.
+		// Refusing it at a cached MIR checkpoint would yield an empty product.
+		baselineOpt.variantMIRReady = nil
 		baselineModule := hir.LowerModuleWithOptions(hm, hir.LowerOptions{DisableCountedLoops: opt.DisableCountedLoops, CountedLoopPolicy: variantCountedPolicies(opt)})
 		baseline, err := compileMIRSteps(hm, baselineOpt, initialSteps, splitInfo, baselineModule)
 		if err != nil {
