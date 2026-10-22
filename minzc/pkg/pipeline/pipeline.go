@@ -359,6 +359,9 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 		if mir2.FuseByteAbsDiffCFG(f) {
 			tr.FuseAbsDiff++
 		}
+		if opt.Backend == "" || opt.Backend == "z80" {
+			tr.PtrThreading += mir2.RecognizeByteLoops(f)
+		}
 		tr.PtrThreading += mir2.StrengthReduceCountedPointers(f)
 		if opt.OptSize {
 			mir2.MergeConstantReturnTails(f)
@@ -643,6 +646,9 @@ func CompileHIRWithOptions(hm *hir.Module, opts Options) (string, error) {
 		mir2.DeadBlockArgElim(f)
 		mir2.FuseAbsDiff(f)
 		mir2.FuseByteAbsDiffCFG(f)
+		if opts.Backend == "" || opts.Backend == "z80" {
+			mir2.RecognizeByteLoops(f)
+		}
 		mir2.StrengthReduceCountedPointers(f)
 		if opts.FuseByteWords {
 			mir2.FuseSequentialByteWords(f)

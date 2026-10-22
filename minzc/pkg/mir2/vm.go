@@ -889,6 +889,9 @@ func (vm *VM) execInst(fr *frame, inst *Inst) error {
 
 	// ── Function calls ────────────────────────────────────────────────────────
 	case OpCall, OpCallCond:
+		if inst.ByteLoop != nil {
+			return vm.execByteLoop(fr, inst)
+		}
 		if inst.Op == OpCallCond {
 			take, err := conditionalCallTaken(fr, inst)
 			if err != nil {

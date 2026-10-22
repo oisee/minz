@@ -182,6 +182,9 @@ func verifyFunc(f *Func) error {
 			if !sequentialByteOriginsValid(f, inst) {
 				return fmt.Errorf("sequential byte flag requires u16 load/store")
 			}
+			if !validByteLoop(inst, collectRegInfo(f)) {
+				return fmt.Errorf("invalid byte loop intrinsic")
+			}
 			// Check all uses are defined.
 			for _, u := range inst.Uses() {
 				if err := checkUse(u, blk, ii); err != nil {

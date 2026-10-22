@@ -23,6 +23,7 @@
     "TestByteLoadSpillKeepsLiveAccumulator",
     "TestByteLowBitBeforeShiftNativeVM",
     "TestBytePackSourceCallAndConditionNative",
+    "TestByteScanZeroCPIRNative",
     "TestByteWordFusionCallbackRefusal",
     "TestByteWordFusionCompilationIdentity",
     "TestC89ControlEffectsNative",

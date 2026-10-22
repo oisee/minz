@@ -103,7 +103,8 @@ type Inst struct {
 	ExtraRetTys     []Ty
 
 	// Inline assembly (OpAsm)
-	Asm *AsmExtra
+	ByteLoop *ByteLoopExtra `json:",omitempty"`
+	Asm      *AsmExtra
 
 	// Source location (preserved for error messages and SLD generation)
 	SrcLine int

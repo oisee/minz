@@ -1,0 +1,132 @@
+package pipeline
+
+import (
+	"bytes"
+	"encoding/binary"
+	"strings"
+	"testing"
+
+	"github.com/minz/minzc/pkg/c89"
+	"github.com/minz/minzc/pkg/emulator"
+	"github.com/minz/minzc/pkg/hir"
+	"github.com/minz/minzc/pkg/mir2"
+	"github.com/minz/minzc/pkg/nanz"
+	"github.com/minz/minzc/pkg/z80asm"
+)
+
+// Each fixture runs independently on raw MIR, optimized MIR and native Z80.
+// Results, the entire buffer, immutable inputs and PC/SP are checked.
+func byteLoopNative(t *testing.T, language, mode, source, opcode string, cases []byteLoopCase) {
+	t.Helper()
+	var h *hir.Module
+	var err error
+	if language == "c" {
+		h, err = c89.CompileWithOpts(source, "loop.c", c89.CompileOpts{NoLibc: true})
+	} else {
+		h, err = nanz.Parse(source, "loop.nanz")
+	}
+	if err != nil {
+		t.Fatal(err)
+	}
+	raw := hir.LowerModule(h)
+	s, err := CompileHIRSteps(h, Options{ContractOpt: true, OptSize: mode == "size", UseGrace: mode == "grace", UseHIRGrace: mode == "grace"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(strings.ToUpper(s.Assembly), opcode) {
+		t.Fatalf("missing %s\n%s", opcode, s.Assembly)
+	}
+	a, err := z80asm.NewAssembler().AssembleString("ORG 0x8000\n" + s.Assembly)
+	if err != nil || len(a.Errors) > 0 {
+		t.Fatal(err, a.Errors)
+	}
+	addr := func(name string) int {
+		p := a.Symbols[name]
+		if p == 0 {
+			p = a.Symbols["v_"+name]
+		}
+		if p == 0 {
+			t.Fatal("missing symbol", name)
+		}
+		return p
+	}
+	z := emulator.NewRemogattoZ80()
+	mem := z.Memory()
+	copy(mem[0x8000:], a.Binary)
+	for k, c := range cases {
+		inputs := map[string][]byte{"buffer": c.initial, "n": {byte(c.n), byte(c.n >> 8)}, "src_off": {byte(c.src), byte(c.src >> 8)}, "dst_off": {byte(c.dst), byte(c.dst >> 8)}, "value": {c.value}, "result": {0xa5, 0x5a}}
+		for _, m := range []*mir2.Module{raw, s.MIR2Module} {
+			vm := mir2.NewVM(m)
+			vm.MaxSteps = 1000000
+			for name, b := range inputs {
+				vm.WriteHeapSlice(vm.GlobalAddr(name), b)
+			}
+			if _, e := vm.Call("execute", nil); e != nil {
+				t.Fatalf("case %d VM: %v", k, e)
+			}
+			if !bytes.Equal(vm.ReadHeap(vm.GlobalAddr("buffer"), len(c.want)), c.want) || int(binary.LittleEndian.Uint16(vm.ReadHeap(vm.GlobalAddr("result"), 2))) != c.result {
+				t.Fatalf("case %d VM result/memory", k)
+			}
+		}
+		for name, b := range inputs {
+			copy(mem[addr(name):], b)
+		}
+		mem[0xeffe], mem[0xefff] = 0, 0xf1
+		z.SetRegisters(emulator.Registers{F: byte(k), PC: uint16(addr("execute")), SP: 0xeffe})
+		for step := 0; step < 200000 && z.GetPC() != 0xf100; step++ {
+			z.Step()
+		}
+		r := z.GetRegisters()
+		got := int(binary.LittleEndian.Uint16(mem[addr("result") : addr("result")+2]))
+		if r.PC != 0xf100 || r.SP != 0xf000 || !bytes.Equal(mem[addr("buffer"):addr("buffer")+len(c.want)], c.want) || got != c.result {
+			t.Fatalf("case %d native got %d want %d PC/SP=%04x/%04x\n%s", k, got, c.result, r.PC, r.SP, s.Assembly)
+		}
+		for _, name := range []string{"n", "src_off", "dst_off", "value"} {
+			if !bytes.Equal(mem[addr(name):addr(name)+len(inputs[name])], inputs[name]) {
+				t.Fatal("input clobbered", name)
+			}
+		}
+	}
+}
+
+type byteLoopCase struct {
+	initial, want       []byte
+	n, src, dst, result int
+	value               byte
+}
+
+const byteLoopCGlobals = `unsigned char buffer[4096],value; unsigned short n,src_off,dst_off,result;`
+const byteLoopNanzGlobals = "global buffer:[u8;4096]\nglobal value:u8\nglobal n:u16\nglobal src_off:u16\nglobal dst_off:u16\nglobal result:u16\n"
+
+func TestByteScanZeroCPIRNative(t *testing.T) {
+	for _, language := range []string{"c", "nanz"} {
+		for _, mode := range []string{"default", "size", "grace"} {
+			for _, form := range []string{"index", "pointer"} {
+				t.Run(language+"/"+mode+"/"+form, func(t *testing.T) {
+					var source string
+					if language == "c" {
+						body := `unsigned short i=0;while(p[i]!=0)i++;return i;`
+						if form == "pointer" {
+							body = `unsigned char *base=p;while(*p!=0)p++;return p-base;`
+						}
+						source = byteLoopCGlobals + `unsigned short walk(unsigned char *p){` + body + `}void execute(void){result=walk(buffer+src_off);}`
+					} else {
+						body := "var i:u16=0\nwhile p[i]!=0 {i=i+1}\nreturn i"
+						if form == "pointer" {
+							body = "let base:^u8=p\nwhile p^!=0 {p=p+1}\nreturn u16(p)-u16(base)"
+						}
+						source = byteLoopNanzGlobals + "fun walk(p:^u8)->u16 {" + body + "}\nfun execute(){result=walk(&buffer+src_off)}"
+					}
+					var cases []byteLoopCase
+					for _, n := range []int{0, 1, 2, 255, 256, 2047} {
+						initial := bytes.Repeat([]byte{0x81}, 4096)
+						initial[17+n] = 0
+						initial[18+n] = 0
+						cases = append(cases, byteLoopCase{initial: initial, want: bytes.Clone(initial), src: 17, result: n})
+					}
+					byteLoopNative(t, language, mode, source, "CPIR", cases)
+				})
+			}
+		}
+	}
+}

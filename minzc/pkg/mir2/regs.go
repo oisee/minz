@@ -24,7 +24,7 @@ const NoReg Reg = 0
 //	  ClassCounter → B  (required for DJNZ; soft otherwise)
 //	  ClassGeneral → A, B, C, D, E, H, L  (any 8-bit)
 //	  ClassPointer → HL  (preferred for LD/INC/DEC; soft otherwise)
-//	  ClassIndex   → DE  (preferred for LDIR source; soft otherwise)
+//	  ClassIndex   → DE  (preferred for LDIR destination; soft otherwise)
 //	  ClassPair    → HL, DE, BC  (any 16-bit pair)
 //	  ClassDWord   → HL+H'L', DE+D'E', BC+B'C'  (32-bit via EXX; ~8T per op)
 //

@@ -518,6 +518,9 @@ func inferNaturalClassSeen(f *Func, r Reg, m *Module, seen map[Reg]bool) RegClas
 					return inferNaturalClassSeen(f, inst.Dst, m, seen)
 				}
 			case OpCall:
+				if inst.ByteLoop != nil && len(inst.Args) > 0 && inst.Args[0] == r {
+					return ClassPointer
+				}
 				// If r is passed as arg[i] to a known callee, the natural
 				// class is whatever the callee expects at that position.
 				if m != nil && inst.Sym != "" && inst.Sym[0] != '@' {
