@@ -29,8 +29,8 @@ def main():
     root = Path(__file__).resolve().parents[2]
     bench = root / 'research/c89-benchmark'
     folders = ['fusion/cases'] if args.suite == 'fusion' else (['cases', 'heldout'] if args.suite == 'all' else ['heldout' if args.suite == 'heldout' else 'cases'])
-    if not 1 <= args.jobs <= 4:
-        ap.error('--jobs must be between 1 and 4')
+    if args.jobs < 1:
+        ap.error('--jobs must be at least 1')
     if args.suite == 'fusion' and args.include_nanz:
         ap.error('fusion already includes its own Nanz sources; omit --include-nanz')
     frozen = []
