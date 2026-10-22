@@ -315,6 +315,7 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 // contract, allocation and codegen pipeline, so spills count toward the gate.
 func compileMIRSteps(hm *hir.Module, opt Options, s Steps, splitInfo map[string]hir.SplitResult, m *mir2.Module) (Steps, error) {
 	initialSteps := s
+	mir2.InlineSingleCallSites(m, functionPruneRoots(hm))
 	s.Traces = make(map[string]*FuncTrace)
 	affineChanged := false
 	var err error

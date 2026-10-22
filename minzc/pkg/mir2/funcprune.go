@@ -25,6 +25,14 @@ func PruneUnreachableFuncs(m *Module, roots map[string]bool) bool {
 		work = append(work, name)
 	}
 
+	for _, g := range m.Globals {
+		for _, r := range g.Relocs {
+			enqueue(r.Symbol)
+		}
+		for _, s := range g.VtableSyms {
+			enqueue(s)
+		}
+	}
 	for name := range roots {
 		enqueue(name)
 	}

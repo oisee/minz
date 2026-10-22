@@ -614,10 +614,11 @@ func (l *lowerer) lowerFunc(fd *cc.FunctionDefinition) (*hir.Func, error) {
 	}
 
 	return &hir.Func{
-		Name:   l.symbolName(name),
-		Params: params,
-		RetTy:  retTy,
-		Body:   hir.Blk(body...),
+		Internal: fd.Declarator.IsStatic(),
+		Name:     l.symbolName(name),
+		Params:   params,
+		RetTy:    retTy,
+		Body:     hir.Blk(body...),
 	}, nil
 }
 

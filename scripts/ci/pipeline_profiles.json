@@ -380,6 +380,8 @@
     "TestSignedSubCmpBoundaryVMZ80",
     "TestSignedWideExtensionSourceNative",
     "TestSignedWordLiteralLeftKeepsArithmeticWidth",
+    "TestSingleCallExportCopiesVMZ80",
+    "TestSingleCallSiteInlineVMZ80",
     "TestSmallStepFillNative",
     "TestSpectrumPhaseWorkloadNative",
     "TestSpectrumPhaseWorkloadRefusals",
