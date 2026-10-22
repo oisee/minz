@@ -823,7 +823,7 @@ func (l *lowerer) lowerExprForRet(e Expr) mir2.Reg {
 	// Joining first at the conditional's narrow type can truncate a wider arm.
 	if _, conditional := e.(*CondExpr); !conditional && len(l.bld.F.Contract.Returns) > 0 {
 		ty := l.bld.F.Contract.Returns[0].Ty
-		if mir2.IsInt(e.ExprTy()) && mir2.IsInt(ty) && e.ExprTy().Width() < ty.Width() && mir2.IsSigned(e.ExprTy()) {
+		if mir2.IsInt(e.ExprTy()) && mir2.IsInt(ty) && e.ExprTy().Width() != ty.Width() {
 			return l.lowerExprAs(e, ty)
 		}
 	}
@@ -1161,7 +1161,7 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 				cell := &mir2.StructTy{Fields: []mir2.StructField{{Name: "value", Ty: st.Ty}}}
 				addr := l.fixedStructStorage(cell)
 				if st.Init != nil {
-					value := l.lowerSignedExprAs(st.Init, st.Ty)
+					value := l.lowerStorageExprAs(st.Init, st.Ty)
 					l.storeMemory(addr, value, st.Ty, st.Volatile)
 				}
 				l.bind(st.Name, addr, mir2.TyPtr)
@@ -1276,7 +1276,7 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 				if _, ok := expr.(*IntLitExpr); ok {
 					continue // already in initBytes
 				}
-				val := l.lowerSignedExprAs(expr, st.Ty)
+				val := l.lowerStorageExprAs(expr, st.Ty)
 				off := i * elemBytes
 				if off == 0 {
 					l.bld.Store(r, val, st.Ty)
@@ -1349,7 +1349,7 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 		}
 		val := l.lowerExpr(st.Val)
 		valTy := st.Val.ExprTy()
-		if mir2.IsSigned(valTy) && mir2.IsInt(st.Target.ExprTy()) && valTy.Width() < st.Target.ExprTy().Width() {
+		if mir2.IsInt(valTy) && mir2.IsInt(st.Target.ExprTy()) && valTy.Width() != st.Target.ExprTy().Width() {
 			val = l.coerceLocalInteger(val, valTy, st.Target.ExprTy())
 			valTy = st.Target.ExprTy()
 		}
@@ -1429,6 +1429,10 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 		} else if st.Val != nil {
 			// Check for fold/reduce: return fold(ptr, init, cb, n)
 			if foldReg, ok := l.tryLowerFold(st.Val); ok {
+				chain, _ := l.recognizeIterChain(st.Val)
+				if len(l.bld.F.Contract.Returns) > 0 {
+					foldReg = l.coerceLocalInteger(foldReg, chain.foldAccTy, l.bld.F.Contract.Returns[0].Ty)
+				}
 				l.bld.Ret(foldReg)
 			} else {
 				r := l.lowerExprForRet(st.Val)
@@ -2482,20 +2486,21 @@ func (l *lowerer) coerceLocalInteger(src mir2.Reg, from, to mir2.Ty) mir2.Reg {
 	return src
 }
 
-// lowerSignedExprAs preserves narrow storage for ordinary values while making
-// an implicit signed widening explicit at a typed storage or CFG boundary.
-func (l *lowerer) lowerSignedExprAs(e Expr, wantTy mir2.Ty) mir2.Reg {
-	if lit, ok := e.(*IntLitExpr); ok && lit.Val >= 0 {
+// lowerStorageExprAs makes narrowing and signed widening explicit at storage
+// and CFG boundaries. Nonnegative literals and unsigned widening may keep their
+// smaller registers: the store/join already supplies the destination width.
+func (l *lowerer) lowerStorageExprAs(e Expr, wantTy mir2.Ty) mir2.Reg {
+	if lit, ok := e.(*IntLitExpr); ok && lit.Val >= 0 && IntLiteralFits(lit.Val, wantTy) {
 		return l.lowerExpr(e)
 	}
-	if mir2.IsInt(e.ExprTy()) && mir2.IsInt(wantTy) && mir2.IsSigned(e.ExprTy()) && e.ExprTy().Width() < wantTy.Width() {
+	if mir2.IsInt(e.ExprTy()) && mir2.IsInt(wantTy) && (e.ExprTy().Width() > wantTy.Width() || mir2.IsSigned(e.ExprTy()) && e.ExprTy().Width() < wantTy.Width()) {
 		return l.lowerExprAs(e, wantTy)
 	}
 	return l.lowerExpr(e)
 }
 
-// lowerExprAs promotes narrow literals and sign-extends signed operands
-// to the expression width. This also handles C integer promotions.
+// lowerExprAs converts to the destination integer width before ABI placement
+// or use. Narrowing keeps low bits; widening follows the source signedness.
 func (l *lowerer) lowerExprAs(e Expr, wantTy mir2.Ty) mir2.Reg {
 	if lit, ok := e.(*IntLitExpr); ok {
 		// A source literal has an exact mathematical value. Fold its contextual
@@ -2506,14 +2511,7 @@ func (l *lowerer) lowerExprAs(e Expr, wantTy mir2.Ty) mir2.Reg {
 		}
 	}
 	src := l.lowerExpr(e)
-	srcTy := e.ExprTy()
-	if mir2.IsInt(srcTy) && mir2.IsInt(wantTy) && srcTy.Width() < wantTy.Width() {
-		if mir2.IsSigned(srcTy) {
-			return l.bld.Sext(src, srcTy, wantTy, classForExpr(wantTy))
-		}
-		return l.bld.Ext(src, srcTy, wantTy, classForExpr(wantTy))
-	}
-	return src
+	return l.coerceLocalInteger(src, e.ExprTy(), wantTy)
 }
 
 // lowerExpr lowers an expression to the register holding its value.
@@ -2609,9 +2607,8 @@ func (l *lowerer) lowerExpr(e Expr) mir2.Reg {
 				paramTy = calleeParams[i].Ty
 			}
 			var r mir2.Reg
-			// Normalize narrow integer arguments before ABI placement and inlining.
-			_, literal := a.(*IntLitExpr)
-			if i < len(calleeParams) && mir2.IsInt(paramTy) && mir2.IsInt(calleeParams[i].Ty) && (literal || paramTy.Width() < calleeParams[i].Ty.Width()) {
+			// Convert integer arguments before ABI placement and inlining.
+			if i < len(calleeParams) && mir2.IsInt(paramTy) && mir2.IsInt(calleeParams[i].Ty) {
 				paramTy = calleeParams[i].Ty
 				r = l.lowerExprAs(a, paramTy)
 			} else {
@@ -2988,7 +2985,7 @@ func (l *lowerer) lowerCondExpr(ex *CondExpr) mir2.Reg {
 	// then-branch
 	thenBlk := l.bld.SwitchToNewBlock(thenLabel)
 	_ = thenBlk
-	thenVal := l.lowerSignedExprAs(ex.Then, ex.Ty)
+	thenVal := l.lowerStorageExprAs(ex.Then, ex.Ty)
 	if ex.Ty == mir2.TyVoid {
 		l.bld.Jmp(joinLabel)
 	} else {
@@ -2998,7 +2995,7 @@ func (l *lowerer) lowerCondExpr(ex *CondExpr) mir2.Reg {
 	// else-branch
 	elseBlk := l.bld.SwitchToNewBlock(elseLabel)
 	_ = elseBlk
-	elseVal := l.lowerSignedExprAs(ex.Else, ex.Ty)
+	elseVal := l.lowerStorageExprAs(ex.Else, ex.Ty)
 	if ex.Ty == mir2.TyVoid {
 		l.bld.Jmp(joinLabel)
 	} else {
@@ -4549,7 +4546,7 @@ func (l *lowerer) emitStructLitFields(lit *StructLitExpr, baseProvider func() mi
 			}, volatile || mir2.VolatileStorageByte(lit.St, byteOff))
 			continue
 		}
-		val := l.lowerSignedExprAs(fi.Val, fieldTy)
+		val := l.lowerStorageExprAs(fi.Val, fieldTy)
 		base := baseProvider()
 		var addr mir2.Reg
 		if byteOff == 0 {
@@ -4627,7 +4624,7 @@ func (l *lowerer) emitStructLitFieldsChained(lit *StructLitExpr, startAddr mir2.
 			diff := e.byteOff - prevOff
 			addr = l.bld.Field(prevAddr, int64(diff), mir2.ClassPointer)
 		}
-		val := l.lowerSignedExprAs(e.valExpr, e.ty) // lower just before Store — short live range
+		val := l.lowerStorageExprAs(e.valExpr, e.ty) // lower just before Store — short live range
 		l.storeMemory(addr, val, e.ty, volatile || mir2.VolatileStorageByte(lit.St, e.byteOff))
 		prevAddr = addr
 		prevOff = e.byteOff

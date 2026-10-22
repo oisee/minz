@@ -1284,6 +1284,8 @@ func (p *parser) fixStmtCallTypes(s hir.Stmt) {
 		p.fixExprCallTypes(st.Cond)
 		p.fixBlockCallTypes(st.Body)
 	case *hir.ForRangeStmt:
+		p.fixExprCallTypes(st.Start)
+		p.fixExprCallTypes(st.End)
 		p.fixBlockCallTypes(st.Body)
 	case *hir.StoreStmt:
 		p.fixExprCallTypes(st.Ptr)
@@ -1291,7 +1293,16 @@ func (p *parser) fixStmtCallTypes(s hir.Stmt) {
 	case *hir.TupleLetStmt:
 		p.fixExprCallTypes(st.Call)
 	case *hir.ForEachStmt:
+		p.fixExprCallTypes(st.Ptr)
+		p.fixExprCallTypes(st.Start)
+		p.fixExprCallTypes(st.Len)
 		p.fixBlockCallTypes(st.Body)
+	case *hir.SwitchStmt:
+		p.fixExprCallTypes(st.Val)
+		for _, c := range st.Cases {
+			p.fixBlockCallTypes(c.Body)
+		}
+		p.fixBlockCallTypes(st.Default)
 	}
 }
 
@@ -1331,6 +1342,21 @@ func (p *parser) fixExprCallTypes(e hir.Expr) {
 				ex.Ty = mir2.TyU8
 			}
 		}
+	case *hir.CallIndirectExpr:
+		p.fixExprCallTypes(ex.FnPtr)
+		for i, a := range ex.Args {
+			p.fixExprCallTypes(a)
+			if ex.Signature != nil && i < len(ex.Signature.Params) {
+				ty := ex.Signature.Params[i]
+				// The explicit callable ABI requires converted operands in HIR.
+				// Do this after forward expression types have been resolved;
+				// the verifier can then retain its strict consumed-ABI checks.
+				if mir2.IsInt(ty) && mir2.IsInt(a.ExprTy()) && ty != a.ExprTy() {
+					ex.Args[i] = hir.Cast(a, ty)
+				}
+			}
+		}
+
 	case *hir.BinExpr:
 		p.fixExprCallTypes(ex.L)
 		p.fixExprCallTypes(ex.R)
@@ -1353,6 +1379,15 @@ func (p *parser) fixExprCallTypes(e hir.Expr) {
 		}
 	case *hir.FieldExpr:
 		p.fixExprCallTypes(ex.X)
+	case *hir.BitExpr:
+		p.fixExprCallTypes(ex.X)
+	case *hir.StructLitExpr:
+		for _, field := range ex.Fields {
+			p.fixExprCallTypes(field.Val)
+		}
+	case *hir.LetInExpr:
+		p.fixExprCallTypes(ex.Init)
+		p.fixExprCallTypes(ex.Body)
 	case *hir.LoadExpr:
 		unresolved := ex.Ptr.ExprTy() == nil || ex.Ptr.ExprTy() == mir2.TyVoid
 		p.fixExprCallTypes(ex.Ptr)

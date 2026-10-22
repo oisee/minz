@@ -418,6 +418,187 @@ fun widen(x:i8)->i16{return x as i16}`
 	}
 }
 
+// Exercise destination conversions independently of the operation-domain model:
+// every byte input, both operand orders, narrow returns and narrow parameters.
+func TestNanzLiteralNarrowingVMZ80(t *testing.T) {
+	t.Run("storage_and_multi_return", func(t *testing.T) {
+		source := `struct Box{value:u8}
+type Byte=fun(u8)->u16
+fun identity(x:u8)->u16{return x}
+fun nested(f:Byte,x:u8)->u8{let box:Box=Box{value:f(x xor -1)}
+return box.value}
+fun struct_call(x:u8)->u8{return nested(identity,x)}
+global byte:u8=300
+global signed:i8=200
+global field:Box=Box{value:300}
+global data:[u8;1]=[300]
+fun pair(x:u8)->(u8,i8){return (x xor -1,x+300)}
+fun tuple_u(x:u8)->u8{let (a,b)=pair(x)
+return a}
+fun tuple_i(x:u8)->i8{let (a,b)=pair(x)
+return b}
+fun storage(x:u8)->u8{
+ let box:Box=Box{value:x xor -1}
+ var local:[u8;1]
+ local[0]=x xor -1
+ data[0]=x xor -1
+ byte=x xor -1
+ field.value=x xor -1
+ if box.value!=local[0] {return 0}
+ if byte!=data[0] {return 0}
+ if field.value!=byte {return 0}
+ return byte
+}
+fun initial()->u8{
+ if byte!=44{return 0}
+ if signed!=-56{return 0}
+ if field.value!=44{return 0}
+ if data[0]!=44{return 0}
+ return 1
+}`
+		var asserts []hir.Assert
+		for _, engine := range []string{"mir2", "z80"} {
+			asserts = append(asserts, hir.Assert{FuncName: "initial", Expected: 1, Via: engine})
+			for _, x := range []int64{0, 1, 37, 100, 127, 128, 218, 255} {
+				for _, name := range []string{"tuple_u", "tuple_i", "storage", "struct_call"} {
+					want := x ^ 255
+					if name == "tuple_i" {
+						want = int64(int8(x + 300))
+					}
+					asserts = append(asserts, hir.Assert{FuncName: name, Args: []int64{x}, Expected: want, Via: engine})
+				}
+			}
+		}
+		parse := func() *hir.Module {
+			h, e := nanz.Parse(source, "narrow-storage.nanz")
+			if e != nil {
+				t.Fatal(e)
+			}
+			h.Sandboxes = []hir.Sandbox{{Name: "storage", Asserts: asserts}}
+			return h
+		}
+		h := parse()
+		if e := RunAssertsMIR2(h, hir.LowerModule(h)); e != nil {
+			t.Fatal(e)
+		}
+		h = parse()
+		steps, e := CompileHIRSteps(h, Options{ContractOpt: true, AssertMode: "none"})
+		if e != nil {
+			t.Fatal(e)
+		}
+		if e := RunAssertsMIR2(h, steps.MIR2Module); e != nil {
+			t.Fatal(e)
+		}
+		p28RunNative(t, h, steps)
+	})
+	for _, tc := range []struct {
+		ty, op string
+		k      int64
+		signed bool
+	}{
+		{"u8", "+", 300, false}, {"i8", "+", 200, true},
+		{"u8", "-", -1, false}, {"i8", "-", 200, true},
+		{"u8", "*", 300, false}, {"i8", "*", 300, true},
+		{"u8", "&", -1, false}, {"i8", "&", 200, true},
+		{"u8", "|", -1, false}, {"i8", "|", 200, true},
+		{"u8", "xor", -1, false}, {"i8", "xor", 200, true},
+		{"u8", "/", 300, false}, {"i8", "/", 200, true}, {"u8", "/", -1, false},
+		{"u8", "%", 300, false}, {"i8", "%", 200, true}, {"u8", "%", -1, false},
+		{"u8", "<<", 300, false}, {"i8", "<<", 300, true},
+		{"u8", ">>", 300, false}, {"i8", ">>", 300, true},
+		{"u8", ">>", -1, false}, {"i8", ">>", -200, true},
+	} {
+		for side := 0; side < 2; side++ {
+			bits, signed := p28Domain(8, tc.signed, tc.k)
+			if (tc.op == "<<" || tc.op == ">>") && side == 0 && (tc.k < 0 || tc.k >= int64(bits)) {
+				continue // this whole operand order has no defined shift count
+			}
+			t.Run(fmt.Sprintf("%s/%s/%d", tc.ty, tc.op, side), func(t *testing.T) {
+				left, right := "x", fmt.Sprint(tc.k)
+				if side == 1 {
+					left, right = right, left
+				}
+				expr := fmt.Sprintf("%s %s %s", left, tc.op, right)
+				source := fmt.Sprintf(`type Narrow = fun(%[1]s)->u16
+fun accept(x:%[1]s)->u16{return x}
+fun narrow(x:%[1]s)->%[1]s{return %[2]s}
+fun direct(x:%[1]s)->u16{return accept(%[2]s)}
+fun indirect(f:Narrow,x:%[1]s)->u16{return f(%[2]s)}
+fun via_indirect(x:%[1]s)->u16{return indirect(accept,x)}
+fun conditional(x:%[1]s)->%[1]s{if x==0 {return %[2]s}
+return %[2]s}
+`, tc.ty, expr)
+				var asserts []hir.Assert
+				for b := 0; b < 256; b++ {
+					x := int64(b)
+					if tc.signed {
+						x = int64(int8(b))
+					}
+					a, v := x, tc.k
+					if side == 1 {
+						a, v = v, a
+					}
+					if (tc.op == "<<" || tc.op == ">>") && (v < 0 || v >= int64(bits)) {
+						continue
+					}
+					if (tc.op == "/" || tc.op == "%") && (v == 0 || signed && a == -(int64(1)<<(bits-1)) && v == -1) {
+						continue
+					}
+					want := int64(uint8(p28Reference(a, v, tc.op, bits, signed)))
+					if tc.signed {
+						want = int64(int8(want))
+					}
+					for _, name := range []string{"narrow", "direct", "via_indirect", "conditional"} {
+						expected := want
+						if name == "direct" || name == "via_indirect" {
+							expected = int64(uint16(want))
+						}
+						for _, engine := range []string{"mir2", "z80"} {
+							asserts = append(asserts, hir.Assert{FuncName: name, Args: []int64{x}, Expected: expected, Via: engine, Source: fmt.Sprintf("%s(%d)", name, x)})
+						}
+					}
+				}
+				parse := func() *hir.Module {
+					h, e := nanz.Parse(source, "narrow-literal.nanz")
+					if e != nil {
+						t.Fatal(e)
+					}
+					h.Sandboxes = []hir.Sandbox{{Name: "narrow", Asserts: asserts}}
+					return h
+				}
+				h := parse()
+				raw := hir.LowerModule(h)
+				// A narrowing must be explicit before return/ABI placement.
+				for _, name := range []string{"narrow", "direct", "indirect"} {
+					found := false
+					for _, block := range raw.FuncByName(name).Blocks {
+						for _, in := range block.Insts {
+							if in.Op == mir2.OpTrunc && in.Ty.Width() == 8 && in.SrcTy.Width() == 16 {
+								found = true
+							}
+						}
+					}
+					if !found {
+						t.Fatalf("%s: missing 16-to-8 conversion", name)
+					}
+				}
+				if e := RunAssertsMIR2(h, raw); e != nil {
+					t.Fatal(e)
+				}
+				h = parse()
+				steps, e := CompileHIRSteps(h, Options{ContractOpt: true, AssertMode: "none"})
+				if e != nil {
+					t.Fatal(e)
+				}
+				if e := RunAssertsMIR2(h, steps.MIR2Module); e != nil {
+					t.Fatal(e)
+				}
+				p28RunNative(t, h, steps)
+			})
+		}
+	}
+}
+
 // Assemble the module and all input trampolines once. Each trampoline uses the
 // production assertion bootstrap (including ABI placement and spill setup).
 func p28RunNative(t *testing.T, h *hir.Module, steps Steps) {

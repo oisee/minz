@@ -278,6 +278,7 @@
     "TestMultiFunctionProfileVMZ80",
     "TestNanzGeneratedCallerTypeNativeVM",
     "TestNanzGlobalAggregateLiteralNativeVM",
+    "TestNanzLiteralNarrowingVMZ80",
     "TestNanzLiteralTypingContextsVMZ80",
     "TestNanzLiteralTypingPropertyVMZ80",
     "TestNanzNestedFieldsWithImportNativeVM",
