@@ -770,7 +770,8 @@ type z80cg struct {
 	// clobbered by an upcoming "LD A, imm" in a subsequent genCmp.
 	// When genCmp is about to emit "LD A, imm", if pendingAccReg is still live
 	// downstream, it emits LD D,A and reroutes pendingAccReg to "D".
-	pendingAccReg Reg
+	widenedByteAdds map[*Inst]bool // adjacent ext/add pairs emitted at the extension
+	pendingAccReg   Reg
 
 	// ptrAddPushHL: set by scanPtrAddBase when a ptr_add's base is in HL and
 	// the base virtual is live after the instruction (needs to survive across

@@ -12,6 +12,9 @@ import (
 // ── Instructions ──────────────────────────────────────────────────────────────
 
 func (g *z80cg) genInst(inst *Inst) {
+	if g.widenedByteAdds[inst] {
+		return
+	}
 	// Instructions merged into a page-aligned LUT load are skipped here;
 	// their code is emitted by the Load case below.
 	if g.lutSkip[inst.Dst] {
@@ -422,6 +425,9 @@ func (g *z80cg) genInst(inst *Inst) {
 	case OpPackBytes:
 		g.genPackBytes(inst)
 	case OpExt:
+		if g.genWideningByteAdd(inst) {
+			return
+		}
 		// Zero-extend srcTy → Ty.  Primary case: u8 → u16 into HL.
 		// genExt may emit XOR (flag-clobbering) — clear to be safe.
 		g.lastFlagsLhs = ""
