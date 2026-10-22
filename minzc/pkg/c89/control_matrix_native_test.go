@@ -1,6 +1,7 @@
 package c89_test
 
 import (
+	"fmt"
 	"github.com/minz/minzc/pkg/c89"
 	"github.com/minz/minzc/pkg/hir"
 	"github.com/minz/minzc/pkg/mir2"
@@ -125,7 +126,7 @@ func TestC89ControlMatrixVMZ80(t *testing.T) {
 			m := parse()
 			for _, c := range cases {
 				for _, x := range inputs {
-					m.Asserts = append(m.Asserts, hir.Assert{FuncName: c.name, Args: []int64{x}, Expected: c.want(x), Via: "z80"})
+					m.Asserts = append(m.Asserts, hir.Assert{FuncName: c.name, Args: []int64{x}, Expected: c.want(x), Via: "z80", Source: fmt.Sprintf("%s(%d)", c.name, x)})
 				}
 			}
 			s, err := pipeline.CompileHIRSteps(m, pipeline.Options{ContractOpt: true, UseGrace: mode != "default", UseHIRGrace: mode != "default", OptSize: mode == "size"})

@@ -873,7 +873,7 @@ func (g *z80cg) comment(s string)            { g.emitf("    ; %s", s) }
 //
 //   - OpCmp with Src[1] being the const → CP imm8 fires (no register needed).
 //   - OpAdd/OpSub with a small constant RHS → INC/DEC fires for words with
-//     unobserved flags, or in-place bytes with RHS 1 (no register needed).
+//     unobserved flags, or byte steps with unobserved flags (no register needed).
 //
 // Classify each operand occurrence by position: Src[0] still needs a register
 // even when it names the same constant as the foldable Src[1]. Other immediate
@@ -951,11 +951,7 @@ func computeDeadConsts(f *Func, ar *AllocResult) map[Reg]bool {
 						foldedUses[src]++
 						break
 					}
-					// INC/DEC: fires when rhs==1 and the op is in-place (lhs phys == dst phys).
-					if operand == 1 && cv == 1 &&
-						physName(inst.Src[0]) == physName(inst.Dst) &&
-						inst.Ty.Width() <= 8 && !isSpill(physName(inst.Dst)) &&
-						physName(inst.Dst) != "F" {
+					if operand == 1 && byteSmallStep(f, inst, cv, physName(inst.Src[0]), physName(inst.Dst)) {
 						foldedUses[src]++
 					}
 				case OpDiv, OpSDiv, OpMod, OpSMod:

@@ -175,6 +175,10 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 		isPendingFlag0 := len(inst.Src) > 0 && inst.Src[0] == g.pendingFlagReg
 		isPendingFlag1 := len(inst.Src) > 1 && inst.Src[1] == g.pendingFlagReg
 		if mnem == "OR" && (lhs == "F" || rhs == "F" || isPendingFlag0 || isPendingFlag1) {
+			if restore := g.saveAccIfLive(inst); restore != nil {
+				defer restore()
+			}
+
 			var flagSrc Reg
 			var otherLoc string
 			if lhs == "F" || isPendingFlag0 {
@@ -183,6 +187,13 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 			} else {
 				flagSrc = inst.Src[1]
 				otherLoc = lhs
+			}
+			otherReg := inst.Src[0]
+			if flagSrc == inst.Src[0] {
+				otherReg = inst.Src[1]
+			}
+			if otherLoc == "A" {
+				g.saveAccOperandIfLive(otherReg, inst)
 			}
 			// Consume the pending flag tracking for flagSrc.
 			if flagSrc == g.pendingFlagReg {
@@ -209,39 +220,36 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 			return
 		}
 
-		// If there is a pending ClassAcc value in A that is still live after this
-		// instruction, save it to a scratch register before we overwrite A.
-		// This fires when two successive 8-bit ALU ops both need A: the first
-		// result (r33=acc) must survive while the second (r35=i+1) runs.
-		// Skip when the peephole below will use INC/DEC (does not touch A).
-		// INC/DEC doesn't clobber A — only fires when rhs is a small constant.
-		_, rhsIsConst := g.constVals[inst.Src[1]]
-		willUseINCDEC := (mnem == "ADD" || mnem == "SUB") && lhs == dst && rhsIsConst
-		if !willUseINCDEC {
-			g.materializePendingAcc(inst)
+		// INC/DEC preserve carry, unlike ADD/SUB. Only use this sequence when
+		// no consumer observes arithmetic flags. A separate destination needs
+		// one ordinary byte copy first; it need not pass through A.
+		cv, rhsIsConst := g.constVals[inst.Src[1]]
+		if rhsIsConst && byteSmallStep(g.fn, inst, cv, lhs, dst) {
+			if dst == "A" {
+				g.materializePendingAcc(inst)
+				g.saveABeforeOverwrite(inst)
+				if lhs == "A" && g.loc(inst.Src[0]) == "A" {
+					g.saveAccOperandIfLive(inst.Src[0], inst)
+				}
+			}
+			if lhs != dst {
+				g.emitLD8(dst, lhs)
+			}
+			step := "INC"
+			if mnem == "SUB" {
+				step = "DEC"
+			}
+			for range cv {
+				g.emitf("    %s %s", step, dst)
+			}
+			g.invalidate(dst)
+			if dst == "A" {
+				g.pendingAccReg = inst.Dst
+			}
+			return
 		}
+		g.materializePendingAcc(inst)
 
-		// Peephole: ADD/SUB dst, N where dst == lhs and N ≤ 3 → INC/DEC dst × N.
-		// N=1: 1B/4T vs 4B/15T; N=2: 2B/8T vs 4B/15T; N=3: 3B/12T vs 4B/15T.
-		// N=4 would be 16T vs 15T — worse in T-states, skip and fall through to ALU.
-		if mnem == "ADD" && lhs == dst && !isSpill(dst) && dst != "F" {
-			if cv, ok := g.constVals[inst.Src[1]]; ok && cv >= 1 && cv <= 3 {
-				for range cv {
-					g.emitf("    INC %s", dst)
-				}
-				g.invalidate(dst)
-				return
-			}
-		}
-		if mnem == "SUB" && lhs == dst && !isSpill(dst) && dst != "F" {
-			if cv, ok := g.constVals[inst.Src[1]]; ok && cv >= 1 && cv <= 3 {
-				for range cv {
-					g.emitf("    DEC %s", dst)
-				}
-				g.invalidate(dst)
-				return
-			}
-		}
 		// 8-bit: accumulator must hold lhs.  Emit LD A,lhs if needed.
 		//
 		// Special case: rhs is already A and lhs is elsewhere.
@@ -251,6 +259,10 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 		// Folded constants need not reside in their allocated register. In
 		// particular A may still hold lhs when a constant RHS is allocated A.
 		if rhs == "A" && lhs != "A" && (!rhsIsConst || !g.deadConsts[inst.Src[1]]) {
+			if restore := g.saveAccIfLive(inst); restore != nil {
+				defer restore()
+			}
+
 			// The result overwrites A, which holds rhs: save rhs if it is
 			// still live (gcd's b = b - a keeps a live in A for the loop).
 			g.saveAccOperandIfLive(inst.Src[1], inst)
@@ -279,6 +291,12 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 		// Coalescing: if A already holds lhs or (commutative) rhs, skip LD A, reg.
 		isCommutative := mnem == "ADD" || mnem == "AND" || mnem == "OR" || mnem == "XOR"
 		if g.holdsValue("A", lhs) {
+			// The tracked copy may alias a different SSA value that is live
+			// through a successor, even when this operand itself dies here.
+			if restore := g.saveAccIfLive(inst); restore != nil {
+				defer restore()
+			}
+
 			// Save-before-overwrite: if the lhs vreg in A is still live after this
 			// instruction (used by a later inst or terminator), save it to a scratch
 			// register. The ALU op will overwrite A with the result.
@@ -301,6 +319,10 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 			return
 		}
 		if isCommutative && !rhsIsConst && g.holdsValue("A", rhs) {
+			if restore := g.saveAccIfLive(inst); restore != nil {
+				defer restore()
+			}
+
 			// A == rhs, commutative swap: emit OP A, lhs instead.
 			g.saveAccOperandIfLive(inst.Src[1], inst)
 			g.invalidate("A")
@@ -787,7 +809,8 @@ func (g *z80cg) saveAccIfLive(inst *Inst) func() {
 	// here, not the lowest allocated ID (which may be a long-dead parameter).
 	live := g.regsLiveAfterInst(inst)
 	for _, r := range slices.Sorted(maps.Keys(live)) {
-		if r == inst.Dst || r == inst.Src[0] || r == inst.Src[1] || g.loc(r) != "A" {
+		// Folded constants have no resident accumulator value to preserve.
+		if r == inst.Dst || r == inst.Src[0] || r == inst.Src[1] || g.loc(r) != "A" || g.deadConsts[r] {
 			continue
 		}
 		scratch := g.freeScratch8(inst)
@@ -1256,4 +1279,20 @@ func (g *z80cg) emitDyingPairExchange(inst *Inst, dst, src string, width int) bo
 func smallWordStep(value int64) bool {
 	v := int16(value)
 	return v >= -2 && v <= 2 && v != 0
+}
+
+// byteSmallStep is shared by emission and constant-load suppression. Cross-home
+// copies are restricted to primary bytes, whose LD does not need scratch A.
+func byteSmallStep(f *Func, inst *Inst, cv int64, lhs, dst string) bool {
+	if (inst.Op != OpAdd && inst.Op != OpSub) || inst.Ty == nil || inst.Ty.Width() != 8 || cv < 1 || cv > 3 || !wordMaskFlagsUnobserved(f, inst.Dst) {
+		return false
+	}
+	primary := func(s string) bool {
+		switch s {
+		case "A", "B", "C", "D", "E", "H", "L":
+			return true
+		}
+		return false
+	}
+	return primary(lhs) && primary(dst) || lhs == dst && isIXYReg(dst)
 }

@@ -475,6 +475,9 @@ func PropagateConstants(f *Func) bool {
 func SimplifyIdentities(f *Func) bool {
 	consts := collectKnownConsts(f)
 	changed := simplifyTypedZeroIdentities(f)
+	if foldTruncOfExtension(f) {
+		changed = true
+	}
 	if NarrowLowByteMaskTests(f) {
 		changed = true
 	}

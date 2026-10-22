@@ -24,9 +24,14 @@ func TestMul16PromotedByteSpillNative(t *testing.T) {
 			}
 			f.Contract.Params = []Param{{Name: "x", Reg: x, Ty: ty, Class: ClassGeneral}, {Name: "y", Reg: y, Ty: rhsTy, Class: ClassGeneral}}
 			inst := &Inst{Op: OpMul, Dst: out, Src: [2]Reg{x, y}, Ty: TyU16, Cls: ClassPointer}
+			// The fixture checks BC preservation: make that value live after mul.
+			liveBC := f.AllocReg()
+			b.Append(&Inst{Op: OpConst, Dst: liveBC, Ty: TyU16, Imm: 0x1234})
 			b.Append(inst)
+			b.Append(&Inst{Op: OpMove, Dst: f.AllocReg(), Src: [2]Reg{liveBC}, Ty: TyU16})
 			b.Seal(&TermRet{Vals: []Reg{out}})
 			ar := &AllocResult{Locs: map[Reg]PhysLoc{x: {Kind: LocMem, Offset: 0xa100}, y: {Kind: LocMem, Offset: 0xa110}, out: {Kind: LocReg, Name: "HL"}}}
+			ar.Locs[liveBC] = PhysLoc{Kind: LocReg, Name: "BC"}
 			var body strings.Builder
 			g := &z80cg{mod: m, fn: f, ar: ar, sb: &body, curBlock: b, liveness: ComputeLiveness(f), regInfo: collectRegInfo(f), constVals: map[Reg]int64{}, holdsPhys: map[string]string{}, physOverride: map[Reg]string{}, pendingAccReg: NoReg, pendingFlagReg: NoReg}
 			if factor >= 0 {

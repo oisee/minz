@@ -198,10 +198,14 @@ func (g *z80cg) genInst(inst *Inst) {
 	case OpSub:
 		g.lastFlagsLhs = "" // clear stale tracking before this sub
 		g.lastFlagsRhs = ""
+		cv, constant := g.constVals[inst.Src[1]]
+		byteStep := constant && byteSmallStep(g.fn, inst, cv, g.loc(inst.Src[0]), g.loc(inst.Dst))
 		g.genBinOp("SUB", inst)
 		// Record that flags were set by SUB(lhs, rhs) for the Sub+CmpLt fusion.
 		// Only track 8-bit subs; 16-bit uses SBC which sets different flags.
-		if inst.Ty.Width() <= 8 {
+		// DEC preserves carry, so its flags cannot implement a later unsigned
+		// comparison of the original subtraction operands.
+		if inst.Ty.Width() <= 8 && !byteStep {
 			rhsP := g.loc(inst.Src[1])
 			if cv, ok := g.constVals[inst.Src[1]]; ok {
 				rhsP = fmt.Sprintf("%d", cv)

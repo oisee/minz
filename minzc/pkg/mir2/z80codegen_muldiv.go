@@ -201,7 +201,7 @@ func (g *z80cg) genMul(inst *Inst) {
 //	0:       LD H,0 / LD L,0
 //	1:       no-op
 //	2^n:     n × ADD HL,HL  (7T per shift)
-//	3,5,6,9: PUSH HL / POP BC + shift+add sequence
+//	3,5,6,9,10,12: LD B,H / LD C,L + shift+add sequence
 //
 // Variable (software shift-and-add, Russian-peasant LSB-first, 16 iterations):
 //
@@ -220,6 +220,17 @@ func (g *z80cg) genMul(inst *Inst) {
 // SRL D is independent of incoming carry, so ADD HL,BC's carry does not corrupt
 // the extraction.  Total: ~320T worst case.
 func (g *z80cg) genMul16(inst *Inst) {
+	// Query using the original instruction identity, before commutative staging
+	// makes a local copy. Include pair aliases and live operands, but not dst.
+	live := g.regsLiveAfterInst(inst)
+	pairLive := func(pair string) bool {
+		for r := range live {
+			if r != inst.Dst && (g.loc(r) == pair || parentPair(g.loc(r)) == pair) {
+				return true
+			}
+		}
+		return false
+	}
 	// Multiplication is commutative. Keep a resident variable operand in HL:
 	// moving the other operand there would destroy it (DE * HL -> DE * DE).
 	// A constant RHS has no physical load: its allocated HL is only a nominal
@@ -268,7 +279,7 @@ func (g *z80cg) genMul16(inst *Inst) {
 	// 16-bit multiply needs HL for ADD HL,rr.
 	// A live lhs must survive too when the result is allocated elsewhere.
 	savedHL := false
-	if dst != "HL" {
+	if dst != "HL" && pairLive("HL") {
 		// HL may hold a live value (e.g. a constant computed earlier).
 		// Save it on stack; restore after multiply into dst.
 		g.emit("    PUSH HL")
@@ -349,11 +360,14 @@ func (g *z80cg) genMul16(inst *Inst) {
 			mul16Epilogue()
 			return
 		}
-		// Small multiples via PUSH/POP BC save + shift sequences.
+		// Small multiples use BC as scratch for shift-and-add sequences.
 		if cv == 3 || cv == 5 || cv == 6 || cv == 9 || cv == 10 || cv == 12 {
-			g.emit("    PUSH BC") // preserve values live across the scratch pair
-			g.emit("    PUSH HL") // save x → BC
-			g.emit("    POP BC")  // BC = x (PUSH HL 11T + POP BC 10T)
+			savedBC := pairLive("BC")
+			if savedBC {
+				g.emit("    PUSH BC")
+			}
+			g.emit("    LD B, H")
+			g.emit("    LD C, L") // BC = x, without a stack round trip
 			switch cv {
 			case 3: // x*2 + x
 				g.emit("    ADD HL, HL")
@@ -364,8 +378,8 @@ func (g *z80cg) genMul16(inst *Inst) {
 				g.emit("    ADD HL, BC")
 			case 6: // x*4 + x*2
 				g.emit("    ADD HL, HL")
-				g.emit("    PUSH HL")
-				g.emit("    POP BC")
+				g.emit("    LD B, H")
+				g.emit("    LD C, L")
 				g.emit("    ADD HL, HL")
 				g.emit("    ADD HL, BC")
 			case 9: // x*8 + x
@@ -384,7 +398,10 @@ func (g *z80cg) genMul16(inst *Inst) {
 				g.emit("    ADD HL, HL")
 				g.emit("    ADD HL, HL")
 			}
-			g.emit("    POP BC")
+			if savedBC {
+				g.emit("    POP BC")
+			}
+			g.invalidate("BC")
 			mul16Epilogue()
 			return
 		}
@@ -432,7 +449,10 @@ func (g *z80cg) genMul16(inst *Inst) {
 		}
 		g.invalidate("DE")
 	}
-	g.emit("    PUSH BC") // save BC across multiply
+	savedBC := pairLive("BC")
+	if savedBC {
+		g.emit("    PUSH BC")
+	}
 	g.emit("    LD B, H")
 	g.emit("    LD C, L") // BC = multiplicand (lhs)
 	g.emit("    LD H, 0")
@@ -448,7 +468,9 @@ func (g *z80cg) genMul16(inst *Inst) {
 	g.emit("    RL B")
 	g.emit("    DEC A") // counter-- (does not affect carry)
 	g.emitf("    JRS NZ, %s", loopLbl)
-	g.emit("    POP BC") // restore BC
+	if savedBC {
+		g.emit("    POP BC")
+	}
 	g.emit("    POP DE") // restore old DE (live variables in D/E preserved)
 	g.emit("    POP AF") // restore old A (live variables in A preserved)
 	mul16Epilogue()
