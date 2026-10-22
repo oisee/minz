@@ -5,11 +5,15 @@ package mir2
 func (g *z80cg) genByteLoop(x *Inst) {
 	g.materializePendingAcc(x)
 	g.materializePendingFlag(x)
+	if x.Sym == copyBytesIntrinsic {
+		g.genCopyBytes(x)
+		return
+	}
 	if x.Sym == fillBytesIntrinsic {
 		g.genFillBytes(x)
 		return
 	}
-	restore := g.saveLiveScratch(x, "AF", "HL", "BC")
+	restore := g.saveByteLoopScratch(x, "AF", "HL", "BC")
 	g.emitParallelCopy([]parallelCopy{{srcName: g.loc(x.Args[0]), dstName: "HL", ty: TyPtr}})
 	g.emit("    XOR A")
 	g.emit("    LD BC, 0")
@@ -38,7 +42,7 @@ func (g *z80cg) genByteLoop(x *Inst) {
 }
 
 func (g *z80cg) genFillBytes(x *Inst) {
-	restore := g.saveLiveScratch(x, "AF", "HL", "DE", "BC")
+	restore := g.saveByteLoopScratch(x, "AF", "HL", "DE", "BC")
 	e := x.ByteLoop
 	moves := []parallelCopy{{srcName: g.loc(x.Args[0]), dstName: "HL", ty: TyPtr}}
 	if e.CountSymbol == "" {
@@ -92,4 +96,49 @@ func (g *z80cg) genFillBytes(x *Inst) {
 		g.invalidate(p)
 	}
 	g.lastFlagsLhs, g.lastFlagsRhs = "", ""
+}
+
+func (g *z80cg) genCopyBytes(x *Inst) {
+	restore := g.saveByteLoopScratch(x, "AF", "HL", "DE", "BC")
+	counter := "BC"
+	if x.ByteLoop.CountTy == TyU8 {
+		counter = "C"
+	}
+	g.emitParallelCopy([]parallelCopy{{srcName: g.loc(x.Args[0]), dstName: "DE", ty: TyPtr}, {srcName: g.loc(x.Args[2]), dstName: "HL", ty: TyPtr}, {srcName: g.loc(x.Args[1]), dstName: counter, ty: x.ByteLoop.CountTy}})
+	if x.ByteLoop.CountTy == TyU8 {
+		g.emit("    LD B, 0")
+	}
+	g.emit("    LD A, C")
+	g.emit("    OR B")
+	label := g.trampIdx
+	g.trampIdx++
+	g.emitf("    JRS Z, .byte_copy_done_%d", label)
+	g.emit("    LDIR")
+	g.emitf(".byte_copy_done_%d:", label)
+	restore()
+	for _, p := range []string{"A", "HL", "DE", "BC"} {
+		g.invalidate(p)
+	}
+	g.lastFlagsLhs, g.lastFlagsRhs = "", ""
+}
+
+// A predicate allocated directly to F need not be a pending comparison. Keep
+// those flags as well; arithmetic scratch helpers intentionally preserve only A.
+func (g *z80cg) saveByteLoopScratch(x *Inst, pairs ...string) func() {
+	keepFlags := false
+	for r := range g.scratchLiveAfter(x) {
+		if r != x.Dst && g.loc(r) == "F" {
+			keepFlags = true
+		}
+	}
+	if keepFlags {
+		g.emit("    PUSH AF")
+	}
+	restore := g.saveLiveScratch(x, pairs...)
+	return func() {
+		restore()
+		if keepFlags {
+			g.emit("    POP AF")
+		}
+	}
 }

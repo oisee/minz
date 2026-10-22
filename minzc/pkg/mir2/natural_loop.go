@@ -1,11 +1,12 @@
 package mir2
 
 // NaturalLoop contains proven CFG facts, independent of block layout. Only
-// reachable, single-latch loops with a unique unconditional preheader are
+// reachable, single-latch loops with a unique entering predecessor are
 // returned. Affine facts describe modular arithmetic, not a no-wrap proof.
 type NaturalLoop struct {
 	Header, Preheader, Latch *Block
 	Entry, Back              *TermJmp
+	Incoming                 []Reg
 	Blocks                   map[string]bool
 	Exits                    []*Block
 	Invariant                map[Reg]Reg
@@ -71,11 +72,12 @@ func AnalyzeNaturalLoops(f *Func) []*NaturalLoop {
 		if bad || pre == nil || latch == nil {
 			continue
 		}
-		entry, ok := pre.Term.(*TermJmp)
-		if !ok || entry.Target != head.Label || len(entry.Args) != len(head.Params) {
+		incoming, ok := invariantEdgeArgs(pre.Term, head.Label)
+		if !ok || len(incoming) != len(head.Params) {
 			continue
 		}
-		l := &NaturalLoop{Header: head, Preheader: pre, Latch: latch, Entry: entry, Blocks: map[string]bool{head.Label: true}, Invariant: map[Reg]Reg{}, LiveOut: map[Reg]bool{}}
+		entry, _ := pre.Term.(*TermJmp)
+		l := &NaturalLoop{Header: head, Preheader: pre, Latch: latch, Entry: entry, Incoming: incoming, Blocks: map[string]bool{head.Label: true}, Invariant: map[Reg]Reg{}, LiveOut: map[Reg]bool{}}
 		l.Back, _ = latch.Term.(*TermJmp)
 		stack := []*Block{latch}
 		for len(stack) > 0 {
@@ -104,9 +106,21 @@ func AnalyzeNaturalLoops(f *Func) []*NaturalLoop {
 			}
 		}
 		for i, p := range head.Params {
-			initial, known := l.Invariant[entry.Args[i]]
+			initial, known := l.Invariant[incoming[i]]
 			same := known
 			args, ok := invariantEdgeArgs(latch.Term, head.Label)
+			// DJNZ's first header argument is implicit and post-decremented. The
+			// explicit body arguments begin at parameter 1, unlike ordinary edges.
+			if t, isDJNZ := latch.Term.(*TermDJNZ); isDJNZ && t.Body == head.Label {
+				if len(head.Params) == 0 || head.Params[0].Dst != t.Counter || head.Params[0].Ty != TyU8 {
+					continue
+				}
+				if i == 0 {
+					l.Inductions = append(l.Inductions, LoopInduction{p, incoming[0], NoReg, -1})
+				}
+				args = append([]Reg{NoReg}, t.BodyArgs...)
+				ok = true
+			}
 			if !ok || len(args) != len(head.Params) || args[i] != p.Dst {
 				same = false
 			}
@@ -139,7 +153,7 @@ func AnalyzeNaturalLoops(f *Func) []*NaturalLoop {
 			default:
 				continue
 			}
-			l.Inductions = append(l.Inductions, LoopInduction{p, entry.Args[i], args[i], step})
+			l.Inductions = append(l.Inductions, LoopInduction{p, incoming[i], args[i], step})
 		}
 		for _, b := range f.Blocks {
 			if l.Blocks[b.Label] {

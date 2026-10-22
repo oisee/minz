@@ -359,7 +359,7 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 		if mir2.FuseByteAbsDiffCFG(f) {
 			tr.FuseAbsDiff++
 		}
-		if opt.Backend == "" || opt.Backend == "z80" {
+		if (opt.Backend == "" || opt.Backend == "z80") && opt.Runtime == "" && !opt.CPMApplicationEntry && !opt.ZXApplicationEntry {
 			tr.PtrThreading += mir2.RecognizeByteLoops(f)
 		}
 		tr.PtrThreading += mir2.StrengthReduceCountedPointers(f)
@@ -625,8 +625,9 @@ func CompileHIRWithOptions(hm *hir.Module, opts Options) (string, error) {
 		for iter := 0; iter < 100; iter++ {
 			p := mir2.PropagateConstants(f)
 			c := mir2.FoldConstants(f)
+			si := mir2.SimplifyIdentities(f)
 			e := mir2.ConstantCallElim(m, f)
-			if !p && !c && !e {
+			if !p && !c && !si && !e {
 				break
 			}
 		}
@@ -646,7 +647,7 @@ func CompileHIRWithOptions(hm *hir.Module, opts Options) (string, error) {
 		mir2.DeadBlockArgElim(f)
 		mir2.FuseAbsDiff(f)
 		mir2.FuseByteAbsDiffCFG(f)
-		if opts.Backend == "" || opts.Backend == "z80" {
+		if (opts.Backend == "" || opts.Backend == "z80") && opts.Runtime == "" && !opts.CPMApplicationEntry && !opts.ZXApplicationEntry {
 			mir2.RecognizeByteLoops(f)
 		}
 		mir2.StrengthReduceCountedPointers(f)

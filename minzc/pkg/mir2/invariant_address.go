@@ -22,6 +22,9 @@ func HoistInvariantAddresses(f *Func) bool {
 	}
 	changed := false
 	for _, facts := range AnalyzeNaturalLoops(f) {
+		if facts.Entry == nil {
+			continue
+		} // hoisting requires an unconditional preheader
 		pre, loop := facts.Preheader, facts.Blocks
 		legal := true
 		for _, b := range f.Blocks {

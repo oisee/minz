@@ -3,6 +3,9 @@ package mir2
 import "fmt"
 
 func (vm *VM) execByteLoop(fr *frame, x *Inst) error {
+	if x.Sym == copyBytesIntrinsic {
+		return vm.execCopyBytes(fr, x)
+	}
 	if x.Sym == fillBytesIntrinsic {
 		return vm.execFillBytes(fr, x)
 	}
@@ -91,4 +94,20 @@ func (vm *VM) execFillBytes(fr *frame, x *Inst) error {
 			return err
 		}
 	}
+}
+
+// Forward copy deliberately reads and writes one byte at a time: overlapping
+// dst=src+1 propagates the first byte. Go copy would incorrectly use memmove.
+func (vm *VM) execCopyBytes(fr *frame, x *Inst) error {
+	dst, src, n := fr.get(x.Args[0]).I, fr.get(x.Args[2]).I, fr.get(x.Args[1]).I
+	for i := int64(0); i < n; i++ {
+		v, err := vm.byteLoopAccess(x.ByteLoop.Load, (src+i)&65535, 0)
+		if err != nil {
+			return err
+		}
+		if _, err = vm.byteLoopAccess(x.ByteLoop.Store, (dst+i)&65535, v); err != nil {
+			return err
+		}
+	}
+	return nil
 }
