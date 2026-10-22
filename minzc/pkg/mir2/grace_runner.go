@@ -914,7 +914,8 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 			return false
 		}
 		jmp, ok := blk.Term.(*TermJmp)
-		if !ok || jmp.Target == "" {
+		// A self-loop is the destination itself, not a bypassable trampoline.
+		if !ok || jmp.Target == "" || jmp.Target == label {
 			return false
 		}
 		// Safety: target block must have 0 params, or jmp must carry matching args
@@ -1363,7 +1364,9 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 			return false
 		}
 		jmp, ok := blk.Term.(*TermJmp)
-		if !ok {
+		// A self-loop is not a forwarding trampoline: redirecting its incoming
+		// edges still targets this block, so deleting it would leave dangling edges.
+		if !ok || jmp.Target == label {
 			return false
 		}
 
