@@ -40,6 +40,9 @@ type Result struct {
 
 // Steps holds the intermediate outputs of each pipeline stage.
 type Steps struct {
+	VariantDecisions []VariantDecision
+	VariantSearch    VariantSearchStats
+
 	UnsignedPairComparePolicy mir2.UnsignedPairComparePolicy // resolved policy replayed by native re-codegen
 	ProfileDecisions          []hir.ProfileDecision
 	HIRLoopSites              *hir.LoopSiteMap      // optional input-HIR origins, before Grace/splitting
@@ -55,6 +58,8 @@ type Steps struct {
 // FuncTrace records the full compilation provenance for one function.
 // This data is emitted as ASM comment annotations for auditability.
 type FuncTrace struct {
+	Variant string // selected static-search recipe/model, if search ran
+
 	Name          string // function name (mangled)
 	SplitFrom     string // non-empty if this function was created by HIR-SPLIT
 	SplitPressure int    // register pressure that triggered the split
@@ -87,6 +92,19 @@ type FuncTrace struct {
 
 // Options configures optional pipeline passes.
 type Options struct {
+	// DisableVariantSearch preserves the pre-search compilation policy.
+	DisableVariantSearch bool `json:",omitempty"`
+	// ForceVariantSearch searches modules larger than the default limit.
+	ForceVariantSearch bool `json:",omitempty"`
+	// FunctionVariants overrides recipes in complete-module candidate compiles.
+	FunctionVariants map[string]FunctionVariant `json:",omitempty"`
+	variantCandidate bool
+	// Search-only checkpoint: false refuses a trial before native compilation.
+	variantPrepared          bool
+	variantRawCallers        map[string]bool
+	variantMIRReady          func(*mir2.Module, bool) bool
+	variantBranchEquivMisses map[[32]byte]bool
+
 	// DisableCountedLoops is an internal differential-testing switch.
 	DisableCountedLoops bool `json:",omitempty"`
 	// CPMApplicationEntry selects ordinary native CP/M application entry,
@@ -156,6 +174,9 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 	if err := hir.Verify(hm); err != nil {
 		return Steps{}, err
 	}
+	if variantSearchEnabled(hm, opts) {
+		return compileVariantSearch(hm, opts...)
+	}
 	opt := DefaultOptions()
 	if len(opts) > 0 {
 		opt = opts[0]
@@ -206,15 +227,19 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 	if opt.CheckedLocalTablePath != "" && (!opt.OptSize || opt.Backend != "" && opt.Backend != "z80" || opt.SkipZ80Emission || opt.ProfileSelection != nil && opt.CheckedLocalTableSHA256 == "") {
 		return s, fmt.Errorf("checked local tables require emitted Z80 OptSize and a content pin for PGO")
 	}
-	hir.OptimizeCAggregateABI(hm)
+	if !opt.variantPrepared {
+		hir.OptimizeCAggregateABI(hm)
+	}
 	if err := hir.Verify(hm); err != nil {
 		return Steps{}, fmt.Errorf("c aggregate ABI: %w", err)
 	}
 	s.UnsignedPairComparePolicy = policy
 	s.Traces = make(map[string]*FuncTrace)
 
-	if err := hir.ResolveErrorABI(hm); err != nil {
-		return s, err
+	if !opt.variantPrepared {
+		if err := hir.ResolveErrorABI(hm); err != nil {
+			return s, err
+		}
 	}
 	if opt.Backend != "" && opt.Backend != "z80" {
 		for _, f := range hm.Funcs {
@@ -223,8 +248,10 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 			}
 		}
 	}
-	if err := hir.ResolveCallSignatures(hm); err != nil {
-		return s, err
+	if !opt.variantPrepared {
+		if err := hir.ResolveCallSignatures(hm); err != nil {
+			return s, err
+		}
 	}
 
 	if opt.CollectHIRSites {
@@ -243,8 +270,8 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 	}
 	// Capture HIR before lowering.
 	s.HIR = hm.Dump()
-	if opt.UseHIRGrace {
-		if _, err := hir.RunGraceWithOptions(hm, hir.GraceOptions{OptimizeForSize: opt.OptSize}); err != nil {
+	if variantHasHIRGrace(hm, opt) {
+		if _, err := hir.RunGraceWithOptions(hm, hir.GraceOptions{OptimizeForSize: opt.OptSize, Functions: variantHIRFunctions(hm, opt)}); err != nil {
 			return s, err
 		}
 		s.HIR = hm.Dump()
@@ -265,8 +292,21 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 		return s, err
 	}
 	// Lower HIR → MIR2 (raw, before optimisation).
-	m := hir.LowerModuleWithOptions(hm, hir.LowerOptions{DisableCountedLoops: opt.DisableCountedLoops})
+	m := hir.LowerModuleWithOptions(hm, hir.LowerOptions{DisableCountedLoops: opt.DisableCountedLoops, CountedLoopPolicy: variantCountedPolicies(opt)})
 	s.MIR2Raw = m.Dump()
+	// Record call dependencies before constant folding can erase them. A global
+	// dry Grace toggle alone cannot establish a caller's axis is an identity.
+	if opt.variantRawCallers != nil {
+		for _, f := range m.Funcs {
+			for _, b := range f.Blocks {
+				for _, inst := range b.Insts {
+					if inst.Op == mir2.OpCall || inst.Op == mir2.OpCallIndirect {
+						opt.variantRawCallers[f.Name] = true
+					}
+				}
+			}
+		}
+	}
 	return compileMIRSteps(hm, opt, s, splitInfo, m)
 }
 
@@ -322,14 +362,14 @@ func compileMIRSteps(hm *hir.Module, opt Options, s Steps, splitInfo map[string]
 				break
 			}
 		}
-		if opt.UseGrace {
+		if variantFor(opt, f.Name).MIRGrace {
 			// ── Grace declarative path ──────────────────────────────
 			localGrace := mir2.NewGraceStats()
 			mir2.RunGracePassesWithOptions(f, localGrace, mir2.GracePassOptions{OptimizeForSize: opt.OptSize})
 			mergeGraceStats(opt.GraceStats, localGrace)
 			applyGraceStatsToTrace(tr, localGrace)
 			mir2.EliminateDeadBlocks(f)
-			if mir2.BranchEquiv(m, f) {
+			if runVariantBranchEquiv(m, f, opt.variantBranchEquivMisses) {
 				tr.BranchEquiv++
 				mir2.EliminateDeadBlocks(f)
 				localGrace = mir2.NewGraceStats()
@@ -348,7 +388,7 @@ func compileMIRSteps(hm *hir.Module, opt Options, s Steps, splitInfo map[string]
 			if mir2.DeadBlockArgElim(f) {
 				tr.DeadBlockArg++
 			}
-			if mir2.BranchEquiv(m, f) {
+			if runVariantBranchEquiv(m, f, opt.variantBranchEquivMisses) {
 				tr.BranchEquiv++
 				mir2.EliminateDeadBlocks(f)
 				mir2.DeadStoreElim(f)
@@ -405,6 +445,10 @@ func compileMIRSteps(hm *hir.Module, opt Options, s Steps, splitInfo map[string]
 
 	s.MIR2Opt = m.Dump()
 	s.MIR2Module = m
+
+	if opt.variantMIRReady != nil && !opt.variantMIRReady(m, opt.OptSize && affineChanged && !opt.disableAffinePointers) {
+		return s, nil
+	}
 
 	// Structural verification.
 	if err := mir2.Verify(m); err != nil {
@@ -561,7 +605,10 @@ func compileMIRSteps(hm *hir.Module, opt Options, s Steps, splitInfo map[string]
 		baselineOpt := opt
 		baselineOpt.disableAffinePointers = true
 		baselineOpt.GraceStats = nil
-		baselineModule := hir.LowerModuleWithOptions(hm, hir.LowerOptions{DisableCountedLoops: opt.DisableCountedLoops})
+		// This is the native size gate's mandatory comparison, not a search trial.
+		// Refusing it at a cached MIR checkpoint would yield an empty product.
+		baselineOpt.variantMIRReady = nil
+		baselineModule := hir.LowerModuleWithOptions(hm, hir.LowerOptions{DisableCountedLoops: opt.DisableCountedLoops, CountedLoopPolicy: variantCountedPolicies(opt)})
 		baseline, err := compileMIRSteps(hm, baselineOpt, initialSteps, splitInfo, baselineModule)
 		if err != nil {
 			return s, err
@@ -627,7 +674,7 @@ func CompileHIRWithOptions(hm *hir.Module, opts Options) (string, error) {
 	if err := mir2.ValidateRuntimeStack(opts.Runtime, opts.RuntimeStackBytes); err != nil {
 		return "", err
 	}
-	if opts.OptSize || opts.UseGrace || opts.Runtime != "" || opts.CPMApplicationEntry || opts.ZXApplicationEntry || needsZXApplication(hm) || opts.ProfileSelection != nil {
+	if opts.OptSize || variantSearchEnabled(hm, []Options{opts}) || len(opts.FunctionVariants) > 0 || opts.UseGrace || opts.Runtime != "" || opts.CPMApplicationEntry || opts.ZXApplicationEntry || needsZXApplication(hm) || opts.ProfileSelection != nil {
 		steps, err := CompileHIRSteps(hm, opts)
 		return steps.Assembly, err
 	}
@@ -1660,6 +1707,9 @@ func applyGraceStatsToTrace(tr *FuncTrace, stats *mir2.GraceStats) {
 func formatTrace(tr *FuncTrace) string {
 	var parts []string
 	parts = append(parts, "backend="+tr.Backend)
+	if tr.Variant != "" {
+		parts = append(parts, "variant="+tr.Variant)
+	}
 	if tr.SplitFrom != "" {
 		parts = append(parts, fmt.Sprintf("split-from=%s(pressure=%d)", tr.SplitFrom, tr.SplitPressure))
 	}

@@ -136,7 +136,7 @@ func MeasureCompilerModeVariants(factory func() (*hir.Module, error), workload h
 	// remains retained and rechecked after every compilation and fresh sentinel.
 	retained = retained[:1]
 	for i, m := range modules {
-		opts := Options{ContractOpt: i&1 != 0, UseGrace: i&2 != 0, OptSize: optSize, AssertMode: "none"}
+		opts := Options{DisableVariantSearch: true, ContractOpt: i&1 != 0, UseGrace: i&2 != 0, OptSize: optSize, AssertMode: "none"}
 		id, e := ProfileCompilationID(opts, "default")
 		if e != nil {
 			return fail(e)

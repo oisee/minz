@@ -37,6 +37,8 @@ type MeasuredContractStrategyResult struct {
 // must pass the controlled native oracle; any failure cancels the entire search.
 // Speed and size are strict separate objectives, with earlier candidates winning ties.
 func MeasureContractStrategies(factory func() (*hir.Module, error), workload hir.ProfileWorkload, goal string, fixedOptions Options) (*MeasuredContractStrategyResult, error) {
+	// Measure only the requested contract axis; preserve this in replay options.
+	fixedOptions.DisableVariantSearch = true
 	fail := func(e error) (*MeasuredContractStrategyResult, error) {
 		return nil, fmt.Errorf("measured contract strategies: %w", e)
 	}

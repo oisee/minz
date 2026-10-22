@@ -31,6 +31,7 @@ var graceRegionCompareRule string
 // OptimizeForSize excludes versioned pointer loops, which duplicate the body.
 // It does not promise globally minimal machine code.
 type GraceOptions struct {
+	Functions        map[string]bool // nil: all; otherwise explicit function allowlist
 	MaxRewrites      int
 	OptimizeForSize  bool
 	PointerWalkSites map[string]bool // nil: default; non-nil: only attributed selected sites
@@ -66,6 +67,17 @@ func RunGraceWithOptions(m *Module, options GraceOptions) (*grace.RuleResult, er
 	}
 	for result.Applied < maxRewrites {
 		graph := newHIRGraceGraph(m)
+		if options.Functions != nil {
+			labels := graph.labels[:0]
+			for _, label := range graph.labels {
+				if options.Functions[graph.byLabel[label].owner.Name] {
+					labels = append(labels, label)
+				} else {
+					delete(graph.byLabel, label)
+				}
+			}
+			graph.labels = labels
+		}
 		reg := grace.NewPredicateRegistry()
 		reg.RegisterPredicate("hir-has-constant-if", func(_ rewrite.IRGraph, bindings grace.BlockBindings, _ []string) bool {
 			return (m.GraceRulePolicy == nil || m.GraceRulePolicy["hir-constant-if"]) && graph.err == nil && graph.candidate(bindings["b"]) >= 0

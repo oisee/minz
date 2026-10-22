@@ -38,6 +38,7 @@ func MeasureConditionalLayoutModes(factory func() (*hir.Module, error), function
 	modes = append([]Options(nil), modes...)
 	for i := range modes {
 		modes[i].GraceStats = nil
+		modes[i].DisableVariantSearch = true
 	}
 	payload, e := json.Marshal(struct {
 		Workload hir.ProfileWorkload
