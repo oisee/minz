@@ -48,5 +48,13 @@
       "file": "sum_array.nanz",
       "sha256": "31692c9503d78066f1020ee04dfc19ba3f204d5a8dc971023967fccad682e648"
     }
+  ],
+  "variants": [
+    {
+      "file": "struct_roundtrip_tuple.nanz",
+      "sha256": "0cdeb649a62237492687718e394a4a39db1dbb33382be71f3f53dccaef1d219e",
+      "case": "struct_roundtrip",
+      "reference": "../nanz-tuple/struct_roundtrip.nanz"
+    }
   ]
 }
