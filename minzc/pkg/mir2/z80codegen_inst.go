@@ -477,6 +477,15 @@ func (g *z80cg) genInst(inst *Inst) {
 
 	case OpCmp:
 		g.genCmp(inst)
+		// ClassFlag has finite-cost byte/spill homes. A coalesced Move can
+		// disappear, so the comparison itself must publish a canonical byte
+		// when allocation chose such a home. Branch-only predicates, including
+		// deferred shift-carry tests, keep using the flags directly. Retain
+		// pendingFlagReg for conversions that still consume that predicate.
+		if g.loc(inst.Dst) != "F" && !g.branchOnlyCmp(inst) && inst != g.shiftCarryCmp {
+			g.pendingFlagReg = inst.Dst
+			g.emitKnownFlagCopy(g.loc(inst.Dst), 8)
+		}
 
 	case OpLoad:
 		if isSpill(g.loc(inst.Src[0])) {

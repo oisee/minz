@@ -1,0 +1,17 @@
+struct Bits { a: bool, b: bool, c: bool, d: bool }
+fun mk_bits(x: u8) -> Bits { return Bits{a: (x & 1) == 1, b: (x & 2) == 2, c: (x & 4) != 0, d: x > 127} }
+fun bits_probe(x: u8) -> u8 { let b: Bits = mk_bits(x)
+  var n: u8 = 0
+  if b.a { n = n + 1 }
+  if b.b { n = n + 2 }
+  if b.c { n = n + 4 }
+  if b.d { n = n + 8 }
+  return n }
+assert bits_probe(4) == 4 via mir2
+assert bits_probe(4) == 4 via z80
+assert bits_probe(0) == 0 via z80
+assert bits_probe(1) == 1 via z80
+assert bits_probe(2) == 2 via z80
+assert bits_probe(3) == 3 via z80
+assert bits_probe(128) == 8 via z80
+assert bits_probe(255) == 15 via z80

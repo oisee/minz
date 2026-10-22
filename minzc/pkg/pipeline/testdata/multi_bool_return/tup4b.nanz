@@ -1,0 +1,12 @@
+fun mk4(x: u8) -> (bool, bool, bool, bool) { return ((x & 1) == 1, (x & 2) == 2, (x & 4) != 0, (x & 8) != 0) }
+fun probe(x: u8) -> u8 { let (a, b, c, d) = mk4(x)
+  var n: u8 = 0
+  if a { n = n + 1 }
+  if b { n = n + 2 }
+  if c { n = n + 4 }
+  if d { n = n + 8 }
+  return n }
+assert probe(4) == 4 via mir2
+assert probe(4) == 4 via z80
+assert probe(8) == 8 via z80
+assert probe(0) == 0 via z80

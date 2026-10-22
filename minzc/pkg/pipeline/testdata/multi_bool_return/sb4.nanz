@@ -1,0 +1,12 @@
+struct B3 { a: bool, b: bool, c: bool }
+fun mk(x: u8) -> B3 { return B3{a: (x & 1) == 1, b: (x & 2) == 2, c: x > 127} }
+fun probe(x: u8) -> u8 { let b: B3 = mk(x)
+  var n: u8 = 0
+  if b.a { n = n + 1 }
+  if b.b { n = n + 2 }
+  if b.c { n = n + 4 }
+  return n }
+assert probe(2) == 2 via mir2
+assert probe(2) == 2 via z80
+assert probe(128) == 4 via z80
+assert probe(4) == 0 via z80

@@ -1,0 +1,14 @@
+fun mk3(x: u8) -> (bool, bool, bool) { let a: bool = (x & 1) == 1
+  let b: bool = (x & 2) == 2
+  let c: bool = x > 127
+  return (a, b, c) }
+fun probe(x: u8) -> u8 { let (a, b, c) = mk3(x)
+  var n: u8 = 0
+  if a { n = n + 1 }
+  if b { n = n + 2 }
+  if c { n = n + 4 }
+  return n }
+assert probe(2) == 2 via mir2
+assert probe(2) == 2 via z80
+assert probe(128) == 4 via z80
+assert probe(4) == 0 via z80
