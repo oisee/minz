@@ -2,7 +2,7 @@ package hir
 
 // Struct-Return Promotion Pass (ADR-0025)
 //
-// Detects C functions returning small structs ("Shallow Scalar Structs") and
+// Detects functions returning small structs ("Shallow Scalar Structs") and
 // promotes them to HIR tuple returns.  This allows PFCCO (contract optimizer)
 // to assign each return slot a register. Actual transfers depend on the caller
 // and callee contracts; the representation alone does not prove zero overhead.
@@ -19,7 +19,7 @@ import (
 //   - Struct-returning functions → tuple-returning functions (RetTys)
 //   - Call sites with field access → TupleLetStmt
 //   - Out-param functions (void f(..., SSS *out)) → tuple-returning functions
-func PromoteStructReturns(m *Module) { promoteStructReturns(m, false) }
+func PromoteStructReturns(m *Module) { promoteStructReturns(m, false, false) }
 
 // OptimizeCAggregateABI selects aggregate contracts only after source modules
 // are linked. The origin marker keeps unrelated Nanz pointer-return functions
@@ -27,7 +27,7 @@ func PromoteStructReturns(m *Module) { promoteStructReturns(m, false) }
 func OptimizeCAggregateABI(m *Module) {
 	for _, fn := range m.Funcs {
 		if fn.CValueABI {
-			promoteStructReturns(m, true)
+			promoteStructReturns(m, true, false)
 			return
 		}
 	}
@@ -35,12 +35,30 @@ func OptimizeCAggregateABI(m *Module) {
 
 func IsShallowScalarStruct(st *mir2.StructTy) bool { return isShallowScalarStruct(st) }
 
-func promoteStructReturns(m *Module, onlyC bool) {
-	changed := scalarizeAggregateParams(m, onlyC)
+// OptimizeAggregateABI selects linked HIR contracts independently of the source
+// language. C's legacy pointer/out-parameter adapters retain their old gates;
+// other frontends enter through explicit struct types, never field-name guesses.
+func OptimizeAggregateABI(m *Module) {
+	OptimizeCAggregateABI(m)
+	// Captures are explicit dependencies outside the ordinary expression tree.
+	// Keep their address contracts until capture rewriting is implemented.
+	for _, fn := range m.Funcs {
+		if len(fn.Captures) != 0 {
+			return
+		}
+	}
+	promoteStructReturns(m, false, true)
+}
+
+func promoteStructReturns(m *Module, onlyC, typedOnly bool) {
+	changed := scalarizeAggregateParams(m, onlyC, typedOnly)
 	defer func() {
-		if changed {
+		if changed || typedOnly {
 			for _, fn := range m.Funcs {
-				scalarizeAggregateLocals(fn.Body)
+				if typedOnly && fn.CValueABI || onlyC && !fn.CValueABI {
+					continue
+				}
+				scalarizeAggregateLocals(fn.Body, !typedOnly)
 			}
 		}
 	}()
@@ -53,7 +71,7 @@ func promoteStructReturns(m *Module, onlyC bool) {
 	outParamEligible := map[string]*outParamInfo{}
 	if onlyC {
 		changed = promoteCOutParameters(m) || changed
-	} else {
+	} else if !typedOnly {
 		outParamEligible = findOutParamFunctions(m, idx, false)
 	}
 	changed = changed || len(outParamEligible) > 0
@@ -71,6 +89,21 @@ func promoteStructReturns(m *Module, onlyC bool) {
 
 	// Phase 1: identify struct-returning functions eligible for promotion.
 	eligible := findEligibleFunctions(m, idx, onlyC)
+	if typedOnly {
+		for _, fn := range m.Funcs {
+			complete := true
+			visitAggregateStmts(fn.Body, func(s Stmt) {
+				if r, ok := s.(*ReturnStmt); ok {
+					if lit, ok := r.Val.(*StructLitExpr); ok && !completeScalarLiteral(lit) {
+						complete = false
+					}
+				}
+			})
+			if _, typed := mir2.BaseOf(fn.RetTy).(*mir2.StructTy); !typed || fn.CValueABI || !complete {
+				delete(eligible, fn.Name)
+			}
+		}
+	}
 	changed = changed || len(eligible) > 0
 	if len(eligible) == 0 {
 		return
@@ -85,6 +118,11 @@ func promoteStructReturns(m *Module, onlyC bool) {
 		fn.RetTys = info.fieldTys
 		fn.RetTy = mir2.TyVoid // overridden by RetTys
 
+		// A typed literal's fields execute in source order, which need not
+		// match layout order. Materialize once before reading tuple slots.
+		if typedOnly {
+			materializeStructReturnLiterals(fn)
+		}
 		// Rewrite return statements: struct literal → tuple return.
 		rewriteReturns(fn, info)
 	}
@@ -95,7 +133,10 @@ func promoteStructReturns(m *Module, onlyC bool) {
 	}
 
 	for _, fn := range m.Funcs {
-		scalarizeAggregateLocals(fn.Body)
+		if typedOnly && fn.CValueABI || onlyC && !fn.CValueABI {
+			continue
+		}
+		scalarizeAggregateLocals(fn.Body, !typedOnly)
 	}
 
 	// Phase 4: eliminate dead struct VarDecls left over from promotion.
@@ -182,7 +223,7 @@ func findEligibleFunctions(m *Module, idx structIndex, onlyC bool) map[string]*p
 		}
 		// Only consider functions currently returning TyPtr (struct pointer).
 		_, typedAggregate := mir2.BaseOf(fn.RetTy).(*mir2.StructTy)
-		if fn.RetTy != mir2.TyPtr && (!fn.CValueABI || !typedAggregate) {
+		if fn.RetTy != mir2.TyPtr && !typedAggregate {
 			continue
 		}
 		// Check if all returns are struct literals of the same SSS type.
@@ -336,6 +377,15 @@ func findReturnedStructInBlock(blk *Block, idx structIndex, fieldAssigned map[st
 			if !findReturnedStructInBlock(st.Body, idx, fieldAssigned, found, scopeVars) {
 				return false
 			}
+		case *SwitchStmt:
+			for _, c := range st.Cases {
+				if !findReturnedStructInBlock(c.Body, idx, fieldAssigned, found, scopeVars) {
+					return false
+				}
+			}
+			if !findReturnedStructInBlock(st.Default, idx, fieldAssigned, found, scopeVars) {
+				return false
+			}
 		}
 
 		ret, isRet := s.(*ReturnStmt)
@@ -484,6 +534,11 @@ func rewriteReturnsInBlock(blk *Block, info *promotionInfo, fieldAssigns map[str
 			rewriteReturnsInBlock(st.Body, info, fieldAssigns, scopeVars, pointerReturns)
 		case *ForRangeStmt:
 			rewriteReturnsInBlock(st.Body, info, fieldAssigns, scopeVars, pointerReturns)
+		case *SwitchStmt:
+			for _, c := range st.Cases {
+				rewriteReturnsInBlock(c.Body, info, fieldAssigns, scopeVars, pointerReturns)
+			}
+			rewriteReturnsInBlock(st.Default, info, fieldAssigns, scopeVars, pointerReturns)
 		}
 
 		ret, isRet := s.(*ReturnStmt)
@@ -648,6 +703,11 @@ func rewriteCallSites(blk *Block, eligible map[string]*promotionInfo) {
 			rewriteCallSites(st.Body, eligible)
 		case *ForRangeStmt:
 			rewriteCallSites(st.Body, eligible)
+		case *SwitchStmt:
+			for _, c := range st.Cases {
+				rewriteCallSites(c.Body, eligible)
+			}
+			rewriteCallSites(st.Default, eligible)
 		}
 
 		// Look for: let varName = promotedFn(...)
@@ -1287,4 +1347,74 @@ func walkStmts(blk *Block, fn func(Stmt) bool) bool {
 		}
 	}
 	return true
+}
+
+// materializeStructReturnLiterals preserves evaluation order and field-width
+// conversion before tuple extraction. The ordinary escape-checked local pass
+// removes the temporary storage when possible.
+func materializeStructReturnLiterals(fn *Func) {
+	used := map[string]bool{}
+	for _, p := range fn.Params {
+		used[p.Name] = true
+	}
+	visitAggregateStmts(fn.Body, func(s Stmt) {
+		switch x := s.(type) {
+		case *VarDeclStmt:
+			used[x.Name] = true
+		case *TupleLetStmt:
+			for _, n := range x.Names {
+				used[n] = true
+			}
+		}
+	})
+	inspectAggregateStmt(fn.Body, func(e Expr) (Expr, bool) {
+		switch x := e.(type) {
+		case *VarRefExpr:
+			used[x.Name] = true
+		case *AddrOfExpr:
+			used[x.Sym] = true
+		}
+		return e, true
+	})
+	materializeStructReturnsInBlock(fn.Body, used)
+}
+
+func materializeStructReturnsInBlock(b *Block, used map[string]bool) {
+	if b == nil {
+		return
+	}
+	var body []Stmt
+	for _, s := range b.Body {
+		if r, ok := s.(*ReturnStmt); ok {
+			if lit, ok := r.Val.(*StructLitExpr); ok {
+				name := "__hir_struct_result"
+				for used[name] {
+					name += "_"
+				}
+				used[name] = true
+				body = append(body, &VarDeclStmt{Name: name, Ty: lit.St, Init: lit})
+				r.Val = Var(name, lit.St)
+			}
+		}
+		// visitAggregateStmts visits statements, not the blocks owned by control
+		// flow nodes; explicitly handle those lexical scopes here.
+		switch x := s.(type) {
+		case *Block:
+			materializeStructReturnsInBlock(x, used)
+		case *IfStmt:
+			materializeStructReturnsInBlock(x.Then, used)
+			materializeStructReturnsInBlock(x.Else, used)
+		case *WhileStmt:
+			materializeStructReturnsInBlock(x.Body, used)
+		case *ForRangeStmt:
+			materializeStructReturnsInBlock(x.Body, used)
+		case *SwitchStmt:
+			for _, c := range x.Cases {
+				materializeStructReturnsInBlock(c.Body, used)
+			}
+			materializeStructReturnsInBlock(x.Default, used)
+		}
+		body = append(body, s)
+	}
+	b.Body = body
 }

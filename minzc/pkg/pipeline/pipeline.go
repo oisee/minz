@@ -229,10 +229,10 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 		return s, fmt.Errorf("checked local tables require emitted Z80 OptSize and a content pin for PGO")
 	}
 	if !opt.variantPrepared {
-		hir.OptimizeCAggregateABI(hm)
+		hir.OptimizeAggregateABI(hm)
 	}
 	if err := hir.Verify(hm); err != nil {
-		return Steps{}, fmt.Errorf("c aggregate ABI: %w", err)
+		return Steps{}, fmt.Errorf("aggregate ABI: %w", err)
 	}
 	s.UnsignedPairComparePolicy = policy
 	s.Traces = make(map[string]*FuncTrace)
@@ -723,6 +723,7 @@ func CompileHIRWithOptions(hm *hir.Module, opts Options) (string, error) {
 		steps, err := CompileHIRSteps(hm, opts)
 		return steps.Assembly, err
 	}
+	hir.OptimizeAggregateABI(hm)
 	policy, err := resolveUnsignedPairComparePolicy(opts)
 	if err != nil {
 		return "", err

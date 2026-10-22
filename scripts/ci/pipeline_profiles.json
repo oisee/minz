@@ -394,6 +394,7 @@
     "TestSingleCallNamedEntriesVMZ80",
     "TestSingleCallSiteInlineVMZ80",
     "TestSmallStepFillNative",
+    "TestSmallStructNeutralVMZ80",
     "TestSpectrumPhaseWorkloadNative",
     "TestSpectrumPhaseWorkloadRefusals",
     "TestSpilledPointerByteLoadKeepsAccumulatorVMZ80",

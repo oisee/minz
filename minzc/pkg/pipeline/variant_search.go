@@ -187,7 +187,7 @@ func compileVariantSearch(source *hir.Module, options ...Options) (Steps, error)
 	// The frontend ran once. Resolve the common ABI/signature prefix once too;
 	// every candidate still owns a deep HIR clone before Grace/splitting/lowering.
 	prepared := hir.CloneModule(source)
-	hir.OptimizeCAggregateABI(prepared)
+	hir.OptimizeAggregateABI(prepared)
 	if err := hir.ResolveErrorABI(prepared); err != nil {
 		return Steps{}, err
 	}
@@ -436,7 +436,7 @@ func finishVariantSearch(h *hir.Module, s Steps, mode string) (Steps, error) {
 	assertStats := h.AssertStats
 	h = hir.CloneModule(h)
 	h.AssertStats = assertStats
-	hir.OptimizeCAggregateABI(h)
+	hir.OptimizeAggregateABI(h)
 	if err := hir.ResolveErrorABI(h); err != nil {
 		return s, err
 	}
@@ -512,7 +512,7 @@ func sameVariantLoops(a, b *mir2.Func) bool {
 func variantRawModule(source *hir.Module, o Options) (string, error) {
 	h := hir.CloneModule(source)
 	if !o.variantPrepared {
-		hir.OptimizeCAggregateABI(h)
+		hir.OptimizeAggregateABI(h)
 		if e := hir.ResolveErrorABI(h); e != nil {
 			return "", e
 		}

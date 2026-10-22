@@ -2,15 +2,23 @@
 
 ## Status
 
-Implemented in the linked HIR pipeline (`pkg/hir/c_aggregate_promote.go` and
-`c_aggregate_scalar.go`). The October C89 source tests cover brace-initialized
+Implemented in the linked HIR pipeline (`pkg/hir/aggregate_promote.go` and
+`aggregate_scalar.go`). The October C89 source tests cover brace-initialized
 locals, modified returns, by-value copies, scalar argument/return contracts,
 caller-owned large return buffers and memory-ABI fallbacks. The old brace-init
 gap listed here is closed. See the [current admission audit](../../reports/2026-10-16-c89-nanz-aggregate-abi-audit.md).
 
 Admission is at most four scalar fields and four **storage bytes**; bool consumes
-one byte despite its one-bit value type. Typed Nanz aggregates do not acquire
-C-copy semantics through this pass. Actual result transfers depend on compatible
+one byte despite its one-bit value type. `OptimizeAggregateABI` also admits
+explicitly typed structs from other frontends.
+It uses the same tuple/PFCCO path and escape-checked scalar locals. Legacy C
+pointer/out-parameter recognition stays C-specific. Typed address-based parameters
+are scalarized only for read-only bodies without calls or writes, with direct,
+materialized arguments and no effectful sibling arguments; mutation and escape
+retain storage rather than acquiring C-copy semantics. Captures, partial/repeated
+literals and explicit layouts retain the conservative memory path. Typed return
+initializers are materialized in source order before tuple extraction, preserving
+effects and field-width conversion. Actual result transfers depend on compatible
 caller/callee contracts; zero moves are a possible result, not a guarantee.
 
 ## Context
