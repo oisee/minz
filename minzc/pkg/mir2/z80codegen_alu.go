@@ -1031,6 +1031,7 @@ func (g *z80cg) genShift(mnem string, inst *Inst) {
 		if isIXY(dst) {
 			g.emitMov(dst, "HL", 16)
 		}
+		g.publishShiftCarry(inst)
 		g.invalidate(dst)
 		if isIXY(dst) {
 			g.invalidate("HL")
@@ -1038,8 +1039,13 @@ func (g *z80cg) genShift(mnem string, inst *Inst) {
 		return
 	}
 	for i := int64(0); i < count; i++ {
-		g.emitf("    %s %s", mnem, dst)
+		if mnem == "SLA" && dst == "A" && inst == g.shiftCarryInst {
+			g.emit("    ADD A, A")
+		} else {
+			g.emitf("    %s %s", mnem, dst)
+		}
 	}
+	g.publishShiftCarry(inst)
 	g.invalidate(dst) // shift modifies dst
 }
 

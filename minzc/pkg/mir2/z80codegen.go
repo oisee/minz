@@ -2,6 +2,7 @@ package mir2
 
 import (
 	"fmt"
+	"github.com/minz/minzc/pkg/z80effects"
 	"github.com/minz/minzc/pkg/z80validate"
 	"sort"
 	"strings"
@@ -728,8 +729,14 @@ type z80cg struct {
 
 	// bitCmpPat maps a cmp result reg to a fused u8/u16 bit-test feeding Z/NZ.
 	// bitCmpSkip suppresses intermediate Load / Shr / And regs merged into that cmp.
-	bitCmpPat  map[Reg]bitCmpPat
-	bitCmpSkip map[Reg]bool
+	// carryFrom names the exact shift whose discarded bit currently occupies C.
+	// Every emitted carry writer (including AF restores) invalidates it.
+	carryFrom          *Inst
+	shiftCarryInst     *Inst
+	shiftCarryCmp      *Inst
+	shiftCarryDeferred bool
+	bitCmpPat          map[Reg]bitCmpPat
+	bitCmpSkip         map[Reg]bool
 
 	// globalU16StoreSym[addrReg] = sym: addrReg holds the address of a u16 global.
 	// Enables emitting LD (sym), HL (16T, no A clobber) instead of the
@@ -837,6 +844,15 @@ func (g *z80cg) emit(s string) {
 // emitInlineAsm preserves common emission hooks without interpreting user
 // operands as allocator locations. Compiler-generated text must go through emit.
 func (g *z80cg) emitInlineAsm(s string) {
+	if g.carryFrom != nil {
+		for _, line := range strings.Split(s, "\n") {
+			e := z80effects.Instruction(line)
+			if !e.Known || e.FlagsWrite&1 != 0 {
+				g.carryFrom = nil
+				break
+			}
+		}
+	}
 	if g.runtimeStackBytes != 0 {
 		fields := strings.Fields(s)
 		if len(fields) > 0 && (fields[0] == "PUSH" || fields[0] == "CALL" || fields[0] == "DEC" && len(fields) > 1 && fields[1] == "SP") {
@@ -1290,6 +1306,7 @@ func (g *z80cg) genBlock(f *Func, b *Block) {
 	g.curBlock = b
 	g.pendingFlagReg = NoReg
 	g.pendingAccReg = NoReg
+	g.carryFrom = nil
 
 	// If a block param is allocated to A, any compare instruction in this block
 	// would clobber it with "LD A, lhs". Mark it as pending so materializePendingAcc
@@ -1316,6 +1333,7 @@ func (g *z80cg) genBlock(f *Func, b *Block) {
 
 	// Pre-scan: detect u8 bit-test compares against zero so Cmp can emit BIT.
 	g.scanBitCmpPatterns(b)
+	g.scanShiftCarryPattern(b)
 
 	// Pre-scan: identify global struct field accesses so we can emit
 	// LD A,(sym__field) / LD (sym__field),A instead of LD HL,sym + INC HL… + LD A,(HL).

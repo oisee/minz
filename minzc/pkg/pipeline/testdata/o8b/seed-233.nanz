@@ -1,0 +1,51 @@
+fun signed_return(x: i8) -> i16 {
+return x
+}
+fun signed_identity(x: i16) -> i16 {
+return x
+}
+fun signed_relay(x: i8) -> i16 {
+return signed_identity(x)
+}
+fun fuzz_entry(a: u16, b: u16, c: u16) -> u16 {
+var x: i16 = (a as i16)
+var y: i16 = (b as i16)
+var z: i8 = (c as i8)
+var w: i16 = z
+w = z
+x = (x + signed_return(z))
+y = (y + signed_relay(z))
+if z != x {
+w = signed_identity(z)
+} else {
+w = (w + -1)
+}
+if y != z {
+w = signed_identity(z)
+} else {
+w = (w + -1)
+}
+if z == -2 {
+z = (z / -2)
+} else {
+z = (z + -2)
+}
+if x > -2 {
+x = (x + -2)
+} else {
+x = (x + -2)
+}
+if z < -128 {
+z = (z + -128)
+} else {
+z = (z + -128)
+}
+if z != -2 {
+z = (z % -2)
+} else {
+z = (z + -2)
+}
+return ((((x as u16) xor (y as u16)) + (z as u16)) xor (w as u16))
+}
+fun g() -> u16 { return fuzz_entry(17111, 90, 46236) }
+assert fuzz_entry(17111, 90, 46236) == 16923 via z80

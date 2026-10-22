@@ -623,11 +623,9 @@ func (g *z80cg) genDivMod8(inst *Inst) {
 			g.setCopy(dst, "A")
 		}
 	} else {
-		if dst == "A" {
-			g.emit("    LD A, B")
-		} else if dst != "B" {
-			g.emitf("    LD %s, B", dst)
-		}
+		// The quotient can have a memory home under register pressure.
+		// Use the same location-aware byte copy as the remainder path.
+		g.emitLD8(dst, "B")
 		g.setCopy(dst, "B")
 	}
 	g.invalidate("A")
