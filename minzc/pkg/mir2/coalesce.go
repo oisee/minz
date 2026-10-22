@@ -100,10 +100,12 @@ func coalesceAllocResult(f *Func, result *AllocResult, lr *LivenessResult) {
 
 	// Build a register-class index so we can guard recoloring below.
 	// We must not recolor a register to a physical location that is
-	// incompatible with its class (e.g. ClassCounter must stay in B).
+	// incompatible with its class (e.g. ClassRegC must stay in C).
 	regClass := make(map[Reg]RegClass, len(result.Locs))
+	hard := make(map[Reg]bool)
 	for _, cp := range f.Contract.Params {
 		regClass[cp.Reg] = cp.Class
+		hard[cp.Reg] = cp.ClassHard || f.Attrs.HasAsm
 	}
 	for _, b := range f.Blocks {
 		for _, bp := range b.Params {
@@ -114,6 +116,7 @@ func coalesceAllocResult(f *Func, result *AllocResult, lr *LivenessResult) {
 		for _, inst := range b.Insts {
 			if inst.Dst != NoReg {
 				regClass[inst.Dst] = inst.Cls
+				hard[inst.Dst] = hard[inst.Dst] || inst.ClsHard
 			}
 		}
 	}
@@ -122,6 +125,19 @@ func coalesceAllocResult(f *Func, result *AllocResult, lr *LivenessResult) {
 	// a given register class.  We use Z80CostTable (the only cost table in
 	// use) to determine compatibility.
 	ct := Z80CostTable{}
+	info := collectRegInfo(f)
+	canRecolor := func(r Reg, loc PhysLoc) bool {
+		// Preserve explicit instruction/ABI constraints, including a hard
+		// register assignment whose affinity partner has spilled.
+		if hard[r] && result.Locs[r] != loc {
+			return false
+		}
+		if ri, ok := info[r]; ok && !locCompatible(ri.Ty, loc) {
+			return false
+		}
+		cls, ok := regClass[r]
+		return !ok || ct.Cost(cls, loc) < InfCost
+	}
 
 	// ── Single-pass coalescing ─────────────────────────────────────────────
 	//
@@ -156,7 +172,7 @@ func coalesceAllocResult(f *Func, result *AllocResult, lr *LivenessResult) {
 			if inst.Dst == NoReg || recolored[inst.Dst] {
 				continue
 			}
-			if !isaAlwaysWritesA(inst) {
+			if !isaAlwaysWritesA(inst) || !canRecolor(inst.Dst, locA) {
 				continue
 			}
 			if result.Locs[inst.Dst] == locA {
@@ -184,14 +200,9 @@ func coalesceAllocResult(f *Func, result *AllocResult, lr *LivenessResult) {
 		if !srcOk || !dstOk || result.Locs[e.dst] == srcLoc {
 			continue // already coalesced or one reg is unallocated (spill)
 		}
-		// Class-compatibility guard: do not recolor dst to srcLoc if srcLoc
-		// is not a legal home for dst's register class.  For example, a
-		// ClassCounter register must stay in B; recoloring it to A would
-		// break DJNZ.  Use InfCost as the "illegal" sentinel.
-		if dstCls, ok := regClass[e.dst]; ok {
-			if ct.Cost(dstCls, srcLoc) >= InfCost {
-				continue
-			}
+		// A finite soft cost does not override an explicit register constraint.
+		if !canRecolor(e.dst, srcLoc) {
+			continue
 		}
 		// Recolor dst → srcLoc if no IG neighbour of dst uses srcLoc or any
 		// of its physical aliases (e.g. C and BC alias — coalescing to C is
@@ -214,12 +225,11 @@ func coalesceAllocResult(f *Func, result *AllocResult, lr *LivenessResult) {
 	// Restrict homes to ordinary byte registers: indexed halves need staging.
 	definitions := map[Reg]*Inst{}
 	blockParams := map[Reg]bool{}
-	hard := map[Reg]bool{}
 	definitionCount := map[Reg]int{}
 	countUses := map[Reg]int{}
 	for _, p := range f.Contract.Params {
 		definitionCount[p.Reg]++
-		hard[p.Reg] = p.ClassHard
+		hard[p.Reg] = hard[p.Reg] || p.ClassHard
 	}
 	for _, b := range f.Blocks {
 		for _, p := range b.Params {
@@ -278,7 +288,7 @@ func coalesceAllocResult(f *Func, result *AllocResult, lr *LivenessResult) {
 					continue
 				}
 				home, old := result.Locs[i.Src[0]], result.Locs[r]
-				if home.Kind != LocReg || old.Kind != LocReg || home == old || ct.Cost(i.Cls, home) >= InfCost {
+				if home.Kind != LocReg || old.Kind != LocReg || home == old || !canRecolor(r, home) {
 					continue
 				}
 				switch home.Name {
