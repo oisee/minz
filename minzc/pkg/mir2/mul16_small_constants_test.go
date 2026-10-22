@@ -22,9 +22,18 @@ func TestMul16Constants10And12Physical(t *testing.T) {
 			f.Contract.Params = []Param{{Name: "x", Reg: x, Ty: TyU16, Class: ClassPointer}}
 			b.Append(&Inst{Op: OpConst, Dst: c, Imm: k, Ty: TyU16, Cls: ClassGeneral})
 			mul := &Inst{Op: OpMul, Dst: out, Src: [2]Reg{x, c}, Ty: TyU16, Cls: ClassPointer}
+			// The preservation assertions below require actual post-multiply uses.
+			// Keep BC live and keep the original HL operand when dst is elsewhere.
+			liveBC := f.AllocReg()
+			b.Append(&Inst{Op: OpConst, Dst: liveBC, Ty: TyU16, Imm: 0x1234})
 			b.Append(mul)
+			b.Append(&Inst{Op: OpMove, Dst: f.AllocReg(), Src: [2]Reg{liveBC}, Ty: TyU16})
+			if dst != "HL" {
+				b.Append(&Inst{Op: OpMove, Dst: f.AllocReg(), Src: [2]Reg{x}, Ty: TyU16})
+			}
 			b.Seal(&TermRet{Vals: []Reg{out}})
 			ar := &AllocResult{Locs: map[Reg]PhysLoc{x: {Kind: LocReg, Name: "HL"}, c: {Kind: LocReg, Name: "BC"}, out: {Kind: LocReg, Name: dst}}}
+			ar.Locs[liveBC] = PhysLoc{Kind: LocReg, Name: "BC"}
 			if dst == "spill" {
 				ar.Locs[out] = PhysLoc{Kind: LocMem}
 				ar.Spilled = []Reg{out}
