@@ -59,11 +59,17 @@ func TestPrepareShiftCarryTriangle(t *testing.T) {
 }
 
 func TestPrepareShiftCarryRefusals(t *testing.T) {
-	for _, kind := range []string{"wrong-bit", "count-two", "arithmetic-right", "arm-store", "arm-call", "shared-arm", "shared-join", "escaping-arm", "looping-arm", "join-source", "arm-source", "hard-shift", "volatile-shift", "hard-count"} {
+	for _, kind := range []string{"wrong-bit", "count-two", "arithmetic-right", "arm-store", "arm-call", "shared-arm", "shared-join", "escaping-arm", "looping-arm", "join-source", "arm-source", "hard-shift", "volatile-shift", "hard-count", "shared-test", "shared-zero", "arm-old-source"} {
 		t.Run(kind, func(t *testing.T) {
 			m, f := shiftTriangleFixture()
 			head, arm, join := f.Blocks[0], f.Blocks[1], f.Blocks[2]
 			switch kind {
+			case "arm-old-source":
+				arm.Insts[0].Src[0] = f.Contract.Params[0].Reg
+			case "shared-test":
+				arm.Insts[0].Src[0] = head.Insts[1].Dst
+			case "shared-zero":
+				arm.Insts[0].Src[0] = head.Insts[2].Dst
 			case "wrong-bit":
 				head.Insts[0].Imm = 2
 			case "count-two":
@@ -98,5 +104,20 @@ func TestPrepareShiftCarryRefusals(t *testing.T) {
 				t.Fatal("unsafe or partial rewrite", kind)
 			}
 		})
+	}
+}
+
+// Stage two must leave an already adjacent shift/test alone if the AND value
+// survives the branch. Reordering would turn the BIT branch into a boolean.
+func TestPrepareShiftCarrySharedPredicate(t *testing.T) {
+	m, f := shiftTriangleFixture()
+	head, arm, join := f.Blocks[0], f.Blocks[1], f.Blocks[2]
+	cmp := head.Insts[len(head.Insts)-1]
+	head.Insts = append(head.Insts[:len(head.Insts)-1], join.Insts[0], join.Insts[1], cmp)
+	join.Insts = join.Insts[2:]
+	arm.Insts[0].Src[0] = head.Insts[1].Dst
+	before := m.Dump()
+	if PrepareShiftCarry(f) || m.Dump() != before {
+		t.Fatal("shared predicate was reordered", m.Dump())
 	}
 }

@@ -1,0 +1,642 @@
+{
+  "isolated/p1.nanz/gracefalse/both": {
+    "Bytes": 25,
+    "Calls": 28,
+    "T": 2336
+  },
+  "isolated/p1.nanz/gracefalse/hu": {
+    "Bytes": 18,
+    "Calls": 63,
+    "T": 5203
+  },
+  "isolated/p1.nanz/gracefalse/sar": {
+    "Bytes": 14,
+    "Calls": 28,
+    "T": 1176
+  },
+  "isolated/p1.nanz/gracefalse/sh2": {
+    "Bytes": 18,
+    "Calls": 28,
+    "T": 1372
+  },
+  "isolated/p1.nanz/gracefalse/wb": {
+    "Bytes": 14,
+    "Calls": 28,
+    "T": 1148
+  },
+  "isolated/p1.nanz/gracefalse/wb2": {
+    "Bytes": 14,
+    "Calls": 28,
+    "T": 1176
+  },
+  "isolated/p1.nanz/gracefalse/wb3": {
+    "Bytes": 14,
+    "Calls": 28,
+    "T": 1148
+  },
+  "isolated/p1.nanz/gracetrue/both": {
+    "Bytes": 25,
+    "Calls": 28,
+    "T": 2336
+  },
+  "isolated/p1.nanz/gracetrue/hu": {
+    "Bytes": 18,
+    "Calls": 63,
+    "T": 5203
+  },
+  "isolated/p1.nanz/gracetrue/sar": {
+    "Bytes": 14,
+    "Calls": 28,
+    "T": 1176
+  },
+  "isolated/p1.nanz/gracetrue/sh2": {
+    "Bytes": 18,
+    "Calls": 28,
+    "T": 1372
+  },
+  "isolated/p1.nanz/gracetrue/wb": {
+    "Bytes": 14,
+    "Calls": 28,
+    "T": 1148
+  },
+  "isolated/p1.nanz/gracetrue/wb2": {
+    "Bytes": 14,
+    "Calls": 28,
+    "T": 1176
+  },
+  "isolated/p1.nanz/gracetrue/wb3": {
+    "Bytes": 14,
+    "Calls": 28,
+    "T": 1148
+  },
+  "module/c1.c/gracefalse/crc16": {
+    "Bytes": 192,
+    "Calls": 8,
+    "T": 3875
+  },
+  "module/c1.c/gracefalse/crc8": {
+    "Bytes": 192,
+    "Calls": 28,
+    "T": 14715
+  },
+  "module/c1.c/gracefalse/crc8s": {
+    "Bytes": 192,
+    "Calls": 28,
+    "T": 32011
+  },
+  "module/c1.c/gracefalse/crcr": {
+    "Bytes": 192,
+    "Calls": 8,
+    "T": 4646
+  },
+  "module/c1.c/gracefalse/lsr": {
+    "Bytes": 192,
+    "Calls": 6,
+    "T": 4776
+  },
+  "module/c1.c/gracefalse/mul": {
+    "Bytes": 192,
+    "Calls": 30,
+    "T": 11660
+  },
+  "module/c1.c/gracetrue/crc16": {
+    "Bytes": 192,
+    "Calls": 8,
+    "T": 3875
+  },
+  "module/c1.c/gracetrue/crc8": {
+    "Bytes": 192,
+    "Calls": 28,
+    "T": 14715
+  },
+  "module/c1.c/gracetrue/crc8s": {
+    "Bytes": 192,
+    "Calls": 28,
+    "T": 32011
+  },
+  "module/c1.c/gracetrue/crcr": {
+    "Bytes": 192,
+    "Calls": 8,
+    "T": 4646
+  },
+  "module/c1.c/gracetrue/lsr": {
+    "Bytes": 192,
+    "Calls": 6,
+    "T": 4776
+  },
+  "module/c1.c/gracetrue/mul": {
+    "Bytes": 192,
+    "Calls": 30,
+    "T": 11660
+  },
+  "module/p1.nanz/gracefalse/both": {
+    "Bytes": 974,
+    "Calls": 28,
+    "T": 2336
+  },
+  "module/p1.nanz/gracefalse/cr": {
+    "Bytes": 974,
+    "Calls": 14,
+    "T": 646
+  },
+  "module/p1.nanz/gracefalse/crc16": {
+    "Bytes": 974,
+    "Calls": 28,
+    "T": 11072
+  },
+  "module/p1.nanz/gracefalse/crc16r": {
+    "Bytes": 974,
+    "Calls": 28,
+    "T": 13327
+  },
+  "module/p1.nanz/gracefalse/crc8": {
+    "Bytes": 974,
+    "Calls": 28,
+    "T": 13819
+  },
+  "module/p1.nanz/gracefalse/crc8eq": {
+    "Bytes": 974,
+    "Calls": 28,
+    "T": 12901
+  },
+  "module/p1.nanz/gracefalse/diff": {
+    "Bytes": 974,
+    "Calls": 28,
+    "T": 1248
+  },
+  "module/p1.nanz/gracefalse/ext7": {
+    "Bytes": 974,
+    "Calls": 14,
+    "T": 988
+  },
+  "module/p1.nanz/gracefalse/glob": {
+    "Bytes": 974,
+    "Calls": 28,
+    "T": 12733
+  },
+  "module/p1.nanz/gracefalse/hk": {
+    "Bytes": 974,
+    "Calls": 28,
+    "T": 1104
+  },
+  "module/p1.nanz/gracefalse/hm": {
+    "Bytes": 974,
+    "Calls": 28,
+    "T": 14014
+  },
+  "module/p1.nanz/gracefalse/hs": {
+    "Bytes": 974,
+    "Calls": 28,
+    "T": 2046
+  },
+  "module/p1.nanz/gracefalse/hu": {
+    "Bytes": 974,
+    "Calls": 63,
+    "T": 5203
+  },
+  "module/p1.nanz/gracefalse/hw": {
+    "Bytes": 974,
+    "Calls": 28,
+    "T": 5418
+  },
+  "module/p1.nanz/gracefalse/hz": {
+    "Bytes": 974,
+    "Calls": 28,
+    "T": 976
+  },
+  "module/p1.nanz/gracefalse/i16s": {
+    "Bytes": 974,
+    "Calls": 14,
+    "T": 959
+  },
+  "module/p1.nanz/gracefalse/ineg": {
+    "Bytes": 974,
+    "Calls": 28,
+    "T": 2176
+  },
+  "module/p1.nanz/gracefalse/ishl": {
+    "Bytes": 974,
+    "Calls": 28,
+    "T": 1260
+  },
+  "module/p1.nanz/gracefalse/joinold": {
+    "Bytes": 974,
+    "Calls": 28,
+    "T": 2512
+  },
+  "module/p1.nanz/gracefalse/lc": {
+    "Bytes": 974,
+    "Calls": 35,
+    "T": 12525
+  },
+  "module/p1.nanz/gracefalse/lfsr": {
+    "Bytes": 974,
+    "Calls": 42,
+    "T": 281516
+  },
+  "module/p1.nanz/gracefalse/mul8": {
+    "Bytes": 974,
+    "Calls": 42,
+    "T": 21222
+  },
+  "module/p1.nanz/gracefalse/mul8b": {
+    "Bytes": 974,
+    "Calls": 42,
+    "T": 15390
+  },
+  "module/p1.nanz/gracefalse/nest": {
+    "Bytes": 974,
+    "Calls": 28,
+    "T": 1464
+  },
+  "module/p1.nanz/gracefalse/nest2": {
+    "Bytes": 974,
+    "Calls": 28,
+    "T": 9095
+  },
+  "module/p1.nanz/gracefalse/old": {
+    "Bytes": 974,
+    "Calls": 28,
+    "T": 1644
+  },
+  "module/p1.nanz/gracefalse/old2": {
+    "Bytes": 974,
+    "Calls": 28,
+    "T": 1532
+  },
+  "module/p1.nanz/gracefalse/pc": {
+    "Bytes": 974,
+    "Calls": 14,
+    "T": 5615
+  },
+  "module/p1.nanz/gracefalse/press": {
+    "Bytes": 974,
+    "Calls": 28,
+    "T": 43131
+  },
+  "module/p1.nanz/gracefalse/sar": {
+    "Bytes": 974,
+    "Calls": 28,
+    "T": 1176
+  },
+  "module/p1.nanz/gracefalse/sh2": {
+    "Bytes": 974,
+    "Calls": 28,
+    "T": 1372
+  },
+  "module/p1.nanz/gracefalse/sh2b": {
+    "Bytes": 974,
+    "Calls": 28,
+    "T": 1372
+  },
+  "module/p1.nanz/gracefalse/sx": {
+    "Bytes": 974,
+    "Calls": 14,
+    "T": 1702
+  },
+  "module/p1.nanz/gracefalse/tlo": {
+    "Bytes": 974,
+    "Calls": 14,
+    "T": 674
+  },
+  "module/p1.nanz/gracefalse/tlo7": {
+    "Bytes": 974,
+    "Calls": 14,
+    "T": 730
+  },
+  "module/p1.nanz/gracefalse/unused": {
+    "Bytes": 974,
+    "Calls": 28,
+    "T": 820
+  },
+  "module/p1.nanz/gracefalse/w7": {
+    "Bytes": 974,
+    "Calls": 14,
+    "T": 840
+  },
+  "module/p1.nanz/gracefalse/wb": {
+    "Bytes": 974,
+    "Calls": 28,
+    "T": 1148
+  },
+  "module/p1.nanz/gracefalse/wb2": {
+    "Bytes": 974,
+    "Calls": 28,
+    "T": 1176
+  },
+  "module/p1.nanz/gracefalse/wb3": {
+    "Bytes": 974,
+    "Calls": 28,
+    "T": 1148
+  },
+  "module/p1.nanz/gracetrue/both": {
+    "Bytes": 973,
+    "Calls": 28,
+    "T": 2336
+  },
+  "module/p1.nanz/gracetrue/cr": {
+    "Bytes": 973,
+    "Calls": 14,
+    "T": 646
+  },
+  "module/p1.nanz/gracetrue/crc16": {
+    "Bytes": 973,
+    "Calls": 28,
+    "T": 11072
+  },
+  "module/p1.nanz/gracetrue/crc16r": {
+    "Bytes": 973,
+    "Calls": 28,
+    "T": 13327
+  },
+  "module/p1.nanz/gracetrue/crc8": {
+    "Bytes": 973,
+    "Calls": 28,
+    "T": 13819
+  },
+  "module/p1.nanz/gracetrue/crc8eq": {
+    "Bytes": 973,
+    "Calls": 28,
+    "T": 12901
+  },
+  "module/p1.nanz/gracetrue/diff": {
+    "Bytes": 973,
+    "Calls": 28,
+    "T": 1248
+  },
+  "module/p1.nanz/gracetrue/ext7": {
+    "Bytes": 973,
+    "Calls": 14,
+    "T": 988
+  },
+  "module/p1.nanz/gracetrue/glob": {
+    "Bytes": 973,
+    "Calls": 28,
+    "T": 12733
+  },
+  "module/p1.nanz/gracetrue/hk": {
+    "Bytes": 973,
+    "Calls": 28,
+    "T": 1104
+  },
+  "module/p1.nanz/gracetrue/hm": {
+    "Bytes": 973,
+    "Calls": 28,
+    "T": 14014
+  },
+  "module/p1.nanz/gracetrue/hs": {
+    "Bytes": 973,
+    "Calls": 28,
+    "T": 2046
+  },
+  "module/p1.nanz/gracetrue/hu": {
+    "Bytes": 973,
+    "Calls": 63,
+    "T": 5203
+  },
+  "module/p1.nanz/gracetrue/hw": {
+    "Bytes": 973,
+    "Calls": 28,
+    "T": 5418
+  },
+  "module/p1.nanz/gracetrue/hz": {
+    "Bytes": 973,
+    "Calls": 28,
+    "T": 976
+  },
+  "module/p1.nanz/gracetrue/i16s": {
+    "Bytes": 973,
+    "Calls": 14,
+    "T": 959
+  },
+  "module/p1.nanz/gracetrue/ineg": {
+    "Bytes": 973,
+    "Calls": 28,
+    "T": 2176
+  },
+  "module/p1.nanz/gracetrue/ishl": {
+    "Bytes": 973,
+    "Calls": 28,
+    "T": 1260
+  },
+  "module/p1.nanz/gracetrue/joinold": {
+    "Bytes": 973,
+    "Calls": 28,
+    "T": 2512
+  },
+  "module/p1.nanz/gracetrue/lc": {
+    "Bytes": 973,
+    "Calls": 35,
+    "T": 12525
+  },
+  "module/p1.nanz/gracetrue/lfsr": {
+    "Bytes": 973,
+    "Calls": 42,
+    "T": 281516
+  },
+  "module/p1.nanz/gracetrue/mul8": {
+    "Bytes": 973,
+    "Calls": 42,
+    "T": 21222
+  },
+  "module/p1.nanz/gracetrue/mul8b": {
+    "Bytes": 973,
+    "Calls": 42,
+    "T": 15390
+  },
+  "module/p1.nanz/gracetrue/nest": {
+    "Bytes": 973,
+    "Calls": 28,
+    "T": 1368
+  },
+  "module/p1.nanz/gracetrue/nest2": {
+    "Bytes": 973,
+    "Calls": 28,
+    "T": 9095
+  },
+  "module/p1.nanz/gracetrue/old": {
+    "Bytes": 973,
+    "Calls": 28,
+    "T": 1644
+  },
+  "module/p1.nanz/gracetrue/old2": {
+    "Bytes": 973,
+    "Calls": 28,
+    "T": 1532
+  },
+  "module/p1.nanz/gracetrue/pc": {
+    "Bytes": 973,
+    "Calls": 14,
+    "T": 5615
+  },
+  "module/p1.nanz/gracetrue/press": {
+    "Bytes": 973,
+    "Calls": 28,
+    "T": 43131
+  },
+  "module/p1.nanz/gracetrue/sar": {
+    "Bytes": 973,
+    "Calls": 28,
+    "T": 1176
+  },
+  "module/p1.nanz/gracetrue/sh2": {
+    "Bytes": 973,
+    "Calls": 28,
+    "T": 1372
+  },
+  "module/p1.nanz/gracetrue/sh2b": {
+    "Bytes": 973,
+    "Calls": 28,
+    "T": 1372
+  },
+  "module/p1.nanz/gracetrue/sx": {
+    "Bytes": 973,
+    "Calls": 14,
+    "T": 1702
+  },
+  "module/p1.nanz/gracetrue/tlo": {
+    "Bytes": 973,
+    "Calls": 14,
+    "T": 674
+  },
+  "module/p1.nanz/gracetrue/tlo7": {
+    "Bytes": 973,
+    "Calls": 14,
+    "T": 730
+  },
+  "module/p1.nanz/gracetrue/unused": {
+    "Bytes": 973,
+    "Calls": 28,
+    "T": 820
+  },
+  "module/p1.nanz/gracetrue/w7": {
+    "Bytes": 973,
+    "Calls": 14,
+    "T": 840
+  },
+  "module/p1.nanz/gracetrue/wb": {
+    "Bytes": 973,
+    "Calls": 28,
+    "T": 1148
+  },
+  "module/p1.nanz/gracetrue/wb2": {
+    "Bytes": 973,
+    "Calls": 28,
+    "T": 1176
+  },
+  "module/p1.nanz/gracetrue/wb3": {
+    "Bytes": 973,
+    "Calls": 28,
+    "T": 1148
+  },
+  "module/p2.nanz/gracefalse/same": {
+    "Bytes": 221,
+    "Calls": 4,
+    "T": 280
+  },
+  "module/p2.nanz/gracefalse/same16": {
+    "Bytes": 221,
+    "Calls": 2,
+    "T": 4333
+  },
+  "module/p2.nanz/gracefalse/same2": {
+    "Bytes": 221,
+    "Calls": 3,
+    "T": 2928
+  },
+  "module/p2.nanz/gracetrue/same": {
+    "Bytes": 221,
+    "Calls": 4,
+    "T": 280
+  },
+  "module/p2.nanz/gracetrue/same16": {
+    "Bytes": 221,
+    "Calls": 2,
+    "T": 4333
+  },
+  "module/p2.nanz/gracetrue/same2": {
+    "Bytes": 221,
+    "Calls": 3,
+    "T": 2928
+  },
+  "module/p3.nanz/gracefalse/bitret": {
+    "Bytes": 220,
+    "Calls": 4,
+    "T": 360
+  },
+  "module/p3.nanz/gracefalse/ldg": {
+    "Bytes": 220,
+    "Calls": 30,
+    "T": 2685
+  },
+  "module/p3.nanz/gracefalse/ldp": {
+    "Bytes": 220,
+    "Calls": 30,
+    "T": 5145
+  },
+  "module/p3.nanz/gracefalse/ldp2": {
+    "Bytes": 220,
+    "Calls": 30,
+    "T": 32040
+  },
+  "module/p3.nanz/gracefalse/shrbit": {
+    "Bytes": 220,
+    "Calls": 30,
+    "T": 1971
+  },
+  "module/p3.nanz/gracefalse/shtw2": {
+    "Bytes": 220,
+    "Calls": 30,
+    "T": 1785
+  },
+  "module/p3.nanz/gracefalse/shtwice": {
+    "Bytes": 220,
+    "Calls": 30,
+    "T": 1785
+  },
+  "module/p3.nanz/gracefalse/twotest": {
+    "Bytes": 220,
+    "Calls": 30,
+    "T": 1875
+  },
+  "module/p3.nanz/gracetrue/bitret": {
+    "Bytes": 220,
+    "Calls": 4,
+    "T": 360
+  },
+  "module/p3.nanz/gracetrue/ldg": {
+    "Bytes": 220,
+    "Calls": 30,
+    "T": 2685
+  },
+  "module/p3.nanz/gracetrue/ldp": {
+    "Bytes": 220,
+    "Calls": 30,
+    "T": 5145
+  },
+  "module/p3.nanz/gracetrue/ldp2": {
+    "Bytes": 220,
+    "Calls": 30,
+    "T": 32040
+  },
+  "module/p3.nanz/gracetrue/shrbit": {
+    "Bytes": 220,
+    "Calls": 30,
+    "T": 1971
+  },
+  "module/p3.nanz/gracetrue/shtw2": {
+    "Bytes": 220,
+    "Calls": 30,
+    "T": 1785
+  },
+  "module/p3.nanz/gracetrue/shtwice": {
+    "Bytes": 220,
+    "Calls": 30,
+    "T": 1785
+  },
+  "module/p3.nanz/gracetrue/twotest": {
+    "Bytes": 220,
+    "Calls": 30,
+    "T": 1875
+  }
+}

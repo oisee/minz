@@ -48,11 +48,27 @@ func TestHoistDiamondCommon(t *testing.T) {
 }
 
 func TestHoistDiamondCommonRefusals(t *testing.T) {
-	for _, kind := range []string{"different-op", "different-count", "different-type", "different-source", "hard", "volatile", "load", "call", "division", "shared-successor", "block-param", "non-dominating", "duplicate-source", "duplicate-result", "effect-before", "implicit-carry"} {
+	for _, kind := range []string{"different-op", "different-count", "different-type", "different-source", "hard", "volatile", "load", "call", "division", "shared-successor", "block-param", "non-dominating", "duplicate-source", "duplicate-result", "effect-before", "implicit-carry", "wrong-bit", "count-two", "arithmetic-right", "shared-test", "shared-zero", "unrelated-shift"} {
 		t.Run(kind, func(t *testing.T) {
 			m, f := diamondCommonFixture()
 			a, b := f.Blocks[1], f.Blocks[2]
 			switch kind {
+			case "wrong-bit":
+				f.Entry().Insts[0].Imm = 64
+			case "count-two":
+				a.Insts[0].Imm, b.Insts[0].Imm = 2, 2
+			case "arithmetic-right":
+				f.Entry().Insts[0].Imm = 1
+				a.Insts[1].Op, b.Insts[1].Op = OpSar, OpSar
+			case "shared-test", "shared-zero":
+				r := f.Entry().Insts[1].Dst
+				if kind == "shared-zero" {
+					r = f.Entry().Insts[2].Dst
+				}
+				a.Insts = append(a.Insts, &Inst{Op: OpAdd, Dst: f.AllocReg(), Src: [2]Reg{a.Insts[1].Dst, r}, Ty: TyU8, Cls: ClassGeneral})
+				a.Term = &TermRet{Vals: []Reg{a.Insts[2].Dst}}
+			case "unrelated-shift":
+				a.Insts[1].Src[0], b.Insts[1].Src[0] = f.Entry().Insts[1].Dst, f.Entry().Insts[1].Dst
 			case "implicit-carry":
 				f.Entry().Insts[len(f.Entry().Insts)-1].Cond = CmpSubCarry
 			case "different-op":

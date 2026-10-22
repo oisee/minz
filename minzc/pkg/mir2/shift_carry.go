@@ -15,6 +15,71 @@ func shiftCarryMaskBit(i *Inst) (int, bool) {
 	return bits.TrailingZeros16(value), true
 }
 
+// canPrepareShiftCarry proves the predicate producers can be eliminated and
+// that this exact logical one-bit shift discards the tested bit. All preparatory
+// motion uses this gate; a shared mask value must keep its original BIT/AND
+// predicate and live range. Physical carry provenance is still checked after
+// allocation by scanShiftCarryPattern.
+func canPrepareShiftCarry(f *Func, head *Block, cmp, shift *Inst, defs map[Reg]*Inst) bool {
+	if cmp.Op != OpCmp || cmp.Cond != CmpEq && cmp.Cond != CmpNe ||
+		shift.Op != OpShl && shift.Op != OpShr || shift.Ty == nil || shift.ClsHard || shift.Volatile {
+		return false
+	}
+	uses := countRegUses(f)
+	if uses[cmp.Dst] != 1 {
+		return false
+	}
+	test, zero := defs[cmp.Src[0]], defs[cmp.Src[1]]
+	if zero == nil || zero.Op != OpConst || zero.Imm != 0 {
+		test, zero = zero, test
+	}
+	if test == nil || zero == nil || zero.Op != OpConst || zero.Imm != 0 || uses[test.Dst] != 1 || uses[zero.Dst] != 1 || test.ClsHard || test.Volatile || zero.ClsHard || zero.Volatile {
+		return false
+	}
+	// Codegen searches the predicate's reaching definitions in this block.
+	localTest, localZero := false, false
+	for _, i := range head.Insts {
+		localTest = localTest || i == test
+		localZero = localZero || i == zero
+	}
+	if !localTest || !localZero {
+		return false
+	}
+	base, bit := NoReg, -1
+	switch test.Op {
+	case OpAnd:
+		for k, r := range test.Src {
+			if n, ok := shiftCarryMaskBit(defs[r]); ok {
+				base, bit = test.Src[1-k], n
+				break
+			}
+		}
+	case OpBitGet:
+		base, bit = test.Src[0], int(test.Imm)
+	}
+	w := shift.Ty.Width()
+	count := defs[shift.Src[1]]
+	if base == NoReg || bit < 0 || test.Ty == nil || bit >= test.Ty.Width() && test.Op == OpAnd ||
+		w != 8 && w != 16 || shift.Op == OpShl && bit != w-1 || shift.Op == OpShr && bit != 0 ||
+		count == nil || count.Op != OpConst || count.Imm != 1 || count.ClsHard || count.Volatile {
+		return false
+	}
+	root := func(r Reg) Reg {
+		for n := 0; n < len(defs); n++ {
+			i := defs[r]
+			if i == nil || i.Ty == nil || bit >= i.Ty.Width() {
+				break
+			}
+			if i.Op != OpMove && !((i.Op == OpTrunc || i.Op == OpExt) && i.SrcTy != nil && bit < i.SrcTy.Width()) {
+				break
+			}
+			r = i.Src[0]
+		}
+		return r
+	}
+	return root(base) == root(shift.Src[0])
+}
+
 // PrepareShiftCarry moves a discarded-bit shift from the mandatory join of a
 // small pure diamond/triangle to its test block. This covers shift-add loops:
 // the optional addition consumes other values, then every path shifts x. The
@@ -151,6 +216,31 @@ func PrepareShiftCarry(f *Func) bool {
 			if !available(count.Dst, head) && where[count.Dst] != join {
 				continue
 			}
+			if !canPrepareShiftCarry(f, head, cmp, shift, defs) {
+				continue
+			}
+			// If an arm still reads the old input, the shift cannot update it
+			// in place. Hoisting then keeps an extra value alive across all arm
+			// operations (including accumulator saves), even when carry fuses.
+			// Keep the original BIT/branch/shift layout in that case.
+			oldInput := root(shift.Src[0], bit)
+			for _, arm := range arms {
+				for _, i := range arm.Insts {
+					for _, r := range i.Uses() {
+						if root(r, bit) == oldInput {
+							legal = false
+						}
+					}
+				}
+				for _, r := range arm.Term.termUses() {
+					if root(r, bit) == oldInput {
+						legal = false
+					}
+				}
+			}
+			if !legal {
+				continue
+			}
 			// If local, move the original count definition too; any other join uses
 			// remain dominated by the new location. The shift precedes the predicate.
 			out := head.Insts[:len(head.Insts)-1]
@@ -174,8 +264,8 @@ func PrepareShiftCarry(f *Func) bool {
 		}
 	}
 	// End the old masked value's live range before the shift. Codegen can
-	// defer this single-use predicate to the shift's carry; unsupported homes
-	// use materializePendingFlag and an ordinary boolean branch instead.
+	// defer this single-use predicate to the shift's carry. Only prepare tests
+	// whose producers can be suppressed by that fusion.
 	for _, b := range f.Blocks {
 		if len(b.Insts) < 2 {
 			continue
@@ -220,7 +310,10 @@ func PrepareShiftCarry(f *Func) bool {
 		if base == NoReg || bit < 0 || test.Op == OpAnd && (test.Ty == nil || bit >= test.Ty.Width()) || w != 8 && w != 16 || shift.Op == OpShl && bit != w-1 || shift.Op == OpShr && bit != 0 || c == nil || c.Op != OpConst || c.Imm != 1 || root(base, bit) != root(shift.Src[0], bit) {
 			continue
 		}
-		if test.Op == OpAnd && countRegUses(f)[test.Dst] == 1 {
+		if !canPrepareShiftCarry(f, b, cmp, shift, defs) {
+			continue
+		}
+		if test.Op == OpAnd {
 			// Only zero/nonzero is observed. BitGet has the same predicate
 			// without an accumulator-only AND result that would force the
 			// still-live shift source out of A during allocation.

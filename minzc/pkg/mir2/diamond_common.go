@@ -2,16 +2,18 @@ package mir2
 
 import "reflect"
 
-// HoistDiamondCommon moves the first common total, pure computation from the
-// two exclusive successors of a branch to its head. Leading constants may
-// differ in SSA identity, but must have identical typed values. No memory,
-// trapping operations, hard constraints or successor parameters are moved.
+// HoistDiamondCommon moves a common logical one-bit shift from the two
+// exclusive successors only when its carry can replace the head's bit test.
+// Leading constants may differ in SSA identity, but must have identical typed
+// values. No memory, trapping operations, hard constraints or successor
+// parameters are moved.
 func HoistDiamondCommon(f *Func) bool {
 	if f == nil || len(f.Blocks) == 0 {
 		return false
 	}
 	dom := reachableDominators(f)
 	defs := map[Reg]*Block{}
+	instDefs := map[Reg]*Inst{}
 	counts := map[Reg]int{}
 	define := func(r Reg, b *Block) {
 		if r != NoReg {
@@ -28,6 +30,7 @@ func HoistDiamondCommon(f *Func) bool {
 		}
 		for _, i := range b.Insts {
 			define(i.Dst, b)
+			instDefs[i.Dst] = i
 			for _, r := range i.ExtraRets {
 				define(r, b)
 			}
@@ -41,13 +44,13 @@ func HoistDiamondCommon(f *Func) bool {
 	available := func(r Reg, head *Block) bool {
 		return counts[r] == 1 && (defs[r] == nil || dom[head.Label][defs[r].Label])
 	}
-	// Only integer value operations whose effects are wholly represented by Dst.
+	// Only shifts whose effects are wholly represented by Dst.
 	pure := func(i *Inst) bool {
 		if i.Dst == NoReg || counts[i.Dst] != 1 || i.ClsHard || i.Volatile || i.Ty == nil {
 			return false
 		}
 		switch i.Op {
-		case OpMove, OpAdd, OpSub, OpMul, OpAnd, OpOr, OpXor, OpShl, OpShr, OpSar, OpNeg, OpNot, OpExt, OpSext, OpTrunc:
+		case OpShl, OpShr:
 			return true
 		}
 		return false
@@ -85,7 +88,7 @@ func HoistDiamondCommon(f *Func) bool {
 			continue
 		}
 		x, y := a.Insts[ai], b.Insts[bi]
-		if !pure(x) || !pure(y) {
+		if !pure(x) || !pure(y) || !canPrepareShiftCarry(f, head, cmp, x, instDefs) {
 			continue
 		}
 		// Compare all semantic/constraint metadata, excluding operand identity and
