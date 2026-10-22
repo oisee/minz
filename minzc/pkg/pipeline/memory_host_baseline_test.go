@@ -134,9 +134,11 @@ fun same_two()->u16{return 7}`
 // Refreshed 2026-10-22 for the general ordered-copy idiom: the retained
 // copy helper shrinks by 11 bytes; this workload's T states and independent
 // state/event oracle are unchanged.
+// Refreshed against clean origin/main 76e8070d4: -782 T / -20 bytes.
+// Direct, factory and instrumented routes retain the independent parser oracle.
 func assertCurrentMemoryHostParserReference(t *testing.T, target *MemoryHostTargetEvidence) {
 	t.Helper()
-	if target.TotalTStates != 1261070 || len(target.Binary) != 2289 || target.BinarySHA256 != "045cfd5d09db73c1f528cc6e2a7d8c16126d78049c0cffd106b1ce44a61f597b" {
+	if target.TotalTStates != 1260288 || len(target.Binary) != 2269 || target.BinarySHA256 != "9209f1d325bd81d808a5dcd28c20ef5de73189a4180c88397de49029be3b052b" {
 		t.Fatal("current parser target drift", target.TotalTStates, len(target.Binary), target.BinarySHA256)
 	}
 	if fmt.Sprintf("%x", sha256.Sum256(target.Binary)) != target.BinarySHA256 {

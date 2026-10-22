@@ -21,6 +21,7 @@ def main():
     ap.add_argument('--go', default='go')
     ap.add_argument('--jobs', type=int, default=2)
     ap.add_argument('--sdcc45-root', type=Path)
+    ap.add_argument('--grace-ablation', action='store_true', help='also measure MIR-only and HIR-only Grace on the selected suite')
     ap.add_argument('--include-nanz', action='store_true')
     ap.add_argument('--include-refs', action='store_true', help='main-suite Nanz idiom and hand assembly references')
     ap.add_argument('--suite', choices=['main', 'heldout', 'all'], default='main')
@@ -73,6 +74,7 @@ def main():
         'runner_sha256': sha(root/'research/c89-benchmark/measure.go'),
         'driver_sha256': sha(__file__),
         'suite': args.suite,
+        'grace_ablation': args.grace_ablation,
         'sources': frozen,
         'nanz_sources': nfrozen,
         'reference_sources': refs,
@@ -82,7 +84,9 @@ def main():
     if args.sdcc45_root:
         meta['sdcc45_version'] = subprocess.check_output([str(args.sdcc45_root.resolve()/'usr/bin/sdcc'),'--version'],text=True).strip()
     (out/'toolchains.json').write_text(json.dumps(meta,indent=2)+'\n')
-    profiles = [('minz','default'),('minz','size'),('minz','grace'),('sdcc','size'),('sdcc','speed')]
+    profiles = [('minz','default'),('minz','size'),('minz','grace'),('minz','nograce'),('sdcc','size'),('sdcc','speed')]
+    if args.grace_ablation:
+        profiles += [('minz', 'mirgrace'), ('minz', 'hirgrace')]
     if zroot:
         profiles.append(('sccz80','o3'))
 
@@ -143,9 +147,9 @@ def main():
         return compact
     tasks=[(c,p,case) for c,p in profiles for case in frozen]
     if args.include_nanz:
-        tasks += [('nanz',p,c) for p in ['default','size','grace'] for c in nfrozen]
+        tasks += [('nanz',p,c) for p in ['default','size','grace','nograce'] for c in nfrozen]
         tuple_cases=json.loads((root/'research/c89-benchmark/nanz-tuple/manifest.json').read_text())['cases']
-        tasks += [('nanz-tuple',p,c) for p in ['default','size','grace'] for c in tuple_cases]
+        tasks += [('nanz-tuple',p,c) for p in ['default','size','grace','nograce'] for c in tuple_cases]
     for compiler, entries in refs.items():
         tasks += [(compiler, p, c) for p in (['asm'] if compiler == 'hand' else ['default', 'grace']) for c in entries]
     if args.sdcc45_root: tasks += [('sdcc45',p,c) for p in ['size','speed'] for c in frozen]

@@ -54,8 +54,10 @@ stack size. SDCC's uninitialized DATA/INITIALIZED areas are counted even when
 absent from its HEX image. sccz80 BIN includes its BSS bytes. Fixed-address gaps
 are excluded. Fixtures have no libc, console I/O or initialized-global startup.
 
-Profiles are reported separately: MinZ default, `OptSize` alone, and HIR+MIR Grace;
-SDCC code size and code speed; sccz80 `-O3`. MinZ Grace has no workload-guided
+Profiles are reported separately: MinZ default (MIR Grace; HIR Grace opt-in), `OptSize`,
+explicit `grace` (both passes, the historical Grace column), and `nograce` (both passes off);
+SDCC code size and code speed; sccz80 `-O3`. Use `--grace-ablation` to add
+MIR-only `mirgrace` and HIR-only `hirgrace` rows. MinZ Grace has no workload-guided
 selection, checked-local table or joint PFCCO option. No profile is selected after
 looking at timing results. Jobs are independent; parallel host execution does
 not change emulated T-state counts.

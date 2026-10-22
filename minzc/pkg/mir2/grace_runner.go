@@ -918,6 +918,12 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 		if !ok || jmp.Target == "" || jmp.Target == label {
 			return false
 		}
+		// Keep edge-copy blocks reached conditionally. Bypassing them turns
+		// their outgoing copies into critical-edge trampolines at codegen,
+		// adding branches and preventing the natural fallthrough layout.
+		if len(jmp.Args) != 0 && hasConditionalPredecessor(f, label) {
+			return false
+		}
 		// Safety: target block must have 0 params, or jmp must carry matching args
 		targetBlk := f.BlockByLabel(jmp.Target)
 		if targetBlk != nil && len(targetBlk.Params) > 0 && len(jmp.Args) != len(targetBlk.Params) {
@@ -1298,6 +1304,23 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 			return false
 		}
 
+		// TermBrIf2 emits one unsigned byte CP. Do not discard signedness or
+		// high bytes, speculate body work across the equality exit, or erase
+		// a block still reachable from another predecessor.
+		headCmp, bodyCmp := head.Insts[cmpIdx], body.Insts[bodyCmpIdx]
+		if f.Attrs.FallibleCY || body == f.Blocks[0] || countPredecessors(f, bodyLabel) != 1 ||
+			len(body.Params) != 0 || len(cr.ThenArgs) != 0 || len(body.Insts) != 1 ||
+			headCmp.ClsHard || bodyCmp.ClsHard ||
+			(headCmp.SrcTy != nil && headCmp.SrcTy != TyU8) ||
+			(bodyCmp.SrcTy != nil && bodyCmp.SrcTy != TyU8) ||
+			!graceUnsignedByteOperands(f, cmpLhs, cmpRhs) {
+			return false
+		}
+		uses := countRegUses(f)
+		if uses[headCmp.Dst] != 1 || uses[bodyCmp.Dst] != 1 {
+			return false
+		}
+
 		// Body must have no other instructions between start and the cmp
 		// (otherwise hoisting the cmp would reorder side effects)
 		for i := 0; i < bodyCmpIdx; i++ {
@@ -1367,6 +1390,10 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 		// A self-loop is not a forwarding trampoline: redirecting its incoming
 		// edges still targets this block, so deleting it would leave dangling edges.
 		if !ok || jmp.Target == label {
+			return false
+		}
+
+		if len(jmp.Args) != 0 && hasConditionalPredecessor(f, label) {
 			return false
 		}
 
@@ -2450,4 +2477,44 @@ func canForwardLoad(f *Func, pred, succ *Block) bool {
 }
 func sameLoadType(a, b *Inst) bool {
 	return a.Ty != nil && b.Ty != nil && a.Ty.Width() == b.Ty.Width() && a.Ty.String() == b.Ty.String()
+}
+
+// A conditional edge needs a place to execute edge-local copies. Retaining the
+// forwarding block lets allocation and layout keep that work inline. This is
+// a conservative profitability guard; skipping a rewrite preserves semantics.
+func hasConditionalPredecessor(f *Func, label string) bool {
+	for _, b := range f.Blocks {
+		if b.Term == nil {
+			continue
+		}
+		if _, ok := b.Term.(*TermJmp); ok {
+			continue
+		}
+		for _, successor := range b.Term.Successors() {
+			if successor == label {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// The byte-only three-way terminator needs operand facts even when comparison
+// source metadata is absent (as in Builder.Cmp). Unknown types decline fusion.
+func graceUnsignedByteOperands(f *Func, lhs, rhs Reg) bool {
+	types := map[Reg]Ty{}
+	for _, p := range f.Contract.Params {
+		types[p.Reg] = p.Ty
+	}
+	for _, b := range f.Blocks {
+		for _, p := range b.Params {
+			types[p.Dst] = p.Ty
+		}
+		for _, inst := range b.Insts {
+			if inst.Dst != NoReg {
+				types[inst.Dst] = inst.Ty
+			}
+		}
+	}
+	return types[lhs] == TyU8 && types[rhs] == TyU8
 }

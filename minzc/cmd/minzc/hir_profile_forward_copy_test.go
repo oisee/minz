@@ -103,10 +103,11 @@ func TestHIRProfileForwardCopyCompilation(t *testing.T) {
 		if e.Schema != "minz.forward-copy-site-variant-sets/v1" || len(e.Candidates) != 2 || len(e.EligibleSites) != 1 {
 			t.Fatal("copyCLIevidence")
 		}
-		expected := 1
-		if size {
-			expected = 0
+		for i, c := range e.Candidates {
+			t.Logf("copy size=%v candidate=%d: %d T / %d B", size, i, c.TotalTStates, c.ModuleBytes)
 		}
+		// origin/main 76e8070d4 selects the original after byte-loop lowering.
+		expected := 0
 		if e.Selected != expected {
 			t.Fatal("copyCLIwinner", size, e.Selected)
 		}
@@ -247,7 +248,11 @@ func TestHIRProfileMixedCopyWeightedCompilation(t *testing.T) {
 		if e.Schema != "minz.mixed-copy-weighted-variant-sets/v1" || len(e.Candidates) != 8 || len(e.EligibleCopySites) != 1 || len(e.EligibleWeightedSites) != 1 {
 			t.Fatal("mixed CLI scope")
 		}
-		expected := 7
+		for i, c := range e.Candidates {
+			t.Logf("mixed size=%v candidate=%d: %d T / %d B", size, i, c.TotalTStates, c.ModuleBytes)
+		}
+		// origin/main 76e8070d4 measures mask 3 as the speed winner.
+		expected := 3
 		if size {
 			expected = 2
 		}

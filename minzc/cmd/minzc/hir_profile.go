@@ -12,14 +12,19 @@ import (
 	"github.com/minz/minzc/pkg/hir"
 	"github.com/minz/minzc/pkg/pipeline"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 )
 
 type hirProfileFlags struct{ collect, profile, workload, model, run, decisions string }
 
 var hirProfile hirProfileFlags
 
+// Bound during flag registration, avoiding an initializer dependency on rootCmd.
+var hirProfileGraceFlags *pflag.FlagSet
+
 func registerHIRProfileFlags(cmd *cobra.Command) {
 	f := cmd.Flags()
+	hirProfileGraceFlags = f
 	f.StringVar(&hirProfile.collect, "hir-profile-collect", "", "run controlled workload and write HIR profile JSON (no compilation)")
 	f.StringVar(&hirProfile.profile, "hir-profile", "", "compile using HIR profile JSON and an external measured cost model")
 	f.StringVar(&hirProfile.workload, "hir-profile-workload", "", "controlled workload JSON required for HIR profile collection/application")
@@ -48,6 +53,9 @@ func validateHIRProfileFlags(source string) error {
 			return fail("collection uses --hir-profile-collect for output; -o is incompatible")
 		}
 	} else {
+		if err := validateHIRProfileGracePolicy(false); err != nil {
+			return err
+		}
 		if p.model == "" || p.decisions == "" {
 			return fail("application requires --hir-profile-model and --hir-profile-decisions")
 		}
@@ -238,4 +246,18 @@ func loadHIRProfileSelection() (*pipeline.ProfileSelection, error) {
 	var err error
 	request.Observations, err = readHIRProfileBytes(hirProfile.profile, hirObservationJSONLimit)
 	return request, err
+}
+
+// HIR measurement paths deliberately pin MIR Grace off. Refuse an explicit
+// enable request rather than silently overriding it. Joint search may measure
+// HIR Grace, while linear auto/application keep the historical fixed policy.
+func validateHIRProfileGracePolicy(joint bool) error {
+	if noGrace {
+		return nil
+	}
+	flags := hirProfileGraceFlags
+	if flags.Changed("grace") && useGrace || !joint && flags.Changed("hir-grace") && useHIRGrace {
+		return fmt.Errorf("HIR profile: measured compilation pins MIR Grace off (linear models also pin HIR Grace off); omit explicit Grace enable flags or pass --no-grace")
+	}
+	return nil
 }

@@ -42,6 +42,9 @@ func TestHIRProfileAutoMeasuredCompilation(t *testing.T) {
 	if err := decodeHIRProfileJSON(filepath.Join(hirProfileAutoDirectory, "evidence.json"), 1<<20, &evidence); err != nil {
 		t.Fatal(err)
 	}
+	if evidence.Options.UseGrace || evidence.Options.UseHIRGrace {
+		t.Fatal("linear measurement must use its fixed compilation policy", evidence.Options)
+	}
 	if len(evidence.Rows) != 1022 {
 		t.Fatalf("rows=%d", len(evidence.Rows))
 	}
@@ -53,7 +56,7 @@ func TestHIRProfileAutoMeasuredCompilation(t *testing.T) {
 	if err := json.Unmarshal(data, &decisions); err != nil {
 		t.Fatal(err)
 	}
-	if len(decisions) != 1 || decisions[0].Variant != "pointer-walk" {
+	if len(decisions) != 1 {
 		t.Fatal(decisions)
 	}
 	// Costs belong to the current assembled output, not a historical backend.
@@ -64,8 +67,15 @@ func TestHIRProfileAutoMeasuredCompilation(t *testing.T) {
 			continue
 		}
 		matched++
-		if row.Original <= row.Pointer ||
-			decisions[0].OriginalTStates != strconv.Itoa(row.Original) ||
+		want := "original"
+		if row.Pointer < row.Original {
+			want = "pointer-walk"
+		}
+		t.Logf("measured original=%d T pointer=%d T selected=%s", row.Original, row.Pointer, decisions[0].Variant)
+		if decisions[0].Variant != want {
+			t.Fatalf("selected %s, measured winner %s", decisions[0].Variant, want)
+		}
+		if decisions[0].OriginalTStates != strconv.Itoa(row.Original) ||
 			decisions[0].PointerTStates != strconv.Itoa(row.Pointer) ||
 			row.OriginalExecutionSHA256 == "" || row.PointerExecutionSHA256 == "" {
 			t.Fatalf("decision does not match measured native execution: decision=%+v row=%+v", decisions[0], row)

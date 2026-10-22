@@ -86,7 +86,8 @@ var (
 	checkedLocalTablePath         string // --checked-local-table: admitted leaf OptSize candidates
 	optSize                       bool   // -Osize: optimize for code size (Grace reroll, DJNZ loops)
 	fuseByteWords                 bool
-	useGrace                      bool // --grace: run all Grace MIR2 passes before VIR lowering
+	useGrace                      bool // --grace: run all Grace MIR2 passes
+	noGrace                       bool // --no-grace: disable MIR and HIR Grace
 	useHIRGrace                   bool // --hir-grace: run structural Grace rules before HIR lowering
 
 	// Assert control
@@ -280,9 +281,10 @@ func init() {
 	rootCmd.Flags().StringVar(&checkedLocalTableSHA256, "checked-local-table-sha256", "", "pin exact checked table JSON content (required for measured HIR profile replay)")
 	rootCmd.Flags().StringVar(&checkedLocalTablePath, "checked-local-table", "", "use checked local register table for smaller leaf Z80 functions (requires --Osize)")
 	rootCmd.Flags().BoolVar(&optSize, "Osize", false, "optimize for code size: Grace reroll; skip HIR Grace's versioned pointer loops")
-	rootCmd.Flags().BoolVar(&useGrace, "grace", false, "run all Grace MIR2 passes before VIR lowering (DSE, CondRetSink, BlockMerge, etc.)")
+	rootCmd.Flags().BoolVar(&useGrace, "grace", true, "run Grace MIR2 optimizations (disable with --grace=false)")
+	rootCmd.Flags().BoolVar(&noGrace, "no-grace", false, "disable both MIR and HIR Grace optimizations")
 	rootCmd.Flags().BoolVar(&fuseByteWords, "fuse-byte-words", false, "fuse consecutive little-endian byte accesses with sequential fault semantics (experimental)")
-	rootCmd.Flags().BoolVar(&useHIRGrace, "hir-grace", false, "run structural Grace HIR rules before lowering (experimental)")
+	rootCmd.Flags().BoolVar(&useHIRGrace, "hir-grace", false, "opt in to structural Grace HIR rules (may grow versioned pointer loops)")
 	rootCmd.Flags().BoolVar(&assertReceipt, "assert-receipt", false, "print assertion execution counts to stderr for judge tools")
 	rootCmd.Flags().BoolVar(&listAsserts, "list-asserts", false, "list frontend assertions as JSON lines without executing")
 	rootCmd.Flags().StringVar(&assertLines, "assert-lines", "", "run only assertions at these comma-separated source lines")
@@ -1111,11 +1113,21 @@ func compileViaHIR(sourceFile string) error {
 		AnnotateTStates:         annotateTStates,
 		OptSize:                 optSize, // --Osize enables Grace reroll
 		FuseByteWords:           fuseByteWords,
-		UseGrace:                useGrace, // --grace enables full Grace MIR2 pass suite
-		UseHIRGrace:             useHIRGrace,
+		UseGrace:                useGrace && !noGrace,
+		UseHIRGrace:             useHIRGrace && !noGrace,
 		Backend:                 backend,
 		AssertMode:              am,
 		SkipZ80Emission:         skipZ80,
+	}
+	if hirProfile.profile != "" || (hirProfileAutoDirectory != "" && !hirProfileCompilerModes && hirProfileCompilerModesReplay == "" && hirProfileLayoutFunction == "" && hirProfileLayoutReplay == "") {
+		// Measured HIR selection has its own compilation policy. Keep MIR Grace
+		// off: its CFG rewrites can erase the guard labels used as evidence.
+		// The linear model also fixes HIR Grace off so old CompilationIDs remain
+		// valid and the chosen rewrite is the only HIR policy applied.
+		opts.UseGrace = false
+		if !hirProfileJoint {
+			opts.UseHIRGrace = false
+		}
 	}
 	if hirProfile.profile != "" {
 		selection, err := loadHIRProfileSelection()

@@ -255,7 +255,8 @@ func runMetaSpecialize(source string, f metaSpecializeFlags) error {
 	if err != nil {
 		return fail(err)
 	}
-	opts := pipeline.Options{OptSize: compileSize, ContractOpt: true, Backend: "z80", AssertMode: "all"}
+	opts := pipeline.DefaultOptions()
+	opts.OptSize, opts.Backend, opts.AssertMode = compileSize, "z80", "all"
 	report := metaSpecializeEvidence{Schema: "minz.meta-specialization/v1", Goal: f.Goal, Source: source, SourceSHA256: fmt.Sprintf("%x", sha256.Sum256(data)), Target: f.Target, Options: opts, Inputs: inputs, Variants: variants, SemanticScope: "Generator authors declare equivalent alternatives. Unchanged source assertions run for every candidate. Size measurements are complete assembled output; no general equivalence is inferred. A supplied Spectrum workload additionally checks its declared screen/global oracles and full steady CPU-work cycles."}
 	report.SpectrumWorkload = workload
 	report.BudgetTStates = f.BudgetTStates

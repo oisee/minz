@@ -82,10 +82,12 @@ func TestCompilerModeCLIActualSelectedArtifacts(t *testing.T) {
 			if e = json.Unmarshal(b, &evidence); e != nil {
 				t.Fatal(e)
 			}
-			expected := 0
-			if goal == "speed" {
-				expected = 1
+			for i, candidate := range evidence.Candidates {
+				t.Logf("%s mode %d: %d T, %d bytes", goal, i, candidate.Run.TotalTStates, len(candidate.Binary))
 			}
+			// origin/main 76e8070d4 selects mode 0 (2155 T / 46 B).
+			// Stable ties retain the first mode for both objectives.
+			expected := 0
 			if evidence.Selected != expected || evidence.Goal != goal {
 				t.Fatal("actual goal mismatch")
 			}

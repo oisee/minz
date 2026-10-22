@@ -166,12 +166,13 @@ func positiveArgs(a, b uint8) bool { return a >= 1 && b >= 1 }
 // to the loop head), which exposed relocations leaking across blocks.
 func TestExhaustiveJudgeGCD(t *testing.T) {
 	t.Parallel()
-	grace := pipeline.DefaultOptions()
-	grace.UseGrace = true
+	// Keep the non-Grace oracle distinct after production enables both passes.
+	nograce := pipeline.DefaultOptions()
+	nograce.UseGrace, nograce.UseHIRGrace = false, false
 	for _, variant := range []struct {
 		name string
 		opts pipeline.Options
-	}{{"default", pipeline.DefaultOptions()}, {"grace", grace}} {
+	}{{"nograce", nograce}, {"default", pipeline.DefaultOptions()}} {
 		t.Run(variant.name, func(t *testing.T) {
 			steps, err := pipeline.CompileHIRSteps(&hir.Module{Name: "judge_gcd", Funcs: []*hir.Func{gcdHIR()}}, variant.opts)
 			if err != nil {

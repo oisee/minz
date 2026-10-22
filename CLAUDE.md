@@ -74,12 +74,12 @@ trusted until it is fixed or removed.
 > [Report 116](reports/2026-08-21-116-Prior-Art-and-Novelty-Audit.md).
 
 ### 6. Rewrite Triad (ISLE + Grace + Datalog)
-**Status:** ✅ Wired into pipeline, 94.1% convergence. See [Report 097](reports/2026-03-19-097-Rewrite-Triad-Infrastructure.md).
+**Status (2026-10-22):** MIR Grace enabled by default; HIR Grace opt-in (`--hir-grace`); `--no-grace` disables both. Historical convergence: 94.1%. See [Report 097](reports/2026-03-19-097-Rewrite-Triad-Infrastructure.md).
 - **Package:** `pkg/rewrite/` — zero imports from hir/mir2/lir, operates on abstract `IRGraph`/`IRGraphMut` interfaces
 - **ISLE:** Term rewriting with guards `(if (< ?n 256))` + extern Go callbacks. 542 LOC.
 - **Grace:** Graph pattern matching on CFG (Cypher-equivalent). 1255 LOC, 13 tests across 7 Cypher categories.
 - **Datalog:** Fact database with wildcard queries. 101 LOC.
-- **Pipeline integration:** `Options{UseGrace: true}` enables Grace path. 5 rules (DSE, CondRetSink, SplitJoinRet, DeadBlockArgElim, FuseAbsDiff) with custom Go actions. 370 LOC runner.
+- **Pipeline integration:** `DefaultOptions()` enables MIR Grace and leaves HIR Grace opt-in; explicit `Options` can select either pass independently. 5 rules (DSE, CondRetSink, SplitJoinRet, DeadBlockArgElim, FuseAbsDiff) with custom Go actions. 370 LOC runner.
 - **Convergence:** 17/17 pass verification (100%), 16/17 byte-identical assembly (94.1%). 89 funcs processed, 63 rewrites applied.
 - **Stats:** `GraceStats` tracks per-rule fire counts across module compilation.
 - **NOT a Z80 constraint solver:** Grace handles CFG patterns. The WFC constraint work in LIR is historical (§4 above); production uses PFCCO/PBQP and Z80 codegen.
