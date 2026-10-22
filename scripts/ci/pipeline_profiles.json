@@ -411,6 +411,7 @@
     "TestSignedSubCmpBoundaryVMZ80",
     "TestSignedWideExtensionSourceNative",
     "TestSignedWordLiteralLeftKeepsArithmeticWidth",
+    "TestSingleBitSpellingsNeutralVMZ80",
     "TestSingleCallExportCopiesVMZ80",
     "TestSingleCallInternalHelperVMZ80",
     "TestSingleCallNamedEntriesVMZ80",
