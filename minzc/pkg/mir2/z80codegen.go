@@ -123,7 +123,17 @@ func emitTypedGlobalData(sb *strings.Builder, ty Ty, init []byte) {
 // ── Public entry point ────────────────────────────────────────────────────────
 
 // Z80CodegenOptions controls optional codegen features.
+// Z80FunctionOptions selects independently compiled native alternatives.
+// The pipeline admits alternatives by the final encoded module size.
+type Z80FunctionOptions struct {
+	CompactByteLoops bool
+	BitTests         bool
+	DJNZTrampoline   bool
+	CompactShifts    bool
+}
+
 type Z80CodegenOptions struct {
+	FunctionOptions map[string]Z80FunctionOptions
 	// CalledMain emits RET for a void main invoked by a platform wrapper.
 	CalledMain bool
 	// CPMApplicationEntry owns a resident stack and returns to the CP/M caller.
@@ -380,6 +390,8 @@ func z80CodegenWithLeafWrites(m *Module, ar *AllocResult, leafWrites map[string]
 				break
 			}
 		}
+		cg.optimizeForSize = opt.OptimizeForSize
+		cg.functionOptions = opt.FunctionOptions[f.Name]
 		cg.genFunc(f)
 		if cg.err != nil {
 			return "", cg.err
@@ -626,6 +638,8 @@ func z80CodegenWithLeafWrites(m *Module, ar *AllocResult, leafWrites map[string]
 // ── Internal codegen state ────────────────────────────────────────────────────
 
 type z80cg struct {
+	functionOptions                       Z80FunctionOptions
+	optimizeForSize                       bool
 	cpmGlobalStores                       map[*Inst]*Global
 	calledMain                            bool
 	cpmApplicationEntry                   bool

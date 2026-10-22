@@ -26,6 +26,16 @@ func asmPeepholePassWithSize(src string, optimizeForSize bool) string {
 	lines = elimDeadAfterRet(lines)
 	if optimizeForSize {
 		lines = foldRLCASled(lines)
+		for i, line := range lines {
+			code, comment, _ := strings.Cut(line, ";")
+			fields := strings.Fields(code)
+			if len(fields) == 2 && fields[0] == "JP" && strings.HasPrefix(fields[1], ".") && !strings.ContainsAny(fields[1], "(),") {
+				lines[i] = "    JRS " + fields[1]
+				if comment != "" {
+					lines[i] += " ;" + comment
+				}
+			}
+		}
 	}
 	return strings.Join(lines, "\n")
 }

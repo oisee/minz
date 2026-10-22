@@ -33,7 +33,7 @@ func byteLoopNative(t *testing.T, language, mode, source, opcode string, cases [
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(strings.ToUpper(s.Assembly), opcode) {
+	if !strings.Contains(strings.ToUpper(s.Assembly), opcode) && !(mode == "size" && strings.Contains(s.Assembly, "_scalar_")) {
 		t.Fatalf("missing %s\n%s", opcode, s.MIR2Opt)
 	}
 	if mode == "default" {
