@@ -175,6 +175,10 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 		isPendingFlag0 := len(inst.Src) > 0 && inst.Src[0] == g.pendingFlagReg
 		isPendingFlag1 := len(inst.Src) > 1 && inst.Src[1] == g.pendingFlagReg
 		if mnem == "OR" && (lhs == "F" || rhs == "F" || isPendingFlag0 || isPendingFlag1) {
+			if restore := g.saveAccIfLive(inst); restore != nil {
+				defer restore()
+			}
+
 			var flagSrc Reg
 			var otherLoc string
 			if lhs == "F" || isPendingFlag0 {
@@ -183,6 +187,13 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 			} else {
 				flagSrc = inst.Src[1]
 				otherLoc = lhs
+			}
+			otherReg := inst.Src[0]
+			if flagSrc == inst.Src[0] {
+				otherReg = inst.Src[1]
+			}
+			if otherLoc == "A" {
+				g.saveAccOperandIfLive(otherReg, inst)
 			}
 			// Consume the pending flag tracking for flagSrc.
 			if flagSrc == g.pendingFlagReg {
@@ -248,6 +259,10 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 		// Folded constants need not reside in their allocated register. In
 		// particular A may still hold lhs when a constant RHS is allocated A.
 		if rhs == "A" && lhs != "A" && (!rhsIsConst || !g.deadConsts[inst.Src[1]]) {
+			if restore := g.saveAccIfLive(inst); restore != nil {
+				defer restore()
+			}
+
 			// The result overwrites A, which holds rhs: save rhs if it is
 			// still live (gcd's b = b - a keeps a live in A for the loop).
 			g.saveAccOperandIfLive(inst.Src[1], inst)
@@ -276,6 +291,12 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 		// Coalescing: if A already holds lhs or (commutative) rhs, skip LD A, reg.
 		isCommutative := mnem == "ADD" || mnem == "AND" || mnem == "OR" || mnem == "XOR"
 		if g.holdsValue("A", lhs) {
+			// The tracked copy may alias a different SSA value that is live
+			// through a successor, even when this operand itself dies here.
+			if restore := g.saveAccIfLive(inst); restore != nil {
+				defer restore()
+			}
+
 			// Save-before-overwrite: if the lhs vreg in A is still live after this
 			// instruction (used by a later inst or terminator), save it to a scratch
 			// register. The ALU op will overwrite A with the result.
@@ -298,6 +319,10 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 			return
 		}
 		if isCommutative && !rhsIsConst && g.holdsValue("A", rhs) {
+			if restore := g.saveAccIfLive(inst); restore != nil {
+				defer restore()
+			}
+
 			// A == rhs, commutative swap: emit OP A, lhs instead.
 			g.saveAccOperandIfLive(inst.Src[1], inst)
 			g.invalidate("A")
@@ -784,7 +809,8 @@ func (g *z80cg) saveAccIfLive(inst *Inst) func() {
 	// here, not the lowest allocated ID (which may be a long-dead parameter).
 	live := g.regsLiveAfterInst(inst)
 	for _, r := range slices.Sorted(maps.Keys(live)) {
-		if r == inst.Dst || r == inst.Src[0] || r == inst.Src[1] || g.loc(r) != "A" {
+		// Folded constants have no resident accumulator value to preserve.
+		if r == inst.Dst || r == inst.Src[0] || r == inst.Src[1] || g.loc(r) != "A" || g.deadConsts[r] {
 			continue
 		}
 		scratch := g.freeScratch8(inst)

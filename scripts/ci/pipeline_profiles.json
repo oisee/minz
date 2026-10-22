@@ -395,6 +395,7 @@
     "TestTetrisShadowTemporalMachine",
     "TestTokenizerContractObjectiveAttribution",
     "TestTokenizerIndependentHostKnownSemantics",
+    "TestTruncExtensionCRCBitNative",
     "TestTruncMaskKeepsByteStoreIdentityAndFaultPrefix",
     "TestTypedIndirectWordNative",
     "TestTypedInternCheckedProgramBaseline",

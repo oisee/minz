@@ -102,8 +102,8 @@ func narrowTruncatedByteArithmetic(f *Func) bool {
 			if !i.ClsHard {
 				root := defs[i.Src[0]]
 				// Extensions and constants are leaves of the arithmetic proof,
-				// not rewrite roots. Leave standalone conversion folding to its
-				// existing passes (including the memory BIT-test patterns).
+				// not rewrite roots. foldTruncOfExtension handles standalone
+				// conversion identities; codegen also recognizes memory BIT tests.
 				if i.Op == OpTrunc && counts[i.Dst] == 1 && root != nil && root.Op != OpExt && root.Op != OpConst && BaseOf(i.Ty) == TyU8 && word(i.SrcTy) && safe(i.Src[0], i.SrcTy, 0) {
 					r := i.Src[0]
 					before := len(out)
