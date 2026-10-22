@@ -1,0 +1,47 @@
+; Hand Z80 reference. Contract: 0 <= n <= 256; disjoint buffers.
+ORG 0x8000
+execute:
+    LD HL,[n]
+    LD A,H
+    OR L
+    LD B,L
+    LD HL,0
+    JR Z,done
+    EXX
+    LD HL,source
+    LD DE,other
+    EXX
+loop:
+    EXX
+    LD A,[DE]
+    INC DE
+    LD C,[HL]
+    INC HL
+    PUSH BC
+    EXX
+    POP DE
+    LD D,0
+    PUSH BC
+    LD B,8
+multiply:
+    SRL A
+    JR NC,no_add
+    ADD HL,DE
+no_add:
+    SLA E
+    RL D
+    DJNZ multiply
+    POP BC
+    DJNZ loop
+done:
+    LD [result],HL
+    RET
+
+source:
+    DS 256,0
+n:
+    DS 2,0
+result:
+    DS 2,0
+other:
+    DS 256,0

@@ -1,0 +1,13 @@
+global source: [u8; 256]
+global n: u16
+global result: u16
+global limit: u16
+fun add16(a: u16, x: u8) -> u16 { return a + u16(x) }
+fun execute() {
+    var count: u16 = 0
+    if n > 4 { count = n - 4 }
+    if count > limit { count = limit }
+    let start: ^u8 = &source + 4
+    let total: u16 = start.fold(u16(0), add16, count)
+    result = total
+}

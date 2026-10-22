@@ -152,6 +152,7 @@
     "TestFreshHIRRetainsDetachedStorageAcrossGC",
     "TestFreshHIRZeroSizeNodesHaveNoMutableStorage",
     "TestFunctionPruneRootClassification",
+    "TestFusionBenchmarkCorpus",
     "TestGlobalByteStorePreservesLiveHL",
     "TestGlobalWordDirectEDClosedRecipe",
     "TestGlobalWordDirectOriginalBoth30",

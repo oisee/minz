@@ -29,7 +29,7 @@ def main():
         selected = json.loads((args.out/'toolchains.json').read_text())['sources']
         frozen = []
         for case in selected:
-            matches = [folder for folder in (cases, cases.parent/'heldout') if (folder/case['file']).is_file()]
+            matches = [folder for folder in (cases, cases.parent/'heldout', cases.parent/'fusion/cases') if (folder/case['file']).is_file()]
             assert len(matches) == 1, case
             frozen.append((matches[0], case))
     for folder, case in frozen:

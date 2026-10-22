@@ -1,0 +1,8 @@
+global source: [u8; 256]
+global n: u16
+global result: u16
+fun add16(a: u16, x: u8) -> u16 { return a + u16(x) }
+fun execute() {
+    let total: u16 = source.filter(|x: u8| x >= 128).map(|x: u8| x xor 0xFF).fold(u16(0), add16, n)
+    result = total
+}

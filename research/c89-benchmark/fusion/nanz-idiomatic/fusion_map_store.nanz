@@ -1,0 +1,10 @@
+global source: [u8; 256]
+global n: u16
+global result: u16
+global target: [u8; 256]
+fun execute() {
+    var dst: ^u8 = &target
+    source.map(|x: u8| x xor 0xFF).forEach(|x: u8| { dst^ = x
+        dst = dst + 1 }, n)
+    result = n
+}
