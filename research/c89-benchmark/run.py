@@ -21,6 +21,7 @@ def main():
     ap.add_argument('--go', default='go')
     ap.add_argument('--jobs', type=int, default=2)
     ap.add_argument('--sdcc45-root', type=Path)
+    ap.add_argument('--grace-ablation', action='store_true', help='also measure MIR-only and HIR-only Grace on the selected suite')
     ap.add_argument('--include-nanz', action='store_true')
     ap.add_argument('--include-refs', action='store_true', help='main-suite Nanz idiom and hand assembly references')
     ap.add_argument('--suite', choices=['main', 'heldout', 'all'], default='main')
@@ -73,6 +74,7 @@ def main():
         'runner_sha256': sha(root/'research/c89-benchmark/measure.go'),
         'driver_sha256': sha(__file__),
         'suite': args.suite,
+        'grace_ablation': args.grace_ablation,
         'sources': frozen,
         'nanz_sources': nfrozen,
         'reference_sources': refs,
@@ -83,6 +85,8 @@ def main():
         meta['sdcc45_version'] = subprocess.check_output([str(args.sdcc45_root.resolve()/'usr/bin/sdcc'),'--version'],text=True).strip()
     (out/'toolchains.json').write_text(json.dumps(meta,indent=2)+'\n')
     profiles = [('minz','default'),('minz','size'),('minz','grace'),('minz','nograce'),('sdcc','size'),('sdcc','speed')]
+    if args.grace_ablation:
+        profiles += [('minz', 'mirgrace'), ('minz', 'hirgrace')]
     if zroot:
         profiles.append(('sccz80','o3'))
 

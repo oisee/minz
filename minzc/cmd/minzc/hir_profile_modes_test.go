@@ -29,7 +29,7 @@ func TestCompilerModeCLIPathsAndFlags(t *testing.T) {
 	if e := os.WriteFile(source, []byte("fun test()->u8{return 1}"), 0644); e != nil {
 		t.Fatal(e)
 	}
-	for _, kind := range []string{"missing-workload", "joint", "other-output", "no-hir-grace", "alias-input", "hardlink-input", "table-pin"} {
+	for _, kind := range []string{"missing-workload", "joint", "other-output", "hir-grace", "alias-input", "hardlink-input", "table-pin"} {
 		t.Run(kind, func(t *testing.T) {
 			oldPin := checkedLocalTableSHA256
 			defer func() { checkedLocalTableSHA256 = oldPin }()
@@ -44,8 +44,8 @@ func TestCompilerModeCLIPathsAndFlags(t *testing.T) {
 				hirProfileJoint = true
 			case "other-output":
 				outputFile = "out.com"
-			case "no-hir-grace":
-				useHIRGrace = false
+			case "hir-grace":
+				useHIRGrace = true
 			case "alias-input":
 				outputFile = source
 			case "hardlink-input":
@@ -85,9 +85,8 @@ func TestCompilerModeCLIActualSelectedArtifacts(t *testing.T) {
 			for i, candidate := range evidence.Candidates {
 				t.Logf("%s mode %d: %d T, %d bytes", goal, i, candidate.Run.TotalTStates, len(candidate.Binary))
 			}
-			// origin/main 840b1c465 and Grace defaults both measure modes 0/2
-			// at 2220 T / 46 B and modes 1/3 at 2255 T / 52 B. Stable
-			// tie-breaking therefore selects mode 0 for both objectives.
+			// origin/main 76e8070d4 selects mode 0 (2155 T / 46 B).
+			// Stable ties retain the first mode for both objectives.
 			expected := 0
 			if evidence.Selected != expected || evidence.Goal != goal {
 				t.Fatal("actual goal mismatch")

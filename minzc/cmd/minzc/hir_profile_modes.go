@@ -39,7 +39,7 @@ func validateHIRCompilerModes(source string) error {
 		return fmt.Errorf("compiler modes: requires Nanz, CPM, default Z80 output")
 	}
 	// These measured modes choose their own passes; accept ordinary defaults.
-	if !useGrace || !useHIRGrace || noGrace || disableOptimize || disableIROpt || disableReroll || disableAsmOpt || disableCodegenOpt || disableSMC || disableCTIE || ctieDebug || emitSLD || annotateTStates || assertForce != "" || assertLines != "" || assertLinesSet || assertControlSet || assertReceipt || enableTAS || tasFile != "" || tasReplay != "" || dumpAST || dumpMIR || compileTrace || superoptRules != "" || visualizeMIR != "" {
+	if !useGrace || useHIRGrace || noGrace || disableOptimize || disableIROpt || disableReroll || disableAsmOpt || disableCodegenOpt || disableSMC || disableCTIE || ctieDebug || emitSLD || annotateTStates || assertForce != "" || assertLines != "" || assertLinesSet || assertControlSet || assertReceipt || enableTAS || tasFile != "" || tasReplay != "" || dumpAST || dumpMIR || compileTrace || superoptRules != "" || visualizeMIR != "" {
 		return fmt.Errorf("compiler modes: unsupported options; the four modes are selected by measurement")
 	}
 	if assertMode != "" && assertMode != "none" && assertMode != "all" {

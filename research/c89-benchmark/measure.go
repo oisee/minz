@@ -363,11 +363,18 @@ func buildMinZ(source, out, profile string) (*program, error) {
 		return nil, e
 	}
 	raw := hir.LowerModule(m)
-	// Keep the historical Grace column and an explicit pre-default baseline.
+	// Keep explicit pass combinations independent of production defaults.
 	opts := pipeline.DefaultOptions()
 	opts.OptSize = profile == "size"
-	if profile == "nograce" {
+	switch profile {
+	case "grace":
+		opts.UseGrace, opts.UseHIRGrace = true, true
+	case "nograce":
 		opts.UseGrace, opts.UseHIRGrace = false, false
+	case "mirgrace":
+		opts.UseGrace, opts.UseHIRGrace = true, false
+	case "hirgrace":
+		opts.UseGrace, opts.UseHIRGrace = false, true
 	}
 	s, e := pipeline.CompileHIRSteps(m, opts)
 	if e != nil {

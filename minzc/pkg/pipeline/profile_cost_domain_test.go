@@ -85,7 +85,8 @@ func TestSumProfileCostFullU8Domain(t *testing.T) {
 			if measured[0] != 41+54*n {
 				t.Fatalf("original model n=%d got=%d", n, measured[0])
 			}
-			expectedFast := 241 + 37*n
+			// Clean origin/main 76e8070d4 measures a 231-T positive-trip entry.
+			expectedFast := 231 + 37*n
 			if n == 0 {
 				expectedFast = 232
 			}

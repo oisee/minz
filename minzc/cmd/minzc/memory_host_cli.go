@@ -84,7 +84,7 @@ func validateMemoryHostCLIPaths(source string, p memoryHostCLIFlags, outputNames
 		return fail("cannot combine with ordinary HIR or legacy profile modes")
 	}
 	// These measured modes choose their own passes; accept ordinary defaults.
-	if !useHIRGrace || !useGrace || noGrace || disableOptimize || disableIROpt || disableReroll || disableAsmOpt || disableCodegenOpt || disableSMC || disableCTIE || ctieDebug || emitFormat != "" || gpuRun != "" || enableTAS || tasFile != "" || tasReplay != "" || dumpAST || dumpMIR || compileTrace || superoptRules != "" || visualizeMIR != "" || emitSLD || annotateTStates {
+	if useHIRGrace || !useGrace || noGrace || disableOptimize || disableIROpt || disableReroll || disableAsmOpt || disableCodegenOpt || disableSMC || disableCTIE || ctieDebug || emitFormat != "" || gpuRun != "" || enableTAS || tasFile != "" || tasReplay != "" || dumpAST || dumpMIR || compileTrace || superoptRules != "" || visualizeMIR != "" || emitSLD || annotateTStates {
 		return fail("unsupported compilation or execution options")
 	}
 	if listAsserts || assertLines != "" || assertLinesSet || assertControlSet || assertReceipt || assertForce != "" || (assertMode != "" && assertMode != "all") {

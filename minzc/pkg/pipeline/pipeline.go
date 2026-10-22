@@ -141,10 +141,10 @@ type Options struct {
 }
 
 // DefaultOptions returns the default pipeline options.
-// Production uses HIR/MIR Grace and PBQP; checked local tables are opt-in.
+// Production uses MIR Grace and PBQP; HIR Grace and checked local tables are opt-in.
 // Explicit Options retain their boolean values for pass-by-pass comparisons.
 func DefaultOptions() Options {
-	return Options{ContractOpt: true, UseGrace: true, UseHIRGrace: true}
+	return Options{ContractOpt: true, UseGrace: true}
 }
 
 // CompileHIRSteps runs the full HIR→MIR2→Z80 pipeline and returns all intermediate outputs.

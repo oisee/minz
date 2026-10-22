@@ -83,7 +83,7 @@ func applyPipelineProfile(m *hir.Module, options Options) ([]hir.ProfileDecision
 	}
 	for _, model := range models {
 		if config != model.CompilationID {
-			return nil, fmt.Errorf("PGO: measured compilation configuration mismatch")
+			return nil, fmt.Errorf("PGO: measured compilation configuration mismatch; remeasure with the requested options (legacy models require both Grace passes off; CLI: --no-grace)")
 		}
 	}
 	context, err := hir.BuildWorkloadProfileContext(m, request.Workload)

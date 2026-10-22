@@ -83,7 +83,7 @@ func TestIndirectCallEmissionScope(t *testing.T) {
 				if err != nil {
 					t.Fatal(err)
 				}
-				steps, err := pipeline.CompileHIRSteps(hm, pipeline.Options{ContractOpt: true, AssertMode: "none"})
+				steps, err := pipeline.CompileHIRSteps(hm, pipeline.DefaultOptions())
 				if err != nil {
 					t.Fatal(err)
 				}
@@ -285,7 +285,7 @@ func TestIndirectUnresolvedLiveCallerGuard(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	steps, err := pipeline.CompileHIRSteps(hm, pipeline.Options{ContractOpt: true, AssertMode: "none"})
+	steps, err := pipeline.CompileHIRSteps(hm, pipeline.DefaultOptions())
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -284,7 +284,7 @@ func init() {
 	rootCmd.Flags().BoolVar(&useGrace, "grace", true, "run Grace MIR2 optimizations (disable with --grace=false)")
 	rootCmd.Flags().BoolVar(&noGrace, "no-grace", false, "disable both MIR and HIR Grace optimizations")
 	rootCmd.Flags().BoolVar(&fuseByteWords, "fuse-byte-words", false, "fuse consecutive little-endian byte accesses with sequential fault semantics (experimental)")
-	rootCmd.Flags().BoolVar(&useHIRGrace, "hir-grace", true, "run structural Grace HIR rules (disable with --hir-grace=false)")
+	rootCmd.Flags().BoolVar(&useHIRGrace, "hir-grace", false, "opt in to structural Grace HIR rules (may grow versioned pointer loops)")
 	rootCmd.Flags().BoolVar(&assertReceipt, "assert-receipt", false, "print assertion execution counts to stderr for judge tools")
 	rootCmd.Flags().BoolVar(&listAsserts, "list-asserts", false, "list frontend assertions as JSON lines without executing")
 	rootCmd.Flags().StringVar(&assertLines, "assert-lines", "", "run only assertions at these comma-separated source lines")
@@ -1118,6 +1118,16 @@ func compileViaHIR(sourceFile string) error {
 		Backend:                 backend,
 		AssertMode:              am,
 		SkipZ80Emission:         skipZ80,
+	}
+	if hirProfile.profile != "" || (hirProfileAutoDirectory != "" && !hirProfileCompilerModes && hirProfileCompilerModesReplay == "" && hirProfileLayoutFunction == "" && hirProfileLayoutReplay == "") {
+		// Measured HIR selection has its own compilation policy. Keep MIR Grace
+		// off: its CFG rewrites can erase the guard labels used as evidence.
+		// The linear model also fixes HIR Grace off so old CompilationIDs remain
+		// valid and the chosen rewrite is the only HIR policy applied.
+		opts.UseGrace = false
+		if !hirProfileJoint {
+			opts.UseHIRGrace = false
+		}
 	}
 	if hirProfile.profile != "" {
 		selection, err := loadHIRProfileSelection()

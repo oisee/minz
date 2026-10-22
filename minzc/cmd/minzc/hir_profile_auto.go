@@ -79,6 +79,9 @@ func validateHIRProfileAuto(source string) error {
 		}
 		return nil
 	}
+	if err := validateHIRProfileGracePolicy(hirProfileJoint); err != nil {
+		return err
+	}
 	if hirProfile != (hirProfileFlags{}) {
 		return fmt.Errorf("HIR profile auto: separate collection/application flags cannot be combined")
 	}

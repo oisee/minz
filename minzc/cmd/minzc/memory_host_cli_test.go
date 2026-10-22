@@ -32,7 +32,7 @@ func TestMemoryHostCLIValidation(t *testing.T) {
 	if e := validateMemoryHostCLI(source); e != nil {
 		t.Fatal(e)
 	}
-	for _, name := range []string{"target", "format", "profilemode", "no-hirgrace", "partialflags"} {
+	for _, name := range []string{"target", "format", "profilemode", "hirgrace", "partialflags"} {
 		t.Run(name, func(t *testing.T) {
 			p := memoryHostCLI
 			oldTarget, oldFormat, oldJoint, oldGrace := target, outputFormat, hirProfileJoint, useHIRGrace
@@ -47,8 +47,8 @@ func TestMemoryHostCLIValidation(t *testing.T) {
 				outputFormat = "sna"
 			case "profilemode":
 				hirProfileJoint = true
-			case "no-hirgrace":
-				useHIRGrace = false
+			case "hirgrace":
+				useHIRGrace = true
 			case "partialflags":
 				memoryHostCLI.Directory = ""
 			}

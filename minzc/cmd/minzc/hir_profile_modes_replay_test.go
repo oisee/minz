@@ -59,7 +59,7 @@ func TestCompilerModeReplayActualFrozenHeldout(t *testing.T) {
 	if err = decodeHIRProfileJSON(hirProfileAutoWorkload, hirWorkloadJSONLimit, &workload); err != nil {
 		t.Fatal(err)
 	}
-	if len(run.Invocations) != 12 || run.TotalTStates != 5568 {
+	if len(run.Invocations) != 12 || run.TotalTStates != 5172 {
 		t.Fatal("frozen heldout metrics", run.TotalTStates)
 	}
 	trace := int64(65532)

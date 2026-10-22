@@ -1,5 +1,8 @@
 # R2: Grace defaults and infinite-loop preservation
 
+Historical initial proposal; the HIR default and validation claims below are
+superseded by [the R2b critic rework](2026-10-22-r2b-grace-default.md).
+
 Baseline: `origin/main` / `840b1c465` (the worktree's starting revision).
 
 ## Step 1: preserve reachable infinite loops
