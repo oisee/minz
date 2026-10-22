@@ -44,7 +44,7 @@ func findOrderedByteWriteHelper(f *Func, reserved map[string]bool) *orderedByteP
 	base := Var(p.base, mir2.TyU16)
 	val := Var(valName, mir2.TyU16)
 	ix := func(x Expr) Expr { return &IndexExpr{Base: arr, Idx: x, ElemTy: mir2.TyU8} }
-	want := Func{Name: f.Name, Params: []Param{{Name: p.arr, Ty: mir2.TyPtr}, {Name: p.idx, Ty: mir2.TyU16}, {Name: valName, Ty: mir2.TyU16}}, RetTy: mir2.TyVoid, Body: Blk(Decl(p.base, mir2.TyU16, &BinExpr{Op: "*", L: Var(p.idx, mir2.TyU16), R: U8(2), Ty: mir2.TyU16}), Assign(ix(base), Cast(val, mir2.TyU8)), Assign(ix(Add(base, U8(1), mir2.TyU16)), Cast(&BinExpr{Op: "/", L: val, R: U16(256), Ty: mir2.TyU16}, mir2.TyU8)))}
+	want := Func{Name: f.Name, Params: []Param{{Name: p.arr, Ty: mir2.TyPtr}, {Name: p.idx, Ty: mir2.TyU16}, {Name: valName, Ty: mir2.TyU16}}, RetTy: mir2.TyVoid, Body: Blk(Decl(p.base, mir2.TyU16, &BinExpr{Op: "*", L: Var(p.idx, mir2.TyU16), R: sourceU8(2), Ty: mir2.TyU16}), Assign(ix(base), Cast(val, mir2.TyU8)), Assign(ix(Add(base, sourceU8(1), mir2.TyU16)), Cast(&BinExpr{Op: "/", L: val, R: sourceU16(256), Ty: mir2.TyU16}, mir2.TyU8)))}
 	if !reflect.DeepEqual(*f, want) {
 		return nil
 	}

@@ -60,6 +60,8 @@ func hoistMemoryHostAppendBases(m *hir.Module, w hir.MemoryHostWorkload) error {
 	if f == nil {
 		return fmt.Errorf("missing intern_region")
 	}
+	// Source templates retain the parser's exact literal metadata.
+	literal := func(n int64) hir.Expr { return &hir.IntLitExpr{Val: n, Ty: mir2.TyU8, Untyped: true} }
 	v := hir.Var
 	add := func(a, b hir.Expr) hir.Expr { return hir.Add(a, b, mir2.TyU16) }
 	p := v("p", mir2.TyU16)
@@ -71,7 +73,7 @@ func hoistMemoryHostAppendBases(m *hir.Module, w hir.MemoryHostWorkload) error {
 	peek := func(a hir.Expr) hir.Expr { return hir.Call("peek", mir2.TyU8, a) }
 	poke := func(a, b hir.Expr) hir.Stmt { return &hir.ExprStmt{Expr: hir.Call("poke", mir2.TyVoid, a, b)} }
 	expected := &hir.Func{Name: "intern_region", Params: []hir.Param{{Name: "start", Ty: mir2.TyU16}, {Name: "len", Ty: mir2.TyU8}}, RetTy: mir2.TyU16}
-	expected.Body = hir.Blk(hir.Decl("p", mir2.TyU16, v("str_arena", mir2.TyU16)), hir.While(hir.Lt(p, bump), hir.Blk(hir.Decl("slen", mir2.TyU8, peek(p)), hir.If(hir.Eq(slen, n), hir.Blk(hir.If(hir.Eq(hir.Call("region_match", mir2.TyU8, p, start, n), hir.U8(1)), hir.Blk(&hir.ReturnStmt{Val: p}), nil)), nil), hir.Assign(p, add(add(p, hir.U8(1)), slen)))), hir.Decl("new_p", mir2.TyU16, bump), poke(bump, n), hir.Decl("j", mir2.TyU8, hir.U8(0)), hir.While(hir.Lt(j, n), hir.Blk(poke(add(add(bump, hir.U8(1)), j), peek(add(add(v("src_buf", mir2.TyU16), start), j))), hir.Assign(j, hir.Add(j, hir.U8(1), mir2.TyU8)))), hir.Assign(bump, add(add(bump, hir.U8(1)), n)), &hir.ReturnStmt{Val: v("new_p", mir2.TyU16)})
+	expected.Body = hir.Blk(hir.Decl("p", mir2.TyU16, v("str_arena", mir2.TyU16)), hir.While(hir.Lt(p, bump), hir.Blk(hir.Decl("slen", mir2.TyU8, peek(p)), hir.If(hir.Eq(slen, n), hir.Blk(hir.If(hir.Eq(hir.Call("region_match", mir2.TyU8, p, start, n), literal(1)), hir.Blk(&hir.ReturnStmt{Val: p}), nil)), nil), hir.Assign(p, add(add(p, literal(1)), slen)))), hir.Decl("new_p", mir2.TyU16, bump), poke(bump, n), hir.Decl("j", mir2.TyU8, literal(0)), hir.While(hir.Lt(j, n), hir.Blk(poke(add(add(bump, literal(1)), j), peek(add(add(v("src_buf", mir2.TyU16), start), j))), hir.Assign(j, hir.Add(j, literal(1), mir2.TyU8)))), hir.Assign(bump, add(add(bump, literal(1)), n)), &hir.ReturnStmt{Val: v("new_p", mir2.TyU16)})
 	if !reflect.DeepEqual(f, expected) {
 		return fmt.Errorf("intern_region exact source shape refused")
 	}

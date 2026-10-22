@@ -28,7 +28,7 @@ func findOrderedByteHelper(f *Func, reserved map[string]bool) *orderedBytePlan {
 	arr := Var(p.arr, mir2.TyPtr)
 	base := Var(p.base, mir2.TyU16)
 	idx := func(offset Expr) Expr { return &IndexExpr{Base: arr, Idx: offset, ElemTy: mir2.TyU8} }
-	want := Func{Name: f.Name, Params: []Param{{Name: p.arr, Ty: mir2.TyPtr}, {Name: p.idx, Ty: mir2.TyU16}}, RetTy: mir2.TyU16, Body: Blk(Decl(p.base, mir2.TyU16, &BinExpr{Op: "*", L: Var(p.idx, mir2.TyU16), R: U8(2), Ty: mir2.TyU16}), &ReturnStmt{Val: Add(Cast(idx(base), mir2.TyU16), &BinExpr{Op: "*", L: Cast(idx(Add(base, U8(1), mir2.TyU16)), mir2.TyU16), R: U16(256), Ty: mir2.TyU16}, mir2.TyU16)})}
+	want := Func{Name: f.Name, Params: []Param{{Name: p.arr, Ty: mir2.TyPtr}, {Name: p.idx, Ty: mir2.TyU16}}, RetTy: mir2.TyU16, Body: Blk(Decl(p.base, mir2.TyU16, &BinExpr{Op: "*", L: Var(p.idx, mir2.TyU16), R: sourceU8(2), Ty: mir2.TyU16}), &ReturnStmt{Val: Add(Cast(idx(base), mir2.TyU16), &BinExpr{Op: "*", L: Cast(idx(Add(base, sourceU8(1), mir2.TyU16)), mir2.TyU16), R: sourceU16(256), Ty: mir2.TyU16}, mir2.TyU16)})}
 	if !reflect.DeepEqual(*f, want) {
 		return nil
 	}
