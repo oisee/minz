@@ -126,6 +126,17 @@ and must not get worse; it is never used to choose or tune a rule. Before/after
 comparisons must use the same compiler set (with or without sccz80/nanz rows).
 `plot_summary.py` and `publish_snapshot.py` still assume the 6-case 2026-10-16 matrix.
 
+## The tuple variant
+
+`nanz-idiomatic/struct_roundtrip.nanz` remains the idiomatic struct reference.
+`nanz-idiomatic/struct_roundtrip_tuple.nanz` is a documented tuple variant of
+that same algorithm. The manifest's `variants` entry pins it and its identical
+`nanz-tuple/struct_roundtrip.nanz` reference. `--include-refs` verifies both hashes
+and measures the variant through the existing `nanz-tuple` path, using the
+unchanged `struct_roundtrip` workload. `--include-nanz` additionally measures
+its size and nograce profiles; combining the flags does not duplicate rows.
+
+
 ## Iterator fusion showcase
 
 `--suite fusion` is a separate eight-case corpus. It leaves `main`, `heldout`,
