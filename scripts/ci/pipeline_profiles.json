@@ -29,6 +29,7 @@
     "TestByteLoadSpillKeepsLiveAccumulator",
     "TestByteLowBitBeforeShiftNativeVM",
     "TestBytePackSourceCallAndConditionNative",
+    "TestBytePairAssemblyVMZ80",
     "TestByteScanZeroCPIRNative",
     "TestByteWordFusionCallbackRefusal",
     "TestByteWordFusionCompilationIdentity",

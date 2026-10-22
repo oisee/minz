@@ -139,6 +139,11 @@ func tryFoldInst(inst *Inst, consts map[Reg]int64) (int64, bool) {
 			return 0, false
 		}
 		return maskToWidth(src0 & ^(int64(1)<<uint(inst.Imm)), inst.Ty), true
+	case OpPackBytes:
+		if !ok0 || !ok1 {
+			return 0, false
+		}
+		return (src0 & 255) | (src1&255)<<8, true
 	case OpExt, OpTrunc:
 		if !ok0 {
 			return 0, false

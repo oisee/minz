@@ -45,7 +45,7 @@ func DeadStoreElim(f *Func) {
 // isDSEPure reports whether op can be safely deleted when its result is unused.
 func isDSEPure(op Op) bool {
 	switch op {
-	case OpConst, OpMove,
+	case OpConst, OpMove, OpPackBytes,
 		OpAdd, OpSub, OpMul,
 		OpAnd, OpOr, OpXor, OpShl, OpShr, OpSar,
 		OpNeg, OpNot, OpExt, OpSext, OpTrunc,

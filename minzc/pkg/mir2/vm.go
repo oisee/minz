@@ -617,6 +617,8 @@ func (vm *VM) execInst(fr *frame, inst *Inst) error {
 		result = truncate(Value{I: int64(uint64(a.I) % uint64(b.I))}, ty)
 
 	// ── Bitwise ─────────────────────────────────────────────────────────────
+	case OpPackBytes:
+		result = Value{I: (a.I & 255) | (b.I&255)<<8}
 	case OpAnd:
 		result = Value{I: a.I & b.I}
 	case OpOr:

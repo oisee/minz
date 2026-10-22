@@ -419,6 +419,8 @@ func (g *z80cg) genInst(inst *Inst) {
 		g.lastFlagsRhs = ""
 		g.genShift("SRA", inst)
 
+	case OpPackBytes:
+		g.genPackBytes(inst)
 	case OpExt:
 		// Zero-extend srcTy → Ty.  Primary case: u8 → u16 into HL.
 		// genExt may emit XOR (flag-clobbering) — clear to be safe.

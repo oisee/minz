@@ -134,6 +134,9 @@ const (
 	OpIn16  // in16 port=Imm(u16)    → dst : u8   — IN r,(C)    16-bit port, 8-bit data (AY, bank switch)
 	OpOut16 // out16 port=Imm(u16), val=%Src[0]    — OUT (C),r   16-bit port, 8-bit data
 
+	// OpPackBytes assembles two u8 values: Src[0] | (Src[1] << 8).
+	OpPackBytes
+
 	opCount // sentinel — must remain last
 )
 
@@ -145,7 +148,8 @@ func (op Op) String() string {
 }
 
 var opNames = [opCount]string{
-	OpAdd: "add", OpSub: "sub", OpMul: "mul", OpDiv: "div", OpSDiv: "sdiv", OpSMod: "smod", OpMod: "mod",
+	OpPackBytes: "pack_bytes",
+	OpAdd:       "add", OpSub: "sub", OpMul: "mul", OpDiv: "div", OpSDiv: "sdiv", OpSMod: "smod", OpMod: "mod",
 	OpAnd: "and", OpOr: "or", OpXor: "xor", OpShl: "shl", OpShr: "shr", OpSar: "sar",
 	OpBitGet: "bit_get", OpBitSet: "bit_set", OpBitReset: "bit_reset",
 	OpNeg: "neg", OpNot: "not", OpExt: "ext", OpSext: "sext", OpTrunc: "trunc",

@@ -427,6 +427,9 @@ func compileMIRSteps(hm *hir.Module, opt Options, s Steps, splitInfo map[string]
 		if opt.OptSize {
 			mir2.MergeConstantReturnTails(f)
 		}
+		if opt.Backend == "" || opt.Backend == "z80" {
+			mir2.PackBytePairs(f)
+		}
 		if opt.FuseByteWords {
 			mir2.FuseSequentialByteWords(f)
 		}
@@ -739,6 +742,9 @@ func CompileHIRWithOptions(hm *hir.Module, opts Options) (string, error) {
 			mir2.RecognizeByteLoops(f)
 		}
 		mir2.StrengthReduceCountedPointers(f)
+		if opts.Backend == "" || opts.Backend == "z80" {
+			mir2.PackBytePairs(f)
+		}
 		if opts.FuseByteWords {
 			mir2.FuseSequentialByteWords(f)
 		}

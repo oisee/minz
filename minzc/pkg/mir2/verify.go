@@ -63,6 +63,9 @@ func Verify(m *Module) error {
 				}
 			}
 			for _, i := range b.Insts {
+				if i.Op == OpPackBytes && (i.Ty == nil || i.Ty.Width() != 16 || info[i.Src[0]].Ty != TyU8 || info[i.Src[1]].Ty != TyU8) {
+					return fmt.Errorf("invalid byte pack in %s", f.Name)
+				}
 				callee := m.FuncByName(i.Sym)
 				if i.FallibleCY {
 					if i.Op != OpCall || callee == nil || !callee.Attrs.FallibleCY || len(i.ExtraRets) != 2 || len(i.ExtraRetTys) != 2 || i.ExtraRetTys[0] != TyBool || i.ExtraRetTys[1] != TyU8 {
