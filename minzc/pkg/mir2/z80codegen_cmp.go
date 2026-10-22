@@ -214,6 +214,22 @@ func (g *z80cg) saveAccForCondRet(cmpInst *Inst) func() {
 }
 
 func (g *z80cg) genCmp(inst *Inst) {
+	if inst == g.shiftCarryCmp {
+		if g.shiftCarryDeferred {
+			return
+		}
+		if g.carryFrom != g.shiftCarryInst {
+			g.err = fmt.Errorf("z80 codegen: shift carry lost before fused comparison in %s", g.fn.Name)
+			return
+		}
+		cc := "C"
+		if inst.Cond == CmpEq {
+			cc = "NC"
+		}
+		g.cmpBranchCC[inst.Dst] = cc
+		g.pendingFlagReg = inst.Dst
+		return
+	}
 	if g.tryUnsignedPreservePairCmp(inst) {
 		return
 	}
@@ -562,6 +578,9 @@ func (g *z80cg) normalizeSignedCmp(inst *Inst) {
 // For ClassFlag returns from CALL instructions, callFlags[cond] holds the
 // agreed FlagCond directly — no AND A / CP 0 is needed at the call site.
 func (g *z80cg) condCode(f *Func, cond Reg) string {
+	if loc, ok := g.physOverride[cond]; ok && loc != "F" {
+		return g.materializedCondCode(cond)
+	}
 	if cc := g.cmpBranchCC[cond]; cc != "" && cc != "signed" {
 		return cc
 	}
@@ -603,6 +622,10 @@ func (g *z80cg) condCode(f *Func, cond Reg) string {
 			}
 		}
 	}
+	return g.materializedCondCode(cond)
+}
+
+func (g *z80cg) materializedCondCode(cond Reg) string {
 	// A block parameter or another materialized boolean carries a byte,
 	// not the flags left by a predecessor's comparison. Test its location.
 	loc := g.loc(cond)
@@ -1045,4 +1068,21 @@ func (g *z80cg) emitKnownFlagCopy(dst string, width int) bool {
 	g.invalidate("A")
 	g.invalidate(dst)
 	return true
+}
+
+// publishShiftCarry binds the predicate to the actual shift, after all its
+// operand setup and any old pending predicate materialization have finished.
+func (g *z80cg) publishShiftCarry(inst *Inst) {
+	if inst != g.shiftCarryInst {
+		return
+	}
+	g.carryFrom = inst
+	if g.shiftCarryDeferred {
+		cc := "C"
+		if g.shiftCarryCmp.Cond == CmpEq {
+			cc = "NC"
+		}
+		g.cmpBranchCC[g.shiftCarryCmp.Dst] = cc
+		g.pendingFlagReg = g.shiftCarryCmp.Dst
+	}
 }

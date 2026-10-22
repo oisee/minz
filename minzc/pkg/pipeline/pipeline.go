@@ -367,6 +367,7 @@ func compileMIRSteps(hm *hir.Module, opt Options, s Steps, splitInfo map[string]
 			}
 		}
 		mir2.HoistDiamondCommon(f)
+		mir2.PrepareShiftCarry(f)
 		// Return sinking/splitting (including Grace rewrites) can leave newly
 		// dead edge arguments. Remove them before allocation sees their copies.
 		if mir2.DeadBlockArgElim(f) {
@@ -683,6 +684,7 @@ func CompileHIRWithOptions(hm *hir.Module, opts Options) (string, error) {
 			mir2.EliminateDeadBlocks(f)
 		}
 		mir2.HoistDiamondCommon(f)
+		mir2.PrepareShiftCarry(f)
 		mir2.DeadBlockArgElim(f)
 		mir2.FuseAbsDiff(f)
 		mir2.FuseByteAbsDiffCFG(f)

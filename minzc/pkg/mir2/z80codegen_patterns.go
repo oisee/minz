@@ -1042,3 +1042,166 @@ func (g *z80cg) scanPtrAddBase(b *Block) {
 		}
 	}
 }
+
+// scanShiftCarryPattern accepts a single branch consumer of the bit discarded
+// by an adjacent one-bit shift. Suppressed producers are never needed by a
+// fallback: the physical shift form is proved here, and genCmp consumes the
+// carry provenance recorded by that exact emitted instruction.
+func (g *z80cg) scanShiftCarryPattern(b *Block) {
+	g.shiftCarryCmp, g.shiftCarryInst = nil, nil
+	cond := NoReg
+	switch t := b.Term.(type) {
+	case *TermBrIf:
+		cond = t.Cond
+	case *TermCondRet:
+		cond = t.Cond
+	}
+	if cond == NoReg || len(b.Insts) == 0 || g.runtimeStackBytes != 0 {
+		return
+	}
+	ci := -1
+	var cmp *Inst
+	for n, i := range b.Insts {
+		if i.Dst == cond && i.Op == OpCmp {
+			cmp, ci = i, n
+		}
+	}
+	uses := countRegUses(g.fn)
+	if cmp == nil || uses[cmp.Dst] != 1 || (cmp.Cond != CmpEq && cmp.Cond != CmpNe) {
+		return
+	}
+	type definition struct {
+		inst  *Inst
+		index int
+	}
+	defAt := func(r Reg, before int) definition {
+		for n := before - 1; n >= 0; n-- {
+			if b.Insts[n].Dst == r {
+				return definition{b.Insts[n], n}
+			}
+		}
+		return definition{nil, -1}
+	}
+	test, zero := cmp.Src[0], cmp.Src[1]
+	zd := defAt(zero, ci)
+	if zd.inst == nil || zd.inst.Op != OpConst || zd.inst.Imm != 0 {
+		test, zero = zero, test
+		zd = defAt(zero, ci)
+	}
+	if zd.inst == nil || zd.inst.Op != OpConst || zd.inst.Imm != 0 || uses[zero] != 1 {
+		return
+	}
+	td := defAt(test, ci)
+	if td.inst == nil || uses[test] != 1 {
+		return
+	}
+	base, bit := NoReg, -1
+	switch td.inst.Op {
+	case OpBitGet:
+		base, bit = td.inst.Src[0], int(td.inst.Imm)
+	case OpAnd:
+		for k, r := range td.inst.Src {
+			c := defAt(r, td.index)
+			if bitIndex, ok := shiftCarryMaskBit(c.inst); ok {
+				base = td.inst.Src[1-k]
+				bit = bitIndex
+				break
+			}
+		}
+	}
+	if base == NoReg || bit < 0 || td.inst.Op == OpAnd && (td.inst.Ty == nil || bit >= td.inst.Ty.Width()) {
+		return
+	}
+	// Identity includes the reaching definition, since preallocation coalescing
+	// can reuse a virtual register for a loop parameter and its next value.
+	type valueID struct {
+		reg      Reg
+		position int
+	}
+	root := func(r Reg, before, bit int) valueID {
+		for {
+			d := defAt(r, before)
+			if d.inst == nil {
+				return valueID{r, -1}
+			}
+			i := d.inst
+			if i.Ty == nil || bit >= i.Ty.Width() {
+				return valueID{r, d.index}
+			}
+			copy := i.Op == OpMove
+			if i.Op == OpTrunc || i.Op == OpExt {
+				copy = i.SrcTy != nil && bit < i.SrcTy.Width()
+			}
+			if !copy {
+				return valueID{r, d.index}
+			}
+			r, before = i.Src[0], d.index
+		}
+	}
+	wanted := root(base, td.index, bit)
+	for si := len(b.Insts) - 1; si >= 0; si-- {
+		shift := b.Insts[si]
+		if shift.Op != OpShl && shift.Op != OpShr || shift.Ty == nil {
+			continue
+		}
+		w := shift.Ty.Width()
+		if w != 8 && w != 16 || shift.Op == OpShl && bit != w-1 || shift.Op == OpShr && bit != 0 {
+			continue
+		}
+		count := defAt(shift.Src[1], si)
+		if count.inst == nil || count.inst.Op != OpConst || count.inst.Imm != 1 || g.blockParamRegs[shift.Src[1]] || root(shift.Src[0], si, bit) != wanted {
+			continue
+		}
+		dst := g.loc(shift.Dst)
+		if w == 8 && (dst != "A" && dst != "B" && dst != "C" && dst != "D" && dst != "E" && dst != "H" && dst != "L") || w == 16 && dst != "HL" && dst != "BC" && dst != "DE" {
+			continue
+		}
+		legal := true
+		start := si + 1
+		if ci < si {
+			start = ci + 1
+		}
+		for _, i := range b.Insts[start:] {
+			if i == shift || i == cmp {
+				continue
+			}
+			if i == td.inst || i == zd.inst {
+				continue
+			}
+			if i.Op == OpConst && g.loc(i.Dst) != "F" && !isSpill(g.loc(i.Dst)) {
+				continue
+			}
+			// The byte trunc/move in a narrowed low-bit predicate is an LD. It
+			// neither modifies carry nor delays reading a source beyond allocation.
+			if (i.Op == OpMove || i.Op == OpTrunc) && i.Ty != nil && i.Ty.Width() <= 16 && g.regInfo[i.Src[0]].Ty != nil && g.regInfo[i.Src[0]].Ty.Width() <= 16 && g.loc(i.Dst) != "F" && g.loc(i.Src[0]) != "F" && !isSpill(g.loc(i.Dst)) && !isSpill(g.loc(i.Src[0])) && !isIXYReg(g.loc(i.Dst)) && !isIXYReg(g.loc(i.Src[0])) {
+				continue
+			}
+			legal = false
+			break
+		}
+		if !legal {
+			continue
+		}
+		delete(g.bitCmpPat, cmp.Dst)
+		g.bitCmpSkip[test], g.bitCmpSkip[zero] = true, true
+		// Copies/truncations used only by the elided test are dead too.
+		// Keep every source also used by the shift or another consumer.
+		r, before := base, td.index
+		for uses[r] == 1 {
+			d := defAt(r, before)
+			if d.inst == nil {
+				break
+			}
+			i := d.inst
+			copy := i.Op == OpMove || (i.Op == OpTrunc || i.Op == OpExt) && i.SrcTy != nil && bit < i.SrcTy.Width()
+			if !copy {
+				break
+			}
+			g.bitCmpSkip[r] = true
+			r, before = i.Src[0], d.index
+		}
+		g.shiftCarryCmp, g.shiftCarryInst = cmp, shift
+		g.shiftCarryDeferred = ci < si
+		return
+	}
+}

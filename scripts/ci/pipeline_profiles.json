@@ -359,6 +359,8 @@
     "TestSeededPointerWalkZ80Boundary",
     "TestSequentialByteGlobalOriginAuthority",
     "TestSequentialLoopsPreserveLiveWordOperands",
+    "TestShiftCarryBranchVMZ80",
+    "TestShiftCarryMultiplyVMZ80",
     "TestShowcaseArenaNativeStateModel",
     "TestShowcaseBufStreamNativeCapacityModel",
     "TestShowcaseLizpCryptoNativeByteModels",

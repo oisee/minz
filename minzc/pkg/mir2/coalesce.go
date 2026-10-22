@@ -5,6 +5,7 @@ package mir2
 //
 // Strategy
 // ────────
+//
 //  1. Collect affinity edges — pairs (dst, src) where assigning dst the same
 //     physical location as src would eliminate a copy:
 //     a. OpMove instructions:        dst affine with src
@@ -206,6 +207,99 @@ func coalesceAllocResult(f *Func, result *AllocResult, lr *LivenessResult) {
 			recolored[e.dst] = true
 		}
 	}
+	// A loop-carried one-bit byte shift can update its input in place. The
+	// ordinary edge affinity only tries to recolor the loop parameter toward
+	// its new value; that can fail because an earlier predicate temporary
+	// occupies A. Try the reverse direction for this destructive instruction.
+	// Restrict homes to ordinary byte registers: indexed halves need staging.
+	definitions := map[Reg]*Inst{}
+	blockParams := map[Reg]bool{}
+	hard := map[Reg]bool{}
+	definitionCount := map[Reg]int{}
+	countUses := map[Reg]int{}
+	for _, p := range f.Contract.Params {
+		definitionCount[p.Reg]++
+		hard[p.Reg] = p.ClassHard
+	}
+	for _, b := range f.Blocks {
+		for _, p := range b.Params {
+			definitionCount[p.Dst]++
+			blockParams[p.Dst] = true
+		}
+		localConstants := map[Reg]*Inst{}
+		for _, i := range b.Insts {
+			definitionCount[i.Dst]++
+			for _, r := range i.ExtraRets {
+				definitionCount[r]++
+			}
+			if (i.Op == OpShl || i.Op == OpShr || i.Op == OpSar) && i.Ty != nil && i.Ty.Width() <= 16 && i.Src[0] != i.Src[1] {
+				if c := localConstants[i.Src[1]]; c != nil && c.Imm >= 0 && c.Imm <= 16 {
+					countUses[c.Dst]++
+				}
+			}
+			if i.Op == OpConst {
+				localConstants[i.Dst] = i
+			}
+			if i.Op == OpAsm {
+				return
+			}
+			if i.ClsHard {
+				hard[i.Dst] = true
+			}
+			definitions[i.Dst] = i
+		}
+	}
+	// Immediate shift counts have no machine register lifetime. Discount
+	// only unique, unconstrained definitions whose every use is a same-block
+	// count and whose load the code generator already proves dead. A count
+	// used by an edge, call, arithmetic value, or variable phi stays interfering.
+	uses := countRegUses(f)
+	dead := computeDeadConsts(f, result)
+	immediateOnly := map[Reg]bool{}
+	for r, n := range countUses {
+		immediateOnly[r] = n == uses[r] && definitionCount[r] == 1 && !hard[r] && !blockParams[r] && dead[r] && result.Locs[r].Kind != LocFlag
+	}
+	for _, b := range f.Blocks {
+		b.Term.ForEachEdge(func(target string, args []Reg, offset int) {
+			tb := blockByLabel[target]
+			if tb == nil {
+				return
+			}
+			for k, r := range args {
+				if k+offset >= len(tb.Params) {
+					continue
+				}
+				i := definitions[r]
+				if i == nil || (i.Op != OpShl && i.Op != OpShr) || i.Ty != TyU8 || hard[r] || recolored[r] || i.Src[0] != tb.Params[k+offset].Dst {
+					continue
+				}
+				count := definitions[i.Src[1]]
+				if count == nil || count.Op != OpConst || count.Imm != 1 || blockParams[count.Dst] {
+					continue
+				}
+				home, old := result.Locs[i.Src[0]], result.Locs[r]
+				if home.Kind != LocReg || old.Kind != LocReg || home == old || ct.Cost(i.Cls, home) >= InfCost {
+					continue
+				}
+				switch home.Name {
+				case "A", "B", "C", "D", "E", "H", "L":
+				default:
+					continue
+				}
+				safe := true
+				ig.Neighbors(r).Each(func(n Reg) {
+					if !immediateOnly[n] && physicallyConflicts(result.Locs[n], home) {
+						safe = false
+					}
+				})
+				if safe {
+					recolored[r] = true
+					result.Locs[r] = home
+				}
+			}
+		})
+	}
+
 }
 
 // isaAlwaysWritesA reports whether inst always writes its result to the A

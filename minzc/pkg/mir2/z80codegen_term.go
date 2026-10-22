@@ -78,6 +78,13 @@ func (g *z80cg) restoreLiveOutOverrides(f *Func, t Term) {
 	for _, r := range regs {
 		scratch := g.physOverride[r]
 		canonLoc := g.ar.Loc(r)
+		// A predicate materialized before a flag writer has a real byte
+		// home. Keep it until this terminator tests it; F cannot receive an
+		// ordinary copy. The identity reserves its scratch during shuffles.
+		if canonLoc.Kind == LocFlag && usedByTerm[r] {
+			copies = append(copies, parallelCopy{srcName: scratch, dstName: scratch, ty: TyU8})
+			continue
+		}
 		delete(g.physOverride, r)
 		if canonLoc.Kind != LocReg && canonLoc.Kind != LocIXY8 {
 			continue
@@ -100,6 +107,10 @@ func (g *z80cg) restoreLiveOutOverrides(f *Func, t Term) {
 
 func (g *z80cg) genTerm(f *Func, t Term) {
 	g.restoreLiveOutOverrides(f, t)
+	if g.shiftCarryInst != nil && g.carryFrom != g.shiftCarryInst {
+		g.err = fmt.Errorf("z80 codegen: shift carry lost before fused branch in %s", g.fn.Name)
+		return
+	}
 
 	switch t := t.(type) {
 	case *TermErrorRet:

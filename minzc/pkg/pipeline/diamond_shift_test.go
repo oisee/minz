@@ -2,6 +2,7 @@ package pipeline
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/minz/minzc/pkg/hir"
@@ -46,14 +47,29 @@ func TestDiamondCommonShiftVMZ80(t *testing.T) {
 							}
 						}
 					}
+					if !grace {
+						legacy, e := CompileHIRWithOptions(parse(), Options{ContractOpt: true, AssertMode: "none"})
+						if e != nil {
+							t.Fatal(e)
+						}
+						if strings.Contains(legacy, "    BIT ") || strings.Contains(legacy, "    AND ") || strings.Contains(legacy, "    CP ") {
+							t.Errorf("library entry point did not fuse carry:\n%s", legacy)
+						}
+					}
 					// Execute before the shape assertion so failing-first also validates the
 					// unoptimized program in all three engines.
 					raw := hir.LowerModule(parse())
-					for v := 0; v < 256; v++ {
-						x := v
+					inputs := make([]int, 256)
+					for v := range inputs {
+						inputs[v] = v
 						if width == 16 {
-							x = v * 257
+							inputs[v] = ((v*73+37)&255)<<8 | v
 						}
+					}
+					if width == 16 {
+						inputs = append(inputs, 0, 1, 0x80, 0x100, 0x7fff, 0x8000, 0x8001, 0xff00, 0xfffe, 0xffff)
+					}
+					for _, x := range inputs {
 						want := (x << 1) & ((1 << width) - 1)
 						if right {
 							want = x >> 1
