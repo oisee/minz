@@ -301,17 +301,19 @@ func (g *z80cg) genTerm(f *Func, t Term) {
 		// read its original operands. Rewrite exit sources to their new homes.
 		bodyLabel := blockLabel(f.Name, t.Body)
 		if counter == "B" && needsBodyCopy {
-			// The hoist only pays when DJNZ can still reach the body directly
-			// and the exit does not need more copies than it had before.
-			if adjusted, ok := g.hoistedDJNZExitCopies(f, t, bodyCopies, exitCopies); ok && effectiveCopyCount(adjusted) <= effectiveCopyCount(exitCopies) {
-				outer := g.sb
-				var hoist strings.Builder
-				g.sb = &hoist
-				restore := g.trialEmission()
-				g.emitParallelCopy(bodyCopies)
-				g.sb = outer
-				if g.djnzTargetWithinRangeAfter(bodyLabel, hoist.String()) {
-					g.sb.WriteString(hoist.String())
+			// The hoist runs the shuffle on every iteration including the last,
+			// and the exit reads the shuffled homes. The trampoline instead pays
+			// a JRS on every iteration (12T). With one iteration, the worst case,
+			// the hoist must cost no more than the trampoline's exit path.
+			if adjusted, ok := g.hoistedDJNZExitCopies(f, t, bodyCopies, exitCopies); ok {
+				newExit, restoreNew := g.trialCopies(adjusted)
+				restoreNew()
+				oldExit, restoreOld := g.trialCopies(exitCopies)
+				restoreOld()
+				hoist, restore := g.trialCopies(bodyCopies)
+				pays := asmTStates(hoist)+asmTStates(newExit) <= asmTStates(oldExit)+12
+				if pays && g.djnzTargetWithinRangeAfter(bodyLabel, hoist) {
+					g.sb.WriteString(hoist)
 					exitCopies = adjusted
 					bodyCopies = nil
 					needsBodyCopy = false
@@ -728,15 +730,28 @@ func (g *z80cg) hoistedDJNZExitCopies(f *Func, t *TermDJNZ, body, exit []paralle
 	return adjusted, true
 }
 
-// effectiveCopyCount counts the copies that emit code.
-func effectiveCopyCount(copies []parallelCopy) int {
-	n := 0
-	for _, c := range copies {
-		if c.isImm || c.srcName != c.dstName {
-			n++
+// trialCopies emits a parallel copy into a scratch buffer. The caller either
+// writes the text back or calls restore to drop the bookkeeping it recorded.
+func (g *z80cg) trialCopies(copies []parallelCopy) (string, func()) {
+	outer := g.sb
+	var buf strings.Builder
+	g.sb = &buf
+	restore := g.trialEmission()
+	g.emitParallelCopy(copies)
+	g.sb = outer
+	return buf.String(), restore
+}
+
+// asmTStates sums the primary T-states of emitted instruction lines.
+func asmTStates(text string) int {
+	total := 0
+	for _, line := range strings.Split(text, "\n") {
+		if strings.HasPrefix(line, "    ") && !strings.HasPrefix(line, "    ;") {
+			ts, _ := z80TStates(line)
+			total += ts
 		}
 	}
-	return n
+	return total
 }
 
 // trialEmission snapshots the bookkeeping that emission records outside the

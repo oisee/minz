@@ -158,8 +158,8 @@ func TestCountedLoopC89AndRangeShape(t *testing.T) {
 }
 
 func TestCountedLoopProofAndFallback(t *testing.T) {
-	// ForRange currently binds the raw start register at the end's type.
-	// A narrow register must not be compared directly with a wide endpoint.
+	// ForRange widens both bounds to their common type (P26), so a narrow
+	// literal start is compared at the end's width and DJNZ applies to both.
 	for _, startTy := range []mir2.Ty{mir2.TyU8, mir2.TyU16} {
 		h := &hir.Module{Funcs: []*hir.Func{{Name: "probe", RetTy: mir2.TyU16, Body: hir.Blk(
 			hir.Decl("s", mir2.TyU16, hir.U16(0)),
@@ -175,7 +175,7 @@ func TestCountedLoopProofAndFallback(t *testing.T) {
 				found = true
 			}
 		}
-		if found != (startTy == mir2.TyU16) {
+		if !found {
 			t.Fatal("range start width", startTy, found)
 		}
 		got, err := mir2.NewVM(m).Call("probe", nil)
