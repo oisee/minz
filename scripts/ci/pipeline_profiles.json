@@ -19,6 +19,7 @@
     "TestBoolExtensionSourceVMZ80",
     "TestBoolStructAddressableFieldsNative",
     "TestBoolWideExtensionSourceNative",
+    "TestBrIf2PreservesLiveAccumulatorVMZ80",
     "TestByteAbsDiffCFGNativeCAndNanz",
     "TestByteCopyOrderedLDIRNative",
     "TestByteFillLDIRNative",

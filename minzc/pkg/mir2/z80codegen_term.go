@@ -208,6 +208,10 @@ func (g *z80cg) genTerm(f *Func, t Term) {
 		// Emit the CP (same logic as genCmp).
 		if cv, ok := g.constVals[t.Rhs]; ok {
 			if !g.holdsValue("A", lhs) {
+				if g.brIf2ClobbersLiveA(f, t) {
+					g.genBrIf2SavingA(f, t, lhs, "")
+					return
+				}
 				g.emitLDA(lhs)
 			}
 			g.emitf("    CP %d", cv&0xFF)
@@ -231,6 +235,10 @@ func (g *z80cg) genTerm(f *Func, t Term) {
 			return
 		} else {
 			if !g.holdsValue("A", lhs) {
+				if g.brIf2ClobbersLiveA(f, t) {
+					g.genBrIf2SavingA(f, t, lhs, rhs)
+					return
+				}
 				g.emitLDA(lhs)
 			}
 			g.emit8ALU("CP", rhs)
@@ -772,4 +780,58 @@ func (g *z80cg) trialEmission() func() {
 		}
 		g.nativeSpillCount, g.blockT = spills, blockT
 	}
+}
+
+// brIf2ClobbersLiveA reports whether loading the three-way comparison's lhs
+// into A would destroy a value that one of its edges still needs: a value
+// live out of the block or passed as an edge argument, other than lhs itself.
+func (g *z80cg) brIf2ClobbersLiveA(f *Func, t *TermBrIf2) bool {
+	inA := func(r Reg) bool { return r != t.Lhs && g.loc(r) == "A" }
+	for _, args := range [][]Reg{t.EqArgs, t.LtArgs, t.GtArgs} {
+		for _, r := range args {
+			if inA(r) {
+				return true
+			}
+		}
+	}
+	if g.liveness != nil {
+		if out := g.liveness.LiveOutOf(f, g.curBlock); out != nil {
+			for _, r := range out.Slice() {
+				if inA(r) {
+					return true
+				}
+			}
+		}
+	}
+	return false
+}
+
+// genBrIf2SavingA emits the three-way comparison while preserving a live A:
+// PUSH AF before loading lhs, and POP AF on every edge before its copies.
+// The flags restored by POP AF are no longer needed once the edge is taken.
+// rhs == "" means the right operand is a constant.
+func (g *z80cg) genBrIf2SavingA(f *Func, t *TermBrIf2, lhs, rhs string) {
+	g.emit("    PUSH AF")
+	g.emitLDA(lhs)
+	if rhs == "" {
+		g.emitf("    CP %d", g.constVals[t.Rhs]&0xFF)
+	} else {
+		g.emit8ALU("CP", rhs)
+	}
+	base := fmt.Sprintf(".%s_brif2_%d", sanitizeIdent(f.Name), g.trampIdx)
+	g.trampIdx++
+	g.emitf("    JRS Z, %s_eq", base)
+	g.emitf("    JRS C, %s_lt", base)
+	for _, e := range []struct {
+		suffix string
+		target string
+		args   []Reg
+	}{{"gt", t.Gt, t.GtArgs}, {"eq", t.Eq, t.EqArgs}, {"lt", t.Lt, t.LtArgs}} {
+		copies := g.buildBlockCopies(f, e.target, e.args)
+		g.emit(base + "_" + e.suffix + ":")
+		g.emit("    POP AF")
+		g.emitParallelCopy(copies)
+		g.emitf("    JP %s", blockLabel(f.Name, e.target))
+	}
+	g.invalidate("A")
 }
