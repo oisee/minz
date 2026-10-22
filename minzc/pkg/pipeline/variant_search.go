@@ -319,11 +319,11 @@ func compileVariantSearch(source *hir.Module, options ...Options) (Steps, error)
 	// Otherwise cheap early Grace trials can exhaust the cap before a later
 	// function gets even its ordinary-loop alternative. Ordering and cap remain
 	// deterministic; every accepted recipe is still a fresh complete product.
-	axes := 4
+	axes := []int{0, 1, 2, 3, 10}
 	if o.OptSize {
-		axes = 11
+		axes = []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
 	}
-	for axis := 0; axis < axes; axis++ {
+	for _, axis := range axes {
 		for _, i := range variantAxisOrder(axis, best.MIR2Module, decisions) {
 			d := &decisions[i]
 			name := d.Function
@@ -331,6 +331,10 @@ func compileVariantSearch(source *hir.Module, options ...Options) (Steps, error)
 			f := best.MIR2Module.FuncByName(name)
 			if f == nil {
 				continue // an earlier complete-module choice may have pruned it
+			}
+			// Keep loop-free speed search and its compilation budget unchanged.
+			if !o.OptSize && axis == 10 && len(f.StaticLoops) == 0 {
+				continue
 			}
 			oldCost, supported := image.score(f)
 			if o.OptSize {
@@ -424,7 +428,15 @@ func compileVariantSearch(source *hir.Module, options ...Options) (Steps, error)
 				} else {
 					var ok bool
 					cost, ok = trialImage.score(trial.MIR2Module.FuncByName(name))
-					if !supported || !ok || !image.nonIncreasingPaths(trialImage, name) || !sameVariantLoops(best.MIR2Module.FuncByName(name), trial.MIR2Module.FuncByName(name)) {
+					// Allocation-only trials may trade bounded path regressions for
+					// a lower loop-weighted maximum. Identical complete MIR keeps
+					// source branch meaning aligned for the labeled CFG comparison.
+					allocationOnly := axis == 10 && best.MIR2Opt == trial.MIR2Opt
+					pathsOK := image.nonIncreasingPaths(trialImage, name)
+					if !pathsOK && allocationOnly {
+						pathsOK = image.boundedAllocationPaths(trialImage, name)
+					}
+					if !supported || !ok || !pathsOK || !sameVariantLoops(best.MIR2Module.FuncByName(name), trial.MIR2Module.FuncByName(name)) {
 						reason = "unsupported loop comparison"
 					}
 				}
