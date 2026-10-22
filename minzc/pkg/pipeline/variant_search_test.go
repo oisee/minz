@@ -255,7 +255,7 @@ func TestVariantSearchLoopFreeBudgetVMZ80(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	s, err := CompileHIRSteps(h, Options{AssertMode: "none"})
+	s, err := CompileHIRSteps(h, Options{AssertMode: "none", ForceVariantSearch: true})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -356,3 +356,22 @@ const variantCampaignLoop = `fun probe(x: u8, y: u8) -> u16 {
  return w + h as u16
 }
 `
+
+// Large modules pay a full-module compile per trial, so they search only on
+// request.
+func TestVariantSearchModuleSizeLimit(t *testing.T) {
+	h := &hir.Module{}
+	for i := 0; i <= variantSearchMaxFuncs; i++ {
+		h.Funcs = append(h.Funcs, &hir.Func{Name: fmt.Sprintf("f%d", i)})
+	}
+	if variantSearchEnabled(h, nil) {
+		t.Fatal("search enabled above the default module size")
+	}
+	if !variantSearchEnabled(h, []Options{{ForceVariantSearch: true}}) {
+		t.Fatal("ForceVariantSearch did not enable search")
+	}
+	h.Funcs = h.Funcs[:variantSearchMaxFuncs]
+	if !variantSearchEnabled(h, nil) {
+		t.Fatal("search disabled at the default module size")
+	}
+}

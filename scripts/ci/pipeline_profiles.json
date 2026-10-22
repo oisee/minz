@@ -437,6 +437,7 @@
     "TestVariantSearchDeterministicBudgetVMZ80",
     "TestVariantSearchGCDVMZ80",
     "TestVariantSearchLoopFreeBudgetVMZ80",
+    "TestVariantSearchModuleSizeLimit",
     "TestVariantSearchNestedVMZ80",
     "TestVariantSearchPointerSizeVMZ80",
     "TestVariantSearchRefusesCrossingPaths",

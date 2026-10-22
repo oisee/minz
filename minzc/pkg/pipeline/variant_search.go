@@ -151,6 +151,9 @@ func variantHIRFunctions(m *hir.Module, o Options) map[string]bool {
 	return p
 }
 
+// variantSearchMaxFuncs bounds the module size searched by default.
+const variantSearchMaxFuncs = 32
+
 func variantSearchEnabled(h *hir.Module, options []Options) bool {
 	var o Options
 	if len(options) > 0 {
@@ -158,6 +161,11 @@ func variantSearchEnabled(h *hir.Module, options []Options) bool {
 	}
 	// Preserve explicit policy/PGO/runtime/table experiments and intermediate-only
 	// paths. Search has one supported native Z80 context in its first stage.
+	// Every trial recompiles the whole module, so large programs pay many full
+	// compiles for little gain; they search only on request.
+	if h != nil && len(h.Funcs) > variantSearchMaxFuncs && !o.ForceVariantSearch {
+		return false
+	}
 	return h != nil && !o.DisableVariantSearch && !o.variantCandidate && len(o.FunctionVariants) == 0 && !o.DisableCountedLoops && !o.SkipZ80Emission &&
 		(o.Backend == "" || o.Backend == "z80") && o.AssertMode != "wasm" && o.AssertMode != "llvm" && o.ProfileSelection == nil && o.CheckedLocalTablePath == "" && o.Runtime == "" && !o.CPMApplicationEntry && !o.ZXApplicationEntry && !needsZXApplication(h)
 }

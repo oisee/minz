@@ -428,3 +428,19 @@ claiming they substitute for that full gate.
 - `minzc/pkg/pipeline/variant_search_test.go`
 - `scripts/ci/pipeline_profiles.json`
 - `reports/2026-10-22-a1b-variant-search-budget.md`
+
+## Module-size default (critic round 1, 2026-10-22)
+
+The first critic measured the pre-budget branch: `examples/zx/tetris_playable.nanz`
+4.7 s → 1013 s and `TestShowcaseCompileAssemble` timing out; across 531 example
+files search changed no output. With the 16-trial budget tetris still took 77 s
+(each trial recompiles the whole 344-function module). Search now runs by default
+only for modules with at most 32 functions (`variantSearchMaxFuncs`); larger
+modules search with `--variant-search` / `Options.ForceVariantSearch`. Tetris:
+5 s. The limit counts functions, so the choice is deterministic.
+
+Corrections to the A1 report: after the rebase, main already has MIR Grace by
+default (#241), so the gcd improvement is no longer credited to search; on the
+current base search changes no benchmark cell and is infrastructure for later
+per-function choices (allocation cost models, counted-loop shapes). Repeated
+`[Z80-VALIDATE]`/`[HIR-SPLIT]` stderr lines per candidate are a known follow-up.

@@ -94,6 +94,8 @@ type FuncTrace struct {
 type Options struct {
 	// DisableVariantSearch preserves the pre-search compilation policy.
 	DisableVariantSearch bool `json:",omitempty"`
+	// ForceVariantSearch searches modules larger than the default limit.
+	ForceVariantSearch bool `json:",omitempty"`
 	// FunctionVariants overrides recipes in complete-module candidate compiles.
 	FunctionVariants map[string]FunctionVariant `json:",omitempty"`
 	variantCandidate bool
