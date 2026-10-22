@@ -357,6 +357,9 @@ func compileMIRProductSteps(hm *hir.Module, opt Options, s Steps, splitInfo map[
 	initialSteps := s
 	inlineStats := &mir2.SingleCallInlineStats{DisableExportCopies: opt.disableExportCopies || opt.Backend != "" && opt.Backend != "z80" || opt.SkipZ80Emission}
 	mir2.InlineSingleCallSites(m, functionPruneRoots(hm), inlineStats)
+	for _, f := range m.Funcs {
+		mir2.EliminateDeadGlobalLoads(m, f)
+	}
 	s.Traces = make(map[string]*FuncTrace)
 	affineChanged := false
 	var err error

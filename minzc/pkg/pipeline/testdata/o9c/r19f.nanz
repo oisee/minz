@@ -1,0 +1,23 @@
+global g0: u8 = 38
+global g1: u8 = 156
+global g2: u8 = 229
+global g3: u8 = 94
+fun leaf2() -> u8 { return g3 + g3 }
+fun f2(a: u8, b: u8, c: u8, d: u8) -> u16 {
+ let v0: u16 = (b as u16) | ((c as u16) << 8)
+ let v1: u16 = (b as u16) | ((a as u16) << 8)
+ let v3: u16 = (d as u16) | ((d as u16) << 8)
+ let v4: u16 = v1 + (d as u16)
+ let v6: u8 = g1 + 1
+ let v7: u8 = g3 + 2
+ let v8: u8 = d & a
+ g2 = v6 + 1
+ let v11: u8 = leaf2() + v8
+ let v13: u8 = g3 + 3
+ let v15: u8 = v11 xor a
+ let v16: u8 = g1 - 2
+ let v17: u8 = g0 + 1
+ return (v11 as u16) + (v7 as u16) + (v15 as u16) + (v13 as u16) + (v16 as u16) + v0 + v3 + v4
+}
+assert f2(0, 254, 1, 127) == 34253 via z80
+assert f2(0, 254, 1, 127) == 34253 via mir2

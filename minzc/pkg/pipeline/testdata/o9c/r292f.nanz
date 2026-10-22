@@ -1,0 +1,18 @@
+global g0: u8 = 133
+global g1: u8 = 6
+global g2: u8 = 24
+global buf: [u8; 16] = [78, 123, 39, 71, 62, 216, 133, 195, 105, 207, 127, 190, 94, 75, 13, 100]
+fun leaf0() -> u8 { return g1 & g0 }
+fun f0(a: u8, b: u8, c: u8, d: u8) -> u16 {
+ let v1: u8 = g2 - 1
+ let v2: u8 = b & v1
+ let v3: u8 = buf[(d + 3) & 15] + 3
+ let v4: u8 = a + b
+ let v6: u16 = (d as u16) | ((b as u16) << 8)
+ let v7: u8 = b + a
+ let v8: u8 = leaf0() + d
+ let v9: u16 = (v4 as u16) | ((v7 as u16) << 8)
+ return (v3 as u16) + (v7 as u16) + (v1 as u16) + (v2 as u16) + v6 + v9
+}
+assert f0(255, 127, 2, 128) == 65268 via z80
+assert f0(255, 127, 2, 128) == 65268 via mir2

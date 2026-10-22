@@ -970,11 +970,16 @@ func (g *z80cg) saveLiveScratch(inst *Inst, pairs ...string) func() {
 				pair := saved[i]
 				byteResult := dst == highByte(pair) || dst == lowByte(pair)
 				if byteResult {
+					// Stage the result in the alternate accumulator. Main A
+					// may hold an unrelated live or pending value even when
+					// the load itself never writes A.
+					g.emit("    EX AF, AF'")
 					g.emitf("    LD A, %s", dst)
 				}
 				g.emitf("    POP %s", pair)
 				if byteResult {
 					g.emitf("    LD %s, A", dst)
+					g.emit("    EX AF, AF'")
 					g.invalidate("A")
 				}
 				g.invalidate(pair)

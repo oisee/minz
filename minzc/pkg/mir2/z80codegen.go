@@ -845,6 +845,20 @@ func (g *z80cg) emit(s string) {
 // emitInlineAsm preserves common emission hooks without interpreting user
 // operands as allocator locations. Compiler-generated text must go through emit.
 func (g *z80cg) emitInlineAsm(s string) {
+	// Invalidate at the common emission boundary: raw loads, POP and EX
+	// must obey the same alias rules as the higher-level move helpers.
+	for _, line := range strings.Split(s, "\n") {
+		e := z80effects.Instruction(line)
+		if !e.Known {
+			clear(g.holdsPhys)
+			continue
+		}
+		for r := range g.holdsPhys {
+			if z80effects.Register(r)&e.Writes != 0 {
+				g.invalidate(r)
+			}
+		}
+	}
 	if g.carryFrom != nil {
 		for _, line := range strings.Split(s, "\n") {
 			e := z80effects.Instruction(line)
