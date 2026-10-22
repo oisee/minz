@@ -126,7 +126,7 @@ and must not get worse; it is never used to choose or tune a rule. Before/after
 comparisons must use the same compiler set (with or without sccz80/nanz rows).
 `plot_summary.py` and `publish_snapshot.py` still assume the 6-case 2026-10-16 matrix.
 
-## The tuple variant
+## Frontend parity and the tuple variant
 
 `nanz-idiomatic/struct_roundtrip.nanz` remains the idiomatic struct reference.
 `nanz-idiomatic/struct_roundtrip_tuple.nanz` is a documented tuple variant of
@@ -136,6 +136,17 @@ and measures the variant through the existing `nanz-tuple` path, using the
 unchanged `struct_roundtrip` workload. `--include-nanz` additionally measures
 its size and nograce profiles; combining the flags does not duplicate rows.
 
+```sh
+python3 research/c89-benchmark/parity.py /path/to/artifacts/summary.json
+```
+
+The script requires idiomatic rows (`--include-refs`), compares each recorded
+idiomatic profile to the matching C profile, and prints Nanz/C T-state ratios.
+Where a tuple reference exists, it also prints struct/tuple T-state ratios.
+It exits nonzero and names every case exceeding 1.05× C, or with failed/missing
+matching measurements. This is a parity gate, not a before/after regression
+gate: existing frontend gaps in other cases can keep it red after one gap is
+fixed. Bytes and absolute T-states remain in `summary.json`.
 
 ## Iterator fusion showcase
 
