@@ -155,9 +155,18 @@ func variantHIRFunctions(m *hir.Module, o Options) map[string]bool {
 const variantSearchMaxFuncs = 32
 
 func variantSearchEnabled(h *hir.Module, options []Options) bool {
-	var o Options
+	o := DefaultOptions()
 	if len(options) > 0 {
 		o = options[0]
+	}
+	// Non-nil policies (including empty deny-all maps) and seeded lineage belong
+	// to an exact measured/replay configuration. Search must neither change its
+	// recipes nor compile a clone in place of the caller's attributed module.
+	if h == nil || h.OrderedByteRWPolicy != nil || h.OrderedBytePolicy != nil ||
+		h.RegionComparePolicy != nil || h.InvariantBasePolicy != nil ||
+		h.GraceRulePolicy != nil || h.ForwardCopyPolicy != nil ||
+		h.PointerWalkPolicy != nil || h.LoopLineage != nil {
+		return false
 	}
 	// Preserve explicit policy/PGO/runtime/table experiments and intermediate-only
 	// paths. Search has one supported native Z80 context in its first stage.
@@ -167,11 +176,11 @@ func variantSearchEnabled(h *hir.Module, options []Options) bool {
 		return false
 	}
 	return h != nil && !o.DisableVariantSearch && !o.variantCandidate && len(o.FunctionVariants) == 0 && !o.DisableCountedLoops && !o.SkipZ80Emission &&
-		(o.Backend == "" || o.Backend == "z80") && o.AssertMode != "wasm" && o.AssertMode != "llvm" && o.ProfileSelection == nil && o.CheckedLocalTablePath == "" && o.Runtime == "" && !o.CPMApplicationEntry && !o.ZXApplicationEntry && !needsZXApplication(h)
+		(o.Backend == "" || o.Backend == "z80") && o.AssertMode != "wasm" && o.AssertMode != "llvm" && o.ProfileSelection == nil && !o.CollectHIRSites && o.CheckedLocalTablePath == "" && o.CheckedLocalTableSHA256 == "" && o.Runtime == "" && !o.CPMApplicationEntry && !o.ZXApplicationEntry && !needsZXApplication(h)
 }
 
 func compileVariantSearch(source *hir.Module, options ...Options) (Steps, error) {
-	var o Options
+	o := DefaultOptions()
 	if len(options) > 0 {
 		o = options[0]
 	}

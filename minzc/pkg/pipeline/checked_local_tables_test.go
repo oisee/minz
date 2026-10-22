@@ -16,7 +16,8 @@ fun main() -> u8 { return add5(7) }`
 
 func localTableFixture(t *testing.T) (Steps, string) {
 	t.Helper()
-	steps, err := CompileHIRSteps(graceMeasureParse(t, checkedTableSource), Options{OptSize: true, AssertMode: "none"})
+	// Table evidence and its refusing fallback use the exact same native policy.
+	steps, err := CompileHIRSteps(graceMeasureParse(t, checkedTableSource), Options{OptSize: true, AssertMode: "none", DisableVariantSearch: true})
 	if err != nil {
 		t.Fatal(err)
 	}

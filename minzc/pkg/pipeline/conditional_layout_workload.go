@@ -67,6 +67,8 @@ func conditionalFunctionSpan(assembly, name string) (int, int, error) {
 // ignores bytes, size ignores timing, and ties retain the earlier candidate.
 // Heldout workloads must be replayed on the returned exact Steps separately.
 func MeasureConditionalLayoutWorkload(factory func() (*hir.Module, error), function string, workload hir.ProfileWorkload, options Options, goal string, limit int) (*ConditionalLayoutResult, error) {
+	// Layout enumeration requires the exact requested compiler configuration.
+	options.DisableVariantSearch = true
 	fail := func(err error) (*ConditionalLayoutResult, error) {
 		return nil, fmt.Errorf("conditional layout workload: %w", err)
 	}
