@@ -4,6 +4,7 @@
   "fast": [
     "TestAccumulatorHeaderSuccessorNative",
     "TestActualLegacyCandidateImportCorpus",
+    "TestAffinePointerWalkNativeCAndNanz",
     "TestAggregateAddressClassesNative",
     "TestAgonCalledVoidMainEntry",
     "TestAgonCorpusADLProducts",

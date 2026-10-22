@@ -2,13 +2,17 @@ package mir2
 
 import "reflect"
 
-// StrengthReduceCountedPointers threads base+i through loop arguments as a
-// pointer recurrence. The admitted loop starts at zero, increments an unsigned
-// byte index by one, and enters its single body only while index<count (u8).
-// Thus each executed index is at most 254 and never wraps before termination.
-// Pointer arithmetic remains modulo 65536, including the final unused bump.
-// Memory operations keep their original order: overlapping copies are allowed.
+// StrengthReduceCountedPointers threads affine array addresses through loop
+// arguments as pointer recurrences. The original byte-copy recognizer shares
+// walks and collapses invariant forwarding; the general recognizer additionally
+// handles global bases, word strides, constant offsets and descending loops.
+// Both preserve modular pointer arithmetic and the original memory order.
 func StrengthReduceCountedPointers(f *Func) int {
+	n := strengthReduceByteCountedPointers(f)
+	return n + strengthReduceAffinePointers(f)
+}
+
+func strengthReduceByteCountedPointers(f *Func) int {
 	if f == nil || verifyFunc(f) != nil || f.Attrs.FallibleCY || f.Attrs.HasAsm {
 		return 0
 	}

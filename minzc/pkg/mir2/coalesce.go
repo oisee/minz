@@ -5,26 +5,26 @@ package mir2
 //
 // Strategy
 // ────────
-// 1. Collect affinity edges — pairs (dst, src) where assigning dst the same
-//    physical location as src would eliminate a copy:
-//      a. OpMove instructions:        dst affine with src
-//      b. Block boundary args:        block_param affine with its arg
-//         (one edge per predecessor per param position)
+//  1. Collect affinity edges — pairs (dst, src) where assigning dst the same
+//     physical location as src would eliminate a copy:
+//     a. OpMove instructions:        dst affine with src
+//     b. Block boundary args:        block_param affine with its arg
+//     (one edge per predecessor per param position)
 //
-// 2. Build a fresh interference graph from liveness data.
-//    (The PBQP solver may have removed nodes during R1 reduction, so we
-//    cannot reuse the graph from PBQPAllocate.)
+//  2. Build a fresh interference graph from liveness data.
+//     (The PBQP solver may have removed nodes during R1 reduction, so we
+//     cannot reuse the graph from PBQPAllocate.)
 //
-// 3. Iteratively: for each affinity edge (dst, src) where Locs differ,
-//    recolor dst to src's location if no IG neighbour of dst currently
-//    occupies src's location.  Repeat until fixpoint.
+//  3. Iteratively: for each affinity edge (dst, src) where Locs differ,
+//     recolor dst to src's location if no IG neighbour of dst currently
+//     occupies src's location.  Repeat until fixpoint.
 //
 // Correctness
 // ───────────
-//   • Block params and their args have disjoint live ranges by SSA
+//   - Block params and their args have disjoint live ranges by SSA
 //     construction, so they never appear as IG neighbours — coalescing
 //     is always safe unless a *third* reg already occupies the target loc.
-//   • OpMove coalescing is gated on the IG: if src and dst interfere,
+//   - OpMove coalescing is gated on the IG: if src and dst interfere,
 //     src is a neighbour of dst ⟹ the check fails ⟹ no coalescing.
 func coalesceAllocResult(f *Func, result *AllocResult, lr *LivenessResult) {
 	if len(result.Locs) == 0 {
@@ -56,6 +56,28 @@ func coalesceAllocResult(f *Func, result *AllocResult, lr *LivenessResult) {
 				break
 			}
 			edges = append(edges, affEdge{dst: tb.Params[paramIdx].Dst, src: arg})
+		}
+	}
+	// Prefer the destructive operand's home for word unit steps before
+	// considering phi edges. Recoloring the result (rather than its live-in
+	// operand) lets the existing backedge affinity then keep the phi in place.
+	// Interference and class legality are checked by the same guards below.
+	constants := map[Reg]int64{}
+	for _, b := range f.Blocks {
+		for _, x := range b.Insts {
+			if x.Op == OpConst && !x.ClsHard {
+				constants[x.Dst] = x.Imm
+			}
+		}
+	}
+	for _, b := range f.Blocks {
+		for _, x := range b.Insts {
+			if x.Ty == nil || x.Ty.Width() != 16 || x.ClsHard {
+				continue
+			}
+			if cv, ok := constants[x.Src[1]]; ok && (x.Op == OpAdd || x.Op == OpSub) && smallWordStep(cv) && wordMaskFlagsUnobserved(f, x.Dst) {
+				edges = append(edges, affEdge{dst: x.Dst, src: x.Src[0]})
+			}
 		}
 	}
 	for _, b := range f.Blocks {
