@@ -36,16 +36,12 @@ func affineWordFixture() (*Module, *Func) {
 func TestAffinePointerWalkWordOffsetModulo(t *testing.T) {
 	raw, _ := affineWordFixture()
 	opt, f := affineWordFixture()
-	if n := StrengthReduceCountedPointers(f); n != 1 {
+	// The bound, IV and walker would require three persistent words.
+	if n := StrengthReduceCountedPointers(f); n != 0 {
 		t.Fatalf("rewrites %d", n)
 	}
 	if err := Verify(opt); err != nil {
 		t.Fatal(err)
-	}
-	for _, x := range f.Blocks[2].Insts {
-		if x.Op == OpPtrAdd || x.Op == OpMul {
-			t.Fatal("address still indexed", x)
-		}
 	}
 	for _, base := range []int{0, 1, 32767, 65534, 65535} {
 		for _, count := range []int{0, 1, 2, 255, 256} {
@@ -313,5 +309,58 @@ func TestAffinePointerWalkGuardDefinitionStaysBeforeUses(t *testing.T) {
 	before := m.Dump()
 	if n := StrengthReduceCountedPointers(f); n != 0 || m.Dump() != before {
 		t.Fatal("guard with intervening use admitted", n)
+	}
+}
+
+func TestAffinePointerWalkProfitabilityRefusals(t *testing.T) {
+	for _, mode := range []string{"partial", "word-bound", "word-state", "tiny", "tiny-signed"} {
+		m, f := affineDJNZFixture(true)
+		entry, body := f.Blocks[0], f.Blocks[1]
+		switch mode {
+		case "partial":
+			// Byte wrap before extension prevents this second address from walking.
+			counter := body.Params[0].Dst
+			one := body.Insts[0].Dst
+			wrapped := f.AllocReg()
+			ext, ptr := f.AllocReg(), f.AllocReg()
+			body.Insts = append(body.Insts,
+				&Inst{Op: OpAdd, Dst: wrapped, Src: [2]Reg{counter, one}, Ty: TyU8, Cls: ClassGeneral},
+				&Inst{Op: OpExt, Dst: ext, Src: [2]Reg{wrapped}, Ty: TyU16, SrcTy: TyU8, Cls: ClassPair},
+				&Inst{Op: OpPtrAdd, Dst: ptr, Src: [2]Reg{f.Contract.Params[0].Reg, ext}, Ty: TyPtr, Cls: ClassPointer},
+				&Inst{Op: OpStore, Src: [2]Reg{ptr, counter}, Ty: TyU8})
+		case "word-bound":
+			m, f = affineWordFixture() // walker + IV + invariant word bound
+		case "word-state":
+			// Two additional invariant word values are used by observable stores.
+			for i := 0; i < 2; i++ {
+				r := f.AllocReg()
+				f.Contract.Params = append(f.Contract.Params, Param{Reg: r, Ty: TyU16, Class: ClassPair})
+				body.Insts = append(body.Insts, &Inst{Op: OpStore, Src: [2]Reg{body.Insts[4].Dst, r}, Ty: TyU16})
+			}
+		case "tiny-signed":
+			m, f = affineWordFixture()
+			entry, head, body := f.Blocks[0], f.Blocks[1], f.Blocks[2]
+			// 0xffff in an i16 phi is -1: the signed >=0 loop has zero trips.
+			entry.Insts[0].Ty, entry.Insts[0].Imm = TyI16, 65535
+			head.Params[0].Ty = TyI16
+			zero := f.AllocReg()
+			entry.Insts = append(entry.Insts, &Inst{Op: OpConst, Dst: zero, Imm: 0, Ty: TyI16, Cls: ClassPair})
+			head.Insts[0].Cond, head.Insts[0].SrcTy, head.Insts[0].Src[1] = CmpGe, TyI16, zero
+			next := body.Insts[len(body.Insts)-1]
+			next.Op, next.Ty = OpSub, TyI16
+		case "tiny":
+			r := f.AllocReg()
+			c := &Inst{Op: OpConst, Dst: r, Imm: 3, Ty: TyU8, Cls: ClassGeneral}
+			entry.Insts = append([]*Inst{c}, entry.Insts...)
+			entry.Insts[len(entry.Insts)-1].Src[0] = r
+			entry.Term.(*TermBrIf).ThenArgs[0] = r
+		}
+		if err := Verify(m); err != nil {
+			t.Fatal(mode, err)
+		}
+		before := m.Dump()
+		if n := StrengthReduceCountedPointers(f); n != 0 || m.Dump() != before {
+			t.Fatalf("%s: unprofitable rewrite (%d)", mode, n)
+		}
 	}
 }

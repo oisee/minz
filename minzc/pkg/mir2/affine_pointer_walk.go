@@ -187,7 +187,7 @@ func strengthReduceAffinePointers(f *Func) int {
 				}
 				candidates = append(candidates, x)
 			}
-			if len(candidates) == 0 {
+			if len(candidates) == 0 || !affinePointerProfitable(f, l, iv, candidates, defs, types) {
 				continue
 			}
 			// Once addressing has its own pointer, a word IV no longer needs
@@ -355,4 +355,157 @@ func affinePointerIndexRange(l *NaturalLoop, iv LoopInduction, defs map[Reg]*Ins
 		return x.Imm, max, true
 	}
 	return 0, 0, false
+}
+
+// Reject partial walks before making any edits. A surviving index address
+// needs HL as scratch while the new loop-carried pointers occupy the pairs.
+func affinePointerProfitable(f *Func, l *NaturalLoop, iv LoopInduction, candidates []*Inst, defs map[Reg]*Inst, types map[Reg]Ty) bool {
+	replaced := map[Reg]bool{}
+	for _, x := range candidates {
+		replaced[x.Dst] = true
+	}
+	var depends func(Reg, map[Reg]bool) bool
+	depends = func(r Reg, seen map[Reg]bool) bool {
+		if r == iv.Param.Dst {
+			return true
+		}
+		if replaced[r] {
+			return false
+		}
+		if seen[r] {
+			return false
+		}
+		seen[r] = true
+		if x := defs[r]; x != nil {
+			for _, s := range x.Uses() {
+				if depends(s, seen) {
+					return true
+				}
+			}
+		}
+		return false
+	}
+	for _, b := range f.Blocks {
+		if !l.Blocks[b.Label] {
+			continue
+		}
+		for _, x := range b.Insts {
+			if (x.Op == OpPtrAdd && !replaced[x.Dst] && depends(x.Dst, map[Reg]bool{})) || ((x.Op == OpLoad || x.Op == OpStore) && depends(x.Src[0], map[Reg]bool{})) {
+				return false
+			}
+		}
+	}
+	// Model address-DAG DCE without modifying the function. A replacement
+	// pointer is a leaf: its old base/index operands no longer stay live.
+	needed := map[Reg]bool{}
+	var need func(Reg)
+	need = func(r Reg) {
+		if r == NoReg || needed[r] {
+			return
+		}
+		needed[r] = true
+		if replaced[r] {
+			return
+		}
+		if x := defs[r]; x != nil {
+			for _, s := range x.Uses() {
+				need(s)
+			}
+		}
+	}
+	for _, b := range f.Blocks {
+		if !l.Blocks[b.Label] {
+			continue
+		}
+		for _, x := range b.Insts {
+			if !isDSEPure(x.Op) {
+				for _, r := range x.Uses() {
+					need(r)
+				}
+			}
+		}
+		if jump, ok := b.Term.(*TermJmp); ok && jump.Target == l.Header.Label {
+			for i, r := range jump.Args {
+				if _, invariant := l.Invariant[l.Header.Params[i].Dst]; !invariant {
+					need(r)
+				}
+			}
+		} else {
+			for _, r := range termRegUses(b.Term) {
+				need(r)
+			}
+		}
+	}
+	// Persistent word state includes surviving loop parameters and invariant
+	// words needed on subsequent iterations. Rematerialised constants/addresses
+	// are excluded. Reserve BC for counters; only HL and DE budget walks/state.
+	words := len(candidates)
+	state := map[Reg]bool{}
+	for _, p := range l.Header.Params {
+		if needed[p.Dst] && p.Ty.Width() == 16 {
+			r := p.Dst
+			if root, ok := l.Invariant[r]; ok {
+				r = root
+			}
+			state[r] = true
+		}
+	}
+	for r := range needed {
+		if root, ok := l.Invariant[r]; ok && types[r] != nil && types[r].Width() == 16 {
+			state[root] = true
+		}
+	}
+	for r := range state {
+		if x := defs[r]; x != nil && (x.Op == OpConst || x.Op == OpAddrOf) {
+			continue
+		}
+		words++
+	}
+	if words > 2 {
+		return false
+	}
+	// Setup is not amortised for a statically tiny loop. Strict ascending and
+	// descending guards are the only shapes admitted by the range proof.
+	initial := defs[iv.Initial]
+	if initial != nil && initial.Op == OpConst {
+		start := maskToWidth(initial.Imm, iv.Param.Ty)
+		if iv.Param.Ty == TyI16 {
+			start = signExtend(Value{I: start}, 16).I
+		}
+		trips := int64(-1)
+		if _, ok := l.Latch.Term.(*TermDJNZ); ok {
+			trips = start
+		} else {
+			var cond Reg
+			switch t := l.Header.Term.(type) {
+			case *TermBrIf:
+				cond = t.Cond
+			case *TermCondRet:
+				cond = t.Cond
+			}
+			if c := defs[cond]; c != nil {
+				if bound := defs[c.Src[1]]; bound != nil && bound.Op == OpConst {
+					limit := maskToWidth(bound.Imm, iv.Param.Ty)
+					if iv.Param.Ty == TyI16 {
+						limit = signExtend(Value{I: limit}, 16).I
+					}
+					if iv.Step > 0 {
+						trips = limit - start
+					} else {
+						trips = start - limit
+						if c.Cond == CmpGe {
+							trips++
+						}
+					}
+					if trips < 0 {
+						trips = 0
+					}
+				}
+			}
+		}
+		if trips >= 0 && trips < 4 {
+			return false
+		}
+	}
+	return true
 }

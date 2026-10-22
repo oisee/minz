@@ -125,6 +125,9 @@ type Options struct {
 	// and excludes HIR Grace's code-growing versioned pointer-walk.
 	// Trades ~4T/iteration for code size reduction. Use for ROM-constrained targets.
 	OptSize bool
+
+	// Internal baseline compilation for the affine-pointer size comparison.
+	disableAffinePointers bool
 	// Backend selects the codegen backend: "z80" (default), "ez80".
 	// When "ez80", the pipeline generates eZ80 ADL assembly instead of Z80.
 	Backend string
@@ -264,6 +267,17 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 	// Lower HIR → MIR2 (raw, before optimisation).
 	m := hir.LowerModuleWithOptions(hm, hir.LowerOptions{DisableCountedLoops: opt.DisableCountedLoops})
 	s.MIR2Raw = m.Dump()
+	return compileMIRSteps(hm, opt, s, splitInfo, m)
+}
+
+// The size baseline starts at the same lowered HIR, without repeating source
+// transformations or profile selection. Both alternatives run the full MIR,
+// contract, allocation and codegen pipeline, so spills count toward the gate.
+func compileMIRSteps(hm *hir.Module, opt Options, s Steps, splitInfo map[string]hir.SplitResult, m *mir2.Module) (Steps, error) {
+	initialSteps := s
+	s.Traces = make(map[string]*FuncTrace)
+	affineChanged := false
+	var err error
 
 	// Initialize per-function traces.
 	for _, f := range m.Funcs {
@@ -365,7 +379,9 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 		if (opt.Backend == "" || opt.Backend == "z80") && opt.Runtime == "" && !opt.CPMApplicationEntry && !opt.ZXApplicationEntry {
 			tr.PtrThreading += mir2.RecognizeByteLoops(f)
 		}
-		tr.PtrThreading += mir2.StrengthReduceCountedPointers(f)
+		n := mir2.StrengthReduceCountedPointersWithOptions(f, mir2.PointerWalkOptions{DisableAffine: opt.disableAffinePointers})
+		tr.PtrThreading += n
+		affineChanged = affineChanged || n > 0
 		if opt.OptSize {
 			mir2.MergeConstantReturnTails(f)
 		}
@@ -539,6 +555,23 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 		}
 	}
 
+	if opt.OptSize && !opt.disableAffinePointers && affineChanged && !opt.SkipZ80Emission && (opt.Backend == "" || opt.Backend == "z80") {
+		baselineOpt := opt
+		baselineOpt.disableAffinePointers = true
+		baselineOpt.GraceStats = nil
+		baselineModule := hir.LowerModuleWithOptions(hm, hir.LowerOptions{DisableCountedLoops: opt.DisableCountedLoops})
+		baseline, err := compileMIRSteps(hm, baselineOpt, initialSteps, splitInfo, baselineModule)
+		if err != nil {
+			return s, err
+		}
+		candidateBytes, candidateErrors := Assemble(s.Assembly, "z80")
+		baselineBytes, baselineErrors := Assemble(baseline.Assembly, "z80")
+		// Unknown sizes cannot establish profitability. In particular, do not
+		// retain a candidate just because an external symbol prevents assembly.
+		if len(candidateErrors) != 0 || len(baselineErrors) != 0 || len(candidateBytes) > len(baselineBytes) {
+			return baseline, nil
+		}
+	}
 	return s, nil
 }
 
@@ -592,7 +625,7 @@ func CompileHIRWithOptions(hm *hir.Module, opts Options) (string, error) {
 	if err := mir2.ValidateRuntimeStack(opts.Runtime, opts.RuntimeStackBytes); err != nil {
 		return "", err
 	}
-	if opts.UseGrace || opts.Runtime != "" || opts.CPMApplicationEntry || opts.ZXApplicationEntry || needsZXApplication(hm) || opts.ProfileSelection != nil {
+	if opts.OptSize || opts.UseGrace || opts.Runtime != "" || opts.CPMApplicationEntry || opts.ZXApplicationEntry || needsZXApplication(hm) || opts.ProfileSelection != nil {
 		steps, err := CompileHIRSteps(hm, opts)
 		return steps.Assembly, err
 	}

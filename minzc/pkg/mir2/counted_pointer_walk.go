@@ -8,8 +8,19 @@ import "reflect"
 // handles global bases, word strides, constant offsets and descending loops.
 // Both preserve modular pointer arithmetic and the original memory order.
 func StrengthReduceCountedPointers(f *Func) int {
+	return StrengthReduceCountedPointersWithOptions(f, PointerWalkOptions{})
+}
+
+// PointerWalkOptions controls the general affine recognizer independently of
+// the original byte-copy lowering. DisableAffine is used for the size baseline.
+type PointerWalkOptions struct{ DisableAffine bool }
+
+func StrengthReduceCountedPointersWithOptions(f *Func, opt PointerWalkOptions) int {
 	n := strengthReduceByteCountedPointers(f)
-	return n + strengthReduceAffinePointers(f)
+	if !opt.DisableAffine {
+		n += strengthReduceAffinePointers(f)
+	}
+	return n
 }
 
 func strengthReduceByteCountedPointers(f *Func) int {
