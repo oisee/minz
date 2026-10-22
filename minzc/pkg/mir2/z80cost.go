@@ -282,7 +282,7 @@ func costPointer(loc PhysLoc) int {
 	return InfCost
 }
 
-// costIndex: ClassIndex → prefers DE (LDIR source), then HL, then BC.
+// costIndex: ClassIndex → prefers DE (LDIR destination), then HL, then BC.
 func costIndex(loc PhysLoc) int {
 	switch loc.Kind {
 	case LocReg:

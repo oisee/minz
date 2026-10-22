@@ -131,9 +131,12 @@ fun same_two()->u16{return 7}`
 // Refreshed 2026-10-21 for pair-move and word-step codegen (-23,858 T /
 // -54 bytes). Source, MIR, allocation, independent state/event oracle, and
 // equality of the direct/factory/instrumented routes were checked unchanged.
+// Refreshed 2026-10-22 for the general ordered-copy idiom: the retained
+// copy helper shrinks by 11 bytes; this workload's T states and independent
+// state/event oracle are unchanged.
 func assertCurrentMemoryHostParserReference(t *testing.T, target *MemoryHostTargetEvidence) {
 	t.Helper()
-	if target.TotalTStates != 1261070 || len(target.Binary) != 2300 || target.BinarySHA256 != "a6c913b709ef84d81e563e63a286f8fd85cddb2948cf4fa17b839c06517b6507" {
+	if target.TotalTStates != 1261070 || len(target.Binary) != 2289 || target.BinarySHA256 != "045cfd5d09db73c1f528cc6e2a7d8c16126d78049c0cffd106b1ce44a61f597b" {
 		t.Fatal("current parser target drift", target.TotalTStates, len(target.Binary), target.BinarySHA256)
 	}
 	if fmt.Sprintf("%x", sha256.Sum256(target.Binary)) != target.BinarySHA256 {

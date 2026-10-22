@@ -359,6 +359,9 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 		if mir2.FuseByteAbsDiffCFG(f) {
 			tr.FuseAbsDiff++
 		}
+		if (opt.Backend == "" || opt.Backend == "z80") && opt.Runtime == "" && !opt.CPMApplicationEntry && !opt.ZXApplicationEntry {
+			tr.PtrThreading += mir2.RecognizeByteLoops(f)
+		}
 		tr.PtrThreading += mir2.StrengthReduceCountedPointers(f)
 		if opt.OptSize {
 			mir2.MergeConstantReturnTails(f)
@@ -413,6 +416,7 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 		ct = mir2.Z80CostTable{}
 	}
 	if opt.ContractOpt {
+		mir2.PrepareByteLoopContracts(m)
 		cs := optimizePipelineContracts(m, ct, opt.ContractStrategy)
 		mir2.ApplyContracts(m, cs)
 	}
@@ -622,8 +626,9 @@ func CompileHIRWithOptions(hm *hir.Module, opts Options) (string, error) {
 		for iter := 0; iter < 100; iter++ {
 			p := mir2.PropagateConstants(f)
 			c := mir2.FoldConstants(f)
+			si := mir2.SimplifyIdentities(f)
 			e := mir2.ConstantCallElim(m, f)
-			if !p && !c && !e {
+			if !p && !c && !si && !e {
 				break
 			}
 		}
@@ -643,6 +648,9 @@ func CompileHIRWithOptions(hm *hir.Module, opts Options) (string, error) {
 		mir2.DeadBlockArgElim(f)
 		mir2.FuseAbsDiff(f)
 		mir2.FuseByteAbsDiffCFG(f)
+		if (opts.Backend == "" || opts.Backend == "z80") && opts.Runtime == "" && !opts.CPMApplicationEntry && !opts.ZXApplicationEntry {
+			mir2.RecognizeByteLoops(f)
+		}
 		mir2.StrengthReduceCountedPointers(f)
 		if opts.FuseByteWords {
 			mir2.FuseSequentialByteWords(f)
@@ -670,6 +678,7 @@ func CompileHIRWithOptions(hm *hir.Module, opts Options) (string, error) {
 	// Run BEFORE LUTGen so synthetic LUT functions keep their original param class
 	// and are not re-assigned a conflicting one (BUG-004).
 	if opts.ContractOpt {
+		mir2.PrepareByteLoopContracts(m)
 		cs := optimizePipelineContracts(m, ct, opts.ContractStrategy)
 		mir2.ApplyContracts(m, cs)
 	}

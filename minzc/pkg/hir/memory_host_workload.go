@@ -377,6 +377,9 @@ func ValidateMemoryHostMIR(source *Module, m *mir2.Module, w MemoryHostWorkload)
 				case mir2.OpAsm, mir2.OpIn8, mir2.OpIn16, mir2.OpOut8, mir2.OpOut16, mir2.OpPatchSlot, mir2.OpLoadPatched, mir2.OpPatch, mir2.OpCallIndirect:
 					return fmt.Errorf("memory host: ASM/ports/SMC/indirect unsupported")
 				case mir2.OpCall:
+					if mir2.IsByteLoopIntrinsic(f, i) {
+						continue
+					}
 					if m.FuncByName(i.Sym) == nil && (reachable[f.Name] || !strings.HasPrefix(strings.TrimPrefix(i.Sym, "@"), "mir.io.print.")) {
 						return fmt.Errorf("memory host: undeclared call %q", i.Sym)
 					}
@@ -646,7 +649,7 @@ func MemoryHostReachableFunctions(m *mir2.Module, w MemoryHostWorkload) (map[str
 		out[name] = true
 		for _, b := range f.Blocks {
 			for _, i := range b.Insts {
-				if i.Op == mir2.OpCall {
+				if i.Op == mir2.OpCall && !mir2.IsByteLoopIntrinsic(f, i) {
 					queue = append(queue, i.Sym)
 				}
 			}

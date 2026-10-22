@@ -103,7 +103,8 @@ type Inst struct {
 	ExtraRetTys     []Ty
 
 	// Inline assembly (OpAsm)
-	Asm *AsmExtra
+	ByteLoop *ByteLoopExtra `json:",omitempty"`
+	Asm      *AsmExtra
 
 	// Source location (preserved for error messages and SLD generation)
 	SrcLine int
@@ -166,6 +167,9 @@ func (inst *Inst) Uses() []Reg {
 		// no uses (pops from implicit stack)
 		return nil
 	case OpCall:
+		if inst.ByteLoop != nil {
+			return filterNoReg(inst.Args...)
+		}
 		return inst.Args
 	case OpCallCond:
 		// Both the branch predicate and every argument are live uses.

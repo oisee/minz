@@ -242,6 +242,9 @@ func DumpInst(inst *Inst) string {
 	for _, slot := range inst.StructReturnBuffers {
 		fmt.Fprintf(&sb, " [struct-result%d param%d %s:%dB]", slot.ReturnIndex, slot.ParamIndex, slot.Ty, ByteWidth(slot.Ty))
 	}
+	if inst.ByteLoop != nil && (inst.ByteLoop.CountSymbol != "" || inst.ByteLoop.ValueSymbol != "") {
+		fmt.Fprintf(&sb, " [count-global=%s value-global=%s]", inst.ByteLoop.CountSymbol, inst.ByteLoop.ValueSymbol)
+	}
 	if inst.SequentialBytes {
 		sb.WriteString(" [sequential-bytes]")
 	}

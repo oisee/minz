@@ -9,15 +9,6 @@ func HoistInvariantAddresses(f *Func) bool {
 	if len(f.Blocks) < 3 {
 		return false
 	}
-	pred := map[string][]*Block{}
-	dom := reachableDominators(f)
-	for _, b := range f.Blocks {
-		if b.Term != nil {
-			for _, succ := range b.Term.Successors() {
-				pred[succ] = append(pred[succ], b)
-			}
-		}
-	}
 	defs := map[Reg]*Block{}
 	for _, b := range f.Blocks {
 		for _, p := range b.Params {
@@ -30,43 +21,16 @@ func HoistInvariantAddresses(f *Func) bool {
 		}
 	}
 	changed := false
-	for _, head := range f.Blocks {
-		var latches []*Block
-		var pre *Block
-		for _, p := range pred[head.Label] {
-			if dom[p.Label][head.Label] {
-				latches = append(latches, p)
-			} else if pre == nil {
-				pre = p
-			} else {
-				pre = nil
-				break
-			}
-		}
-		if pre == nil || len(latches) != 1 {
+	for _, facts := range AnalyzeNaturalLoops(f) {
+		if facts.Entry == nil {
 			continue
-		}
-		jump, ok := pre.Term.(*TermJmp)
-		if !ok || jump.Target != head.Label || len(jump.Args) != len(head.Params) {
-			continue
-		}
-		loop := map[string]bool{head.Label: true}
-		stack := []*Block{latches[0]}
-		for len(stack) > 0 {
-			b := stack[len(stack)-1]
-			stack = stack[:len(stack)-1]
-			if loop[b.Label] {
+		} // hoisting requires an unconditional preheader
+		pre, loop := facts.Preheader, facts.Blocks
+		legal := true
+		for _, b := range f.Blocks {
+			if !loop[b.Label] {
 				continue
 			}
-			loop[b.Label] = true
-			stack = append(stack, pred[b.Label]...)
-		}
-		legal := true
-		for name := range loop {
-			if !dom[name][head.Label] {
-				legal = false
-			}
-			b := f.BlockByLabel(name)
 			for _, i := range b.Insts {
 				if i.Op == OpAsm || i.Op == OpCall || i.Op == OpCallIndirect || i.Op == OpCallCond || i.Op == OpIn8 || i.Op == OpIn16 || i.Op == OpOut8 || i.Op == OpOut16 {
 					legal = false
@@ -76,36 +40,7 @@ func HoistInvariantAddresses(f *Func) bool {
 		if !legal {
 			continue
 		}
-		invariant := map[Reg]Reg{}
-		for _, p := range f.Contract.Params {
-			invariant[p.Reg] = p.Reg
-		}
-		for r, b := range defs {
-			if !loop[b.Label] && dom[pre.Label][b.Label] {
-				invariant[r] = r
-			}
-		}
-		// A header parameter is invariant only when every loop edge passes it back
-		// unchanged and its entering value dominates the preheader.
-		for i, p := range head.Params {
-			entry, known := invariant[jump.Args[i]]
-			if !known {
-				continue
-			}
-			same := true
-			for _, b := range pred[head.Label] {
-				if !loop[b.Label] {
-					continue
-				}
-				args, ok := invariantEdgeArgs(b.Term, head.Label)
-				if !ok || len(args) != len(head.Params) || args[i] != p.Dst {
-					same = false
-				}
-			}
-			if same {
-				invariant[p.Dst] = entry
-			}
-		}
+		invariant := facts.Invariant
 		// Restrict arithmetic to DAGs that actually feed memory address operands.
 		needed := map[Reg]bool{}
 		var mark func(Reg)

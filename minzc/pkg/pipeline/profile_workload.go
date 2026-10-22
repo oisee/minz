@@ -146,7 +146,7 @@ func RunZ80ProfileWorkload(steps Steps, source *hir.Module, workload hir.Profile
 					case mir2.OpIn8, mir2.OpIn16, mir2.OpOut8, mir2.OpOut16, mir2.OpPatchSlot, mir2.OpLoadPatched, mir2.OpPatch, mir2.OpCallIndirect:
 						return fail(fmt.Errorf("ASM/ports/SMC/indirect calls unsupported"))
 					case mir2.OpCall:
-						if module.FuncByName(i.Sym) == nil {
+						if module.FuncByName(i.Sym) == nil && !mir2.IsByteLoopIntrinsic(f, i) {
 							return fail(fmt.Errorf("host call unsupported: %s", i.Sym))
 						}
 					}

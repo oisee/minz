@@ -73,6 +73,9 @@ func ValidateProfileWorkloadMIR(source *Module, candidate *mir2.Module, w Profil
 							return fmt.Errorf("loop profile: function address escape unsupported")
 						}
 					case mir2.OpCall:
+						if mir2.IsByteLoopIntrinsic(f, i) {
+							continue
+						}
 						if m.FuncByName(i.Sym) == nil {
 							// Known output intrinsics can remain in uncalled source
 							// functions (e.g. a demo main). The closure above still

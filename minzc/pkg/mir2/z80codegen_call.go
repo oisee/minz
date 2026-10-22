@@ -11,6 +11,10 @@ import (
 // ── Calls ─────────────────────────────────────────────────────────────────────
 
 func (g *z80cg) genCall(inst *Inst) error {
+	if inst.ByteLoop != nil {
+		g.genByteLoop(inst)
+		return nil
+	}
 	clear(g.holdsPhys) // calls clobber all volatile registers
 
 	if label, native := agonFrontendCalls[inst.Sym]; native {

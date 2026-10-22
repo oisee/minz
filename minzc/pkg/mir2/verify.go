@@ -177,10 +177,14 @@ func verifyFunc(f *Func) error {
 		return nil
 	}
 
+	info := collectRegInfo(f)
 	for _, blk := range f.Blocks {
 		for ii, inst := range blk.Insts {
 			if !sequentialByteOriginsValid(f, inst) {
 				return fmt.Errorf("sequential byte flag requires u16 load/store")
+			}
+			if !validByteLoop(f, inst, info) {
+				return fmt.Errorf("invalid byte loop intrinsic")
 			}
 			// Check all uses are defined.
 			for _, u := range inst.Uses() {
