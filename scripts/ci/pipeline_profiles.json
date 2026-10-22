@@ -4,6 +4,7 @@
   "fast": [
     "TestAccumulatorHeaderSuccessorNative",
     "TestActualLegacyCandidateImportCorpus",
+    "TestAdjacentPointerCSEVMZ80",
     "TestAffinePointerWalkNativeCAndNanz",
     "TestAffinePointerWalkProfitabilityNative",
     "TestAggregateAddressClassesNative",
