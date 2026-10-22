@@ -204,6 +204,9 @@ func inlineCFGCall(caller *Func, site *Block, index int, callee *Func, call *Ins
 	}
 	mr := func(r Reg) Reg { return remapReg(r, regMap) }
 	regs := func(rs []Reg) []Reg {
+		if rs == nil {
+			return nil
+		}
 		out := make([]Reg, len(rs))
 		for i, r := range rs {
 			out[i] = mr(r)

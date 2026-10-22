@@ -252,9 +252,13 @@ func remapInst(inst *Inst, regMap map[Reg]Reg) *Inst {
 			ni.Args[i] = remapReg(a, regMap)
 		}
 	}
-	ni.ExtraRets = make([]Reg, len(inst.ExtraRets))
-	for i, r := range inst.ExtraRets {
-		ni.ExtraRets[i] = remapReg(r, regMap)
+	// Keep absent call metadata absent: local-address authority requires the
+	// exact pointer instruction shape, including nil return metadata.
+	if inst.ExtraRets != nil {
+		ni.ExtraRets = make([]Reg, len(inst.ExtraRets))
+		for i, r := range inst.ExtraRets {
+			ni.ExtraRets[i] = remapReg(r, regMap)
+		}
 	}
 	return &ni
 }
