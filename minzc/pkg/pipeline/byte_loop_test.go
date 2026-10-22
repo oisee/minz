@@ -150,7 +150,7 @@ func TestByteScanZeroCPIRNative(t *testing.T) {
 func TestByteFillLDIRNative(t *testing.T) {
 	for _, language := range []string{"c", "nanz"} {
 		for _, mode := range []string{"default", "size", "grace"} {
-			for _, form := range []string{"index", "pointer", "global", "byte_count"} {
+			for _, form := range []string{"index", "pointer", "global", "byte_count", "symbol_global"} {
 				t.Run(language+"/"+mode+"/"+form, func(t *testing.T) {
 					var source string
 					if language == "c" {
@@ -180,13 +180,20 @@ func TestByteFillLDIRNative(t *testing.T) {
 							source = byteLoopNanzGlobals + "fun fill(p:^u8,count:u8,v:u8){for i:u8 in 0..count {p[i]=v}}\nfun execute(){fill(&buffer+dst_off,u8(n),value)\nresult=n}"
 						}
 					}
+					if form == "symbol_global" {
+						if language == "c" {
+							source = byteLoopCGlobals + `unsigned char C,AF;void execute(void){unsigned char i;C=(unsigned char)n;AF=value;for(i=0;i<C;i++)buffer[i]=AF;result=C;}`
+						} else {
+							source = byteLoopNanzGlobals + "global C:u8\nglobal AF:u8\nfun execute(){C=u8(n)\nAF=value\nvar i:u8=0\nwhile i<C {buffer[i]=AF\ni=i+1}\nresult=u16(C)}"
+						}
+					}
 					var cases []byteLoopCase
 					for _, n := range []int{0, 1, 2, 255, 256, 2047} {
-						if (form == "global" || form == "byte_count") && n > 255 {
+						if (form == "global" || form == "byte_count" || form == "symbol_global") && n > 255 {
 							continue
 						}
 						dst := 17
-						if form == "global" {
+						if form == "global" || form == "symbol_global" {
 							dst = 0
 						}
 						for _, v := range []byte{0, 0x81, 0xff} {

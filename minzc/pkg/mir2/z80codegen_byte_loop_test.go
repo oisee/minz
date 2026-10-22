@@ -136,3 +136,37 @@ func TestByteLoopNativeRegisterCanaries(t *testing.T) {
 		}
 	}
 }
+
+func TestByteLoopGlobalSymbolLabels(t *testing.T) {
+	for _, names := range [][4]string{{"module.limit", "module.value", "module_limit", "module_value"}, {"C", "AF", "v_C", "v_AF"}} {
+		t.Run(names[0], func(t *testing.T) {
+			var code strings.Builder
+			g := pairMoveGenerator(&code)
+			g.curBlock = g.fn.Entry()
+			g.ar.Locs[1] = PhysLoc{Kind: LocReg, Name: "HL"}
+			x := &Inst{Op: OpCall, Sym: fillBytesIntrinsic, Ty: TyVoid, Args: []Reg{1, NoReg, NoReg}, ByteLoop: &ByteLoopExtra{CountTy: TyU8, CountSymbol: names[0], ValueSymbol: names[1]}}
+			g.curBlock.Insts = []*Inst{x}
+			g.genByteLoop(x)
+			if g.err != nil {
+				t.Fatal(g.err)
+			}
+			asm := "ORG 0x8000\nentry:\nLD HL,0x4000\n" + code.String() + "\nDI\nHALT\n" + names[2] + ": DB 3\n" + names[3] + ": DB 211\n"
+			a, err := z80asm.NewAssembler().AssembleString(asm)
+			if err != nil {
+				t.Fatal(err, asm)
+			}
+			if len(a.Errors) > 0 {
+				t.Fatal(a.Errors, asm)
+			}
+			z := emulator.NewRemogattoZ80()
+			copy(z.Memory()[0x8000:], a.Binary)
+			z.SetRegisters(emulator.Registers{PC: 0x8000, SP: 0xf000})
+			for i := 0; i < 1000 && !z.IsHalted(); i++ {
+				z.Step()
+			}
+			if !z.IsHalted() || z.GetSP() != 0xf000 || !bytes.Equal(z.Memory()[0x4000:0x4004], []byte{211, 211, 211, 0}) {
+				t.Fatal("global symbol lowering", z.GetRegisters(), asm)
+			}
+		})
+	}
+}

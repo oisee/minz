@@ -62,7 +62,7 @@ func (g *z80cg) genFillBytes(x *Inst) {
 	}
 	g.emitParallelCopy(moves)
 	if e.CountSymbol != "" {
-		g.emitf("    LD A, (%s)", e.CountSymbol)
+		g.emitf("    LD A, (%s)", sanitizeIdent(e.CountSymbol))
 		g.emit("    LD C, A")
 	}
 	if e.CountTy == TyU8 {
@@ -85,7 +85,7 @@ func (g *z80cg) genFillBytes(x *Inst) {
 	g.trampIdx++
 	g.emitf("    JRS Z, .byte_fill_done_%d", label)
 	if e.ValueSymbol != "" {
-		g.emitf("    LD A, (%s)", e.ValueSymbol)
+		g.emitf("    LD A, (%s)", sanitizeIdent(e.ValueSymbol))
 	} else if !preserveValueA {
 		g.emit("    LD A, E")
 	}
