@@ -209,39 +209,36 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 			return
 		}
 
-		// If there is a pending ClassAcc value in A that is still live after this
-		// instruction, save it to a scratch register before we overwrite A.
-		// This fires when two successive 8-bit ALU ops both need A: the first
-		// result (r33=acc) must survive while the second (r35=i+1) runs.
-		// Skip when the peephole below will use INC/DEC (does not touch A).
-		// INC/DEC doesn't clobber A — only fires when rhs is a small constant.
-		_, rhsIsConst := g.constVals[inst.Src[1]]
-		willUseINCDEC := (mnem == "ADD" || mnem == "SUB") && lhs == dst && rhsIsConst
-		if !willUseINCDEC {
-			g.materializePendingAcc(inst)
+		// INC/DEC preserve carry, unlike ADD/SUB. Only use this sequence when
+		// no consumer observes arithmetic flags. A separate destination needs
+		// one ordinary byte copy first; it need not pass through A.
+		cv, rhsIsConst := g.constVals[inst.Src[1]]
+		if rhsIsConst && byteSmallStep(g.fn, inst, cv, lhs, dst) {
+			if dst == "A" {
+				g.materializePendingAcc(inst)
+				g.saveABeforeOverwrite(inst)
+				if lhs == "A" && g.loc(inst.Src[0]) == "A" {
+					g.saveAccOperandIfLive(inst.Src[0], inst)
+				}
+			}
+			if lhs != dst {
+				g.emitLD8(dst, lhs)
+			}
+			step := "INC"
+			if mnem == "SUB" {
+				step = "DEC"
+			}
+			for range cv {
+				g.emitf("    %s %s", step, dst)
+			}
+			g.invalidate(dst)
+			if dst == "A" {
+				g.pendingAccReg = inst.Dst
+			}
+			return
 		}
+		g.materializePendingAcc(inst)
 
-		// Peephole: ADD/SUB dst, N where dst == lhs and N ≤ 3 → INC/DEC dst × N.
-		// N=1: 1B/4T vs 4B/15T; N=2: 2B/8T vs 4B/15T; N=3: 3B/12T vs 4B/15T.
-		// N=4 would be 16T vs 15T — worse in T-states, skip and fall through to ALU.
-		if mnem == "ADD" && lhs == dst && !isSpill(dst) && dst != "F" {
-			if cv, ok := g.constVals[inst.Src[1]]; ok && cv >= 1 && cv <= 3 {
-				for range cv {
-					g.emitf("    INC %s", dst)
-				}
-				g.invalidate(dst)
-				return
-			}
-		}
-		if mnem == "SUB" && lhs == dst && !isSpill(dst) && dst != "F" {
-			if cv, ok := g.constVals[inst.Src[1]]; ok && cv >= 1 && cv <= 3 {
-				for range cv {
-					g.emitf("    DEC %s", dst)
-				}
-				g.invalidate(dst)
-				return
-			}
-		}
 		// 8-bit: accumulator must hold lhs.  Emit LD A,lhs if needed.
 		//
 		// Special case: rhs is already A and lhs is elsewhere.
@@ -1256,4 +1253,20 @@ func (g *z80cg) emitDyingPairExchange(inst *Inst, dst, src string, width int) bo
 func smallWordStep(value int64) bool {
 	v := int16(value)
 	return v >= -2 && v <= 2 && v != 0
+}
+
+// byteSmallStep is shared by emission and constant-load suppression. Cross-home
+// copies are restricted to primary bytes, whose LD does not need scratch A.
+func byteSmallStep(f *Func, inst *Inst, cv int64, lhs, dst string) bool {
+	if (inst.Op != OpAdd && inst.Op != OpSub) || inst.Ty == nil || inst.Ty.Width() != 8 || cv < 1 || cv > 3 || !wordMaskFlagsUnobserved(f, inst.Dst) {
+		return false
+	}
+	primary := func(s string) bool {
+		switch s {
+		case "A", "B", "C", "D", "E", "H", "L":
+			return true
+		}
+		return false
+	}
+	return primary(lhs) && primary(dst) || lhs == dst && isIXYReg(dst)
 }

@@ -355,6 +355,7 @@
     "TestSignedSubCmpBoundaryVMZ80",
     "TestSignedWideExtensionSourceNative",
     "TestSignedWordLiteralLeftKeepsArithmeticWidth",
+    "TestSmallStepFillNative",
     "TestSpectrumPhaseWorkloadNative",
     "TestSpectrumPhaseWorkloadRefusals",
     "TestStructMethodPointerAndFieldScratchNative",
