@@ -352,7 +352,7 @@
     "independent_model": "n*(n+1)/2 modulo 256; VM/native baseline and chosen transformations",
     "boundary": "Named sum_array entry; original main not executed. Cost coefficients refreshed after counted-pointer lowering: baseline 41+54*n, guarded profitability boundary 11/12 independently executed; pair-move codegen (O3) re-measured the fallback at 178T/iteration and 171 module bytes, fast path unchanged; historical costs are not current evidence.",
     "evidence": {
-      "minzc/pkg/pipeline/profile_guided_sum_test.go": "e412596a523329efacf6437974ffc7154c4bd43dfcd5bb7cb09e7f006edf83da",
+      "minzc/pkg/pipeline/profile_guided_sum_test.go": "6a40915a27fddc59546bc80f063ae5761ad37b9c9f68615f386cd64421624001",
       "reports/profile-coalesced-edge-costs/root.txt": "7685133d9d5ccb2e269f3b444ec9dfe4be6d6977348fcffe4fae6766fe9a3eb1",
       "reports/copy-fat12-optimization/validation/minz-copy-fat-cost-regression.log": "c5c82ca7bd785f30c0c0f7cc700494df2609870fadec8db408fca0327067a18c"
     }
