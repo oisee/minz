@@ -311,3 +311,13 @@ Critic sizes are entire module bytes, not per-function bytes.
 | crit fib | 942 (223) | 942 (223) | 942 (215) | 942 (215) | 942 (215) |
 | crit tri | 144,482 (223) | 144,482 (223) | 105,542 (215) | 105,542 (215) | 105,542 (215) |
 | crit many | 19,724 (223) | 19,724 (223) | 19,724 (215) | 19,724 (215) | 19,724 (215) |
+
+## Re-measured on the current base (2026-10-22)
+
+The tables above were measured against 213080842, before O5 (#236). After the
+rebase onto 66ecc77b4 the i5 gate (SDCC 4.6 matrix) shows, default profile:
+bitwise8reg 101→95 B, 872,448→831,488 T; copy_bytes 182→181 B,
+301,600→289,120 T; crc8 322→315 B, 110,291,362→94,778,402 T (−14%, now below
+SDCC 4.6's 104,720,964 T); mul8x8 47→45 B, 1,167,872→1,096,192 T;
+struct_roundtrip 71→59 B, 612,352→567,296 T. Heldout: checksum16
+58,206,776→56,128,056 T, popcount8 171,847,680→168,892,160 T. No cell worse.
