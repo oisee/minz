@@ -143,10 +143,17 @@ python3 research/c89-benchmark/parity.py /path/to/artifacts/summary.json
 The script requires idiomatic rows (`--include-refs`), compares each recorded
 idiomatic profile to the matching C profile, and prints Nanz/C T-state ratios.
 Where a tuple reference exists, it also prints struct/tuple T-state ratios.
+A missing tuple row prints `n/a` and `PASS (C only; tuple n/a)` if C parity
+passes; that row supplies no tuple-parity pass evidence.
 It exits nonzero and names every case exceeding 1.05× C, or with failed/missing
 matching measurements. This is a parity gate, not a before/after regression
 gate: existing frontend gaps in other cases can keep it red after one gap is
 fixed. Bytes and absolute T-states remain in `summary.json`.
+
+The frontend-neutral MIR2 single-bit canonicalization can change C output too:
+`(x & mask) == mask` becomes a nonzero test for a single-bit mask, including
+signed top-bit masks. The earlier unchanged C corpus measurements describe only
+those measured inputs; they do not imply byte-identical output for arbitrary C.
 
 ## Iterator fusion showcase
 

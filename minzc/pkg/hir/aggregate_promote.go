@@ -99,7 +99,7 @@ func promoteStructReturns(m *Module, onlyC, typedOnly bool) {
 					}
 				}
 			})
-			if _, typed := mir2.BaseOf(fn.RetTy).(*mir2.StructTy); !typed || fn.CValueABI || !complete {
+			if st, typed := mir2.BaseOf(fn.RetTy).(*mir2.StructTy); !typed || !isTypedScalarStruct(st) || fn.CValueABI || !complete {
 				delete(eligible, fn.Name)
 			}
 		}
@@ -192,6 +192,21 @@ func isShallowScalarStruct(st *mir2.StructTy) bool {
 		totalBytes += mir2.ByteWidth(f.Ty)
 	}
 	return totalBytes <= 4
+}
+
+// isTypedScalarStruct limits the frontend-neutral pass until P36 fixes Z80
+// multi-bool tuple returns. Bool slots beyond the first two retain memory ABI;
+// the restriction can be lifted after P36, independently of C's legacy gates.
+func isTypedScalarStruct(st *mir2.StructTy) bool {
+	if !isShallowScalarStruct(st) {
+		return false
+	}
+	for i, f := range st.Fields {
+		if i >= 2 && mir2.BaseOf(f.Ty) == mir2.TyBool {
+			return false
+		}
+	}
+	return true
 }
 
 func isScalarTy(ty mir2.Ty) bool {

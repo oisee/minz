@@ -1,5 +1,7 @@
 # N1a frontend-neutral optimization verification
 
+Round-1 historical measurements follow. See the [round-2 correction and verification](2026-10-22-n1a-round2.md) for the independent bool guard, explicit ABI preservation and current validation.
+
 Baseline: `origin/main` (`33418f905`) in `/mnt/ssd-510/minz/tmp/n1a-before`.
 Artifacts: `/mnt/ssd-510/minz/bench/n1a-before` and `/mnt/ssd-510/minz/bench/n1a-after`.
 
@@ -151,7 +153,7 @@ Final compiler checks:
 
 - Required full unit command: `go test ./pkg/mir2/... ./pkg/hir/... ./pkg/c89/... ./pkg/nanz/... ./pkg/z80asm/... -count=1`, all six package results PASS (`/mnt/ssd-510/minz/tmp/n1a-unit-complete.log`). Final HIR-only admission tightening is followed by another affected-package run.
 - Related pipeline run: 16 tests covering aggregate address classes/lifetimes, bool storage, pointer methods, global aggregate literals, diamond shifts and O8 safety/profitability kernels, PASS in 182.296 s (`n1a-pipeline-final.log`). Only targeted pipeline tests were run.
-- Final C corpus fingerprint: 66 files; 61 byte-identical assemblies and five identical frontend errors (c23_bitint, c23_constexpr_enum, c23_misc, fatfs/diskio and import_test). No successful example was lost (`n1a-c-corpus-before.json`, `n1a-c-corpus-final.json`).
+- Final C corpus fingerprint: 66 files; 61 byte-identical assemblies and five identical frontend errors (c23_bitint, c23_constexpr_enum, c23_misc, fatfs/diskio and import_test). No successful example was lost (`n1a-c-corpus-before.json`, `n1a-c-corpus-final.json`). This is a corpus-specific observation, not a general C output invariant: `CanonicalizeSingleBitTests` changes C output when single-bit equality spellings occur, including signed top-bit masks in `cbits.c`.
 - Production reversal proof: `git diff --binary --no-renames origin/main` saved to `n1a-production.patch`, applied with `git apply -R`, tests returned exit 1, then restored with `git apply`. The bit test failed for C and Nanz in both Grace modes; the struct test failed for Nanz's unscalarized return (`n1a-reversed-red.log`).
 - Struct tests also cover source-ordered effectful initializers, returns and calls inside switch cases, whole-object and field-address escapes, and repeated pointer names in separate lexical blocks. The alias safety subtest passes with storage semantics preserved; it is complementary negative coverage, not an origin/main optimization failure.
 - Parity Python tests: 3/3 PASS. Both new top-level Go tests are in the sorted fast inventory.

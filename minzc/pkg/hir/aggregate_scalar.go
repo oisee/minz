@@ -473,7 +473,7 @@ func scalarizeAggregateLocals(b *Block, allowAliases bool) {
 				ok = true
 			}
 		}
-		if !ok || !isShallowScalarStruct(lit.St) || !completeScalarLiteral(lit) {
+		if !ok || !isShallowScalarStruct(lit.St) || !allowAliases && !isTypedScalarStruct(lit.St) || !completeScalarLiteral(lit) {
 			continue
 		}
 		fields := scalarFields(lit.St, d.Name)
@@ -559,6 +559,11 @@ func scalarizeAggregateParams(m *Module, onlyC, typedOnly bool) bool {
 		}
 		for pi := len(fn.Params) - 1; pi >= 0; pi-- {
 			p := fn.Params[pi]
+			// Explicit register/SMC annotations define the caller's ABI and cannot
+			// be transferred to independently allocated scalar field parameters.
+			if p.RegClass != 0 || p.SMC {
+				continue
+			}
 			var decl *VarDeclStmt
 			for _, s := range fn.Body.Body {
 				if d, ok := s.(*VarDeclStmt); ok && d.Name == p.Name {
@@ -596,7 +601,15 @@ func scalarizeAggregateParams(m *Module, onlyC, typedOnly bool) bool {
 				continue
 			}
 			st := decl.Ty.(*mir2.StructTy)
+			if typedOnly && !isTypedScalarStruct(st) {
+				continue
+			}
 			fields := scalarFields(st, p.Name)
+			if typedOnly {
+				for i, field := range st.Fields {
+					fields[field.Name].Name = fmt.Sprintf("__scalar_%s_%d", p.Name, i)
+				}
+			}
 			collision := false
 			for _, existing := range fn.Params {
 				for _, v := range fields {
