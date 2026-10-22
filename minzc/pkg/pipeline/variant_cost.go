@@ -546,3 +546,33 @@ func (im *variantImage) score(f *mir2.Func) (int64, bool) {
 	cost, ok := costs[-1]
 	return cost, ok
 }
+
+// Bytes are authoritative, including data, spills and range relaxation. Only
+// equal-byte products need the static T model. Refuse unknown costs or changed
+// function inventories: no unsupported helper/loop is silently scored as zero.
+func sizeVariantFaster(a, b *variantImage, before, after *mir2.Module) bool {
+	if len(before.Funcs) != len(after.Funcs) {
+		return false
+	}
+	var oldT, newT int64
+	for _, f := range before.Funcs {
+		g := after.FuncByName(f.Name)
+		if g == nil {
+			return false
+		}
+		if f.Attrs.IsExtern {
+			continue
+		}
+		x, ok := a.score(f)
+		if !ok {
+			return false
+		}
+		y, ok := b.score(g)
+		if !ok {
+			return false
+		}
+		oldT += x
+		newT += y
+	}
+	return newT < oldT
+}

@@ -1009,6 +1009,8 @@ func (g *z80cg) genShift(mnem string, inst *Inst) {
 			// Unsigned word >> 8 is just its high byte, zero extended.
 			g.emitf("    LD %s, %s", lo, hi)
 			g.emitf("    LD %s, 0", hi)
+		} else if g.functionOptions.CompactShifts && g.genCompactConstantShift(mnem, inst, shiftDst, count, 16) {
+			// Complete native candidate; the pipeline measures its encoded bytes.
 		} else {
 			for i := int64(0); i < count; i++ {
 				switch mnem {
@@ -1036,6 +1038,10 @@ func (g *z80cg) genShift(mnem string, inst *Inst) {
 		if isIXY(dst) {
 			g.invalidate("HL")
 		}
+		return
+	}
+	if g.functionOptions.CompactShifts && g.genCompactConstantShift(mnem, inst, dst, count, 8) {
+		g.invalidate(dst)
 		return
 	}
 	for i := int64(0); i < count; i++ {

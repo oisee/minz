@@ -68,7 +68,7 @@ var Z80PhysLocs = []PhysLoc{
 //	Memory round-trip: z80timing.MemRoundTrip8    = 26T  (LD (nn),A + LD A,(nn))
 //	IXY overhead:      z80timing.IXY_OVERHEAD     =  4T  (DD/FD prefix per instr)
 //	Flag materialise:  z80timing.FlagMaterialise8 =  8T  (SCF+SBC A,A)
-type Z80CostTable struct{}
+type Z80CostTable struct{ OptimizeForSize bool }
 
 var _ CostTable = (*Z80CostTable)(nil)
 
@@ -77,7 +77,30 @@ func (Z80CostTable) Locs() []PhysLoc { return Z80PhysLocs }
 
 // Cost returns the assignment cost for a virtual register with preferred class cls
 // to physical location loc.
-func (Z80CostTable) Cost(cls RegClass, loc PhysLoc) int {
+func (ct Z80CostTable) Cost(cls RegClass, loc PhysLoc) int {
+	c := z80SpeedCost(cls, loc)
+	if ct.OptimizeForSize && cls == ClassGeneral && loc.Kind == LocReg && loc.Name == "A" {
+		return 0
+	}
+	if !ct.OptimizeForSize || c == 0 || c >= InfCost {
+		return c
+	}
+	// An alternative allocation heuristic only. Admission uses final assembled
+	// module bytes, including adapters and spills, never these estimated costs.
+	switch loc.Kind {
+	case LocReg:
+		return (c + 3) / 4
+	case LocIXY, LocIXY8:
+		return (c+3)/4 + 1
+	case LocStack, LocShadow:
+		return 2
+	case LocMem:
+		return 6
+	}
+	return (c + 3) / 4
+}
+
+func z80SpeedCost(cls RegClass, loc PhysLoc) int {
 	switch cls {
 	case ClassAcc:
 		return costAcc(loc)

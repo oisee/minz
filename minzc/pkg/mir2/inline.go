@@ -58,7 +58,7 @@ package mir2
 // Returns true if any inlining was performed.
 //
 // Run PropagateCopies + DeadStoreElim on each caller after this pass.
-func InlineTrivial(mod *Module, maxSize int) bool {
+func InlineTrivial(mod *Module, maxSize int, keepCallers ...map[string]bool) bool {
 	trivial := findTrivialFuncs(mod, maxSize)
 	if len(trivial) == 0 {
 		return false
@@ -66,7 +66,13 @@ func InlineTrivial(mod *Module, maxSize int) bool {
 
 	anyChanged := false
 	for _, caller := range mod.Funcs {
+		if len(keepCallers) > 0 && keepCallers[0][caller.Name] {
+			continue
+		}
 		if inlineCallsInFunc(caller, mod, trivial) {
+			if len(keepCallers) > 1 && keepCallers[1] != nil {
+				keepCallers[1][caller.Name] = true
+			}
 			anyChanged = true
 		}
 	}
