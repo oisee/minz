@@ -131,10 +131,22 @@ func TestGracePreservesInfiniteLoops(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
+			if len(h.Asserts) != 9 {
+				t.Fatalf("C23 assertion inventory changed: %d", len(h.Asserts))
+			}
+			// Source annotations say "via mir2"; force the selected backend so
+			// the native replay cannot silently skip the nine assertions.
+			for i := range h.Asserts {
+				h.Asserts[i].Via = backend
+			}
+			h.AssertStats = &hir.AssertStats{}
 			if _, err := CompileHIRSteps(h, Options{ContractOpt: true, UseGrace: true, UseHIRGrace: true, AssertMode: backend}); err != nil {
 				t.Fatal(err)
 			}
+			if *h.AssertStats != (hir.AssertStats{Executed: 9, Passed: 9}) {
+				t.Fatalf("%s assertion receipt: %+v", backend, h.AssertStats)
+			}
+			t.Logf("%s assertion receipt: %+v", backend, h.AssertStats)
 		})
 	}
-
 }

@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/minz/minzc/pkg/emulator"
+	"github.com/minz/minzc/pkg/mir2"
 	"github.com/minz/minzc/pkg/nanz"
 	"github.com/minz/minzc/pkg/pipeline"
 	"github.com/minz/minzc/pkg/z80asm"
@@ -34,14 +35,23 @@ fun sum_array(ptr: ^u8, n: u8) -> u8 {
 	if err != nil {
 		t.Fatalf("parse: %v", err)
 	}
-	genAsm, err := pipeline.CompileHIR(m)
+	steps, err := pipeline.CompileHIRSteps(m, pipeline.DefaultOptions())
 	if err != nil {
 		t.Fatalf("compile: %v", err)
 	}
+	genAsm := steps.Assembly
+	f := steps.MIR2Module.FuncByName("sum_array")
+	pointer := steps.Allocation.Loc(f.Contract.Params[0].Reg)
+	count := steps.Allocation.Loc(f.Contract.Params[1].Reg)
+	if pointer.Kind != mir2.LocReg || count.Kind != mir2.LocReg {
+		t.Fatalf("fixture needs register arguments: pointer=%v count=%v", pointer, count)
+	}
 	t.Logf("generated Z80:\n%s", genAsm)
 
-	// The function signature is: sum_array(ptr: ^u8 = HL, n: u8 = C) -> u8 = A.
-	// Boot: initialise an array at 0x9000, load HL=0x9000, C=n, CALL sum_array, HALT.
+	// Grace currently assigns n to A, while the old default assigned C.
+	// Initialize the caller from the actual allocation; PFCCO may choose a new
+	// parameter register without changing the source or expected sums.
+	// Boot: initialise an array at 0x9000, set arguments, CALL sum_array, HALT.
 	// Array values: [10, 20, 30, 40, 50, 100, 1, 2] so sums are easy to compute.
 	runWith := func(n int) (uint8, error) {
 		boot := fmt.Sprintf(`
@@ -63,12 +73,12 @@ fun sum_array(ptr: ^u8, n: u8) -> u8 {
     LD (HL), 1
     INC HL
     LD (HL), 2
-    LD HL, 0x9000
-    LD C, %d
+    LD %s, 0x9000
+    LD %s, %d
     CALL sum_array
     DI
     HALT
-`, ptrWhileLoadAddr, n)
+`, ptrWhileLoadAddr, pointer.Name, count.Name, n)
 		fullSrc := boot + "\n" + genAsm
 		as := z80asm.NewAssembler()
 		res, err := as.AssembleString(fullSrc)
@@ -100,11 +110,11 @@ fun sum_array(ptr: ^u8, n: u8) -> u8 {
 		n    int
 		want int
 	}{
-		{0, 0},           // empty sum
-		{1, 10},          // [10]
-		{2, 30},          // 10+20
-		{4, 100},         // 10+20+30+40
-		{5, 150},         // 10+20+30+40+50
+		{0, 0},   // empty sum
+		{1, 10},  // [10]
+		{2, 30},  // 10+20
+		{4, 100}, // 10+20+30+40
+		{5, 150}, // 10+20+30+40+50
 	}
 	for _, tc := range cases {
 		got, err := runWith(tc.n)

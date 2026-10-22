@@ -106,6 +106,7 @@
     "TestDeadForwardedLoopArgNative",
     "TestDecimalPrintSourceCompile",
     "TestDecimalPrintSourceNative",
+    "TestDefaultOptionsEnableGrace",
     "TestDefaultRuntimeKeepsProfileIdentity",
     "TestDemandedBytePromotionNative",
     "TestDivModModuleVMZ80",
