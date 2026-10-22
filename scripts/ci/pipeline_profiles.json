@@ -112,6 +112,7 @@
     "TestDefaultOptionsEnableGrace",
     "TestDefaultRuntimeKeepsProfileIdentity",
     "TestDemandedBytePromotionNative",
+    "TestDiamondCommonShiftVMZ80",
     "TestDivModModuleVMZ80",
     "TestErrorABIRejectsUnimplementedBackend",
     "TestErrorABIRejectsUnsupportedBeforeLowering",
