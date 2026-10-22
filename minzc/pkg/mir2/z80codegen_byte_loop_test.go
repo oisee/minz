@@ -11,11 +11,16 @@ import (
 // Exercise adapters with permuted input homes and canaries in every main
 // register, including a predicate in F which is not a pending comparison.
 func TestByteLoopNativeRegisterCanaries(t *testing.T) {
-	for _, kind := range []string{"scan", "fill", "copy"} {
+	for _, kind := range []string{"scan", "fill", "copy", "scan-scalar", "fill-scalar", "copy-scalar"} {
 		for _, layout := range []int{0, 1, 2} {
 			t.Run(kind+string(rune('0'+layout)), func(t *testing.T) {
 				var code strings.Builder
 				g := pairMoveGenerator(&code)
+				kind := kind
+				if strings.HasSuffix(kind, "-scalar") {
+					g.functionOptions.CompactByteLoops = true
+					kind = strings.TrimSuffix(kind, "-scalar")
+				}
 				g.curBlock = g.fn.Entry()
 				x := &Inst{Op: OpCall, Ty: TyVoid, ByteLoop: &ByteLoopExtra{CountTy: TyU8}}
 				inputs := []string{"HL", "B", "E"}
