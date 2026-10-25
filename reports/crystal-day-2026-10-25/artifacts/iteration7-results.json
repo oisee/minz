@@ -1,0 +1,26 @@
+{
+  "cases_per_engine": 1566,
+  "engines": [
+    "native Crystal",
+    "raw MIR2",
+    "optimized MIR2",
+    "Z80"
+  ],
+  "byte_functions": 6,
+  "all_byte_seeds": 256,
+  "wide_length_cases": 20,
+  "word_cases": 10,
+  "negative_controls": 7,
+  "target_descriptor_bytes": 4,
+  "native_descriptor_bytes": "16,16",
+  "source_sha256": "48bc5154d19ca0d5e2c2915ef077f1a4ef49b9de17ec0a2553836884950c9fd9",
+  "exporter_sha256": "0de2a1d1fcbd430903d7d7010392c0382c79a731d6e5ad5a97386d3cd2eac501",
+  "seconds": {
+    "build-exporter": 7.159,
+    "build-consumer": 0.084,
+    "export": 1.646,
+    "target": 80.742,
+    "native": 0.975,
+    "native-layout": 0.626
+  }
+}

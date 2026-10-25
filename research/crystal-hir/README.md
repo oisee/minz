@@ -1,6 +1,12 @@
 # Crystal → HIR
 
-**Текущий шаг:** [Итерация 11: общий ring FIFO и два borrowed segments](ITERATION11.md).
+**Ближайшая веха завершена:** [Итерация 12: generator frame liveness](ITERATION12.md).
+Ring frame 53 → 13 B, бесконечный counter 6 → 3 B; 2048 generator и 525 ring
+наборов заново прошли native Crystal, оба MIR2 и Z80, вместе с общими Nanz gates.
+[Итоговая статья за день](../../reports/crystal-day-2026-10-25/index.html) —
+Crystal и общие улучшения compiler, инфографика, реальные ASM и ограничения.
+
+**Итерация 11:** [Итерация 11: общий ring FIFO и два borrowed segments](ITERATION11.md).
 Descriptor 8 B, без allocation/division. 525 наборов на native Crystal,
 обоих MIR2 и Z80; 6 отказов. Независимый Go FIFO: 10 трасс / 3224 операции
 на каждом target engine. Исправлена file identity через symlink; старый API

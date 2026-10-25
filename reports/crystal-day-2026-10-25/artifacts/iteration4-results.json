@@ -1,0 +1,48 @@
+{
+  "cases_per_engine": 768,
+  "engines": [
+    "native Crystal",
+    "raw MIR2",
+    "optimized MIR2",
+    "Z80"
+  ],
+  "negative_controls": 7,
+  "target_layout_receipts": [
+    {
+      "protocol": "minz-meta-layout-v1",
+      "target": "z80",
+      "function": "meta_layout_byte_8_7",
+      "record": "record_0",
+      "field": "marker",
+      "offset": 7,
+      "record_bytes": 8,
+      "pointer_bytes": 2,
+      "generator_sha256": "553155484c0b43a3ea82e4ebef86bfb79731416566d0d01a8b7ad2a788cdf709"
+    },
+    {
+      "protocol": "minz-meta-layout-v1",
+      "target": "z80",
+      "function": "meta_layout_byte_3_0",
+      "record": "record_1",
+      "field": "marker",
+      "offset": 0,
+      "record_bytes": 3,
+      "pointer_bytes": 2,
+      "generator_sha256": "553155484c0b43a3ea82e4ebef86bfb79731416566d0d01a8b7ad2a788cdf709"
+    }
+  ],
+  "native_host_layout": {
+    "pointer_bytes": 8,
+    "arena_bytes": 24,
+    "marker_offset": 20
+  },
+  "source_sha256": "f8b901929a5837e3b68db3959307728bcf2dac84123dde398d234391d5a54945",
+  "exporter_sha256": "7d690c906490533e616589f0d0dbc64850e1037feb9e4f7cc3e31759ac337e19",
+  "seconds": {
+    "build-exporter": 8.193,
+    "build-consumer": 0.088,
+    "export": 1.559,
+    "target": 11.68,
+    "native": 0.693
+  }
+}

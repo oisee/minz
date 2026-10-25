@@ -1,0 +1,134 @@
+{
+  "branch": "spike/crystal-hir",
+  "target": "Z80",
+  "frame_liveness_commit": "09ba28f96",
+  "baseline_ring_commit": "b6951b11f",
+  "latest_milestone": {
+    "milestone": "generator definition liveness and daily article",
+    "engines": [
+      "native Crystal",
+      "raw MIR2",
+      "optimized MIR2",
+      "Z80"
+    ],
+    "generator_cases_per_engine": 2048,
+    "generator_negative_controls": 5,
+    "ring_cases_per_engine": 525,
+    "ring_negative_controls": 6,
+    "legacy_buffer_cases_per_engine": 7,
+    "fifo_model_traces": 10,
+    "fifo_model_operations_per_engine": 3224,
+    "ring_frame_before_bytes": 53,
+    "ring_frame_after_bytes": 13,
+    "ring_frame_after_fields": [
+      {
+        "bytes": 1,
+        "name": "tag",
+        "offset": 0,
+        "ty": "u8"
+      },
+      {
+        "bytes": 2,
+        "name": "first",
+        "offset": 1,
+        "ty": "ptr"
+      },
+      {
+        "bytes": 2,
+        "name": "count",
+        "offset": 3,
+        "ty": "u16"
+      },
+      {
+        "bytes": 2,
+        "name": "second",
+        "offset": 5,
+        "ty": "ptr"
+      },
+      {
+        "bytes": 2,
+        "name": "rest",
+        "offset": 7,
+        "ty": "u16"
+      },
+      {
+        "bytes": 2,
+        "name": "reads",
+        "offset": 9,
+        "ty": "ptr"
+      },
+      {
+        "bytes": 2,
+        "name": "i",
+        "offset": 11,
+        "ty": "u16"
+      }
+    ],
+    "byte_stream_frame_before_bytes": 33,
+    "byte_stream_frame_after_bytes": 33,
+    "rle_frame_before_bytes": 47,
+    "rle_frame_after_bytes": 47,
+    "infinite_frame_before_bytes": 6,
+    "infinite_frame_after_bytes": 3,
+    "nanz_anf_frame_before_bytes": 8,
+    "nanz_anf_frame_after_bytes": 3,
+    "conservative_fallback": [
+      "address expressions",
+      "let-in",
+      "for/foreach",
+      "goto/label",
+      "asm",
+      "other unmodelled statements"
+    ],
+    "compiler_sha256": {
+      "minzc/pkg/hir/lower_gen.go": "22dc95f6503d6eec6c23a23a7f7ce88849baa333d8751c6cd02de1e083e2f2da",
+      "minzc/pkg/hir/gen_liveness.go": "e891cf18fa6761205b63643d1aadf2388b89beae3244fde35ed54547411710dc",
+      "minzc/pkg/hir/generator_liveness_test.go": "7555d762fcf78c70750fa0075397404cffea62a9886595a94ac6b208481f1099"
+    },
+    "harness_seconds": {
+      "generators": {
+        "build-exporter": 9.164,
+        "build-consumer": 1.523,
+        "export": 2.022,
+        "target": 360.365,
+        "native": 0.861
+      },
+      "rings": {
+        "build-exporter": 8.363,
+        "build-consumer": 0.489,
+        "export": 2.021,
+        "export-via-alias": 1.382,
+        "native": 0.873,
+        "fifo-model": 2.752,
+        "legacy-export-via-alias": 1.383,
+        "legacy-native": 0.793,
+        "legacy-target": 2.957,
+        "target": 156.008
+      }
+    }
+  },
+  "listing_instruction_counts": {
+    "layout_reader": 4,
+    "buffer_clear": 8,
+    "buffer_push": 92
+  },
+  "artifact_sha256": {
+    "byte-library.a80": "2e159f50b8ea081d778157bb5dd560f1b2f863226791c3532ec30f319cd83d58",
+    "iteration10-results.json": "c76372d77bca6d2c3845a3b015950b8f8116907fa8b9360bffe3a47377270e3c",
+    "iteration11-results.json": "9cf44305a4687b227a9ed7c0a685888ef40984fb968a2415897fb0fae99b1399",
+    "iteration12-generators-layout.json": "63344fc95727c0b10286df545e71c0d9185a3427cfc76fb7db3211a333ce8bc5",
+    "iteration12-generators-results.json": "b4400cfe0d150941d733ca1d743f6deea3ee96196d3900edaf21c2831b47ae38",
+    "iteration12-results.json": "583d4505e350a53ccf26830063e852c6f8cb2b1313ebac22e043265c74b3b07d",
+    "iteration12-rings-layout.json": "5d4344e11eb179b6ae9433155dbd4a8ea7daad97ee0f0aad94f047063f16efb6",
+    "iteration12-rings-results.json": "515aefdfaf3ac6825b3bff43c1077c4f1b76507f4049922478f2916b2e7f187b",
+    "iteration2-results.json": "ea0e322fa3561a78c811ffea599f2ed86f931faf04d5fcc97093b54a196d8601",
+    "iteration3-results.json": "17f4b8f3e99dd50f2d07e1050c5af1a5b77522f588b1726b90b7fc899e4ff6cf",
+    "iteration4-results.json": "362b9f8f3e13e3096a5e2a0bfdde944a1bfda6328f79689119a54d8458483a76",
+    "iteration5-results.json": "1a3fa24c39f543aa01ceda97cb42911b20b05ee85a5e37c53d7f8fb3dfe1a6d5",
+    "iteration6-results.json": "6d6cdfe93a4907a9d53f296ab35e4591bb6db7b4876e0edb19b463520b147570",
+    "iteration7-results.json": "889a1f758a2edce53287cf980fa6936acb56305645d82fcb2b2f07a0643c5945",
+    "iteration8-results.json": "ff32c418d66f414cd445da357d6b3f6c02f4729df4beba012fafecac5e041947",
+    "meta-arena.a80": "68173bbcc747cd50ae5fe6435d93bb90f74cf012852a0460c789a93e20d69eaf",
+    "ring_showcase.cr": "4abdb011744958290dc7220e3da1f159b1d492fd581a646d502870ecf1d760e3"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "cases_per_engine": 1792,
+  "engines": [
+    "native Crystal",
+    "generated Go"
+  ],
+  "functions": 7,
+  "byte_inputs_per_function": 256,
+  "lowering": "raw HIR -> raw MIR2 -> existing mir2go",
+  "scope": "unsigned byte scalar/meta kernels; no record, exception or full frontend port claim",
+  "fixture_sha256": "f34c068f43370ae83218ea76fef524fb76ad81ba36da9e083e44e1c3b71f9dac",
+  "crystal_source_sha256": "5d7134bfadbcbd8b4a2c2f0602a10aa20f2525efba79b30cbcd6a29264c747a5",
+  "go_source_sha256": "0dfe57f666b67ac1bebdca836e1494eadd0e133925b46a99e0fd56f0f0fd005c"
+}
