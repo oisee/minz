@@ -30,6 +30,7 @@ values={
  'ZERO_COUNT':str(count(zero)),'ENTRY_COUNT':str(count(entry)),
  'FRAME_DOWN':str(len(re.findall(r'^\s+DEC SP\s*$',entry,re.M))),
  'FRAME_UP':str(len(re.findall(r'^\s+INC SP.*$',entry,re.M))),
+ 'VIEW_RECEIPT':(ART/'iteration7-results.json').read_text(),
  'GO_RECEIPT':(ART/'iteration5-results.json').read_text(),
  'GO_SOURCE':'func fn_cr_three_iterations_2'+(ART/'scalar-meta-generated.go.txt').read_text().split('func fn_cr_three_iterations_2',1)[1].split('\n}',1)[0]+'\n}',
  'RECEIPT':(ART/'iteration4-results.json').read_text(),

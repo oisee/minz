@@ -1,5 +1,9 @@
 # Итерация 6: native Crystal Slice#each → общий HIR foreach
 
+Продолжение: [итерация 7](ITERATION7.md) добавляет локальные материализованные
+views; прежний отрицательный контроль local Slice заменён на проверку escape
+через aggregate return. Ниже зафиксирована исходная область итерации 6.
+
 Работает обычный синтаксис Crystal, без нового marker:
 
 ```crystal

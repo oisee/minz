@@ -21,7 +21,7 @@ record RecordField, name : String, ty : String do
   include JSON::Serializable
 end
 
-record RecordDecl, name : String, native : String, fields : Array(RecordField) do
+record RecordDecl, name : String, native : String, fields : Array(RecordField), kind : String = "" do
   include JSON::Serializable
 end
 
@@ -71,6 +71,23 @@ class InitializerFinder < Crystal::Visitor
   end
 end
 
+class WritesLocal < Crystal::Visitor
+  getter? written = false
+
+  def initialize(@name : String)
+  end
+
+  def visit(node : Crystal::ASTNode)
+    true
+  end
+
+  def visit(node : Crystal::Assign)
+    target = node.target
+    @written = true if target.is_a?(Crystal::Var) && target.name == @name
+    true
+  end
+end
+
 class RecordExport
   PRIMITIVES = {"UInt8" => "u8", "UInt16" => "u16", "Int8" => "i8", "Int16" => "i16", "Bool" => "bool", "Nil" => "void"}
   OPS        = {"&+" => "+", "&-" => "-", "&*" => "*", "&" => "&", "|" => "|", "^" => "^", "==" => "==", "!=" => "!=", "<" => "<", "<=" => "<=", ">" => ">", ">=" => ">="}
@@ -100,13 +117,21 @@ class RecordExport
       count = ty.size.as(Crystal::NumberLiteral).value.to_i
       raise "StaticArray length must be 1..256" unless (1..256).includes?(count)
       "array:#{count}:#{elem}"
-    when Crystal::ClassType
+    when Crystal::ClassType, Crystal::GenericClassInstanceType
+      raise "generic records other than Slice are not admitted" if ty.is_a?(Crystal::GenericClassInstanceType) && !ty.to_s.starts_with?("Slice(")
       raise "class/GC objects unsupported: #{ty}" unless ty.struct?
       if name = @records[ty.object_id]?
         return name
       end
       name = "record_#{@records.size}"
       @records[ty.object_id] = name
+      if ty.to_s.starts_with?("Slice(")
+        pointer_ty = type(ty.all_instance_vars["@pointer"].type)
+        raise "borrowed Slice elements must be u8 or u16" unless {"ptr:u8", "ptr:u16"}.includes?(pointer_ty)
+        fields = [RecordField.new("data", pointer_ty), RecordField.new("len", "u16")]
+        @declarations << RecordDecl.new(name, ty.to_s, fields, "borrowed_view")
+        return name
+      end
       fields = ty.all_instance_vars.map do |key, field|
         field_ty = type(field.type)
         raise "unsupported record field type #{field_ty}" unless {"u8", "u16", "i8", "i16", "bool"}.includes?(field_ty) || field_ty.starts_with?("ptr:")
@@ -149,25 +174,51 @@ class RecordExport
     RecordNode.new("addr", "ptr:#{nt(node)}", node.name)
   end
 
-  # First iteration admission: a borrowed Slice.new(ptr,len).each block.
-  # Keep no Slice value or closure object on target; use common HIR ForEachStmt.
-  def slice_each(node : Crystal::Call) : RecordNode?
-    return nil unless node.name == "each" && (block = node.block)
-    slice = node.obj
-    return nil unless slice.is_a?(Crystal::Call) && slice.name == "new" && slice.type.to_s.starts_with?("Slice(")
-    fail(node, "slice each requires two constructor args and one block arg") unless slice.args.size == 2 && block.args.size == 1 && node.args.empty? && !slice.block && !slice.named_args && !node.named_args && !node.block_arg
-    targets = node.target_defs || fail(node, "unresolved slice each")
-    fail(node, "only native Indexable each is admitted") unless targets.size == 1 && targets.first.location.try { |loc| loc.filename.to_s.ends_with?("/indexable.cr") }
+  def borrowed_slice_args(slice : Crystal::Call)
+    fail(slice, "slice constructor requires pointer and length") unless slice.args.size == 2 && !slice.block && !slice.named_args
     ptr = encode(slice.args[0])
     count = encode(slice.args[1])
-    elem = {"ptr:u8" => "u8", "ptr:u16" => "u16"}[ptr.ty]? || fail(node, "slice each requires unsigned byte/word pointer")
-    fail(node, "slice length must be u8 or u16") unless {"u8", "u16"}.includes?(count.ty)
+    elem = {"ptr:u8" => "u8", "ptr:u16" => "u16"}[ptr.ty]? || fail(slice, "slice each requires unsigned byte/word pointer")
+    fail(slice, "slice length must be u8 or u16") unless {"u8", "u16"}.includes?(count.ty)
+    ctors = slice.target_defs || fail(slice, "unresolved slice constructor")
+    fail(slice, "only borrowed native Slice constructor is admitted") unless ctors.size == 1 && ctors.first.location.try { |loc| loc.filename.to_s.ends_with?("/slice.cr") }
+    {ptr, count, elem}
+  end
+
+  def slice_parts(value : Crystal::ASTNode)
+    if value.is_a?(Crystal::Call) && value.name == "new"
+      return borrowed_slice_args(value)
+    end
+    fail(value, "slice iteration requires an inline constructor or local view") unless value.is_a?(Crystal::Var)
+    name = nt(value)
+    decl = @declarations.find { |d| d.name == name } || fail(value, "missing borrowed view declaration")
+    fail(value, "receiver is not a borrowed view") unless decl.kind == "borrowed_view"
+    ptr = RecordNode.new("field", decl.fields[0].ty, "data", [receiver(value)])
+    count = RecordNode.new("field", "u16", "len", [receiver(value)])
+    {ptr, count, ptr.ty.lchop("ptr:")}
+  end
+
+  # Use common foreach when the descriptor is stable; retain live fields
+  # through ordinary HIR while lowering when the block rebinds its view.
+  def slice_each(node : Crystal::Call) : RecordNode?
+    return nil unless node.name == "each" && (block = node.block) && (slice = node.obj)
+    return nil unless slice.type.to_s.starts_with?("Slice(")
+    fail(node, "slice each requires one block arg") unless block.args.size == 1 && node.args.empty? && !node.named_args && !node.block_arg
+    targets = node.target_defs || fail(node, "unresolved slice each")
+    fail(node, "only native Indexable each is admitted") unless targets.size == 1 && targets.first.location.try { |loc| loc.filename.to_s.ends_with?("/indexable.cr") }
+    ptr, count, elem = slice_parts(slice)
     fail(node, "slice block element type mismatch") unless nt(block.args.first) == elem
-    ctors = slice.target_defs || fail(node, "unresolved slice constructor")
-    # Slice's inferred generic factory points at the native initialize source;
-    # unlike user-record synthesized new, its Def#new? flag is false.
-    fail(node, "only borrowed native Slice constructor is admitted") unless ctors.size == 1 && ctors.first.location.try { |loc| loc.filename.to_s.ends_with?("/slice.cr") }
-    result = RecordNode.new("foreach", "void", block.args.first.name, [ptr, count])
+    mutable = false
+    if slice.is_a?(Crystal::Var)
+      writes = WritesLocal.new(slice.name)
+      block.body.accept(writes)
+      mutable = writes.written?
+    end
+    result = if mutable
+               RecordNode.new("foreach_view", "void", block.args.first.name, [receiver(slice)])
+             else
+               RecordNode.new("foreach", "void", block.args.first.name, [ptr, count])
+             end
     result.op = elem
     result.body = body(block.body)
     result
@@ -227,7 +278,20 @@ class RecordExport
       if iteration = slice_each(node)
         return iteration
       end
+      # size is Int32 in native Slice. Admitted u8/u16 lengths make this
+      # explicit checked conversion exact on every accepted constructor.
+      if node.name == "to_u16" && node.args.empty? && (size = node.obj).is_a?(Crystal::Call) && size.name == "size" && size.args.empty? && (view = size.obj) && view.type.to_s.starts_with?("Slice(")
+        if view.is_a?(Crystal::Call)
+          ptr, count, _ = borrowed_slice_args(view)
+          return RecordNode.new("view_project", "u16", "len", [ptr, count])
+        end
+        return slice_parts(view)[1]
+      end
       result_ty = nt(node)
+      if node.name == "new" && node.type.to_s.starts_with?("Slice(")
+        ptr, count, _ = borrowed_slice_args(node)
+        return RecordNode.new("construct_view", result_ty, args: [ptr, count])
+      end
       if node.name == "new" && result_ty.starts_with?("array:")
         fail(node, "automatic arrays in methods require escape analysis") unless @owner.empty?
         fail(node, "StaticArray.new requires one literal fill value") unless node.args.size == 1 && node.args.first.is_a?(Crystal::NumberLiteral) && !node.block
@@ -266,6 +330,13 @@ class RecordExport
           args.unshift(receiver(node.obj))
         end
         return RecordNode.new("call", result_ty, symbol, args)
+      end
+      if node.name == "to_unsafe" && (obj = node.obj) && obj.type.to_s.starts_with?("Slice(")
+        if obj.is_a?(Crystal::Call)
+          ptr, count, _ = borrowed_slice_args(obj)
+          return RecordNode.new("view_project", nt(node), "data", [ptr, count])
+        end
+        return slice_parts(obj)[0]
       end
       if node.name == "to_unsafe" && (obj = node.obj)
         fail(node, "to_unsafe requires a local StaticArray") unless obj.is_a?(Crystal::Var) && nt(obj).starts_with?("array:")

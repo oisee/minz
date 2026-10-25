@@ -30,8 +30,8 @@ type function struct {
 	Body                []*node
 }
 type record struct {
-	Name, Native string
-	Fields       []field
+	Name, Native, Kind string
+	Fields             []field
 }
 type module struct {
 	Protocol  string
@@ -225,6 +225,35 @@ func (c *importer) expr(n *node, pre *[]hir.Stmt) (hir.Expr, error) {
 		} else {
 			e = access
 		}
+	case "view_project":
+		if len(n.Args) != 2 {
+			return nil, fmt.Errorf("invalid inline view projection")
+		}
+		data, err := arg(0)
+		if err != nil {
+			return nil, err
+		}
+		length, err := arg(1)
+		if err != nil {
+			return nil, err
+		}
+		if data == nil || !mir2.IsPointer(data.ExprTy()) || length == nil || (length.ExprTy() != mir2.TyU8 && length.ExprTy() != mir2.TyU16) {
+			return nil, fmt.Errorf("invalid inline borrowed view")
+		}
+		switch n.Name {
+		case "data":
+			if !reflect.DeepEqual(ty, data.ExprTy()) {
+				return nil, fmt.Errorf("view data projection type mismatch")
+			}
+			e = data
+		case "len":
+			if ty != mir2.TyU16 {
+				return nil, fmt.Errorf("view length projection requires u16")
+			}
+			e = hir.Cast(length, mir2.TyU16)
+		default:
+			return nil, fmt.Errorf("unknown view projection")
+		}
 	case "meta_repeat":
 		if ty != mir2.TyU8 || len(n.Args) != 3 || n.Args[0].Ty != "u8" || n.Args[1].Kind != "int" || n.Args[1].Ty != "u8" || n.Args[2].Kind != "int" || n.Args[2].Ty != "u8" {
 			return nil, fmt.Errorf("invalid record meta repeat")
@@ -313,6 +342,39 @@ func (c *importer) assignment(n *node, pre *[]hir.Stmt) (hir.Expr, error) {
 		return nil, fmt.Errorf("assignment arity")
 	}
 	target, value := n.Args[0], n.Args[1]
+	if target.Kind == "var" && value.Kind == "construct_view" {
+		ty, err := c.ty(value.Ty)
+		if err != nil {
+			return nil, err
+		}
+		st, ok := ty.(*mir2.StructTy)
+		if !ok || len(value.Args) != 2 || len(st.Fields) != 2 || st.Fields[0].Name != hir.BorrowedViewData || st.Fields[1].Name != hir.BorrowedViewLen {
+			return nil, fmt.Errorf("invalid borrowed view constructor")
+		}
+		data, err := c.expr(value.Args[0], pre)
+		if err != nil {
+			return nil, err
+		}
+		length, err := c.expr(value.Args[1], pre)
+		if err != nil {
+			return nil, err
+		}
+		if data == nil || !reflect.DeepEqual(data.ExprTy(), st.Fields[0].Ty) || length == nil || (length.ExprTy() != mir2.TyU8 && length.ExprTy() != mir2.TyU16) {
+			return nil, fmt.Errorf("borrowed view field type mismatch")
+		}
+		if length.ExprTy() == mir2.TyU8 {
+			length = hir.Cast(length, mir2.TyU16)
+		}
+		if existing := c.locals[target.Name]; existing == nil {
+			c.locals[target.Name] = ty
+			*pre = append(*pre, &hir.VarDeclStmt{Name: target.Name, Ty: ty})
+		} else if !reflect.DeepEqual(existing, ty) {
+			return nil, fmt.Errorf("borrowed view reassignment changed type")
+		}
+		base := &hir.AddrOfExpr{X: hir.Var(target.Name, ty), Ty: mir2.PointerTo(st)}
+		*pre = append(*pre, &hir.AssignStmt{Target: &hir.FieldExpr{X: base, Field: hir.BorrowedViewData, Offset: st.ByteOffset(0), Ty: st.Fields[0].Ty}, Val: data}, &hir.AssignStmt{Target: &hir.FieldExpr{X: base, Field: hir.BorrowedViewLen, Offset: st.ByteOffset(1), Ty: mir2.TyU16}, Val: length})
+		return hir.Var(target.Name, ty), nil
+	}
 	if target.Kind == "var" && c.locals[target.Name] == nil {
 		ty, err := c.ty(value.Ty)
 		if err != nil {
@@ -448,6 +510,54 @@ func (c *importer) block(nodes []*node, tail bool) (*hir.Block, error) {
 			c.locals = before
 			pre = append(pre, &hir.IfStmt{Cond: cond, Then: yes, Else: no})
 			last = false
+		case "foreach_view":
+			if len(n.Args) != 1 || n.Ty != "void" || n.Name == "" {
+				return nil, fmt.Errorf("invalid mutable view loop")
+			}
+			if last && c.current.RetTy != mir2.TyVoid {
+				return nil, fmt.Errorf("slice each result is not scalar")
+			}
+			base, e := c.expr(n.Args[0], &pre)
+			if e != nil {
+				return nil, e
+			}
+			if base == nil {
+				return nil, fmt.Errorf("missing view address")
+			}
+			st, ok := mir2.PointerElem(base.ExprTy()).(*mir2.StructTy)
+			elem, e := c.ty(n.Op)
+			if e != nil {
+				return nil, e
+			}
+			var expected *mir2.StructTy
+			// Use the registered descriptor name when checking its shared schema.
+			if ok {
+				expected, e = hir.BorrowedViewType(st.Name, elem)
+			}
+			if !ok || e != nil || !reflect.DeepEqual(st, expected) || (elem != mir2.TyU8 && elem != mir2.TyU16) {
+				return nil, fmt.Errorf("invalid mutable borrowed view schema")
+			}
+			data := &hir.FieldExpr{X: base, Field: hir.BorrowedViewData, Offset: st.ByteOffset(0), Ty: st.Fields[0].Ty}
+			length := &hir.FieldExpr{X: base, Field: hir.BorrowedViewLen, Offset: st.ByteOffset(1), Ty: mir2.TyU16}
+			indexName := c.fresh()
+			index := hir.Var(indexName, mir2.TyU16)
+			pre = append(pre, &hir.VarDeclStmt{Name: indexName, Ty: mir2.TyU16, Init: hir.U16(0)})
+			before := cloneLocals(c.locals)
+			if c.locals[n.Name] != nil {
+				return nil, fmt.Errorf("view block argument shadows an existing binding")
+			}
+			c.locals[n.Name] = elem
+			inner, e := c.block(n.Body, false)
+			c.locals = before
+			if e != nil {
+				return nil, e
+			}
+			// Advance the hidden index before executing the block: `next`
+			// reaches the next condition, while descriptor fields stay live.
+			loop := hir.Blk(&hir.VarDeclStmt{Name: n.Name, Ty: elem, Init: &hir.IndexExpr{Base: data, Idx: index, ElemTy: elem}}, &hir.AssignStmt{Target: index, Val: &hir.BinExpr{Op: "+", L: index, R: hir.U16(1), Ty: mir2.TyU16}})
+			loop.Body = append(loop.Body, inner.Body...)
+			pre = append(pre, &hir.WhileStmt{Cond: &hir.BinExpr{Op: "<", L: index, R: length, Ty: mir2.TyBool}, Body: loop})
+			last = false
 		case "foreach":
 			if len(n.Args) != 2 || n.Ty != "void" || n.Name == "" {
 				return nil, fmt.Errorf("invalid foreach wire node")
@@ -552,6 +662,23 @@ func importModule(w module) (*importer, error) {
 				return nil, e
 			}
 			st.Fields = append(st.Fields, mir2.StructField{Name: f.Name, Ty: ty})
+		}
+	}
+	for _, r := range w.Records {
+		if r.Kind == "borrowed_view" {
+			st := c.types[r.Name].(*mir2.StructTy)
+			if len(st.Fields) != 2 || !mir2.IsPointer(st.Fields[0].Ty) {
+				return nil, fmt.Errorf("invalid borrowed view schema")
+			}
+			expected, err := hir.BorrowedViewType(r.Name, mir2.PointerElem(st.Fields[0].Ty))
+			if err != nil {
+				return nil, err
+			}
+			if !reflect.DeepEqual(st, expected) {
+				return nil, fmt.Errorf("noncanonical borrowed view schema")
+			}
+		} else if r.Kind != "" {
+			return nil, fmt.Errorf("unknown record kind %q", r.Kind)
 		}
 	}
 	for _, f := range w.Functions {

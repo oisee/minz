@@ -63,7 +63,7 @@ def main():
       'heap-slice':('def bad; sum=0_u8; Slice(UInt8).new(4_u8,0_u8).each { |x| sum=sum &+ x }; sum; end; bad','slice each requires unsigned byte/word pointer'),
       'valued-break':('def bad; a=StaticArray(UInt8,4).new(0_u8); Slice.new(a.to_unsafe,4_u8).each { |x| break 7_u8 }; 0_u8; end; bad','valued break/next unsupported'),
       'valued-next':('def bad; a=StaticArray(UInt8,4).new(0_u8); Slice.new(a.to_unsafe,4_u8).each { |x| next 7_u8 }; 0_u8; end; bad','valued break/next unsupported'),
-      'escaped-slice':('def bad; a=StaticArray(UInt8,4).new(0_u8); view=Slice.new(a.to_unsafe,4_u8); view.each { |x| x }; 0_u8; end; bad','unsupported'),
+      'escaped-slice-return':('def bad; a=StaticArray(UInt8,4).new(0_u8); Slice.new(a.to_unsafe,4_u8); end; bad','aggregate returns unsupported'),
     }
     for label,(code,diagnostic) in negatives.items():
         path=OUT/(label+'.cr');path.write_text(code)

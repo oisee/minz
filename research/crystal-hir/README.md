@@ -1,6 +1,11 @@
 # Crystal → HIR
 
-**Текущий шаг:** [Итерация 6: Slice#each → общий HIR foreach](ITERATION6.md).
+**Текущий шаг:** [Итерация 7: общий borrowed-view descriptor](ITERATION7.md).
+Локальные Slice, copy/rebind и живые поля при изменении view внутри each.
+1566 наборов на четырёх engine; общий HIR descriptor также читает Nanz
+(256 проверок на raw/optimized MIR2 и Z80). Target 4 B, native host 16 B.
+
+**Итерация 6:** [Итерация 6: Slice#each → общий HIR foreach](ITERATION6.md).
 1822 набора на native Crystal, raw/optimized MIR2 и Z80: captures, break/next,
 nonlocal return, alias mutation, nested/empty loops, word stride и length 256.
 

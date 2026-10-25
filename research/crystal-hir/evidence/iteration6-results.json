@@ -12,12 +12,12 @@
   "word_cases": 10,
   "negative_controls": 5,
   "source_sha256": "b893dfd7862c84f07a610fd14ac4e92cf5db3047d71dea2b4452173cfb2934d8",
-  "exporter_sha256": "28ce1c0fddee01040879c6230235045e48bb61bd4ae4d21add1c26de46050e42",
+  "exporter_sha256": "0de2a1d1fcbd430903d7d7010392c0382c79a731d6e5ad5a97386d3cd2eac501",
   "seconds": {
-    "build-exporter": 8.285,
-    "build-consumer": 0.276,
-    "export": 1.674,
-    "target": 49.995,
-    "native": 1.267
+    "build-exporter": 7.137,
+    "build-consumer": 0.364,
+    "export": 1.757,
+    "target": 49.524,
+    "native": 0.796
   }
 }
