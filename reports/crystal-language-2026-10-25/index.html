@@ -12,7 +12,7 @@ main{max-width:1150px}.prose{max-width:830px}.prose p{font-size:1.08rem;line-hei
 <nav><a href="#language">Язык</a><a href="#pipeline">Компиляция</a><a href="#assembly">Настоящий ASM</a><a href="#frontend">Frontend и Go</a><a href="#parsers">ABAPiti и парсеры</a><a href="#music">Autosiril</a></nav>
 <header><p class="eyebrow">Записки о компиляторе · MinZ / mzc / Nanz · 25.10.2026</p><h1>Ruby остаётся прекрасен.<br>А что получилось <span>на Z80?</span></h1>
 <p class="lead">Мы взяли настоящий Crystal frontend, сохранили его inference и специализации, подключили Nanz meta и научили код жить в нашей памяти. Теперь можно посмотреть на результат сразу с двух сторон: как на язык для человека и как на инструкции для процессора.</p>
-<p class="stamp">spike/crystal-hir · ASM snapshot cf4e395ff · дополнения до итерации 7<br>Crystal 1.20.1 / LLVM 22.1.4 на host · HIR → MIR2 → Z80 / PBQP</p>
+<p class="stamp">spike/crystal-hir · ASM snapshot cf4e395ff · дополнения до итерации 8<br>Crystal 1.20.1 / LLVM 22.1.4 на host · HIR → MIR2 → Z80 / PBQP</p>
 <div class="ribbon"><b>Мой вердикт:</b> архитектура уже красива; язык узнаваем; качество ASM неоднородно. Маленький reader превращается в четыре инструкции. В сложной arena-функции остаются длинные сохранения регистров и многословная работа со стеком. Это видно в реальном листинге ниже.</div>
 <p class="reading">Статья о проверенном prototype. Предложения по оптимизации и новым интеграциям отдельно помечены; листинги извлечены из сохранённых артефактов.</p></header>
 <section id="language"><div class="section-head"><span class="num">01</span><h2>Какой язык у нас получился?</h2></div>
@@ -30,6 +30,8 @@ end</pre>
 <div class="prose"><p><b>Ruby всё ещё прекрасен.</b> Его выразительность особенно видна в обработке коллекций. В общем compiler уже есть полезная основа: Nanz map/filter/fold/reduce, fusion распознаваемых iterator chains, а также scalar gen/yield. В итерации 6 Crystal bridge уже подключает borrowed <code>Slice.new(ptr,length).each</code> к общему HIR foreach: 1822 набора прошли native Crystal, оба MIR2 и Z80, ещё 5 случаев проверяют отказы. map/filter, lazy Iterator и общий API buffers/slices требуют следующего подключения.</p>
 <p>В итерации 7 добавлен общий <code>hir.BorrowedViewType</code>: addressable descriptor <code>data: ^T, len: u16</code>. Локальный Crystal Slice теперь можно сохранять, копировать и обходить; target descriptor занимает 4 B против 16 B на native host. Проверены 1566 наборов на четырёх engine и 7 отказов. Отдельная Nanz-функция читает descriptor, созданный через этот HIR API: 256 входов прошли raw/optimized MIR2 и Z80.</p>
 <p>Native oracle выявил важную деталь: rebind локальной view внутри each меняет её дальнейший обход. Поэтому стабильная view использует общий foreach, а изменяемая — обычный HIR while с живыми полями descriptor. Это сохраняет семантику Crystal. Lifetime остаётся контрактом: новый тип не является borrow checker.</p>
+<p>В итерации 8 обычные Crystal-методы с односторонним <code>yield</code> подключены к общим HIR <code>YieldStmt</code> / <code>GenForStmt</code> и pull lowering. 8 consumers × 256 byte seeds = 2048 наборов прошли четыре engine, ещё 5 проверяют отказы. Работают break/next/nonlocal return, demand-preserving filter, RLE, empty source и конечное потребление бесконечного producer.</p>
+<p>Этот шаг нашёл общий Nanz/HIR bug: явный return в некоторых structured regions не выставлял DONE. До исправления отдельный Nanz reproducer потреблял три элемента вместо одного; теперь проверены завершение, повторный pull после DONE и сохранение out. Однако frame layout пока консервативен: byte-stream frame занимает 33 B, RLE frame — 47 B. Это рабочая семантика, не обещание минимального RAM или идеального ASM. Стандартные Crystal Iterator objects и общий generator fusion ещё не подключены.</p>
 <p><b>Что уже общее:</b> MIR2 имеет SliceTy как пару pointer/length; HIR — ForEachStmt для непрерывного диапазона памяти и ExpandGenerators для stackless pull generators. Generator frame хранит continuation tag и живые через yield значения; next выполняется до следующего yield. В Nanz есть проверки lifecycle, early stop и независимости экземпляров. Полный generic slice API во всех frontend этим не подтверждён.</p>
 <p>Общий generator fusion остаётся draft ADR 0050. Готового ring-buffer API, channel runtime и scheduler goroutines в проверенном HIR/Nanz не найдено. Генераторы дают ленивый pull-протокол; очереди, backpressure, close/cancellation и lifetime сообщений потребуют дополнительных контрактов. Такие buffers и adapters действительно смогут служить всем frontend, которые научатся их выражать.</p>
 <p>И универсальность пока проявляется прежде всего в архитектуре: разные синтаксисы смогут обращаться к общей генерации и backend. Для конкретного языка каждый раз придётся сохранять правила вычисления, ошибок и памяти. Например, числовой ноль в Crystal истинен, а null pointer ложен; это уже проверено нативным oracle и учтено importer.</p></div>
@@ -275,6 +277,29 @@ RET</pre><p>В фактическом helper регистр C после эти�
 <section id="proof"><div class="section-head"><span class="num">08</span><h2>Что именно доказано</h2></div>
 <div class="prose"><p><b>768 наборов входных данных = 3 сценария × все 256 значений seed.</b> Каждый сценарий выполняется в native Crystal, raw MIR2, optimized MIR2 и Z80 emulator. Сценарии: arena + repeat + marker read; копия структуры и изменение оригинала; чтение поля у двух layouts. Это не 768 возможностей языка.</p>
 <p>Дополнительно проверены 7 отказов, а прежние корпуса — 1792 meta-набора и 2372 arena-набора — прошли повторно. Числа не суммируются в процент покрытия языка. Они подтверждают выбранные программы, а не всю stdlib и не оптимальность ASM.</p></div>
+<details><summary>Receipt yield/generator прогона, итерация 8</summary><pre>{
+  &quot;cases_per_engine&quot;: 2048,
+  &quot;engines&quot;: [
+    &quot;native Crystal&quot;,
+    &quot;raw MIR2&quot;,
+    &quot;optimized MIR2&quot;,
+    &quot;Z80&quot;
+  ],
+  &quot;consumer_functions&quot;: 8,
+  &quot;all_byte_seeds&quot;: 256,
+  &quot;native_yield_specializations&quot;: 8,
+  &quot;negative_controls&quot;: 5,
+  &quot;source_sha256&quot;: &quot;2f9552f45a577d6fae942407ead9c54b4618a566670c4878dcfaed78f8ed8b44&quot;,
+  &quot;exporter_sha256&quot;: &quot;3286f50786929386072ec33247a4e0383c3c6b119f2166c1eca5b57c07c5443f&quot;,
+  &quot;seconds&quot;: {
+    &quot;build-exporter&quot;: 8.174,
+    &quot;build-consumer&quot;: 1.351,
+    &quot;export&quot;: 1.763,
+    &quot;target&quot;: 360.95,
+    &quot;native&quot;: 1.257
+  }
+}
+</pre></details>
 <details><summary>Receipt borrowed-view прогона, итерация 7</summary><pre>{
   &quot;cases_per_engine&quot;: 1566,
   &quot;engines&quot;: [
@@ -355,12 +380,19 @@ RET</pre><p>В фактическом helper регистр C после эти�
   &quot;assembly_experiment_commit&quot;: &quot;cf4e395ff&quot;,
   &quot;go_probe_commit&quot;: &quot;0503fd753&quot;,
   &quot;borrowed_view_commit&quot;: &quot;7267b91bb&quot;,
+  &quot;yield_bridge_commit&quot;: &quot;be9c0121e&quot;,
+  &quot;generator_fixes&quot;: [
+    &quot;94cc4337b&quot;,
+    &quot;2d7fa7904&quot;
+  ],
   &quot;target&quot;: &quot;z80&quot;,
   &quot;register_allocator&quot;: &quot;PBQP&quot;,
   &quot;files&quot;: {
     &quot;iteration4-results.json&quot;: &quot;362b9f8f3e13e3096a5e2a0bfdde944a1bfda6328f79689119a54d8458483a76&quot;,
     &quot;iteration5-results.json&quot;: &quot;1a3fa24c39f543aa01ceda97cb42911b20b05ee85a5e37c53d7f8fb3dfe1a6d5&quot;,
     &quot;iteration7-results.json&quot;: &quot;889a1f758a2edce53287cf980fa6936acb56305645d82fcb2b2f07a0643c5945&quot;,
+    &quot;iteration8-layout.json&quot;: &quot;8b13f600e848a87d150046e110d29f9b45c7102470097cf71cc606ff5a8055c0&quot;,
+    &quot;iteration8-results.json&quot;: &quot;ff32c418d66f414cd445da357d6b3f6c02f4729df4beba012fafecac5e041947&quot;,
     &quot;meta-arena.a80&quot;: &quot;68173bbcc747cd50ae5fe6435d93bb90f74cf012852a0460c789a93e20d69eaf&quot;,
     &quot;meta-arena.hir&quot;: &quot;4d95573a13713d1f4471eb31d5df3eb99a34b0f08a7e2f7f39fc6e46f09c8d09&quot;,
     &quot;meta-arena.mir2&quot;: &quot;f80daab8823145c72c20e7e58f73c8d50b4d50a678449a443a24ed0b35040ed2&quot;,

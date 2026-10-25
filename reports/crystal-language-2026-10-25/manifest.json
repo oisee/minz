@@ -2,12 +2,19 @@
   "assembly_experiment_commit": "cf4e395ff",
   "go_probe_commit": "0503fd753",
   "borrowed_view_commit": "7267b91bb",
+  "yield_bridge_commit": "be9c0121e",
+  "generator_fixes": [
+    "94cc4337b",
+    "2d7fa7904"
+  ],
   "target": "z80",
   "register_allocator": "PBQP",
   "files": {
     "iteration4-results.json": "362b9f8f3e13e3096a5e2a0bfdde944a1bfda6328f79689119a54d8458483a76",
     "iteration5-results.json": "1a3fa24c39f543aa01ceda97cb42911b20b05ee85a5e37c53d7f8fb3dfe1a6d5",
     "iteration7-results.json": "889a1f758a2edce53287cf980fa6936acb56305645d82fcb2b2f07a0643c5945",
+    "iteration8-layout.json": "8b13f600e848a87d150046e110d29f9b45c7102470097cf71cc606ff5a8055c0",
+    "iteration8-results.json": "ff32c418d66f414cd445da357d6b3f6c02f4729df4beba012fafecac5e041947",
     "meta-arena.a80": "68173bbcc747cd50ae5fe6435d93bb90f74cf012852a0460c789a93e20d69eaf",
     "meta-arena.hir": "4d95573a13713d1f4471eb31d5df3eb99a34b0f08a7e2f7f39fc6e46f09c8d09",
     "meta-arena.mir2": "f80daab8823145c72c20e7e58f73c8d50b4d50a678449a443a24ed0b35040ed2",

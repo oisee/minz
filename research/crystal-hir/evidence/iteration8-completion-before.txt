@@ -1,0 +1,5 @@
+--- FAIL: TestGeneratorExplicitCompletionDone (0.00s)
+    generator_completion_test.go:54: line 0: assert "trailing return completes" [mir2]: got 3, want 1
+FAIL
+FAIL	github.com/minz/minzc/pkg/hir	0.391s
+FAIL
