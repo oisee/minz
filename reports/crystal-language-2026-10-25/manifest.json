@@ -1,4 +1,6 @@
 {
+  "ring_bridge_commit": "b6951b11f",
+  "ring_library_commit": "afe7e685b",
   "byte_bridge_commit": "802c61573",
   "field_predicate_fix_commit": "f0b316b84",
   "byte_library_commit": "0a0eb3d2c",
@@ -16,6 +18,8 @@
     "byte-library.a80": "2e159f50b8ea081d778157bb5dd560f1b2f863226791c3532ec30f319cd83d58",
     "iteration10-layout.json": "31da68312d3513fc4be3e3b36dc5306fece72474123221ad36dcdcccafe1a256",
     "iteration10-results.json": "c76372d77bca6d2c3845a3b015950b8f8116907fa8b9360bffe3a47377270e3c",
+    "iteration11-layout.json": "62b4e17c26c72edf160d42f5f227afaebc147b0ee00622393fe353932517a3e0",
+    "iteration11-results.json": "9cf44305a4687b227a9ed7c0a685888ef40984fb968a2415897fb0fae99b1399",
     "iteration4-results.json": "362b9f8f3e13e3096a5e2a0bfdde944a1bfda6328f79689119a54d8458483a76",
     "iteration5-results.json": "1a3fa24c39f543aa01ceda97cb42911b20b05ee85a5e37c53d7f8fb3dfe1a6d5",
     "iteration7-results.json": "889a1f758a2edce53287cf980fa6936acb56305645d82fcb2b2f07a0643c5945",

@@ -12,7 +12,7 @@ main{max-width:1150px}.prose{max-width:830px}.prose p{font-size:1.08rem;line-hei
 <nav><a href="#language">Язык</a><a href="#pipeline">Компиляция</a><a href="#assembly">Настоящий ASM</a><a href="#frontend">Frontend и Go</a><a href="#parsers">ABAPiti и парсеры</a><a href="#music">Autosiril</a></nav>
 <header><p class="eyebrow">Записки о компиляторе · MinZ / mzc / Nanz · 25.10.2026</p><h1>Ruby остаётся прекрасен.<br>А что получилось <span>на Z80?</span></h1>
 <p class="lead">Мы взяли настоящий Crystal frontend, сохранили его inference и специализации, подключили Nanz meta и научили код жить в нашей памяти. Теперь можно посмотреть на результат сразу с двух сторон: как на язык для человека и как на инструкции для процессора.</p>
-<p class="stamp">spike/crystal-hir · ASM snapshot cf4e395ff · дополнения до итерации 8<br>Crystal 1.20.1 / LLVM 22.1.4 на host · HIR → MIR2 → Z80 / PBQP</p>
+<p class="stamp">spike/crystal-hir · ASM snapshot cf4e395ff · дополнения до итерации 11<br>Crystal 1.20.1 / LLVM 22.1.4 на host · HIR → MIR2 → Z80 / PBQP</p>
 <div class="ribbon"><b>Мой вердикт:</b> архитектура уже красива; язык узнаваем; качество ASM неоднородно. Маленький reader превращается в четыре инструкции. В сложной arena-функции остаются длинные сохранения регистров и многословная работа со стеком. Это видно в реальном листинге ниже.</div>
 <p class="reading">Статья о проверенном prototype. Предложения по оптимизации и новым интеграциям отдельно помечены; листинги извлечены из сохранённых артефактов.</p></header>
 <section id="language"><div class="section-head"><span class="num">01</span><h2>Какой язык у нас получился?</h2></div>
@@ -142,8 +142,19 @@ end</pre>
     DEC HL
     LD A, 1
     RET</pre></details><div class="prose">
+<p>Итерация 11 добавляет общий <code>ByteRing</code>: fixed-capacity FIFO без allocation и division. Crystal и Nanz вызывают одну реализацию; <b>525 наборов</b> прошли native Crystal, оба MIR2 и Z80, плюс шесть отрицательных ABI controls. Независимый Go FIFO model проверил 10 трасс — 3224 операции на каждом target engine, включая capacities 0/1/3/255/256.</p>
+</div><div class="mini-layout"><div><b>8 B · Ring</b><code>data · head · len · cap</code><p>Одна caller-owned область. Full и empty различаются длиной; отказ pop сохраняет output.</p></div><div><b>2 × 4 B · Views</b><code>first · second</code><p>Два непрерывных окна дают FIFO-порядок даже после wrap. Bytes не копируются.</p></div></div>
+<svg viewBox="0 0 600 190" width="100%" role="img" aria-label="Storage 3,1,2 с head=1 даёт first 1,2 и second 3" style="max-width:680px;display:block;margin:20px auto;font:15px ui-monospace,monospace">
+<text x="20" y="25" fill="var(--ink)" opacity="0.7">physical storage</text><text x="330" y="25" fill="var(--ink)" opacity="0.7">FIFO segments · head = 1</text>
+<g fill="var(--panel)" stroke="var(--teal)" stroke-width="2"><rect x="25" y="45" width="65" height="55" rx="8"/><rect x="95" y="45" width="65" height="55" rx="8"/><rect x="165" y="45" width="65" height="55" rx="8"/><rect x="330" y="45" width="65" height="55" rx="8"/><rect x="400" y="45" width="65" height="55" rx="8"/></g>
+<rect x="495" y="45" width="65" height="55" rx="8" fill="var(--panel)" stroke="var(--violet)" stroke-width="2"/>
+<g fill="var(--ink)" text-anchor="middle" font-size="26"><text x="58" y="81">3</text><text x="128" y="81">1</text><text x="198" y="81">2</text><text x="363" y="81">1</text><text x="433" y="81">2</text><text x="528" y="81">3</text></g>
+<path d="M128 105 C190 160 260 160 363 105" fill="none" stroke="var(--teal)" stroke-width="2"/><path d="M58 105 C150 185 470 185 528 105" fill="none" stroke="var(--violet)" stroke-width="2" stroke-dasharray="5 4"/>
+<text x="365" y="125" fill="var(--teal)">first</text><text x="490" y="177" fill="var(--violet)">second</text></svg><div class="prose">
+<p>Пример потребляет первые два байта и останавливается до второго сегмента. Counter подтверждает ровно два чтения. Это lazy pull, но не готовый channel runtime: нет scheduler или IRQ synchronization. View сохраняет свои pointer/length; после clear и новых записей оно может увидеть другие bytes в той же живой памяти.</p>
+<p>Важно различать размеры: descriptor Ring занимает 8 B, а frame показанного двухсегментного generator — 53 B. Layout frame пока консервативен. Исправление canonical path также закреплено проверкой: export через symlink даёт тот же wire, семь прежних buffer-примеров проходят четыре engine.</p>
 <p><b>Что уже общее:</b> MIR2 имеет SliceTy как пару pointer/length; HIR — ForEachStmt для непрерывного диапазона памяти и ExpandGenerators для stackless pull generators. Generator frame хранит continuation tag и живые через yield значения; next выполняется до следующего yield. В Nanz есть проверки lifecycle, early stop и независимости экземпляров. Полный generic slice API во всех frontend этим не подтверждён.</p>
-<p>Общий generator fusion остаётся draft ADR 0050. Готового ring-buffer API, channel runtime и scheduler goroutines в проверенном HIR/Nanz не найдено. Генераторы дают ленивый pull-протокол; очереди, backpressure, close/cancellation и lifetime сообщений потребуют дополнительных контрактов. Такие buffers и adapters действительно смогут служить всем frontend, которые научатся их выражать.</p>
+<p>Общий generator fusion остаётся draft ADR 0050. Byte ring buffer появился в итерации 11; channel runtime и scheduler goroutines ещё не подключены. Генераторы дают ленивый pull-протокол; очереди, backpressure, close/cancellation и lifetime сообщений потребуют дополнительных контрактов. Такие buffers и adapters действительно смогут служить всем frontend, которые научатся их выражать.</p>
 <p>И универсальность пока проявляется прежде всего в архитектуре: разные синтаксисы смогут обращаться к общей генерации и backend. Для конкретного языка каждый раз придётся сохранять правила вычисления, ошибок и памяти. Например, числовой ноль в Crystal истинен, а null pointer ложен; это уже проверено нативным oracle и учтено importer.</p></div>
 </section>
 <section id="pipeline"><div class="section-head"><span class="num">02</span><h2>Как строка Crystal становится инструкциями</h2></div>
@@ -387,6 +398,64 @@ RET</pre><p>В фактическом helper регистр C после эти�
 <section id="proof"><div class="section-head"><span class="num">08</span><h2>Что именно доказано</h2></div>
 <div class="prose"><p><b>768 наборов входных данных = 3 сценария × все 256 значений seed.</b> Каждый сценарий выполняется в native Crystal, raw MIR2, optimized MIR2 и Z80 emulator. Сценарии: arena + repeat + marker read; копия структуры и изменение оригинала; чтение поля у двух layouts. Это не 768 возможностей языка.</p>
 <p>Дополнительно проверены 7 отказов, а прежние корпуса — 1792 meta-набора и 2372 arena-набора — прошли повторно. Числа не суммируются в процент покрытия языка. Они подтверждают выбранные программы, а не всю stdlib и не оптимальность ASM.</p></div>
+<details><summary>Receipt общего ring buffer, итерация 11</summary><pre>{
+  &quot;cases_per_engine&quot;: 525,
+  &quot;engines&quot;: [
+    &quot;native Crystal&quot;,
+    &quot;raw MIR2&quot;,
+    &quot;optimized MIR2&quot;,
+    &quot;Z80&quot;
+  ],
+  &quot;shared_library_bindings&quot;: [
+    &quot;ByteRing_clear&quot;,
+    &quot;ByteRing_init&quot;,
+    &quot;ByteRing_segments&quot;,
+    &quot;ByteRing_try_pop&quot;,
+    &quot;ByteRing_try_push&quot;,
+    &quot;ByteView_init&quot;,
+    &quot;ByteView_try_get&quot;,
+    &quot;ByteView_try_set&quot;
+  ],
+  &quot;negative_controls&quot;: [
+    &quot;unknown-binding&quot;,
+    &quot;binding-with-body&quot;,
+    &quot;wrong-return&quot;,
+    &quot;wrong-argument&quot;,
+    &quot;wrong-view-schema&quot;,
+    &quot;reordered-ring&quot;
+  ],
+  &quot;target_view_bytes&quot;: 4,
+  &quot;target_ring_bytes&quot;: 8,
+  &quot;all_byte_seeds&quot;: 256,
+  &quot;crystal_linked_to_shared_library&quot;: true,
+  &quot;library_sha256&quot;: &quot;ff993d0018bacb114766b830d76c3c62f7742928e978eff04875ac88f7299d24&quot;,
+  &quot;fifo_model_traces&quot;: 10,
+  &quot;fifo_model_operations_per_engine&quot;: 3224,
+  &quot;fifo_model_observed_queue_bytes_per_engine&quot;: 2578,
+  &quot;export_via_symlink_matches&quot;: true,
+  &quot;legacy_buffer_cases_per_engine&quot;: 7,
+  &quot;sha256&quot;: {
+    &quot;stdlib/mem/bytes.nanz&quot;: &quot;ff993d0018bacb114766b830d76c3c62f7742928e978eff04875ac88f7299d24&quot;,
+    &quot;minzc/pkg/nanz/byte_ring_test.go&quot;: &quot;5178d26a26b4ff58115b300eaf8b8fbb91550f119f8c0b6eef8bc5bac8c9f25c&quot;,
+    &quot;research/crystal-hir/bytes.cr&quot;: &quot;2a9dcf48354754f0c623f2258ebc50d53ecd060b8fd4916a9c797b09568d2080&quot;,
+    &quot;research/crystal-hir/ring_showcase.cr&quot;: &quot;4abdb011744958290dc7220e3da1f159b1d492fd581a646d502870ecf1d760e3&quot;,
+    &quot;research/crystal-hir/record_export.cr&quot;: &quot;29a3bbf490437133e03ea7ab18203e16a40c801eb99c8d33753fdb212cac7284&quot;,
+    &quot;minzc/cmd/crystal-record-hir/main.go&quot;: &quot;b831bbd9a478df929d160444814794327d76b7aba29a03599d3b5b235a2d6208&quot;
+  },
+  &quot;seconds&quot;: {
+    &quot;build-exporter&quot;: 7.463,
+    &quot;build-consumer&quot;: 0.31,
+    &quot;export&quot;: 1.762,
+    &quot;export-via-alias&quot;: 1.283,
+    &quot;native&quot;: 0.875,
+    &quot;fifo-model&quot;: 3.019,
+    &quot;legacy-export-via-alias&quot;: 1.277,
+    &quot;legacy-native&quot;: 1.012,
+    &quot;legacy-target&quot;: 2.713,
+    &quot;target&quot;: 162.988
+  }
+}
+</pre></details>
 <details><summary>Receipt Crystal → shared byte library, итерация 10</summary><pre>{
   &quot;cases_per_engine&quot;: 538,
   &quot;engines&quot;: [
@@ -571,6 +640,8 @@ RET</pre><p>В фактическом helper регистр C после эти�
 }
 </pre></details>
 <details><summary>Provenance листингов и подсчёт инструкций</summary><pre>{
+  &quot;ring_bridge_commit&quot;: &quot;b6951b11f&quot;,
+  &quot;ring_library_commit&quot;: &quot;afe7e685b&quot;,
   &quot;byte_bridge_commit&quot;: &quot;802c61573&quot;,
   &quot;field_predicate_fix_commit&quot;: &quot;f0b316b84&quot;,
   &quot;byte_library_commit&quot;: &quot;0a0eb3d2c&quot;,
@@ -588,6 +659,8 @@ RET</pre><p>В фактическом helper регистр C после эти�
     &quot;byte-library.a80&quot;: &quot;2e159f50b8ea081d778157bb5dd560f1b2f863226791c3532ec30f319cd83d58&quot;,
     &quot;iteration10-layout.json&quot;: &quot;31da68312d3513fc4be3e3b36dc5306fece72474123221ad36dcdcccafe1a256&quot;,
     &quot;iteration10-results.json&quot;: &quot;c76372d77bca6d2c3845a3b015950b8f8116907fa8b9360bffe3a47377270e3c&quot;,
+    &quot;iteration11-layout.json&quot;: &quot;62b4e17c26c72edf160d42f5f227afaebc147b0ee00622393fe353932517a3e0&quot;,
+    &quot;iteration11-results.json&quot;: &quot;9cf44305a4687b227a9ed7c0a685888ef40984fb968a2415897fb0fae99b1399&quot;,
     &quot;iteration4-results.json&quot;: &quot;362b9f8f3e13e3096a5e2a0bfdde944a1bfda6328f79689119a54d8458483a76&quot;,
     &quot;iteration5-results.json&quot;: &quot;1a3fa24c39f543aa01ceda97cb42911b20b05ee85a5e37c53d7f8fb3dfe1a6d5&quot;,
     &quot;iteration7-results.json&quot;: &quot;889a1f758a2edce53287cf980fa6936acb56305645d82fcb2b2f07a0643c5945&quot;,

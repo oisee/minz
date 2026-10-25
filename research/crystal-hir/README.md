@@ -1,6 +1,12 @@
 # Crystal → HIR
 
-**Текущий шаг:** [Итерация 10: Crystal → общая byte-библиотека](ITERATION10.md).
+**Текущий шаг:** [Итерация 11: общий ring FIFO и два borrowed segments](ITERATION11.md).
+Descriptor 8 B, без allocation/division. 525 наборов на native Crystal,
+обоих MIR2 и Z80; 6 отказов. Независимый Go FIFO: 10 трасс / 3224 операции
+на каждом target engine. Исправлена file identity через symlink; старый API
+прошёл регрессии. Generator frame пока 53 B, это отдельная цена от descriptor.
+
+**Итерация 10:** [Итерация 10: Crystal → общая byte-библиотека](ITERATION10.md).
 Обычные методы Buffer/View вызывают настоящий Nanz mem.bytes: 538 наборов
 на native Crystal, обоих MIR2 и Z80, шесть отрицательных контролей.
 Работают view → foreach/pull. Найден и исправлен общий Z80 field/predicate bug.

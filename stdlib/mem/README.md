@@ -46,8 +46,8 @@ writes into shared storage. Releasing/resetting the actual backing allocation
 while a view is used is invalid.
 
 The byte-only API complements `text.print.BufWriter` and `core.stream.BufStream`;
-their existing contracts have not been replaced. Generic element views,
-and owning buffers remain subsequent work. A research Crystal
+their existing contracts have not been replaced. Generic element views and
+owning buffers remain subsequent work. A research Crystal
 facade now links to these exact HIR functions; see
 [`ITERATION10.md`](../../research/crystal-hir/ITERATION10.md).
 
