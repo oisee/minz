@@ -327,7 +327,7 @@ func (*YieldStmt) hirStmt() {}
 type GenForStmt struct {
 	Var    string         // element variable name (bound in body)
 	Gen    string         // generator declaration name
-	Frame  *mir2.StructTy // frame layout of Gen
+	Frame  *mir2.StructTy // optional frontend layout; expansion derives the concrete frame
 	Args   []Expr         // creation arguments, evaluated once
 	ElemTy mir2.Ty        // element type of Gen
 	Body   *Block

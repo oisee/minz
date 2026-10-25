@@ -230,7 +230,11 @@ func dumpStmt(sb *strings.Builder, s Stmt, indent string) {
 		fmt.Fprintf(sb, "%syield %s\n", indent, dumpExpr(st.Val))
 
 	case *GenForStmt:
-		fmt.Fprintf(sb, "%sfor %s in %s(...) via frame %s\n", indent, st.Var, st.Gen, st.Frame.Name)
+		frame := "<derived>"
+		if st.Frame != nil {
+			frame = st.Frame.Name
+		}
+		fmt.Fprintf(sb, "%sfor %s in %s(...) via frame %s\n", indent, st.Var, st.Gen, frame)
 		dumpBlock(sb, st.Body, indent+"  ")
 
 	default:
