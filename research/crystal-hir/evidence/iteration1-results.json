@@ -1,0 +1,31 @@
+{
+  "native_specializations": 19,
+  "merged_bodies": 1,
+  "emitted_functions": 18,
+  "cases_per_engine": 844,
+  "engines": [
+    "native Crystal",
+    "raw MIR2",
+    "optimized MIR2",
+    "Z80"
+  ],
+  "cy_cases_per_engine": 23,
+  "cy_checks": [
+    "value/error code",
+    "Carry",
+    "SP"
+  ],
+  "crc8_check_123456789": 244,
+  "negative_controls": 5,
+  "source_sha256": "0ad0e4f814ca66d374282b404fe2c464bd72a8eeb367359a846dfbfd29713198",
+  "exporter_sha256": "ed2598f9601d58f72f55c01dba970369f0b6139b4a533dc27278ed9f19782182",
+  "seconds": {
+    "build-exporter": 7.95,
+    "build-consumer": 0.083,
+    "build-outcomes": 0.084,
+    "export": 1.542,
+    "target": 2.898,
+    "native": 0.724,
+    "cy-abi": 0.604
+  }
+}

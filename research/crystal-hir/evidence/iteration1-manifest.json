@@ -1,0 +1,210 @@
+{
+  "functions": [
+    {
+      "source": "byte_demo",
+      "args": [
+        "u8"
+      ],
+      "result": "u8",
+      "symbol": "cr_byte_demo_0",
+      "original_symbol": "cr_byte_demo_0",
+      "fallible": false
+    },
+    {
+      "source": "twice",
+      "args": [
+        "u8"
+      ],
+      "result": "u8",
+      "symbol": "cr_twice_1",
+      "original_symbol": "cr_twice_1",
+      "fallible": false
+    },
+    {
+      "source": "flavor",
+      "args": [
+        "u8"
+      ],
+      "result": "u8",
+      "symbol": "cr_flavor_2",
+      "original_symbol": "cr_flavor_2",
+      "fallible": false
+    },
+    {
+      "source": "identity",
+      "args": [
+        "u8"
+      ],
+      "result": "u8",
+      "symbol": "cr_identity_3",
+      "original_symbol": "cr_identity_3",
+      "fallible": false
+    },
+    {
+      "source": "word_demo",
+      "args": [
+        "u16"
+      ],
+      "result": "u16",
+      "symbol": "cr_word_demo_4",
+      "original_symbol": "cr_word_demo_4",
+      "fallible": false
+    },
+    {
+      "source": "twice",
+      "args": [
+        "u16"
+      ],
+      "result": "u16",
+      "symbol": "cr_twice_5",
+      "original_symbol": "cr_twice_5",
+      "fallible": false
+    },
+    {
+      "source": "flavor",
+      "args": [
+        "u16"
+      ],
+      "result": "u16",
+      "symbol": "cr_flavor_6",
+      "original_symbol": "cr_flavor_6",
+      "fallible": false
+    },
+    {
+      "source": "twin_demo",
+      "args": [
+        "u8"
+      ],
+      "result": "u8",
+      "symbol": "cr_twin_demo_7",
+      "original_symbol": "cr_twin_demo_7",
+      "fallible": false
+    },
+    {
+      "source": "identity_twin",
+      "args": [
+        "u8"
+      ],
+      "result": "u8",
+      "symbol": "cr_identity_3",
+      "original_symbol": "cr_identity_twin_8",
+      "fallible": false
+    },
+    {
+      "source": "macro_demo",
+      "args": [
+        "u8"
+      ],
+      "result": "u8",
+      "symbol": "cr_macro_demo_9",
+      "original_symbol": "cr_macro_demo_9",
+      "fallible": false
+    },
+    {
+      "source": "triangle",
+      "args": [
+        "u8"
+      ],
+      "result": "u8",
+      "symbol": "cr_triangle_10",
+      "original_symbol": "cr_triangle_10",
+      "fallible": false
+    },
+    {
+      "source": "rgb332",
+      "args": [
+        "u8",
+        "u8",
+        "u8"
+      ],
+      "result": "u8",
+      "symbol": "cr_rgb332_11",
+      "original_symbol": "cr_rgb332_11",
+      "fallible": false
+    },
+    {
+      "source": "crc8_step",
+      "args": [
+        "u8",
+        "u8"
+      ],
+      "result": "u8",
+      "symbol": "cr_crc8_step_12",
+      "original_symbol": "cr_crc8_step_12",
+      "fallible": false
+    },
+    {
+      "source": "hex_or_marker",
+      "args": [
+        "u8",
+        "u8"
+      ],
+      "result": "u8",
+      "symbol": "cr_hex_or_marker_13",
+      "original_symbol": "cr_hex_or_marker_13",
+      "fallible": false
+    },
+    {
+      "source": "hex_byte",
+      "args": [
+        "u8",
+        "u8"
+      ],
+      "result": "u8",
+      "symbol": "cr_hex_byte_14",
+      "original_symbol": "cr_hex_byte_14",
+      "fallible": true
+    },
+    {
+      "source": "hex_nibble",
+      "args": [
+        "u8"
+      ],
+      "result": "u8",
+      "symbol": "cr_hex_nibble_15",
+      "original_symbol": "cr_hex_nibble_15",
+      "fallible": true
+    },
+    {
+      "source": "arena_frame",
+      "args": [
+        "u8",
+        "u8"
+      ],
+      "result": "u8",
+      "symbol": "cr_arena_frame_16",
+      "original_symbol": "cr_arena_frame_16",
+      "fallible": false
+    },
+    {
+      "source": "reserve",
+      "args": [
+        "u8",
+        "u8",
+        "u8"
+      ],
+      "result": "u8",
+      "symbol": "cr_reserve_17",
+      "original_symbol": "cr_reserve_17",
+      "fallible": true
+    },
+    {
+      "source": "arena_reset_demo",
+      "args": [
+        "u8"
+      ],
+      "result": "u8",
+      "symbol": "cr_arena_reset_demo_18",
+      "original_symbol": "cr_arena_reset_demo_18",
+      "fallible": false
+    }
+  ],
+  "errors": {
+    "bad hex digit": 1,
+    "invalid arena cursor": 2,
+    "arena exhausted": 3
+  },
+  "merged": {
+    "cr_identity_twin_8": "cr_identity_3"
+  }
+}

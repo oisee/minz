@@ -1,0 +1,16 @@
+{
+  "crystal": "Crystal 1.20.1 (2026-04-29)",
+  "functions": 7,
+  "native_cases": 26,
+  "mir2_cases": 26,
+  "z80_cases": 26,
+  "negative_controls": 11,
+  "seconds": {
+    "version": 0.019,
+    "build-exporter": 1.496,
+    "build-consumer": 0.401,
+    "export": 0.228,
+    "target": 0.196,
+    "native": 0.836
+  }
+}
