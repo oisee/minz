@@ -1,0 +1,38 @@
+{
+  "cases_per_engine": 2372,
+  "layouts": [
+    {
+      "bytes": 7,
+      "fields": [
+        {
+          "bytes": 1,
+          "name": "tag",
+          "offset": 0,
+          "ty": "u8"
+        },
+        {
+          "bytes": 2,
+          "name": "base",
+          "offset": 1,
+          "ty": "ptr"
+        },
+        {
+          "bytes": 2,
+          "name": "cursor",
+          "offset": 3,
+          "ty": "u16"
+        },
+        {
+          "bytes": 2,
+          "name": "capacity",
+          "offset": 5,
+          "ty": "u16"
+        }
+      ],
+      "name": "record_0",
+      "native": "ByteArena"
+    }
+  ],
+  "pointer_bytes": 2,
+  "target": "z80"
+}

@@ -1,6 +1,10 @@
 # Crystal → HIR
 
-**Текущий шаг:** [Итерация 2: рабочий мост Crystal macro ↔ Nanz meta](ITERATION2.md).
+**Текущий шаг:** [Итерация 3: структуры, указатели и реальная arena](ITERATION3.md).
+2372 случая на native Crystal, raw/optimized MIR2 и Z80; target ByteArena — 7 байт
+против 24 на native host, указатель — 2 против 8.
+
+**Итерация 2:** [Рабочий мост Crystal macro ↔ Nanz meta](ITERATION2.md).
 Проверены 1792 случая на native Crystal, raw/optimized MIR2 и Z80.
 
 **Продолжение:** [Итерация 1: native inference, мономорфизация, merge и raise/rescue](ITERATION1.md).
