@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark"><title>Crystal → HIR · маленький backend, большая экосистема</title>
+<style>
+:root{--bg:var(--agterm-background,Canvas);--ink:var(--agterm-foreground,CanvasText);--teal:var(--agterm-color-6,light-dark(#087e8b,#55c9d6));--violet:var(--agterm-color-5,light-dark(#8855bd,#c5a1f2));--green:var(--agterm-color-2,light-dark(#287d49,#7dce98));--amber:var(--agterm-color-3,light-dark(#a36508,#efbc6b));--line:color-mix(in srgb,var(--ink) 17%,transparent);--panel:color-mix(in srgb,var(--ink) 4%,var(--bg));font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--ink);background:var(--bg);font-size:16px;line-height:1.6}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0}main{max-width:1192px;padding:38px 40px 70px;margin:auto}a{color:var(--teal);text-underline-offset:4px;overflow-wrap:anywhere}nav{display:flex;gap:18px;flex-wrap:wrap;font-size:.8rem;border-bottom:1px solid var(--line);padding-bottom:18px}.eyebrow,.kicker{font-size:.72rem;letter-spacing:.15em;text-transform:uppercase;font-weight:750;color:var(--teal)}.eyebrow{margin:52px 0 15px}h1{font-size:clamp(2.8rem,6.5vw,5.8rem);letter-spacing:-.065em;line-height:1.02;max-width:950px;margin:15px 0 28px}h1 span{color:var(--teal)}.lead{font-size:1.24rem;max-width:810px;line-height:1.65}.muted,small{opacity:.7}.stamp{font: .75rem ui-monospace,SFMono-Regular,monospace;margin-top:25px;overflow-wrap:anywhere}.stats{display:grid;grid-template-columns:2fr 1fr 1fr;gap:14px;margin:38px 0 20px}.stat{padding:26px;border:1px solid var(--line);border-radius:18px;background:var(--panel)}.stat.primary{background:color-mix(in srgb,var(--teal) 10%,var(--bg));border-color:var(--teal)}.number{display:block;font-size:3.2rem;letter-spacing:-.055em;font-weight:750;line-height:1.15}.unit{font-size:.85rem;display:block;margin-top:10px}.legend{display:flex;gap:20px;flex-wrap:wrap;font-size:.76rem}.pill{display:inline-block;font-size:.65rem;font-weight:750;text-transform:uppercase;letter-spacing:.07em;padding:4px 9px;border-radius:30px;border:1px solid currentColor;color:var(--green)}.pill.idea{color:var(--violet)}.pill.limit{color:var(--amber)}section{margin-top:80px;scroll-margin-top:24px}.section-head{display:flex;gap:18px;align-items:baseline;border-top:1px solid var(--line);padding-top:20px}.section-head .num{font-family:ui-monospace,monospace;color:var(--teal);font-size:.8rem}h2{font-size:clamp(1.8rem,3.5vw,2.7rem);line-height:1.15;letter-spacing:-.04em;margin:0 0 20px}h3{font-size:1.16rem;line-height:1.3;letter-spacing:-.02em;margin:12px 0}p{margin:12px 0 18px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}.grid>*{min-width:0}.card{border:1px solid var(--line);border-radius:16px;padding:24px;min-width:0}.card p:last-child{margin-bottom:0}.card .source{font-size:.75rem}.timeline{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:26px 0}.stage{padding:20px 18px;background:var(--panel);border-top:3px solid var(--teal);border-radius:0 0 12px 12px;min-width:0}.stage strong{font-size:2rem;letter-spacing:-.04em;display:block}.stage p{font-size:.85rem}.stage small{display:block;font-size:.72rem}.note{padding:18px 22px;border-left:3px solid var(--teal);background:var(--panel);font-size:.9rem;margin:22px 0}.warning{border-color:var(--amber)}.path{display:grid;grid-template-columns:1.15fr .2fr 1.4fr .2fr .7fr;align-items:center;gap:10px;margin:16px 0}.node{padding:18px;border:1px solid var(--line);border-radius:12px;font-size:.85rem}.node strong{display:block}.arrow{color:var(--teal);text-align:center;font-size:1.6rem}.common{display:flex;justify-content:center;gap:16px;align-items:center;padding:24px;border:1px solid var(--teal);border-radius:14px;margin-top:20px;font-size:1.3rem;font-weight:700}.bridge{padding:17px;border:1px dashed var(--violet);border-radius:12px;font-size:.84rem;color:var(--violet)}pre{padding:20px;background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:auto;font: .78rem/1.65 ui-monospace,SFMono-Regular,Consolas,monospace;tab-size:2}code{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.88em;overflow-wrap:anywhere}.memory{margin:26px 0}.memory-row{display:grid;grid-template-columns:100px 1fr 70px;gap:15px;align-items:center;margin:16px 0}.memory-row>strong{font-size:.8rem}.bar{height:52px;border:1px solid var(--line);border-radius:8px;overflow:hidden;display:flex}.bar.host{background:color-mix(in srgb,var(--ink) 13%,transparent)}.bar.target{width:29.1667%;min-width:100px;border:none}.segment{border-right:1px solid var(--bg);display:flex;align-items:center;justify-content:center;color:var(--bg);font-size:.65rem;font-weight:800;background:var(--teal)}.segment:nth-child(2){background:var(--violet)}.segment:nth-child(3){background:var(--green)}.segment:nth-child(4){background:var(--amber)}.field-key{display:flex;gap:16px;flex-wrap:wrap;font-size:.76rem}.dot{display:inline-block;width:9px;height:9px;border-radius:2px;background:var(--teal);margin-right:6px}.truth{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:22px 0}.truth div{padding:18px;background:var(--panel);border-radius:12px}.truth strong{display:block;font-size:1.5rem}.truth span{font-size:.75rem}.table-scroll{overflow:auto}table{width:100%;border-collapse:collapse;font-size:.84rem}th{text-align:left;color:var(--teal);font-size:.7rem;text-transform:uppercase;letter-spacing:.07em}td,th{padding:17px 13px;border-bottom:1px solid var(--line);vertical-align:top}td:first-child{font-weight:700}details{border:1px solid var(--line);border-radius:12px;margin-top:14px;padding:16px 20px}summary{cursor:pointer;font-size:.9rem;font-weight:650}details pre{font-size:.7rem;max-height:650px}ol.roadmap{list-style:none;counter-reset:step;padding:0}ol.roadmap li{counter-increment:step;position:relative;padding:8px 0 20px 55px;border-bottom:1px solid var(--line);margin:16px 0}ol.roadmap li:before{content:"0" counter(step);position:absolute;left:0;top:6px;font:1.3rem ui-monospace,monospace;color:var(--violet)}ol.roadmap p{font-size:.88rem;margin:6px 0}footer{margin-top:70px;padding-top:24px;border-top:1px solid var(--line);font-size:.76rem}.big-quote{font-size:clamp(1.5rem,3vw,2.3rem);line-height:1.35;letter-spacing:-.03em;padding:26px 0;max-width:870px}.capsule{display:flex;gap:10px;align-items:center}.capsule svg{flex-shrink:0;width:44px;height:44px;color:var(--teal)}
+@media(max-width:750px){main{padding:24px 20px 44px}.stats{grid-template-columns:1fr 1fr}.stat.primary{grid-column:1/-1}.timeline,.grid{grid-template-columns:1fr 1fr}.path{grid-template-columns:1fr}.arrow{transform:rotate(90deg)}.common{font-size:1rem;gap:9px}.memory-row{grid-template-columns:65px 1fr 45px;gap:8px}.bar.target{min-width:80px}.truth strong{font-size:1.15rem}section{margin-top:55px}}
+@media(max-width:460px){.grid,.timeline{grid-template-columns:1fr}.stat{padding:20px}.number{font-size:2.6rem}.truth{grid-template-columns:1fr}.truth div{display:flex;align-items:center;justify-content:space-between}.common{flex-wrap:wrap}.card{padding:20px}nav{gap:12px}}
+@media print{main{max-width:none;padding:0}section{margin-top:30px}.card,.stage,pre,details{break-inside:avoid}nav{display:none}a{color:inherit}details pre{max-height:none}.stats{margin-top:20px}h1{font-size:50px}footer{margin-top:30px}}
+</style></head><body><main>
+<nav aria-label="Разделы"><a href="#evidence">Crystal: результаты</a><a href="#bridge">Macro ↔ meta</a><a href="#arena">Arena</a><a href="#jvm">JVM</a><a href="#beam">BEAM</a><a href="#next">Следующие шаги</a></nav>
+<header><p class="eyebrow">MinZ / mzc / Nanz · исследовательская ветка · 25 октября 2026</p><h1>Много языков.<br>Один <span>маленький backend.</span></h1>
+<p class="lead">Crystal уже проходит до Z80: нативный frontend, мономорфизация, мост к Nanz meta и настоящая arena без GC. Следующий выигрыш — общий контракт типов, памяти и генерации кода, которым смогут пользоваться разные языки.</p>
+<p class="stamp">spike/crystal-hir · Crystal 1.20.1 · LLVM 22.1.4 на host · target Z80<br>Эксперименты: /tmp/minz-crystal-hir · код arena: e8ed43d6d</p>
+<div class="stats"><div class="stat primary"><span class="number">2372</span><span class="unit">arena / records: случаев на каждый из 4 исполнителей</span></div><div class="stat"><span class="number">7 B</span><span class="unit">ByteArena на Z80<br>24 B на native host</span></div><div class="stat"><span class="number">19 → 18</span><span class="unit">специализаций → функций<br>в scalar-корпусе</span></div></div>
+<div class="legend"><span class="pill">Проверено локально</span><span class="pill idea">Предложение</span><span class="pill limit">Граница subset</span></div>
+</header>
+<section id="evidence"><div class="section-head"><span class="num">01</span><h2>От парсера до реальной памяти</h2></div>
+<p>Мы переиспользуем native Crystal frontend, а не пишем собственный Crystal typechecker. Его semantic AST даёт разрешённые вызовы и конкретные специализации. Наш адаптер выбирает поддержанный subset и переводит его в HIR; layout и target-семантику определяет mzc. <a href="https://github.com/crystal-lang/crystal/blob/1.20.1/src/compiler/crystal/semantic.cr">Исходник semantic frontend ↗</a></p>
+<div class="timeline"><article class="stage"><span class="kicker">00 · syntax</span><strong>26</strong><p>Явно типизированные scalar kernels через Lanz → HIR.</p><small>11 отрицательных контролей.<br>Начальный самостоятельный корпус.</small></article>
+<article class="stage"><span class="kicker">01 · semantics</span><strong>844</strong><p>Inference, overloads, native macros; 19 специализаций, одно совпадающее тело объединено.</p><small>4 исполнителя · 5 отказов.<br>Ещё 23 CY ABI случая на 3 исполнителях.</small></article>
+<article class="stage"><span class="kicker">02 · macro ↔ meta</span><strong>1792</strong><p>7 функций × 256 входов. 5 Nanz meta helpers, 44 сложения до оптимизации.</p><small>4 исполнителя · 8 отказов.<br>Работает настоящий Nanz meta VM.</small></article>
+<article class="stage"><span class="kicker">03 · records / arena</span><strong>2372</strong><p>Struct, StaticArray, typed Pointer, alloc/reset/OOM, эффекты и truthiness.</p><small>4 исполнителя · 8 отказов.<br>Без изменений ядра HIR/MIR2/backend.</small></article></div>
+<div class="note"><b>Как читать числа.</b> Это размеры отдельных проверочных корпусов, не процент покрытия Crystal и не benchmark. Для итераций 1–3 сравниваются native Crystal, raw MIR2, optimized MIR2 и Z80 в эмуляторе. Корпуса не складываются в показатель «поддержки языка».</div>
+<div class="grid"><article class="card"><span class="pill">Проверено</span><h3>Ошибки ложатся на наш ABI</h3><p>Ограниченный raise/rescue преобразуется через tagged outcomes в существующие Nanz <code>@error</code> / <code>@propagate</code>. Проверены значение или код ошибки, Carry и SP через два уровня распространения. Полная модель Crystal exceptions ещё не реализована.</p></article>
+<article class="card"><span class="pill">Исправлено в backend</span><h3>Spike нашёл настоящий assembler bug</h3><p>Forward <code>EQU</code> мог дать правильный символ в таблице, но нулевой адрес в CALL. Исправлена сходимость проходов по значениям символов и размерам инструкций; добавлены проверки alias chains, JRS и ADL. Коммит <code>8b286fb62</code>.</p></article></div>
+</section>
+<section id="bridge"><div class="section-head"><span class="num">02</span><h2>Macro — вход. Meta — генератор.</h2></div>
+<p>Crystal macros преобразуют AST во время компиляции. В нашем прототипе macro раскрывается в явный marker-вызов; typed exporter распознаёт его и запускает реальную Nanz meta-функцию. Она строит typed HIR через существующие meta intrinsics. <a href="https://crystal-lang.org/reference/1.20/syntax_and_semantics/macros/index.html">Crystal macros ↗</a></p>
+<div class="path" aria-label="Проверенный scalar путь"><div class="node"><strong>Crystal semantic AST</strong>native macro expansion</div><div class="arrow">→</div><div class="node"><strong>Scalar / Lanz adapter</strong>marker → Nanz meta VM → helper HIR</div><div class="arrow">→</div><div class="node"><strong>HIR</strong>typed functions</div></div>
+<div class="path" aria-label="Проверенный record путь"><div class="node"><strong>Crystal record AST</strong>structs, methods, pointers</div><div class="arrow">→</div><div class="node"><strong>Typed JSON adapter</strong>crystal-record-hir-v1 · target layout</div><div class="arrow">→</div><div class="node"><strong>HIR</strong>typed memory</div></div>
+<div class="bridge"><b>Предстоит:</b> соединить meta-мост и record path в одном модуле; передавать meta-генераторам target types, sizeof и offsets. Сейчас это два отдельных экспериментальных адаптера.</div>
+<div class="common"><span>HIR</span><span class="arrow">→</span><span>MIR2</span><span class="arrow">→</span><span>Z80</span><span class="pill">Оба пути проверены</span></div>
+<div class="grid" style="margin-top:22px"><div><h3>Вход на Crystal</h3><pre>macro meta_repeat(value, count, delta)
+  minz_meta_repeat({{value}}, {{count}}, {{delta}})
+end
+
+def three_iterations(x : UInt8)
+  meta_repeat(x, 3_u8, 7_u8)
+end</pre></div><div><h3>Что действительно происходит</h3><p>Go запускает Nanz generator и проверяет результат. Сам генератор использует <code>hir_caller_ref</code>, <code>hir_binary</code>, <code>hir_assign</code> и <code>emit_hir</code>. По паре count/delta helper переиспользуется в пределах экспорта.</p><p class="muted">Это opt-in marker protocol, а не универсальный импорт любых Crystal macros в Nanz. Проверка caller hygiene покрывает конкретный пример; общего typed quote API пока нет.</p></div></div>
+</section>
+<section id="arena"><div class="section-head"><span class="num">03</span><h2>Arena — уже байты, а не только cursor</h2></div>
+<p>Локальный <code>StaticArray(UInt8, 32)</code> владеет памятью. Arena получает внутренние 28 байт; четыре guard bytes защищают границы теста. Выданные указатели используются для настоящих loads/stores. Reset, OOM, копия структуры и шаг <code>Pointer(UInt16)</code> проверены сквозным исполнением.</p>
+<div class="memory" role="img" aria-label="Сравнение размеров одной структуры: native host 24 байта; Z80 7 байт. Поля target: tag 1, base 2, cursor 2, capacity 2 байта."><div class="memory-row"><strong>Host</strong><div class="bar host"></div><b>24 B</b></div><div class="memory-row"><strong>Z80</strong><div class="bar target"><span class="segment" style="flex:1">1</span><span class="segment" style="flex:2">2</span><span class="segment" style="flex:2">2</span><span class="segment" style="flex:2">2</span></div><b>7 B</b></div></div>
+<div class="field-key"><span><i class="dot"></i>tag @0 · 1 B</span><span><i class="dot" style="background:var(--violet)"></i>base @1 · 2 B</span><span><i class="dot" style="background:var(--green)"></i>cursor @3 · 2 B</span><span><i class="dot" style="background:var(--amber)"></i>capacity @5 · 2 B</span></div>
+<p class="muted" style="font-size:.8rem">Измерено для этой структуры: host pointer 8 B, target pointer 2 B. Host field offsets здесь не показаны. Это сравнение представлений, не измерение скорости; layout host не переносится в target.</p>
+<div class="grid"><article class="card"><h3>Память и порядок эффектов</h3><pre>arena.alloc(1_u16)[0_u16] =
+  arena.allocate_echo(seed)
+
+sum = raw[2_u16] &amp;+
+  arena.overwrite(raw + 2_u16, seed &amp;+ 2_u8)</pre><p>Importer сохраняет LHS allocation до RHS allocation и прежний байт до overwrite. Временные значения нужны для семантики исходника, а не только для удобства оптимизатора.</p></article>
+<article class="card"><h3>Границы честно видны</h3><p>Поддержаны scalar поля, локальные structs, scalar StaticArray и typed pointers. Classes, aggregate arguments/returns, вложенные агрегаты и неподдержанные casts отклоняются.</p><p>Полного escape analysis нет: возврат pointer из free function, automatic arrays и pointerof в instance methods пока запрещены. Raw pointers не обещают memory safety. В корпусе backing buffer живёт дольше arena.</p></article></div>
+<h3>Тонкость: ноль истинен. Null pointer — ложен.</h3><div class="truth"><div><strong>0 → true</strong><span>числовое значение</span></div><div><strong>null → false</strong><span>нулевой указатель</span></div><div><strong>nil / false → false</strong><span>правило Crystal</span></div></div>
+<p>Ранее я ошибочно приравняла null pointer к числовому нулю. Native reference поймал ошибку, importer исправлен. Для pointer генерируется сравнение с typed zero; побочные эффекты условия сохраняются. <a href="https://crystal-lang.org/reference/1.20/syntax_and_semantics/truthy_and_falsey_values.html">Официальное правило ↗</a></p>
+<div class="note warning"><b>Семантика важнее похожего AST.</b> В проверенном subset арифметика использует явные wrapping <code>&amp;+</code>, <code>&amp;-</code>, <code>&amp;*</code>. Обычный checked overflow, object identity, unions и lifetime нельзя незаметно заменить поведением нашего IR.</div>
+</section>
+<section id="jvm"><div class="section-head"><span class="num">04</span><h2>JVM: взять frontend и идеи staging</h2></div>
+<p class="big-quote">Самая полезная добыча — типизированные деревья, управляемая генерация и специализация. Переносить JVM целиком для этого не требуется.</p>
+<p><span class="pill idea">Исследование, не реализация</span> Ни Java-, ни Kotlin-, ни Scala-frontend в этой ветке не добавлен. Ниже — варианты архитектуры и идеи для MinZ/Nanz.</p>
+<div class="grid"><article class="card"><span class="kicker">Java</span><h3>javac как готовый semantic frontend</h3><p><code>JavacTask.parse()</code> + <code>analyze()</code>, Trees и TypeMirror дают точку для адаптера к HIR. Первым кандидатом был бы subset static methods с primitives и контролем потока.</p><p>Java <code>int</code> — 32 бита, <code>long</code> — 64; на Z80 их нельзя молча сужать. Нужны wide lowering и точные правила promotions/overflow. Objects, monitors, reflection и полноценные exceptions — отдельные контракты.</p><p class="source"><a href="https://docs.oracle.com/en/java/javase/21/docs/api/jdk.compiler/com/sun/source/util/JavacTask.html">JavacTask</a> · <a href="https://docs.oracle.com/javase/specs/jls/se21/html/jls-4.html">Java types</a></p></article>
+<article class="card"><span class="kicker">Kotlin</span><h3>FIR / IR plugin, а не KSP</h3><p>Kotlin compiler даёт frontend extensions и IR extensions. Для HIR разумно исследовать typed IR до target lowering и экспортировать поддержанные конструкции.</p><p>KSP видит declarations и types, но не expressions или function bodies: полноценного exporter через него не получится. Compiler plugin API нестабилен, версии придётся фиксировать и проверять.</p><p class="source"><a href="https://kotlinlang.org/docs/custom-compiler-plugins.html">Compiler plugins</a> · <a href="https://kotlinlang.org/docs/ksp-overview.html">Граница KSP</a></p></article>
+<article class="card"><span class="kicker">Scala 3</span><h3>Typed quotes для наших meta-функций</h3><p><code>Expr[T]</code>, quotes/splices и контролируемые scopes — полезный образец API генерации: meta-функция возвращает выражение известного типа и не захватывает случайные локальные имена.</p><p>Предложение для Nanz: typed handles и проверка владельца узла, типа и области видимости до вставки в HIR. Низкоуровневая reflection требует дополнительных проверок даже в Scala.</p><p class="source"><a href="https://docs.scala-lang.org/scala3/reference/metaprogramming/macros.html">Scala 3 macros и hygiene</a></p></article>
+<article class="card"><span class="kicker">Clojure + GraalVM</span><h3>Композиция и закрытый мир</h3><p>Transducers Clojure описывают композицию преобразований без промежуточных коллекций. Для нас это идея meta-DSL, который сливает map/filter/reduce в один loop над буфером.</p><p>Native Image использует static analysis и разделяет build time / run time. Полезный ориентир для reachable graph и специализации. Сам Native Image включает части Java runtime; AOT само по себе не отменяет runtime-семантику.</p><p class="source"><a href="https://clojure.org/reference/transducers">Transducers</a> · <a href="https://www.graalvm.org/latest/reference-manual/native-image/basics/">Native Image</a></p></article></div>
+</section>
+<section id="beam"><div class="section-head"><span class="num">05</span><h2>BEAM: выразительные данные и изоляция</h2></div>
+<p>Для небольшого target особенно интересны двоичные протоколы, явные варианты данных и жизненный цикл задач. Эти идеи можно адаптировать независимо от полной BEAM VM.</p>
+<div class="grid"><article class="card"><span class="kicker">Erlang</span><h3>Bit syntax → packet DSL</h3><p>Один язык описывает сборку и сопоставление бинарных полей: размер, тип, signedness и endian. Наш meta-генератор мог бы превращать такую схему в typed HIR loads, masks, shifts и проверки длины.</p><pre>&lt;&lt;Kind:8, Length:16/little,
+  Payload:Length/binary&gt;&gt;</pre><p class="source">Иллюстрация Erlang syntax; не скомпилирована нашим HIR. <a href="https://www.erlang.org/doc/system/bit_syntax.html">Bit Syntax ↗</a></p></article>
+<article class="card"><span class="kicker">Elixir</span><h3>Quote / unquote → удобные DSL</h3><p>Код представлен quoted AST; quote и unquote позволяют собирать выражения. Для Nanz полезен слой синтаксических конструкторов поверх meta API: register maps, packet schemas, state machines.</p><p>Quoted AST сам по себе не даёт гарантии <code>Expr[T]</code>. После раскрытия DSL нужен обычный typecheck и HIR verifier.</p><p class="source"><a href="https://hexdocs.pm/elixir/quote-and-unquote.html">Quote and unquote ↗</a></p></article>
+<article class="card"><span class="kicker">Gleam</span><h3>Variants + case → компактные ADT</h3><p>Custom types с вариантами и pattern matching дают хороший ориентир для явных <code>Option</code>, <code>Result</code> и сообщений. Для нас — tagged layout и проверяемый match lowering.</p><p>Потенциальный typed frontend стоит рассматривать до backend-специфичного представления. Target-width integers и memory ownership всё равно потребуют собственной политики.</p><p class="source"><a href="https://tour.gleam.run/data-types/custom-types/">Gleam custom types ↗</a></p></article>
+<article class="card"><span class="kicker">OTP</span><h3>Supervision → перезапускаемые FSM</h3><p>Supervisor запускает, наблюдает и при необходимости перезапускает дочерние процессы. Предложение для embedded: bounded mailbox + cooperative state machine + private arena, которую можно сбросить при restart.</p><p>Это адаптация идеи. Erlang использует собственные heaps и tracing GC процессов; arbitrary BEAM processes и terms не становятся arena-кодом автоматически.</p><p class="source"><a href="https://www.erlang.org/doc/system/sup_princ.html">Supervision</a> · <a href="https://www.erlang.org/doc/apps/erts/garbagecollection.html">Erlang GC</a></p></article></div>
+</section>
+<section id="next"><div class="section-head"><span class="num">06</span><h2>Что обогатит общий HIR</h2></div>
+<p>Дальше я бы укрепляла общий слой и проверяла каждую новую возможность сразу несколькими frontend-путями. Этот план — предложение, не список уже реализованных функций.</p>
+<div class="table-scroll"><table><thead><tr><th>Источник идеи</th><th>Что дать MinZ / Nanz / HIR</th><th>Текущее основание</th><th>Что ещё нужно</th></tr></thead><tbody>
+<tr><td>Crystal + Scala</td><td>MetaContext: target types, layout, typed expression handles</td><td>Nanz meta VM; отдельный record importer</td><td>Общий protocol, hygiene, verifier, cache keys</td></tr>
+<tr><td>Gleam / Scala</td><td>Tagged ADT, Result, проверяемый match</td><td>Tagged outcomes и Nanz error ABI в scalar spike</td><td>Общие variants, payload layout, exhaustiveness checks</td></tr>
+<tr><td>Erlang</td><td>Схемы бинарных пакетов без аллокаций</td><td>Typed pointers, load/store, meta-generated HIR</td><td>Length checks, endian/bit fields, round-trip corpus</td></tr>
+<tr><td>Clojure</td><td>Слитые pipelines над массивами</td><td>Structured loops и compile-time генерация</td><td>Порядок эффектов, early stop, alias contracts</td></tr>
+<tr><td>OTP</td><td>Статические задачи с restart boundary</td><td>Arena reset как локальный примитив</td><td>Scheduler, bounded queues, ownership, cleanup policy</td></tr>
+<tr><td>Java / Kotlin</td><td>Новые typed frontend adapters</td><td>Доказанный подход native frontend → HIR на Crystal</td><td>Отдельные эксперименты, wide types, runtime subset</td></tr>
+</tbody></table></div>
+<ol class="roadmap"><li><b>Свести meta и records на общем target-контракте</b><p>Первый проверяемый пример: macro генерирует helpers для ByteArena, используя Z80 sizeof/offsets. Проверить, что host layout никогда не просачивается в код.</p></li><li><b>Дать генераторам typed handles и source lineage</b><p>Проверять тип, owner, scope и эффекты; сохранять происхождение узлов и транзитивные зависимости для диагностики и cache invalidation.</p></li><li><b>Сделать packet schema как показательный DSL</b><p>Сгенерировать encoder/decoder одного небольшого пакета, проверить round-trip и отказ на коротком буфере на native/MIR2/Z80.</p></li><li><b>Потом расширять языки и runtime-модель</b><p>ADT/match и bounded FSM дадут общую пользу. Java/Kotlin adapters и полная объектная семантика требуют отдельных целей и корпусов.</p></li></ol>
+</section>
+<section id="reproduce"><div class="section-head"><span class="num">07</span><h2>Проверить и воспроизвести</h2></div>
+<p>Код сохранён в отдельной ветке <code>spike/crystal-hir</code>. На i7 вычисления не запускались. Последний arena run: 2372 случая на каждый engine, 8 отрицательных контролей; target-проход занял около 107 секунд на локальной машине — это время проверки, не скорость arena API.</p>
+<details><summary>Команды и файлы экспериментов</summary><pre>cd /tmp/minz-crystal-hir
+python3 research/crystal-hir/verify.py
+python3 research/crystal-hir/verify_typed.py
+python3 research/crystal-hir/verify_meta.py
+python3 research/crystal-hir/verify_records.py
+
+research/crystal-hir/ITERATION1.md
+research/crystal-hir/ITERATION2.md
+research/crystal-hir/ITERATION3.md
+research/crystal-hir/evidence/iteration*-results.json
+
+# Пересобрать этот отчёт из сохранённых receipts:
+python3 reports/crystal-ecosystems-2026-10-25/build.py</pre><p>Требуются Go, Crystal 1.20.1 и его native compiler dependencies. Runner создаёт локальные артефакты в /tmp. Это исследовательские CLI; поддержка .cr ещё не включена в production CLI mzc.</p></details>
+<details><summary>Сырые receipts: числа, engines, hashes и время</summary><pre>{
+  &quot;0&quot;: {
+    &quot;crystal&quot;: &quot;Crystal 1.20.1 (2026-04-29)&quot;,
+    &quot;functions&quot;: 7,
+    &quot;native_cases&quot;: 26,
+    &quot;mir2_cases&quot;: 26,
+    &quot;z80_cases&quot;: 26,
+    &quot;negative_controls&quot;: 11,
+    &quot;seconds&quot;: {
+      &quot;version&quot;: 0.019,
+      &quot;build-exporter&quot;: 1.496,
+      &quot;build-consumer&quot;: 0.401,
+      &quot;export&quot;: 0.228,
+      &quot;target&quot;: 0.196,
+      &quot;native&quot;: 0.836
+    }
+  },
+  &quot;1&quot;: {
+    &quot;native_specializations&quot;: 19,
+    &quot;merged_bodies&quot;: 1,
+    &quot;emitted_functions&quot;: 18,
+    &quot;cases_per_engine&quot;: 844,
+    &quot;engines&quot;: [
+      &quot;native Crystal&quot;,
+      &quot;raw MIR2&quot;,
+      &quot;optimized MIR2&quot;,
+      &quot;Z80&quot;
+    ],
+    &quot;cy_cases_per_engine&quot;: 23,
+    &quot;cy_checks&quot;: [
+      &quot;value/error code&quot;,
+      &quot;Carry&quot;,
+      &quot;SP&quot;
+    ],
+    &quot;crc8_check_123456789&quot;: 244,
+    &quot;negative_controls&quot;: 5,
+    &quot;source_sha256&quot;: &quot;0ad0e4f814ca66d374282b404fe2c464bd72a8eeb367359a846dfbfd29713198&quot;,
+    &quot;exporter_sha256&quot;: &quot;ed2598f9601d58f72f55c01dba970369f0b6139b4a533dc27278ed9f19782182&quot;,
+    &quot;seconds&quot;: {
+      &quot;build-exporter&quot;: 7.95,
+      &quot;build-consumer&quot;: 0.083,
+      &quot;build-outcomes&quot;: 0.084,
+      &quot;export&quot;: 1.542,
+      &quot;target&quot;: 2.898,
+      &quot;native&quot;: 0.724,
+      &quot;cy-abi&quot;: 0.604
+    }
+  },
+  &quot;2&quot;: {
+    &quot;crystal_functions&quot;: 7,
+    &quot;nanz_meta_specializations&quot;: 5,
+    &quot;generated_additions_before_optimization&quot;: 44,
+    &quot;cases_per_engine&quot;: 1792,
+    &quot;engines&quot;: [
+      &quot;native Crystal reference&quot;,
+      &quot;raw MIR2&quot;,
+      &quot;optimized MIR2&quot;,
+      &quot;Z80&quot;
+    ],
+    &quot;negative_controls&quot;: 8,
+    &quot;showcase_sha256&quot;: &quot;5d7134bfadbcbd8b4a2c2f0602a10aa20f2525efba79b30cbcd6a29264c747a5&quot;,
+    &quot;exporter_sha256&quot;: &quot;36b0dee61f51bebbd7e00b811f0a995365359209bffbe622b1655afb8d76b834&quot;,
+    &quot;nanz_generator_sha256&quot;: &quot;6d3554216969e07d70703334597830e6ef8f48de30bf6f7dc1d4e27af5c67791&quot;,
+    &quot;seconds&quot;: {
+      &quot;build-bridge&quot;: 0.157,
+      &quot;build-exporter&quot;: 8.773,
+      &quot;build-consumer&quot;: 0.11,
+      &quot;export&quot;: 4.219,
+      &quot;target&quot;: 7.629,
+      &quot;native&quot;: 0.728
+    }
+  },
+  &quot;3&quot;: {
+    &quot;cases_per_engine&quot;: 2372,
+    &quot;engines&quot;: [
+      &quot;native Crystal&quot;,
+      &quot;raw MIR2&quot;,
+      &quot;optimized MIR2&quot;,
+      &quot;Z80&quot;
+    ],
+    &quot;target_pointer_bytes&quot;: 2,
+    &quot;target_arena_bytes&quot;: 7,
+    &quot;native_host_layout&quot;: {
+      &quot;pointer_bytes&quot;: 8,
+      &quot;arena_bytes&quot;: 24
+    },
+    &quot;negative_controls&quot;: 8,
+    &quot;source_sha256&quot;: &quot;e7491d91b479d09e05ec9c36fe1d0c991da65626fbd83e96a2ca68b13b72b987&quot;,
+    &quot;exporter_sha256&quot;: &quot;1ec3efd5eb5583e7a31634dc8844575a76ed165a9dfacb9174dd972f36d2aadf&quot;,
+    &quot;seconds&quot;: {
+      &quot;build-exporter&quot;: 7.471,
+      &quot;build-consumer&quot;: 0.386,
+      &quot;export&quot;: 1.77,
+      &quot;target&quot;: 107.294,
+      &quot;native&quot;: 0.993
+    }
+  }
+}</pre></details>
+<details><summary>Что не стоит заключать из отчёта</summary><p>Мы не реализовали полный Crystal, JVM или BEAM runtime. GC на target не добавлен; host compiler может использовать собственные зависимости и GC. Нет обещания совместимости всей stdlib, общего lifetime verifier или production ABI. Работающий meta↔scalar path и работающий record path пока не объединены.</p><p>Все идеи JVM/BEAM в разделах 04–06 — инженерные выводы по официальным источникам, ссылки расположены рядом с соответствующими фактами. Сроки и проценты готовности не оценивались.</p></details>
+</section>
+<footer><div class="capsule"><svg viewBox="0 0 44 44" aria-hidden="true"><path d="M22 2 40 13v18L22 42 4 31V13Z M4 13l18 11 18-11 M22 24v18 M22 2v22" fill="none" stroke="currentColor" stroke-width="1.5"/></svg><span>Crystal → HIR · исследовательский отчёт · 2026-10-25<br>Один автономный HTML: без CDN, внешних шрифтов и JavaScript. Диаграммы — CSS / SVG.</span></div></footer>
+</main></body></html>
