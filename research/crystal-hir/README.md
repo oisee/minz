@@ -1,5 +1,8 @@
 # Crystal → HIR
 
+**Текущий шаг:** [Итерация 2: рабочий мост Crystal macro ↔ Nanz meta](ITERATION2.md).
+Проверены 1792 случая на native Crystal, raw/optimized MIR2 и Z80.
+
 **Продолжение:** [Итерация 1: native inference, мономорфизация, merge и raise/rescue](ITERATION1.md).
 Она уже проверяет 844 случая на native Crystal, raw/optimized MIR2 и Z80,
 а также 23 случая существующего Nanz CY ABI. GC не входит в целевую модель:

@@ -17,6 +17,9 @@ class UserGraph < Crystal::Visitor
   def visit(node : Crystal::Call)
     node.target_defs.try &.each do |f|
       next unless f.location.try(&.filename) == @path
+      # This typed marker has an ordinary native reference implementation, but
+      # target generation belongs to the Nanz meta VM via an explicit bridge.
+      next if f.name == "minz_meta_repeat"
       next if @symbols.has_key?(f.object_id)
       @symbols[f.object_id] = "cr_#{f.name.gsub(/[^a-zA-Z0-9_]/, "_")}_#{@defs.size}"
       @defs << f
@@ -55,6 +58,8 @@ class TypedBridge < Bridge
   @temp = 0
   @errors = {} of String => Int32
   @aliases = {} of String => String
+  @meta_functions = {} of String => String
+  @meta_receipts = [] of JSON::Any
 
   def initialize(@graph : UserGraph)
     loop do
@@ -123,7 +128,11 @@ class TypedBridge < Bridge
        symbol: @aliases[symbol]? || symbol, original_symbol: symbol,
        fallible: @fallible.includes?(f.object_id)}
     end
-    File.write(manifest_path, {functions: manifest, errors: @errors, merged: @aliases}.to_pretty_json)
+    @meta_functions.each do |symbol, definition|
+      declarations << "(fun #{symbol} ((value u8)) u8)"
+      definitions << definition
+    end
+    File.write(manifest_path, {functions: manifest, errors: @errors, merged: @aliases, meta_generators: @meta_receipts}.to_pretty_json)
     (declarations + definitions).join("\n")
   end
 
@@ -222,6 +231,9 @@ class TypedBridge < Bridge
       if expanded = node.expanded
         return expr(expanded)
       end
+      if node.name == "minz_meta_repeat"
+        return meta_repeat(node)
+      end
       if targets = node.target_defs
         fail(node, "runtime union dispatch unsupported") unless targets.size == 1
         target = targets.first
@@ -250,6 +262,33 @@ class TypedBridge < Bridge
       end
     end
     super(node)
+  end
+
+  def meta_repeat(node : Crystal::Call) : Tuple(String, String)
+    fail(node, "meta repeat requires three positional arguments") unless node.obj.nil? && node.args.size == 3 && !node.block && !node.block_arg && !node.named_args
+    node.args.each { |a| expect(a, scalar(a), "u8") }
+    expect(node, scalar(node), "u8")
+    constants = node.args[1..2].map do |a|
+      fail(a, "meta repeat count and delta must be compile-time integer literals") unless a.is_a?(Crystal::NumberLiteral)
+      a.value.to_i
+    end
+    count, delta = constants
+    fail(node, "meta repeat requires count 0..32 and delta 0..255") unless (0..32).includes?(count) && (0..255).includes?(delta)
+    symbol = "meta_repeat_u8_#{count}_#{delta}"
+    unless @meta_functions.has_key?(symbol)
+      tool = ENV["MINZ_META_BRIDGE"]? || fail(node, "set MINZ_META_BRIDGE to the crystal-meta-bridge executable")
+      output = IO::Memory.new
+      errors = IO::Memory.new
+      status = Process.run(tool, args: ["repeat", count.to_s, delta.to_s], output: output, error: errors)
+      fail(node, "Nanz meta bridge failed: #{errors}") unless status.success?
+      receipt = JSON.parse(output.to_s)
+      fail(node, "Nanz meta bridge protocol/target mismatch") unless receipt["protocol"].as_s == "minz-meta-hir-v1" && receipt["target"].as_s == "z80"
+      fail(node, "Nanz meta bridge specialization mismatch") unless receipt["function"].as_s == symbol && receipt["count"].as_i == count && receipt["delta"].as_i == delta && receipt["generated_additions"].as_i == count
+      @meta_functions[symbol] = receipt["lanz"].as_s
+      @meta_receipts << receipt
+    end
+    value, ty = expr(node.args.first)
+    {"(call #{symbol} #{value})", ty}
   end
 end
 
