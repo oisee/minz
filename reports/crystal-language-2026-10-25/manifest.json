@@ -1,0 +1,21 @@
+{
+  "experiment_commit": "cf4e395ff",
+  "target": "z80",
+  "register_allocator": "PBQP",
+  "files": {
+    "iteration4-results.json": "362b9f8f3e13e3096a5e2a0bfdde944a1bfda6328f79689119a54d8458483a76",
+    "iteration5-results.json": "1a3fa24c39f543aa01ceda97cb42911b20b05ee85a5e37c53d7f8fb3dfe1a6d5",
+    "meta-arena.a80": "68173bbcc747cd50ae5fe6435d93bb90f74cf012852a0460c789a93e20d69eaf",
+    "meta-arena.hir": "4d95573a13713d1f4471eb31d5df3eb99a34b0f08a7e2f7f39fc6e46f09c8d09",
+    "meta-arena.mir2": "f80daab8823145c72c20e7e58f73c8d50b4d50a678449a443a24ed0b35040ed2",
+    "meta_arena_showcase.cr": "f8b901929a5837e3b68db3959307728bcf2dac84123dde398d234391d5a54945",
+    "scalar-meta-generated.go.txt": "0dfe57f666b67ac1bebdca836e1494eadd0e133925b46a99e0fd56f0f0fd005c",
+    "scalar-meta.lanz": "f34c068f43370ae83218ea76fef524fb76ad81ba36da9e083e44e1c3b71f9dac"
+  },
+  "listing_instruction_counts": {
+    "repeat": 7,
+    "reader_offset_7": 4,
+    "reader_offset_0": 2,
+    "arena_entry": 134
+  }
+}

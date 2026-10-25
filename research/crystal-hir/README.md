@@ -1,6 +1,11 @@
 # Crystal → HIR
 
-**Текущий шаг:** [Итерация 4: macro/meta и records в одном модуле](ITERATION4.md).
+**Текущий шаг:** [Итерация 5: scalar Crystal → Go](ITERATION5.md).
+Существующий MIR2→Go backend прошёл 7 функций × 256 byte inputs = 1792
+набора на generated Go и native Crystal. Это unsigned scalar/meta corpus;
+Go port самого compiler и record/arena Go backend этим не проверены.
+
+**Итерация 4:** [Итерация 4: macro/meta и records в одном модуле](ITERATION4.md).
 Три сценария × 256 seed values, всего 768 наборов на каждый из четырёх
 исполнителей. Nanz meta-генератор получает Z80 offset/sizeof/pointer width;
 поле marker имеет offset 7 на target и 20 на native host.
