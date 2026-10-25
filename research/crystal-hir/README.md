@@ -1,6 +1,10 @@
 # Crystal → HIR
 
-**Текущий шаг:** [Итерация 8: native yield → общий generator/pull](ITERATION8.md).
+**Текущий шаг:** [Итерация 9: общий byte buffer/view API](ITERATION9.md).
+Импортируемая Nanz-библиотека без allocation; 22 проверки на обоих MIR2/Z80
+и 22 native Crystal reference сценария. Crystal-фасад пока следующий шаг.
+
+**Итерация 8:** [Итерация 8: native yield → общий generator/pull](ITERATION8.md).
 2048 наборов на native Crystal, raw/optimized MIR2 и Z80: drain, break/next,
 nonlocal return, demand-preserving filter, RLE, finite prefix of infinite producer
 и empty source. Исправлено общее завершение генератора для Nanz/HIR.

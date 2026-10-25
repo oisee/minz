@@ -1,0 +1,4 @@
+=== RUN   TestByteBufferImportedNative
+--- PASS: TestByteBufferImportedNative (1.93s)
+PASS
+ok  	github.com/minz/minzc/pkg/nanz	2.152s

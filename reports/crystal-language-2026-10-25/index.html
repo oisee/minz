@@ -27,11 +27,12 @@ main{max-width:1150px}.prose{max-width:830px}.prose p{font-size:1.08rem;line-hei
   arena.set_marker(p[0_u16])
   meta_byte(arena, &quot;marker&quot;) ^ seed
 end</pre>
-<div class="prose"><p><b>Ruby всё ещё прекрасен.</b> Его выразительность особенно видна в обработке коллекций. В общем compiler уже есть полезная основа: Nanz map/filter/fold/reduce, fusion распознаваемых iterator chains, а также scalar gen/yield. В итерации 6 Crystal bridge уже подключает borrowed <code>Slice.new(ptr,length).each</code> к общему HIR foreach: 1822 набора прошли native Crystal, оба MIR2 и Z80, ещё 5 случаев проверяют отказы. map/filter, lazy Iterator и общий API buffers/slices требуют следующего подключения.</p>
+<div class="prose"><p><b>Ruby всё ещё прекрасен.</b> Его выразительность особенно видна в обработке коллекций. В общем compiler уже есть полезная основа: Nanz map/filter/fold/reduce, fusion распознаваемых iterator chains, а также scalar gen/yield. В итерации 6 Crystal bridge уже подключает borrowed <code>Slice.new(ptr,length).each</code> к общему HIR foreach: 1822 набора прошли native Crystal, оба MIR2 и Z80, ещё 5 случаев проверяют отказы. map/filter и lazy Iterator требуют следующего подключения; общий byte buffer/view API появился в итерации 9, пока со стороны Nanz.</p>
 <p>В итерации 7 добавлен общий <code>hir.BorrowedViewType</code>: addressable descriptor <code>data: ^T, len: u16</code>. Локальный Crystal Slice теперь можно сохранять, копировать и обходить; target descriptor занимает 4 B против 16 B на native host. Проверены 1566 наборов на четырёх engine и 7 отказов. Отдельная Nanz-функция читает descriptor, созданный через этот HIR API: 256 входов прошли raw/optimized MIR2 и Z80.</p>
 <p>Native oracle выявил важную деталь: rebind локальной view внутри each меняет её дальнейший обход. Поэтому стабильная view использует общий foreach, а изменяемая — обычный HIR while с живыми полями descriptor. Это сохраняет семантику Crystal. Lifetime остаётся контрактом: новый тип не является borrow checker.</p>
 <p>В итерации 8 обычные Crystal-методы с односторонним <code>yield</code> подключены к общим HIR <code>YieldStmt</code> / <code>GenForStmt</code> и pull lowering. 8 consumers × 256 byte seeds = 2048 наборов прошли четыре engine, ещё 5 проверяют отказы. Работают break/next/nonlocal return, demand-preserving filter, RLE, empty source и конечное потребление бесконечного producer.</p>
 <p>Этот шаг нашёл общий Nanz/HIR bug: явный return в некоторых structured regions не выставлял DONE. До исправления отдельный Nanz reproducer потреблял три элемента вместо одного; теперь проверены завершение, повторный pull после DONE и сохранение out. Однако frame layout пока консервативен: byte-stream frame занимает 33 B, RLE frame — 47 B. Это рабочая семантика, не обещание минимального RAM или идеального ASM. Стандартные Crystal Iterator objects и общий generator fusion ещё не подключены.</p>
+<p>В итерации 9 появился импортируемый Nanz-модуль <code>mem.bytes</code>: ByteView (4 B) и ByteBuffer (6 B), init/get/set/subview/push/view/clear без allocation. 22 сценария прошли оба MIR2 и Z80, ещё 22 соответствующих native reference сценария — stock Crystal Slice. Проверены границы, ёмкость 256, alias writes, независимая длина snapshot и пустой null view. Crystal-фасад к этой библиотеке ещё предстоит связать; native reference не выдаётся за сквозной вызов библиотеки.</p>
 <p><b>Что уже общее:</b> MIR2 имеет SliceTy как пару pointer/length; HIR — ForEachStmt для непрерывного диапазона памяти и ExpandGenerators для stackless pull generators. Generator frame хранит continuation tag и живые через yield значения; next выполняется до следующего yield. В Nanz есть проверки lifecycle, early stop и независимости экземпляров. Полный generic slice API во всех frontend этим не подтверждён.</p>
 <p>Общий generator fusion остаётся draft ADR 0050. Готового ring-buffer API, channel runtime и scheduler goroutines в проверенном HIR/Nanz не найдено. Генераторы дают ленивый pull-протокол; очереди, backpressure, close/cancellation и lifetime сообщений потребуют дополнительных контрактов. Такие buffers и adapters действительно смогут служить всем frontend, которые научатся их выражать.</p>
 <p>И универсальность пока проявляется прежде всего в архитектуре: разные синтаксисы смогут обращаться к общей генерации и backend. Для конкретного языка каждый раз придётся сохранять правила вычисления, ошибок и памяти. Например, числовой ноль в Crystal истинен, а null pointer ложен; это уже проверено нативным oracle и учтено importer.</p></div>
@@ -277,6 +278,43 @@ RET</pre><p>В фактическом helper регистр C после эти�
 <section id="proof"><div class="section-head"><span class="num">08</span><h2>Что именно доказано</h2></div>
 <div class="prose"><p><b>768 наборов входных данных = 3 сценария × все 256 значений seed.</b> Каждый сценарий выполняется в native Crystal, raw MIR2, optimized MIR2 и Z80 emulator. Сценарии: arena + repeat + marker read; копия структуры и изменение оригинала; чтение поля у двух layouts. Это не 768 возможностей языка.</p>
 <p>Дополнительно проверены 7 отказов, а прежние корпуса — 1792 meta-набора и 2372 arena-набора — прошли повторно. Числа не суммируются в процент покрытия языка. Они подтверждают выбранные программы, а не всю stdlib и не оптимальность ASM.</p></div>
+<details><summary>Receipt общей byte-библиотеки, итерация 9</summary><pre>{
+  &quot;stage&quot;: &quot;shared-library-before-crystal-facade&quot;,
+  &quot;target_cases_per_engine&quot;: 22,
+  &quot;target_engines&quot;: [
+    &quot;raw MIR2&quot;,
+    &quot;optimized MIR2&quot;,
+    &quot;Z80&quot;
+  ],
+  &quot;native_reference_scenarios&quot;: 22,
+  &quot;capacities&quot;: [
+    0,
+    1,
+    3,
+    255,
+    256
+  ],
+  &quot;seeds&quot;: [
+    0,
+    1,
+    127,
+    255
+  ],
+  &quot;full_backing_and_guard_bytes_checked_per_workload&quot;: 258,
+  &quot;target_view_bytes&quot;: 4,
+  &quot;target_buffer_bytes&quot;: 6,
+  &quot;crystal_linked_to_shared_library&quot;: false,
+  &quot;sha256&quot;: {
+    &quot;stdlib/mem/bytes.nanz&quot;: &quot;cc6a6aa6b02193298a0e0c3c8541e8f1fcadb21bb4d6bd09e4246a4808f51431&quot;,
+    &quot;minzc/pkg/nanz/byte_buffer_test.go&quot;: &quot;f30733143c29e1dcc541cdd62f44b9f895f729080a1351194c09526843e25d29&quot;,
+    &quot;research/crystal-hir/buffer_reference.cr&quot;: &quot;0ea9dbbcb7a8a5fa8322fb215e01ccad945e84c1bbd5b654aa2f1daa33840c74&quot;
+  },
+  &quot;seconds&quot;: {
+    &quot;target&quot;: 2.517,
+    &quot;native&quot;: 0.913
+  }
+}
+</pre></details>
 <details><summary>Receipt yield/generator прогона, итерация 8</summary><pre>{
   &quot;cases_per_engine&quot;: 2048,
   &quot;engines&quot;: [
@@ -377,6 +415,7 @@ RET</pre><p>В фактическом helper регистр C после эти�
 }
 </pre></details>
 <details><summary>Provenance листингов и подсчёт инструкций</summary><pre>{
+  &quot;byte_library_commit&quot;: &quot;0a0eb3d2c&quot;,
   &quot;assembly_experiment_commit&quot;: &quot;cf4e395ff&quot;,
   &quot;go_probe_commit&quot;: &quot;0503fd753&quot;,
   &quot;borrowed_view_commit&quot;: &quot;7267b91bb&quot;,
@@ -393,6 +432,7 @@ RET</pre><p>В фактическом helper регистр C после эти�
     &quot;iteration7-results.json&quot;: &quot;889a1f758a2edce53287cf980fa6936acb56305645d82fcb2b2f07a0643c5945&quot;,
     &quot;iteration8-layout.json&quot;: &quot;8b13f600e848a87d150046e110d29f9b45c7102470097cf71cc606ff5a8055c0&quot;,
     &quot;iteration8-results.json&quot;: &quot;ff32c418d66f414cd445da357d6b3f6c02f4729df4beba012fafecac5e041947&quot;,
+    &quot;iteration9-library-results.json&quot;: &quot;1c415a93ff17f52583c4feea45d10a5ffffacfd3a5bf4418847bc8eefef7852c&quot;,
     &quot;meta-arena.a80&quot;: &quot;68173bbcc747cd50ae5fe6435d93bb90f74cf012852a0460c789a93e20d69eaf&quot;,
     &quot;meta-arena.hir&quot;: &quot;4d95573a13713d1f4471eb31d5df3eb99a34b0f08a7e2f7f39fc6e46f09c8d09&quot;,
     &quot;meta-arena.mir2&quot;: &quot;f80daab8823145c72c20e7e58f73c8d50b4d50a678449a443a24ed0b35040ed2&quot;,
