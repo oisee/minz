@@ -1430,6 +1430,12 @@ func (g *z80cg) genInst(inst *Inst) {
 			g.emitf("    LD %s, %s", dst, globalFieldLabel(info.sym, info.offset, ""))
 			break
 		}
+		// A deferred comparison may be stored into this very field next.
+		// ADD HL,rr destroys carry; SoA byte INC destroys Z. Materialize
+		// before either, while ordinary 16-bit INC offsets preserve F.
+		if inst.Imm < 0 || inst.Imm > 3 || isSpill(dst) && inst.Imm != 0 {
+			g.materializePendingFlag(inst)
+		}
 		src := g.loc(inst.Src[0])
 		offset := inst.Imm
 		if dst != src {
