@@ -1,0 +1,57 @@
+// Non-owning byte views and bounded buffers. The caller supplies backing memory
+// and keeps it alive; these descriptors neither allocate nor free it.
+struct ByteView { data: ^u8, len: u16 }
+struct ByteBuffer { data: ^u8, len: u16, cap: u16 }
+
+fun ByteView.init(self: ^ByteView, data: ^u8, len: u16) {
+    self.data = data
+    self.len = len
+}
+
+// Failure leaves the output byte untouched.
+fun ByteView.try_get(self: ^ByteView, index: u16, out: ^u8) -> u8 {
+    if index >= self.len { return 0 }
+    out[0] = self.data[index]
+    return 1
+}
+
+fun ByteView.try_set(self: ^ByteView, index: u16, value: u8) -> u8 {
+    if index >= self.len { return 0 }
+    self.data[index] = value
+    return 1
+}
+
+// count <= len-start avoids overflowing start+count. Empty end views are valid.
+// Output may be the input descriptor itself; failure leaves it untouched.
+fun ByteView.subview(self: ^ByteView, start: u16, count: u16, out: ^ByteView) -> u8 {
+    let length: u16 = self.len
+    if start > length { return 0 }
+    if count > length - start { return 0 }
+    let data: ^u8 = self.data
+    out.data = data + start
+    out.len = count
+    return 1
+}
+
+fun ByteBuffer.init(self: ^ByteBuffer, data: ^u8, cap: u16) {
+    self.data = data
+    self.len = 0
+    self.cap = cap
+}
+
+// Does not erase backing bytes or invalidate other descriptors of that memory.
+fun ByteBuffer.clear(self: ^ByteBuffer) { self.len = 0 }
+
+// Full buffers remain unchanged. In particular, cap=0 permits no writes.
+fun ByteBuffer.try_push(self: ^ByteBuffer, value: u8) -> u8 {
+    if self.len >= self.cap { return 0 }
+    self.data[self.len] = value
+    self.len = self.len + 1
+    return 1
+}
+
+// Snapshot pointer/length, share bytes. Later pushes do not extend this view.
+fun ByteBuffer.view(self: ^ByteBuffer, out: ^ByteView) {
+    out.data = self.data
+    out.len = self.len
+}
