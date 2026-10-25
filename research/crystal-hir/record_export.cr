@@ -25,7 +25,7 @@ record RecordDecl, name : String, native : String, fields : Array(RecordField), 
   include JSON::Serializable
 end
 
-record RecordFunc, name : String, source : String, owner : String, params : Array(RecordField), ret : String, body : Array(RecordNode) do
+record RecordFunc, name : String, source : String, owner : String, params : Array(RecordField), ret : String, body : Array(RecordNode), elem : String = "" do
   include JSON::Serializable
 end
 
@@ -88,12 +88,27 @@ class WritesLocal < Crystal::Visitor
   end
 end
 
+class YieldValues < Crystal::Visitor
+  getter values = [] of Crystal::ASTNode
+
+  def visit(node : Crystal::ASTNode)
+    true
+  end
+
+  def visit(node : Crystal::Yield)
+    raise "#{node.location}: generator yield requires one scalar value" unless node.exps.size == 1
+    @values << node.exps.first
+    true
+  end
+end
+
 class RecordExport
   PRIMITIVES = {"UInt8" => "u8", "UInt16" => "u16", "Int8" => "i8", "Int16" => "i16", "Bool" => "bool", "Nil" => "void"}
   OPS        = {"&+" => "+", "&-" => "-", "&*" => "*", "&" => "&", "|" => "|", "^" => "^", "==" => "==", "!=" => "!=", "<" => "<", "<=" => "<=", ">" => ">", ">=" => ">="}
   @records = {} of UInt64 => String
   @declarations = [] of RecordDecl
   @owner = ""
+  @in_generator = false
 
   def initialize(@graph : RecordGraph)
   end
@@ -224,6 +239,35 @@ class RecordExport
     result
   end
 
+  def generator_element(f : Crystal::Def) : String?
+    scan = YieldValues.new
+    f.body.accept(scan)
+    return nil if scan.values.empty?
+    elem = nt(scan.values.first)
+    raise "generator yields must share a scalar type" unless {"u8", "u16", "bool", "i8", "i16"}.includes?(elem) && scan.values.all? { |v| nt(v) == elem }
+    raise "generator has too many yield sites" if scan.values.size > 254
+    elem
+  end
+
+  def generator_each(node : Crystal::Call) : RecordNode?
+    block = node.block
+    return nil unless block
+    targets = node.target_defs || fail(node, "unresolved block call")
+    return nil unless targets.size == 1
+    f = targets.first
+    symbol = @graph.symbols[f.object_id]?
+    return nil unless symbol
+    elem = generator_element(f)
+    return nil unless elem
+    fail(node, "nested generator consumption is not yet admitted") if @in_generator
+    fail(node, "yielding methods require top-level owner and one block arg") unless f.owner.is_a?(Crystal::Program) && block.args.size == 1 && node.obj.nil? && !node.named_args && !node.block_arg
+    fail(node, "generator block element mismatch") unless nt(block.args.first) == elem
+    result = RecordNode.new("gen_for", "void", symbol, node.args.map { |a| encode(a) })
+    result.op = block.args.first.name
+    result.body = body(block.body)
+    result
+  end
+
   def encode(node : Crystal::ASTNode) : RecordNode
     case node
     when Crystal::Expressions
@@ -231,6 +275,7 @@ class RecordExport
       result.body = body(node)
       result
     when Crystal::Assign
+      fail(node, "yield result feedback is not admitted") if node.value.is_a?(Crystal::Yield)
       RecordNode.new("assign", nt(node), args: [encode(node.target), encode(node.value)])
     when Crystal::Var
       return RecordNode.new("self", "ptr:#{@owner}") if node.name == "self"
@@ -248,6 +293,9 @@ class RecordExport
       result
     when Crystal::NilLiteral, Crystal::Nop
       RecordNode.new("nil")
+    when Crystal::Yield
+      fail(node, "yield outside imported generator") unless @in_generator && node.exps.size == 1
+      RecordNode.new("yield", "void", args: [encode(node.exps.first)])
     when Crystal::Return
       exp = node.exp
       RecordNode.new("return", "void", args: exp ? [encode(exp)] : [] of RecordNode)
@@ -278,6 +326,10 @@ class RecordExport
       if iteration = slice_each(node)
         return iteration
       end
+      if consumption = generator_each(node)
+        return consumption
+      end
+      fail(node, "unsupported block call") if node.block
       # size is Int32 in native Slice. Admitted u8/u16 lengths make this
       # explicit checked conversion exact on every accepted constructor.
       if node.name == "to_u16" && node.args.empty? && (size = node.obj).is_a?(Crystal::Call) && size.name == "size" && size.args.empty? && (view = size.obj) && view.type.to_s.starts_with?("Slice(")
@@ -382,10 +434,14 @@ class RecordExport
         raise "aggregate parameters are not yet admitted" if ty.starts_with?("record_") || ty.starts_with?("array:")
         RecordField.new(a.name, ty)
       end
-      ret = nt(f)
+      elem = generator_element(f)
+      raise "generator instance methods are not yet admitted" if elem && !@owner.empty?
+      @in_generator = !elem.nil?
+      ret = elem && f.type.to_s == "NoReturn" ? "void" : nt(f)
+      raise "yielding method must return Nil or never return" if elem && ret != "void"
       raise "aggregate returns unsupported" if ret.starts_with?("record_") || ret.starts_with?("array:")
       raise "top-level pointer returns require escape analysis" if @owner.empty? && ret.starts_with?("ptr:")
-      RecordFunc.new(@graph.symbols[f.object_id], f.name, @owner, params, ret, body(f.body))
+      RecordFunc.new(@graph.symbols[f.object_id], f.name, @owner, params, ret, body(f.body), elem || "")
     end
     {protocol: "crystal-record-hir-v1", records: @declarations, functions: functions}.to_pretty_json
   end

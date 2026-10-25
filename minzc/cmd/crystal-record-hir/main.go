@@ -26,7 +26,7 @@ type node struct {
 type function struct {
 	Name, Source, Owner string
 	Params              []field
-	Ret                 string
+	Ret, Elem           string
 	Body                []*node
 }
 type record struct {
@@ -323,6 +323,9 @@ func (c *importer) expr(n *node, pre *[]hir.Stmt) (hir.Expr, error) {
 		if f == nil {
 			return nil, fmt.Errorf("unknown callee %s", n.Name)
 		}
+		if f.IsGen {
+			return nil, fmt.Errorf("generator must be consumed by a block")
+		}
 		args := make([]hir.Expr, len(n.Args))
 		for i := range args {
 			args[i], err = arg(i)
@@ -342,6 +345,15 @@ func (c *importer) assignment(n *node, pre *[]hir.Stmt) (hir.Expr, error) {
 		return nil, fmt.Errorf("assignment arity")
 	}
 	target, value := n.Args[0], n.Args[1]
+	if c.current.IsGen {
+		ty, e := c.ty(value.Ty)
+		if e != nil {
+			return nil, e
+		}
+		if target.Name == "tag" || (!mir2.IsInt(ty) && ty != mir2.TyBool && !mir2.IsPointer(ty)) {
+			return nil, fmt.Errorf("generator locals require scalar/pointer types and nonreserved names")
+		}
+	}
 	if target.Kind == "var" && value.Kind == "construct_view" {
 		ty, err := c.ty(value.Ty)
 		if err != nil {
@@ -489,6 +501,9 @@ func (c *importer) block(nodes []*node, tail bool) (*hir.Block, error) {
 			if err != nil {
 				return nil, err
 			}
+			if c.current.IsGen && result != nil {
+				return nil, fmt.Errorf("generator completion cannot return a value")
+			}
 			pre = append(pre, &hir.ReturnStmt{Val: result})
 		case "assign":
 			result, err = c.assignment(n, &pre)
@@ -509,6 +524,50 @@ func (c *importer) block(nodes []*node, tail bool) (*hir.Block, error) {
 			}
 			c.locals = before
 			pre = append(pre, &hir.IfStmt{Cond: cond, Then: yes, Else: no})
+			last = false
+		case "yield":
+			if !c.current.IsGen || len(n.Args) != 1 {
+				return nil, fmt.Errorf("yield outside generator or invalid arity")
+			}
+			value, e := c.expr(n.Args[0], &pre)
+			if e != nil {
+				return nil, e
+			}
+			if value == nil || !reflect.DeepEqual(value.ExprTy(), c.current.ElemTy) {
+				return nil, fmt.Errorf("generator yield type mismatch")
+			}
+			pre = append(pre, &hir.YieldStmt{Val: value})
+			last = false
+		case "gen_for":
+			if c.current.IsGen {
+				return nil, fmt.Errorf("nested generator consumption is not admitted")
+			}
+			generator := c.funcs[n.Name]
+			if generator == nil || !generator.IsGen || n.Ty != "void" || n.Op == "" || len(n.Args) != len(generator.Params) {
+				return nil, fmt.Errorf("invalid generator consumption")
+			}
+			args := make([]hir.Expr, len(n.Args))
+			for i, a := range n.Args {
+				value, e := c.expr(a, &pre)
+				if e != nil {
+					return nil, e
+				}
+				if value == nil || !reflect.DeepEqual(value.ExprTy(), generator.Params[i].Ty) {
+					return nil, fmt.Errorf("generator argument type mismatch")
+				}
+				args[i] = value
+			}
+			before := cloneLocals(c.locals)
+			if c.locals[n.Op] != nil {
+				return nil, fmt.Errorf("generator block argument shadows binding")
+			}
+			c.locals[n.Op] = generator.ElemTy
+			inner, e := c.block(n.Body, false)
+			c.locals = before
+			if e != nil {
+				return nil, e
+			}
+			pre = append(pre, &hir.GenForStmt{Var: n.Op, Gen: generator.Name, ElemTy: generator.ElemTy, Args: args, Body: inner})
 			last = false
 		case "foreach_view":
 			if len(n.Args) != 1 || n.Ty != "void" || n.Name == "" {
@@ -644,6 +703,70 @@ func (c *importer) block(nodes []*node, tail bool) (*hir.Block, error) {
 	return b, nil
 }
 
+func validateImportedGenerator(f *hir.Func) error {
+	if !f.IsGen {
+		return nil
+	}
+	names := map[string]bool{"tag": true}
+	fieldOK := func(ty mir2.Ty) bool { return mir2.IsInt(ty) || ty == mir2.TyBool || mir2.IsPointer(ty) }
+	for _, p := range f.Params {
+		if names[p.Name] || !fieldOK(p.Ty) {
+			return fmt.Errorf("generator parameter is reserved or not scalar/pointer")
+		}
+		names[p.Name] = true
+	}
+	yields := 0
+	var walk func(*hir.Block, bool) error
+	walk = func(b *hir.Block, inFor bool) error {
+		if b == nil {
+			return nil
+		}
+		for _, stmt := range b.Body {
+			switch s := stmt.(type) {
+			case *hir.YieldStmt:
+				yields++
+				if inFor {
+					return fmt.Errorf("yield inside foreach is not yet admitted")
+				}
+			case *hir.VarDeclStmt:
+				if names[s.Name] || !fieldOK(s.Ty) {
+					return fmt.Errorf("generator local is repeated, reserved or aggregate")
+				}
+				names[s.Name] = true
+			case *hir.Block:
+				if err := walk(s, inFor); err != nil {
+					return err
+				}
+			case *hir.IfStmt:
+				if err := walk(s.Then, inFor); err != nil {
+					return err
+				}
+				if err := walk(s.Else, inFor); err != nil {
+					return err
+				}
+			case *hir.WhileStmt:
+				if err := walk(s.Body, inFor); err != nil {
+					return err
+				}
+			case *hir.ForEachStmt:
+				if err := walk(s.Body, true); err != nil {
+					return err
+				}
+			case *hir.GenForStmt:
+				return fmt.Errorf("nested generator consumption is not yet admitted")
+			}
+		}
+		return nil
+	}
+	if err := walk(f.Body, false); err != nil {
+		return err
+	}
+	if yields < 1 || yields > 254 {
+		return fmt.Errorf("generator needs 1..254 yield sites")
+	}
+	return nil
+}
+
 func importModule(w module) (*importer, error) {
 	if w.Protocol != "crystal-record-hir-v1" {
 		return nil, fmt.Errorf("bad record protocol")
@@ -687,6 +810,17 @@ func importModule(w module) (*importer, error) {
 			return nil, e
 		}
 		fn := &hir.Func{Name: f.Name, RetTy: ret}
+		if f.Elem != "" {
+			elem, e := c.ty(f.Elem)
+			if e != nil {
+				return nil, e
+			}
+			if ret != mir2.TyVoid || f.Owner != "" || (elem != mir2.TyU8 && elem != mir2.TyU16 && elem != mir2.TyI8 && elem != mir2.TyI16 && elem != mir2.TyBool) {
+				return nil, fmt.Errorf("invalid generator signature")
+			}
+			fn.IsGen = true
+			fn.ElemTy = elem
+		}
 		if f.Owner != "" {
 			owner, e := c.ty(f.Owner)
 			if e != nil {
@@ -715,11 +849,23 @@ func importModule(w module) (*importer, error) {
 			return nil, fmt.Errorf("%s: %w", f.Source, e)
 		}
 		c.current.Body = body
+		if e := validateImportedGenerator(c.current); e != nil {
+			return nil, fmt.Errorf("%s: %w", f.Source, e)
+		}
 	}
 	if e := hir.Verify(c.m); e != nil {
 		return nil, e
 	}
 	return c, nil
+}
+
+func sourceRecordName(records []record, name string) string {
+	for _, r := range records {
+		if r.Name == name {
+			return r.Native
+		}
+	}
+	return ""
 }
 
 func run() error {
@@ -760,7 +906,14 @@ func run() error {
 			return fmt.Errorf("unknown entry %s", tc.Source)
 		}
 	}
-	if e = pipeline.RunAssertsMIR2(m, hir.LowerModule(hir.CloneModule(m))); e != nil {
+	expanded := hir.CloneModule(m)
+	raw := hir.LowerModule(expanded)
+	for _, item := range []struct{ suffix, text string }{{"-pre.hir", m.Dump()}, {"-expanded.hir", expanded.Dump()}, {"-raw.mir2", raw.Dump()}} {
+		if e = os.WriteFile(os.Args[3]+item.suffix, []byte(item.text), 0644); e != nil {
+			return e
+		}
+	}
+	if e = pipeline.RunAssertsMIR2(m, raw); e != nil {
 		return fmt.Errorf("raw MIR2: %w", e)
 	}
 	steps, compileErr := pipeline.CompileHIRSteps(m, pipeline.Options{DisableVariantSearch: true})
@@ -773,12 +926,12 @@ func run() error {
 		return compileErr
 	}
 	var layouts []map[string]any
-	for i, st := range m.Structs {
+	for _, st := range m.Structs {
 		var fields []map[string]any
 		for j, f := range st.Fields {
 			fields = append(fields, map[string]any{"name": f.Name, "ty": f.Ty.String(), "offset": st.ByteOffset(j), "bytes": mir2.ByteWidth(f.Ty)})
 		}
-		layouts = append(layouts, map[string]any{"name": st.Name, "native": w.Records[i].Native, "bytes": mir2.ByteWidth(st), "fields": fields})
+		layouts = append(layouts, map[string]any{"name": st.Name, "native": sourceRecordName(w.Records, st.Name), "bytes": mir2.ByteWidth(st), "fields": fields})
 	}
 	encoded, e := json.MarshalIndent(map[string]any{"target": "z80", "pointer_bytes": mir2.ByteWidth(mir2.TyPtr), "layouts": layouts, "cases_per_engine": len(cases), "meta_layout": compiled.layoutReceipts}, "", "  ")
 	if e != nil {
