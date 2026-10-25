@@ -3,9 +3,11 @@
 package main
 
 import (
+	"crypto/sha256"
 	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
 	"reflect"
 	"strconv"
 	"strings"
@@ -14,6 +16,7 @@ import (
 	"github.com/minz/minzc/pkg/hir"
 	"github.com/minz/minzc/pkg/lanz"
 	"github.com/minz/minzc/pkg/mir2"
+	"github.com/minz/minzc/pkg/nanz"
 	"github.com/minz/minzc/pkg/pipeline"
 )
 
@@ -27,6 +30,7 @@ type function struct {
 	Name, Source, Owner string
 	Params              []field
 	Ret, Elem           string
+	Library             string
 	Body                []*node
 }
 type record struct {
@@ -52,6 +56,106 @@ type importer struct {
 	serial         int
 	metaHelpers    map[string]*hir.Func
 	layoutReceipts []crystalmeta.LayoutReceipt
+	byteLibrary    *hir.Module
+	byteLibrarySHA string
+}
+
+// The facade has its own record names. Cast pointers only after checking every
+// field name/type (and hence target offset), never just the total byte size.
+func byteABIEqual(a, b mir2.Ty) bool {
+	if reflect.DeepEqual(a, b) {
+		return true
+	}
+	if !mir2.IsPointer(a) || !mir2.IsPointer(b) {
+		return false
+	}
+	x, xok := mir2.PointerElem(a).(*mir2.StructTy)
+	y, yok := mir2.PointerElem(b).(*mir2.StructTy)
+	if !xok || !yok {
+		return false
+	}
+	return !x.IsUnion && !y.IsUnion && len(x.FieldOffsets) == 0 && len(y.FieldOffsets) == 0 && x.StorageBytes == 0 && y.StorageBytes == 0 && reflect.DeepEqual(x.Fields, y.Fields)
+}
+
+func (c *importer) bindBytes(f function) error {
+	allowed := map[string]bool{"ByteView_init": true, "ByteView_try_get": true, "ByteView_try_set": true, "ByteView_subview": true, "ByteBuffer_init": true, "ByteBuffer_clear": true, "ByteBuffer_try_push": true, "ByteBuffer_view": true}
+	if !allowed[f.Library] || len(f.Body) != 0 || f.Elem != "" {
+		return fmt.Errorf("invalid byte library binding")
+	}
+	if c.byteLibrary == nil {
+		root := os.Getenv("MINZ_STDLIB")
+		if root == "" {
+			root = "stdlib"
+		}
+		source, err := os.ReadFile(filepath.Join(root, "mem", "bytes.nanz"))
+		if err != nil {
+			return fmt.Errorf("load byte library (set MINZ_STDLIB): %w", err)
+		}
+		lib, err := nanz.Parse(string(source), "mem.bytes")
+		if err != nil {
+			return err
+		}
+		if err := hir.Verify(lib); err != nil {
+			return err
+		}
+		c.byteLibrary = lib
+		c.byteLibrarySHA = fmt.Sprintf("%x", sha256.Sum256(source))
+		c.m.Structs = append(c.m.Structs, lib.Structs...)
+		c.m.Funcs = append(c.m.Funcs, lib.Funcs...)
+	}
+	var target *hir.Func
+	for _, candidate := range c.byteLibrary.Funcs {
+		if candidate.Name == f.Library {
+			target = candidate
+			break
+		}
+	}
+	wrapper := c.funcs[f.Name]
+	if target == nil || len(wrapper.Params) != len(target.Params) || !reflect.DeepEqual(wrapper.RetTy, target.RetTy) {
+		return fmt.Errorf("byte library signature mismatch: %s", f.Library)
+	}
+	args := make([]hir.Expr, len(wrapper.Params))
+	for i, p := range wrapper.Params {
+		expected := target.Params[i].Ty
+		// Nanz currently erases ^Struct parameter types to byte pointers in
+		// public HIR. Recover the two record roles from this explicit v1 API
+		// contract, while retaining the parsed scalar parameter signature.
+		recordName := ""
+		if i == 0 {
+			recordName = strings.SplitN(f.Library, "_", 2)[0]
+		}
+		if f.Library == "ByteBuffer_view" && i == 1 || f.Library == "ByteView_subview" && i == 3 {
+			recordName = "ByteView"
+		}
+		if recordName != "" {
+			if expected != mir2.TyPtr {
+				return fmt.Errorf("byte library record parameter ABI changed: %s", f.Library)
+			}
+			for _, st := range c.byteLibrary.Structs {
+				if st.Name == recordName {
+					expected = mir2.PointerTo(st)
+					break
+				}
+			}
+			if expected == mir2.TyPtr {
+				return fmt.Errorf("byte library record missing: %s", recordName)
+			}
+		}
+		if !byteABIEqual(p.Ty, expected) {
+			return fmt.Errorf("byte library parameter %d schema mismatch: %s", i, f.Library)
+		}
+		args[i] = hir.Var(p.Name, p.Ty)
+		if !reflect.DeepEqual(p.Ty, target.Params[i].Ty) {
+			args[i] = hir.Cast(args[i], target.Params[i].Ty)
+		}
+	}
+	call := &hir.CallExpr{Fn: target.Name, Args: args, Ty: target.RetTy}
+	if target.RetTy == mir2.TyVoid {
+		wrapper.Body = hir.Blk(&hir.ExprStmt{Expr: call}, &hir.ReturnStmt{})
+	} else {
+		wrapper.Body = hir.Blk(&hir.ReturnStmt{Val: call})
+	}
+	return nil
 }
 
 func (c *importer) ty(name string) (mir2.Ty, error) {
@@ -839,6 +943,12 @@ func importModule(w module) (*importer, error) {
 		c.m.Funcs = append(c.m.Funcs, fn)
 	}
 	for _, f := range w.Functions {
+		if f.Library != "" {
+			if err := c.bindBytes(f); err != nil {
+				return nil, err
+			}
+			continue
+		}
 		c.current = c.funcs[f.Name]
 		c.locals = map[string]mir2.Ty{}
 		for _, p := range c.current.Params {
@@ -933,7 +1043,7 @@ func run() error {
 		}
 		layouts = append(layouts, map[string]any{"name": st.Name, "native": sourceRecordName(w.Records, st.Name), "bytes": mir2.ByteWidth(st), "fields": fields})
 	}
-	encoded, e := json.MarshalIndent(map[string]any{"target": "z80", "pointer_bytes": mir2.ByteWidth(mir2.TyPtr), "layouts": layouts, "cases_per_engine": len(cases), "meta_layout": compiled.layoutReceipts}, "", "  ")
+	encoded, e := json.MarshalIndent(map[string]any{"target": "z80", "pointer_bytes": mir2.ByteWidth(mir2.TyPtr), "layouts": layouts, "cases_per_engine": len(cases), "meta_layout": compiled.layoutReceipts, "byte_library_sha256": compiled.byteLibrarySHA}, "", "  ")
 	if e != nil {
 		return e
 	}

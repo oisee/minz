@@ -1,0 +1,252 @@
+--- FAIL: TestNativePredicateSurvivesFieldAddress (0.03s)
+    --- FAIL: TestNativePredicateSurvivesFieldAddress/4/ult (0.00s)
+        z80codegen_field_predicate_test.go:82: 1 vs 2: byte=0 want=1
+            ORG 0x8000
+            entry:
+                LD H, B
+                LD L, C
+                OR A
+                SBC HL, DE
+                PUSH IX
+                POP HL
+                LD BC, 4
+                ADD HL, BC
+                PUSH AF
+                JP C, .bool_true_0
+            .bool_false_0:
+                LD A, 0
+                JP .bool_done_0
+            .bool_true_0:
+                LD A, 1
+            .bool_done_0:
+                LD E, A
+                POP AF
+                LD (HL), E
+            DI
+            HALT
+    --- FAIL: TestNativePredicateSurvivesFieldAddress/4/ule (0.00s)
+        z80codegen_field_predicate_test.go:82: 2 vs 1: byte=1 want=0
+            ORG 0x8000
+            entry:
+                LD H, D
+                LD L, E
+                OR A
+                SBC HL, BC
+                PUSH IX
+                POP HL
+                LD BC, 4
+                ADD HL, BC
+                PUSH AF
+                JP NC, .bool_true_0
+            .bool_false_0:
+                LD A, 0
+                JP .bool_done_0
+            .bool_true_0:
+                LD A, 1
+            .bool_done_0:
+                LD E, A
+                POP AF
+                LD (HL), E
+            DI
+            HALT
+    --- FAIL: TestNativePredicateSurvivesFieldAddress/4/ugt (0.00s)
+        z80codegen_field_predicate_test.go:82: 2 vs 1: byte=0 want=1
+            ORG 0x8000
+            entry:
+                LD H, D
+                LD L, E
+                OR A
+                SBC HL, BC
+                PUSH IX
+                POP HL
+                LD BC, 4
+                ADD HL, BC
+                PUSH AF
+                JP C, .bool_true_0
+            .bool_false_0:
+                LD A, 0
+                JP .bool_done_0
+            .bool_true_0:
+                LD A, 1
+            .bool_done_0:
+                LD E, A
+                POP AF
+                LD (HL), E
+            DI
+            HALT
+    --- FAIL: TestNativePredicateSurvivesFieldAddress/4/uge (0.00s)
+        z80codegen_field_predicate_test.go:82: 1 vs 2: byte=1 want=0
+            ORG 0x8000
+            entry:
+                LD H, B
+                LD L, C
+                OR A
+                SBC HL, DE
+                PUSH IX
+                POP HL
+                LD BC, 4
+                ADD HL, BC
+                PUSH AF
+                JP NC, .bool_true_0
+            .bool_false_0:
+                LD A, 0
+                JP .bool_done_0
+            .bool_true_0:
+                LD A, 1
+            .bool_done_0:
+                LD E, A
+                POP AF
+                LD (HL), E
+            DI
+            HALT
+    --- FAIL: TestNativePredicateSurvivesFieldAddress/11/ult (0.00s)
+        z80codegen_field_predicate_test.go:82: 1 vs 2: byte=0 want=1
+            ORG 0x8000
+            entry:
+                LD H, B
+                LD L, C
+                OR A
+                SBC HL, DE
+                PUSH IX
+                POP HL
+                LD BC, 11
+                ADD HL, BC
+                PUSH AF
+                JP C, .bool_true_0
+            .bool_false_0:
+                LD A, 0
+                JP .bool_done_0
+            .bool_true_0:
+                LD A, 1
+            .bool_done_0:
+                LD E, A
+                POP AF
+                LD (HL), E
+            DI
+            HALT
+    --- FAIL: TestNativePredicateSurvivesFieldAddress/11/ule (0.00s)
+        z80codegen_field_predicate_test.go:82: 2 vs 1: byte=1 want=0
+            ORG 0x8000
+            entry:
+                LD H, D
+                LD L, E
+                OR A
+                SBC HL, BC
+                PUSH IX
+                POP HL
+                LD BC, 11
+                ADD HL, BC
+                PUSH AF
+                JP NC, .bool_true_0
+            .bool_false_0:
+                LD A, 0
+                JP .bool_done_0
+            .bool_true_0:
+                LD A, 1
+            .bool_done_0:
+                LD E, A
+                POP AF
+                LD (HL), E
+            DI
+            HALT
+    --- FAIL: TestNativePredicateSurvivesFieldAddress/11/ugt (0.00s)
+        z80codegen_field_predicate_test.go:82: 2 vs 1: byte=0 want=1
+            ORG 0x8000
+            entry:
+                LD H, D
+                LD L, E
+                OR A
+                SBC HL, BC
+                PUSH IX
+                POP HL
+                LD BC, 11
+                ADD HL, BC
+                PUSH AF
+                JP C, .bool_true_0
+            .bool_false_0:
+                LD A, 0
+                JP .bool_done_0
+            .bool_true_0:
+                LD A, 1
+            .bool_done_0:
+                LD E, A
+                POP AF
+                LD (HL), E
+            DI
+            HALT
+    --- FAIL: TestNativePredicateSurvivesFieldAddress/11/uge (0.00s)
+        z80codegen_field_predicate_test.go:82: 1 vs 2: byte=1 want=0
+            ORG 0x8000
+            entry:
+                LD H, B
+                LD L, C
+                OR A
+                SBC HL, DE
+                PUSH IX
+                POP HL
+                LD BC, 11
+                ADD HL, BC
+                PUSH AF
+                JP NC, .bool_true_0
+            .bool_false_0:
+                LD A, 0
+                JP .bool_done_0
+            .bool_true_0:
+                LD A, 1
+            .bool_done_0:
+                LD E, A
+                POP AF
+                LD (HL), E
+            DI
+            HALT
+    --- FAIL: TestNativePredicateSurvivesFieldAddress/256/eq (0.00s)
+        z80codegen_field_predicate_test.go:82: 0 vs 0: byte=0 want=1
+            ORG 0x8000
+            entry:
+                LD H, B
+                LD L, C
+                OR A
+                SBC HL, DE
+                PUSH IX
+                POP HL
+                INC H
+                PUSH AF
+                JP Z, .bool_true_0
+            .bool_false_0:
+                LD A, 0
+                JP .bool_done_0
+            .bool_true_0:
+                LD A, 1
+            .bool_done_0:
+                LD E, A
+                POP AF
+                LD (HL), E
+            DI
+            HALT
+    --- FAIL: TestNativePredicateSurvivesFieldAddress/256/ne (0.00s)
+        z80codegen_field_predicate_test.go:82: 0 vs 0: byte=1 want=0
+            ORG 0x8000
+            entry:
+                LD H, B
+                LD L, C
+                OR A
+                SBC HL, DE
+                PUSH IX
+                POP HL
+                INC H
+                PUSH AF
+                JP NZ, .bool_true_0
+            .bool_false_0:
+                LD A, 0
+                JP .bool_done_0
+            .bool_true_0:
+                LD A, 1
+            .bool_done_0:
+                LD E, A
+                POP AF
+                LD (HL), E
+            DI
+            HALT
+FAIL
+FAIL	github.com/minz/minzc/pkg/mir2	0.431s
+FAIL

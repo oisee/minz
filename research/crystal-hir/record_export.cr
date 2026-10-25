@@ -25,11 +25,12 @@ record RecordDecl, name : String, native : String, fields : Array(RecordField), 
   include JSON::Serializable
 end
 
-record RecordFunc, name : String, source : String, owner : String, params : Array(RecordField), ret : String, body : Array(RecordNode), elem : String = "" do
+record RecordFunc, name : String, source : String, owner : String, params : Array(RecordField), ret : String, body : Array(RecordNode), elem : String = "", library : String = "" do
   include JSON::Serializable
 end
 
 class RecordGraph < Crystal::Visitor
+  BYTE_FACADE = File.expand_path("bytes.cr", __DIR__)
   getter defs = [] of Crystal::Def
   getter constructors = {} of UInt64 => Crystal::Def
   getter symbols = {} of UInt64 => String
@@ -44,7 +45,7 @@ class RecordGraph < Crystal::Visitor
   def visit(node : Crystal::Call)
     return true if {"minz_meta_repeat", "minz_meta_layout_byte"}.includes?(node.name)
     node.target_defs.try &.each do |f|
-      next unless f.location.try(&.filename) == @path
+      next unless f.location.try(&.filename) == @path || f.location.try(&.filename) == BYTE_FACADE
       next if @symbols.has_key?(f.object_id) || @constructors.has_key?(f.object_id)
       if f.new?
         @constructors[f.object_id] = f
@@ -52,9 +53,18 @@ class RecordGraph < Crystal::Visitor
         @symbols[f.object_id] = "rec_#{f.name.gsub(/[^a-zA-Z0-9_]/, "_")}_#{@defs.size}"
         @defs << f
       end
-      f.body.accept(self)
+      f.body.accept(self) unless byte_binding(f)
     end
     true
+  end
+
+  def byte_binding(f : Crystal::Def) : String?
+    return nil unless f.location.try(&.filename) == BYTE_FACADE
+    owner = {"MinzBytes::View" => "ByteView", "MinzBytes::Buffer" => "ByteBuffer"}[f.owner.to_s]?
+    return nil unless owner
+    method = f.name == "initialize" ? "init" : f.name
+    admitted = owner == "ByteView" ? {"init", "try_get", "try_set", "subview"} : {"init", "clear", "try_push", "view"}
+    admitted.includes?(method) ? "#{owner}_#{method}" : nil
   end
 end
 
@@ -124,7 +134,7 @@ class RecordExport
     case ty
     when Crystal::PointerInstanceType
       elem = type(ty.element_type)
-      raise "unsupported pointer element #{elem}" unless {"u8", "u16", "i8", "i16"}.includes?(elem)
+      raise "unsupported pointer element #{elem}" unless {"u8", "u16", "i8", "i16"}.includes?(elem) || elem.starts_with?("record_")
       "ptr:#{elem}"
     when Crystal::StaticArrayInstanceType
       elem = type(ty.element_type)
@@ -401,6 +411,9 @@ class RecordExport
       if node.name == "to_u16" && nt(obj) == "u8" && node.args.empty?
         return RecordNode.new("cast", "u16", args: [encode(obj)])
       end
+      if node.name == "to_u8!" && nt(obj) == "u16" && node.args.empty?
+        return RecordNode.new("cast", "u8", args: [encode(obj)])
+      end
       if nt(obj).starts_with?("ptr:")
         case node.name
         when "+"
@@ -441,7 +454,8 @@ class RecordExport
       raise "yielding method must return Nil or never return" if elem && ret != "void"
       raise "aggregate returns unsupported" if ret.starts_with?("record_") || ret.starts_with?("array:")
       raise "top-level pointer returns require escape analysis" if @owner.empty? && ret.starts_with?("ptr:")
-      RecordFunc.new(@graph.symbols[f.object_id], f.name, @owner, params, ret, body(f.body), elem || "")
+      library = @graph.byte_binding(f) || ""
+      RecordFunc.new(@graph.symbols[f.object_id], f.name, @owner, params, ret, library.empty? ? body(f.body) : [] of RecordNode, elem || "", library)
     end
     {protocol: "crystal-record-hir-v1", records: @declarations, functions: functions}.to_pretty_json
   end
