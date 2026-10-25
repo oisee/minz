@@ -47,7 +47,7 @@ while a view is used is invalid.
 
 The byte-only API complements `text.print.BufWriter` and `core.stream.BufStream`;
 their existing contracts have not been replaced. Generic element views,
-owning buffers and ring buffers remain subsequent work. A research Crystal
+and owning buffers remain subsequent work. A research Crystal
 facade now links to these exact HIR functions; see
 [`ITERATION10.md`](../../research/crystal-hir/ITERATION10.md).
 
@@ -57,3 +57,32 @@ subrange rejection on raw MIR2, optimized MIR2 and assembled Z80. Each workload
 checks all 258 initial backing/guard bytes, bounds failures, in-place subview,
 shared writes, and clear/snapshot behavior. Native Crystal reference scenarios
 are in `research/crystal-hir/buffer_reference.cr`.
+
+## Bounded FIFO
+
+`ByteRing { data: ^u8, head: u16, len: u16, cap: u16 }` is an eight-byte
+non-owning descriptor on Z80. `init(data, cap)` starts empty; `try_push(value)`
+and `try_pop(out)` return 1/0, preserving data/output on failure. `clear()`
+sets head and length to zero without erasing storage. The caller maintains
+`len <= cap` and `head < cap` for a nonzero capacity.
+
+`segments(first, second)` describes the readable FIFO as two contiguous
+ByteViews, in order. The two output descriptors must be distinct and separate
+from the ring and backing bytes. Empty queues produce two empty views. An
+empty ring may have a null data pointer. No division is used in wrap arithmetic.
+
+Saved segments keep their pointer/length and share storage: subsequent queue
+writes can change what they see. They are not immutable queue snapshots and
+must not outlive the backing allocation. This API is sequential; it supplies
+no interrupt/thread synchronization, scheduler or channel protocol.
+
+For example, physical storage `[3, 1, 2]` with head=1 and len=3 yields first
+`[1, 2]`, second `[3]`. Both ranges can use ordinary foreach or stackless pull
+iteration without copying. See the Crystal facade and early-stop example in
+[`ITERATION11.md`](../../research/crystal-hir/ITERATION11.md).
+
+Validation: `go -C minzc test ./pkg/nanz -run '^TestByteRingImportedFIFO$'`.
+Ten traces cover capacities 0/1/3/255/256 and seeds 0/255 against an independent
+host FIFO model: 3224 operations per engine on raw/optimized MIR2 and Z80,
+with byte-by-byte segments and final backing/canary checks. The Crystal bridge
+has a separate four-engine corpus and negative ABI controls.
