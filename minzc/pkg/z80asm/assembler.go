@@ -470,9 +470,18 @@ func (a *Assembler) AssembleString(source string) (*Result, error) {
 	// Multi-pass assembly with convergence for span-dependent optimization
 	// Pass 1: Build symbol table assuming worst-case sizes
 	// Pass 2+: Emit code, track sizes, recalculate if sizes shrink
-	// Continue until no size changes (convergence) or max passes reached
+	// Continue until sizes and symbol values are stable. In particular, an EQU
+	// alias can change after an earlier instruction has already used its old
+	// value, even when no instruction changes size.
 
-	const maxPasses = 10
+	maxPasses := 10
+	for _, line := range a.lines {
+		if line.Directive == "EQU" {
+			// A forward chain can propagate just one alias per pass. Keep the
+			// existing span-relaxation budget in addition to the alias depth.
+			maxPasses++
+		}
+	}
 
 	// Pass 1: Build initial symbol table
 	a.pass = 1
@@ -492,6 +501,10 @@ func (a *Assembler) AssembleString(source string) (*Result, error) {
 		// Store previous sizes for comparison
 		prevSizes := a.instructionSizes
 		a.instructionSizes = make(map[int]int)
+		prevSymbols := make(map[string]int, len(a.symbols))
+		for name, sym := range a.symbols {
+			prevSymbols[name] = sym.Value
+		}
 
 		if err := a.performPass(); err != nil {
 			return nil, fmt.Errorf("pass %d error: %w", passNum, err)
@@ -505,12 +518,22 @@ func (a *Assembler) AssembleString(source string) (*Result, error) {
 			}
 		}
 
-		// If sizes changed, we need to recalculate symbol addresses
-		if a.sizeChanged && passNum < maxPasses {
+		symbolsChanged := false
+		for name, sym := range a.symbols {
+			if before, exists := prevSymbols[name]; !exists || before != sym.Value {
+				symbolsChanged = true
+				break
+			}
+		}
+
+		if a.sizeChanged || symbolsChanged {
+			if passNum == maxPasses {
+				return nil, fmt.Errorf("assembly did not converge after %d passes (instruction sizes or symbol values changed)", maxPasses)
+			}
 			// Recalculate symbol table with new sizes
 			a.recalculateSymbols()
 		} else {
-			// Converged or max passes reached
+			// The emitted bytes and final symbols now agree.
 			break
 		}
 	}
