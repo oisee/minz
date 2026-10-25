@@ -1,0 +1,6 @@
+--- FAIL: TestGeneratorFrameDefinitionLiveness (0.00s)
+    generator_liveness_test.go:81: phases$frame frame 8 bytes, want 3: [{tag u8 false} {n u8 false} {i u8 false} {before u8 false} {condition bool false} {value u8 false} {next_value u8 false} {second u8 false}]
+    generator_liveness_test.go:81: overwritten$frame frame 3 bytes, want 2: [{tag u8 false} {gate u8 false} {stale u8 false}]
+FAIL
+FAIL	github.com/minz/minzc/pkg/hir	0.367s
+FAIL

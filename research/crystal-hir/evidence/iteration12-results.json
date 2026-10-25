@@ -1,0 +1,104 @@
+{
+  "milestone": "generator definition liveness and daily article",
+  "engines": [
+    "native Crystal",
+    "raw MIR2",
+    "optimized MIR2",
+    "Z80"
+  ],
+  "generator_cases_per_engine": 2048,
+  "generator_negative_controls": 5,
+  "ring_cases_per_engine": 525,
+  "ring_negative_controls": 6,
+  "legacy_buffer_cases_per_engine": 7,
+  "fifo_model_traces": 10,
+  "fifo_model_operations_per_engine": 3224,
+  "ring_frame_before_bytes": 53,
+  "ring_frame_after_bytes": 13,
+  "ring_frame_after_fields": [
+    {
+      "bytes": 1,
+      "name": "tag",
+      "offset": 0,
+      "ty": "u8"
+    },
+    {
+      "bytes": 2,
+      "name": "first",
+      "offset": 1,
+      "ty": "ptr"
+    },
+    {
+      "bytes": 2,
+      "name": "count",
+      "offset": 3,
+      "ty": "u16"
+    },
+    {
+      "bytes": 2,
+      "name": "second",
+      "offset": 5,
+      "ty": "ptr"
+    },
+    {
+      "bytes": 2,
+      "name": "rest",
+      "offset": 7,
+      "ty": "u16"
+    },
+    {
+      "bytes": 2,
+      "name": "reads",
+      "offset": 9,
+      "ty": "ptr"
+    },
+    {
+      "bytes": 2,
+      "name": "i",
+      "offset": 11,
+      "ty": "u16"
+    }
+  ],
+  "byte_stream_frame_before_bytes": 33,
+  "byte_stream_frame_after_bytes": 33,
+  "rle_frame_before_bytes": 47,
+  "rle_frame_after_bytes": 47,
+  "infinite_frame_before_bytes": 6,
+  "infinite_frame_after_bytes": 3,
+  "nanz_anf_frame_before_bytes": 8,
+  "nanz_anf_frame_after_bytes": 3,
+  "conservative_fallback": [
+    "address expressions",
+    "let-in",
+    "for/foreach",
+    "goto/label",
+    "asm",
+    "other unmodelled statements"
+  ],
+  "compiler_sha256": {
+    "minzc/pkg/hir/lower_gen.go": "22dc95f6503d6eec6c23a23a7f7ce88849baa333d8751c6cd02de1e083e2f2da",
+    "minzc/pkg/hir/gen_liveness.go": "e891cf18fa6761205b63643d1aadf2388b89beae3244fde35ed54547411710dc",
+    "minzc/pkg/hir/generator_liveness_test.go": "7555d762fcf78c70750fa0075397404cffea62a9886595a94ac6b208481f1099"
+  },
+  "harness_seconds": {
+    "generators": {
+      "build-exporter": 9.164,
+      "build-consumer": 1.523,
+      "export": 2.022,
+      "target": 360.365,
+      "native": 0.861
+    },
+    "rings": {
+      "build-exporter": 8.363,
+      "build-consumer": 0.489,
+      "export": 2.021,
+      "export-via-alias": 1.382,
+      "native": 0.873,
+      "fifo-model": 2.752,
+      "legacy-export-via-alias": 1.383,
+      "legacy-native": 0.793,
+      "legacy-target": 2.957,
+      "target": 156.008
+    }
+  }
+}

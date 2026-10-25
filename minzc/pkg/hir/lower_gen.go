@@ -978,6 +978,9 @@ func hasGenNodes(b *Block) bool {
 // — the loop condition and the whole body again, because the back edge
 // re-executes statements that precede the yield.
 func genLiveAcrossYield(body *Block) map[string]bool {
+	if live, ok := genCFGLiveAcrossYield(body); ok {
+		return live
+	}
 	live := map[string]bool{}
 	walkBlockCont(body, map[string]bool{}, live)
 	return live
