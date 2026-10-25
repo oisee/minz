@@ -79,6 +79,9 @@ func byteABIEqual(a, b mir2.Ty) bool {
 
 func (c *importer) bindBytes(f function) error {
 	allowed := map[string]bool{"ByteView_init": true, "ByteView_try_get": true, "ByteView_try_set": true, "ByteView_subview": true, "ByteBuffer_init": true, "ByteBuffer_clear": true, "ByteBuffer_try_push": true, "ByteBuffer_view": true}
+	for _, name := range []string{"ByteRing_init", "ByteRing_clear", "ByteRing_try_push", "ByteRing_try_pop", "ByteRing_segments"} {
+		allowed[name] = true
+	}
 	if !allowed[f.Library] || len(f.Body) != 0 || f.Elem != "" {
 		return fmt.Errorf("invalid byte library binding")
 	}
@@ -124,7 +127,7 @@ func (c *importer) bindBytes(f function) error {
 		if i == 0 {
 			recordName = strings.SplitN(f.Library, "_", 2)[0]
 		}
-		if f.Library == "ByteBuffer_view" && i == 1 || f.Library == "ByteView_subview" && i == 3 {
+		if f.Library == "ByteBuffer_view" && i == 1 || f.Library == "ByteView_subview" && i == 3 || f.Library == "ByteRing_segments" && (i == 1 || i == 2) {
 			recordName = "ByteView"
 		}
 		if recordName != "" {

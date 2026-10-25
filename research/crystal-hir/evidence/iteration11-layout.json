@@ -1,0 +1,327 @@
+{
+  "byte_library_sha256": "ff993d0018bacb114766b830d76c3c62f7742928e978eff04875ac88f7299d24",
+  "cases_per_engine": 525,
+  "layouts": [
+    {
+      "bytes": 8,
+      "fields": [
+        {
+          "bytes": 2,
+          "name": "data",
+          "offset": 0,
+          "ty": "ptr"
+        },
+        {
+          "bytes": 2,
+          "name": "head",
+          "offset": 2,
+          "ty": "u16"
+        },
+        {
+          "bytes": 2,
+          "name": "len",
+          "offset": 4,
+          "ty": "u16"
+        },
+        {
+          "bytes": 2,
+          "name": "cap",
+          "offset": 6,
+          "ty": "u16"
+        }
+      ],
+      "name": "record_0",
+      "native": "MinzBytes::Ring"
+    },
+    {
+      "bytes": 4,
+      "fields": [
+        {
+          "bytes": 2,
+          "name": "data",
+          "offset": 0,
+          "ty": "ptr"
+        },
+        {
+          "bytes": 2,
+          "name": "len",
+          "offset": 2,
+          "ty": "u16"
+        }
+      ],
+      "name": "record_1",
+      "native": "MinzBytes::View"
+    },
+    {
+      "bytes": 4,
+      "fields": [
+        {
+          "bytes": 2,
+          "name": "data",
+          "offset": 0,
+          "ty": "ptr"
+        },
+        {
+          "bytes": 2,
+          "name": "len",
+          "offset": 2,
+          "ty": "u16"
+        }
+      ],
+      "name": "ByteView",
+      "native": ""
+    },
+    {
+      "bytes": 6,
+      "fields": [
+        {
+          "bytes": 2,
+          "name": "data",
+          "offset": 0,
+          "ty": "ptr"
+        },
+        {
+          "bytes": 2,
+          "name": "len",
+          "offset": 2,
+          "ty": "u16"
+        },
+        {
+          "bytes": 2,
+          "name": "cap",
+          "offset": 4,
+          "ty": "u16"
+        }
+      ],
+      "name": "ByteBuffer",
+      "native": ""
+    },
+    {
+      "bytes": 8,
+      "fields": [
+        {
+          "bytes": 2,
+          "name": "data",
+          "offset": 0,
+          "ty": "ptr"
+        },
+        {
+          "bytes": 2,
+          "name": "head",
+          "offset": 2,
+          "ty": "u16"
+        },
+        {
+          "bytes": 2,
+          "name": "len",
+          "offset": 4,
+          "ty": "u16"
+        },
+        {
+          "bytes": 2,
+          "name": "cap",
+          "offset": 6,
+          "ty": "u16"
+        }
+      ],
+      "name": "ByteRing",
+      "native": ""
+    },
+    {
+      "bytes": 53,
+      "fields": [
+        {
+          "bytes": 1,
+          "name": "tag",
+          "offset": 0,
+          "ty": "u8"
+        },
+        {
+          "bytes": 2,
+          "name": "first",
+          "offset": 1,
+          "ty": "ptr"
+        },
+        {
+          "bytes": 2,
+          "name": "count",
+          "offset": 3,
+          "ty": "u16"
+        },
+        {
+          "bytes": 2,
+          "name": "second",
+          "offset": 5,
+          "ty": "ptr"
+        },
+        {
+          "bytes": 2,
+          "name": "rest",
+          "offset": 7,
+          "ty": "u16"
+        },
+        {
+          "bytes": 2,
+          "name": "reads",
+          "offset": 9,
+          "ty": "ptr"
+        },
+        {
+          "bytes": 2,
+          "name": "i",
+          "offset": 11,
+          "ty": "u16"
+        },
+        {
+          "bytes": 2,
+          "name": "$record_value_296",
+          "offset": 13,
+          "ty": "u16"
+        },
+        {
+          "bytes": 2,
+          "name": "$record_value_297",
+          "offset": 15,
+          "ty": "u16"
+        },
+        {
+          "bytes": 1,
+          "name": "$record_value_298",
+          "offset": 17,
+          "ty": "bool"
+        },
+        {
+          "bytes": 2,
+          "name": "$record_value_299",
+          "offset": 18,
+          "ty": "ptr"
+        },
+        {
+          "bytes": 2,
+          "name": "$record_value_300",
+          "offset": 20,
+          "ty": "ptr"
+        },
+        {
+          "bytes": 1,
+          "name": "$record_value_301",
+          "offset": 22,
+          "ty": "u8"
+        },
+        {
+          "bytes": 1,
+          "name": "$record_value_302",
+          "offset": 23,
+          "ty": "u8"
+        },
+        {
+          "bytes": 2,
+          "name": "$record_value_303",
+          "offset": 24,
+          "ty": "ptr"
+        },
+        {
+          "bytes": 2,
+          "name": "$record_value_304",
+          "offset": 26,
+          "ty": "u16"
+        },
+        {
+          "bytes": 1,
+          "name": "$record_value_305",
+          "offset": 28,
+          "ty": "u8"
+        },
+        {
+          "bytes": 2,
+          "name": "$record_value_306",
+          "offset": 29,
+          "ty": "u16"
+        },
+        {
+          "bytes": 2,
+          "name": "$record_value_307",
+          "offset": 31,
+          "ty": "u16"
+        },
+        {
+          "bytes": 2,
+          "name": "$record_value_308",
+          "offset": 33,
+          "ty": "u16"
+        },
+        {
+          "bytes": 2,
+          "name": "$record_value_309",
+          "offset": 35,
+          "ty": "u16"
+        },
+        {
+          "bytes": 1,
+          "name": "$record_value_310",
+          "offset": 37,
+          "ty": "bool"
+        },
+        {
+          "bytes": 2,
+          "name": "$record_value_311",
+          "offset": 38,
+          "ty": "ptr"
+        },
+        {
+          "bytes": 2,
+          "name": "$record_value_312",
+          "offset": 40,
+          "ty": "ptr"
+        },
+        {
+          "bytes": 1,
+          "name": "$record_value_313",
+          "offset": 42,
+          "ty": "u8"
+        },
+        {
+          "bytes": 1,
+          "name": "$record_value_314",
+          "offset": 43,
+          "ty": "u8"
+        },
+        {
+          "bytes": 2,
+          "name": "$record_value_315",
+          "offset": 44,
+          "ty": "ptr"
+        },
+        {
+          "bytes": 2,
+          "name": "$record_value_316",
+          "offset": 46,
+          "ty": "u16"
+        },
+        {
+          "bytes": 1,
+          "name": "$record_value_317",
+          "offset": 48,
+          "ty": "u8"
+        },
+        {
+          "bytes": 2,
+          "name": "$record_value_318",
+          "offset": 49,
+          "ty": "u16"
+        },
+        {
+          "bytes": 2,
+          "name": "$record_value_319",
+          "offset": 51,
+          "ty": "u16"
+        }
+      ],
+      "name": "rec_ring_values_15$frame",
+      "native": ""
+    }
+  ],
+  "meta_layout": null,
+  "pointer_bytes": 2,
+  "target": "z80"
+}

@@ -1,0 +1,44 @@
+=== RUN   TestByteRingImportedFIFO
+=== RUN   TestByteRingImportedFIFO/cap0/seed0
+[HIR-SPLIT] probe → probe$split_10 (2 inputs, pressure 9)
+    byte_ring_test.go:173: 14 operations, 0 observed queue bytes
+=== RUN   TestByteRingImportedFIFO/cap0/seed255
+[HIR-SPLIT] probe → probe$split_10 (2 inputs, pressure 9)
+    byte_ring_test.go:173: 14 operations, 0 observed queue bytes
+=== RUN   TestByteRingImportedFIFO/cap1/seed0
+[HIR-SPLIT] probe → probe$split_10 (2 inputs, pressure 9)
+    byte_ring_test.go:173: 16 operations, 3 observed queue bytes
+=== RUN   TestByteRingImportedFIFO/cap1/seed255
+[HIR-SPLIT] probe → probe$split_10 (2 inputs, pressure 9)
+    byte_ring_test.go:173: 16 operations, 3 observed queue bytes
+=== RUN   TestByteRingImportedFIFO/cap3/seed0
+[HIR-SPLIT] probe → probe$split_10 (2 inputs, pressure 9)
+    byte_ring_test.go:173: 22 operations, 8 observed queue bytes
+=== RUN   TestByteRingImportedFIFO/cap3/seed255
+[HIR-SPLIT] probe → probe$split_10 (2 inputs, pressure 9)
+    byte_ring_test.go:173: 22 operations, 8 observed queue bytes
+=== RUN   TestByteRingImportedFIFO/cap255/seed0
+[HIR-SPLIT] probe → probe$split_10 (2 inputs, pressure 9)
+    byte_ring_test.go:173: 778 operations, 638 observed queue bytes
+=== RUN   TestByteRingImportedFIFO/cap255/seed255
+[HIR-SPLIT] probe → probe$split_10 (2 inputs, pressure 9)
+    byte_ring_test.go:173: 778 operations, 638 observed queue bytes
+=== RUN   TestByteRingImportedFIFO/cap256/seed0
+[HIR-SPLIT] probe → probe$split_10 (2 inputs, pressure 9)
+    byte_ring_test.go:173: 782 operations, 640 observed queue bytes
+=== RUN   TestByteRingImportedFIFO/cap256/seed255
+[HIR-SPLIT] probe → probe$split_10 (2 inputs, pressure 9)
+    byte_ring_test.go:173: 782 operations, 640 observed queue bytes
+--- PASS: TestByteRingImportedFIFO (1.82s)
+    --- PASS: TestByteRingImportedFIFO/cap0/seed0 (0.19s)
+    --- PASS: TestByteRingImportedFIFO/cap0/seed255 (0.18s)
+    --- PASS: TestByteRingImportedFIFO/cap1/seed0 (0.18s)
+    --- PASS: TestByteRingImportedFIFO/cap1/seed255 (0.17s)
+    --- PASS: TestByteRingImportedFIFO/cap3/seed0 (0.18s)
+    --- PASS: TestByteRingImportedFIFO/cap3/seed255 (0.18s)
+    --- PASS: TestByteRingImportedFIFO/cap255/seed0 (0.19s)
+    --- PASS: TestByteRingImportedFIFO/cap255/seed255 (0.19s)
+    --- PASS: TestByteRingImportedFIFO/cap256/seed0 (0.19s)
+    --- PASS: TestByteRingImportedFIFO/cap256/seed255 (0.19s)
+PASS
+ok  	github.com/minz/minzc/pkg/nanz	2.137s

@@ -30,7 +30,7 @@ record RecordFunc, name : String, source : String, owner : String, params : Arra
 end
 
 class RecordGraph < Crystal::Visitor
-  BYTE_FACADE = File.expand_path("bytes.cr", __DIR__)
+  BYTE_FACADE = File.real_path(File.join(__DIR__, "bytes.cr"))
   getter defs = [] of Crystal::Def
   getter constructors = {} of UInt64 => Crystal::Def
   getter symbols = {} of UInt64 => String
@@ -60,10 +60,14 @@ class RecordGraph < Crystal::Visitor
 
   def byte_binding(f : Crystal::Def) : String?
     return nil unless f.location.try(&.filename) == BYTE_FACADE
-    owner = {"MinzBytes::View" => "ByteView", "MinzBytes::Buffer" => "ByteBuffer"}[f.owner.to_s]?
+    owner = {"MinzBytes::View" => "ByteView", "MinzBytes::Buffer" => "ByteBuffer", "MinzBytes::Ring" => "ByteRing"}[f.owner.to_s]?
     return nil unless owner
     method = f.name == "initialize" ? "init" : f.name
-    admitted = owner == "ByteView" ? {"init", "try_get", "try_set", "subview"} : {"init", "clear", "try_push", "view"}
+    admitted = case owner
+               when "ByteView" then {"init", "try_get", "try_set", "subview"}
+               when "ByteBuffer" then {"init", "clear", "try_push", "view"}
+               else {"init", "clear", "try_push", "try_pop", "segments"}
+               end
     admitted.includes?(method) ? "#{owner}_#{method}" : nil
   end
 end
@@ -462,7 +466,9 @@ class RecordExport
 end
 
 begin
-  path = File.expand_path(ARGV[0])
+  # /tmp and /private/tmp may name the same worktree. File identity, not a
+  # symlink spelling, controls which facade methods are admitted.
+  path = File.real_path(ARGV[0])
   compiler = Crystal::Compiler.new
   compiler.no_codegen = true
   compiler.color = false
