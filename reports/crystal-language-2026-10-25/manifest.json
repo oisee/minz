@@ -1,5 +1,7 @@
 {
-  "experiment_commit": "cf4e395ff",
+  "assembly_experiment_commit": "cf4e395ff",
+  "go_probe_commit": "0503fd753",
+  "borrowed_view_commit": "7267b91bb",
   "target": "z80",
   "register_allocator": "PBQP",
   "files": {

@@ -35,7 +35,7 @@ values={
  'GO_SOURCE':'func fn_cr_three_iterations_2'+(ART/'scalar-meta-generated.go.txt').read_text().split('func fn_cr_three_iterations_2',1)[1].split('\n}',1)[0]+'\n}',
  'RECEIPT':(ART/'iteration4-results.json').read_text(),
 }
-manifest={'experiment_commit':'cf4e395ff','target':'z80','register_allocator':'PBQP',
+manifest={'assembly_experiment_commit':'cf4e395ff','go_probe_commit':'0503fd753','borrowed_view_commit':'7267b91bb','target':'z80','register_allocator':'PBQP',
           'files':{p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(ART.iterdir()) if p.is_file()},
           'listing_instruction_counts':{name:count(value) for name,value in [('repeat',repeat),('reader_offset_7',reader),('reader_offset_0',zero),('arena_entry',entry)]}}
 (HERE/'manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
