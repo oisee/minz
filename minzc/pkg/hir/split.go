@@ -321,6 +321,27 @@ func FindSplitPoints(f *Func, pressure []int) []splitCandidate {
 		paramNames[p.Name] = true
 	}
 
+	addressed := map[string]bool{}
+	arrays := map[string]bool{}
+	varTypes := inferVarTypes(f)
+	walkGraceBlocks(f.Body, "", func(_ string, b *Block) {
+		for _, s := range b.Body {
+			if d, ok := s.(*VarDeclStmt); ok && d.ArrayLen != 0 {
+				arrays[d.Name] = true
+			}
+			visitStmtExprs(s, func(e Expr) {
+				if a, ok := e.(*AddrOfExpr); ok {
+					if a.Sym != "" {
+						addressed[a.Sym] = true
+					}
+					if v, ok := a.X.(*VarRefExpr); ok {
+						addressed[v.Name] = true
+					}
+				}
+			})
+		}
+	})
+
 	var candidates []splitCandidate
 
 	// Try each position as a split point.
@@ -365,6 +386,23 @@ func FindSplitPoints(f *Func, pressure []int) []splitCandidate {
 		// Use the same lexical variable order as HIR loop lowering so the
 		// generated sub-function ABI is independent of map iteration.
 		sort.Strings(inputs)
+		// Struct parameters already forward addressable storage. Scalar cells
+		// and local arrays need explicit by-reference lifting to preserve &x;
+		// passing their value as an ordinary split parameter is not equivalent.
+		unsafeAddress := false
+		for _, name := range inputs {
+			if !addressed[name] {
+				continue
+			}
+			_, object := mir2.BaseOf(varTypes[name]).(*mir2.StructTy)
+			if arrays[name] || !object {
+				unsafeAddress = true
+				break
+			}
+		}
+		if unsafeAddress {
+			continue
+		}
 
 		// Outputs: defined after AND used after the split region.
 		// (For simplicity, outputs = vars modified in bottom half that
@@ -638,6 +676,9 @@ func collectExprRefs(e Expr, refs map[string]bool) {
 	case *FieldExpr:
 		collectExprRefs(e.X, refs)
 	case *AddrOfExpr:
+		if e.Sym != "" {
+			refs[e.Sym] = true
+		}
 		if e.X != nil {
 			collectExprRefs(e.X, refs)
 		}

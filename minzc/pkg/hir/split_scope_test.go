@@ -130,3 +130,24 @@ func TestSplitMissingCallbackCaptureRollsBack(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestSplitAddressedStorageInterface(t *testing.T) {
+	for _, arrayLen := range []int{0, 3} {
+		f := &Func{Name: "address", RetTy: mir2.TyU8, Body: Blk(
+			&VarDeclStmt{Name: "cell", Ty: mir2.TyU8, ArrayLen: arrayLen, Init: U8(7)},
+			&ExprStmt{Expr: U8(0)},
+			&ExprStmt{Expr: &AddrOfExpr{Sym: "cell"}},
+			&ReturnStmt{Val: U8(0)},
+		)}
+		refs := map[string]bool{}
+		collectExprRefs(&AddrOfExpr{Sym: "cell"}, refs)
+		if !refs["cell"] {
+			t.Fatal("address dependency omitted")
+		}
+		for _, c := range FindSplitPoints(f, []int{9, 9, 9, 9}) {
+			if c.splitAt == 1 {
+				t.Fatalf("arrayLen%d: addressable storage forwarded as scalar: %+v", arrayLen, c)
+			}
+		}
+	}
+}
