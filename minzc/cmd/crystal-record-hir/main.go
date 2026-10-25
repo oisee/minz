@@ -10,7 +10,9 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/minz/minzc/internal/crystalmeta"
 	"github.com/minz/minzc/pkg/hir"
+	"github.com/minz/minzc/pkg/lanz"
 	"github.com/minz/minzc/pkg/mir2"
 	"github.com/minz/minzc/pkg/pipeline"
 )
@@ -42,12 +44,14 @@ type testCase struct {
 	Expected int64
 }
 type importer struct {
-	m       *hir.Module
-	types   map[string]mir2.Ty
-	funcs   map[string]*hir.Func
-	locals  map[string]mir2.Ty
-	current *hir.Func
-	serial  int
+	m              *hir.Module
+	types          map[string]mir2.Ty
+	funcs          map[string]*hir.Func
+	locals         map[string]mir2.Ty
+	current        *hir.Func
+	serial         int
+	metaHelpers    map[string]*hir.Func
+	layoutReceipts []crystalmeta.LayoutReceipt
 }
 
 func (c *importer) ty(name string) (mir2.Ty, error) {
@@ -221,6 +225,70 @@ func (c *importer) expr(n *node, pre *[]hir.Stmt) (hir.Expr, error) {
 		} else {
 			e = access
 		}
+	case "meta_repeat":
+		if ty != mir2.TyU8 || len(n.Args) != 3 || n.Args[0].Ty != "u8" || n.Args[1].Kind != "int" || n.Args[1].Ty != "u8" || n.Args[2].Kind != "int" || n.Args[2].Ty != "u8" {
+			return nil, fmt.Errorf("invalid record meta repeat")
+		}
+		input, err := arg(0)
+		if err != nil {
+			return nil, err
+		}
+		key := fmt.Sprintf("repeat:%d:%d", n.Args[1].Value, n.Args[2].Value)
+		f := c.metaHelpers[key]
+		if f == nil {
+			receipt, err := crystalmeta.GenerateRepeat(int(n.Args[1].Value), int(n.Args[2].Value))
+			if err != nil {
+				return nil, err
+			}
+			generated, err := lanz.Compile(receipt.Lanz, "record-meta-repeat")
+			if err != nil {
+				return nil, err
+			}
+			f = generated.Funcs[0]
+			c.metaHelpers[key] = f
+			c.m.Funcs = append(c.m.Funcs, f)
+		}
+		e = &hir.CallExpr{Fn: f.Name, Args: []hir.Expr{input}, Ty: f.RetTy}
+	case "meta_layout_byte":
+		st, ok := c.types[n.Op].(*mir2.StructTy)
+		if !ok || ty != mir2.TyU8 || len(n.Args) != 1 || n.Args[0].Kind != "addr" {
+			return nil, fmt.Errorf("invalid meta layout receiver")
+		}
+		base, err := arg(0)
+		if err != nil {
+			return nil, err
+		}
+		if !reflect.DeepEqual(base.ExprTy(), mir2.PointerTo(st)) || !reflect.DeepEqual(c.locals[n.Args[0].Name], st) {
+			return nil, fmt.Errorf("meta layout receiver type mismatch")
+		}
+		key := "layout:" + n.Op + ":" + n.Name
+		f := c.metaHelpers[key]
+		if f == nil {
+			helper, receipt, err := crystalmeta.GenerateLayoutByte(st, n.Name)
+			if err != nil {
+				return nil, err
+			}
+			f = helper
+			// Different records may share the same byte reader; retain per-record receipts.
+			for _, existing := range c.m.Funcs {
+				if existing.Name == f.Name {
+					f = existing
+					break
+				}
+			}
+			c.metaHelpers[key] = f
+			c.layoutReceipts = append(c.layoutReceipts, receipt)
+			found := false
+			for _, existing := range c.m.Funcs {
+				if existing == f {
+					found = true
+				}
+			}
+			if !found {
+				c.m.Funcs = append(c.m.Funcs, f)
+			}
+		}
+		e = &hir.CallExpr{Fn: f.Name, Args: []hir.Expr{hir.Cast(base, mir2.TyPtr)}, Ty: mir2.TyU8}
 	case "call":
 		f := c.funcs[n.Name]
 		if f == nil {
@@ -420,11 +488,11 @@ func (c *importer) block(nodes []*node, tail bool) (*hir.Block, error) {
 	return b, nil
 }
 
-func importModule(w module) (*hir.Module, error) {
+func importModule(w module) (*importer, error) {
 	if w.Protocol != "crystal-record-hir-v1" {
 		return nil, fmt.Errorf("bad record protocol")
 	}
-	c := &importer{m: &hir.Module{Name: "crystal_records", NonNullObjects: true}, types: map[string]mir2.Ty{"u8": mir2.TyU8, "u16": mir2.TyU16, "i8": mir2.TyI8, "i16": mir2.TyI16, "bool": mir2.TyBool, "void": mir2.TyVoid}, funcs: map[string]*hir.Func{}}
+	c := &importer{m: &hir.Module{Name: "crystal_records", NonNullObjects: true}, types: map[string]mir2.Ty{"u8": mir2.TyU8, "u16": mir2.TyU16, "i8": mir2.TyI8, "i16": mir2.TyI16, "bool": mir2.TyBool, "void": mir2.TyVoid}, funcs: map[string]*hir.Func{}, metaHelpers: map[string]*hir.Func{}}
 	for _, r := range w.Records {
 		st := &mir2.StructTy{Name: r.Name}
 		c.types[r.Name] = st
@@ -478,7 +546,7 @@ func importModule(w module) (*hir.Module, error) {
 	if e := hir.Verify(c.m); e != nil {
 		return nil, e
 	}
-	return c.m, nil
+	return c, nil
 }
 
 func run() error {
@@ -493,10 +561,11 @@ func run() error {
 	if e = json.Unmarshal(src, &w); e != nil {
 		return e
 	}
-	m, e := importModule(w)
+	compiled, e := importModule(w)
 	if e != nil {
 		return e
 	}
+	m := compiled.m
 	data, e := os.ReadFile(os.Args[2])
 	if e != nil {
 		return e
@@ -538,7 +607,7 @@ func run() error {
 		}
 		layouts = append(layouts, map[string]any{"name": st.Name, "native": w.Records[i].Native, "bytes": mir2.ByteWidth(st), "fields": fields})
 	}
-	encoded, e := json.MarshalIndent(map[string]any{"target": "z80", "pointer_bytes": mir2.ByteWidth(mir2.TyPtr), "layouts": layouts, "cases_per_engine": len(cases)}, "", "  ")
+	encoded, e := json.MarshalIndent(map[string]any{"target": "z80", "pointer_bytes": mir2.ByteWidth(mir2.TyPtr), "layouts": layouts, "cases_per_engine": len(cases), "meta_layout": compiled.layoutReceipts}, "", "  ")
 	if e != nil {
 		return e
 	}

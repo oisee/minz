@@ -1,0 +1,87 @@
+{
+  "cases_per_engine": 768,
+  "layouts": [
+    {
+      "bytes": 8,
+      "fields": [
+        {
+          "bytes": 1,
+          "name": "tag",
+          "offset": 0,
+          "ty": "u8"
+        },
+        {
+          "bytes": 2,
+          "name": "base",
+          "offset": 1,
+          "ty": "ptr"
+        },
+        {
+          "bytes": 2,
+          "name": "cursor",
+          "offset": 3,
+          "ty": "u16"
+        },
+        {
+          "bytes": 2,
+          "name": "capacity",
+          "offset": 5,
+          "ty": "u16"
+        },
+        {
+          "bytes": 1,
+          "name": "marker",
+          "offset": 7,
+          "ty": "u8"
+        }
+      ],
+      "name": "record_0",
+      "native": "MetaArena"
+    },
+    {
+      "bytes": 3,
+      "fields": [
+        {
+          "bytes": 1,
+          "name": "marker",
+          "offset": 0,
+          "ty": "u8"
+        },
+        {
+          "bytes": 2,
+          "name": "word",
+          "offset": 1,
+          "ty": "u16"
+        }
+      ],
+      "name": "record_1",
+      "native": "HeaderProbe"
+    }
+  ],
+  "meta_layout": [
+    {
+      "protocol": "minz-meta-layout-v1",
+      "target": "z80",
+      "function": "meta_layout_byte_8_7",
+      "record": "record_0",
+      "field": "marker",
+      "offset": 7,
+      "record_bytes": 8,
+      "pointer_bytes": 2,
+      "generator_sha256": "553155484c0b43a3ea82e4ebef86bfb79731416566d0d01a8b7ad2a788cdf709"
+    },
+    {
+      "protocol": "minz-meta-layout-v1",
+      "target": "z80",
+      "function": "meta_layout_byte_3_0",
+      "record": "record_1",
+      "field": "marker",
+      "offset": 0,
+      "record_bytes": 3,
+      "pointer_bytes": 2,
+      "generator_sha256": "553155484c0b43a3ea82e4ebef86bfb79731416566d0d01a8b7ad2a788cdf709"
+    }
+  ],
+  "pointer_bytes": 2,
+  "target": "z80"
+}

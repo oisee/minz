@@ -14,11 +14,11 @@
   "exporter_sha256": "36b0dee61f51bebbd7e00b811f0a995365359209bffbe622b1655afb8d76b834",
   "nanz_generator_sha256": "6d3554216969e07d70703334597830e6ef8f48de30bf6f7dc1d4e27af5c67791",
   "seconds": {
-    "build-bridge": 0.157,
-    "build-exporter": 8.773,
-    "build-consumer": 0.11,
-    "export": 4.219,
-    "target": 7.629,
-    "native": 0.728
+    "build-bridge": 0.238,
+    "build-exporter": 8.445,
+    "build-consumer": 0.088,
+    "export": 2.049,
+    "target": 6.841,
+    "native": 0.895
   }
 }

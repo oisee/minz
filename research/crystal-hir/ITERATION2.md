@@ -41,7 +41,7 @@ count/delta используют одну сгенерированную фун�
 
 ## Настоящая Nanz мета-функция
 
-Исходник — `minzc/cmd/crystal-meta-bridge/repeat.nanz`, он встроен в Go-адаптер
+Исходник — `minzc/internal/crystalmeta/repeat.nanz`, он встроен в Go-адаптер
 через `go:embed`. Мета-функция использует существующие `hir_caller_ref`,
 `hir_ref`, `hir_block`, `hir_var`, `hir_binary`, `hir_assign`, `emit_hir`.
 Количество сложений определяет цикл самой мета-функции на VM.

@@ -14,12 +14,12 @@
   },
   "negative_controls": 8,
   "source_sha256": "e7491d91b479d09e05ec9c36fe1d0c991da65626fbd83e96a2ca68b13b72b987",
-  "exporter_sha256": "1ec3efd5eb5583e7a31634dc8844575a76ed165a9dfacb9174dd972f36d2aadf",
+  "exporter_sha256": "7d690c906490533e616589f0d0dbc64850e1037feb9e4f7cc3e31759ac337e19",
   "seconds": {
-    "build-exporter": 7.471,
-    "build-consumer": 0.386,
-    "export": 1.77,
-    "target": 107.294,
-    "native": 0.993
+    "build-exporter": 7.746,
+    "build-consumer": 0.383,
+    "export": 1.602,
+    "target": 107.648,
+    "native": 0.88
   }
 }

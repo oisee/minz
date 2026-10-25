@@ -42,6 +42,7 @@ class RecordGraph < Crystal::Visitor
   end
 
   def visit(node : Crystal::Call)
+    return true if {"minz_meta_repeat", "minz_meta_layout_byte"}.includes?(node.name)
     node.target_defs.try &.each do |f|
       next unless f.location.try(&.filename) == @path
       next if @symbols.has_key?(f.object_id) || @constructors.has_key?(f.object_id)
@@ -201,7 +202,21 @@ class RecordExport
         fail(node, "StaticArray.new requires one literal fill value") unless node.args.size == 1 && node.args.first.is_a?(Crystal::NumberLiteral) && !node.block
         return RecordNode.new("array", result_ty, args: [encode(node.args.first)])
       end
-      fail(node, "meta markers are not yet supported by the record protocol") if node.name == "minz_meta_repeat"
+      if node.name == "minz_meta_repeat"
+        fail(node, "meta repeat requires u8 value and literal u8 count/delta") unless node.args.size == 3 && result_ty == "u8" && node.args.all? { |a| nt(a) == "u8" } && node.args[1..2].all?(&.is_a?(Crystal::NumberLiteral))
+        return RecordNode.new("meta_repeat", "u8", args: node.args.map { |a| encode(a) })
+      end
+      if node.name == "minz_meta_layout_byte"
+        fail(node, "meta layout requires pointerof local record and literal field") unless node.args.size == 2 && result_ty == "u8" && node.args[0].is_a?(Crystal::PointerOf) && node.args[1].is_a?(Crystal::StringLiteral)
+        # v1 native reference is the marker getter; don't claim arbitrary
+        # byte-field reflection until its native fallback is generalized.
+        fail(node, "meta layout v1 admits only the marker field") unless node.args[1].as(Crystal::StringLiteral).value == "marker"
+        value = node.args[0].as(Crystal::PointerOf).exp
+        fail(node, "meta layout requires local record") unless value.is_a?(Crystal::Var) && nt(value).starts_with?("record_") && value.name != "self"
+        result = RecordNode.new("meta_layout_byte", "u8", node.args[1].as(Crystal::StringLiteral).value, [receiver(value)])
+        result.op = nt(value)
+        return result
+      end
       targets = node.target_defs || fail(node, "unresolved call")
       fail(node, "union dispatch unsupported") unless targets.size == 1
       f = targets.first

@@ -48,7 +48,7 @@ def main():
     generators = manifest["meta_generators"]
     if len(generators) != 5:
         raise RuntimeError("expected five unique meta specializations; duplicate invocation was not cached")
-    generator_source = ROOT / "minzc/cmd/crystal-meta-bridge/repeat.nanz"
+    generator_source = ROOT / "minzc/internal/crystalmeta/repeat.nanz"
     source_hash = hashlib.sha256(generator_source.read_bytes()).hexdigest()
     for receipt in generators:
         if receipt["protocol"] != "minz-meta-hir-v1" or receipt["target"] != "z80" or receipt["generated_additions"] != receipt["count"] or receipt["generator_sha256"] != source_hash:

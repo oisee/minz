@@ -33,6 +33,7 @@
       "native": "ByteArena"
     }
   ],
+  "meta_layout": null,
   "pointer_bytes": 2,
   "target": "z80"
 }

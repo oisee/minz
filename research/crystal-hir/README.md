@@ -1,6 +1,11 @@
 # Crystal → HIR
 
-**Текущий шаг:** [Итерация 3: структуры, указатели и реальная arena](ITERATION3.md).
+**Текущий шаг:** [Итерация 4: macro/meta и records в одном модуле](ITERATION4.md).
+Три сценария × 256 seed values, всего 768 наборов на каждый из четырёх
+исполнителей. Nanz meta-генератор получает Z80 offset/sizeof/pointer width;
+поле marker имеет offset 7 на target и 20 на native host.
+
+**Итерация 3:** [Итерация 3: структуры, указатели и реальная arena](ITERATION3.md).
 2372 случая на native Crystal, raw/optimized MIR2 и Z80; target ByteArena — 7 байт
 против 24 на native host, указатель — 2 против 8.
 
