@@ -149,6 +149,30 @@ class RecordExport
     RecordNode.new("addr", "ptr:#{nt(node)}", node.name)
   end
 
+  # First iteration admission: a borrowed Slice.new(ptr,len).each block.
+  # Keep no Slice value or closure object on target; use common HIR ForEachStmt.
+  def slice_each(node : Crystal::Call) : RecordNode?
+    return nil unless node.name == "each" && (block = node.block)
+    slice = node.obj
+    return nil unless slice.is_a?(Crystal::Call) && slice.name == "new" && slice.type.to_s.starts_with?("Slice(")
+    fail(node, "slice each requires two constructor args and one block arg") unless slice.args.size == 2 && block.args.size == 1 && node.args.empty? && !slice.block && !slice.named_args && !node.named_args && !node.block_arg
+    targets = node.target_defs || fail(node, "unresolved slice each")
+    fail(node, "only native Indexable each is admitted") unless targets.size == 1 && targets.first.location.try { |loc| loc.filename.to_s.ends_with?("/indexable.cr") }
+    ptr = encode(slice.args[0])
+    count = encode(slice.args[1])
+    elem = {"ptr:u8" => "u8", "ptr:u16" => "u16"}[ptr.ty]? || fail(node, "slice each requires unsigned byte/word pointer")
+    fail(node, "slice length must be u8 or u16") unless {"u8", "u16"}.includes?(count.ty)
+    fail(node, "slice block element type mismatch") unless nt(block.args.first) == elem
+    ctors = slice.target_defs || fail(node, "unresolved slice constructor")
+    # Slice's inferred generic factory points at the native initialize source;
+    # unlike user-record synthesized new, its Def#new? flag is false.
+    fail(node, "only borrowed native Slice constructor is admitted") unless ctors.size == 1 && ctors.first.location.try { |loc| loc.filename.to_s.ends_with?("/slice.cr") }
+    result = RecordNode.new("foreach", "void", block.args.first.name, [ptr, count])
+    result.op = elem
+    result.body = body(block.body)
+    result
+  end
+
   def encode(node : Crystal::ASTNode) : RecordNode
     case node
     when Crystal::Expressions
@@ -187,6 +211,10 @@ class RecordExport
       result = RecordNode.new("while", "void", args: [condition(node.cond)])
       result.body = body(node.body)
       result
+    when Crystal::Break, Crystal::Next
+      exp = node.exp
+      fail(node, "valued break/next unsupported") unless exp.nil? || exp.is_a?(Crystal::NilLiteral) || exp.is_a?(Crystal::Nop)
+      RecordNode.new(node.is_a?(Crystal::Break) ? "break" : "continue")
     when Crystal::PointerOf
       fail(node, "pointerof in methods requires escape analysis") unless @owner.empty?
       exp = node.exp
@@ -195,6 +223,9 @@ class RecordExport
     when Crystal::Call
       if expanded = node.expanded
         return encode(expanded)
+      end
+      if iteration = slice_each(node)
+        return iteration
       end
       result_ty = nt(node)
       if node.name == "new" && result_ty.starts_with?("array:")

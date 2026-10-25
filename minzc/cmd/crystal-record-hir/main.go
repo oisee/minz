@@ -448,6 +448,52 @@ func (c *importer) block(nodes []*node, tail bool) (*hir.Block, error) {
 			c.locals = before
 			pre = append(pre, &hir.IfStmt{Cond: cond, Then: yes, Else: no})
 			last = false
+		case "foreach":
+			if len(n.Args) != 2 || n.Ty != "void" || n.Name == "" {
+				return nil, fmt.Errorf("invalid foreach wire node")
+			}
+			if last && c.current.RetTy != mir2.TyVoid {
+				return nil, fmt.Errorf("slice each result is not a scalar")
+			}
+			elem, e := c.ty(n.Op)
+			if e != nil {
+				return nil, e
+			}
+			if elem != mir2.TyU8 && elem != mir2.TyU16 {
+				return nil, fmt.Errorf("foreach requires unsigned byte/word elements")
+			}
+			ptr, e := c.expr(n.Args[0], &pre)
+			if e != nil {
+				return nil, e
+			}
+			count, e := c.expr(n.Args[1], &pre)
+			if e != nil {
+				return nil, e
+			}
+			if ptr == nil || !mir2.IsPointer(ptr.ExprTy()) || !reflect.DeepEqual(mir2.PointerElem(ptr.ExprTy()), elem) {
+				return nil, fmt.Errorf("foreach pointer element mismatch")
+			}
+			if count == nil || (count.ExprTy() != mir2.TyU8 && count.ExprTy() != mir2.TyU16) {
+				return nil, fmt.Errorf("foreach count must be u8 or u16")
+			}
+			before := cloneLocals(c.locals)
+			if c.locals[n.Name] != nil {
+				return nil, fmt.Errorf("foreach block argument shadows an existing binding")
+			}
+			c.locals[n.Name] = elem
+			inner, e := c.block(n.Body, false)
+			c.locals = before
+			if e != nil {
+				return nil, e
+			}
+			pre = append(pre, &hir.ForEachStmt{Var: n.Name, ElemTy: elem, Ptr: ptr, Start: hir.U16(0), Len: count, Body: inner})
+			last = false
+		case "break":
+			pre = append(pre, &hir.BreakStmt{})
+			last = false
+		case "continue":
+			pre = append(pre, &hir.ContinueStmt{})
+			last = false
 		case "while":
 			if last && c.current.RetTy != mir2.TyVoid {
 				return nil, fmt.Errorf("while-valued scalar result")

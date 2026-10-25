@@ -1,6 +1,10 @@
 # Crystal → HIR
 
-**Текущий шаг:** [Итерация 5: scalar Crystal → Go](ITERATION5.md).
+**Текущий шаг:** [Итерация 6: Slice#each → общий HIR foreach](ITERATION6.md).
+1822 набора на native Crystal, raw/optimized MIR2 и Z80: captures, break/next,
+nonlocal return, alias mutation, nested/empty loops, word stride и length 256.
+
+**Итерация 5:** [Итерация 5: scalar Crystal → Go](ITERATION5.md).
 Существующий MIR2→Go backend прошёл 7 функций × 256 byte inputs = 1792
 набора на generated Go и native Crystal. Это unsigned scalar/meta corpus;
 Go port самого compiler и record/arena Go backend этим не проверены.
