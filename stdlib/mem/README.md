@@ -47,8 +47,9 @@ while a view is used is invalid.
 
 The byte-only API complements `text.print.BufWriter` and `core.stream.BufStream`;
 their existing contracts have not been replaced. Generic element views,
-owning buffers, ring buffers and a Crystal-facing library facade are subsequent
-work, not features claimed by this module.
+owning buffers and ring buffers remain subsequent work. A research Crystal
+facade now links to these exact HIR functions; see
+[`ITERATION10.md`](../../research/crystal-hir/ITERATION10.md).
 
 Validation: `go -C minzc test ./pkg/nanz -run '^TestByteBufferImportedNative$'`.
 The actual imported module runs 20 seed/capacity workloads plus an overflowing

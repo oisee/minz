@@ -1,0 +1,46 @@
+{
+  "cases_per_engine": 538,
+  "engines": [
+    "native Crystal",
+    "raw MIR2",
+    "optimized MIR2",
+    "Z80"
+  ],
+  "shared_library_bindings": [
+    "ByteBuffer_clear",
+    "ByteBuffer_init",
+    "ByteBuffer_try_push",
+    "ByteBuffer_view",
+    "ByteView_init",
+    "ByteView_subview",
+    "ByteView_try_get",
+    "ByteView_try_set"
+  ],
+  "negative_controls": [
+    "unknown-binding",
+    "binding-with-body",
+    "wrong-return",
+    "wrong-argument",
+    "wrong-view-schema",
+    "reordered-buffer"
+  ],
+  "target_view_bytes": 4,
+  "target_buffer_bytes": 6,
+  "all_byte_seeds": 256,
+  "crystal_linked_to_shared_library": true,
+  "library_sha256": "cc6a6aa6b02193298a0e0c3c8541e8f1fcadb21bb4d6bd09e4246a4808f51431",
+  "sha256": {
+    "stdlib/mem/bytes.nanz": "cc6a6aa6b02193298a0e0c3c8541e8f1fcadb21bb4d6bd09e4246a4808f51431",
+    "research/crystal-hir/bytes.cr": "04edbb55b6afdf18c2b254101dbdc36c6327d420ae3dd0ae2c6160e3b8671ff5",
+    "research/crystal-hir/buffer_showcase.cr": "0d074a10ca91b4c08c9d904a413f9e58dc75754c861133f7c8d00fc77624b72b",
+    "research/crystal-hir/record_export.cr": "dbc15186d6790c99a3f0284b4c16b0ed55d5bd52a42b417f1e7f0846e4c38afd",
+    "minzc/cmd/crystal-record-hir/main.go": "81dc91e273209327f249eef35dc424b276c03e216d0d63834a763ec01f52cf82"
+  },
+  "seconds": {
+    "build-exporter": 8.01,
+    "build-consumer": 0.478,
+    "export": 1.784,
+    "target": 144.28,
+    "native": 1.162
+  }
+}

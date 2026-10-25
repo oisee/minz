@@ -1,5 +1,7 @@
 # Итерация 10: Crystal вызывает общую byte-библиотеку
 
+Коммит фасада и bindings: `802c61573`; исправление backend: `f0b316b84`.
+
 `bytes.cr` — native Crystal facade с обычными struct `MinzBytes::Buffer` и
 `MinzBytes::View`, методами init/get/set/subview/push/view/clear и getters.
 `buffer_showcase.cr` использует этот API без marker-функций в прикладном коде.

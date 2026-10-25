@@ -32,7 +32,116 @@ end</pre>
 <p>Native oracle выявил важную деталь: rebind локальной view внутри each меняет её дальнейший обход. Поэтому стабильная view использует общий foreach, а изменяемая — обычный HIR while с живыми полями descriptor. Это сохраняет семантику Crystal. Lifetime остаётся контрактом: новый тип не является borrow checker.</p>
 <p>В итерации 8 обычные Crystal-методы с односторонним <code>yield</code> подключены к общим HIR <code>YieldStmt</code> / <code>GenForStmt</code> и pull lowering. 8 consumers × 256 byte seeds = 2048 наборов прошли четыре engine, ещё 5 проверяют отказы. Работают break/next/nonlocal return, demand-preserving filter, RLE, empty source и конечное потребление бесконечного producer.</p>
 <p>Этот шаг нашёл общий Nanz/HIR bug: явный return в некоторых structured regions не выставлял DONE. До исправления отдельный Nanz reproducer потреблял три элемента вместо одного; теперь проверены завершение, повторный pull после DONE и сохранение out. Однако frame layout пока консервативен: byte-stream frame занимает 33 B, RLE frame — 47 B. Это рабочая семантика, не обещание минимального RAM или идеального ASM. Стандартные Crystal Iterator objects и общий generator fusion ещё не подключены.</p>
-<p>В итерации 9 появился импортируемый Nanz-модуль <code>mem.bytes</code>: ByteView (4 B) и ByteBuffer (6 B), init/get/set/subview/push/view/clear без allocation. 22 сценария прошли оба MIR2 и Z80, ещё 22 соответствующих native reference сценария — stock Crystal Slice. Проверены границы, ёмкость 256, alias writes, независимая длина snapshot и пустой null view. Crystal-фасад к этой библиотеке ещё предстоит связать; native reference не выдаётся за сквозной вызов библиотеки.</p>
+<p>В итерации 9 появился импортируемый Nanz-модуль <code>mem.bytes</code>: ByteView (4 B) и ByteBuffer (6 B), init/get/set/subview/push/view/clear без allocation. 22 сценария прошли оба MIR2 и Z80, ещё 22 соответствующих native reference сценария — stock Crystal Slice. Проверены границы, ёмкость 256, alias writes, независимая длина snapshot и пустой null view. На этом этапе Crystal-фасад ещё не был связан: native reference не выдавался за сквозной вызов библиотеки.</p>
+<p>Итерация 10 связывает обычные методы <code>MinzBytes::Buffer</code> и <code>MinzBytes::View</code> с теми же функциями из настоящего Nanz-модуля <code>mem.bytes</code>. Прикладной Crystal-код больше не нуждается в marker-вызовах для этой библиотеки. Native fallback остаётся Crystal-кодом; target использует общую реализацию. 538 наборов прошли native Crystal, оба MIR2 и Z80; ещё 6 случаев проверяют отказы. Receipt сквозного прогона встроен ниже.</p>
+<div class="mini-layout"><div><b>6 B · Buffer</b><code>data · len · cap</code><p>Длина меняется при push и clear. Память предоставляет вызывающая сторона.</p></div><div><b>4 B · View</b><code>data · len</code><p>Собственная длина, общие bytes. Clear буфера не сокращает сохранённый view.</p></div></div>
+<div class="arrowline">Crystal methods <span>→</span> shared Nanz mem.bytes <span>→</span> HIR / MIR2 <span>→</span> Z80</div>
+<p>Два примера соединяют эту библиотеку с существующим iteration: сохранённый view → Slice#each и view → pull-generator. Второй обнаружил общий backend bug: адресация поля через ADD HL затирала carry сравнения до записи bool в frame. Отдельный native regression до исправления превращал 1 &lt; 2 в false; сохранение pending predicate исправляет эту ошибку для любого frontend.</p>
+<p>ASM остаётся неровным: clear компактен, а try_push занимает 92 статических инструкций и тратит их на загрузку полей и сохранение регистров. Ниже настоящий clear; число инструкций относится к листингу, а не к cycles или размеру binary.</p>
+</div><p class="code-label">Shared ByteBuffer.clear · 8 инструкций Z80</p><pre>ByteBuffer_clear:
+    LD DE, 0
+    INC HL
+    INC HL
+    LD (HL), E     ; lo
+    INC HL
+    LD (HL), D     ; hi
+    DEC HL
+    RET</pre><details><summary>Настоящий ByteBuffer.try_push: текущая цена checked append</summary><pre>ByteBuffer_try_push:
+    LD D, H
+    LD E, L
+    INC DE
+    INC DE
+    PUSH AF          ; preserve word-load scratch
+    LD A, (DE)     ; lo
+    PUSH AF          ; stage low byte before replacing address
+    INC DE
+    LD A, (DE)     ; hi
+    LD D, A
+    POP AF
+    LD E, A
+    POP AF           ; restore word-load scratch
+    LD C, L
+    LD B, H
+    PUSH HL
+    PUSH DE
+    LD L, C
+    LD H, B
+    LD DE, 4
+    ADD HL, DE
+    LD C, L
+    LD B, H
+    POP DE
+    POP HL
+    PUSH AF          ; preserve word-load scratch
+    LD A, (BC)     ; lo
+    PUSH AF          ; stage low byte before replacing address
+    INC BC
+    LD A, (BC)     ; hi
+    LD B, A
+    POP AF
+    LD C, A
+    POP AF           ; restore word-load scratch
+    LD IYH, A    ; preserve live accumulator before CMP
+    PUSH HL
+    LD H, D
+    LD L, E
+    OR A
+    SBC HL, BC
+    POP HL
+    ; restore live-out r619 from scratch
+    LD A, IYH
+    JRS C, .ByteBuffer_try_push_if_join2
+.ByteBuffer_try_push_if_then1:
+    LD A, 0
+    RET
+.ByteBuffer_try_push_if_join2:
+    LD C, (HL)     ; lo
+    INC HL
+    LD B, (HL)     ; hi
+    DEC HL
+    LD D, H
+    LD E, L
+    INC DE
+    INC DE
+    PUSH AF          ; preserve word-load scratch
+    LD A, (DE)     ; lo
+    PUSH AF          ; stage low byte before replacing address
+    INC DE
+    LD A, (DE)     ; hi
+    LD D, A
+    POP AF
+    LD E, A
+    POP AF           ; restore word-load scratch
+    PUSH HL
+    LD L, C
+    LD H, B
+    ADD HL, DE
+    LD D, H
+    LD E, L
+    POP HL
+    LD (DE), A
+    LD D, H
+    LD E, L
+    INC DE
+    INC DE
+    PUSH AF          ; preserve word-load scratch
+    LD A, (DE)     ; lo
+    PUSH AF          ; stage low byte before replacing address
+    INC DE
+    LD A, (DE)     ; hi
+    LD D, A
+    POP AF
+    LD E, A
+    POP AF           ; restore word-load scratch
+    INC DE
+    INC HL
+    INC HL
+    LD (HL), E     ; lo
+    INC HL
+    LD (HL), D     ; hi
+    DEC HL
+    LD A, 1
+    RET</pre></details><div class="prose">
 <p><b>Что уже общее:</b> MIR2 имеет SliceTy как пару pointer/length; HIR — ForEachStmt для непрерывного диапазона памяти и ExpandGenerators для stackless pull generators. Generator frame хранит continuation tag и живые через yield значения; next выполняется до следующего yield. В Nanz есть проверки lifecycle, early stop и независимости экземпляров. Полный generic slice API во всех frontend этим не подтверждён.</p>
 <p>Общий generator fusion остаётся draft ADR 0050. Готового ring-buffer API, channel runtime и scheduler goroutines в проверенном HIR/Nanz не найдено. Генераторы дают ленивый pull-протокол; очереди, backpressure, close/cancellation и lifetime сообщений потребуют дополнительных контрактов. Такие buffers и adapters действительно смогут служить всем frontend, которые научатся их выражать.</p>
 <p>И универсальность пока проявляется прежде всего в архитектуре: разные синтаксисы смогут обращаться к общей генерации и backend. Для конкретного языка каждый раз придётся сохранять правила вычисления, ошибок и памяти. Например, числовой ноль в Crystal истинен, а null pointer ложен; это уже проверено нативным oracle и учтено importer.</p></div>
@@ -278,6 +387,53 @@ RET</pre><p>В фактическом helper регистр C после эти�
 <section id="proof"><div class="section-head"><span class="num">08</span><h2>Что именно доказано</h2></div>
 <div class="prose"><p><b>768 наборов входных данных = 3 сценария × все 256 значений seed.</b> Каждый сценарий выполняется в native Crystal, raw MIR2, optimized MIR2 и Z80 emulator. Сценарии: arena + repeat + marker read; копия структуры и изменение оригинала; чтение поля у двух layouts. Это не 768 возможностей языка.</p>
 <p>Дополнительно проверены 7 отказов, а прежние корпуса — 1792 meta-набора и 2372 arena-набора — прошли повторно. Числа не суммируются в процент покрытия языка. Они подтверждают выбранные программы, а не всю stdlib и не оптимальность ASM.</p></div>
+<details><summary>Receipt Crystal → shared byte library, итерация 10</summary><pre>{
+  &quot;cases_per_engine&quot;: 538,
+  &quot;engines&quot;: [
+    &quot;native Crystal&quot;,
+    &quot;raw MIR2&quot;,
+    &quot;optimized MIR2&quot;,
+    &quot;Z80&quot;
+  ],
+  &quot;shared_library_bindings&quot;: [
+    &quot;ByteBuffer_clear&quot;,
+    &quot;ByteBuffer_init&quot;,
+    &quot;ByteBuffer_try_push&quot;,
+    &quot;ByteBuffer_view&quot;,
+    &quot;ByteView_init&quot;,
+    &quot;ByteView_subview&quot;,
+    &quot;ByteView_try_get&quot;,
+    &quot;ByteView_try_set&quot;
+  ],
+  &quot;negative_controls&quot;: [
+    &quot;unknown-binding&quot;,
+    &quot;binding-with-body&quot;,
+    &quot;wrong-return&quot;,
+    &quot;wrong-argument&quot;,
+    &quot;wrong-view-schema&quot;,
+    &quot;reordered-buffer&quot;
+  ],
+  &quot;target_view_bytes&quot;: 4,
+  &quot;target_buffer_bytes&quot;: 6,
+  &quot;all_byte_seeds&quot;: 256,
+  &quot;crystal_linked_to_shared_library&quot;: true,
+  &quot;library_sha256&quot;: &quot;cc6a6aa6b02193298a0e0c3c8541e8f1fcadb21bb4d6bd09e4246a4808f51431&quot;,
+  &quot;sha256&quot;: {
+    &quot;stdlib/mem/bytes.nanz&quot;: &quot;cc6a6aa6b02193298a0e0c3c8541e8f1fcadb21bb4d6bd09e4246a4808f51431&quot;,
+    &quot;research/crystal-hir/bytes.cr&quot;: &quot;04edbb55b6afdf18c2b254101dbdc36c6327d420ae3dd0ae2c6160e3b8671ff5&quot;,
+    &quot;research/crystal-hir/buffer_showcase.cr&quot;: &quot;0d074a10ca91b4c08c9d904a413f9e58dc75754c861133f7c8d00fc77624b72b&quot;,
+    &quot;research/crystal-hir/record_export.cr&quot;: &quot;dbc15186d6790c99a3f0284b4c16b0ed55d5bd52a42b417f1e7f0846e4c38afd&quot;,
+    &quot;minzc/cmd/crystal-record-hir/main.go&quot;: &quot;81dc91e273209327f249eef35dc424b276c03e216d0d63834a763ec01f52cf82&quot;
+  },
+  &quot;seconds&quot;: {
+    &quot;build-exporter&quot;: 8.01,
+    &quot;build-consumer&quot;: 0.478,
+    &quot;export&quot;: 1.784,
+    &quot;target&quot;: 144.28,
+    &quot;native&quot;: 1.162
+  }
+}
+</pre></details>
 <details><summary>Receipt общей byte-библиотеки, итерация 9</summary><pre>{
   &quot;stage&quot;: &quot;shared-library-before-crystal-facade&quot;,
   &quot;target_cases_per_engine&quot;: 22,
@@ -415,6 +571,8 @@ RET</pre><p>В фактическом helper регистр C после эти�
 }
 </pre></details>
 <details><summary>Provenance листингов и подсчёт инструкций</summary><pre>{
+  &quot;byte_bridge_commit&quot;: &quot;802c61573&quot;,
+  &quot;field_predicate_fix_commit&quot;: &quot;f0b316b84&quot;,
   &quot;byte_library_commit&quot;: &quot;0a0eb3d2c&quot;,
   &quot;assembly_experiment_commit&quot;: &quot;cf4e395ff&quot;,
   &quot;go_probe_commit&quot;: &quot;0503fd753&quot;,
@@ -427,6 +585,9 @@ RET</pre><p>В фактическом helper регистр C после эти�
   &quot;target&quot;: &quot;z80&quot;,
   &quot;register_allocator&quot;: &quot;PBQP&quot;,
   &quot;files&quot;: {
+    &quot;byte-library.a80&quot;: &quot;2e159f50b8ea081d778157bb5dd560f1b2f863226791c3532ec30f319cd83d58&quot;,
+    &quot;iteration10-layout.json&quot;: &quot;31da68312d3513fc4be3e3b36dc5306fece72474123221ad36dcdcccafe1a256&quot;,
+    &quot;iteration10-results.json&quot;: &quot;c76372d77bca6d2c3845a3b015950b8f8116907fa8b9360bffe3a47377270e3c&quot;,
     &quot;iteration4-results.json&quot;: &quot;362b9f8f3e13e3096a5e2a0bfdde944a1bfda6328f79689119a54d8458483a76&quot;,
     &quot;iteration5-results.json&quot;: &quot;1a3fa24c39f543aa01ceda97cb42911b20b05ee85a5e37c53d7f8fb3dfe1a6d5&quot;,
     &quot;iteration7-results.json&quot;: &quot;889a1f758a2edce53287cf980fa6936acb56305645d82fcb2b2f07a0643c5945&quot;,
@@ -441,6 +602,8 @@ RET</pre><p>В фактическом helper регистр C после эти�
     &quot;scalar-meta.lanz&quot;: &quot;f34c068f43370ae83218ea76fef524fb76ad81ba36da9e083e44e1c3b71f9dac&quot;
   },
   &quot;listing_instruction_counts&quot;: {
+    &quot;byte_buffer_clear&quot;: 8,
+    &quot;byte_buffer_try_push&quot;: 92,
     &quot;repeat&quot;: 7,
     &quot;reader_offset_7&quot;: 4,
     &quot;reader_offset_0&quot;: 2,

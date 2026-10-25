@@ -1,8 +1,13 @@
 # Crystal → HIR
 
-**Текущий шаг:** [Итерация 9: общий byte buffer/view API](ITERATION9.md).
+**Текущий шаг:** [Итерация 10: Crystal → общая byte-библиотека](ITERATION10.md).
+Обычные методы Buffer/View вызывают настоящий Nanz mem.bytes: 538 наборов
+на native Crystal, обоих MIR2 и Z80, шесть отрицательных контролей.
+Работают view → foreach/pull. Найден и исправлен общий Z80 field/predicate bug.
+
+**Итерация 9:** [Итерация 9: общий byte buffer/view API](ITERATION9.md).
 Импортируемая Nanz-библиотека без allocation; 22 проверки на обоих MIR2/Z80
-и 22 native Crystal reference сценария. Crystal-фасад пока следующий шаг.
+и 22 native Crystal reference сценария. Это библиотечный слой перед Crystal-фасадом итерации 10.
 
 **Итерация 8:** [Итерация 8: native yield → общий generator/pull](ITERATION8.md).
 2048 наборов на native Crystal, raw/optimized MIR2 и Z80: drain, break/next,

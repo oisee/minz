@@ -35,3 +35,6 @@ Crystal**. Следующий шаг — фасад Crystal, который св
 native/target случаями. Не добавлены generic buffers, ring buffers, владение,
 автоматическая проверка lifetime или runtime каналов. Существующие BufWriter
 и BufStream не заменены.
+
+Этот библиотечный этап продолжен в [итерации 10](ITERATION10.md): Crystal-фасад
+уже связан, 538 сквозных наборов прошли все четыре engine.

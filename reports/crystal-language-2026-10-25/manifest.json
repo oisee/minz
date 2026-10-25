@@ -1,4 +1,6 @@
 {
+  "byte_bridge_commit": "802c61573",
+  "field_predicate_fix_commit": "f0b316b84",
   "byte_library_commit": "0a0eb3d2c",
   "assembly_experiment_commit": "cf4e395ff",
   "go_probe_commit": "0503fd753",
@@ -11,6 +13,9 @@
   "target": "z80",
   "register_allocator": "PBQP",
   "files": {
+    "byte-library.a80": "2e159f50b8ea081d778157bb5dd560f1b2f863226791c3532ec30f319cd83d58",
+    "iteration10-layout.json": "31da68312d3513fc4be3e3b36dc5306fece72474123221ad36dcdcccafe1a256",
+    "iteration10-results.json": "c76372d77bca6d2c3845a3b015950b8f8116907fa8b9360bffe3a47377270e3c",
     "iteration4-results.json": "362b9f8f3e13e3096a5e2a0bfdde944a1bfda6328f79689119a54d8458483a76",
     "iteration5-results.json": "1a3fa24c39f543aa01ceda97cb42911b20b05ee85a5e37c53d7f8fb3dfe1a6d5",
     "iteration7-results.json": "889a1f758a2edce53287cf980fa6936acb56305645d82fcb2b2f07a0643c5945",
@@ -25,6 +30,8 @@
     "scalar-meta.lanz": "f34c068f43370ae83218ea76fef524fb76ad81ba36da9e083e44e1c3b71f9dac"
   },
   "listing_instruction_counts": {
+    "byte_buffer_clear": 8,
+    "byte_buffer_try_push": 92,
     "repeat": 7,
     "reader_offset_7": 4,
     "reader_offset_0": 2,
