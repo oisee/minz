@@ -65,7 +65,10 @@ the high16 bits of a u32: 0=progress, 1=EOF, 2=error. EOF must have count0;
 unknown statuses are errors. `read_chunk()` fills a fixed buffer with at most
 256 bytes, `write_chunk(count)` must acknowledge exactly the requested count,
 and `finish(direction)` closes input0 or output1, returning zero on success.
-`open_input()` supplies physical output chunk capacity and input-padding policy;
+`open_input()` supplies physical output chunk capacity and input-padding policy
+with its own quantum (128 for CP/M,0 for exact-length TRD). Both file stages
+track physical boundaries across short refills, rather than treating a chunk
+boundary as a record boundary;
 capacity is validated before any reading or output creation. Empty progress
 retries are bounded (1024 stalls) rather than interpreted as EOF. These are
 explicit compile/link-time bindings, not an implicit runtime scheduler.

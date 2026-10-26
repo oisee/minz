@@ -40,6 +40,7 @@ fun disk_name(at:u16,output:u8)->u8 {
 fun open_input()->u8 {
     chunk_capacity = 256
     input_padding = 0
+    input_padding_quantum = 0
     disk_error = 0
     input_open = 0
     output_open = 0
