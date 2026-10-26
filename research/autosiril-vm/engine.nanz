@@ -1,0 +1,721 @@
+// Autosiril functional port, VM-first. MIDI parsing and note pairing are Nanz;
+// quantization and musical policies are native-Crystal frontend -> shared HIR.
+// Large global tables use MZV addresses. Explicit ^ pointers retain their
+// ordinary 16-bit ABI; decoder descriptors/backing bytes are deliberately first.
+import mem.bytes
+import midi.smf
+import tables
+@extern fun crystal_pattern_count(rows:u32,size:u32) -> u32
+@extern fun crystal_octave(note:u16) -> u16
+@extern fun crystal_ornament_shift(note:u8,ornament:u16) -> u8
+@extern fun crystal_keep_offset(offset:u8,median:u8,limit:u8) -> bool
+@extern fun crystal_echo_volume(bounce:u8) -> u16
+@extern fun crystal_quantize(tick:u32,ppqn:u32,per_beat:u32) -> u32
+@extern fun crystal_cell_action(mask:u8) -> u8
+@extern fun crystal_prefer(current:u8,candidate:u8,mode:u8) -> u8
+
+global midi_payload:[u8;512]
+global midi_buffer:ByteBuffer
+global midi_decoder:SmfDecoder
+global midi_event:MidiEvent
+global input_byte:u8
+global feed_result:u16
+
+global per_beat:u32
+global fault:u16
+global note_count:u32
+global source_count:u32
+global track_first:[u32;64]
+global track_source:[u32;64]
+global note_pitch:[u8;32768]
+global note_channel:[u8;32768]
+global note_track:[u16;32768]
+global note_source:[u32;32768]
+global note_start:[u32;32768]
+global note_off:[u32;32768]
+global note_start_tick:[u32;32768]
+global note_off_tick:[u32;32768]
+global note_next:[u32;32768]
+global note_open:[u8;32768]
+global active_head:[u32;131072]
+global active_tail:[u32;131072]
+
+fun boot(beat:u32) {
+    midi_buffer.init(&midi_payload,512)
+    midi_decoder.init(&midi_buffer)
+    per_beat = beat
+    fault = 0
+    note_count = 0
+    source_count = 0
+    if beat == 0 { fault = 64 }
+    if beat > 256 { fault = 64 }
+}
+fun close_note(id:u32,tick:u32) {
+    note_off_tick[id] = tick
+    note_off[id] = crystal_quantize(tick,u32(midi_decoder.division),per_beat)
+    note_open[id] = 0
+}
+fun consume_event() {
+    let track:u32 = u32(midi_event.track)
+    if track >= 64 { fault = 65
+        return }
+    let kind:u8 = midi_event.status & 240
+    let channel:u8 = midi_event.status & 15
+    let pitch:u8 = midi_event.data1
+    let key:u32 = track * 2048 + u32(channel) * 128 + u32(pitch)
+    if kind == 144 {
+        if midi_event.data2 != 0 {
+            if note_count >= 32767 { fault = 66
+                return }
+            note_count = note_count + 1
+            let id:u32 = note_count
+            if track_first[track] == 0 {
+                track_first[track] = id
+                track_source[track] = source_count
+                source_count = source_count + 1
+            }
+            note_pitch[id] = pitch
+            note_channel[id] = channel
+            note_track[id] = midi_event.track
+            note_source[id] = track_source[track]
+            note_start_tick[id] = midi_event.tick
+            note_start[id] = crystal_quantize(midi_event.tick,u32(midi_decoder.division),per_beat)
+            note_open[id] = 1
+            note_next[id] = 0
+            let previous:u32 = active_tail[key]
+            if previous == 0 { active_head[key] = id }
+            else { note_next[previous] = id }
+            active_tail[key] = id
+            return
+        }
+    }
+    if kind == 128 { // explicit NoteOff
+        let id:u32 = active_head[key]
+        if id != 0 {
+            active_head[key] = note_next[id]
+            if active_head[key] == 0 { active_tail[key] = 0 }
+            close_note(id,midi_event.tick)
+        }
+        return
+    }
+    if kind == 144 { // NoteOn velocity zero is a release
+        let id:u32 = active_head[key]
+        if id != 0 {
+            active_head[key] = note_next[id]
+            if active_head[key] == 0 { active_tail[key] = 0 }
+            close_note(id,midi_event.tick)
+        }
+        return
+    }
+    if midi_event.status == 255 {
+        if midi_event.meta == 47 {
+            // midilib closes unmatched notes at track end, in onset order.
+            // Its synthetic offs each inherit the final event's delta.
+            var id:u32 = track_first[track]
+            var tick:u32 = midi_event.tick
+            if id != 0 {
+                while id <= note_count {
+                    if note_open[id] != 0 {
+                        if tick > u32(4294967295) - midi_event.delta { fault = 67
+                            return }
+                        tick = tick + midi_event.delta
+                        close_note(id,tick)
+                    }
+                    id = id + 1
+                }
+            }
+        }
+    }
+}
+fun accept() {
+    feed_result = midi_decoder.feed_byte(input_byte,&midi_event)
+    if (feed_result & 255) == 1 {
+        consume_event()
+        midi_decoder.ack()
+    }
+}
+fun finish() { feed_result = u16(midi_decoder.finish()) }
+
+// Functional rmod2pmod port. Generous VM tables replace Ruby arrays; no target
+// RAM tuning yet. Entries retain original onset order, including same-row s/r.
+global config_count:u32
+global config_source:[u32;32]
+global config_mode:[u8;32]
+global delay_rows:u32
+global max_row:u32
+global row_stride:u32
+global grid_count:u32
+global grid_head:[u32;1048576]
+global grid_tail:[u32;1048576]
+global grid_next:[u32;1048576]
+global grid_pitch:[u8;1048576]
+global grid_type:[u8;1048576]
+global flat_count:u32
+global flat_head:[u32;1048576]
+global flat_tail:[u32;1048576]
+global flat_next:[u32;1048576]
+global flat_pitch:[u8;1048576]
+global flat_type:[u8;1048576]
+
+fun grid_push(source:u32,row:u32,pitch:u8,kind:u8) {
+    if grid_count >= 1048575 { fault = 70
+        return }
+    grid_count = grid_count + 1
+    let id:u32 = grid_count
+    let cell:u32 = source * row_stride + row
+    grid_pitch[id] = pitch
+    grid_type[id] = kind
+    grid_next[id] = 0
+    let tail:u32 = grid_tail[cell]
+    if tail == 0 { grid_head[cell] = id }
+    else { grid_next[tail] = id }
+    grid_tail[cell] = id
+}
+fun flat_push(cell:u32,pitch:u8,kind:u8) {
+    if flat_count >= 1048575 { fault = 71
+        return }
+    flat_count = flat_count + 1
+    let id:u32 = flat_count
+    flat_pitch[id] = pitch
+    flat_type[id] = kind
+    flat_next[id] = 0
+    let tail:u32 = flat_tail[cell]
+    if tail == 0 { flat_head[cell] = id }
+    else { flat_next[tail] = id }
+    flat_tail[cell] = id
+}
+fun build_grid() {
+    max_row = 0
+    grid_count = 0
+    flat_count = 0
+    var id:u32 = 1
+    while id <= note_count {
+        let end:u32 = note_off[id] + delay_rows
+        if end > max_row { max_row = end }
+        id = id + 1
+    }
+    row_stride = max_row + 1
+    if row_stride == 0 { fault = 72
+        return }
+    if source_count > 1048576 / row_stride { fault = 72
+        return }
+    if config_count > 1048576 / row_stride { fault = 72
+        return }
+    id = 1
+    while id <= note_count {
+        let source:u32 = note_source[id]
+        let start:u32 = note_start[id]
+        let off:u32 = note_off[id]
+        let pitch:u8 = note_pitch[id]
+        grid_push(source,start,pitch,1)
+        grid_push(source,off,pitch,4)
+        var row:u32 = start + 1
+        while row < off {
+            grid_push(source,row,pitch,2)
+            if fault != 0 { return }
+            row = row + 1
+        }
+        if fault != 0 { return }
+        id = id + 1
+    }
+}
+fun flatten_channel(config:u32) {
+    let source:u32 = config_source[config]
+    let mode:u8 = config_mode[config]
+    if source >= source_count { fault = 73
+        return }
+    var row:u32 = 0
+    while row < row_stride {
+        let head:u32 = grid_head[source * row_stride + row]
+        var id:u32 = head
+        var mask:u8 = 0
+        while id != 0 {
+            mask = mask | grid_type[id]
+            id = grid_next[id]
+        }
+        let action:u8 = crystal_cell_action(mask)
+        let output:u32 = config * row_stride + row
+        if action != 0 {
+            if action == 1 && mode == 112 { // poly: retain all non-release notes
+                id = head
+                while id != 0 {
+                    if grid_type[id] != 4 { flat_push(output,grid_pitch[id],1) }
+                    id = grid_next[id]
+                }
+            } else {
+                var have:u8 = 0
+                var pitch:u8 = 0
+                var prefer_mode:u8 = mode
+                if action == 4 { prefer_mode = 100 } // release-only: lowest
+                id = head
+                while id != 0 {
+                    if action == 4 || grid_type[id] != 4 {
+                        if have == 0 { pitch = grid_pitch[id]
+                            have = 1 }
+                        else { pitch = crystal_prefer(pitch,grid_pitch[id],prefer_mode) }
+                    }
+                    id = grid_next[id]
+                }
+                if have != 0 { flat_push(output,pitch,action) }
+            }
+        }
+        if fault != 0 { return }
+        row = row + 1
+    }
+}
+fun flatten() {
+    build_grid()
+    if fault != 0 { return }
+    var channel:u32 = 0
+    while channel < config_count {
+        flatten_channel(channel)
+        if fault != 0 { return }
+        channel = channel + 1
+    }
+}
+
+// LNote pool: note, sample, envelope, ornament, centi-volume, type, kind, enote.
+// Handles are u32 indices, not disguised 16-bit pointers.
+global l_count:u32
+global l_words:[u32;8388608]
+global l_grid:[u32;1048576]
+global config_sample:[u8;32]
+global config_ornament:[u16;32]
+global config_envelope:[u8;32]
+global config_unvoiced:[u8;32]
+global config_wide:[u8;32]
+global config_group:[u8;32]
+global config_priority:[u8;32]
+global orn_repeat:u16
+global max_offset:u8
+global orn_count:u32
+global orn_used:u32
+global orn_start:[u32;4096]
+global orn_length:[u16;4096]
+global orn_bytes:[u8;1048576]
+global orn_seen:[u8;128]
+global orn_list:[u8;128]
+global orn_temp:[u8;4096]
+
+fun l_get(id:u32,field:u32) -> u32 { return l_words[id * 8 + field] }
+fun l_set(id:u32,field:u32,value:u32) { l_words[id * 8 + field] = value }
+fun l_renew(id:u32) {
+    if l_get(id,6) == 101 {
+        let note:u32 = l_get(id,0)
+        if note >= 144 { fault = 80
+            return }
+        if l_get(id,4) >= 1500 { l_set(id,2,u32(env_forms[note])) }
+        else { l_set(id,2,15) }
+        l_set(id,1,2)
+        let enote:i16 = i16(note) + env_offsets[note]
+        l_set(id,7,u32(enote))
+    } else { l_set(id,7,65535) }
+}
+fun l_new(note:u8,sample:u8,envelope:u8,ornament:u32,volume:u16,kind:u8,event_type:u8) -> u32 {
+    if l_count >= 1048575 { fault = 81
+        return 0 }
+    l_count = l_count + 1
+    let id:u32 = l_count
+    l_set(id,0,u32(note))
+    l_set(id,1,u32(sample))
+    l_set(id,2,u32(envelope))
+    l_set(id,3,ornament)
+    l_set(id,4,u32(volume))
+    l_set(id,5,u32(event_type))
+    l_set(id,6,u32(kind))
+    l_renew(id)
+    return id
+}
+fun l_clone(original:u32) -> u32 {
+    if l_count >= 1048575 { fault = 81
+        return 0 }
+    l_count = l_count + 1
+    let id:u32 = l_count
+    var field:u32 = 0
+    while field < 8 { l_set(id,field,l_get(original,field))
+        field = field + 1 }
+    return id
+}
+fun ornament_find(length:u16) -> u32 {
+    var id:u32 = 0
+    while id < orn_count {
+        if orn_length[id] == length {
+            var equal:u8 = 1
+            var i:u16 = 0
+            while i < length {
+                if orn_bytes[orn_start[id] + u32(i)] != orn_temp[i] { equal = 0 }
+                i = i + 1
+            }
+            if equal != 0 { return id }
+        }
+        id = id + 1
+    }
+    if orn_count >= 4096 { fault = 82
+        return 0 }
+    if orn_used > 1048576 - u32(length) { fault = 82
+        return 0 }
+    id = orn_count
+    orn_count = orn_count + 1
+    orn_start[id] = orn_used
+    orn_length[id] = length
+    var i:u16 = 0
+    while i < length {
+        orn_bytes[orn_used] = orn_temp[i]
+        orn_used = orn_used + 1
+        i = i + 1
+    }
+    return id
+}
+fun build_lnotes() {
+    if orn_repeat == 0 || orn_repeat > 32 { fault = 83
+        return }
+    l_count = 0
+    orn_count = 0
+    orn_used = 0
+    var i:u16 = 0
+    while i < orn_repeat { orn_temp[i] = 0
+        i = i + 1 }
+    ornament_find(orn_repeat)
+    var channel:u32 = 0
+    while channel < config_count {
+        var row:u32 = 0
+        while row < row_stride {
+            let cell:u32 = channel * row_stride + row
+            let head:u32 = flat_head[cell]
+            if head != 0 {
+                i = 0
+                while i < 128 { orn_seen[i] = 0
+                    i = i + 1 }
+                var id:u32 = head
+                var base:u8 = 127
+                while id != 0 {
+                    let note:u8 = flat_pitch[id]
+                    orn_seen[note] = 1
+                    if note < base { base = note }
+                    id = flat_next[id]
+                }
+                var count:u16 = 0
+                i = 0
+                while i < 128 {
+                    if orn_seen[i] != 0 { orn_list[count] = u8(i) - base
+                        count = count + 1 }
+                    i = i + 1
+                }
+                let median:u8 = orn_list[count / 2]
+                var first:u8 = 0
+                var have:u8 = 0
+                var length:u16 = 0
+                i = 0
+                while i < count {
+                    let offset:u8 = orn_list[i]
+                    if crystal_keep_offset(offset,median,max_offset) {
+                        if have == 0 { first = offset
+                            have = 1 }
+                        var repeat:u16 = 0
+                        while repeat < orn_repeat {
+                            orn_temp[length] = offset - first
+                            length = length + 1
+                            repeat = repeat + 1
+                        }
+                    }
+                    i = i + 1
+                }
+                base = base + first
+                let ornament:u32 = ornament_find(length)
+                let mode:u8 = config_mode[channel]
+                var sample:u8 = config_sample[channel]
+                var chosen_ornament:u32 = u32(config_ornament[channel])
+                if mode == 112 { base = crystal_ornament_shift(base,u16(ornament))
+                    chosen_ornament = ornament }
+                if mode == 100 { sample = drum_samples[base]
+                    base = drum_notes[base]
+                    chosen_ornament = 0 }
+                let note_id:u32 = l_new(base,sample,0,chosen_ornament,1500,mode,flat_type[head])
+                if config_envelope[channel] != 0 { l_set(note_id,6,101)
+                    l_renew(note_id) }
+                l_grid[cell] = note_id
+            }
+            if fault != 0 { return }
+            row = row + 1
+        }
+        channel = channel + 1
+    }
+}
+
+global delay_one:u32
+global delay_two:u32
+global mix_stride:u32
+global d_length:[u32;32]
+global d_grid:[u32;1048576]
+global m_length:[u32;3]
+global m_grid:[u32;1048576]
+
+fun place_echo(channel:u32,row:u32,note:u32) {
+    let cell:u32 = channel * mix_stride + row
+    let old:u32 = d_grid[cell]
+    if old == 0 || l_get(old,5) == 4 {
+        d_grid[cell] = note
+        if row >= d_length[channel] { d_length[channel] = row + 1 }
+    }
+}
+fun apply_echo() {
+    var longest:u32 = delay_one
+    if delay_two > longest { longest = delay_two }
+    mix_stride = row_stride + longest * 2 + 4
+    if mix_stride < row_stride { fault = 84
+        return }
+    if config_count > 1048576 / mix_stride { fault = 84
+        return }
+    var channel:u32 = 0
+    while channel < config_count {
+        d_length[channel] = row_stride
+        var row:u32 = 0
+        while row < row_stride {
+            d_grid[channel * mix_stride + row] = l_grid[channel * row_stride + row]
+            row = row + 1
+        }
+        if config_unvoiced[channel] == 0 {
+            var factor:u32 = 1
+            if config_wide[channel] != 0 { factor = 2 }
+            row = 0
+            while row < row_stride {
+                let note:u32 = l_grid[channel * row_stride + row]
+                if note != 0 {
+                    let first:u32 = l_clone(note)
+                    l_set(first,4,u32(crystal_echo_volume(1)))
+                    l_renew(first)
+                    let second:u32 = l_clone(first)
+                    l_set(second,4,u32(crystal_echo_volume(2)))
+                    l_renew(second)
+                    place_echo(channel,row + delay_two * factor,second)
+                    place_echo(channel,row + delay_one * factor,first)
+                }
+                if fault != 0 { return }
+                row = row + 1
+            }
+        }
+        channel = channel + 1
+    }
+}
+fun downmix() {
+    if 3 > 1048576 / mix_stride { fault = 85
+        return }
+    var channel:u32 = 0
+    while channel < config_count {
+        let group:u32 = u32(config_group[channel])
+        if group >= 3 { fault = 85
+            return }
+        var row:u32 = 0
+        while row < d_length[channel] {
+            let note:u32 = d_grid[channel * mix_stride + row]
+            if note != 0 {
+                let base:u32 = m_grid[group * mix_stride + row]
+                var hops:u32 = 4
+                if config_priority[channel] != 0 { hops = 1 }
+                var hop:u32 = 0
+                while hop < hops {
+                    let target:u32 = row + hop
+                    let cell:u32 = group * mix_stride + target
+                    let old:u32 = m_grid[cell]
+                    // Preserve Autosiril's fallback rule: volume comparison is
+                    // against the original row, even for displaced candidates.
+                    if old == 0 || l_get(old,5) == 4 || l_get(base,4) < l_get(note,4) {
+                        m_grid[cell] = l_clone(note)
+                        if target >= m_length[group] { m_length[group] = target + 1 }
+                        break
+                    }
+                    hop = hop + 1
+                }
+            }
+            if fault != 0 { return }
+            row = row + 1
+        }
+        channel = channel + 1
+    }
+}
+
+global render_used:u32
+global render_bytes:[u8;4194304]
+global row_offsets:[u32;1048576]
+global current_notes:[u32;3]
+global previous_forms:[u8;3]
+global current_forms:[u8;3]
+
+fun emit(byte:u8) {
+    if render_used >= 4194304 { fault = 86
+        return }
+    render_bytes[render_used] = byte
+    render_used = render_used + 1
+}
+fun dots(count:u8) { var i:u8 = 0
+    while i < count { emit(46)
+        i = i + 1 }
+}
+fun write_pitch(note:u32) {
+    let pitch:u32 = note % 12
+    emit(pitch_names[pitch * 2])
+    emit(pitch_names[pitch * 2 + 1])
+    emit(48 + u8(crystal_octave(u16(note))))
+}
+fun note_real(id:u32) -> u8 {
+    if id == 0 { return 0 }
+    if l_get(id,5) == 4 || l_get(id,5) == 46 { return 0 }
+    return 1
+}
+fun note_empty(id:u32) -> u8 {
+    if id == 0 { return 1 }
+    if l_get(id,5) == 46 { return 1 }
+    return 0
+}
+fun envelope_real(id:u32) -> u8 {
+    if note_real(id) == 0 { return 0 }
+    if l_get(id,6) != 101 { return 0 }
+    let form:u32 = l_get(id,2)
+    if form < 1 || form > 14 { return 0 }
+    return 1
+}
+fun envelope_pitch(id:u32) -> u32 {
+    let note:u32 = l_get(id,7)
+    if note == 65535 { return 11 }
+    return note % 12
+}
+fun write_note(original:u32) {
+    if note_empty(original) != 0 {
+        emit(45) emit(45) emit(45) emit(32) emit(46)
+        emit(param_names[l_get(original,2) % 16])
+        dots(2) emit(32) dots(4)
+        return
+    }
+    if l_get(original,5) == 4 {
+        emit(82) emit(45) emit(45) emit(32) dots(4) emit(32) dots(4)
+        return
+    }
+    let id:u32 = l_clone(original)
+    let volume:u32 = l_get(id,4)
+    if volume < 100 || volume > 1500 { l_set(id,4,1500) }
+    l_renew(id)
+    let kind:u32 = l_get(id,6)
+    if kind == 112 || kind == 109 || kind == 100 { l_set(id,2,15)
+        l_renew(id) }
+    write_pitch(l_get(id,0))
+    emit(32)
+    emit(param_names[l_get(id,1)])
+    emit(param_names[l_get(id,2) % 16])
+    emit(param_names[l_get(id,3) % 16])
+    emit(param_names[l_get(id,4) / 100])
+    emit(32) dots(4)
+}
+fun render_rows() {
+    render_used = 0
+    let empty:u32 = l_new(0,0,0,0,0,0,46)
+    var previous_envelope:u32 = empty
+    var channel:u32 = 0
+    while channel < 3 { previous_forms[channel] = 15
+        channel = channel + 1 }
+    var row:u32 = 0
+    while row < max_row {
+        row_offsets[row] = render_used
+        channel = 0
+        var selected:u32 = l_clone(empty)
+        while channel < 3 {
+            var id:u32 = m_grid[channel * mix_stride + row]
+            if id == 0 { id = l_clone(empty) }
+            current_notes[channel] = id
+            current_forms[channel] = previous_forms[channel]
+            if envelope_real(id) != 0 {
+                if envelope_real(selected) == 0 || l_get(id,0) > l_get(selected,0) { selected = id }
+            }
+            if note_real(id) != 0 { current_forms[channel] = u8(l_get(id,2)) }
+            channel = channel + 1
+        }
+        channel = 0
+        while channel < 3 {
+            let id:u32 = current_notes[channel]
+            if envelope_real(id) != 0 && envelope_real(selected) != 0 {
+                if envelope_pitch(id) != envelope_pitch(selected) {
+                    l_set(id,6,109)
+                    l_renew(id)
+                } else {
+                    let selected_oct:u16 = crystal_octave(u16(l_get(selected,0)))
+                    let own_oct:u16 = crystal_octave(u16(l_get(id,0)))
+                    if selected_oct >= own_oct + 1 { l_set(id,0,l_get(id,0) + 12)
+                        l_renew(id) }
+                }
+            }
+            if envelope_real(selected) != 0 && l_get(selected,4) == 1500 {
+                if note_empty(id) != 0 && previous_forms[channel] >= 1 && previous_forms[channel] <= 14 {
+                    if envelope_pitch(previous_envelope) != envelope_pitch(selected) { l_set(id,2,15)
+                        l_renew(id) }
+                }
+            }
+            channel = channel + 1
+        }
+        if envelope_real(selected) != 0 { emit(32)
+            write_pitch(l_get(selected,7)) }
+        else { dots(4) }
+        emit(124) dots(2) emit(124)
+        channel = 0
+        while channel < 3 {
+            write_note(current_notes[channel])
+            if channel < 2 { emit(124) }
+            channel = channel + 1
+        }
+        emit(10)
+        if envelope_real(selected) != 0 { previous_envelope = selected }
+        channel = 0
+        while channel < 3 { previous_forms[channel] = current_forms[channel]
+            channel = channel + 1 }
+        if fault != 0 { return }
+        row = row + 1
+    }
+    row_offsets[max_row] = render_used
+}
+
+global pattern_size:u32
+global skip_lines:u32
+global pattern_count:u32
+global pattern_start:[u32;16384]
+global pattern_length:[u32;16384]
+global pattern_used:[u8;16384]
+global pattern_order:[u32;16384]
+
+fun split_patterns() {
+    if pattern_size == 0 { fault = 87
+        return }
+    pattern_count = crystal_pattern_count(max_row,pattern_size)
+    if pattern_count > 16384 { fault = 87
+        return }
+    var i:u32 = 0
+    while i < pattern_count {
+        var first:u32 = max_row
+        if skip_lines < max_row {
+            let offset:u32 = i * pattern_size
+            if offset < max_row - skip_lines { first = skip_lines + offset }
+        }
+        var end:u32 = first + pattern_size
+        if end > max_row { end = max_row }
+        let start:u32 = row_offsets[first]
+        let length:u32 = row_offsets[end] - start
+        pattern_start[i] = start
+        pattern_length[i] = length
+        pattern_used[i] = 1
+        pattern_order[i] = i
+        var j:u32 = 0
+        while j < i {
+            if pattern_length[j] == length {
+                var equal:u8 = 1
+                var byte:u32 = 0
+                while byte < length {
+                    if render_bytes[pattern_start[j] + byte] != render_bytes[start + byte] { equal = 0
+                        break }
+                    byte = byte + 1
+                }
+                if equal != 0 { pattern_used[i] = 0
+                    pattern_order[i] = j
+                    break }
+            }
+            j = j + 1
+        }
+        i = i + 1
+    }
+}

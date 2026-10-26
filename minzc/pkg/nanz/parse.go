@@ -60,6 +60,7 @@ import (
 
 // ParseOpts configures import resolution and compile-time generation.
 type ParseOpts struct {
+	PointerBits  int                 // experimental language ABI: zero/16 (default) or 24 (ADL)
 	MetaVariants *MetaVariantContext // optional invocation-local generator alternatives
 	OptSize      bool                // compile-time size goal available to metafunctions
 	BaseDir      string              // directory of the source file (for relative imports)
@@ -78,6 +79,9 @@ func ParseWithOpts(src, name string, opts ParseOpts) (*hir.Module, error) {
 }
 
 func parseWithTypeContext(src, name string, opts ParseOpts, types *parser) (*hir.Module, error) {
+	if opts.PointerBits != 0 && opts.PointerBits != 16 && opts.PointerBits != 24 {
+		return nil, fmt.Errorf("unsupported pointer ABI: %d bits", opts.PointerBits)
+	}
 	l := newLexer(src)
 	if opts.Loaded == nil {
 		opts.Loaded = make(map[string]bool)
@@ -737,7 +741,7 @@ func isOpToken(k tokKind) bool {
 }
 
 func (p *parser) parseModule() (*hir.Module, error) {
-	m := &hir.Module{Name: p.name, SourceLocations: make(map[hir.Stmt]hir.SourceLocation)}
+	m := &hir.Module{PointerBits: p.opts.PointerBits, Name: p.name, SourceLocations: make(map[hir.Stmt]hir.SourceLocation)}
 	p.sourceSHA256 = fmt.Sprintf("%x", sha256.Sum256(p.l.src))
 	m.SourceUnits = map[string]string{p.name: p.sourceSHA256}
 	m.SourceUnitsComplete = true
@@ -788,6 +792,9 @@ func (p *parser) parseModule() (*hir.Module, error) {
 
 	for !p.l.is(tokEOF) {
 		t := p.l.peek()
+		if p.opts.PointerBits == 24 && (t.kind == tokAt || (t.kind == tokIdent && (t.val == "interface" || t.val == "gen"))) {
+			return nil, fmt.Errorf("line %d: %s is not yet supported by the experimental 24-bit pointer ABI", t.line, t.val)
+		}
 		switch {
 		case t.kind == tokIdent && t.val == "struct":
 			st, err := p.parseStructDecl()
@@ -832,6 +839,9 @@ func (p *parser) parseModule() (*hir.Module, error) {
 			saved := p.l.save()
 			p.l.next() // consume "fun"
 			if p.l.is(tokAt) {
+				if p.opts.PointerBits == 24 {
+					return nil, fmt.Errorf("line %d: metafunctions are not yet supported by the experimental 24-bit pointer ABI", t.line)
+				}
 				p.l.next() // consume "@"
 				nameTok, err := p.l.eat(tokIdent)
 				if err != nil {
@@ -1375,7 +1385,7 @@ func (p *parser) fixExprCallTypes(e hir.Expr) {
 	case *hir.AddrOfExpr:
 		if ex.X != nil {
 			p.fixExprCallTypes(ex.X)
-			ex.Ty = mir2.PointerTo(ex.X.ExprTy())
+			ex.Ty = p.pointerTo(ex.X.ExprTy())
 		}
 	case *hir.FieldExpr:
 		p.fixExprCallTypes(ex.X)
@@ -1749,6 +1759,9 @@ func (p *parser) parseImport() error {
 	var importedMetaFuncs map[string]string
 	var importedSimpleEnums map[string]map[string]int64
 	ext := filepath.Ext(filePath)
+	if p.opts.PointerBits == 24 && ext != ".nanz" {
+		return fmt.Errorf("line %d: %s imports do not yet support the 24-bit pointer ABI", line, ext)
+	}
 	switch ext {
 	case ".c":
 		imported, err = c89.CompileWithOpts(string(src), filePath, c89.CompileOpts{DeferAggregateABI: true, BaseDir: filepath.Dir(filePath), IncludePaths: []string{filepath.Dir(filePath)}, Resolver: p.cSourceResolver(filePath)})
@@ -1762,6 +1775,7 @@ func (p *parser) parseImport() error {
 		imported, err = pascal.Compile(string(src), modPath)
 	default: // .nanz
 		childOpts := ParseOpts{
+			PointerBits:  p.opts.PointerBits,
 			BaseDir:      filepath.Dir(filePath),
 			StdlibDir:    p.opts.StdlibDir,
 			OptSize:      p.opts.OptSize,
@@ -2495,7 +2509,7 @@ func (p *parser) parseImplBlock() ([]*hir.Func, error) {
 				return nil, err
 			}
 			if paramTok.val == "self" {
-				params = append(params, hir.Param{Name: "self", Ty: mir2.TyPtr})
+				params = append(params, hir.Param{Name: "self", Ty: p.pointerType()})
 			} else {
 				// name: type
 				if _, err := p.l.eat(tokColon); err != nil {
@@ -2541,7 +2555,7 @@ func (p *parser) parseImplBlock() ([]*hir.Func, error) {
 		if st, ok := p.structs[typeName]; ok {
 			p.varPtrElem["self"] = st
 		}
-		p.varTypes["self"] = mir2.TyPtr
+		p.varTypes["self"] = p.pointerType()
 		for _, param := range params {
 			p.varTypes[param.Name] = param.Ty
 		}
@@ -3639,10 +3653,10 @@ func (p *parser) parseType() (mir2.Ty, error) {
 			}
 		}
 		if _, structElem := elem.(*mir2.StructTy); structElem {
-			return mir2.TyPtr, nil
+			return p.pointerType(), nil
 		}
 		p.lastCallable = nil
-		return mir2.PointerTo(elem), nil
+		return p.pointerTo(elem), nil
 	}
 
 	// [T; N] — array
@@ -3696,7 +3710,7 @@ func (p *parser) parseType() (mir2.Ty, error) {
 		case "void":
 			return mir2.TyVoid, nil
 		case "ptr":
-			return mir2.TyPtr, nil
+			return p.pointerType(), nil
 		case "fun", "fn":
 			// Function type: fun(T1, T2) -> R
 			// On Z80, function pointers are just addresses (TyPtr).
@@ -3730,11 +3744,11 @@ func (p *parser) parseType() (mir2.Ty, error) {
 			}
 			sig.ResolveStructReturnABI()
 			p.lastCallable = sig
-			return mir2.TyPtr, nil
+			return p.pointerType(), nil
 		case "String", "SString", "LString", "CString":
 			// All string types are pointers at the MIR2 level.
 			// The encoding difference is tracked in the string pool, not the type system.
-			return mir2.TyPtr, nil
+			return p.pointerType(), nil
 		case "f", "f8", "f16":
 			// Fixed-point types reserved; arithmetic semantics (>>fracBits after mul) not yet codegen'd.
 			return nil, fmt.Errorf("line %d: fixed-point type %q not yet available in Nanz (coming soon)", t.line, t.val)
@@ -3755,7 +3769,7 @@ func (p *parser) parseType() (mir2.Ty, error) {
 			// Interface type: treated as an opaque pointer at the call site.
 			// Monomorphisation happens at the call site; no vtable is emitted.
 			if _, ok := p.interfaces[t.val]; ok {
-				return mir2.TyPtr, nil
+				return p.pointerType(), nil
 			}
 			return nil, fmt.Errorf("line %d: unknown type %q", t.line, t.val)
 		}
@@ -3804,7 +3818,7 @@ func (p *parser) parseTypeWithIface() (mir2.Ty, string, error) {
 	if t.kind == tokIdent {
 		if _, ok := p.interfaces[t.val]; ok {
 			p.l.next()
-			return mir2.TyPtr, t.val, nil
+			return p.pointerType(), t.val, nil
 		}
 	}
 	ty, err := p.parseType()
@@ -3838,7 +3852,7 @@ func (p *parser) parseParamType() (mir2.Ty, string, *mir2.StructTy, error) {
 	if t.kind == tokIdent {
 		if _, ok := p.interfaces[t.val]; ok {
 			p.l.next()
-			return mir2.TyPtr, t.val, nil, nil
+			return p.pointerType(), t.val, nil, nil
 		}
 	}
 	// ^T — pointer type
@@ -3865,10 +3879,10 @@ func (p *parser) parseParamType() (mir2.Ty, string, *mir2.StructTy, error) {
 			elemSt = resolved
 		}
 		if elemSt != nil {
-			return mir2.TyPtr, "", elemSt, nil
+			return p.pointerType(), "", elemSt, nil
 		}
 		p.lastCallable = nil
-		return mir2.PointerTo(elem), "", nil, nil
+		return p.pointerTo(elem), "", nil, nil
 	}
 	ty, err := p.parseType()
 	return ty, "", nil, err
@@ -4749,7 +4763,7 @@ func (p *parser) parseFor() (hir.Stmt, error) {
 				if st, ok := p.structs[name]; ok {
 					// Pointer to known struct — compute stride
 					p.l.next() // consume struct name
-					elemTy = mir2.TyPtr
+					elemTy = p.pointerType()
 					ptrStructName = name
 					// sizeof(struct) = sum of field widths
 					stride := 0
@@ -4867,7 +4881,7 @@ func (p *parser) parseFor() (hir.Stmt, error) {
 		}
 		// Register the loop variable BEFORE parsing the body so field access works
 		if ptrStructName != "" {
-			p.varTypes[varTok.val] = mir2.TyPtr
+			p.varTypes[varTok.val] = p.pointerType()
 			p.varPtrElem[varTok.val] = p.structs[ptrStructName]
 		} else {
 			p.varTypes[varTok.val] = elemTy
@@ -5775,7 +5789,7 @@ func (p *parser) parseBinaryTail(lhs hir.Expr, minPrec int) (hir.Expr, error) {
 			ty, ok2 := map[string]mir2.Ty{
 				"u8": mir2.TyU8, "u16": mir2.TyU16, "u24": mir2.TyU24, "u32": mir2.TyU32,
 				"i8": mir2.TyI8, "i16": mir2.TyI16, "i24": mir2.TyI24, "i32": mir2.TyI32,
-				"bool": mir2.TyBool, "ptr": mir2.TyPtr,
+				"bool": mir2.TyBool, "ptr": p.pointerType(),
 			}[tyTok.val]
 			if !ok2 {
 				return nil, fmt.Errorf("line %d: unknown cast target type %q", tyTok.line, tyTok.val)
@@ -5913,16 +5927,16 @@ func (p *parser) parseUnary() (hir.Expr, error) {
 			if array, ok := ty.(*mir2.ArrayTy); ok {
 				ty = array.Elem
 			}
-			pointer := mir2.PointerTo(ty)
+			pointer := p.pointerTo(ty)
 			if p.funcSigs[target.Name] != nil {
-				pointer = mir2.TyPtr
+				pointer = p.pointerType()
 			}
 			if _, structValue := ty.(*mir2.StructTy); structValue {
-				pointer = mir2.TyPtr
+				pointer = p.pointerType()
 			}
 			return &hir.AddrOfExpr{Sym: target.Name, Ty: pointer}, nil
 		case *hir.FieldExpr, *hir.IndexExpr:
-			return &hir.AddrOfExpr{X: target, Ty: mir2.PointerTo(p.exprTy(target))}, nil
+			return &hir.AddrOfExpr{X: target, Ty: p.pointerTo(p.exprTy(target))}, nil
 		default:
 			return nil, fmt.Errorf("line %d: &: expected addressable name, field, or index", t.line)
 		}
@@ -6346,7 +6360,7 @@ func (p *parser) parsePrimary() (hir.Expr, error) {
 			if _, err := p.l.eat(tokRParen); err != nil {
 				return nil, err
 			}
-			return &hir.CastExpr{X: x, Ty: mir2.TyPtr}, nil
+			return &hir.CastExpr{X: x, Ty: p.pointerType()}, nil
 		}
 		// sizeof(TypeName) — compile-time constant, resolves to byte size of type.
 		if t.val == "sizeof" && p.l.peekN(1).kind == tokLParen {
@@ -6810,7 +6824,7 @@ func (p *parser) resolveCall(base hir.Expr, args []hir.Expr) (hir.Expr, error) {
 			}
 			return &hir.CallIndirectExpr{
 				Signature: sig,
-				FnPtr:     &hir.VarRefExpr{Name: name, Ty: mir2.TyPtr},
+				FnPtr:     &hir.VarRefExpr{Name: name, Ty: p.pointerType()},
 				Args:      args,
 				Ty:        retTy,
 			}, nil
@@ -7317,7 +7331,7 @@ func (p *parser) captureMetaFuncSource(name string) (string, error) {
 				tyName = "i16"
 			case mir2.TyBool:
 				tyName = "bool"
-			case mir2.TyPtr:
+			case p.pointerType():
 				tyName = "^u8"
 			}
 			sb.WriteString(fmt.Sprintf("    %s: %s\n", f.Name, tyName))
@@ -7691,7 +7705,7 @@ func (p *parser) cSourceResolver(sourceFile string) *interop.Resolver {
 		}
 		abs, _ := filepath.Abs(sourceFile)
 		loaded[abs] = true
-		return ParseWithOpts(src, name, ParseOpts{BaseDir: filepath.Dir(name), StdlibDir: p.opts.StdlibDir, OptSize: p.opts.OptSize, Loaded: loaded})
+		return ParseWithOpts(src, name, ParseOpts{PointerBits: p.opts.PointerBits, BaseDir: filepath.Dir(name), StdlibDir: p.opts.StdlibDir, OptSize: p.opts.OptSize, Loaded: loaded})
 	}
 	compilers[".minz"] = compilers[".nanz"]
 	compilers[".c"] = func(src, name string) (*hir.Module, error) {
@@ -7713,4 +7727,15 @@ func rangeBoundFits(src, dst mir2.Ty) bool {
 		return dst.Width() > src.Width()
 	}
 	return dst.Width() >= src.Width()
+}
+
+func (p *parser) pointerType() mir2.Ty {
+	bits := p.opts.PointerBits
+	if bits == 0 {
+		bits = 16
+	}
+	return mir2.PtrFor(bits)
+}
+func (p *parser) pointerTo(elem mir2.Ty) mir2.Ty {
+	return mir2.PointerToFor(p.pointerType().Width(), elem)
 }

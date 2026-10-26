@@ -96,6 +96,7 @@ func TargetFromString(s string) uint8 {
 
 // Module is the top-level HIR unit.
 type Module struct {
+	PointerBits         int                       `json:",omitempty"` // explicit language pointer ABI; zero means 16
 	NonNullObjects      bool                      `json:",omitempty"` // C objects must not occupy the VM null address, even in data-only imports
 	OrderedByteRWPolicy map[string]FunctionChoice `json:"-"`          // typed opt-in read/write function choices
 	OrderedBytePolicy   map[string]bool           `json:"-"`          // opt-in ordered-byte function choices; distinct from loop sites

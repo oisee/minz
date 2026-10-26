@@ -1,0 +1,633 @@
+{
+  "schema": 1,
+  "corpus_sha256": "bfd99c080d2d8d00719c121609baa23cca4807644136e38caf1214524519f0d5",
+  "contract": "C89 unsigned-char main(void), pointer-free, constant inputs, defined unsigned arithmetic with explicit casts; no int-width or pointer-layout equality assumed",
+  "scope": "constant-expression kernels; this is not dynamic/control-flow/pointer C coverage",
+  "runner": "/private/tmp/minz-flat24-native-target/debug/minz-flat24-runner",
+  "runner_sha256": "90c84ccedddac1c759e634fee59605bb4ba46da62fe5a2c221db9648163a7099",
+  "mzc_driver_sha256": "21d2b2d0a12d533e74f8ad4e16266d8717bf1871c63661265f03d338423b5b25",
+  "mzc_driver": "/tmp/minz-ez80-c-probe-postfix",
+  "versions": {
+    "agon_clang": "clang version 15.0.7 (https://github.com/AgonPlatform/agon-llvm-project.git c76386c0083e6a6236ff774275227e2389f85538)\nTarget: ez80-none-unknown-elf\nThread model: posix\nInstalledDir: /Users/alice/dev/agondev/agondev/bin",
+    "host_clang": "Apple clang version 21.0.0 (clang-2100.3.34.2)\nTarget: arm64-apple-darwin27.0.0\nThread model: posix\nInstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin",
+    "agon_as": "GNU assembler (GNU Binutils) 2.45",
+    "agon_ld": "GNU ld (GNU Binutils) 2.45"
+  },
+  "abi": {
+    "agon": {
+      "__INT_WIDTH__": "24",
+      "__SIZEOF_DOUBLE__": "4",
+      "__SIZEOF_FLOAT__": "4",
+      "__SIZEOF_INT48__": "6",
+      "__SIZEOF_INT__": "3",
+      "__SIZEOF_LONG_DOUBLE__": "8",
+      "__SIZEOF_LONG_LONG__": "8",
+      "__SIZEOF_LONG__": "4",
+      "__SIZEOF_POINTER__": "3",
+      "__SIZEOF_PTRDIFF_T__": "3",
+      "__SIZEOF_SHORT__": "2",
+      "__SIZEOF_SIZE_T__": "3",
+      "__SIZEOF_WCHAR_T__": "2",
+      "__SIZEOF_WINT_T__": "3"
+    },
+    "host": {
+      "__INT_WIDTH__": "32",
+      "__SIZEOF_DOUBLE__": "8",
+      "__SIZEOF_FLOAT__": "4",
+      "__SIZEOF_INT128__": "16",
+      "__SIZEOF_INT__": "4",
+      "__SIZEOF_LONG_DOUBLE__": "8",
+      "__SIZEOF_LONG_LONG__": "8",
+      "__SIZEOF_LONG__": "8",
+      "__SIZEOF_POINTER__": "8",
+      "__SIZEOF_PTRDIFF_T__": "8",
+      "__SIZEOF_SHORT__": "2",
+      "__SIZEOF_SIZE_T__": "8",
+      "__SIZEOF_WCHAR_T__": "4",
+      "__SIZEOF_WINT_T__": "4"
+    },
+    "known_differences": {
+      "__INT_WIDTH__": {
+        "host": "32",
+        "agon": "24"
+      },
+      "__SIZEOF_DOUBLE__": {
+        "host": "8",
+        "agon": "4"
+      },
+      "__SIZEOF_INT__": {
+        "host": "4",
+        "agon": "3"
+      },
+      "__SIZEOF_LONG__": {
+        "host": "8",
+        "agon": "4"
+      },
+      "__SIZEOF_POINTER__": {
+        "host": "8",
+        "agon": "3"
+      },
+      "__SIZEOF_PTRDIFF_T__": {
+        "host": "8",
+        "agon": "3"
+      },
+      "__SIZEOF_SIZE_T__": {
+        "host": "8",
+        "agon": "3"
+      },
+      "__SIZEOF_WCHAR_T__": {
+        "host": "4",
+        "agon": "2"
+      },
+      "__SIZEOF_WINT_T__": {
+        "host": "4",
+        "agon": "3"
+      }
+    },
+    "note": "int/pointer sizes differ intentionally; compared cases do not assume their equality"
+  },
+  "cases": [
+    {
+      "name": "zero",
+      "source_sha256": "e17e2e1d7ec183bdfcccc82fced6869a34a3ee671340d191613887e7dd4fb0c0",
+      "required_mzc": true,
+      "host_result": 0,
+      "agon": {
+        "binary_sha256": "cfdef581fdd22d3e5a6ddbaad82cb909a91544581a4c8b3b6371fbc5c969011c",
+        "bytes": 2,
+        "cpu": "ADL native: A=0 instructions=2 stack balanced"
+      },
+      "mzc": {
+        "status": "matched",
+        "vm_result": 0,
+        "metadata": {
+          "symbols": {
+            "main": 262213
+          },
+          "vm_result": 0,
+          "raw_vm_result": 0,
+          "binary_bytes": 3,
+          "c_int_bits": 16,
+          "native_address_bits": 24
+        },
+        "binary_sha256": "d33e87c7c060d80971fd4e7b973787bc0050399ebcb28c6295b2e9f3f819be2d",
+        "bytes": 3,
+        "cpu": "ADL native: A=0 instructions=2 stack balanced"
+      }
+    },
+    {
+      "name": "one",
+      "source_sha256": "0916a369d70783cd1a4037fccbe707a6c6d0cbf07b950b21648048f8e5735336",
+      "required_mzc": true,
+      "host_result": 1,
+      "agon": {
+        "binary_sha256": "0b75112fda6b44e2e23995b6374fa2d79f232bab95479e55bfeef1f29a529c8f",
+        "bytes": 3,
+        "cpu": "ADL native: A=1 instructions=2 stack balanced"
+      },
+      "mzc": {
+        "status": "matched",
+        "vm_result": 1,
+        "metadata": {
+          "symbols": {
+            "main": 262213
+          },
+          "vm_result": 1,
+          "raw_vm_result": 1,
+          "binary_bytes": 3,
+          "c_int_bits": 16,
+          "native_address_bits": 24
+        },
+        "binary_sha256": "0b75112fda6b44e2e23995b6374fa2d79f232bab95479e55bfeef1f29a529c8f",
+        "bytes": 3,
+        "cpu": "ADL native: A=1 instructions=2 stack balanced"
+      }
+    },
+    {
+      "name": "constant29",
+      "source_sha256": "8cb4563dc93b6ffb1169c8febb5b9994dbd3a0c391c1f9d496c33dda4075132b",
+      "required_mzc": true,
+      "host_result": 29,
+      "agon": {
+        "binary_sha256": "f753dff49743fff718905061be554ae578ac85a49c2f9161111ec1909678bf15",
+        "bytes": 3,
+        "cpu": "ADL native: A=29 instructions=2 stack balanced"
+      },
+      "mzc": {
+        "status": "matched",
+        "vm_result": 29,
+        "metadata": {
+          "symbols": {
+            "main": 262213
+          },
+          "vm_result": 29,
+          "raw_vm_result": 29,
+          "binary_bytes": 3,
+          "c_int_bits": 16,
+          "native_address_bits": 24
+        },
+        "binary_sha256": "f753dff49743fff718905061be554ae578ac85a49c2f9161111ec1909678bf15",
+        "bytes": 3,
+        "cpu": "ADL native: A=29 instructions=2 stack balanced"
+      }
+    },
+    {
+      "name": "signed_boundary",
+      "source_sha256": "a37b81105d8ae414b5befee0fcad67fdb3e2fe43e710eb34354839bae16c588c",
+      "required_mzc": true,
+      "host_result": 127,
+      "agon": {
+        "binary_sha256": "52de6ed276b24bbecf3abd72b575221dc89da01a660d99a0cd65c937a293f4c5",
+        "bytes": 3,
+        "cpu": "ADL native: A=127 instructions=2 stack balanced"
+      },
+      "mzc": {
+        "status": "matched",
+        "vm_result": 127,
+        "metadata": {
+          "symbols": {
+            "main": 262213
+          },
+          "vm_result": 127,
+          "raw_vm_result": 127,
+          "binary_bytes": 3,
+          "c_int_bits": 16,
+          "native_address_bits": 24
+        },
+        "binary_sha256": "52de6ed276b24bbecf3abd72b575221dc89da01a660d99a0cd65c937a293f4c5",
+        "bytes": 3,
+        "cpu": "ADL native: A=127 instructions=2 stack balanced"
+      }
+    },
+    {
+      "name": "high_bit",
+      "source_sha256": "bb7e2db8f1d0ea48b48d8abd935e36b3f3eeaf89de2a9718bb80a9bf150f67f4",
+      "required_mzc": true,
+      "host_result": 128,
+      "agon": {
+        "binary_sha256": "4f31d0c65e097c612cd28bf5f8785dd61c0d12f2e0bf83aca808dc246a374c36",
+        "bytes": 3,
+        "cpu": "ADL native: A=128 instructions=2 stack balanced"
+      },
+      "mzc": {
+        "status": "matched",
+        "vm_result": 128,
+        "metadata": {
+          "symbols": {
+            "main": 262213
+          },
+          "vm_result": 128,
+          "raw_vm_result": 128,
+          "binary_bytes": 3,
+          "c_int_bits": 16,
+          "native_address_bits": 24
+        },
+        "binary_sha256": "4f31d0c65e097c612cd28bf5f8785dd61c0d12f2e0bf83aca808dc246a374c36",
+        "bytes": 3,
+        "cpu": "ADL native: A=128 instructions=2 stack balanced"
+      }
+    },
+    {
+      "name": "all_bits",
+      "source_sha256": "ba7cc711918f06975aa5142d38f7ceac10c78bcfd436c7313a84578f0253f563",
+      "required_mzc": true,
+      "host_result": 255,
+      "agon": {
+        "binary_sha256": "6784e051f973e3fc97705ead96766c2eb5b4d52138a3ce8fb8a9fb31fc540808",
+        "bytes": 3,
+        "cpu": "ADL native: A=255 instructions=2 stack balanced"
+      },
+      "mzc": {
+        "status": "matched",
+        "vm_result": 255,
+        "metadata": {
+          "symbols": {
+            "main": 262213
+          },
+          "vm_result": 255,
+          "raw_vm_result": 255,
+          "binary_bytes": 3,
+          "c_int_bits": 16,
+          "native_address_bits": 24
+        },
+        "binary_sha256": "6784e051f973e3fc97705ead96766c2eb5b4d52138a3ce8fb8a9fb31fc540808",
+        "bytes": 3,
+        "cpu": "ADL native: A=255 instructions=2 stack balanced"
+      }
+    },
+    {
+      "name": "byte_add_wrap",
+      "source_sha256": "6940e017609c2443df5acb3f48076746aaa6d9e3358df95109e2d86e43407b86",
+      "required_mzc": true,
+      "host_result": 14,
+      "agon": {
+        "binary_sha256": "a7737b5240ed0d929d300bfdbbd06d2e4a0f1f81fbf4e0561f1b96ad58deb742",
+        "bytes": 3,
+        "cpu": "ADL native: A=14 instructions=2 stack balanced"
+      },
+      "mzc": {
+        "status": "matched",
+        "vm_result": 14,
+        "metadata": {
+          "symbols": {
+            "main": 262213
+          },
+          "vm_result": 14,
+          "raw_vm_result": 14,
+          "binary_bytes": 3,
+          "c_int_bits": 16,
+          "native_address_bits": 24
+        },
+        "binary_sha256": "a7737b5240ed0d929d300bfdbbd06d2e4a0f1f81fbf4e0561f1b96ad58deb742",
+        "bytes": 3,
+        "cpu": "ADL native: A=14 instructions=2 stack balanced"
+      }
+    },
+    {
+      "name": "byte_sub_wrap",
+      "source_sha256": "85409c923f5db424db7f2474849b771e61cb2e3d57c64955e76828b457eacc78",
+      "required_mzc": true,
+      "host_result": 248,
+      "agon": {
+        "binary_sha256": "4cc551b854d1dea11c8b2bc1e41c295187cc06e2f12e52df92209271e5d73d0e",
+        "bytes": 3,
+        "cpu": "ADL native: A=248 instructions=2 stack balanced"
+      },
+      "mzc": {
+        "status": "matched",
+        "vm_result": 248,
+        "metadata": {
+          "symbols": {
+            "main": 262213
+          },
+          "vm_result": 248,
+          "raw_vm_result": 248,
+          "binary_bytes": 3,
+          "c_int_bits": 16,
+          "native_address_bits": 24
+        },
+        "binary_sha256": "4cc551b854d1dea11c8b2bc1e41c295187cc06e2f12e52df92209271e5d73d0e",
+        "bytes": 3,
+        "cpu": "ADL native: A=248 instructions=2 stack balanced"
+      }
+    },
+    {
+      "name": "word_wrap",
+      "source_sha256": "51505e81fe529d7db15daf3682562e8ec04acb4dc6f781d88063bf67606acf2d",
+      "required_mzc": true,
+      "host_result": 1,
+      "agon": {
+        "binary_sha256": "0b75112fda6b44e2e23995b6374fa2d79f232bab95479e55bfeef1f29a529c8f",
+        "bytes": 3,
+        "cpu": "ADL native: A=1 instructions=2 stack balanced"
+      },
+      "mzc": {
+        "status": "matched",
+        "vm_result": 1,
+        "metadata": {
+          "symbols": {
+            "main": 262213
+          },
+          "vm_result": 1,
+          "raw_vm_result": 1,
+          "binary_bytes": 3,
+          "c_int_bits": 16,
+          "native_address_bits": 24
+        },
+        "binary_sha256": "0b75112fda6b44e2e23995b6374fa2d79f232bab95479e55bfeef1f29a529c8f",
+        "bytes": 3,
+        "cpu": "ADL native: A=1 instructions=2 stack balanced"
+      }
+    },
+    {
+      "name": "wide_mul",
+      "source_sha256": "68d57429517084a2d63cb3bd28177650e6e234f95a22d222d623262bf8a7ff4b",
+      "required_mzc": true,
+      "host_result": 64,
+      "agon": {
+        "binary_sha256": "b31fb8b44c0fb1f91ef9942a119989de3df4782c79007d0c9717b9154ae8b79e",
+        "bytes": 3,
+        "cpu": "ADL native: A=64 instructions=2 stack balanced"
+      },
+      "mzc": {
+        "status": "matched",
+        "vm_result": 64,
+        "metadata": {
+          "symbols": {
+            "main": 262213
+          },
+          "vm_result": 64,
+          "raw_vm_result": 64,
+          "binary_bytes": 3,
+          "c_int_bits": 16,
+          "native_address_bits": 24
+        },
+        "binary_sha256": "b31fb8b44c0fb1f91ef9942a119989de3df4782c79007d0c9717b9154ae8b79e",
+        "bytes": 3,
+        "cpu": "ADL native: A=64 instructions=2 stack balanced"
+      }
+    },
+    {
+      "name": "wide_div",
+      "source_sha256": "5174685046e9cc040b4524ace2a1578ee42cab99231fff2a065089a12c146dd0",
+      "required_mzc": true,
+      "host_result": 34,
+      "agon": {
+        "binary_sha256": "67b15d48872e1857bd96f082bdf3ac01cc832c21db0e607a434d48ef71db4fc0",
+        "bytes": 3,
+        "cpu": "ADL native: A=34 instructions=2 stack balanced"
+      },
+      "mzc": {
+        "status": "matched",
+        "vm_result": 34,
+        "metadata": {
+          "symbols": {
+            "main": 262213
+          },
+          "vm_result": 34,
+          "raw_vm_result": 34,
+          "binary_bytes": 3,
+          "c_int_bits": 16,
+          "native_address_bits": 24
+        },
+        "binary_sha256": "67b15d48872e1857bd96f082bdf3ac01cc832c21db0e607a434d48ef71db4fc0",
+        "bytes": 3,
+        "cpu": "ADL native: A=34 instructions=2 stack balanced"
+      }
+    },
+    {
+      "name": "wide_mod",
+      "source_sha256": "987fca3d54dc4720ac77d0c559a20010a2521002c20e6b2df43445476894d926",
+      "required_mzc": true,
+      "host_result": 17,
+      "agon": {
+        "binary_sha256": "86c931d2a6bf2107165f4aef09e20fe2e7c6447b10ca305ef5b5fa0135880e82",
+        "bytes": 3,
+        "cpu": "ADL native: A=17 instructions=2 stack balanced"
+      },
+      "mzc": {
+        "status": "matched",
+        "vm_result": 17,
+        "metadata": {
+          "symbols": {
+            "main": 262213
+          },
+          "vm_result": 17,
+          "raw_vm_result": 17,
+          "binary_bytes": 3,
+          "c_int_bits": 16,
+          "native_address_bits": 24
+        },
+        "binary_sha256": "86c931d2a6bf2107165f4aef09e20fe2e7c6447b10ca305ef5b5fa0135880e82",
+        "bytes": 3,
+        "cpu": "ADL native: A=17 instructions=2 stack balanced"
+      }
+    },
+    {
+      "name": "bit_mix",
+      "source_sha256": "06711d700a4d0026c6fe5fa3cddb68caff284044d297b8206ecbdb7a3bff910c",
+      "required_mzc": true,
+      "host_result": 93,
+      "agon": {
+        "binary_sha256": "da632ea10617bddcf86d0b0a94f0f4ebaae98da13e2b9a0cf14dc315c407212e",
+        "bytes": 3,
+        "cpu": "ADL native: A=93 instructions=2 stack balanced"
+      },
+      "mzc": {
+        "status": "matched",
+        "vm_result": 93,
+        "metadata": {
+          "symbols": {
+            "main": 262213
+          },
+          "vm_result": 93,
+          "raw_vm_result": 93,
+          "binary_bytes": 3,
+          "c_int_bits": 16,
+          "native_address_bits": 24
+        },
+        "binary_sha256": "da632ea10617bddcf86d0b0a94f0f4ebaae98da13e2b9a0cf14dc315c407212e",
+        "bytes": 3,
+        "cpu": "ADL native: A=93 instructions=2 stack balanced"
+      }
+    },
+    {
+      "name": "complement",
+      "source_sha256": "efef87e761b9a72f77b8567aceb2c66aedbd6faaf056d95c819f0a2d5417b8c2",
+      "required_mzc": true,
+      "host_result": 165,
+      "agon": {
+        "binary_sha256": "f25db5e83ac2fc61ce6a0fc643829a5e88cd2796f6cfeeb65eb7281a4ad4d448",
+        "bytes": 3,
+        "cpu": "ADL native: A=165 instructions=2 stack balanced"
+      },
+      "mzc": {
+        "status": "matched",
+        "vm_result": 165,
+        "metadata": {
+          "symbols": {
+            "main": 262213
+          },
+          "vm_result": 165,
+          "raw_vm_result": 165,
+          "binary_bytes": 3,
+          "c_int_bits": 16,
+          "native_address_bits": 24
+        },
+        "binary_sha256": "f25db5e83ac2fc61ce6a0fc643829a5e88cd2796f6cfeeb65eb7281a4ad4d448",
+        "bytes": 3,
+        "cpu": "ADL native: A=165 instructions=2 stack balanced"
+      }
+    },
+    {
+      "name": "logical",
+      "source_sha256": "4ba51f4f16cc75e25041093f57898b6a074079b0375d91fb6ce2eb00c89c6cf4",
+      "required_mzc": false,
+      "host_result": 1,
+      "agon": {
+        "binary_sha256": "0b75112fda6b44e2e23995b6374fa2d79f232bab95479e55bfeef1f29a529c8f",
+        "bytes": 3,
+        "cpu": "ADL native: A=1 instructions=2 stack balanced"
+      },
+      "mzc": {
+        "status": "unsupported",
+        "reason": "flat24 native main: only straight-line kernels without parameters are admitted"
+      }
+    },
+    {
+      "name": "conditional",
+      "source_sha256": "2a71ba182cca8eb806a5147adf9f082a653a9881ecb0428320dd96bb6f0a2cfb",
+      "required_mzc": false,
+      "host_result": 91,
+      "agon": {
+        "binary_sha256": "ba101704772daec5fc977a6efeb87ada338e0de5ac99022c21315b70fc865a1b",
+        "bytes": 3,
+        "cpu": "ADL native: A=91 instructions=2 stack balanced"
+      },
+      "mzc": {
+        "status": "unsupported",
+        "reason": "flat24 native main: only straight-line kernels without parameters are admitted"
+      }
+    },
+    {
+      "name": "signed_small",
+      "source_sha256": "dd88cfc538c615686960bad813ea0a6d0645098971f9aa16e873024e5bba3859",
+      "required_mzc": true,
+      "host_result": 12,
+      "agon": {
+        "binary_sha256": "9e34cd80413897948d3d5dbd3e6624e44ddaef87a9054538efe2d382beacda6a",
+        "bytes": 3,
+        "cpu": "ADL native: A=12 instructions=2 stack balanced"
+      },
+      "mzc": {
+        "status": "matched",
+        "vm_result": 12,
+        "metadata": {
+          "symbols": {
+            "main": 262213
+          },
+          "vm_result": 12,
+          "raw_vm_result": 12,
+          "binary_bytes": 3,
+          "c_int_bits": 16,
+          "native_address_bits": 24
+        },
+        "binary_sha256": "9e34cd80413897948d3d5dbd3e6624e44ddaef87a9054538efe2d382beacda6a",
+        "bytes": 3,
+        "cpu": "ADL native: A=12 instructions=2 stack balanced"
+      }
+    },
+    {
+      "name": "short_size",
+      "source_sha256": "89a835a03e8f84fabaf6caf45e30b5d40da7e3dd640e68f16e2b5c5eac218e96",
+      "required_mzc": true,
+      "host_result": 2,
+      "agon": {
+        "binary_sha256": "ec262ae281d1adb202a3afdb7511e299227d4207caec13ed37dd22d26c889404",
+        "bytes": 3,
+        "cpu": "ADL native: A=2 instructions=2 stack balanced"
+      },
+      "mzc": {
+        "status": "matched",
+        "vm_result": 2,
+        "metadata": {
+          "symbols": {
+            "main": 262213
+          },
+          "vm_result": 2,
+          "raw_vm_result": 2,
+          "binary_bytes": 3,
+          "c_int_bits": 16,
+          "native_address_bits": 24
+        },
+        "binary_sha256": "ec262ae281d1adb202a3afdb7511e299227d4207caec13ed37dd22d26c889404",
+        "bytes": 3,
+        "cpu": "ADL native: A=2 instructions=2 stack balanced"
+      }
+    },
+    {
+      "name": "long_shift24",
+      "source_sha256": "0e553c2cfb910190911487accae5c67bb4876b089b6fb8fc8d4430c682e1d906",
+      "required_mzc": true,
+      "host_result": 18,
+      "agon": {
+        "binary_sha256": "137348bc508b3daff662c78e62562eca8289829818f3e1bcf4e862982e636e2b",
+        "bytes": 3,
+        "cpu": "ADL native: A=18 instructions=2 stack balanced"
+      },
+      "mzc": {
+        "status": "matched",
+        "vm_result": 18,
+        "metadata": {
+          "symbols": {
+            "main": 262213
+          },
+          "vm_result": 18,
+          "raw_vm_result": 18,
+          "binary_bytes": 3,
+          "c_int_bits": 16,
+          "native_address_bits": 24
+        },
+        "binary_sha256": "137348bc508b3daff662c78e62562eca8289829818f3e1bcf4e862982e636e2b",
+        "bytes": 3,
+        "cpu": "ADL native: A=18 instructions=2 stack balanced"
+      }
+    },
+    {
+      "name": "short_truncate",
+      "source_sha256": "01562df41fb49e422a2cca90f70808e3bf7bf20153eaa3ce79d43d02b501d5a3",
+      "required_mzc": true,
+      "host_result": 52,
+      "agon": {
+        "binary_sha256": "7039bff873523d94cb7d4d8479f6459801297e0838bba9a9793d1765503c5222",
+        "bytes": 3,
+        "cpu": "ADL native: A=52 instructions=2 stack balanced"
+      },
+      "mzc": {
+        "status": "matched",
+        "vm_result": 52,
+        "metadata": {
+          "symbols": {
+            "main": 262213
+          },
+          "vm_result": 52,
+          "raw_vm_result": 52,
+          "binary_bytes": 3,
+          "c_int_bits": 16,
+          "native_address_bits": 24
+        },
+        "binary_sha256": "7039bff873523d94cb7d4d8479f6459801297e0838bba9a9793d1765503c5222",
+        "bytes": 3,
+        "cpu": "ADL native: A=52 instructions=2 stack balanced"
+      }
+    }
+  ],
+  "counts": {
+    "host_agon_matched": 20,
+    "mzc_vm_matched": 18,
+    "mzc_native_matched": 18,
+    "mzc_skipped": 2,
+    "failed": 0
+  },
+  "elapsed_seconds": 5.646
+}

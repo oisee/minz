@@ -138,7 +138,7 @@ func nodeCosts(f *Func, info map[Reg]RegInfo, ct CostTable, locs []PhysLoc) map[
 		}
 		cv := make([]int, len(locs))
 		for i, loc := range locs {
-			if !locCompatible(ri.Ty, loc) {
+			if !locCompatibleFor(ct, ri.Ty, loc) {
 				cv[i] = InfCost
 				continue
 			}
@@ -445,7 +445,7 @@ func PBQPAllocate(f *Func, lr *LivenessResult, ct CostTable) *AllocResult {
 	// Eliminate parallel copies at block boundaries and within-block OpMoves
 	// by reassigning block params / OpMove dsts to their source's PhysLoc
 	// when no IG neighbour conflict prevents it.
-	coalesceAllocResult(f, result, lr)
+	coalesceAllocResult(f, result, lr, ct)
 
 	return result
 }

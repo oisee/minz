@@ -230,6 +230,9 @@ func ValidateZ80Symbols(m *Module) error {
 // callers that don't need options can omit it entirely.
 // Invalid symbols return an error and no assembly.
 func z80CodegenWithLeafWrites(m *Module, ar *AllocResult, leafWrites map[string]map[string]bool, opts ...Z80CodegenOptions) (string, error) {
+	if m.PointerType().Width() != 16 {
+		return "", fmt.Errorf("Z80 backend requires a 16-bit pointer ABI (got %d)", m.PointerType().Width())
+	}
 	for _, f := range m.Funcs {
 		if err := verifySignedWordOperands(f); err != nil {
 			return "", err

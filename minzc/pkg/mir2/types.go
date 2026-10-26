@@ -148,10 +148,15 @@ func internPointer(width int, elem Ty) Ty {
 // PointerTo retains a pointee's semantic type; addresses and arithmetic still
 // use the target pointer width and byte offsets. Indexing supplies element stride.
 func PointerTo(elem Ty) Ty {
+	return PointerToFor(16, elem)
+}
+
+// PointerToFor retains a pointee with an explicit target address width.
+func PointerToFor(wordBits int, elem Ty) Ty {
 	if elem == nil || elem == TyU8 {
-		return TyPtr
+		return PtrFor(wordBits)
 	}
-	return internPointer(16, elem)
+	return internPointer(wordBits, elem)
 }
 
 func IsPointer(ty Ty) bool { _, ok := ty.(*ptrTy); return ok }

@@ -1,0 +1,111 @@
+=== RUN   TestEZ80_Differential
+    ez80_differential_test.go:44: Reference assembler: /Users/alice/dev/bin/ez80asm
+=== RUN   TestEZ80_Differential/hardware_multiply_BC
+=== RUN   TestEZ80_Differential/hardware_multiply_DE
+=== RUN   TestEZ80_Differential/hardware_multiply_HL
+=== RUN   TestEZ80_Differential/hardware_multiply_SP
+=== RUN   TestEZ80_Differential/sleep
+=== RUN   TestEZ80_Differential/set_mixed_ADL
+=== RUN   TestEZ80_Differential/reset_mixed_ADL
+=== RUN   TestEZ80_Differential/block_in_dec_2
+=== RUN   TestEZ80_Differential/block_in_dec_2_repeat
+=== RUN   TestEZ80_Differential/block_in_inc_2
+=== RUN   TestEZ80_Differential/block_in_inc_2_repeat
+=== RUN   TestEZ80_Differential/block_out_dec_2_repeat
+=== RUN   TestEZ80_Differential/block_out_inc_2_repeat
+=== RUN   TestEZ80_Differential/out_dec_2
+=== RUN   TestEZ80_Differential/out_inc_2
+=== RUN   TestEZ80_Differential/IN0_port
+=== RUN   TestEZ80_Differential/OUT0_port
+=== RUN   TestEZ80_Differential/nop
+=== RUN   TestEZ80_Differential/reg-reg_load
+=== RUN   TestEZ80_Differential/imm8_load
+=== RUN   TestEZ80_Differential/8-bit_add
+=== RUN   TestEZ80_Differential/8-bit_sub_imm
+=== RUN   TestEZ80_Differential/8-bit_and
+=== RUN   TestEZ80_Differential/8-bit_xor
+=== RUN   TestEZ80_Differential/8-bit_compare
+=== RUN   TestEZ80_Differential/8-bit_inc
+=== RUN   TestEZ80_Differential/8-bit_dec
+=== RUN   TestEZ80_Differential/16/24-bit_add
+=== RUN   TestEZ80_Differential/16/24-bit_sbc
+=== RUN   TestEZ80_Differential/push
+=== RUN   TestEZ80_Differential/pop
+=== RUN   TestEZ80_Differential/push_ix
+=== RUN   TestEZ80_Differential/return
+=== RUN   TestEZ80_Differential/halt
+=== RUN   TestEZ80_Differential/disable_interrupts
+=== RUN   TestEZ80_Differential/enable_interrupts
+=== RUN   TestEZ80_Differential/exchange
+=== RUN   TestEZ80_Differential/exchange_all
+=== RUN   TestEZ80_Differential/block_copy
+=== RUN   TestEZ80_Differential/block_compare
+=== RUN   TestEZ80_Differential/bit_test
+=== RUN   TestEZ80_Differential/bit_set
+=== RUN   TestEZ80_Differential/bit_reset
+=== RUN   TestEZ80_Differential/rotate_left
+=== RUN   TestEZ80_Differential/shift_left
+=== RUN   TestEZ80_Differential/shift_right
+=== RUN   TestEZ80_Differential/restart
+=== RUN   TestEZ80_Differential/restart_38
+=== RUN   TestEZ80_Differential/indexed_load
+=== RUN   TestEZ80_Differential/indexed_store_imm
+=== RUN   TestEZ80_Differential/inc_pair
+=== RUN   TestEZ80_Differential/dec_pair
+=== NAME  TestEZ80_Differential
+    ez80_differential_test.go:137: Differential results: 52 pass, 0 fail, 0 skip
+--- PASS: TestEZ80_Differential (0.15s)
+    --- PASS: TestEZ80_Differential/hardware_multiply_BC (0.00s)
+    --- PASS: TestEZ80_Differential/hardware_multiply_DE (0.00s)
+    --- PASS: TestEZ80_Differential/hardware_multiply_HL (0.00s)
+    --- PASS: TestEZ80_Differential/hardware_multiply_SP (0.00s)
+    --- PASS: TestEZ80_Differential/sleep (0.00s)
+    --- PASS: TestEZ80_Differential/set_mixed_ADL (0.00s)
+    --- PASS: TestEZ80_Differential/reset_mixed_ADL (0.00s)
+    --- PASS: TestEZ80_Differential/block_in_dec_2 (0.00s)
+    --- PASS: TestEZ80_Differential/block_in_dec_2_repeat (0.00s)
+    --- PASS: TestEZ80_Differential/block_in_inc_2 (0.00s)
+    --- PASS: TestEZ80_Differential/block_in_inc_2_repeat (0.00s)
+    --- PASS: TestEZ80_Differential/block_out_dec_2_repeat (0.00s)
+    --- PASS: TestEZ80_Differential/block_out_inc_2_repeat (0.00s)
+    --- PASS: TestEZ80_Differential/out_dec_2 (0.00s)
+    --- PASS: TestEZ80_Differential/out_inc_2 (0.00s)
+    --- PASS: TestEZ80_Differential/IN0_port (0.00s)
+    --- PASS: TestEZ80_Differential/OUT0_port (0.00s)
+    --- PASS: TestEZ80_Differential/nop (0.00s)
+    --- PASS: TestEZ80_Differential/reg-reg_load (0.00s)
+    --- PASS: TestEZ80_Differential/imm8_load (0.00s)
+    --- PASS: TestEZ80_Differential/8-bit_add (0.00s)
+    --- PASS: TestEZ80_Differential/8-bit_sub_imm (0.00s)
+    --- PASS: TestEZ80_Differential/8-bit_and (0.00s)
+    --- PASS: TestEZ80_Differential/8-bit_xor (0.00s)
+    --- PASS: TestEZ80_Differential/8-bit_compare (0.00s)
+    --- PASS: TestEZ80_Differential/8-bit_inc (0.00s)
+    --- PASS: TestEZ80_Differential/8-bit_dec (0.00s)
+    --- PASS: TestEZ80_Differential/16/24-bit_add (0.00s)
+    --- PASS: TestEZ80_Differential/16/24-bit_sbc (0.00s)
+    --- PASS: TestEZ80_Differential/push (0.00s)
+    --- PASS: TestEZ80_Differential/pop (0.00s)
+    --- PASS: TestEZ80_Differential/push_ix (0.00s)
+    --- PASS: TestEZ80_Differential/return (0.00s)
+    --- PASS: TestEZ80_Differential/halt (0.00s)
+    --- PASS: TestEZ80_Differential/disable_interrupts (0.00s)
+    --- PASS: TestEZ80_Differential/enable_interrupts (0.00s)
+    --- PASS: TestEZ80_Differential/exchange (0.00s)
+    --- PASS: TestEZ80_Differential/exchange_all (0.00s)
+    --- PASS: TestEZ80_Differential/block_copy (0.00s)
+    --- PASS: TestEZ80_Differential/block_compare (0.00s)
+    --- PASS: TestEZ80_Differential/bit_test (0.00s)
+    --- PASS: TestEZ80_Differential/bit_set (0.00s)
+    --- PASS: TestEZ80_Differential/bit_reset (0.00s)
+    --- PASS: TestEZ80_Differential/rotate_left (0.00s)
+    --- PASS: TestEZ80_Differential/shift_left (0.00s)
+    --- PASS: TestEZ80_Differential/shift_right (0.00s)
+    --- PASS: TestEZ80_Differential/restart (0.00s)
+    --- PASS: TestEZ80_Differential/restart_38 (0.00s)
+    --- PASS: TestEZ80_Differential/indexed_load (0.00s)
+    --- PASS: TestEZ80_Differential/indexed_store_imm (0.00s)
+    --- PASS: TestEZ80_Differential/inc_pair (0.00s)
+    --- PASS: TestEZ80_Differential/dec_pair (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/z80asm	0.334s

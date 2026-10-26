@@ -1,0 +1,106 @@
+{
+  "schema": 1,
+  "contract": "C89 unsigned-char main(void), pointer-free, constant inputs, defined unsigned arithmetic with explicit casts; no int-width or pointer-layout equality assumed",
+  "cases": [
+    {
+      "name": "zero",
+      "expression": "0",
+      "required_mzc": true
+    },
+    {
+      "name": "one",
+      "expression": "1",
+      "required_mzc": true
+    },
+    {
+      "name": "constant29",
+      "expression": "29",
+      "required_mzc": true
+    },
+    {
+      "name": "signed_boundary",
+      "expression": "127",
+      "required_mzc": true
+    },
+    {
+      "name": "high_bit",
+      "expression": "128",
+      "required_mzc": true
+    },
+    {
+      "name": "all_bits",
+      "expression": "255",
+      "required_mzc": true
+    },
+    {
+      "name": "byte_add_wrap",
+      "expression": "(unsigned char)((unsigned short)250 + (unsigned short)20)",
+      "required_mzc": true
+    },
+    {
+      "name": "byte_sub_wrap",
+      "expression": "(unsigned char)((unsigned long)3 - (unsigned long)11)",
+      "required_mzc": true
+    },
+    {
+      "name": "word_wrap",
+      "expression": "(unsigned char)(unsigned short)((unsigned long)65535 + (unsigned long)2)",
+      "required_mzc": true
+    },
+    {
+      "name": "wide_mul",
+      "expression": "(unsigned char)((unsigned long)123456 * (unsigned long)789)",
+      "required_mzc": true
+    },
+    {
+      "name": "wide_div",
+      "expression": "(unsigned char)((unsigned long)11259375 / (unsigned long)257)",
+      "required_mzc": true
+    },
+    {
+      "name": "wide_mod",
+      "expression": "(unsigned char)((unsigned long)11259375 % (unsigned long)251)",
+      "required_mzc": true
+    },
+    {
+      "name": "bit_mix",
+      "expression": "(unsigned char)(((unsigned long)42330 << 3) ^ ((unsigned long)4660 >> 2))",
+      "required_mzc": true
+    },
+    {
+      "name": "complement",
+      "expression": "(unsigned char)~(unsigned long)90",
+      "required_mzc": true
+    },
+    {
+      "name": "logical",
+      "expression": "(unsigned char)(((unsigned long)65536 > (unsigned long)65535) && ((unsigned long)0 == (unsigned long)0))",
+      "required_mzc": false
+    },
+    {
+      "name": "conditional",
+      "expression": "(unsigned char)(((unsigned long)123 < (unsigned long)456) ? 91 : 17)",
+      "required_mzc": false
+    },
+    {
+      "name": "signed_small",
+      "expression": "(unsigned char)((signed char)-7 + (signed char)19)",
+      "required_mzc": true
+    },
+    {
+      "name": "short_size",
+      "expression": "sizeof(unsigned short)",
+      "required_mzc": true
+    },
+    {
+      "name": "long_shift24",
+      "expression": "(unsigned char)((unsigned long)305419896 >> 24)",
+      "required_mzc": true
+    },
+    {
+      "name": "short_truncate",
+      "expression": "(unsigned char)((unsigned short)(unsigned long)1193046 >> 8)",
+      "required_mzc": true
+    }
+  ]
+}

@@ -11,6 +11,7 @@ import "fmt"
 // every Func in the same module has globally unique reg IDs.  This allows a
 // single AllocResult to cover all functions without key collisions.
 type Module struct {
+	PointerBits int `json:",omitempty"` // zero preserves the legacy 16-bit language ABI
 	// NonNullObjects reserves VM address zero for null when C object semantics
 	// are present. Raw-address MIR modules retain their original memory layout.
 	NonNullObjects bool `json:",omitempty"`
@@ -165,3 +166,11 @@ func (m *Module) FuncByName(name string) *Func {
 
 // AddGlobal appends a global variable to the module.
 func (m *Module) AddGlobal(g Global) { m.Globals = append(m.Globals, g) }
+
+// PointerType returns the language address type independently of platform.
+func (m *Module) PointerType() Ty {
+	if m == nil || m.PointerBits == 0 {
+		return TyPtr
+	}
+	return PtrFor(m.PointerBits)
+}

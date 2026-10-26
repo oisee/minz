@@ -66,7 +66,7 @@ func LowerModuleWithOptions(hm *Module, opts LowerOptions) *mir2.Module {
 	if err := ResolveErrorABI(hm); err != nil {
 		panic(err)
 	}
-	m := &mir2.Module{Name: hm.Name, Target: hm.Target, NonNullObjects: hm.NonNullObjects}
+	m := &mir2.Module{Name: hm.Name, PointerBits: hm.PointerBits, Target: hm.Target, NonNullObjects: hm.NonNullObjects}
 	for _, f := range hm.Funcs {
 		m.NonNullObjects = m.NonNullObjects || f.CValueABI
 	}
@@ -697,7 +697,7 @@ func lowerFuncWithFuncNames(m *mir2.Module, f *Func, funcNames map[string]bool, 
 		cell := &mir2.StructTy{Fields: []mir2.StructField{{Name: "value", Ty: p.Ty}}}
 		address := l.fixedStructStorage(cell)
 		l.storeMemory(address, value, p.Ty, false)
-		l.bind(p.Name, address, mir2.TyPtr)
+		l.bind(p.Name, address, l.m.PointerType())
 		l.localCells[p.Name] = true
 	}
 
@@ -894,6 +894,9 @@ func (l *lowerer) lowerExprForRet(e Expr) mir2.Reg {
 // Explicit "must be in A" values (function return values, call returns) still
 // use ClassAcc via classForRet; parameters use classForParam.
 func classForExpr(ty mir2.Ty) mir2.RegClass {
+	if mir2.IsPointer(ty) && ty.Width() == 24 {
+		return mir2.ClassPointer
+	}
 	if aggregateAddressType(ty) || (mir2.IsPointer(ty) && mir2.PointerElem(ty) != mir2.TyU8) || ty == mir2.TyU16 || ty == mir2.TyI16 {
 		return mir2.ClassPointer
 	}
@@ -1173,7 +1176,7 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 					value := l.lowerStorageExprAs(st.Init, st.Ty)
 					l.storeMemory(addr, value, st.Ty, st.Volatile)
 				}
-				l.bind(st.Name, addr, mir2.TyPtr)
+				l.bind(st.Name, addr, l.m.PointerType())
 				l.localCells[st.Name] = true // reads/writes use the cell, AddrOf uses its address
 				return false
 			}
@@ -1187,7 +1190,7 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 				source := l.lowerExpr(st.Init)
 				l.copyStructValueEffects(addr, source, storage, l.volatileObject(st.Init), st.Volatile)
 			}
-			l.bind(st.Name, addr, mir2.TyPtr)
+			l.bind(st.Name, addr, l.m.PointerType())
 			l.localArrays[st.Name] = true
 			return false
 		}
@@ -1305,7 +1308,7 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 		if st.ArrayLen > 0 {
 			// The environment carries the array base address, not one element.
 			// Loop block parameters must retain the full pointer width.
-			bindingTy = mir2.TyPtr
+			bindingTy = l.m.PointerType()
 		}
 		l.bind(st.Name, r, bindingTy)
 		if st.ArrayLen > 0 {
@@ -1317,7 +1320,7 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 		if target, ok := st.Target.(*DerefExpr); ok {
 			_, integer := target.Ptr.(*IntLitExpr)
 			_, constant := target.Ptr.(*ConstPtrExpr)
-			if (integer && target.Ptr.ExprTy() == mir2.TyPtr || constant) && literalPointerExpression(st.Val) {
+			if (integer && target.Ptr.ExprTy() == l.m.PointerType() || constant) && literalPointerExpression(st.Val) {
 				previous := l.literalStorePointers
 				l.literalStorePointers = make(map[int64]mir2.Reg)
 				defer func() { l.literalStorePointers = previous }()
@@ -2202,7 +2205,7 @@ func (l *lowerer) lowerForEach(st *ForEachStmt) {
 		}
 		l.mf.LoopOrigins[bodyLabel] = mir2.LoopOrigin{SiteID: source.SiteID, Role: source.Role, Rule: source.Rule}
 	}
-	headPtr := l.bld.BlockParam(head, mir2.TyPtr, mir2.ClassPointer) // HL
+	headPtr := l.bld.BlockParam(head, l.m.PointerType(), mir2.ClassPointer) // HL
 	headCnt := l.bld.BlockParam(head, cntTy, cntClass)
 	headEnv := cloneMap(envBefore)
 	for _, name := range mutated {
@@ -2224,7 +2227,7 @@ func (l *lowerer) lowerForEach(st *ForEachStmt) {
 	// Load element: x = *ptr (or x = ptr for struct pointer iteration)
 	if st.PtrIter {
 		// Pointer iteration: x IS the pointer, not a loaded value
-		l.bind(st.Var, headPtr, mir2.TyPtr)
+		l.bind(st.Var, headPtr, l.m.PointerType())
 	} else {
 		xReg := l.bld.Load(headPtr, st.ElemTy, classForExpr(st.ElemTy))
 		l.bind(st.Var, xReg, st.ElemTy)
@@ -2275,8 +2278,8 @@ func (l *lowerer) lowerForEach(st *ForEachStmt) {
 
 	// ── fe_exit(ptr, cnt, mutated...) ──
 	exit := l.bld.SwitchToNewBlock(exitLabel)
-	l.bld.BlockParam(exit, mir2.TyPtr, mir2.ClassPointer) // discard ptr
-	l.bld.BlockParam(exit, cntTy, cntClass)               // discard cnt
+	l.bld.BlockParam(exit, l.m.PointerType(), mir2.ClassPointer) // discard ptr
+	l.bld.BlockParam(exit, cntTy, cntClass)                      // discard cnt
 	exitEnv := cloneMap(envBefore)
 	for _, name := range mutated {
 		ty := l.envTy[name]
@@ -2311,14 +2314,14 @@ func (l *lowerer) lowerForEachByteCountdown(st *ForEachStmt, envBefore map[strin
 		l.mf.LoopOrigins[bodyLabel] = mir2.LoopOrigin{SiteID: origin.SiteID, Role: origin.Role, Rule: origin.Rule}
 	}
 	cnt := l.bld.BlockParam(body, mir2.TyU8, mir2.ClassCounter)
-	ptr := l.bld.BlockParam(body, mir2.TyPtr, mir2.ClassPointer)
+	ptr := l.bld.BlockParam(body, l.m.PointerType(), mir2.ClassPointer)
 	env := cloneMap(envBefore)
 	for _, name := range mutated {
 		env[name] = l.bld.BlockParam(body, l.envTy[name], classForLoop(l.envTy[name], name))
 	}
 	l.env = env
 	if st.PtrIter {
-		l.bind(st.Var, ptr, mir2.TyPtr)
+		l.bind(st.Var, ptr, l.m.PointerType())
 	} else {
 		l.bind(st.Var, l.bld.Load(ptr, st.ElemTy, classForExpr(st.ElemTy)), st.ElemTy)
 	}
@@ -2530,7 +2533,7 @@ func (l *lowerer) lowerExpr(e Expr) mir2.Reg {
 	switch ex := e.(type) {
 
 	case *IntLitExpr:
-		if ex.Ty == mir2.TyPtr && l.literalStorePointers != nil {
+		if ex.Ty == l.m.PointerType() && l.literalStorePointers != nil {
 			if reg, ok := l.literalStorePointers[ex.Val]; ok {
 				return reg
 			}
@@ -2719,8 +2722,8 @@ func (l *lowerer) lowerExpr(e Expr) mir2.Reg {
 		if ex.X != nil {
 			r := l.lowerExprAddr(ex.X)
 			if l.target == TargetMZV {
-				// Language pointers retain their 16-bit ABI, even for host globals.
-				return l.bld.Trunc(r, mir2.PtrFor(32), mir2.TyPtr, mir2.ClassPointer)
+				// Host-global addresses narrow to the selected language pointer ABI.
+				return l.bld.Trunc(r, mir2.PtrFor(32), l.m.PointerType(), mir2.ClassPointer)
 			}
 			return r
 		}
@@ -2747,11 +2750,11 @@ func (l *lowerer) lowerExpr(e Expr) mir2.Reg {
 			if reg, ok := l.literalStorePointers[address]; ok {
 				return reg
 			}
-			reg := l.bld.Const(address, mir2.TyPtr, mir2.ClassPointer)
+			reg := l.bld.Const(address, l.m.PointerType(), mir2.ClassPointer)
 			l.literalStorePointers[address] = reg
 			return reg
 		}
-		return l.bld.Const(address, mir2.TyPtr, mir2.ClassPointer)
+		return l.bld.Const(address, l.m.PointerType(), mir2.ClassPointer)
 
 	case *DerefExpr:
 		ptr := l.lowerExpr(ex.Ptr)
@@ -2894,7 +2897,7 @@ func (l *lowerer) lowerIndexAddr(ex *IndexExpr) mir2.Reg {
 			stride = 1
 		}
 	}
-	if l.target != TargetMZV && l.target != TargetAgon {
+	if l.m.PointerType().Width() == 16 && l.target != TargetMZV && l.target != TargetAgon {
 		if offset, ok := l.smallSMCIndexOffset(ex); ok {
 			if offset == 0 {
 				return base
@@ -2915,7 +2918,7 @@ func (l *lowerer) lowerIndexAddr(ex *IndexExpr) mir2.Reg {
 			_, globalArray = mir2.BaseOf(global.Ty).(*mir2.ArrayTy)
 		}
 	}
-	if globalArray && l.target != TargetMZV && l.target != TargetAgon && stride > 0 {
+	if globalArray && l.m.PointerType().Width() == 16 && l.target != TargetMZV && l.target != TargetAgon && stride > 0 {
 		if literal, ok := ex.Idx.(*IntLitExpr); ok {
 			if (literal.Ty == mir2.TyU8 && literal.Val >= 0 && literal.Val <= 255) ||
 				(literal.Ty == mir2.TyU16 && literal.Val >= 0 && literal.Val <= 65535) {
@@ -2929,6 +2932,9 @@ func (l *lowerer) lowerIndexAddr(ex *IndexExpr) mir2.Reg {
 	var offset mir2.Reg
 	idxTy := ex.Idx.ExprTy()
 	addressTy := mir2.Ty(mir2.TyU16)
+	if l.m.PointerBits == 24 {
+		addressTy = mir2.TyU24
+	}
 	hostGlobal := false
 	if l.target == TargetMZV {
 		if ref, ok := ex.Base.(*VarRefExpr); ok {
@@ -4503,7 +4509,7 @@ func invertCond(e Expr) Expr {
 // for a source declaration in a conditional or loop body.
 func (l *lowerer) fixedStructStorage(ty *mir2.StructTy) mir2.Reg {
 	r := l.mf.AllocReg()
-	i := &mir2.Inst{Op: mir2.OpAlloca, Dst: r, Ty: mir2.TyPtr, Cls: mir2.ClassPointer, Imm: int64(max(1, mir2.ByteWidth(ty)))}
+	i := &mir2.Inst{Op: mir2.OpAlloca, Dst: r, Ty: l.m.PointerType(), Cls: mir2.ClassPointer, Imm: int64(max(1, mir2.ByteWidth(ty)))}
 	l.mf.Entry().Insts = append([]*mir2.Inst{i}, l.mf.Entry().Insts...)
 	return r
 }
@@ -4806,7 +4812,7 @@ func literalPointerExpression(expr Expr) bool {
 	case *LoadExpr:
 		literal, integer := value.Ptr.(*IntLitExpr)
 		_, constant := value.Ptr.(*ConstPtrExpr)
-		return (integer && literal.Ty == mir2.TyPtr) || constant
+		return (integer && mir2.IsPointer(literal.Ty)) || constant
 	default:
 		return false
 	}
