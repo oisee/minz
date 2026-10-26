@@ -1,0 +1,73 @@
+=== RUN   TestCountedPointerWalkPreservesUnrelatedForwardingAndOrigin
+--- PASS: TestCountedPointerWalkPreservesUnrelatedForwardingAndOrigin (0.00s)
+=== RUN   TestDeadBlockArgElimForwardingCycles
+=== RUN   TestDeadBlockArgElimForwardingCycles/self/ordinary
+=== RUN   TestDeadBlockArgElimForwardingCycles/self/grace
+=== RUN   TestDeadBlockArgElimForwardingCycles/multi/ordinary
+=== RUN   TestDeadBlockArgElimForwardingCycles/multi/grace
+=== RUN   TestDeadBlockArgElimForwardingCycles/return/ordinary
+=== RUN   TestDeadBlockArgElimForwardingCycles/return/grace
+=== RUN   TestDeadBlockArgElimForwardingCycles/condret/ordinary
+=== RUN   TestDeadBlockArgElimForwardingCycles/condret/grace
+=== RUN   TestDeadBlockArgElimForwardingCycles/threeway/ordinary
+=== RUN   TestDeadBlockArgElimForwardingCycles/threeway/grace
+=== RUN   TestDeadBlockArgElimForwardingCycles/branch_value/ordinary
+=== RUN   TestDeadBlockArgElimForwardingCycles/branch_value/grace
+=== RUN   TestDeadBlockArgElimForwardingCycles/error/ordinary
+=== RUN   TestDeadBlockArgElimForwardingCycles/error/grace
+=== RUN   TestDeadBlockArgElimForwardingCycles/condret_condition/ordinary
+=== RUN   TestDeadBlockArgElimForwardingCycles/condret_condition/grace
+=== RUN   TestDeadBlockArgElimForwardingCycles/threeway_value/ordinary
+=== RUN   TestDeadBlockArgElimForwardingCycles/threeway_value/grace
+=== RUN   TestDeadBlockArgElimForwardingCycles/condret_dead/ordinary
+=== RUN   TestDeadBlockArgElimForwardingCycles/condret_dead/grace
+--- PASS: TestDeadBlockArgElimForwardingCycles (0.01s)
+    --- PASS: TestDeadBlockArgElimForwardingCycles/self/ordinary (0.00s)
+    --- PASS: TestDeadBlockArgElimForwardingCycles/self/grace (0.00s)
+    --- PASS: TestDeadBlockArgElimForwardingCycles/multi/ordinary (0.00s)
+    --- PASS: TestDeadBlockArgElimForwardingCycles/multi/grace (0.00s)
+    --- PASS: TestDeadBlockArgElimForwardingCycles/return/ordinary (0.00s)
+    --- PASS: TestDeadBlockArgElimForwardingCycles/return/grace (0.00s)
+    --- PASS: TestDeadBlockArgElimForwardingCycles/condret/ordinary (0.00s)
+    --- PASS: TestDeadBlockArgElimForwardingCycles/condret/grace (0.00s)
+    --- PASS: TestDeadBlockArgElimForwardingCycles/threeway/ordinary (0.00s)
+    --- PASS: TestDeadBlockArgElimForwardingCycles/threeway/grace (0.00s)
+    --- PASS: TestDeadBlockArgElimForwardingCycles/branch_value/ordinary (0.00s)
+    --- PASS: TestDeadBlockArgElimForwardingCycles/branch_value/grace (0.00s)
+    --- PASS: TestDeadBlockArgElimForwardingCycles/error/ordinary (0.00s)
+    --- PASS: TestDeadBlockArgElimForwardingCycles/error/grace (0.00s)
+    --- PASS: TestDeadBlockArgElimForwardingCycles/condret_condition/ordinary (0.00s)
+    --- PASS: TestDeadBlockArgElimForwardingCycles/condret_condition/grace (0.00s)
+    --- PASS: TestDeadBlockArgElimForwardingCycles/threeway_value/ordinary (0.00s)
+    --- PASS: TestDeadBlockArgElimForwardingCycles/threeway_value/grace (0.00s)
+    --- PASS: TestDeadBlockArgElimForwardingCycles/condret_dead/ordinary (0.00s)
+    --- PASS: TestDeadBlockArgElimForwardingCycles/condret_dead/grace (0.00s)
+=== RUN   TestDeadBlockArgElimDJNZEdges
+=== RUN   TestDeadBlockArgElimDJNZEdges/ordinary
+=== RUN   TestDeadBlockArgElimDJNZEdges/grace
+--- PASS: TestDeadBlockArgElimDJNZEdges (0.00s)
+    --- PASS: TestDeadBlockArgElimDJNZEdges/ordinary (0.00s)
+    --- PASS: TestDeadBlockArgElimDJNZEdges/grace (0.00s)
+=== RUN   TestDeadBlockArgElimForwardedExitFixpoint
+--- PASS: TestDeadBlockArgElimForwardedExitFixpoint (0.00s)
+=== RUN   TestGraceRunner_DeadBlockArg
+    grace_runner_test.go:239: Stats: Grace: 1 funcs, 2 rewrites (dead-block-arg=1, split-join-ret=1)
+--- PASS: TestGraceRunner_DeadBlockArg (0.00s)
+=== RUN   TestCollectEdges_AllTermTypes
+=== RUN   TestCollectEdges_AllTermTypes/TermJmp
+=== RUN   TestCollectEdges_AllTermTypes/TermBrIf
+=== RUN   TestCollectEdges_AllTermTypes/TermBrIf2
+=== RUN   TestCollectEdges_AllTermTypes/TermDJNZ
+=== RUN   TestCollectEdges_AllTermTypes/TermCondRet
+=== RUN   TestCollectEdges_AllTermTypes/TermRet
+=== RUN   TestCollectEdges_AllTermTypes/TermUnreachable
+--- PASS: TestCollectEdges_AllTermTypes (0.00s)
+    --- PASS: TestCollectEdges_AllTermTypes/TermJmp (0.00s)
+    --- PASS: TestCollectEdges_AllTermTypes/TermBrIf (0.00s)
+    --- PASS: TestCollectEdges_AllTermTypes/TermBrIf2 (0.00s)
+    --- PASS: TestCollectEdges_AllTermTypes/TermDJNZ (0.00s)
+    --- PASS: TestCollectEdges_AllTermTypes/TermCondRet (0.00s)
+    --- PASS: TestCollectEdges_AllTermTypes/TermRet (0.00s)
+    --- PASS: TestCollectEdges_AllTermTypes/TermUnreachable (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/mir2	0.432s
