@@ -1,0 +1,11 @@
+global data:[u8;16]
+gen runs(src:^u8,pairs:u8)->u8{while pairs!=0{
+var left:u8=src[0]
+let value:u8=src[1]
+src=src+2
+pairs=pairs-1
+while left!=0{yield value
+left=left-1}}}
+fun main()->u16{var total:u16=0
+for v in runs(&data,8){total=total+u16(v)}
+return total}
