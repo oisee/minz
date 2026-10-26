@@ -14,30 +14,30 @@
 === RUN   TestGeneratorFusionRLEDemand/nested_break
 === RUN   TestGeneratorFusionRLEDemand/backing_alias
 === RUN   TestGeneratorFusionRLEDemand/local_hygiene
---- PASS: TestGeneratorFusionRLEDemand (0.65s)
-    --- PASS: TestGeneratorFusionRLEDemand/full (0.04s)
-    --- PASS: TestGeneratorFusionRLEDemand/byte_boundaries (0.05s)
-    --- PASS: TestGeneratorFusionRLEDemand/empty (0.04s)
-    --- PASS: TestGeneratorFusionRLEDemand/all_zero_runs (0.04s)
-    --- PASS: TestGeneratorFusionRLEDemand/break_first (0.05s)
-    --- PASS: TestGeneratorFusionRLEDemand/break_before_next_pair_trap (0.05s)
-    --- PASS: TestGeneratorFusionRLEDemand/break_after_empty (0.05s)
-    --- PASS: TestGeneratorFusionRLEDemand/filter_take (0.06s)
-    --- PASS: TestGeneratorFusionRLEDemand/continue (0.04s)
-    --- PASS: TestGeneratorFusionRLEDemand/return (0.04s)
-    --- PASS: TestGeneratorFusionRLEDemand/nested_continue (0.05s)
-    --- PASS: TestGeneratorFusionRLEDemand/nested_break (0.06s)
-    --- PASS: TestGeneratorFusionRLEDemand/backing_alias (0.05s)
-    --- PASS: TestGeneratorFusionRLEDemand/local_hygiene (0.05s)
+--- PASS: TestGeneratorFusionRLEDemand (1.26s)
+    --- PASS: TestGeneratorFusionRLEDemand/full (0.07s)
+    --- PASS: TestGeneratorFusionRLEDemand/byte_boundaries (0.09s)
+    --- PASS: TestGeneratorFusionRLEDemand/empty (0.08s)
+    --- PASS: TestGeneratorFusionRLEDemand/all_zero_runs (0.07s)
+    --- PASS: TestGeneratorFusionRLEDemand/break_first (0.09s)
+    --- PASS: TestGeneratorFusionRLEDemand/break_before_next_pair_trap (0.10s)
+    --- PASS: TestGeneratorFusionRLEDemand/break_after_empty (0.09s)
+    --- PASS: TestGeneratorFusionRLEDemand/filter_take (0.12s)
+    --- PASS: TestGeneratorFusionRLEDemand/continue (0.08s)
+    --- PASS: TestGeneratorFusionRLEDemand/return (0.07s)
+    --- PASS: TestGeneratorFusionRLEDemand/nested_continue (0.09s)
+    --- PASS: TestGeneratorFusionRLEDemand/nested_break (0.11s)
+    --- PASS: TestGeneratorFusionRLEDemand/backing_alias (0.10s)
+    --- PASS: TestGeneratorFusionRLEDemand/local_hygiene (0.09s)
 === RUN   TestGeneratorFusionRLEPureExits
 === RUN   TestGeneratorFusionRLEPureExits/break_last
 === RUN   TestGeneratorFusionRLEPureExits/continue_last
---- PASS: TestGeneratorFusionRLEPureExits (0.05s)
-    --- PASS: TestGeneratorFusionRLEPureExits/break_last (0.02s)
-    --- PASS: TestGeneratorFusionRLEPureExits/continue_last (0.02s)
+--- PASS: TestGeneratorFusionRLEPureExits (0.10s)
+    --- PASS: TestGeneratorFusionRLEPureExits/break_last (0.05s)
+    --- PASS: TestGeneratorFusionRLEPureExits/continue_last (0.05s)
 === RUN   TestGeneratorFusionRLENativeCost
     generator_fusion_rle_test.go:371: RLE native costs: [{Variant:pull Code:311 Binary:327 TStates:16201 Stack:19 Result:1362 InputReads:[1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1]} {Variant:fused Code:73 Binary:89 TStates:3576 Stack:4 Result:1362 InputReads:[1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1]}]
---- PASS: TestGeneratorFusionRLENativeCost (0.02s)
+--- PASS: TestGeneratorFusionRLENativeCost (0.04s)
 === RUN   TestGeneratorFusionRLERefusals
 === RUN   TestGeneratorFusionRLERefusals/local_address
 === RUN   TestGeneratorFusionRLERefusals/global_name_collision
@@ -55,4 +55,4 @@
     --- PASS: TestGeneratorFusionRLERefusals/volatile (0.00s)
     --- PASS: TestGeneratorFusionRLERefusals/absolute (0.00s)
 PASS
-ok  	github.com/minz/minzc/pkg/pipeline	1.170s
+ok  	github.com/minz/minzc/pkg/pipeline	1.990s
