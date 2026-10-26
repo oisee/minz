@@ -358,3 +358,35 @@ func TestNativeFlatGuardRejectsRestoringInputWrite(t *testing.T) {
 		t.Fatalf("restoring write not rejected by native guard: %v", e)
 	}
 }
+
+func TestNativeFlatRejectsFreeGlobalsInActualExport(t *testing.T) {
+	engine, music, meta, _ := fixturePaths(t)
+	source, e := os.ReadFile(engine)
+	if e != nil {
+		t.Fatal(e)
+	}
+	rendered, e := render(string(source), config{1, 128})
+	if e != nil {
+		t.Fatal(e)
+	}
+	code, e := os.ReadFile(music)
+	if e != nil {
+		t.Fatal(e)
+	}
+	data, e := os.ReadFile(meta)
+	if e != nil {
+		t.Fatal(e)
+	}
+	anchor := "(return (cast 1 u8))"
+	if strings.Count(string(code), anchor) != 1 {
+		t.Fatal("actual selector body anchor changed")
+	}
+	for _, expr := range []string{"(set fault 0)", "(var hidden u8 (cast fault u8))", "(var hidden u16 (cast (addr fault) u16))"} {
+		t.Run(expr, func(t *testing.T) {
+			mutant := strings.Replace(string(code), anchor, expr+"\n"+anchor, 1)
+			if _, e := buildHIR(rendered, mutant, string(data)); e == nil {
+				t.Fatal("actual selector captured a parent global before binding")
+			}
+		})
+	}
+}

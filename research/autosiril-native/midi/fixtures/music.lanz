@@ -1,0 +1,67 @@
+(fun cr_crystal_quantize_0 ((tick u32) (ppqn u32) (per_beat u32)) u32)
+(fun cr_crystal_cell_action_1 ((mask u8)) u8)
+(fun cr_crystal_prefer_2 ((current u8) (candidate u8) (mode u8)) u8)
+(fun cr_crystal_octave_3 ((note u16)) u16)
+(fun cr_crystal_ornament_shift_4 ((note u8) (ornament u16)) u8)
+(fun cr_crystal_keep_offset_5 ((offset u8) (median u8) (limit u8)) bool)
+(fun cr_crystal_echo_volume_6 ((bounce u8)) u16)
+(fun cr_crystal_pattern_count_7 ((rows u32) (size u32)) u32)
+(fun cr_crystal_quantize_0 ((tick u32) (ppqn u32) (per_beat u32)) u32 
+(var whole u32 (* (/ tick ppqn) per_beat))
+
+(var fraction u32 (+ (* (% tick ppqn) per_beat) (/ ppqn (cast 2 u32))))
+
+(return (+ whole (/ fraction ppqn))))
+(fun cr_crystal_cell_action_1 ((mask u8)) u8 
+(if (== mask (cast 0 u8)) (block 
+(return (cast 0 u8))) (block ))
+
+(if (== mask (cast 2 u8)) (block 
+(return (cast 0 u8))) (block ))
+
+(if (== mask (cast 4 u8)) (block 
+(return (cast 4 u8))) (block ))
+
+(return (cast 1 u8)))
+(fun cr_crystal_prefer_2 ((current u8) (candidate u8) (mode u8)) u8 
+(if (== mode (cast 109 u8)) (block 
+(if (> candidate current) (block 
+(return candidate)) (block 
+(return current)))) (block 
+(if (< candidate current) (block 
+(return candidate)) (block 
+(return current))))))
+(fun cr_crystal_octave_3 ((note u16)) u16 
+(var q u16 (/ note (cast 12 u16)))
+
+(var octave u16 (if (< q (cast 2 u16)) q (- q (cast 1 u16))))
+
+(if (> octave (cast 8 u16)) (block 
+(return (cast 8 u16))) (block 
+(return octave))))
+(fun cr_crystal_ornament_shift_4 ((note u8) (ornament u16)) u8 
+(if (== ornament (cast 0 u16)) (block 
+(return note)) (block ))
+
+(if (>= note (cast 72 u8)) (block 
+(set note (- note (cast 12 u8)))) (block ))
+
+(if (<= note (cast 48 u8)) (block 
+(set note (+ note (cast 12 u8)))) (block ))
+
+(return note))
+(fun cr_crystal_keep_offset_5 ((offset u8) (median u8) (limit u8)) bool 
+(var distance u8 (if (> offset median) (- offset median) (- median offset)))
+
+(return (<= distance limit)))
+(fun cr_crystal_echo_volume_6 ((bounce u8)) u16 
+(if (== bounce (cast 1 u8)) (block 
+(return (cast 1050 u16))) (block 
+(return (cast 735 u16)))))
+(fun cr_crystal_pattern_count_7 ((rows u32) (size u32)) u32 
+(var count u32 (/ rows size))
+
+(if (== (% rows size) (cast 0 u32)) (block 
+(set count (+ count (cast 1 u32)))) (block ))
+
+(return count))

@@ -203,7 +203,7 @@ def main():
                           crystal_version=crystal_version, ruby_version=ruby_version,
                           full_gate_protocol='autosiril-native-ruby-gate/v1', full_gate_executions=171)
         (fixture / 'provenance.json').write_text(json.dumps(provenance, indent=2) + '\n')
-    files = ['minzc/cmd/autosiril-native/main.go', 'minzc/cmd/autosiril-native/main_test.go',
+    files = ['minzc/pkg/hir/verify.go', 'minzc/cmd/autosiril-native/main.go', 'minzc/cmd/autosiril-native/main_test.go',
              '.github/workflows/ci.yml',
              'research/autosiril-native/fixtures/cases.json',
              'research/autosiril-native/fixtures/two-bank-cases.json',

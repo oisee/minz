@@ -11,17 +11,26 @@ import (
 // Verify checks the structural and resolved-type contract consumed by lowering.
 // Numeric width conversions and legacy integer addresses are intentionally legal.
 // It does not prove equivalence, closure capture safety, or all-paths return.
-func Verify(m *Module) error { return verifyHIRModule(m, false) }
+func Verify(m *Module) error { return verifyHIRModule(m, false, false) }
+
+// VerifyClosedNames also requires explicit local declarations and resolvable
+// address symbols (parameters, locals, module globals/functions or strings).
+// Importers can verify an isolated module with no globals before linking it,
+// ensuring free writes cannot acquire a different meaning in a parent module.
+func VerifyClosedNames(m *Module) error { return verifyHIRModule(m, false, true) }
 
 // ResolveCallSignatures verifies HIR and records signatures for statically
 // resolved indirect calls. Unknown raw pointers remain explicitly unresolved.
-func ResolveCallSignatures(m *Module) error { return verifyHIRModule(m, true) }
+func ResolveCallSignatures(m *Module) error { return verifyHIRModule(m, true, false) }
 
-func verifyHIRModule(m *Module, annotate bool) error {
+func verifyHIRModule(m *Module, annotate, closedNames bool) error {
 	if m == nil {
 		return fmt.Errorf("HIR: nil module")
 	}
-	v := &hirVerifier{funcs: map[string]*Func{}, globals: map[string]bool{}, active: map[any]bool{}, aliases: map[string]*Func{}, annotateCalls: annotate, gens: map[string]*Func{}}
+	v := &hirVerifier{funcs: map[string]*Func{}, globals: map[string]bool{}, stringSymbols: map[string]bool{}, active: map[any]bool{}, aliases: map[string]*Func{}, annotateCalls: annotate, closedNames: closedNames, gens: map[string]*Func{}}
+	for i := range m.Strings {
+		v.stringSymbols[fmt.Sprintf("@mir2.str.%d", i)] = true
+	}
 	for _, g := range m.Globals {
 		if g.Name == "" || v.globals[g.Name] || nilHIR(g.Ty) {
 			return fmt.Errorf("HIR: invalid or duplicate global %q", g.Name)
@@ -119,6 +128,8 @@ func verifyHIRModule(m *Module, annotate bool) error {
 }
 
 type hirVerifier struct {
+	stringSymbols    map[string]bool
+	closedNames      bool
 	smcSetters       map[string]bool
 	funcs            map[string]*Func
 	gens             map[string]*Func // generator declarations (IsGen)
@@ -389,6 +400,9 @@ func (v *hirVerifier) stmt(s Stmt, env map[string]mir2.Ty, loops int) error {
 			v.collected[vr.Name] = env[vr.Name]
 		}
 		if vr, ok := s.Target.(*VarRefExpr); ok && env[vr.Name] == nil && !v.globals[vr.Name] {
+			if v.closedNames {
+				return v.fail("assignment to undeclared local %q", vr.Name)
+			}
 			if err := v.valueAs(s.Val, vr.Ty, env); err != nil {
 				return err
 			}
@@ -752,6 +766,9 @@ func (v *hirVerifier) expr(e Expr, env map[string]mir2.Ty) error {
 				return v.fail("SMC function %s address escape is unsupported", f.Name)
 			}
 			return v.checkCaptureUse(f, env)
+		}
+		if v.closedNames && !v.globals[e.Sym] && env[e.Sym] == nil && !v.stringSymbols[e.Sym] {
+			return v.fail("unknown address symbol %q", e.Sym)
 		}
 	case *LoadExpr:
 		return v.pointee(e.Ptr, e.Ty, env)

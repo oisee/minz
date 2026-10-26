@@ -1,0 +1,20 @@
+{
+  "protocol": "autosiril-native-midi-frozen/v1",
+  "source_sha256": {
+    "research/autosiril-native/midi/pair.nanz": "ff4421d521514c3a719505e4a36df7cfabd2d29978a44261762c1eb4d425ec88",
+    "research/autosiril-native/midi/oracle.rb": "72f02b198cd8bdb31cda121b70a9a4eebe68a3024dafbff676b44e1738205b56",
+    "research/autosiril-native/midi/corpus.py": "95a24236ae8cd859389f6484e88ec8dd8b92cd83bd833396f8c54e605e0e97bf",
+    "stdlib/midi/smf.nanz": "0c400f637e7f5a26d03186edd90a5fed490b4a4e20efb7dabc49349b057e941b",
+    "stdlib/mem/bytes.nanz": "ff993d0018bacb114766b830d76c3c62f7742928e978eff04875ac88f7299d24",
+    "research/autosiril-vm/music.cr": "9ea520bfb7334ba2322a5d195f4343a678f9f535a1725a4e91d1b3d936d0d15c"
+  },
+  "fixture_sha256": {
+    "research/autosiril-native/midi/fixtures/cases.json": "8b5f831c93d6dd251fdb4f3c6986b59ccb6ace4208f4c39c12dc0d5a4db7f9db",
+    "research/autosiril-native/midi/fixtures/music.lanz": "9fb9f831651875e5b4b65b45a121d3f8d3b9ebce7ec6f7652a7abd909485ce9a",
+    "research/autosiril-native/midi/fixtures/music-manifest.json": "f2ba3f05a0700c79e9b6deff99461d1cc57d70f3c4a460ba69fcb5f82d80835d"
+  },
+  "ruby_source_sha256": "41f621b555fc089effd711319e723494576eb47ea0282847082ec91c1cdd4c01",
+  "midi_sha256": "0d4c0289fe42c81ea01c9715c9d382807e97549161c419c737e15f18d6abc02f",
+  "target_executions": 342,
+  "scope": "CI replays target executions from fresh original Ruby/Crystal products; Ruby/Crystal themselves run in fresh verifier"
+}

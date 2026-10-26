@@ -57,14 +57,21 @@ The ~191 KB VT2 example requires streamed output on a 128 KiB system. Measure
 
 ## Native bounded checkpoint (2026-10-26)
 
-The next [streaming MIDI pairing prototype](../../research/autosiril-native/midi/README.md)
+The [streaming MIDI pairing checkpoint](../../research/autosiril-native/midi/README.md)
 also runs the input stage on target: shared SMF decoder, bounded ordered active
-list and actual Crystal UInt32 quantizer. A fresh Ruby oracle matches all1,485
-Chronos paired records for1/7/256-byte chunks on raw/final MIR2 and Z80 (nine
-executions). Linked image29,990 bytes, observed stack58 bytes; the target holds
-only a256-byte input chunk. This is a separate executable from flattening.
-Duplicate/channel/EOT/capacity/error corpus and CI replay remain required before
-claiming the pairing stage's complete bounded contract.
+list and actual Crystal UInt32 quantizer. The fresh Ruby/target boundary gate
+covers38 cases ×3 chunk sizes ×3 backends =342 executions, including all1,485
+Chronos paired notes, FIFO/channel ordering,64 sources,2,046-note/512-active
+limits and EOT partial-close/row/tick faults. Linked image29,990 bytes includes
+14,646 code +14,827 globals +517 backend spills; observed stack58 bytes on the
+song and62 over the corpus. Target input storage is256 bytes. This remains a
+separate executable from flattening; no combined converter or physical banking
+claim follows from the two independently checked images.
+
+Imported scalar closures now use opt-in `hir.VerifyClosedNames` before linking:
+unknown reads/writes/address symbols cannot capture receiving globals. Default
+HIR verification retains implicit Nanz locals. Actual-Lanz mutation tests cover
+both the new quantizer and the earlier flatten selector bridge.
 
 The follow-up [whole Chronos proof](../../research/autosiril-native/chronos/README.md)
 extends the checked resident profile to three 4-KiB pages and1,024 output slots:

@@ -10,8 +10,9 @@
   "capacity_controls": 4,
   "transport_rejections": 4,
   "source_sha256": {
-    "minzc/cmd/autosiril-native/main.go": "b8bed2a210f774de4cd80604900aaf8181f710ba59016b0bf1c812b2c376fad2",
-    "research/autosiril-native/verify_chronos.py": "1582d432e6b53ce51d3d600c5c182af26c7941c4282ea9c367dac72068f60c41",
+    "minzc/pkg/hir/verify.go": "238d9b7e7d713dc4fff0ab8672a80db0b914f92b213d3e39a319e601da7767a1",
+    "minzc/cmd/autosiril-native/main.go": "6c6dbd6d0fe85ebd0427c4eb763a73f83485ae2d7f9675a9a47f305fa957f5a2",
+    "research/autosiril-native/verify_chronos.py": "327f88a2ff79bf468a8a4ed32d3eedf9e431e447c0c0190551259edd77d60fbe",
     "research/autosiril-vm/lazy_flatten.nanz": "b9059032e78d9945eb2468f58aaaa08d380c4a442e678e2362afa2e35aca9169",
     "research/autosiril-vm/music.cr": "9ea520bfb7334ba2322a5d195f4343a678f9f535a1725a4e91d1b3d936d0d15c",
     "research/autosiril-vm/oracle.rb": "d40c426a58f121db9bedf87bd0b5b011a9061b0f6a1ddbe10486134fc6716b60",
@@ -26,8 +27,8 @@
   "input_sha256": "b389dfbdbb03fa312d793fc285962dce0ec84ea219038f28bfed485fe9a7f7f1",
   "controls_oracle_sha256": "5081c1808a3412f2701785a9a22a8e85f558f247b782bacb07fe88ac0f20ae21",
   "manifest_sha256": "f2ba3f05a0700c79e9b6deff99461d1cc57d70f3c4a460ba69fcb5f82d80835d",
-  "exporter_sha256": "1ae2ada6e6892e7684e76219bf53bd76d9a45799e299092d9bda15f96145c069",
-  "consumer_sha256": "88e9e80eaa4ce04820eb218ce986afa5e9ed90ff4b2af77d2136843e47744951",
+  "exporter_sha256": "ac36b5fb9ab19e1769df5937e046fd968f3a75100e6bc30cccd125d159f87633",
+  "consumer_sha256": "9ea9f287c063202d596b7019299a20c3757565dff3ce951b00f918e3f2dcf1d8",
   "native": {
     "active_capacity": 512,
     "assembly_sha256": "035dddceef4638aea619da2717ebae59eacab233dbe0d7263fefc50745e6c9d5",
@@ -38986,7 +38987,7 @@
     "scope": "bounded paired notes -> flattened events, actual Nanz generator/Crystal selectors; no MIDI parser, VT2 writer, whole-song claim or physical bank mapping; code_bytes excludes declared MIR globals and exact backend spill declarations",
     "stack_floor": 57344
   },
-  "git_head": "4cfd2a18cc09a3ef061bce39be72bc3d98925aa8",
+  "git_head": "c1741c077260c03af64e2b499b08a265d0e7c1dc",
   "git_dirty": true,
   "scope": "all paired intervals and all three flatten channels of real Chronos; paired input from Ruby, not target MIDI parser; no downstream LNote/echo/mix/VT2 writer or complete-converter claim"
 }

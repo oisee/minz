@@ -1,0 +1,15 @@
+--- FAIL: TestNativeMIDIRejectsFreeGlobalsInActualExport (0.02s)
+    --- FAIL: TestNativeMIDIRejectsFreeGlobalsInActualExport/(set_fault_0) (0.01s)
+        main_test.go:236: actual export captured a parent global before binding
+    --- FAIL: TestNativeMIDIRejectsFreeGlobalsInActualExport/(var_hidden_u32_(cast_fault_u32)) (0.00s)
+        main_test.go:236: actual export captured a parent global before binding
+FAIL
+FAIL	github.com/minz/minzc/cmd/autosiril-midi-native	1.139s
+--- FAIL: TestNativeFlatRejectsFreeGlobalsInActualExport (0.01s)
+    --- FAIL: TestNativeFlatRejectsFreeGlobalsInActualExport/(set_fault_0) (0.00s)
+        main_test.go:388: actual selector captured a parent global before binding
+    --- FAIL: TestNativeFlatRejectsFreeGlobalsInActualExport/(var_hidden_u8_(cast_fault_u8)) (0.00s)
+        main_test.go:388: actual selector captured a parent global before binding
+FAIL
+FAIL	github.com/minz/minzc/cmd/autosiril-native	1.138s
+FAIL

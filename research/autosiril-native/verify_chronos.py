@@ -111,7 +111,7 @@ def main():
                    '-music', music, '-manifest', manifest, '-input', path, '-out', out / name],
             expected_error=diagnostic)
     sha = lambda p: hashlib.sha256(p.read_bytes()).hexdigest()
-    files = ['minzc/cmd/autosiril-native/main.go', 'research/autosiril-native/verify_chronos.py',
+    files = ['minzc/pkg/hir/verify.go', 'minzc/cmd/autosiril-native/main.go', 'research/autosiril-native/verify_chronos.py',
              'research/autosiril-vm/lazy_flatten.nanz', 'research/autosiril-vm/music.cr',
              'research/autosiril-vm/oracle.rb', 'research/autosiril-native/oracle.rb',
              'research/crystal-hir/typed_export.cr',
