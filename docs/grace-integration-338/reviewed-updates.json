@@ -348,13 +348,17 @@
     "path": "examples/nanz/01_sum_array.nanz",
     "source_sha256": "fa0ad7d685c31aeb52b91b323bcef46e5c86c0e4390b2fd41ecd69ecfef58694",
     "native_behavior": "executed-independent-vm-z80",
-    "workload": "sum_array: lengths 0,1,5,16,64,255; ramp resource",
-    "independent_model": "n*(n+1)/2 modulo 256; VM/native baseline and chosen transformations",
-    "boundary": "Named sum_array entry; original main not executed. Cost coefficients refreshed after counted-pointer lowering: baseline 41+54*n, guarded profitability boundary 11/12 independently executed; pair-move codegen (O3) re-measured the fallback at 178T/iteration and 171 module bytes, fast path unchanged; historical costs are not current evidence.",
+    "workload": "sum_array: lengths 0,1,5,16,64,255 on ramp resource; separate fresh measured 1022 u8-length/address-family cases before/after forwarding-cycle elimination",
+    "independent_model": "Ramp n*(n+1)/2 modulo256; measured corpus uses independent sequential modulo256 sum of each recorded input, checked against raw MIR2 and assembled Z80",
+    "boundary": "Named sum_array entry; original main not executed. Current ordinary-options baseline 41+54*n T/171 module bytes; guarded fast 231+37*n T (zero232 T), guarded module238 B; fallback326+78*n T. Fresh before/after1022-row receipts bind binaries and compiler contexts. Profitability boundary11/12 separately executed. Older reports retain historical costs, not current evidence.",
     "evidence": {
-      "minzc/pkg/pipeline/profile_guided_sum_test.go": "6a40915a27fddc59546bc80f063ae5761ad37b9c9f68615f386cd64421624001",
+      "minzc/pkg/pipeline/profile_guided_sum_test.go": "7fa1d7b2e615d0998f11585dcec84c69623dda7216b01ac46550930089119ffd",
       "reports/profile-coalesced-edge-costs/root.txt": "7685133d9d5ccb2e269f3b444ec9dfe4be6d6977348fcffe4fae6766fe9a3eb1",
-      "reports/copy-fat12-optimization/validation/minz-copy-fat-cost-regression.log": "c5c82ca7bd785f30c0c0f7cc700494df2609870fadec8db408fca0327067a18c"
+      "reports/copy-fat12-optimization/validation/minz-copy-fat-cost-regression.log": "c5c82ca7bd785f30c0c0f7cc700494df2609870fadec8db408fca0327067a18c",
+      "research/generator-fusion/dead-params/evidence/profile-before-evidence.json": "83bca5c1707c0b39edfa1f966ae1d4e64eb02c2793390c9b27e62b92c0b58e19",
+      "research/generator-fusion/dead-params/evidence/profile-after-evidence.json": "e0b3f3579db03f19530c8bb07d1e9bb27bec489e07fab904111a3ce9e0859cf1",
+      "research/generator-fusion/dead-params/evidence/profile-after-model.json": "54f0c5d60121c4074b5feb6ae3ecf69bc35ef00bebbd6e2864c2f8b246e4efd2",
+      "research/generator-fusion/dead-params/evidence/profile-tests.txt": "fd566da0b996df0d25eb51ca352cf968e2c6aa9a8861bf1e1c26300ef194f68b"
     }
   },
   {
