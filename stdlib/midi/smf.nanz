@@ -1,0 +1,286 @@
+// Incremental SMF 0/1 decoder, PPQN timing. One copied event/payload is leased
+// until ack. All file/track counters and musical ticks retain their u32 width.
+import mem.bytes
+
+enum SmfStatus { MORE, EVENT, BLOCKED, ERROR, DONE }
+enum SmfError { NONE, BAD_MAGIC, BAD_HEADER, UNSUPPORTED, TRACK_LENGTH, BAD_STATUS, BAD_DATA, VLQ_LONG, PAYLOAD_CAPACITY, BAD_EOT, TRUNCATED, TICK_OVERFLOW, TRAILING_DATA }
+enum SmfPhase { FILE_TAG, FILE_LENGTH, HEADER, HEADER_EXTRA, TRACK_TAG, TRACK_LENGTH, DELTA, STATUS, DATA1, DATA2, META_TYPE, PAYLOAD_LENGTH, PAYLOAD, END }
+
+global smf_file_tag:[u8;4] = [77,84,104,100]
+global smf_track_tag:[u8;4] = [77,84,114,107]
+
+struct MidiEvent {
+    track:u16, tick:u32, delta:u32, status:u8,
+    data1:u8, data2:u8, meta:u8, length:u32
+}
+struct SmfDecoder {
+    storage:^ByteBuffer, phase:u8, index:u8, ready:u8, error:u8,
+    format:u16, tracks:u16, division:u16, track:u16,
+    left:u32, word:u32, tick:u32, delta:u32, payload_length:u32, payload_left:u32,
+    vlq_bytes:u8, running:u8, status:u8, data1:u8, data2:u8, meta:u8
+}
+
+fun SmfDecoder.init(self:^SmfDecoder, storage:^ByteBuffer) {
+    self.storage = storage
+    storage.clear()
+    self.phase = SmfPhase.FILE_TAG
+    self.index = 0
+    self.ready = 0
+    self.error = SmfError.NONE
+    self.format = 0
+    self.tracks = 0
+    self.division = 0
+    self.track = 0
+    self.left = 0
+    self.word = 0
+    self.tick = 0
+    self.delta = 0
+    self.payload_length = 0
+    self.payload_left = 0
+    self.vlq_bytes = 0
+    self.running = 0
+    self.status = 0
+    self.data1 = 0
+    self.data2 = 0
+    self.meta = 0
+}
+
+// feed_byte result: low byte = SmfStatus, high byte = consumed (0 or 1).
+// This helper is used only after the current byte was accepted.
+fun SmfDecoder.reject(self:^SmfDecoder, error:u8) -> u16 {
+    self.error = error
+    return 259
+}
+
+fun SmfDecoder.publish(self:^SmfDecoder, event:^MidiEvent) -> u16 {
+    event.track = self.track
+    event.tick = self.tick
+    event.delta = self.delta
+    event.status = self.status
+    event.data1 = self.data1
+    event.data2 = self.data2
+    event.meta = self.meta
+    event.length = self.payload_length
+    self.ready = 1
+    self.word = 0
+    self.vlq_bytes = 0
+    self.phase = SmfPhase.DELTA
+    if self.status == 255 {
+        if self.meta == 47 {
+            self.track = self.track + 1
+            self.index = 0
+            self.phase = SmfPhase.TRACK_TAG
+            if self.track == self.tracks { self.phase = SmfPhase.END }
+        }
+    }
+    return 257
+}
+
+fun SmfDecoder.ack(self:^SmfDecoder) -> u8 {
+    if self.ready == 0 { return 0 }
+    var storage:^ByteBuffer = self.storage
+    storage.clear()
+    self.ready = 0
+    return 1
+}
+
+fun SmfDecoder.finish(self:^SmfDecoder) -> u8 {
+    if self.error != 0 { return SmfStatus.ERROR }
+    if self.ready != 0 { return SmfStatus.EVENT }
+    if self.phase == SmfPhase.END { return SmfStatus.DONE }
+    self.error = SmfError.TRUNCATED
+    return SmfStatus.ERROR
+}
+
+fun SmfDecoder.feed_byte(self:^SmfDecoder, byte:u8, event:^MidiEvent) -> u16 {
+    if self.error != 0 { return 3 }
+    if self.ready != 0 { return 2 }
+    if self.phase == SmfPhase.END {
+        self.error = SmfError.TRAILING_DATA
+        return 3
+    }
+    var storage:^ByteBuffer = self.storage
+    // Track length covers delta/status/payload bytes, including EOT.
+    if self.phase >= SmfPhase.DELTA {
+        if self.left == 0 {
+            self.error = SmfError.TRACK_LENGTH
+            return 3
+        }
+        self.left = self.left - 1
+    }
+    if self.phase == SmfPhase.FILE_TAG {
+        if byte != smf_file_tag[self.index] { return self.reject(SmfError.BAD_MAGIC) }
+        self.index = self.index + 1
+        if self.index == 4 { self.phase = SmfPhase.FILE_LENGTH
+            self.index = 0 }
+        return 256
+    }
+    if self.phase == SmfPhase.FILE_LENGTH {
+        self.word = (self.word << 8) | u32(byte)
+        self.index = self.index + 1
+        if self.index == 4 {
+            if self.word < 6 { return self.reject(SmfError.BAD_HEADER) }
+            self.left = self.word - 6
+            self.word = 0
+            self.index = 0
+            self.phase = SmfPhase.HEADER
+        }
+        return 256
+    }
+    if self.phase == SmfPhase.HEADER {
+        if self.index < 2 { self.format = (self.format << 8) | u16(byte) }
+        if self.index >= 2 { if self.index < 4 { self.tracks = (self.tracks << 8) | u16(byte) } }
+        if self.index >= 4 { self.division = (self.division << 8) | u16(byte) }
+        self.index = self.index + 1
+        if self.index == 6 {
+            if self.format > 1 { return self.reject(SmfError.UNSUPPORTED) }
+            if self.tracks == 0 { return self.reject(SmfError.BAD_HEADER) }
+            if self.format == 0 { if self.tracks != 1 { return self.reject(SmfError.BAD_HEADER) } }
+            if self.division == 0 { return self.reject(SmfError.BAD_HEADER) }
+            if (self.division & 32768) != 0 { return self.reject(SmfError.UNSUPPORTED) }
+            self.index = 0
+            self.phase = SmfPhase.TRACK_TAG
+            if self.left != 0 { self.phase = SmfPhase.HEADER_EXTRA }
+        }
+        return 256
+    }
+    if self.phase == SmfPhase.HEADER_EXTRA {
+        self.left = self.left - 1
+        if self.left == 0 { self.phase = SmfPhase.TRACK_TAG }
+        return 256
+    }
+    if self.phase == SmfPhase.TRACK_TAG {
+        if byte != smf_track_tag[self.index] { return self.reject(SmfError.BAD_MAGIC) }
+        self.index = self.index + 1
+        if self.index == 4 { self.phase = SmfPhase.TRACK_LENGTH
+            self.word = 0
+            self.index = 0 }
+        return 256
+    }
+    if self.phase == SmfPhase.TRACK_LENGTH {
+        self.word = (self.word << 8) | u32(byte)
+        self.index = self.index + 1
+        if self.index == 4 {
+            if self.word < 4 { return self.reject(SmfError.TRACK_LENGTH) }
+            self.left = self.word
+            self.word = 0
+            self.tick = 0
+            self.delta = 0
+            self.vlq_bytes = 0
+            self.running = 0
+            self.phase = SmfPhase.DELTA
+        }
+        return 256
+    }
+    if self.phase == SmfPhase.DELTA {
+        self.vlq_bytes = self.vlq_bytes + 1
+        self.word = (self.word << 7) | u32(byte & 127)
+        if (byte & 128) != 0 {
+            if self.vlq_bytes == 4 { return self.reject(SmfError.VLQ_LONG) }
+            return 256
+        }
+        self.delta = self.word
+        if self.tick > u32(4294967295) - self.delta { return self.reject(SmfError.TICK_OVERFLOW) }
+        self.tick = self.tick + self.delta
+        self.word = 0
+        self.vlq_bytes = 0
+        self.phase = SmfPhase.STATUS
+        return 256
+    }
+    if self.phase == SmfPhase.STATUS {
+        self.data1 = 0
+        self.data2 = 0
+        self.meta = 0
+        self.payload_length = 0
+        if byte < 128 {
+            if self.running == 0 { return self.reject(SmfError.BAD_STATUS) }
+            self.status = self.running
+            self.data1 = byte
+            self.phase = SmfPhase.DATA2
+            if (self.status & 224) == 192 { return self.publish(event) }
+            return 256
+        }
+        self.status = byte
+        if byte < 240 {
+            self.running = byte
+            self.phase = SmfPhase.DATA1
+            return 256
+        }
+        self.running = 0
+        if byte == 255 { self.phase = SmfPhase.META_TYPE
+            return 256 }
+        if byte == 240 { self.phase = SmfPhase.PAYLOAD_LENGTH
+            return 256 }
+        if byte == 247 { self.phase = SmfPhase.PAYLOAD_LENGTH
+            return 256 }
+        return self.reject(SmfError.BAD_STATUS)
+    }
+    if self.phase == SmfPhase.DATA1 {
+        if byte >= 128 { return self.reject(SmfError.BAD_DATA) }
+        self.data1 = byte
+        self.phase = SmfPhase.DATA2
+        if (self.status & 224) == 192 { return self.publish(event) }
+        return 256
+    }
+    if self.phase == SmfPhase.DATA2 {
+        if byte >= 128 { return self.reject(SmfError.BAD_DATA) }
+        self.data2 = byte
+        return self.publish(event)
+    }
+    if self.phase == SmfPhase.META_TYPE {
+        if byte >= 128 { return self.reject(SmfError.BAD_DATA) }
+        self.meta = byte
+        self.phase = SmfPhase.PAYLOAD_LENGTH
+        return 256
+    }
+    if self.phase == SmfPhase.PAYLOAD_LENGTH {
+        self.vlq_bytes = self.vlq_bytes + 1
+        self.word = (self.word << 7) | u32(byte & 127)
+        if (byte & 128) != 0 {
+            if self.vlq_bytes == 4 { return self.reject(SmfError.VLQ_LONG) }
+            return 256
+        }
+        self.payload_length = self.word
+        self.payload_left = self.word
+        if self.word > self.left { return self.reject(SmfError.TRACK_LENGTH) }
+        if self.word > u32(storage.cap) { return self.reject(SmfError.PAYLOAD_CAPACITY) }
+        if self.status == 255 {
+            if self.meta == 47 {
+                if self.word != 0 { return self.reject(SmfError.BAD_EOT) }
+                if self.left != 0 { return self.reject(SmfError.BAD_EOT) }
+            }
+        }
+        if self.word == 0 { return self.publish(event) }
+        self.phase = SmfPhase.PAYLOAD
+        return 256
+    }
+    if storage.try_push(byte) == 0 { return self.reject(SmfError.PAYLOAD_CAPACITY) }
+    self.payload_left = self.payload_left - 1
+    if self.payload_left == 0 { return self.publish(event) }
+    return 256
+}
+
+// Optional chunk adapter. Stops exactly at the first event, leaving remaining
+// input to the caller. Empty chunks do not signal EOF: use finish explicitly.
+struct SmfReport { consumed:u16, status:u8, error:u8 }
+fun SmfDecoder.feed(self:^SmfDecoder, input:^ByteView, event:^MidiEvent, report:^SmfReport) -> u8 {
+    report.consumed = 0
+    report.error = self.error
+    report.status = SmfStatus.MORE
+    if self.error != 0 { report.status = SmfStatus.ERROR
+        return SmfStatus.ERROR }
+    if self.ready != 0 { report.status = SmfStatus.BLOCKED
+        return SmfStatus.BLOCKED }
+    if input.len == 0 {
+        if self.phase == SmfPhase.END { report.status = SmfStatus.DONE }
+        return report.status
+    }
+    while report.consumed < input.len {
+        let result:u16 = self.feed_byte(input.data[report.consumed],event)
+        report.consumed = report.consumed + (result >> 8)
+        report.status = u8(result & 255)
+        report.error = self.error
+        if report.status != SmfStatus.MORE { return report.status }
+    }
+    return report.status
+}

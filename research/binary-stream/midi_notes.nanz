@@ -1,0 +1,38 @@
+// SMF stream consumer. Call midi_init once, then midi_byte for each file byte,
+// then midi_finish at EOF. This counts wire events; it does not schedule audio
+// or merge simultaneous tracks for playback. Storage is caller-owned, no GC.
+import mem.bytes
+import midi.smf
+
+global payload:[u8;64]
+global buffer:ByteBuffer
+global parser:SmfDecoder
+global message:MidiEvent
+global note_ons:u32
+global note_offs:u32
+global last_tick:u32
+
+fun midi_init() {
+    buffer.init(&payload,64)
+    parser.init(&buffer)
+    note_ons = 0
+    note_offs = 0
+    last_tick = 0
+}
+
+fun midi_byte(byte:u8) -> u8 {
+    let result:u16 = parser.feed_byte(byte,&message)
+    let status:u8 = u8(result & 255)
+    if status == SmfStatus.EVENT {
+        let kind:u8 = message.status & 240
+        if kind == 144 {
+            if message.data2 != 0 { note_ons = note_ons + 1 }
+            else { note_offs = note_offs + 1 }
+        }
+        if kind == 128 { note_offs = note_offs + 1 }
+        last_tick = message.tick
+        parser.ack()
+    }
+    return status
+}
+fun midi_finish() -> u8 { return parser.finish() }

@@ -1,0 +1,16 @@
+Local validation, 2026-10-25/26, branch spike/binary-stream-fsm
+
+GOCACHE=/tmp/minz-crystal-go-cache go -C minzc test ./pkg/hir -count=1
+ok github.com/minz/minzc/pkg/hir 33.146s
+
+AUTOSIRIL_MIDI_DIR=/Users/alice/dev/autosiril/test \
+GOCACHE=/tmp/minz-crystal-go-cache go -C minzc test ./pkg/nanz -count=1
+ok github.com/minz/minzc/pkg/nanz 105.817s
+
+The full Nanz suite includes default synthetic decoder tests and the explicitly
+configured Autosiril corpus. A separate verbose corpus rerun is recorded in
+autosiril-evidence.txt. No remote i7 builds or mutations were performed.
+
+HTML report: rendered in Chromium at desktop 1440x1000 and mobile 390x844.
+No page errors or horizontal document overflow; byte feeding, EVENT, BLOCKED,
+ack and reset controls exercised. Screenshot inspection completed.
