@@ -2,20 +2,20 @@
   "protocol": "autosiril-file-pair-fresh/v1",
   "source_sha256": {
     "research/autosiril-native/files/compose.py": "cec242162a8e4fc821fd853cacec2c95b7cb24736fadb5a028ff12369785480d",
-    "research/autosiril-native/files/verify.py": "6eaeee205f29429e31e68627d34d340d9f2d792f5679563426247a3f8948e3aa",
-    "research/autosiril-native/files/pair-cpm.nanz": "8887993d2d3d53a61b0038c42f9ce3b3b161408ed3cb3cc7f42073653a6d859b",
-    "research/autosiril-native/files/driver.go.txt": "3dd50f7ca7d0d3d18a2048c73f854a2338e13ee0aedf1a58bf951cdb7fec4afb",
+    "research/autosiril-native/files/verify.py": "8c90e4122635df70e9164f48374e4b7b1b9855f3a3ee76f385843f021d94a23c",
+    "research/autosiril-native/files/pair-cpm.nanz": "2363b53aa665f3d6c6e7decab94570dd05387a2141a506b0bb6b131e1caee098",
+    "research/autosiril-native/files/driver.go.txt": "771af72de9c20864de30216e5c8f6d0672ffff1042cee5ebbaf6cead7ac3d73e",
     "minzc/cmd/mze/main.go": "249488eabf275e4fc618e743c00e7655c8f9e7a82820317ba12c6175703d9165",
     "minzc/cmd/mze/cpm_record.go": "2959ad5fbd05889fdc0d1bdf991429ae163b948a424c369bd3f311f5d2a667c7",
     "minzc/cmd/mze/cpm_record_test.go": "ed65e0346a0773ddcb167ac3222a6fd434221c333bd6f995a57e1b7a889ed8d5"
   },
-  "reference_sha256": "dcdb3fb41a20239465a38babfa92fb3c35e3f82acd7b518591760f836c4717cf",
-  "matrix_sha256": "e1dcb5e9d710a96d101af745dac9ca12ac4d25e69c196f7e414bbea23421d374",
-  "generated_source_sha256": "41729f40a036a9a809b3f74c885348ef48a997795b9d2d6368f678672a542564",
-  "generated_driver_sha256": "079471c1c99a99200d5c86a1470accd17dc693893f1c4f59ba24b7a2a4388fe1",
+  "reference_sha256": "35ee664c30aefbe2b5392cd3404da1bb321bee7398723f3243745e8b99a74a47",
+  "matrix_sha256": "29d8568e2178f72c60c2005e520a7ecfceb6056f5627bb21a53a796fb64a3dd8",
+  "generated_source_sha256": "d214edcd4ef504308e4e1aa1ef34f4d7842cc34ea39741342c043e872ba0a875",
+  "generated_driver_sha256": "2988674e20602b0f3f4e99df1b718666a918ef2a86e3e3e19f1202ccf278b47c",
   "file_proof": {
     "backend_spill_bytes": 440,
-    "binary_sha256": "f716395b6888870299466817b4d1445b9a60af9d0dfa76313e578ba6888a4bb7",
+    "binary_sha256": "ba30f577887a13ad0c98d99b0ed7e8f5cfdef6cdda012eafe60c9b247ca43c00",
     "cases": [
       {
         "bdos_calls": {
@@ -36,7 +36,7 @@
         "stack_below_entry": 0,
         "t_states": 0,
         "wire_bytes": 10496,
-        "wire_sha256": "1b9b0fa53b3d3e52c95808f00e7a6ef9c77863a28206e808e3dea92f47a71634"
+        "wire_sha256": "4ecfa8a78d0146fe2f7dbcdcab711fa1ca803332044b3e4d81f684c80a37039f"
       },
       {
         "bdos_calls": {
@@ -57,7 +57,7 @@
         "stack_below_entry": 0,
         "t_states": 0,
         "wire_bytes": 10496,
-        "wire_sha256": "1b9b0fa53b3d3e52c95808f00e7a6ef9c77863a28206e808e3dea92f47a71634"
+        "wire_sha256": "4ecfa8a78d0146fe2f7dbcdcab711fa1ca803332044b3e4d81f684c80a37039f"
       },
       {
         "bdos_calls": {
@@ -76,9 +76,9 @@
         "notes": 1485,
         "peak": 2,
         "stack_below_entry": 62,
-        "t_states": 450012640,
+        "t_states": 450012876,
         "wire_bytes": 10496,
-        "wire_sha256": "1b9b0fa53b3d3e52c95808f00e7a6ef9c77863a28206e808e3dea92f47a71634"
+        "wire_sha256": "4ecfa8a78d0146fe2f7dbcdcab711fa1ca803332044b3e4d81f684c80a37039f"
       },
       {
         "bdos_calls": {
@@ -99,7 +99,7 @@
         "stack_below_entry": 0,
         "t_states": 0,
         "wire_bytes": 128,
-        "wire_sha256": "518f655326be50888c4261d66c858e90b47f0aaa13b9b3dc005b189d29fb312a"
+        "wire_sha256": "93dc6b88ad9d894a59155bf7f805dcb03ed26d5a01d1afaea3fc79f1524e388a"
       },
       {
         "bdos_calls": {
@@ -120,7 +120,7 @@
         "stack_below_entry": 0,
         "t_states": 0,
         "wire_bytes": 128,
-        "wire_sha256": "518f655326be50888c4261d66c858e90b47f0aaa13b9b3dc005b189d29fb312a"
+        "wire_sha256": "93dc6b88ad9d894a59155bf7f805dcb03ed26d5a01d1afaea3fc79f1524e388a"
       },
       {
         "bdos_calls": {
@@ -139,9 +139,9 @@
         "notes": 0,
         "peak": 0,
         "stack_below_entry": 32,
-        "t_states": 230240,
+        "t_states": 230476,
         "wire_bytes": 128,
-        "wire_sha256": "518f655326be50888c4261d66c858e90b47f0aaa13b9b3dc005b189d29fb312a"
+        "wire_sha256": "93dc6b88ad9d894a59155bf7f805dcb03ed26d5a01d1afaea3fc79f1524e388a"
       },
       {
         "bdos_calls": {
@@ -162,7 +162,7 @@
         "stack_below_entry": 0,
         "t_states": 0,
         "wire_bytes": 128,
-        "wire_sha256": "d8cf4368aa4b0308b18e5b436a95fe4e1cb38d75988b72c8a776f5aa0d1e4380"
+        "wire_sha256": "2794f8c3c0c7071dfc1ebe38670eede336d6bbb96b264b1e3c83b92246433ccb"
       },
       {
         "bdos_calls": {
@@ -183,7 +183,7 @@
         "stack_below_entry": 0,
         "t_states": 0,
         "wire_bytes": 128,
-        "wire_sha256": "d8cf4368aa4b0308b18e5b436a95fe4e1cb38d75988b72c8a776f5aa0d1e4380"
+        "wire_sha256": "2794f8c3c0c7071dfc1ebe38670eede336d6bbb96b264b1e3c83b92246433ccb"
       },
       {
         "bdos_calls": {
@@ -202,9 +202,9 @@
         "notes": 1,
         "peak": 1,
         "stack_below_entry": 62,
-        "t_states": 597338,
+        "t_states": 597574,
         "wire_bytes": 128,
-        "wire_sha256": "d8cf4368aa4b0308b18e5b436a95fe4e1cb38d75988b72c8a776f5aa0d1e4380"
+        "wire_sha256": "2794f8c3c0c7071dfc1ebe38670eede336d6bbb96b264b1e3c83b92246433ccb"
       },
       {
         "bdos_calls": {
@@ -225,7 +225,7 @@
         "stack_below_entry": 0,
         "t_states": 0,
         "wire_bytes": 128,
-        "wire_sha256": "9e90491548f1479ec353799c9a938c681b1ef7afaf1cb62e90e43d70d9ad4e60"
+        "wire_sha256": "57cfda3ee82da792cf05f92f3a2a990c5f0d9b2ad87925ce2f7caa919bbd6435"
       },
       {
         "bdos_calls": {
@@ -246,7 +246,7 @@
         "stack_below_entry": 0,
         "t_states": 0,
         "wire_bytes": 128,
-        "wire_sha256": "9e90491548f1479ec353799c9a938c681b1ef7afaf1cb62e90e43d70d9ad4e60"
+        "wire_sha256": "57cfda3ee82da792cf05f92f3a2a990c5f0d9b2ad87925ce2f7caa919bbd6435"
       },
       {
         "bdos_calls": {
@@ -265,9 +265,9 @@
         "notes": 2,
         "peak": 2,
         "stack_below_entry": 62,
-        "t_states": 912287,
+        "t_states": 912523,
         "wire_bytes": 128,
-        "wire_sha256": "9e90491548f1479ec353799c9a938c681b1ef7afaf1cb62e90e43d70d9ad4e60"
+        "wire_sha256": "57cfda3ee82da792cf05f92f3a2a990c5f0d9b2ad87925ce2f7caa919bbd6435"
       },
       {
         "bdos_calls": {
@@ -288,7 +288,7 @@
         "stack_below_entry": 0,
         "t_states": 0,
         "wire_bytes": 128,
-        "wire_sha256": "3901a96a6e1061aca39d043b426a2144211d5094d409ced3af38b66b2b2dbe63"
+        "wire_sha256": "759c70cf643e75494c1954131f5bbb16b64f9d99125ee78c914affa4648d3af1"
       },
       {
         "bdos_calls": {
@@ -309,7 +309,7 @@
         "stack_below_entry": 0,
         "t_states": 0,
         "wire_bytes": 128,
-        "wire_sha256": "3901a96a6e1061aca39d043b426a2144211d5094d409ced3af38b66b2b2dbe63"
+        "wire_sha256": "759c70cf643e75494c1954131f5bbb16b64f9d99125ee78c914affa4648d3af1"
       },
       {
         "bdos_calls": {
@@ -328,9 +328,9 @@
         "notes": 2,
         "peak": 2,
         "stack_below_entry": 62,
-        "t_states": 916166,
+        "t_states": 916402,
         "wire_bytes": 128,
-        "wire_sha256": "3901a96a6e1061aca39d043b426a2144211d5094d409ced3af38b66b2b2dbe63"
+        "wire_sha256": "759c70cf643e75494c1954131f5bbb16b64f9d99125ee78c914affa4648d3af1"
       },
       {
         "bdos_calls": {
@@ -351,7 +351,7 @@
         "stack_below_entry": 0,
         "t_states": 0,
         "wire_bytes": 128,
-        "wire_sha256": "e0a3178d59f0fb22577e31045268e64f19f5a7c4ac878c10f900d5a852c7ea8e"
+        "wire_sha256": "fdbfc7f3c70c3226cfeb4b5652214d38738815f32b5079bfe2b9492b68f34230"
       },
       {
         "bdos_calls": {
@@ -372,7 +372,7 @@
         "stack_below_entry": 0,
         "t_states": 0,
         "wire_bytes": 128,
-        "wire_sha256": "e0a3178d59f0fb22577e31045268e64f19f5a7c4ac878c10f900d5a852c7ea8e"
+        "wire_sha256": "fdbfc7f3c70c3226cfeb4b5652214d38738815f32b5079bfe2b9492b68f34230"
       },
       {
         "bdos_calls": {
@@ -391,9 +391,9 @@
         "notes": 4,
         "peak": 3,
         "stack_below_entry": 62,
-        "t_states": 1551037,
+        "t_states": 1551273,
         "wire_bytes": 128,
-        "wire_sha256": "e0a3178d59f0fb22577e31045268e64f19f5a7c4ac878c10f900d5a852c7ea8e"
+        "wire_sha256": "fdbfc7f3c70c3226cfeb4b5652214d38738815f32b5079bfe2b9492b68f34230"
       },
       {
         "bdos_calls": {
@@ -414,7 +414,7 @@
         "stack_below_entry": 0,
         "t_states": 0,
         "wire_bytes": 128,
-        "wire_sha256": "9ba073669aff6a89692a50b4d732e329a8582f96d61f67bf10d18cf1b17ef57a"
+        "wire_sha256": "d9b4625eafea8a9a1bdee683c4ca801723f59173054a85b039cde2ab85693733"
       },
       {
         "bdos_calls": {
@@ -435,7 +435,7 @@
         "stack_below_entry": 0,
         "t_states": 0,
         "wire_bytes": 128,
-        "wire_sha256": "9ba073669aff6a89692a50b4d732e329a8582f96d61f67bf10d18cf1b17ef57a"
+        "wire_sha256": "d9b4625eafea8a9a1bdee683c4ca801723f59173054a85b039cde2ab85693733"
       },
       {
         "bdos_calls": {
@@ -454,9 +454,9 @@
         "notes": 1,
         "peak": 1,
         "stack_below_entry": 62,
-        "t_states": 664050,
+        "t_states": 664286,
         "wire_bytes": 128,
-        "wire_sha256": "9ba073669aff6a89692a50b4d732e329a8582f96d61f67bf10d18cf1b17ef57a"
+        "wire_sha256": "d9b4625eafea8a9a1bdee683c4ca801723f59173054a85b039cde2ab85693733"
       },
       {
         "bdos_calls": {
@@ -477,7 +477,7 @@
         "stack_below_entry": 0,
         "t_states": 0,
         "wire_bytes": 128,
-        "wire_sha256": "a1886819521c5accd7f9182bf1b3d9f463db470ff9465b27e332cb2c99df6e20"
+        "wire_sha256": "6d6a981207becd6387ed2987953d0759796c94ccbe36b9a07a87c4ccf75a7f7a"
       },
       {
         "bdos_calls": {
@@ -498,7 +498,7 @@
         "stack_below_entry": 0,
         "t_states": 0,
         "wire_bytes": 128,
-        "wire_sha256": "a1886819521c5accd7f9182bf1b3d9f463db470ff9465b27e332cb2c99df6e20"
+        "wire_sha256": "6d6a981207becd6387ed2987953d0759796c94ccbe36b9a07a87c4ccf75a7f7a"
       },
       {
         "bdos_calls": {
@@ -517,9 +517,9 @@
         "notes": 2,
         "peak": 2,
         "stack_below_entry": 62,
-        "t_states": 902117,
+        "t_states": 902353,
         "wire_bytes": 128,
-        "wire_sha256": "a1886819521c5accd7f9182bf1b3d9f463db470ff9465b27e332cb2c99df6e20"
+        "wire_sha256": "6d6a981207becd6387ed2987953d0759796c94ccbe36b9a07a87c4ccf75a7f7a"
       },
       {
         "bdos_calls": {
@@ -540,7 +540,7 @@
         "stack_below_entry": 0,
         "t_states": 0,
         "wire_bytes": 128,
-        "wire_sha256": "f9980747e13ff96876aa00e10f31f450ab19c0fb230ce1d210b1f79dd4d349e0"
+        "wire_sha256": "27187fe5751d12bef6c905e65e3048565597ad0393d7a88f35954385ec4fb94b"
       },
       {
         "bdos_calls": {
@@ -561,7 +561,7 @@
         "stack_below_entry": 0,
         "t_states": 0,
         "wire_bytes": 128,
-        "wire_sha256": "f9980747e13ff96876aa00e10f31f450ab19c0fb230ce1d210b1f79dd4d349e0"
+        "wire_sha256": "27187fe5751d12bef6c905e65e3048565597ad0393d7a88f35954385ec4fb94b"
       },
       {
         "bdos_calls": {
@@ -580,9 +580,9 @@
         "notes": 2,
         "peak": 1,
         "stack_below_entry": 62,
-        "t_states": 1146607,
+        "t_states": 1146843,
         "wire_bytes": 128,
-        "wire_sha256": "f9980747e13ff96876aa00e10f31f450ab19c0fb230ce1d210b1f79dd4d349e0"
+        "wire_sha256": "27187fe5751d12bef6c905e65e3048565597ad0393d7a88f35954385ec4fb94b"
       },
       {
         "bdos_calls": {
@@ -603,7 +603,7 @@
         "stack_below_entry": 0,
         "t_states": 0,
         "wire_bytes": 128,
-        "wire_sha256": "1ca2357ef85b0b5d0d09dfab0bbef74a16ecad5ed5248ccfabbda9e9cd127aaf"
+        "wire_sha256": "6c5b63f8f82d46a97849a86bd54274201953e4828dfc710846bb090f41287bf9"
       },
       {
         "bdos_calls": {
@@ -624,7 +624,7 @@
         "stack_below_entry": 0,
         "t_states": 0,
         "wire_bytes": 128,
-        "wire_sha256": "1ca2357ef85b0b5d0d09dfab0bbef74a16ecad5ed5248ccfabbda9e9cd127aaf"
+        "wire_sha256": "6c5b63f8f82d46a97849a86bd54274201953e4828dfc710846bb090f41287bf9"
       },
       {
         "bdos_calls": {
@@ -643,9 +643,9 @@
         "notes": 2,
         "peak": 2,
         "stack_below_entry": 66,
-        "t_states": 839793,
+        "t_states": 840029,
         "wire_bytes": 128,
-        "wire_sha256": "1ca2357ef85b0b5d0d09dfab0bbef74a16ecad5ed5248ccfabbda9e9cd127aaf"
+        "wire_sha256": "6c5b63f8f82d46a97849a86bd54274201953e4828dfc710846bb090f41287bf9"
       },
       {
         "bdos_calls": {
@@ -666,7 +666,7 @@
         "stack_below_entry": 0,
         "t_states": 0,
         "wire_bytes": 128,
-        "wire_sha256": "d642c04446eb40f1f02d966d7805c362888ba445ccd4133bbb852aba51cddc12"
+        "wire_sha256": "12eae7bbbfe7a6cb39396e4c36e0f8ecb328ab5f40559cbb0126581a17f59fd8"
       },
       {
         "bdos_calls": {
@@ -687,7 +687,7 @@
         "stack_below_entry": 0,
         "t_states": 0,
         "wire_bytes": 128,
-        "wire_sha256": "d642c04446eb40f1f02d966d7805c362888ba445ccd4133bbb852aba51cddc12"
+        "wire_sha256": "12eae7bbbfe7a6cb39396e4c36e0f8ecb328ab5f40559cbb0126581a17f59fd8"
       },
       {
         "bdos_calls": {
@@ -706,9 +706,9 @@
         "notes": 1,
         "peak": 1,
         "stack_below_entry": 62,
-        "t_states": 596071,
+        "t_states": 596307,
         "wire_bytes": 128,
-        "wire_sha256": "d642c04446eb40f1f02d966d7805c362888ba445ccd4133bbb852aba51cddc12"
+        "wire_sha256": "12eae7bbbfe7a6cb39396e4c36e0f8ecb328ab5f40559cbb0126581a17f59fd8"
       },
       {
         "bdos_calls": {
@@ -729,7 +729,7 @@
         "stack_below_entry": 0,
         "t_states": 0,
         "wire_bytes": 128,
-        "wire_sha256": "d642c04446eb40f1f02d966d7805c362888ba445ccd4133bbb852aba51cddc12"
+        "wire_sha256": "12eae7bbbfe7a6cb39396e4c36e0f8ecb328ab5f40559cbb0126581a17f59fd8"
       },
       {
         "bdos_calls": {
@@ -750,7 +750,7 @@
         "stack_below_entry": 0,
         "t_states": 0,
         "wire_bytes": 128,
-        "wire_sha256": "d642c04446eb40f1f02d966d7805c362888ba445ccd4133bbb852aba51cddc12"
+        "wire_sha256": "12eae7bbbfe7a6cb39396e4c36e0f8ecb328ab5f40559cbb0126581a17f59fd8"
       },
       {
         "bdos_calls": {
@@ -769,9 +769,9 @@
         "notes": 1,
         "peak": 1,
         "stack_below_entry": 62,
-        "t_states": 599291,
+        "t_states": 599527,
         "wire_bytes": 128,
-        "wire_sha256": "d642c04446eb40f1f02d966d7805c362888ba445ccd4133bbb852aba51cddc12"
+        "wire_sha256": "12eae7bbbfe7a6cb39396e4c36e0f8ecb328ab5f40559cbb0126581a17f59fd8"
       },
       {
         "bdos_calls": {
@@ -792,7 +792,7 @@
         "stack_below_entry": 0,
         "t_states": 0,
         "wire_bytes": 128,
-        "wire_sha256": "d642c04446eb40f1f02d966d7805c362888ba445ccd4133bbb852aba51cddc12"
+        "wire_sha256": "12eae7bbbfe7a6cb39396e4c36e0f8ecb328ab5f40559cbb0126581a17f59fd8"
       },
       {
         "bdos_calls": {
@@ -813,7 +813,7 @@
         "stack_below_entry": 0,
         "t_states": 0,
         "wire_bytes": 128,
-        "wire_sha256": "d642c04446eb40f1f02d966d7805c362888ba445ccd4133bbb852aba51cddc12"
+        "wire_sha256": "12eae7bbbfe7a6cb39396e4c36e0f8ecb328ab5f40559cbb0126581a17f59fd8"
       },
       {
         "bdos_calls": {
@@ -832,9 +832,9 @@
         "notes": 1,
         "peak": 1,
         "stack_below_entry": 62,
-        "t_states": 662546,
+        "t_states": 662782,
         "wire_bytes": 128,
-        "wire_sha256": "d642c04446eb40f1f02d966d7805c362888ba445ccd4133bbb852aba51cddc12"
+        "wire_sha256": "12eae7bbbfe7a6cb39396e4c36e0f8ecb328ab5f40559cbb0126581a17f59fd8"
       },
       {
         "bdos_calls": {
@@ -855,7 +855,7 @@
         "stack_below_entry": 0,
         "t_states": 0,
         "wire_bytes": 128,
-        "wire_sha256": "518f655326be50888c4261d66c858e90b47f0aaa13b9b3dc005b189d29fb312a"
+        "wire_sha256": "93dc6b88ad9d894a59155bf7f805dcb03ed26d5a01d1afaea3fc79f1524e388a"
       },
       {
         "bdos_calls": {
@@ -876,7 +876,7 @@
         "stack_below_entry": 0,
         "t_states": 0,
         "wire_bytes": 128,
-        "wire_sha256": "518f655326be50888c4261d66c858e90b47f0aaa13b9b3dc005b189d29fb312a"
+        "wire_sha256": "93dc6b88ad9d894a59155bf7f805dcb03ed26d5a01d1afaea3fc79f1524e388a"
       },
       {
         "bdos_calls": {
@@ -895,9 +895,9 @@
         "notes": 0,
         "peak": 0,
         "stack_below_entry": 32,
-        "t_states": 4602963,
+        "t_states": 4603199,
         "wire_bytes": 128,
-        "wire_sha256": "518f655326be50888c4261d66c858e90b47f0aaa13b9b3dc005b189d29fb312a"
+        "wire_sha256": "93dc6b88ad9d894a59155bf7f805dcb03ed26d5a01d1afaea3fc79f1524e388a"
       },
       {
         "bdos_calls": {
@@ -918,7 +918,7 @@
         "stack_below_entry": 0,
         "t_states": 0,
         "wire_bytes": 128,
-        "wire_sha256": "5485ad8086ff16fa7e71efb5d93f470556449930b3ed1aca7274d779669cbd0f"
+        "wire_sha256": "e17219647a481ddd061e72f74207d5026d2a2e59798f38253f3864248ce26dc6"
       },
       {
         "bdos_calls": {
@@ -939,7 +939,7 @@
         "stack_below_entry": 0,
         "t_states": 0,
         "wire_bytes": 128,
-        "wire_sha256": "5485ad8086ff16fa7e71efb5d93f470556449930b3ed1aca7274d779669cbd0f"
+        "wire_sha256": "e17219647a481ddd061e72f74207d5026d2a2e59798f38253f3864248ce26dc6"
       },
       {
         "bdos_calls": {
@@ -958,9 +958,9 @@
         "notes": 1,
         "peak": 1,
         "stack_below_entry": 62,
-        "t_states": 603792,
+        "t_states": 604028,
         "wire_bytes": 128,
-        "wire_sha256": "5485ad8086ff16fa7e71efb5d93f470556449930b3ed1aca7274d779669cbd0f"
+        "wire_sha256": "e17219647a481ddd061e72f74207d5026d2a2e59798f38253f3864248ce26dc6"
       },
       {
         "bdos_calls": {
@@ -981,7 +981,7 @@
         "stack_below_entry": 0,
         "t_states": 0,
         "wire_bytes": 3712,
-        "wire_sha256": "566bd530fd890befe95b9c3c6a6e6cbb4cba2404aeac2b04b8fac26a1960ccbf"
+        "wire_sha256": "8e0e3b6b17b094c732ade0c89432a5e972ea0e162224356eaaf39ab8b9d657f1"
       },
       {
         "bdos_calls": {
@@ -1002,7 +1002,7 @@
         "stack_below_entry": 0,
         "t_states": 0,
         "wire_bytes": 3712,
-        "wire_sha256": "566bd530fd890befe95b9c3c6a6e6cbb4cba2404aeac2b04b8fac26a1960ccbf"
+        "wire_sha256": "8e0e3b6b17b094c732ade0c89432a5e972ea0e162224356eaaf39ab8b9d657f1"
       },
       {
         "bdos_calls": {
@@ -1021,9 +1021,9 @@
         "notes": 512,
         "peak": 512,
         "stack_below_entry": 66,
-        "t_states": 144295783,
+        "t_states": 144296019,
         "wire_bytes": 3712,
-        "wire_sha256": "566bd530fd890befe95b9c3c6a6e6cbb4cba2404aeac2b04b8fac26a1960ccbf"
+        "wire_sha256": "8e0e3b6b17b094c732ade0c89432a5e972ea0e162224356eaaf39ab8b9d657f1"
       },
       {
         "bdos_calls": {
@@ -1044,7 +1044,7 @@
         "stack_below_entry": 0,
         "t_states": 0,
         "wire_bytes": 14464,
-        "wire_sha256": "86cf89a1bf4def24dd67f6e764e0a8a7f5d0e179d8f098ce57f355ba1dd0d040"
+        "wire_sha256": "0b65a2c5cab66ac615504265bdd47d3b9bc35a041232329c26e7f18a942c27c0"
       },
       {
         "bdos_calls": {
@@ -1065,7 +1065,7 @@
         "stack_below_entry": 0,
         "t_states": 0,
         "wire_bytes": 14464,
-        "wire_sha256": "86cf89a1bf4def24dd67f6e764e0a8a7f5d0e179d8f098ce57f355ba1dd0d040"
+        "wire_sha256": "0b65a2c5cab66ac615504265bdd47d3b9bc35a041232329c26e7f18a942c27c0"
       },
       {
         "bdos_calls": {
@@ -1084,9 +1084,9 @@
         "notes": 2046,
         "peak": 1,
         "stack_below_entry": 62,
-        "t_states": 641752255,
+        "t_states": 641752491,
         "wire_bytes": 14464,
-        "wire_sha256": "86cf89a1bf4def24dd67f6e764e0a8a7f5d0e179d8f098ce57f355ba1dd0d040"
+        "wire_sha256": "0b65a2c5cab66ac615504265bdd47d3b9bc35a041232329c26e7f18a942c27c0"
       },
       {
         "bdos_calls": {
@@ -1107,7 +1107,7 @@
         "stack_below_entry": 0,
         "t_states": 0,
         "wire_bytes": 512,
-        "wire_sha256": "83ccece2f56f01ecb16011a7d3212721055af58392205cf6ee9b0e921c757e92"
+        "wire_sha256": "997b51c799d322029099de817b043bc2b1b24bd23ba57bff515a1a8fe0f07545"
       },
       {
         "bdos_calls": {
@@ -1128,7 +1128,7 @@
         "stack_below_entry": 0,
         "t_states": 0,
         "wire_bytes": 512,
-        "wire_sha256": "83ccece2f56f01ecb16011a7d3212721055af58392205cf6ee9b0e921c757e92"
+        "wire_sha256": "997b51c799d322029099de817b043bc2b1b24bd23ba57bff515a1a8fe0f07545"
       },
       {
         "bdos_calls": {
@@ -1147,9 +1147,9 @@
         "notes": 64,
         "peak": 1,
         "stack_below_entry": 62,
-        "t_states": 25808357,
+        "t_states": 25808593,
         "wire_bytes": 512,
-        "wire_sha256": "83ccece2f56f01ecb16011a7d3212721055af58392205cf6ee9b0e921c757e92"
+        "wire_sha256": "997b51c799d322029099de817b043bc2b1b24bd23ba57bff515a1a8fe0f07545"
       },
       {
         "bdos_calls": {
@@ -2280,7 +2280,7 @@
         "stack_below_entry": 0,
         "t_states": 0,
         "wire_bytes": 128,
-        "wire_sha256": "518f655326be50888c4261d66c858e90b47f0aaa13b9b3dc005b189d29fb312a"
+        "wire_sha256": "93dc6b88ad9d894a59155bf7f805dcb03ed26d5a01d1afaea3fc79f1524e388a"
       },
       {
         "bdos_calls": {
@@ -2301,7 +2301,7 @@
         "stack_below_entry": 0,
         "t_states": 0,
         "wire_bytes": 128,
-        "wire_sha256": "518f655326be50888c4261d66c858e90b47f0aaa13b9b3dc005b189d29fb312a"
+        "wire_sha256": "93dc6b88ad9d894a59155bf7f805dcb03ed26d5a01d1afaea3fc79f1524e388a"
       },
       {
         "bdos_calls": {
@@ -2320,72 +2320,72 @@
         "notes": 0,
         "peak": 0,
         "stack_below_entry": 32,
-        "t_states": 716508,
+        "t_states": 716744,
         "wire_bytes": 128,
-        "wire_sha256": "518f655326be50888c4261d66c858e90b47f0aaa13b9b3dc005b189d29fb312a"
+        "wire_sha256": "93dc6b88ad9d894a59155bf7f805dcb03ed26d5a01d1afaea3fc79f1524e388a"
       },
       {
         "bdos_calls": {
           "15": 1,
           "16": 2,
-          "20": 7,
-          "21": 5,
+          "20": 10,
+          "21": 7,
           "22": 1,
           "26": 1
         },
-        "bytes": 738,
+        "bytes": 1026,
         "case": "wire_end_exact_physical_record",
         "engine": "raw-mir2",
-        "events": 179,
+        "events": 251,
         "fault": 0,
-        "notes": 89,
+        "notes": 125,
         "peak": 1,
         "stack_below_entry": 0,
         "t_states": 0,
-        "wire_bytes": 640,
-        "wire_sha256": "56e3e306658c1d5a678688b0b85ccd4af98fb4017a03b2f6d4499f2f0e2db2ed"
+        "wire_bytes": 896,
+        "wire_sha256": "44c01f2d160fef71676d197cddce4c09e55ee0517487dc9c3413a8ed23ba57f5"
       },
       {
         "bdos_calls": {
           "15": 1,
           "16": 2,
-          "20": 7,
-          "21": 5,
+          "20": 10,
+          "21": 7,
           "22": 1,
           "26": 1
         },
-        "bytes": 738,
+        "bytes": 1026,
         "case": "wire_end_exact_physical_record",
         "engine": "final-mir2",
-        "events": 179,
+        "events": 251,
         "fault": 0,
-        "notes": 89,
+        "notes": 125,
         "peak": 1,
         "stack_below_entry": 0,
         "t_states": 0,
-        "wire_bytes": 640,
-        "wire_sha256": "56e3e306658c1d5a678688b0b85ccd4af98fb4017a03b2f6d4499f2f0e2db2ed"
+        "wire_bytes": 896,
+        "wire_sha256": "44c01f2d160fef71676d197cddce4c09e55ee0517487dc9c3413a8ed23ba57f5"
       },
       {
         "bdos_calls": {
           "15": 1,
           "16": 2,
-          "20": 7,
-          "21": 5,
+          "20": 10,
+          "21": 7,
           "22": 1,
           "26": 1
         },
-        "bytes": 738,
+        "bytes": 1026,
         "case": "wire_end_exact_physical_record",
         "engine": "z80",
-        "events": 179,
+        "events": 251,
         "fault": 0,
-        "notes": 89,
+        "notes": 125,
         "peak": 1,
         "stack_below_entry": 62,
-        "t_states": 28329592,
-        "wire_bytes": 640,
-        "wire_sha256": "56e3e306658c1d5a678688b0b85ccd4af98fb4017a03b2f6d4499f2f0e2db2ed"
+        "t_states": 39676294,
+        "wire_bytes": 896,
+        "wire_sha256": "44c01f2d160fef71676d197cddce4c09e55ee0517487dc9c3413a8ed23ba57f5"
       },
       {
         "bdos_calls": {
@@ -2406,7 +2406,7 @@
         "stack_below_entry": 0,
         "t_states": 0,
         "wire_bytes": 128,
-        "wire_sha256": "63dc17f96d0270311c4dca8d4b0625ec036f69b8536b19e624274c8aff4c3e10"
+        "wire_sha256": "1b7db5ec237eed04c08ab0333c86b18eae1f9467ddce2e86e98c88811f682a42"
       },
       {
         "bdos_calls": {
@@ -2427,7 +2427,7 @@
         "stack_below_entry": 0,
         "t_states": 0,
         "wire_bytes": 128,
-        "wire_sha256": "63dc17f96d0270311c4dca8d4b0625ec036f69b8536b19e624274c8aff4c3e10"
+        "wire_sha256": "1b7db5ec237eed04c08ab0333c86b18eae1f9467ddce2e86e98c88811f682a42"
       },
       {
         "bdos_calls": {
@@ -2446,9 +2446,9 @@
         "notes": 1,
         "peak": 1,
         "stack_below_entry": 62,
-        "t_states": 662117,
+        "t_states": 662353,
         "wire_bytes": 128,
-        "wire_sha256": "63dc17f96d0270311c4dca8d4b0625ec036f69b8536b19e624274c8aff4c3e10"
+        "wire_sha256": "1b7db5ec237eed04c08ab0333c86b18eae1f9467ddce2e86e98c88811f682a42"
       },
       {
         "bdos_calls": {
@@ -2791,7 +2791,7 @@
         "notes": 1,
         "peak": 1,
         "stack_below_entry": 62,
-        "t_states": 597363,
+        "t_states": 597599,
         "wire_bytes": 0,
         "wire_sha256": ""
       },
@@ -2854,7 +2854,7 @@
         "notes": 1,
         "peak": 1,
         "stack_below_entry": 62,
-        "t_states": 597399,
+        "t_states": 597635,
         "wire_bytes": 0,
         "wire_sha256": ""
       },
@@ -2916,16 +2916,16 @@
         "wire_sha256": ""
       }
     ],
-    "code_bytes": 15395,
-    "image_bytes": 30898,
-    "input_sha256": "e1dcb5e9d710a96d101af745dac9ca12ac4d25e69c196f7e414bbea23421d374",
+    "code_bytes": 15411,
+    "image_bytes": 30914,
+    "input_sha256": "29d8568e2178f72c60c2005e520a7ecfceb6056f5627bb21a53a796fb64a3dd8",
     "module_globals_bytes": 15063,
     "protocol": "autosiril-file-pair-probe/v1",
     "scope": "CP/M record adapter with real host files; raw/final MIR2 and native CALL5; independent mze execution still required; target file reader/flatten stage pending",
-    "source_sha256": "41729f40a036a9a809b3f74c885348ef48a997795b9d2d6368f678672a542564",
+    "source_sha256": "d214edcd4ef504308e4e1aa1ef34f4d7842cc34ea39741342c043e872ba0a875",
     "target_executions": 147
   },
-  "standalone_wire_sha256": "1b9b0fa53b3d3e52c95808f00e7a6ef9c77863a28206e808e3dea92f47a71634",
+  "standalone_wire_sha256": "4ecfa8a78d0146fe2f7dbcdcab711fa1ca803332044b3e4d81f684c80a37039f",
   "standalone_mze_sha256": "de378b0dd6ce730a182fd15a024e591b98d082784f553f3a3820734e52baca98",
   "local_go_overlay_sha256": "c5ac62cf4c3747ff57c737a6653068c14e7c7082026ce21fbde433592a1a503b",
   "local_go_overlay_sources": {

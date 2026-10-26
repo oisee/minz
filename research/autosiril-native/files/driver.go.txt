@@ -125,11 +125,11 @@ func checkWire(data []byte, want []note, sources uint16) {
 		at += 7
 	}
 	n := uint32(len(want))
-	end := []byte{0, byte(n), byte(n >> 8), byte(n >> 16), byte(n >> 24)}
-	if at+5 > len(data) || !bytes.Equal(data[at:at+5], end) {
+	end := []byte{255, byte(n), byte(n >> 8), byte(n >> 16), byte(n >> 24), 'E', 'N', 'D', '!'}
+	if at+9 > len(data) || !bytes.Equal(data[at:at+9], end) {
 		panic("wire logical END/count differs")
 	}
-	at += 5
+	at += 9
 	if len(data) != (at+127)/128*128 {
 		panic("wire physical length differs")
 	}

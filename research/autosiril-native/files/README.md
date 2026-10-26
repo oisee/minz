@@ -70,10 +70,12 @@ the pending target reader and malformed framing tests.
 | 10–11 | reserved 0 |
 
 The header is followed by `01 start:u16 off:u16 pitch:u8 source:u8` for each
-note in onset/ID order. `00 count:u32` ends the stream, with the exact number of
-preceding DATA records. No backpatching is required. Only the remainder of that
+note in onset/ID order. `ff count:u32 45 4e 44 21` ends the stream, with the exact
+number of preceding DATA records and ASCII `END!` after the count. The nonzero
+tag and final signature distinguish a missing END/count from zero padding,
+including an empty stream. No backpatching is required. Only the remainder of that
 last physical 128-byte CP/M record is zero padding. An additional whole physical
-record is not padding. The zero-note logical file is 17 bytes; one note is 24.
+record is not padding. The zero-note logical file is 21 bytes; one note is 28.
 
 Input SMF is self-describing: its declared track lengths and final EOT establish
 the logical end. After that end, only `0x1a` fill in the remainder of the current

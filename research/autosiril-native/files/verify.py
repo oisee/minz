@@ -56,8 +56,8 @@ def main():
     for name, data, events, peak in [
         ('smf_exact_physical_record', smf([wire([])], extra=bytes([26]) * 102), 1, 0),
         ('wire_end_exact_physical_record', smf([wire([
-            event for _ in range(89) for event in
-            [(1, [144, 60, 100]), (1, [128, 60, 0])]])]), 179, 1),
+            event for _ in range(125) for event in
+            [(1, [144, 60, 100]), (1, [128, 60, 0])]])]), 251, 1),
         ('padding_value_inside_midi', smf([wire([
             (0, [255, 1, 3, 26, 0, 26]), (0, [144, 26, 100]),
             (1, [128, 26, 0])])]), 4, 1),

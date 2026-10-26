@@ -43,10 +43,14 @@ fun file_save_notes() {
             index = index + 1 }
         id = id + 1
     }
-    // END + little-endian u32 record count; no backpatch or native pointers.
-    file_put(0)
+    // Nonzero END + u32 count + END! signature cannot alias zero padding.
+    file_put(255)
     file_put_word(note_count)
     file_put_word(0)
+    file_put(69)
+    file_put(78)
+    file_put(68)
+    file_put(33)
     if file_cursor != 0 && fault == 0 {
         index = file_cursor
         while index < 128 { file_dma[index] = 0
