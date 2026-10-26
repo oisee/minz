@@ -1,0 +1,227 @@
+// ADR 0051/0052: paired notes -> scalar generator of flattened entries.
+// Read-only note arena: 12 banks, 682 six-byte records per 4096-byte bank.
+// Record: start:u16, off:u16, pitch:u8, source:u8. IDs are 1-based handles.
+// The backing array emulates physical banks; no mapped near pointer escapes.
+@extern fun crystal_cell_action(mask:u8)->u8
+@extern fun crystal_prefer(current:u8,candidate:u8,mode:u8)->u8
+@extern fun emit_flat(row:u16,value:u16)
+global note_bytes:[u8;49152]
+global active:[u16;512]
+global last_start:[u16;256]
+global source_seen:[u8;256]
+global note_count:u16
+global fault:u16
+global banked:u8
+global churn:u8
+global mapped_bank:u16
+global mapping_epoch:u32
+global bank_switches:u32
+global payload_reads:u32
+global peak_active:u16
+global rows_visited:u32
+global yielded:u32
+global stream_busy:u8
+global active_count:u16
+global yield_row:u16
+
+fun map_bank(bank:u16) {
+    if bank >= 12 { fault = 100
+        return }
+    if mapped_bank != bank {
+        if mapping_epoch == u32(4294967295) { fault = 101
+            return }
+        mapped_bank = bank
+        mapping_epoch = mapping_epoch + 1
+        bank_switches = bank_switches + 1
+    }
+}
+fun read_window(slot:u16,epoch:u32)->u8 {
+    if epoch != mapping_epoch || mapped_bank >= 12 || slot >= 4096 {
+        fault = 102
+        return 0
+    }
+    return note_bytes[mapped_bank * 4096 + slot]
+}
+fun read_byte(id:u16,field:u16)->u8 {
+    if id == 0 || id > note_count || id > 8184 || field >= 6 { fault = 103
+        return 0 }
+    let index:u16 = id - 1
+    let bank:u16 = index / 682
+    let slot:u16 = (index % 682) * 6 + field
+    payload_reads = payload_reads + 1
+    if banked == 0 { return note_bytes[bank * 4096 + slot] }
+    if churn != 0 { map_bank((bank + 1) % 12) }
+    map_bank(bank)
+    return read_window(slot,mapping_epoch)
+}
+fun start_of(id:u16)->u16 {
+    let low:u16 = u16(read_byte(id,0))
+    return low | (u16(read_byte(id,1)) << 8)
+}
+fun off_of(id:u16)->u16 {
+    let low:u16 = u16(read_byte(id,2))
+    return low | (u16(read_byte(id,3)) << 8)
+}
+fun validate_input() {
+    var source_index:u16 = 0
+    while source_index < 256 { source_seen[source_index] = 0
+        source_index = source_index + 1 }
+    if note_count > 8184 { fault = 104
+        return }
+    var id:u16 = 1
+    while id <= note_count {
+        let source:u8 = read_byte(id,5)
+        let start:u16 = start_of(id)
+        if off_of(id) < start { fault = 105
+            return }
+        if source_seen[source] != 0 && start < last_start[source] {
+            fault = 106
+            return
+        }
+        source_seen[source] = 1
+        last_start[source] = start
+        id = id + 1
+    }
+}
+fun next_source(id:u16,source:u8)->u16 {
+    var next:u16 = id
+    while next <= note_count {
+        if read_byte(next,5) == source { return next }
+        next = next + 1
+    }
+    return 0
+}
+// Only one stream may own active[] at once. Frames retain scalar handles.
+gen flattened(source:u8,mode:u8)->u16 {
+    if stream_busy != 0 { fault = 107
+        return }
+    stream_busy = 1
+    active_count = 0
+    var next:u16 = next_source(1,source)
+    while next != 0 || active_count != 0 {
+        var row:u16 = 0
+        var have_row:bool = false
+        if next != 0 { row = start_of(next)
+            have_row = true }
+        var i:u16 = 0
+        while i < active_count {
+            let min_off:u16 = off_of(active[i])
+            if !have_row || min_off < row { row = min_off
+                have_row = true }
+            i = i + 1
+        }
+        // Add starts in original note-ID order, including zero-length notes.
+        while next != 0 && start_of(next) == row {
+            if active_count >= 512 { fault = 108
+                return }
+            active[active_count] = next
+            active_count = active_count + 1
+            if active_count > peak_active { peak_active = active_count }
+            next = next_source(next + 1,source)
+        }
+        rows_visited = rows_visited + 1
+        var mask:u8 = 0
+        i = 0
+        while i < active_count {
+            let mask_id:u16 = active[i]
+            let start:u16 = start_of(mask_id)
+            let off:u16 = off_of(mask_id)
+            if start == row { mask = mask | 1 }
+            if off == row { mask = mask | 4 }
+            if start < row && row < off { mask = mask | 2 }
+            i = i + 1
+        }
+        let action:u8 = crystal_cell_action(mask)
+        if action != 0 {
+            if action == 1 && mode == 112 {
+                i = 0
+                while i < active_count {
+                    let poly_id:u16 = active[i]
+                    if start_of(poly_id) == row || off_of(poly_id) > row {
+                        let poly_pitch:u8 = read_byte(poly_id,4)
+                        yielded = yielded + 1
+                        yield_row = row
+                        yield u16(poly_pitch) | u16(256)
+                    }
+                    i = i + 1
+                }
+            } else {
+                var have:u8 = 0
+                var pitch:u8 = 0
+                var prefer_mode:u8 = mode
+                if action == 4 { prefer_mode = 100 }
+                i = 0
+                while i < active_count {
+                    let pick_id:u16 = active[i]
+                    if action == 4 || start_of(pick_id) == row || off_of(pick_id) > row {
+                        let candidate:u8 = read_byte(pick_id,4)
+                        if have == 0 { pitch = candidate
+                            have = 1 }
+                        else { pitch = crystal_prefer(pitch,candidate,prefer_mode) }
+                    }
+                    i = i + 1
+                }
+                if have != 0 {
+                    yielded = yielded + 1
+                    yield_row = row
+                    yield u16(pitch) | (u16(action) << 8)
+                }
+            }
+        }
+        // Compact survivors without changing their original ID order.
+        var kept:u16 = 0
+        i = 0
+        while i < active_count {
+            let keep_id:u16 = active[i]
+            if off_of(keep_id) > row {
+                active[kept] = keep_id
+                kept = kept + 1
+            }
+            i = i + 1
+        }
+        active_count = kept
+        if fault != 0 { return }
+    }
+    stream_busy = 0
+}
+fun consume(source:u8,mode:u8,limit:u32) {
+    var it = flattened(source,mode)
+    var value:u16 = 0
+    var count:u32 = 0
+    while count < limit && pull_next(&it,&value) {
+        emit_flat(yield_row,value)
+        count = count + 1
+    }
+    // The local frame is abandoned here; release its shared scratch region.
+    stream_busy = 0
+}
+fun factory_probe() {
+    var it = flattened(0,112)
+}
+fun stale_probe()->u8 {
+    map_bank(0)
+    let epoch:u32 = mapping_epoch
+    map_bank(1)
+    return read_window(0,epoch)
+}
+fun exhaustion_probe(source:u8,mode:u8)->u16 {
+    var it = flattened(source,mode)
+    var value:u16 = 0
+    while pull_next(&it,&value) { value = value }
+    value = 4242
+    let before:u32 = rows_visited
+    if pull_next(&it,&value) { return 1 }
+    if pull_next(&it,&value) { return 2 }
+    if value != 4242 || rows_visited != before { return 3 }
+    return 0
+}
+fun exclusive_probe()->u16 {
+    var first = flattened(0,112)
+    var second = flattened(0,112)
+    var value:u16 = 0
+    if pull_next(&first,&value) {
+        if pull_next(&second,&value) { return 1 }
+    }
+    stream_busy = 0
+    return fault
+}

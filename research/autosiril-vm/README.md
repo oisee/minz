@@ -116,3 +116,58 @@ a 64-KiB application window. Before using flat RAM from this port, validate a
 24-bit pointer/layout path across 0xFFFF, arrays/structs and MOS boundaries, then
 shrink the prototype tables to actual available RAM. No Agon hardware execution
 or full-flat-ABI claim is made by these VM receipts.
+
+## Lazy flatten checkpoint (ADR 0051/0052)
+
+The separate experimental paired-notes → flattened-cells path now uses a real
+Nanz `gen`/`yield`, lowered by the existing HIR generator implementation. It
+retains the actual exported Crystal `cell_action` and `prefer` selectors.
+The Go host loads records and captures the output sink; musical selection,
+active-note sweep and generator continuation execute in MIR2.
+
+```sh
+# First produce the functional reference/export products with verify.py above.
+python3 research/autosiril-vm/verify_lazy.py --autosiril /path/to/autosiril
+
+go -C minzc test ./cmd/autosiril-vm -count=1
+```
+
+66 executions (11 scores × raw/optimized MIR2 × flat/banked/churn) match the
+fresh Ruby oracle's exact flattened row/pitch/type/order. Maximum measured VM
+heap is **51,439 bytes**, including stage globals and generator allocations;
+maximum active set is **8 notes** on this corpus. Native code/stack/runtime,
+MIDI decoding/pairing, subsequent music stages and host verification I/O are
+excluded. This proves a compact stage, not a complete 128 KiB converter.
+The old dense grid/flatten reservations alone totaled 28 MiB.
+
+The compact read-only arena reserves 12 × 4096-byte simulated physical banks.
+Each bank holds 682 six-byte notes (start/off u16, pitch/source u8); no note
+straddles a bank. The explicit capacity is 8184 notes, 512 simultaneously active
+handles, and quantized start/off rows in 0..65535. Onsets must be nondecreasing
+within each source; invalid ordering, missing mapped sources, out-of-range fields
+and exhaustion are errors. Four padding bytes per bank keep records intact.
+These are experimental profile limits, not changes to the general language.
+
+The event sweep visits start/off boundary rows and never materializes intervening
+sustain rows. Active handles stay in original ID order, preserving polyphonic
+selection and zero-length start+release behavior. The current scalar generator
+supports u16 elements: it yields pitch/kind, while an exclusive stream-owned
+row slot accompanies the output. One consumer owns the shared scratch active
+set. Early abandonment releases it explicitly; concurrent streams are rejected.
+General independent cursors/chunk leases require a separate region allocation.
+
+`banked` models a single mapped window by translating through the selected bank.
+`churn` additionally maps an unrelated bank before every byte accessor; scalar
+values and handles remain valid across yields. Epoch checks reject stale leases.
+This simulator does not emit hardware bank-switch instructions or implement IRQ
+mapping policy, disk paging, automatic lifetime analysis or a generic banked array.
+Its entire backing store remains physically represented in the VM measurement.
+
+Unit controls cover cold creation, early stopping before a far-future row, sticky
+exhaustion/output preservation, reacquiring scratch after abandonment, conflicting
+stream ownership, stale mapping leases, page-boundary records, invalid ordering,
+note capacity and active-set exhaustion. The command package is now included in
+the stable CI gate. Evidence is in `evidence/lazy-flat-results.json`.
+
+Next: connect the producer directly to compact LNote/echo-window consumers and
+measure their combined live memory before claiming a whole-converter RAM budget.

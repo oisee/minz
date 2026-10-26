@@ -31,6 +31,8 @@ We use a lightweight format inspired by Michael Nygard's template:
 | [ADR-0048](0048-nanz-stackless-generators.md) | Nanz stackless generators and caller owned state | Draft | 2026-10-18 |
 | [ADR-0049](0049-nanz-iteration-protocol.md) | Nanz concrete iteration protocol and typed interfaces | Draft | 2026-10-18 |
 | [ADR-0050](0050-nanz-generator-fusion.md) | Nanz demand preserving generator fusion | Draft | 2026-10-18 |
+| [ADR-0051](0051-region-handles-and-banked-arenas.md) | Region handles and banked arenas | Accepted direction / experimental | 2026-10-26 |
+| [ADR-0052](0052-autosiril-demand-driven-pipeline.md) | Autosiril demand driven bounded pipeline | Accepted direction / experimental | 2026-10-26 |
 
 ## Creating a New ADR
 

@@ -137,6 +137,11 @@ func optimize(m *mir2.Module) {
 	}
 }
 func run() error {
+	lazyInput := flag.String("lazy-input", "", "paired-note JSON for experimental lazy flatten stage")
+	lazyEngine := flag.String("lazy-engine", "research/autosiril-vm/lazy_flatten.nanz", "experimental generator source")
+	arenaBackend := flag.String("arena-backend", "flat", "flat, banked or churn simulator")
+	arenaBudget := flag.Uint("arena-budget", 128*1024, "VM stage memory cap, excluding native code and host I/O")
+	lazyLimit := flag.Uint("lazy-limit", 4294967295, "maximum yielded entries per config")
 	probePath := flag.String("probe-cases", "", "optional scalar Crystal test cases; bypass MIDI conversion")
 	vtOut := flag.String("vt-out", "", "write actual VortexTracker II module text")
 	headerPath := flag.String("header", "research/autosiril-vm/vt2-header.txt", "reference VT2 sample/header template")
@@ -156,6 +161,9 @@ func run() error {
 	delay := flag.Uint("delay-rows", 12, "maximum of the two echo delays for row extent")
 	opt := flag.Bool("opt", false, "MZV optimization passes")
 	flag.Parse()
+	if *lazyInput != "" {
+		return runLazy(*lazyInput, *lazyEngine, *music, *metaPath, *out, *arenaBackend, *arenaBudget, *lazyLimit, *opt)
+	}
 	if *music == "" || *metaPath == "" || (*midi == "" && *probePath == "") || *out == "" {
 		return fmt.Errorf("need -music, -manifest, -midi and -out")
 	}
