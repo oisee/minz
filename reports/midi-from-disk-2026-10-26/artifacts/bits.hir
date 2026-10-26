@@ -1,0 +1,12 @@
+; HIR module: bits.nanz
+struct @Header { kind: u8, flags: u8 }
+
+fun @Header_decode(raw: u16, dest: ptr)
+  ((dest:ptr)).kind[+0]:u8 = cast((((raw:u16) >> 5:u8):u16 & 7:u8):u16):u8
+  ((dest:ptr)).flags[+1]:u8 = cast((((raw:u16) >> 0:u8):u16 & 31:u8):u16):u8
+
+fun @kind(raw: u8) -> u8
+  var out: Header
+  call @Header_decode(cast((raw:u8)):u16, addr @out:ptr):void
+  return ((out:Header)).kind[+0]:u8
+

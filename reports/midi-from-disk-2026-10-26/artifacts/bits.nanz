@@ -1,0 +1,10 @@
+import stream.bit_fields
+@bit_fields("Header") {
+ bits "kind" 3
+ bits "flags" 5
+}
+fun kind(raw:u8)->u8 {
+ var out:Header
+ Header_decode(u16(raw),&out)
+ return out.kind
+}
