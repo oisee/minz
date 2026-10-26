@@ -320,16 +320,17 @@ func (c *importer) expr(n *node, pre *[]hir.Stmt) (hir.Expr, error) {
 			elem = mir2.TyU8
 		}
 		access := &hir.IndexExpr{Base: base, Idx: index, ElemTy: elem}
-		if n.Kind == "ptr_add" {
+		switch n.Kind {
+		case "ptr_add":
 			e = &hir.AddrOfExpr{X: access, Ty: ty}
-		} else if n.Kind == "store" {
+		case "store":
 			value, err := arg(2)
 			if err != nil {
 				return nil, err
 			}
 			*pre = append(*pre, &hir.AssignStmt{Target: access, Val: value})
 			return value, nil
-		} else {
+		default:
 			e = access
 		}
 	case "view_project":
@@ -544,7 +545,7 @@ func (c *importer) assignment(n *node, pre *[]hir.Stmt) (hir.Expr, error) {
 			return nil, err
 		}
 		if result == nil {
-			return nil, fmt.Errorf("Nil local unsupported")
+			return nil, fmt.Errorf("unsupported Nil local")
 		}
 		c.locals[target.Name] = ty
 		*pre = append(*pre, &hir.VarDeclStmt{Name: target.Name, Ty: ty, Init: result})
