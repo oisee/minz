@@ -34,13 +34,18 @@ output capacity (CP/M128, TRD256) and input-padding policy. Invalid capacity
 is rejected before reading or creating output. The bounded buffer and ASIR
 serializer are common code, not duplicated musical logic.
 
+The CP/M binding normalizes successful directory results0..3 to the common
+zero-success contract for BDOS15/16/22. This matters on CP/M2.2 even though the
+current mze provider returns0. Read/write statuses retain their distinct rules.
+See the original [Digital Research CP/M2 interface manual](https://www.gaby.de/cpm/manuals/archive/cpm22htm/ch5.htm).
+
 ASIR v1 notes: 12-byte header (`ASIR`,1,1,6,0,sources:u16LE,reserved:u16LE0),
 then tag01 plus six note bytes per DATA record, then
 `FF count:u32LE 45 4E 44 21` (`END!`). Physical zero fill is outside logical data.
 Chronos is **10416 logical bytes**: CP/M stores10496 bytes, TRD allocates41 sectors
 (10496 bytes) and records logical length10416 in its directory. The logical
 streams are compared directly across the two transports. The new common CP/M
-image also runs independently through ordinary `mze`: 455542496 T-states and
+image also runs independently through ordinary `mze`: 455542736 T-states and
 byte-identical physical `NOTES.BIN`.
 
 ## Verified execution
@@ -56,6 +61,8 @@ including standalone mze, then runs:
   metadata, duplicate input/existing output, full directory/disk and last sector.
 - **21** API-contract executions: empty progress, permanent stalls, EOF with
   bytes, oversized reads, unknown status, short writes and invalid capacity.
+- **9** directory-success executions: codes1/2/3 for open, create and both
+  closes, each on raw/final MIR2 and assembled Z80, with real underlying file I/O.
 - **Three rejected native mutants**: broken mapping restoration, a257-byte
   bounce write, and a write of the original canary value to arena padding.
   The last mutant needs write-count evidence; comparing final memory alone
@@ -71,15 +78,15 @@ MIDI or manufacturing musical results.
 
 | Item | Common CP/M | Scorpion TRD |
 |---|---:|---:|
-| Loaded image | 32110 B | 20517 B |
-| Code/bootstrap or code/stub | 16689 B | 19807 B |
+| Loaded image | 32134 B | 20517 B |
+| Code/bootstrap or code/stub | 16713 B | 19807 B |
 | Loaded globals | 14938 B | 166 B |
 | Static spills | 483 B | 544 B |
 | External fixed workspace | 0 | 2432 B |
 | External note arena | included in globals | 12288 B in bank0 |
 | Additional bounce bank reservation | 0 | 16384 B in bank8,256 B used |
 | Maximum kernel stack below entry | 72 B | 72 B |
-| Full Chronos Z80 T-states | 455542413 | 456287840 |
+| Full Chronos Z80 T-states | 455542653 | 456287840 |
 
 Stack measurements exclude the two-byte incoming return address. CP/M Chronos
 uses72 BDOS reads (71 records plus EOF),82 writes, one open/create/DMA setup and
@@ -155,6 +162,10 @@ ABI. The high-level file scanner/append writer runs on the target; its supported
 profile is a160-track/16-sector disk, fixed filenames `INPUT.M` and `NOTES.N`,
 append-only allocation with strict metadata checks. It does not compact deleted
 entries or implement a general filesystem library.
+
+For the CP/M2.2 binding, output filenames must initially be absent: BDOS22
+requires a new filename. The current mze provider truncates an existing host
+file, which is not proof of portable overwrite semantics on native CP/M.
 
 Output metadata publication is **not crash-atomic**: failures after a directory
 write can leave a visible output descriptor with stale system metadata. These
