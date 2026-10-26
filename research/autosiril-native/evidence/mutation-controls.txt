@@ -1,0 +1,6 @@
+=== RUN   TestNativeFlatRejectsActualFallibleSelector
+--- PASS: TestNativeFlatRejectsActualFallibleSelector (0.01s)
+=== RUN   TestNativeFlatGuardRejectsRestoringInputWrite
+--- PASS: TestNativeFlatGuardRejectsRestoringInputWrite (0.90s)
+PASS
+ok  	github.com/minz/minzc/cmd/autosiril-native	1.259s

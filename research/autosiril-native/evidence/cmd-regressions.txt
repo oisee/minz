@@ -1,0 +1,2 @@
+ok  	github.com/minz/minzc/cmd/autosiril-native	3.751s
+ok  	github.com/minz/minzc/cmd/autosiril-vm	1.000s
