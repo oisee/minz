@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="700" viewBox="0 0 1400 700" role="img" aria-labelledby="title desc">
+<title id="title">RLE: работа по спросу и удаление накладных расходов</title><desc id="desc">Учебный поток 3 раза A, 0 раз Z, 2 раза B. Потребитель просит только два A, поэтому следующая пара не читается. Для отдельно измеренного ядра переход от pull к fusion уменьшил код с 311 до 64 байт.</desc>
+<rect width="1400" height="700" rx="22" fill="#f6f1e7"/><g font-family="Arial, sans-serif" fill="#243e42">
+<text x="55" y="62" font-size="32" font-weight="700">Ленивость выбирает работу. Fusion убирает механизм доставки.</text>
+<text x="55" y="100" font-size="20" fill="#637675">Учебный поток: [3, A] [0, Z] [2, B] → AAABB. Потребителю нужны только два байта.</text>
+<rect x="55" y="140" width="1290" height="220" rx="16" fill="#fff" stroke="#d7ded4"/>
+<text x="82" y="180" font-size="18" font-weight="700" fill="#4a7861">СПРОС</text>
+<g transform="translate(82 210)"><rect width="175" height="105" rx="10" fill="#d8efdf" stroke="#58916c"/><text x="88" y="43" font-size="28" text-anchor="middle">3 × A</text><text x="88" y="77" font-size="16" text-anchor="middle">прочитали 2 байта</text></g>
+<g transform="translate(281 210)" opacity=".48"><rect width="150" height="105" rx="10" fill="#edf0ef" stroke="#8d9d9c" stroke-dasharray="5 5"/><text x="75" y="43" font-size="28" text-anchor="middle">0 × Z</text><text x="75" y="77" font-size="16" text-anchor="middle">не читали</text></g>
+<g transform="translate(455 210)" opacity=".48"><rect width="150" height="105" rx="10" fill="#edf0ef" stroke="#8d9d9c" stroke-dasharray="5 5"/><text x="75" y="43" font-size="28" text-anchor="middle">2 × B</text><text x="75" y="77" font-size="16" text-anchor="middle">не читали</text></g>
+<path d="M645 262H730" fill="none" stroke="#58916c" stroke-width="3"/><path d="M722 253L736 262L722 271" fill="none" stroke="#58916c" stroke-width="3"/>
+<g transform="translate(763 216)"><rect width="75" height="88" rx="10" fill="#6eb68c"/><text x="38" y="57" text-anchor="middle" font-size="34" fill="#fff">A</text></g><g transform="translate(853 216)"><rect width="75" height="88" rx="10" fill="#6eb68c"/><text x="38" y="57" text-anchor="middle" font-size="34" fill="#fff">A</text></g>
+<rect x="987" y="224" width="280" height="72" rx="36" fill="#f9dfbf"/><text x="1127" y="268" font-size="24" text-anchor="middle" font-weight="700">Достаточно. Break.</text>
+<rect x="55" y="392" width="620" height="250" rx="16" fill="#fff" stroke="#d7ded4"/><rect x="700" y="392" width="645" height="250" rx="16" fill="#e0f2e5" stroke="#9bc2a7"/>
+<text x="83" y="433" font-size="18" font-weight="700" fill="#867460">ИЗМЕРЯЕМОЕ ЯДРО · PULL</text><text x="729" y="433" font-size="18" font-weight="700" fill="#4a7861">ТО ЖЕ ЯДРО · FUSION + MIR CLEANUP</text>
+<g font-size="20" text-anchor="middle"><rect x="83" y="465" width="136" height="58" rx="9" fill="#f5eadb"/><text x="151" y="501">frame</text><text x="240" y="501">→</text><rect x="263" y="465" width="136" height="58" rx="9" fill="#f5eadb"/><text x="331" y="501">next()</text><text x="420" y="501">→</text><rect x="443" y="465" width="202" height="58" rx="9" fill="#f5eadb"/><text x="544" y="501">consumer</text></g>
+<text x="83" y="579" font-size="38" font-weight="700">311 B</text><text x="294" y="577" font-size="23" fill="#637675">16 201 T</text><text x="83" y="611" font-size="16" fill="#637675">frame и возобновление имеют цену</text>
+<rect x="729" y="465" width="586" height="58" rx="9" fill="#b7ddc3"/><text x="1022" y="501" font-size="22" text-anchor="middle">обычные циклы + consumer в точке yield</text>
+<text x="729" y="579" font-size="38" font-weight="700">64 B</text><text x="922" y="577" font-size="23" fill="#4a7861">3253 T</text><text x="729" y="611" font-size="16" fill="#4a7861">результат тот же; стек 4 B вместо 19 B</text>
+<text x="55" y="676" font-size="15" fill="#637675">Числа относятся к проверенному ядру на 8 парах, не к верхнему учебному примеру. Измерение CPU-эмулятором; входные 16 B исключены.</text>
+</g></svg>
