@@ -34,6 +34,18 @@ func MIR2CodegenChecked(m *mir2.Module, ar *mir2.AllocResult) (string, error) {
 			return "", fmt.Errorf("flat24 native %s: requires one u8 return", f.Name)
 		}
 		for _, i := range f.Blocks[0].Insts {
+			if i.Ty != mir2.TyU8 && i.Ty != mir2.TyU16 && i.Ty != mir2.TyU24 && !(mir2.IsPointer(i.Ty) && i.Ty.Width() == 24) {
+				return "", fmt.Errorf("flat24 native type %s is not admitted", i.Ty)
+			}
+			if i.Dst != mir2.NoReg && i.Ty.Width() == 8 && !classicByte(i.Dst) {
+				return "", fmt.Errorf("flat24 native byte result requires a primary register")
+			}
+			if i.Op == mir2.OpMove && i.Ty.Width() == 8 && !classicByte(i.Src[0]) {
+				return "", fmt.Errorf("flat24 native byte move requires a primary register")
+			}
+			if i.Op == mir2.OpConst && (i.Imm < 0 || uint64(i.Imm) >= uint64(1)<<uint(i.Ty.Width())) {
+				return "", fmt.Errorf("flat24 native constant must be normalized to its unsigned type")
+			}
 			if i.Dst != mir2.NoReg && !ct.Compatible(i.Ty, ar.Loc(i.Dst)) {
 				return "", fmt.Errorf("flat24 native %s: incompatible allocation %s for %s", f.Name, ar.Loc(i.Dst).Name, i.Ty)
 			}
