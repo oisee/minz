@@ -1,0 +1,346 @@
+type flatEvent struct {
+	Channel uint8  `json:"channel"`
+	Row     uint16 `json:"row"`
+	Value   uint16 `json:"value"`
+}
+type fileCase struct {
+	Name     string      `json:"name"`
+	Wire     []byte      `json:"wire"`
+	Fault    uint16      `json:"fault"`
+	Notes    []note      `json:"notes"`
+	Sources  uint16      `json:"sources"`
+	Events   []flatEvent `json:"events"`
+	Count    *uint16     `json:"count,omitempty"`
+	NoOutput bool        `json:"no_output"`
+	OSFault  struct {
+		Function   byte `json:"function"`
+		Occurrence int  `json:"occurrence"`
+	} `json:"os_fault"`
+}
+
+func checkEvents(data []byte, want []flatEvent) {
+	header := []byte{'A', 'S', 'I', 'R', 1, 2, 5, 0, 3, 0, 0, 0}
+	if len(data) < 12 || !bytes.Equal(data[:12], header) {
+		panic("event stream header")
+	}
+	at := 12
+	for i, v := range want {
+		b := []byte{1, v.Channel, byte(v.Row), byte(v.Row >> 8), byte(v.Value), byte(v.Value >> 8)}
+		if at+6 > len(data) || !bytes.Equal(data[at:at+6], b) {
+			panic(fmt.Sprintf("event%d differs", i))
+		}
+		at += 6
+	}
+	n := uint32(len(want))
+	b := []byte{255, byte(n), byte(n >> 8), byte(n >> 16), byte(n >> 24), 'E', 'N', 'D', '!'}
+	if at+9 > len(data) || !bytes.Equal(data[at:at+9], b) {
+		panic("event END/count")
+	}
+	at += 9
+	if len(data) != (at+127)/128*128 {
+		panic("event physical length")
+	}
+	for _, v := range data[at:] {
+		if v != 0 {
+			panic("event physical padding")
+		}
+	}
+}
+func notesFrom(get func(string, int, int) []byte) []note {
+	n := int(binary.LittleEndian.Uint16(get("note_count", 0, 2)))
+	if n > 2046 {
+		panic("unbounded note_count")
+	}
+	result := []note{}
+	for i := 0; i < n; i++ {
+		at := i/682*4096 + i%682*6
+		b := get("note_bytes", at, 6)
+		result = append(result, note{binary.LittleEndian.Uint16(b), binary.LittleEndian.Uint16(b[2:]), b[4], b[5]})
+	}
+	return result
+}
+func main() {
+	root := flag.String("root", "..", "repository root")
+	source := flag.String("source", "", "composed Nanz")
+	input := flag.String("input", "", "case matrix")
+	out := flag.String("out", "", "artifact output")
+	music := flag.String("music", "", "actual Crystal export")
+	manifest := flag.String("manifest", "", "actual Crystal manifest")
+	flag.Parse()
+	if *source == "" || *out == "" || *input == "" {
+		panic("source/input/out required")
+	}
+	check(os.MkdirAll(*out, 0755))
+	fixtures := filepath.Join(*root, "research/autosiril-native/midi/fixtures")
+	if *music == "" {
+		*music = filepath.Join(fixtures, "music.lanz")
+	}
+	if *manifest == "" {
+		*manifest = filepath.Join(fixtures, "music-manifest.json")
+	}
+	buildOne := func() *hir.Module {
+		h, e := build(read(*source), read(*music), read(*manifest), filepath.Join(*root, "stdlib"))
+		check(e)
+		return h
+	}
+	raw := hir.LowerModule(buildOne())
+	check(mir2.Verify(raw))
+	opts := pipeline.DefaultOptions()
+	opts.AssertMode = "none"
+	opts.DisableVariantSearch = true
+	compiled, e := pipeline.CompileHIRSteps(buildOne(), opts)
+	check(e)
+	assembly := "ORG 0x100\nLD SP,0xeffe\nCALL disk_main\nHALT\n" + compiled.Assembly
+	a, e := z80asm.NewAssembler().AssembleString(assembly)
+	check(e)
+	if len(a.Errors) != 0 {
+		panic(a.Errors)
+	}
+	if origin+len(a.Binary)+64 >= floor {
+		panic("image overlaps stack")
+	}
+	for name, b := range map[string][]byte{"program.a80": []byte(assembly), "program.com": a.Binary, "raw.mir": []byte(raw.Dump()), "final.mir": []byte(compiled.MIR2Module.Dump())} {
+		check(os.WriteFile(filepath.Join(*out, name), b, 0644))
+	}
+	var matrix struct {
+		Cases []fileCase `json:"cases"`
+	}
+	dec := json.NewDecoder(bytes.NewReader(read(*input)))
+	dec.DisallowUnknownFields()
+	check(dec.Decode(&matrix))
+	if len(matrix.Cases) == 0 {
+		panic("empty matrix")
+	}
+	rows := []map[string]any{}
+	for _, tc := range matrix.Cases {
+		for engineIndex, engine := range []string{"raw-mir2", "final-mir2", "z80"} {
+			dir := filepath.Join(*out, tc.Name, engine)
+			check(os.MkdirAll(dir, 0755))
+			check(os.WriteFile(filepath.Join(dir, "NOTES.BIN"), tc.Wire, 0644))
+			d := &diskOS{dir: dir, handles: map[uint16]*os.File{}, calls: map[byte]int{}, failFunction: tc.OSFault.Function, failOccurrence: tc.OSFault.Occurrence}
+			var get func(string, int, int) []byte
+			var targetReturn uint16
+			cycles, stack := 0, 0
+			var before []byte
+			observed := 0
+			observe := func() {
+				if observed != 0 {
+					panic("reentered file output stage")
+				}
+				observed++
+				before = append([]byte(nil), get("note_bytes", 0, 12288)...)
+			}
+			if engineIndex < 2 {
+				m := raw
+				if engineIndex == 1 {
+					m = compiled.MIR2Module
+				}
+				v := mir2.NewVM(m)
+				v.MaxMemory = 65536
+				v.MaxSteps = 1000000000
+				get = func(name string, off, n int) []byte { return v.ReadHeap(v.GlobalAddr(name)+int64(off), n) }
+				d.read = v.ReadHeap
+				d.write = v.WriteHeap
+				for bank := 0; bank < 3; bank++ {
+					for i := 4092; i < 4096; i++ {
+						v.WriteHeap(v.GlobalAddr("note_bytes")+int64(bank*4096+i), 0xda)
+					}
+				}
+				host := func(args []mir2.Value) ([]mir2.Value, error) {
+					return []mir2.Value{{I: int64(d.invoke(byte(args[0].I), uint16(args[1].I)))}}, nil
+				}
+				v.Hosts["bdos8"] = host
+				v.Hosts["@bdos8"] = host
+				// Observe just before create, after the real target reader/validator ran.
+				original := host
+				wrapper := func(args []mir2.Value) ([]mir2.Value, error) {
+					if byte(args[0].I) == 22 {
+						observe()
+					}
+					return original(args)
+				}
+				v.Hosts["bdos8"] = wrapper
+				v.Hosts["@bdos8"] = wrapper
+				r, e := v.Call("disk_main", nil)
+				check(e)
+				if len(r) != 1 {
+					panic("invalid VM return")
+				}
+				targetReturn = uint16(r[0].I)
+			} else {
+				z := emulator.NewRemogattoZ80WithScreen()
+				z.SetROMEnd(0)
+				p := emulator.NewProfiler()
+				z.SetProfiler(p)
+				mem := z.Memory()
+				for i := range mem {
+					mem[i] = 0xa5
+				}
+				copy(mem[origin:], a.Binary)
+				d.read = func(at int64, n int) []byte { return mem[int(at) : int(at)+n] }
+				d.write = func(at int64, b byte) { z.WriteMemory(uint16(at), b) }
+				get = func(name string, off, n int) []byte { at := a.Symbols[name] + off; return mem[at : at+n] }
+				for bank := 0; bank < 3; bank++ {
+					for i := 4092; i < 4096; i++ {
+						mem[a.Symbols["note_bytes"]+bank*4096+i] = 0xda
+					}
+				}
+				mem[initialSP] = 0
+				mem[initialSP+1] = 0xf1
+				z.SetRegisters(emulator.Registers{PC: uint16(a.Symbols["disk_main"]), SP: initialSP})
+				minSP := uint16(initialSP)
+				arenaWrites := make([]uint32, 12288)
+				checkpoint, ok := a.Symbols["file_save_events"]
+				if !ok {
+					panic("missing target stage boundary")
+				}
+				for steps := 0; z.GetPC() != returnPC; steps++ {
+					if steps >= 250000000 {
+						panic("native instruction limit")
+					}
+					if int(z.GetPC()) == checkpoint {
+						observe()
+						copy(arenaWrites, p.WriteCount[a.Symbols["note_bytes"]:a.Symbols["note_bytes"]+12288])
+					}
+					if z.GetPC() != 5 && (int(z.GetPC()) < origin || int(z.GetPC()) >= origin+len(a.Binary)) {
+						panic("native PC outside image/BDOS")
+					}
+					if z.GetPC() == 5 {
+						r := z.GetRegisters()
+						r.A = d.invoke(byte(r.BC), r.DE)
+						r.HL = 0
+						r.PC = binary.LittleEndian.Uint16(mem[r.SP : r.SP+2])
+						r.SP += 2
+						z.SetRegisters(r)
+					} else {
+						z.Step()
+					}
+					if z.GetSP() < minSP {
+						minSP = z.GetSP()
+					}
+					if z.GetSP() < floor {
+						panic("native stack floor")
+					}
+				}
+				if z.GetSP() != initialSP+2 {
+					panic("native return stack")
+				}
+				targetReturn = z.GetRegisters().HL
+				if observed != 0 {
+					for i, want := range arenaWrites {
+						if p.WriteCount[a.Symbols["note_bytes"]+i] != want {
+							panic("flatten wrote note input arena")
+						}
+					}
+				}
+				allowed := make([]bool, 65536)
+				for _, g := range compiled.MIR2Module.Globals {
+					if g.At != nil {
+						panic("absolute global")
+					}
+					at, ok := a.Symbols[g.Name]
+					if !ok || at < origin || at+mir2.ByteWidth(g.Ty) > origin+len(a.Binary) {
+						panic("invalid global span")
+					}
+					for i := 0; i < mir2.ByteWidth(g.Ty); i++ {
+						allowed[at+i] = true
+					}
+				}
+				for _, s := range backendSpills(compiled.Assembly, a.Symbols, a.Binary) {
+					for i := 0; i < s.Bytes; i++ {
+						allowed[s.Address+i] = true
+					}
+				}
+				for i := floor; i < initialSP; i++ {
+					allowed[i] = true
+				}
+				for at, w := range p.WriteCount {
+					if w != 0 && !allowed[at] {
+						panic(fmt.Sprintf("native write outside storage %04x", at))
+					}
+					if allowed[at] && at < floor && p.ExecCount[at] != 0 {
+						panic("executed data")
+					}
+				}
+				if len(p.IORead) != 0 || len(p.IOWrite) != 0 {
+					panic("unexpected port I/O")
+				}
+				for bank := 0; bank < 3; bank++ {
+					for i := 4092; i < 4096; i++ {
+						if p.WriteCount[a.Symbols["note_bytes"]+bank*4096+i] != 0 {
+							panic("wrote arena padding")
+						}
+					}
+				}
+				for _, s := range [][2]int{{origin - 64, origin}, {origin + len(a.Binary), origin + len(a.Binary) + 64}, {floor - 64, floor}} {
+					for i := s[0]; i < s[1]; i++ {
+						if mem[i] != 0xa5 {
+							panic("native canary")
+						}
+					}
+				}
+				cycles = z.GetCycles()
+				stack = int(initialSP - minSP)
+			}
+			if len(d.handles) != 0 {
+				d.close()
+				panic("target leaked file handle")
+			}
+			word := func(name string) uint16 { return binary.LittleEndian.Uint16(get(name, 0, 2)) }
+			fault := word("fault")
+			notes := notesFrom(get)
+			if targetReturn != fault || fault != tc.Fault {
+				panic(fmt.Sprintf("%s/%s fault%d return%d want%d count%d", tc.Name, engine, fault, targetReturn, tc.Fault, len(notes)))
+			}
+			if tc.Count != nil && len(notes) != int(*tc.Count) {
+				panic("target input count differs")
+			}
+			for bank := 0; bank < 3; bank++ {
+				for i := 4092; i < 4096; i++ {
+					if get("note_bytes", bank*4096+i, 1)[0] != 0xda {
+						panic("arena padding mutated")
+					}
+				}
+			}
+			if observed != 0 && !bytes.Equal(before, get("note_bytes", 0, 12288)) {
+				panic("flatten mutated note arena")
+			}
+			wireHash := ""
+			wireBytes := 0
+			if fault == 0 {
+				if observed != 1 || word("source_count") != tc.Sources || len(notes) != len(tc.Notes) {
+					panic("loaded input differs")
+				}
+				for i, n := range notes {
+					if n != tc.Notes[i] {
+						panic(fmt.Sprintf("%s/%s loaded note%d differs", tc.Name, engine, i))
+					}
+				}
+				b := read(filepath.Join(dir, "EVENTS.BIN"))
+				checkEvents(b, tc.Events)
+				wireHash = hash(b)
+				wireBytes = len(b)
+				if binary.LittleEndian.Uint32(get("total_count", 0, 4)) != uint32(len(tc.Events)) || word("active_count") != 0 || get("stream_busy", 0, 1)[0] != 0 {
+					panic("success output lifecycle differs")
+				}
+			} else if tc.NoOutput {
+				if _, e := os.Stat(filepath.Join(dir, "EVENTS.BIN")); !os.IsNotExist(e) {
+					panic("invalid input created output")
+				}
+			}
+			rows = append(rows, map[string]any{"case": tc.Name, "engine": engine, "fault": fault, "notes": len(notes), "wire_sha256": wireHash, "wire_bytes": wireBytes, "bdos_calls": d.calls, "t_states": cycles, "stack_below_entry": stack, "output_stage_entered": observed})
+			fmt.Printf("PASS %s/%s notes%d fault%d output%dB %dT stack%d\n", tc.Name, engine, len(notes), fault, wireBytes, cycles, stack)
+		}
+	}
+	globals, spills := 0, 0
+	for _, g := range compiled.MIR2Module.Globals {
+		globals += mir2.ByteWidth(g.Ty)
+	}
+	for _, s := range backendSpills(compiled.Assembly, a.Symbols, a.Binary) {
+		spills += s.Bytes
+	}
+	receipt := map[string]any{"protocol": "autosiril-file-flatten/v1", "source_sha256": hash(read(*source)), "music_sha256": hash(read(*music)), "manifest_sha256": hash(read(*manifest)), "input_sha256": hash(read(*input)), "assembly_sha256": hash([]byte(assembly)), "binary_sha256": hash(a.Binary), "image_bytes": len(a.Binary), "module_globals_bytes": globals, "backend_spill_bytes": spills, "code_bytes": len(a.Binary) - globals - spills, "target_executions": len(rows), "cases": rows, "scope": "separate target file reader and streaming three-channel flatten producer; CP/M API adapter, not physical ROM/paging/full tracker converter"}
+	b, e := json.MarshalIndent(receipt, "", "  ")
+	check(e)
+	check(os.WriteFile(filepath.Join(*out, "receipt.json"), append(b, '\n'), 0644))
+}

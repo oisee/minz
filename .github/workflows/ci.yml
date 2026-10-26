@@ -53,6 +53,15 @@ jobs:
         run: python3 ../research/system-c-validation/validate.py --out "$RUNNER_TEMP/system-c-validation"
       - name: Verify native CP/M MIDI note files
         run: python3 ../research/autosiril-native/files/replay.py --mze "$RUNNER_TEMP/mze" --out "$RUNNER_TEMP/autosiril-file-pair"
+      - name: Verify sequential CP/M note and event files
+        run: python3 ../research/autosiril-native/file-flatten/replay.py --producer "$RUNNER_TEMP/autosiril-file-pair" --mze "$RUNNER_TEMP/mze" --out "$RUNNER_TEMP/autosiril-file-chain"
+      - name: Preserve CP/M file chain evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: autosiril-file-chain
+          path: ${{ runner.temp }}/autosiril-file-chain/
+          if-no-files-found: ignore
       - name: Preserve CP/M file producer evidence
         if: always()
         uses: actions/upload-artifact@v4

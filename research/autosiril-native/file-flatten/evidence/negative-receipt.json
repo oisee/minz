@@ -1,0 +1,24 @@
+{
+  "protocol": "autosiril-file-flatten-negative/v1",
+  "original_source_sha256": "fb07ee19839e2aebbdfc8c07f8b12ed25064c57c9c3d20f57fc692b7576a0a43",
+  "results": [
+    {
+      "name": "restoring_arena_write",
+      "case": "single",
+      "rejection": "flatten wrote note input arena",
+      "mutant_sha256": "499841b5793626b5a080f5e8d3a8bead29a4e9341175ed4c13100d606c08154f"
+    },
+    {
+      "name": "arena_capacity_bypass",
+      "case": "note_2047",
+      "rejection": "unbounded note_count",
+      "mutant_sha256": "d2f410a6b223c5161fee8831db6a16d10c85511892695fdcec5018ae97c60c8c"
+    },
+    {
+      "name": "missing_signature_check",
+      "case": "missing_empty_count_and_signature",
+      "rejection": "fault0 return0 want956",
+      "mutant_sha256": "f5e3e87737a84279a510c167185537a5eb4d7b57c906a4ca61ccbea501b42897"
+    }
+  ]
+}
