@@ -3,7 +3,7 @@
 require "compiler/crystal/syntax"
 
 class Bridge
-  TYPES = {"UInt8" => "u8", "UInt16" => "u16", "Int8" => "i8", "Int16" => "i16", "Bool" => "bool"}
+  TYPES = {"UInt8" => "u8", "UInt16" => "u16", "Int8" => "i8", "Int16" => "i16", "UInt32" => "u32", "Bool" => "bool"}
   OPS   = {"&+" => "+", "&-" => "-", "&*" => "*", "&" => "&", "|" => "|", "^" => "^", "==" => "==", "!=" => "!=", "<" => "<", "<=" => "<=", ">" => ">", ">=" => ">="}
   @locals = {} of String => String
   @functions = {} of String => Crystal::Def
@@ -22,7 +22,7 @@ class Bridge
     if node.is_a?(Crystal::Path)
       return TYPES[node.names.join("::")]? || fail(node, "unsupported type #{node}")
     end
-    raise "explicit scalar type annotation required (UInt8/UInt16/Int8/Int16/Bool)"
+    raise "explicit scalar type annotation required (UInt8/UInt16/UInt32/Int8/Int16/Bool)"
   end
 
   def nodes(node)
@@ -123,9 +123,9 @@ class Bridge
     case node
     when Crystal::NumberLiteral
       ty = node.kind.to_s
-      fail(node, "literal type #{ty} unsupported; use an explicit _u8/_u16/_i8/_i16 suffix") unless {"u8", "u16", "i8", "i16"}.includes?(ty)
+      fail(node, "literal type #{ty} unsupported; use an explicit _u8/_u16/_u32/_i8/_i16 suffix") unless {"u8", "u16", "u32", "i8", "i16"}.includes?(ty)
       value = node.value.to_i64
-      bounds = {"u8" => {0_i64, 255_i64}, "u16" => {0_i64, 65535_i64}, "i8" => {-128_i64, 127_i64}, "i16" => {-32768_i64, 32767_i64}}
+      bounds = {"u8" => {0_i64, 255_i64}, "u16" => {0_i64, 65535_i64}, "u32" => {0_i64, 4294967295_i64}, "i8" => {-128_i64, 127_i64}, "i16" => {-32768_i64, 32767_i64}}
       lo, hi = bounds[ty]
       fail(node, "literal out of range for #{ty}") unless lo <= value <= hi
       {"(cast #{value} #{ty})", ty}

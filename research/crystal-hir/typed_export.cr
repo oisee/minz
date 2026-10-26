@@ -252,12 +252,20 @@ class TypedBridge < Bridge
           return {result, scalar(node)}
         end
       end
+      if {"//", "%"}.includes?(node.name)
+        obj = node.obj || fail(node, "division receiver missing")
+        left, ty = expr(obj)
+        fail(node, "unsigned division/remainder only") unless {"u8", "u16", "u32"}.includes?(ty) && node.args.size == 1
+        right, right_ty = expr(node.args.first)
+        expect(node, right_ty, ty)
+        return {"(#{node.name == "//" ? "/" : "%"} #{left} #{right})", ty}
+      end
       if {"<<", ">>"}.includes?(node.name)
         obj = node.obj || fail(node, "shift receiver missing")
         left, ty = expr(obj)
-        fail(node, "unsigned literal shifts only") unless {"u8", "u16"}.includes?(ty) && node.args.size == 1 && node.args.first.is_a?(Crystal::NumberLiteral)
+        fail(node, "unsigned literal shifts only") unless {"u8", "u16", "u32"}.includes?(ty) && node.args.size == 1 && node.args.first.is_a?(Crystal::NumberLiteral)
         count = node.args.first.as(Crystal::NumberLiteral).value.to_i
-        fail(node, "shift count outside bit width") unless 0 <= count < (ty == "u8" ? 8 : 16)
+        fail(node, "shift count outside bit width") unless 0 <= count < (ty == "u8" ? 8 : (ty == "u16" ? 16 : 32))
         return {"(#{node.name} #{left} #{count})", ty}
       end
     end

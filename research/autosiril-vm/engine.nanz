@@ -1,0 +1,269 @@
+// Autosiril functional port, VM-first. MIDI parsing and note pairing are Nanz;
+// quantization and musical policies are native-Crystal frontend -> shared HIR.
+// Large global tables use MZV addresses. Explicit ^ pointers retain their
+// ordinary 16-bit ABI; decoder descriptors/backing bytes are deliberately first.
+import mem.bytes
+import midi.smf
+@extern fun crystal_quantize(tick:u32,ppqn:u32,per_beat:u32) -> u32
+@extern fun crystal_cell_action(mask:u8) -> u8
+@extern fun crystal_prefer(current:u8,candidate:u8,mode:u8) -> u8
+
+global midi_payload:[u8;512]
+global midi_buffer:ByteBuffer
+global midi_decoder:SmfDecoder
+global midi_event:MidiEvent
+global input_byte:u8
+global feed_result:u16
+
+global per_beat:u32
+global fault:u16
+global note_count:u32
+global source_count:u32
+global track_first:[u32;64]
+global track_source:[u32;64]
+global note_pitch:[u8;32768]
+global note_channel:[u8;32768]
+global note_track:[u16;32768]
+global note_source:[u32;32768]
+global note_start:[u32;32768]
+global note_off:[u32;32768]
+global note_start_tick:[u32;32768]
+global note_off_tick:[u32;32768]
+global note_next:[u32;32768]
+global note_open:[u8;32768]
+global active_head:[u32;131072]
+global active_tail:[u32;131072]
+
+fun boot(beat:u32) {
+    midi_buffer.init(&midi_payload,512)
+    midi_decoder.init(&midi_buffer)
+    per_beat = beat
+    fault = 0
+    note_count = 0
+    source_count = 0
+    if beat == 0 { fault = 64 }
+    if beat > 256 { fault = 64 }
+}
+fun close_note(id:u32,tick:u32) {
+    note_off_tick[id] = tick
+    note_off[id] = crystal_quantize(tick,u32(midi_decoder.division),per_beat)
+    note_open[id] = 0
+}
+fun consume_event() {
+    let track:u32 = u32(midi_event.track)
+    if track >= 64 { fault = 65
+        return }
+    let kind:u8 = midi_event.status & 240
+    let channel:u8 = midi_event.status & 15
+    let pitch:u8 = midi_event.data1
+    let key:u32 = track * 2048 + u32(channel) * 128 + u32(pitch)
+    if kind == 144 {
+        if midi_event.data2 != 0 {
+            if note_count >= 32767 { fault = 66
+                return }
+            note_count = note_count + 1
+            let id:u32 = note_count
+            if track_first[track] == 0 {
+                track_first[track] = id
+                track_source[track] = source_count
+                source_count = source_count + 1
+            }
+            note_pitch[id] = pitch
+            note_channel[id] = channel
+            note_track[id] = midi_event.track
+            note_source[id] = track_source[track]
+            note_start_tick[id] = midi_event.tick
+            note_start[id] = crystal_quantize(midi_event.tick,u32(midi_decoder.division),per_beat)
+            note_open[id] = 1
+            note_next[id] = 0
+            let previous:u32 = active_tail[key]
+            if previous == 0 { active_head[key] = id }
+            else { note_next[previous] = id }
+            active_tail[key] = id
+            return
+        }
+    }
+    if kind == 128 { // explicit NoteOff
+        let id:u32 = active_head[key]
+        if id != 0 {
+            active_head[key] = note_next[id]
+            if active_head[key] == 0 { active_tail[key] = 0 }
+            close_note(id,midi_event.tick)
+        }
+        return
+    }
+    if kind == 144 { // NoteOn velocity zero is a release
+        let id:u32 = active_head[key]
+        if id != 0 {
+            active_head[key] = note_next[id]
+            if active_head[key] == 0 { active_tail[key] = 0 }
+            close_note(id,midi_event.tick)
+        }
+        return
+    }
+    if midi_event.status == 255 {
+        if midi_event.meta == 47 {
+            // midilib closes unmatched notes at track end, in onset order.
+            // Its synthetic offs each inherit the final event's delta.
+            var id:u32 = track_first[track]
+            var tick:u32 = midi_event.tick
+            if id != 0 {
+                while id <= note_count {
+                    if note_open[id] != 0 {
+                        if tick > u32(4294967295) - midi_event.delta { fault = 67
+                            return }
+                        tick = tick + midi_event.delta
+                        close_note(id,tick)
+                    }
+                    id = id + 1
+                }
+            }
+        }
+    }
+}
+fun accept() {
+    feed_result = midi_decoder.feed_byte(input_byte,&midi_event)
+    if (feed_result & 255) == 1 {
+        consume_event()
+        midi_decoder.ack()
+    }
+}
+fun finish() { feed_result = u16(midi_decoder.finish()) }
+
+// Functional rmod2pmod port. Generous VM tables replace Ruby arrays; no target
+// RAM tuning yet. Entries retain original onset order, including same-row s/r.
+global config_count:u32
+global config_source:[u32;32]
+global config_mode:[u8;32]
+global delay_rows:u32
+global max_row:u32
+global row_stride:u32
+global grid_count:u32
+global grid_head:[u32;1048576]
+global grid_tail:[u32;1048576]
+global grid_next:[u32;1048576]
+global grid_pitch:[u8;1048576]
+global grid_type:[u8;1048576]
+global flat_count:u32
+global flat_head:[u32;1048576]
+global flat_tail:[u32;1048576]
+global flat_next:[u32;1048576]
+global flat_pitch:[u8;1048576]
+global flat_type:[u8;1048576]
+
+fun grid_push(source:u32,row:u32,pitch:u8,kind:u8) {
+    if grid_count >= 1048575 { fault = 70
+        return }
+    grid_count = grid_count + 1
+    let id:u32 = grid_count
+    let cell:u32 = source * row_stride + row
+    grid_pitch[id] = pitch
+    grid_type[id] = kind
+    grid_next[id] = 0
+    let tail:u32 = grid_tail[cell]
+    if tail == 0 { grid_head[cell] = id }
+    else { grid_next[tail] = id }
+    grid_tail[cell] = id
+}
+fun flat_push(cell:u32,pitch:u8,kind:u8) {
+    if flat_count >= 1048575 { fault = 71
+        return }
+    flat_count = flat_count + 1
+    let id:u32 = flat_count
+    flat_pitch[id] = pitch
+    flat_type[id] = kind
+    flat_next[id] = 0
+    let tail:u32 = flat_tail[cell]
+    if tail == 0 { flat_head[cell] = id }
+    else { flat_next[tail] = id }
+    flat_tail[cell] = id
+}
+fun build_grid() {
+    max_row = 0
+    grid_count = 0
+    flat_count = 0
+    var id:u32 = 1
+    while id <= note_count {
+        let end:u32 = note_off[id] + delay_rows
+        if end > max_row { max_row = end }
+        id = id + 1
+    }
+    row_stride = max_row + 1
+    if row_stride == 0 { fault = 72
+        return }
+    if source_count > 1048576 / row_stride { fault = 72
+        return }
+    if config_count > 1048576 / row_stride { fault = 72
+        return }
+    id = 1
+    while id <= note_count {
+        let source:u32 = note_source[id]
+        let start:u32 = note_start[id]
+        let off:u32 = note_off[id]
+        let pitch:u8 = note_pitch[id]
+        grid_push(source,start,pitch,1)
+        grid_push(source,off,pitch,4)
+        var row:u32 = start + 1
+        while row < off {
+            grid_push(source,row,pitch,2)
+            if fault != 0 { return }
+            row = row + 1
+        }
+        if fault != 0 { return }
+        id = id + 1
+    }
+}
+fun flatten_channel(config:u32) {
+    let source:u32 = config_source[config]
+    let mode:u8 = config_mode[config]
+    if source >= source_count { fault = 73
+        return }
+    var row:u32 = 0
+    while row < row_stride {
+        let head:u32 = grid_head[source * row_stride + row]
+        var id:u32 = head
+        var mask:u8 = 0
+        while id != 0 {
+            mask = mask | grid_type[id]
+            id = grid_next[id]
+        }
+        let action:u8 = crystal_cell_action(mask)
+        let output:u32 = config * row_stride + row
+        if action != 0 {
+            if action == 1 && mode == 112 { // poly: retain all non-release notes
+                id = head
+                while id != 0 {
+                    if grid_type[id] != 4 { flat_push(output,grid_pitch[id],1) }
+                    id = grid_next[id]
+                }
+            } else {
+                var have:u8 = 0
+                var pitch:u8 = 0
+                var prefer_mode:u8 = mode
+                if action == 4 { prefer_mode = 100 } // release-only: lowest
+                id = head
+                while id != 0 {
+                    if action == 4 || grid_type[id] != 4 {
+                        if have == 0 { pitch = grid_pitch[id]
+                            have = 1 }
+                        else { pitch = crystal_prefer(pitch,grid_pitch[id],prefer_mode) }
+                    }
+                    id = grid_next[id]
+                }
+                if have != 0 { flat_push(output,pitch,action) }
+            }
+        }
+        if fault != 0 { return }
+        row = row + 1
+    }
+}
+fun flatten() {
+    build_grid()
+    if fault != 0 { return }
+    var channel:u32 = 0
+    while channel < config_count {
+        flatten_channel(channel)
+        if fault != 0 { return }
+        channel = channel + 1
+    }
+}
