@@ -92,6 +92,8 @@ type FuncTrace struct {
 
 // Options configures optional pipeline passes.
 type Options struct {
+	// FuseGenerators opts into checked immediate generator fusion (ADR 0050).
+	FuseGenerators bool `json:",omitempty"`
 	// DisableVariantSearch preserves the pre-search compilation policy.
 	DisableVariantSearch bool `json:",omitempty"`
 	// ForceVariantSearch searches modules larger than the default limit.
@@ -181,6 +183,15 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 	opt := DefaultOptions()
 	if len(opts) > 0 {
 		opt = opts[0]
+	}
+	if opt.FuseGenerators && (opt.ProfileSelection != nil || opt.CollectHIRSites || len(opt.FunctionVariants) != 0 || opt.ForceVariantSearch) {
+		return Steps{}, fmt.Errorf("generator fusion cannot yet combine with explicit profiles, loop sites or variant policies")
+	}
+	if opt.FuseGenerators {
+		hm = hir.CloneModule(hm)
+		if _, err := hir.FuseSimpleGenerators(hm); err != nil {
+			return Steps{}, err
+		}
 	}
 	if needsZXApplication(hm) && !opt.SkipZ80Emission {
 		opt.ZXApplicationEntry = true
@@ -719,7 +730,7 @@ func CompileHIRWithOptions(hm *hir.Module, opts Options) (string, error) {
 	if err := mir2.ValidateRuntimeStack(opts.Runtime, opts.RuntimeStackBytes); err != nil {
 		return "", err
 	}
-	if opts.OptSize || variantSearchEnabled(hm, []Options{opts}) || len(opts.FunctionVariants) > 0 || opts.UseGrace || opts.Runtime != "" || opts.CPMApplicationEntry || opts.ZXApplicationEntry || needsZXApplication(hm) || opts.ProfileSelection != nil {
+	if opts.FuseGenerators || opts.OptSize || variantSearchEnabled(hm, []Options{opts}) || len(opts.FunctionVariants) > 0 || opts.UseGrace || opts.Runtime != "" || opts.CPMApplicationEntry || opts.ZXApplicationEntry || needsZXApplication(hm) || opts.ProfileSelection != nil {
 		steps, err := CompileHIRSteps(hm, opts)
 		return steps.Assembly, err
 	}

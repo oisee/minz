@@ -45,6 +45,8 @@ import (
 
 // LowerOptions configures optional HIR lowering transformations.
 type LowerOptions struct {
+	// FuseGenerators admits the experimental single-use producer/consumer profile.
+	FuseGenerators bool
 	// DisableCountedLoops retains ordinary while lowering for differential checks.
 	DisableCountedLoops bool
 	// CountedLoopPolicy is per function: zero preserves the production policy,
@@ -60,6 +62,11 @@ func LowerModule(hm *Module) *mir2.Module {
 
 // LowerModuleWithOptions converts HIR with explicit lowering options.
 func LowerModuleWithOptions(hm *Module, opts LowerOptions) *mir2.Module {
+	if opts.FuseGenerators {
+		if _, err := FuseSimpleGenerators(hm); err != nil {
+			panic(err)
+		}
+	}
 	if err := ExpandGenerators(hm); err != nil {
 		panic(err)
 	}

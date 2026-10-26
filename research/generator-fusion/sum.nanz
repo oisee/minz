@@ -1,0 +1,7 @@
+global data:[u8;16]
+gen stream(src:^u8,n:u8)->u8{while n!=0{yield src[0]
+src=src+1
+n=n-1}}
+fun main()->u16{var total:u16=0
+for value in stream(&data,16){total=total+u16(value)}
+return total}

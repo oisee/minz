@@ -87,6 +87,7 @@ var (
 	disableVariantSearch          bool
 	forceVariantSearch            bool // --variant-search: search large modules too
 	optSize                       bool // -Osize: optimize for code size (Grace reroll, DJNZ loops)
+	fuseGenerators                bool
 	fuseByteWords                 bool
 	useGrace                      bool // --grace: run all Grace MIR2 passes
 	noGrace                       bool // --no-grace: disable MIR and HIR Grace
@@ -287,6 +288,7 @@ func init() {
 	rootCmd.Flags().BoolVar(&optSize, "Osize", false, "optimize for code size: Grace reroll; skip HIR Grace's versioned pointer loops")
 	rootCmd.Flags().BoolVar(&useGrace, "grace", true, "run Grace MIR2 optimizations (disable with --grace=false)")
 	rootCmd.Flags().BoolVar(&noGrace, "no-grace", false, "disable both MIR and HIR Grace optimizations")
+	rootCmd.Flags().BoolVar(&fuseGenerators, "fuse-generators", false, "fuse admitted immediate single-use generators (experimental ADR 0050)")
 	rootCmd.Flags().BoolVar(&fuseByteWords, "fuse-byte-words", false, "fuse consecutive little-endian byte accesses with sequential fault semantics (experimental)")
 	rootCmd.Flags().BoolVar(&useHIRGrace, "hir-grace", false, "opt in to structural Grace HIR rules (may grow versioned pointer loops)")
 	rootCmd.Flags().BoolVar(&assertReceipt, "assert-receipt", false, "print assertion execution counts to stderr for judge tools")
@@ -1118,6 +1120,7 @@ func compileViaHIR(sourceFile string) error {
 		DisableVariantSearch:    disableVariantSearch,
 		ForceVariantSearch:      forceVariantSearch,
 		OptSize:                 optSize, // --Osize enables Grace reroll
+		FuseGenerators:          fuseGenerators,
 		FuseByteWords:           fuseByteWords,
 		UseGrace:                useGrace && !noGrace,
 		UseHIRGrace:             useHIRGrace && !noGrace,

@@ -1,0 +1,51 @@
+=== RUN   TestGeneratorFusionEffectsVMAndZ80
+=== RUN   TestGeneratorFusionEffectsVMAndZ80/full
+=== RUN   TestGeneratorFusionEffectsVMAndZ80/empty
+=== RUN   TestGeneratorFusionEffectsVMAndZ80/break
+=== RUN   TestGeneratorFusionEffectsVMAndZ80/continue_break
+=== RUN   TestGeneratorFusionEffectsVMAndZ80/early_return
+=== RUN   TestGeneratorFusionEffectsVMAndZ80/nested_continue
+=== RUN   TestGeneratorFusionEffectsVMAndZ80/nested_break
+=== RUN   TestGeneratorFusionEffectsVMAndZ80/backing_alias
+=== RUN   TestGeneratorFusionEffectsVMAndZ80/captured_arguments
+=== RUN   TestGeneratorFusionEffectsVMAndZ80/hygiene
+=== RUN   TestGeneratorFusionEffectsVMAndZ80/condition_full
+=== RUN   TestGeneratorFusionEffectsVMAndZ80/condition_empty
+=== RUN   TestGeneratorFusionEffectsVMAndZ80/condition_continue
+=== RUN   TestGeneratorFusionEffectsVMAndZ80/condition_break
+=== RUN   TestGeneratorFusionEffectsVMAndZ80/condition_unselected_trap
+=== RUN   TestGeneratorFusionEffectsVMAndZ80/argument_order
+--- PASS: TestGeneratorFusionEffectsVMAndZ80 (0.31s)
+    --- PASS: TestGeneratorFusionEffectsVMAndZ80/full (0.03s)
+    --- PASS: TestGeneratorFusionEffectsVMAndZ80/empty (0.02s)
+    --- PASS: TestGeneratorFusionEffectsVMAndZ80/break (0.01s)
+    --- PASS: TestGeneratorFusionEffectsVMAndZ80/continue_break (0.02s)
+    --- PASS: TestGeneratorFusionEffectsVMAndZ80/early_return (0.01s)
+    --- PASS: TestGeneratorFusionEffectsVMAndZ80/nested_continue (0.02s)
+    --- PASS: TestGeneratorFusionEffectsVMAndZ80/nested_break (0.02s)
+    --- PASS: TestGeneratorFusionEffectsVMAndZ80/backing_alias (0.02s)
+    --- PASS: TestGeneratorFusionEffectsVMAndZ80/captured_arguments (0.02s)
+    --- PASS: TestGeneratorFusionEffectsVMAndZ80/hygiene (0.02s)
+    --- PASS: TestGeneratorFusionEffectsVMAndZ80/condition_full (0.02s)
+    --- PASS: TestGeneratorFusionEffectsVMAndZ80/condition_empty (0.02s)
+    --- PASS: TestGeneratorFusionEffectsVMAndZ80/condition_continue (0.02s)
+    --- PASS: TestGeneratorFusionEffectsVMAndZ80/condition_break (0.03s)
+    --- PASS: TestGeneratorFusionEffectsVMAndZ80/condition_unselected_trap (0.03s)
+    --- PASS: TestGeneratorFusionEffectsVMAndZ80/argument_order (0.02s)
+=== RUN   TestGeneratorFusionNativeCost
+    generator_fusion_test.go:305: native costs: [{Variant:direct Fused:false Code:32 Binary:48 TStates:1240 Stack:2 Result:1800} {Variant:pull Fused:false Code:215 Binary:231 TStates:13459 Stack:17 Result:1800} {Variant:fused Fused:true Code:30 Binary:46 TStates:1586 Stack:0 Result:1800}]
+--- PASS: TestGeneratorFusionNativeCost (0.01s)
+=== RUN   TestGeneratorFusionRefusalKeepsPull
+--- PASS: TestGeneratorFusionRefusalKeepsPull (0.00s)
+=== RUN   TestGeneratorFusionCannotUseProfilePolicies
+--- PASS: TestGeneratorFusionCannotUseProfilePolicies (0.00s)
+=== RUN   TestGeneratorFusionGlobalHygieneRefusal
+--- PASS: TestGeneratorFusionGlobalHygieneRefusal (0.06s)
+=== RUN   TestGeneratorFusionRejectsHIRPolicyWithoutPanic
+--- PASS: TestGeneratorFusionRejectsHIRPolicyWithoutPanic (0.00s)
+=== RUN   TestGeneratorFusionWordAndBool
+--- PASS: TestGeneratorFusionWordAndBool (0.04s)
+=== RUN   TestGeneratorFusionMalformedHIRRefusal
+--- PASS: TestGeneratorFusionMalformedHIRRefusal (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	1.048s

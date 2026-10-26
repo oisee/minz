@@ -8,6 +8,21 @@ generator fusion described here is proposed. Stage G1 lowered only the pull path
 with no fusion, so the measured pull overhead (see the G1 progress notes) is the
 baseline a fusion pass must beat.
 
+**G2 checkpoint (2026-10-26):** an experimental opt-in
+`--fuse-generators` / `pipeline.Options.FuseGenerators` implements one checked
+profile: one syntactic immediate consumer; a single producer while with leading
+yield and parameter-only suffix updates. Fresh parameter bindings, conservative
+free-name collision refusal and structured consumer exits preserve pull demand.
+Manual cursors and unsupported shapes keep the existing pull path. Explicit
+profiles/loop policies are refused; automatic variant search is disabled under
+the flag. Defaults and generalized fusion remain unchanged/proposed.
+
+An assembled Z80 runtime-input sum kernel shrank from 215 to 30 code bytes and
+13,459 to 1,586 T-states, with measured below-entry stack use 17 to 0 bytes.
+The direct-loop comparison is 32 bytes / 1,240 T-states. These are emulator
+measurements of one kernel, not a general zero-overhead guarantee. See the
+[implementation scope, reproduction and receipts](../../research/generator-fusion/README.md).
+
 ## Context
 
 A concrete pull iterator has per-item call, dispatch and state-access costs. An immediate consumer can often execute in the same loop as its producer. Existing recognized chains are useful infrastructure but do not define arbitrary generator control flow or demand semantics.
