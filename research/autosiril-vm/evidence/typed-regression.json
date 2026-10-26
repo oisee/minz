@@ -18,14 +18,14 @@
   "crc8_check_123456789": 244,
   "negative_controls": 5,
   "source_sha256": "0ad0e4f814ca66d374282b404fe2c464bd72a8eeb367359a846dfbfd29713198",
-  "exporter_sha256": "45c85eba87d497643d963ddd516045a5ce91703cea2f3333c89e12f379e8ee84",
+  "exporter_sha256": "d06f1a8e22dec408b7ada5b5482023cb69fbf32d49183bf8d344683b44b3655c",
   "seconds": {
-    "build-exporter": 7.819,
-    "build-consumer": 2.36,
-    "build-outcomes": 0.371,
-    "export": 1.54,
-    "target": 3.046,
-    "native": 1.075,
-    "cy-abi": 0.759
+    "build-exporter": 9.52,
+    "build-consumer": 0.842,
+    "build-outcomes": 0.356,
+    "export": 1.58,
+    "target": 3.693,
+    "native": 1.321,
+    "cy-abi": 0.708
   }
 }

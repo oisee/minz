@@ -227,6 +227,17 @@ class TypedBridge < Bridge
   end
 
   def expr(node : Crystal::ASTNode) : Tuple(String, String)
+    if node.is_a?(Crystal::If)
+      cond, cond_ty = expr(node.cond)
+      expect(node, cond_ty, "bool")
+      before = @pending.dup
+      yes, yes_ty = expr(node.then)
+      fail(node, "conditional expression branches with lowering preludes unsupported") unless @pending == before
+      no, no_ty = expr(node.else)
+      fail(node, "conditional expression branches with lowering preludes unsupported") unless @pending == before
+      expect(node, no_ty, yes_ty)
+      return {"(if #{cond} #{yes} #{no})", yes_ty}
+    end
     if node.is_a?(Crystal::Call)
       if expanded = node.expanded
         return expr(expanded)
