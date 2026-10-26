@@ -12,14 +12,15 @@ The fresh verifier rebuilds the native Crystal semantic exporter, exports the
 actual music source, and invokes the actual Ruby `vmod2rmod/rmod2pmod` functions.
 It compares all emitted row/pitch/kind/order with raw MIR2, final MIR2 and Z80:
 
-- 46 Ruby-backed cases cover p/m/d selection, empty input, overlap, duplicate
+- 47 Ruby-backed cases cover p/m/d selection, empty input, overlap, duplicate
   pitches, zero-length/retrigger/release, early limits0/1/3/7, source255, absent
   source, row65535, 512 active notes, a real Chronos source0 first24-note excerpt,
-  and first/last records across the 4-KiB bank boundary.
-- Nine target controls check cold creation, sticky exhaustion, exclusive cursors,
+  and first/last records across the 4-KiB bank boundary, last valid handle1364 and
+  rejection of declared handle1365.
+- Ten target controls check cold creation, sticky exhaustion, exclusive cursors,
   rejected-consumer lease preservation, invalid interval/order, active-set/note
   capacity errors and stale mapping epochs.
-- Each case executes on three backends: **165 executions**. Five transport
+- Each case executes on three backends: **171 executions**. Five transport
   rejection cases prevent truncated fields, over-capacity input and output limits.
 - Independent expectations check demand: cold factory performs no payload reads,
   visits no rows and yields nothing; zero demand performs eager validation only;
@@ -49,7 +50,7 @@ patching a changed source file.
 
 The overlap/zero-length poly fixture emits8 events in892,341 T-states. The
 Chronos24-note excerpt uses4,768,234 T for poly and4,841,288 T for mono/drum. The
-largest boundary/churn fixture takes52,006,929 T. These are emulator observations,
+largest boundary fixture takes58,308,647 T. These are emulator observations,
 not hardware timing or a realtime guarantee. Accessor/division overhead remains
 an optimization opportunity.
 
@@ -87,7 +88,7 @@ go -C minzc test ./cmd/autosiril-native -count=1
 The first command rebuilds tools and writes fresh Ruby input/output, complete
 case matrices, generated bounded Nanz, raw/final MIR, assembly/binaries, source
 and tool hashes, native write geometry and execution receipts outside the repo.
-It reads the reference checkout/MIDI only. The second command replays all165
+It reads the reference checkout/MIDI only. The second command replays all171
 executions from provenance-bound frozen actual Crystal/Ruby products, plus
 transport/ABI/guard mutation negatives, without requiring Ruby/Crystal in CI.
 The package is included in the required ordinary CI gate.

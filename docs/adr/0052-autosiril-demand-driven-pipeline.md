@@ -59,8 +59,8 @@ The ~191 KB VT2 example requires streamed output on a 128 KiB system. Measure
 
 The same paired-note sweep and real exported Crystal selectors now have a
 [reproducible native Z80 gate](../../research/autosiril-native/README.md):
-46 fresh Ruby-backed cases plus9 target lifecycle/error controls run on raw MIR2,
-final MIR2 and assembled Z80 (165 executions). Cases include a Chronos24-note
+47 fresh Ruby-backed cases plus10 target lifecycle/error controls run on raw MIR2,
+final MIR2 and assembled Z80 (171 executions). Cases include a Chronos24-note
 excerpt, p/m/d modes, demand limits, row65535 and page crossings; this is not the
 full11-score native conversion acceptance.
 

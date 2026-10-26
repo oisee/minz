@@ -41,7 +41,7 @@ func TestNativeFlatFrozenRubyVectors(t *testing.T) {
 	for _, group := range []struct {
 		name, path string
 		count      int
-	}{{"one-bank", cases, 50}, {"two-bank", filepath.Join(filepath.Dir(cases), "two-bank-cases.json"), 5}} {
+	}{{"one-bank", cases, 50}, {"two-bank", filepath.Join(filepath.Dir(cases), "two-bank-cases.json"), 7}} {
 		t.Run(group.name, func(t *testing.T) {
 			out := t.TempDir()
 			if e := run(engine, music, meta, group.path, out); e != nil {

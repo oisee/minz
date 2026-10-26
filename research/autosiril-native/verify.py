@@ -16,6 +16,7 @@ HERE = Path(__file__).resolve().parent
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--autosiril', type=Path, required=True)
+    parser.add_argument('--refresh-fixtures', action='store_true', help='intentionally refresh reviewed CI products after the full fresh gate passes')
     parser.add_argument('--out', type=Path, default=Path('/tmp/minz-autosiril-native-proof'))
     args = parser.parse_args()
     out = args.out.resolve()
@@ -137,9 +138,11 @@ def main():
     # Padding remains read-only, even with deliberate mapping churn.
     cross = [n(0, 0, 60, 1)] * 682 + [n(513, 1027, 91)]
     last = [n(0, 0, 60, 1)] * 681 + [n(65534, 65535, 127)]
+    last_bank1 = [n(0, 0, 60, 1)] * 1363 + [n(65534, 65535, 127)]
     two_valid = [case('last_bank0_record', last), case('first_bank1_record', cross),
                  case('banked_crossing', cross, banked=True),
-                 case('churn_crossing', cross, banked=True, churn=True)]
+                 case('churn_crossing', cross, banked=True, churn=True),
+                 case('last_bank1_record', last_bank1, banked=True)]
     p = out / 'oracle-banks-input.json'
     p.write_text(json.dumps(two_valid))
     bank_oracle = json.loads(run('ruby-banks', ['ruby', HERE / 'oracle.rb', autosiril, p]))
@@ -148,7 +151,10 @@ def main():
         c['expected_state'] = dict(yielded=len(c['expected']), stream_busy=0, rows_visited=len({e['row'] for e in c['expected']}))
     stale = case('stale_epoch', [], control=2)
     stale['expected'], stale['expected_fault'] = [], 102
-    two_bank = dict(config=dict(banks=2, outputs=128), cases=two_valid + [stale])
+    overflow = case('declared_two_bank_overflow', [], declared_count=1365)
+    overflow['expected'], overflow['expected_fault'] = [], 104
+    overflow['expected_state'] = dict(payload_reads=0, rows_visited=0, yielded=0, stream_busy=0, active_count=0, peak_active=0)
+    two_bank = dict(config=dict(banks=2, outputs=128), cases=two_valid + [stale, overflow])
 
     receipts = []
     for name, matrix in [('one-bank', one_bank), ('two-bank', two_bank)]:
@@ -175,6 +181,28 @@ def main():
         path.write_text(json.dumps(dict(config=dict(banks=1, outputs=128), cases=[c])))
         run(name, [consumer, '-music', music, '-manifest', manifest, '-input', path,
                    '-out', out / name], expected_error=diagnostic)
+    crystal_version = run('crystal-version', ['crystal', '--version']).strip()
+    ruby_version = run('ruby-version', ['ruby', '--version']).strip()
+    if args.refresh_fixtures:
+        fixture = HERE / 'fixtures'
+        fixture.mkdir(exist_ok=True)
+        shutil.copyfile(music, fixture / 'music.lanz')
+        shutil.copyfile(manifest, fixture / 'music-manifest.json')
+        for name, matrix in [('cases.json', one_bank), ('two-bank-cases.json', two_bank)]:
+            (fixture / name).write_text(json.dumps(matrix, indent=2) + '\n')
+        sha = lambda path: hashlib.sha256(path.read_bytes()).hexdigest()
+        sources = ['research/autosiril-vm/lazy_flatten.nanz', 'research/autosiril-vm/music.cr',
+                   'research/autosiril-native/oracle.rb']
+        products = [str((fixture / f).relative_to(ROOT)) for f in
+                    ['cases.json', 'two-bank-cases.json', 'music.lanz', 'music-manifest.json']]
+        provenance = dict(protocol='autosiril-native-frozen-reference/v1',
+                          scope='All 57 frozen vectors from fresh Ruby/Crystal gate: CI reexecutes 171 raw/final MIR2/native Z80 cases including controls; Ruby/Crystal tools are not rerun in CI',
+                          source_sha256={f: sha(ROOT / f) for f in sources},
+                          fixture_sha256={f: sha(ROOT / f) for f in products},
+                          ruby_source_sha256=sha(autosiril / 'autooisee.rb'),
+                          crystal_version=crystal_version, ruby_version=ruby_version,
+                          full_gate_protocol='autosiril-native-ruby-gate/v1', full_gate_executions=171)
+        (fixture / 'provenance.json').write_text(json.dumps(provenance, indent=2) + '\n')
     files = ['minzc/cmd/autosiril-native/main.go', 'minzc/cmd/autosiril-native/main_test.go',
              '.github/workflows/ci.yml',
              'research/autosiril-native/fixtures/cases.json',
@@ -194,12 +222,12 @@ def main():
                    consumer_sha256=sha(consumer), music_sha256=sha(music),
                    manifest_sha256=sha(manifest), oracle_input_sha256=sha(oracle_input),
                    oracle_output_sha256=sha(out / 'ruby-intervals.txt'),
-                   crystal_version=run('crystal-version', ['crystal', '--version']).strip(),
-                   ruby_version=run('ruby-version', ['ruby', '--version']).strip(),
+                   crystal_version=crystal_version,
+                   ruby_version=ruby_version,
                    git_head=run('git-head', ['git', 'rev-parse', 'HEAD']).strip(),
                    git_dirty=bool(run('git-status', ['git', 'status', '--porcelain']).strip()),
                    elapsed_seconds=round(time.monotonic() - start, 3),
-                   oracle_cases=len(valid) + len(two_valid), target_control_cases=len(controls) + 1,
+                   oracle_cases=len(valid) + len(two_valid), target_control_cases=len(controls) + 2,
                    target_executions=sum(len(r['cases']) * 3 for r in receipts),
                    transport_rejections=len(negatives), receipts=receipts,
                    scope='bounded paired-note stage, actual Nanz/Crystal music; fresh Ruby functions; code/data/stack measured on Z80 emulator; no whole converter or physical-bank claim')
