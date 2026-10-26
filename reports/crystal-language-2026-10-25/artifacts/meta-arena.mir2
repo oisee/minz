@@ -1,0 +1,187 @@
+; MIR2 module: crystal_records
+; object addresses: non-null (VM reserves address zero)
+fun @rec_meta_arena_memory_0(%r1: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r16 = alloca 8 : ptr
+    %r2 = alloca 16 : ptr
+    %r4 = const 0 : u8 [general]
+    %r6 = const 16 : u8 [general]
+    jmp @loop_head2()
+  block @loop_head2:
+    %r10 = const 0 : u8 [general]
+    call @@mir.mem.fill_bytes16(%r2, %r6, %r10)
+    jmp @loop_exit4()
+  block @loop_exit4:
+    %r19 = const 16 : u16 [index]
+    %r20 = call @rec_initialize_1(%r16, %r2, %r19) : u8 [acc]
+    %r22 = const 3 : u16 [index]
+    %r23 = call @rec_alloc_2(%r16, %r22) : ptr [pointer]
+    %r25 = call @meta_repeat_u8_3_7(%r1) : u8 [acc]
+    store %r23, %r25 : u8
+    %r30 = load %r23 : u8 [general]
+    %r31 = call @rec_set_marker_3(%r16, %r30) : u8 [acc]
+    %r33 = call @meta_layout_byte_8_7(%r16) : u8 [acc]
+    %r34 = xor %r33, %r1 : u8 [acc]
+    ret %r34
+
+fun @rec_initialize_1(%r35: ^record_0 [pointer], %r36: ptr [pointer], %r37: u16 [index]) -> u8 [acc]
+  block @entry:
+    %r38 = field %r35, +1 : ptr [pointer]
+    store %r38, %r36 : ptr
+    %r39 = field %r35, +5 : ptr [pointer]
+    store %r39, %r37 : u16
+    %r40 = const 90 : u8 [general]
+    store %r35, %r40 : u8
+    %r41 = const 0 : u16 [pointer]
+    %r42 = field %r35, +3 : ptr [pointer]
+    store %r42, %r41 : u16
+    %r43 = const 0 : u8 [general]
+    %r44 = field %r35, +7 : ptr [pointer]
+    store %r44, %r43 : u8
+    %r45 = const 0 : u8 [acc]
+    ret %r45
+
+fun @rec_alloc_2(%r46: ^record_0 [pointer], %r47: u16 [index]) -> ptr [pointer]
+  block @entry:
+    %r48 = field %r46, +5 : ptr [pointer]
+    %r49 = load %r48 : u16 [pointer]
+    %r50 = field %r46, +3 : ptr [pointer]
+    %r51 = load %r50 : u16 [pointer]
+    %r52 = sub %r49, %r51 : u16 [pointer]
+    %r53 = cmp.ugt %r47, %r52 : bool [flag]
+    %r54 = const 0 : bool [general]
+    %r55 = cmp.ne %r53, %r54 : bool [flag]
+    br_if %r55, @if_then1(), @if_else3()
+  block @if_then1:
+    %r56 = const 0 : ptr [general]
+    ret %r56
+  block @if_else3:
+    jmp @if_join2()
+  block @if_join2:
+    %r57 = field %r46, +1 : ptr [pointer]
+    %r58 = load %r57 : ptr [general]
+    %r59 = field %r46, +3 : ptr [pointer]
+    %r60 = load %r59 : u16 [pointer]
+    %r61 = ptr_add %r58, %r60 : ptr [pointer]
+    %r62 = field %r46, +3 : ptr [pointer]
+    %r63 = load %r62 : u16 [pointer]
+    %r64 = add %r63, %r47 : u16 [pointer]
+    %r65 = field %r46, +3 : ptr [pointer]
+    store %r65, %r64 : u16
+    ret %r61
+
+fun @rec_set_marker_3(%r66: ^record_0 [pointer], %r67: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r68 = field %r66, +7 : ptr [pointer]
+    store %r68, %r67 : u8
+    ret %r67
+
+fun @rec_meta_arena_copy_4(%r69: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r90 = alloca 8 : ptr
+    %r84 = alloca 8 : ptr
+    %r70 = alloca 16 : ptr
+    %r72 = const 0 : u8 [general]
+    %r74 = const 16 : u8 [general]
+    jmp @loop_head2()
+  block @loop_head2:
+    %r78 = const 0 : u8 [general]
+    call @@mir.mem.fill_bytes16(%r70, %r74, %r78)
+    jmp @loop_exit4()
+  block @loop_exit4:
+    %r87 = const 16 : u16 [index]
+    %r88 = call @rec_initialize_1(%r84, %r70, %r87) : u8 [acc]
+    %r89 = call @rec_set_marker_3(%r84, %r69) : u8 [acc]
+    %r91 = load %r84 : u8 [general]
+    %r92 = field %r84, +1 : ptr [pointer]
+    %r93 = load %r92 : u8 [general]
+    %r94 = field %r84, +2 : ptr [pointer]
+    %r95 = load %r94 : u8 [general]
+    %r96 = field %r84, +3 : ptr [pointer]
+    %r97 = load %r96 : u8 [general]
+    %r98 = field %r84, +4 : ptr [pointer]
+    %r99 = load %r98 : u8 [general]
+    %r100 = field %r84, +5 : ptr [pointer]
+    %r101 = load %r100 : u8 [general]
+    %r102 = field %r84, +6 : ptr [pointer]
+    %r103 = load %r102 : u8 [general]
+    %r104 = field %r84, +7 : ptr [pointer]
+    %r105 = load %r104 : u8 [general]
+    store %r90, %r91 : u8
+    %r106 = field %r90, +1 : ptr [pointer]
+    store %r106, %r93 : u8
+    %r107 = field %r90, +2 : ptr [pointer]
+    store %r107, %r95 : u8
+    %r108 = field %r90, +3 : ptr [pointer]
+    store %r108, %r97 : u8
+    %r109 = field %r90, +4 : ptr [pointer]
+    store %r109, %r99 : u8
+    %r110 = field %r90, +5 : ptr [pointer]
+    store %r110, %r101 : u8
+    %r111 = field %r90, +6 : ptr [pointer]
+    store %r111, %r103 : u8
+    %r112 = field %r90, +7 : ptr [pointer]
+    store %r112, %r105 : u8
+    %r113 = const 1 : u8 [general]
+    %r114 = add %r69, %r113 : u8 [acc]
+    %r115 = call @rec_set_marker_3(%r84, %r114) : u8 [acc]
+    %r117 = call @meta_layout_byte_8_7(%r90) : u8 [acc]
+    %r119 = call @meta_layout_byte_8_7(%r84) : u8 [acc]
+    %r120 = xor %r117, %r119 : u8 [acc]
+    ret %r120
+
+fun @rec_meta_two_layouts_5(%r121: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r142 = alloca 3 : ptr
+    %r136 = alloca 8 : ptr
+    %r122 = alloca 16 : ptr
+    %r124 = const 0 : u8 [general]
+    %r126 = const 16 : u8 [general]
+    jmp @loop_head2()
+  block @loop_head2:
+    %r130 = const 0 : u8 [general]
+    call @@mir.mem.fill_bytes16(%r122, %r126, %r130)
+    jmp @loop_exit4()
+  block @loop_exit4:
+    %r139 = const 16 : u16 [index]
+    %r140 = call @rec_initialize_1(%r136, %r122, %r139) : u8 [acc]
+    %r141 = call @rec_set_marker_3(%r136, %r121) : u8 [acc]
+    %r143 = const 17 : u8 [general]
+    %r144 = add %r121, %r143 : u8 [acc]
+    %r146 = const 23130 : u16 [index]
+    %r147 = call @rec_initialize_6(%r142, %r144, %r146) : u16 [pointer]
+    %r149 = call @meta_layout_byte_8_7(%r136) : u8 [acc]
+    %r151 = call @meta_layout_byte_3_0(%r142) : u8 [acc]
+    %r152 = xor %r149, %r151 : u8 [acc]
+    ret %r152
+
+fun @rec_initialize_6(%r153: ^record_1 [pointer], %r154: u8 [general], %r155: u16 [index]) -> u16 [pointer]
+  block @entry:
+    store %r153, %r154 : u8
+    %r156 = field %r153, +1 : ptr [pointer]
+    store %r156, %r155 : u16
+    ret %r155
+
+fun @meta_repeat_u8_3_7(%r157: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r158 = const 7 : u8 [general]
+    %r159 = add %r157, %r158 : u8 [acc]
+    %r160 = const 7 : u8 [general]
+    %r161 = add %r159, %r160 : u8 [acc]
+    %r162 = const 7 : u8 [general]
+    %r163 = add %r161, %r162 : u8 [acc]
+    ret %r163
+
+fun @meta_layout_byte_8_7(%r164: ptr [pointer]) -> u8 [acc]
+  block @entry:
+    %r166 = const 7 : u16 [pointer]
+    %r167 = add %r164, %r166 : ptr [acc]
+    %r168 = load %r167 : u8 [general]
+    ret %r168
+
+fun @meta_layout_byte_3_0(%r169: ptr [pointer]) -> u8 [acc]
+  block @entry:
+    %r172 = move %r169 : ptr [acc]
+    %r173 = load %r172 : u8 [general]
+    ret %r173
+

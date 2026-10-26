@@ -1,0 +1,65 @@
+{
+  "cases_per_engine": 1566,
+  "layouts": [
+    {
+      "bytes": 4,
+      "fields": [
+        {
+          "bytes": 2,
+          "name": "data",
+          "offset": 0,
+          "ty": "ptr"
+        },
+        {
+          "bytes": 2,
+          "name": "len",
+          "offset": 2,
+          "ty": "u16"
+        }
+      ],
+      "name": "record_0",
+      "native": "Slice(UInt8)"
+    },
+    {
+      "bytes": 4,
+      "fields": [
+        {
+          "bytes": 2,
+          "name": "data",
+          "offset": 0,
+          "ty": "^u16"
+        },
+        {
+          "bytes": 2,
+          "name": "len",
+          "offset": 2,
+          "ty": "u16"
+        }
+      ],
+      "name": "record_1",
+      "native": "Slice(UInt16)"
+    },
+    {
+      "bytes": 3,
+      "fields": [
+        {
+          "bytes": 2,
+          "name": "base",
+          "offset": 0,
+          "ty": "ptr"
+        },
+        {
+          "bytes": 1,
+          "name": "hits",
+          "offset": 2,
+          "ty": "u8"
+        }
+      ],
+      "name": "record_2",
+      "native": "ProjectionState"
+    }
+  ],
+  "meta_layout": null,
+  "pointer_bytes": 2,
+  "target": "z80"
+}

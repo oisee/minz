@@ -1,0 +1,153 @@
+// Bounded incremental framing: prefix:8, length:16 little endian, body:length.
+// Caller owns the ByteBuffer descriptor/storage for the decoder's whole life.
+import mem.bytes
+
+enum FeedStatus { NEED_MORE, READY, BLOCKED, ERROR, DONE }
+enum PacketError { NONE, TOO_LARGE, TRUNCATED, BAD_STATE }
+enum PacketPhase { PREFIX, LENGTH_LO, LENGTH_HI, BODY, PENDING, FAULT, CLOSED }
+
+struct FeedReport { consumed: u16, status: u8, error: u8 }
+struct PacketDecoder { storage: ^ByteBuffer, phase: u8, prefix: u8, length: u16, error: u8 }
+
+fun PacketDecoder.reset(self: ^PacketDecoder) {
+    var storage: ^ByteBuffer = self.storage
+    storage.clear()
+    self.phase = PacketPhase.PREFIX
+    self.prefix = 0
+    self.length = 0
+    self.error = PacketError.NONE
+}
+
+fun PacketDecoder.init(self: ^PacketDecoder, storage: ^ByteBuffer) {
+    self.storage = storage
+    self.reset()
+}
+
+// One pending packet is a single output slot. Returning READY stops before the
+// next prefix, even if the supplied view contains additional packets. Calling
+// feed again before ack returns BLOCKED with zero consumed and no state change.
+fun PacketDecoder.feed(self: ^PacketDecoder, input: ^ByteView, report: ^FeedReport) -> u8 {
+    report.consumed = 0
+    report.error = self.error
+    if self.phase == PacketPhase.FAULT {
+        report.status = FeedStatus.ERROR
+        return FeedStatus.ERROR
+    }
+    if self.phase == PacketPhase.PENDING {
+        report.status = FeedStatus.BLOCKED
+        return FeedStatus.BLOCKED
+    }
+    if self.phase == PacketPhase.CLOSED {
+        report.status = FeedStatus.DONE
+        return FeedStatus.DONE
+    }
+    if self.phase > PacketPhase.CLOSED {
+        self.phase = PacketPhase.FAULT
+        self.error = PacketError.BAD_STATE
+        report.error = self.error
+        report.status = FeedStatus.ERROR
+        return FeedStatus.ERROR
+    }
+    var storage: ^ByteBuffer = self.storage
+    while report.consumed < input.len {
+        let byte: u8 = input.data[report.consumed]
+        report.consumed = report.consumed + 1
+        if self.phase == PacketPhase.PREFIX {
+            self.prefix = byte
+            self.phase = PacketPhase.LENGTH_LO
+        } else {
+            if self.phase == PacketPhase.LENGTH_LO {
+                self.length = u16(byte)
+                self.phase = PacketPhase.LENGTH_HI
+            } else {
+                if self.phase == PacketPhase.LENGTH_HI {
+                    self.length = self.length + u16(byte) * 256
+                    if self.length > storage.cap {
+                        self.phase = PacketPhase.FAULT
+                        self.error = PacketError.TOO_LARGE
+                        report.error = self.error
+                        report.status = FeedStatus.ERROR
+                        return FeedStatus.ERROR
+                    }
+                    if self.length == 0 {
+                        self.phase = PacketPhase.PENDING
+                        report.status = FeedStatus.READY
+                        return FeedStatus.READY
+                    }
+                    self.phase = PacketPhase.BODY
+                } else {
+                    if storage.try_push(byte) == 0 {
+                        self.phase = PacketPhase.FAULT
+                        self.error = PacketError.BAD_STATE
+                        report.error = self.error
+                        report.status = FeedStatus.ERROR
+                        return FeedStatus.ERROR
+                    }
+                    if storage.len == self.length {
+                        self.phase = PacketPhase.PENDING
+                        report.status = FeedStatus.READY
+                        return FeedStatus.READY
+                    }
+                }
+            }
+        }
+    }
+    report.status = FeedStatus.NEED_MORE
+    return FeedStatus.NEED_MORE
+}
+
+// A payload view leases decoder storage until ack/reset. The caller must finish
+// using it before acknowledging. Failed view/ack preserve output/state.
+fun PacketDecoder.view(self: ^PacketDecoder, dest: ^ByteView) -> u8 {
+    if self.phase != PacketPhase.PENDING { return 0 }
+    var storage: ^ByteBuffer = self.storage
+    storage.view(dest)
+    return 1
+}
+
+fun PacketDecoder.ack(self: ^PacketDecoder) -> u8 {
+    if self.phase != PacketPhase.PENDING { return 0 }
+    self.reset()
+    return 1
+}
+
+// EOF is distinct from an empty chunk. A pending event remains readable; after
+// ack, finish returns DONE. A truncated frame becomes a sticky fault until reset.
+fun PacketDecoder.finish(self: ^PacketDecoder) -> u8 {
+    if self.phase == PacketPhase.PENDING { return FeedStatus.READY }
+    if self.phase == PacketPhase.FAULT { return FeedStatus.ERROR }
+    if self.phase == PacketPhase.CLOSED { return FeedStatus.DONE }
+    if self.phase == PacketPhase.PREFIX {
+        self.phase = PacketPhase.CLOSED
+        return FeedStatus.DONE
+    }
+    self.phase = PacketPhase.FAULT
+    self.error = PacketError.TRUNCATED
+    return FeedStatus.ERROR
+}
+
+// Drain available ring segments until input runs out or a packet/error blocks
+// progress. Only accepted bytes are popped. Decoder payload storage must be
+// separate from input backing bytes; report is cumulative across ring wrap.
+fun PacketDecoder.pump(self: ^PacketDecoder, input: ^ByteRing, report: ^FeedReport) -> u8 {
+    report.consumed = 0
+    var first: ByteView
+    var second: ByteView
+    var part: FeedReport
+    var discarded: u8 = 0
+    while true {
+        input.segments(&first,&second)
+        let status: u8 = self.feed(&first,&part)
+        var n: u16 = 0
+        while n < part.consumed {
+            input.try_pop(&discarded)
+            n = n + 1
+        }
+        report.consumed = report.consumed + part.consumed
+        report.status = status
+        report.error = part.error
+        if status != FeedStatus.NEED_MORE { return status }
+        if input.len == 0 { return status }
+        if part.consumed == 0 { return status }
+    }
+}

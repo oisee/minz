@@ -1,0 +1,28 @@
+// A real Nanz metafunction. It runs on MIR2 VM and emits typed HIR.
+// Literal arguments arrive as NUL-terminated strings in the current meta API.
+fun @repeat(count_text: ^u8, delta_text: ^u8) {
+    var count: u8 = 0
+    var i: u8 = 0
+    while count_text[i] != 0 {
+        count = count * 10 + count_text[i] - 48
+        i = i + 1
+    }
+    var delta: u8 = 0
+    i = 0
+    while delta_text[i] != 0 {
+        delta = delta * 10 + delta_text[i] - 48
+        i = i + 1
+    }
+
+    let input: u16 = hir_caller_ref(c"value", c"u8")
+    let temp: u16 = hir_ref(c"meta_result", c"u8")
+    let block: u16 = hir_block()
+    hir_append(block, hir_var(c"meta_result", c"u8", input))
+    i = 0
+    while i < count {
+        hir_append(block, hir_assign(temp, hir_binary(c"+", temp, hir_int(u16(delta), c"u8"))))
+        i = i + 1
+    }
+    hir_append(block, hir_assign(input, temp))
+    emit_hir(block)
+}

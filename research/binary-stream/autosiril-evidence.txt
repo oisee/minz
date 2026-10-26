@@ -1,0 +1,41 @@
+=== RUN   TestSMFAutosiril
+    smf_stream_test.go:220: SMF code + static data: 10005 bytes (includes 512-byte payload buffer)
+=== RUN   TestSMFAutosiril/chronos.mid/raw
+    smf_stream_test.go:268: raw: 9058 bytes, 2984 events, max tick 20101, max payload 8
+=== RUN   TestSMFAutosiril/chronos.mid/optimized
+    smf_stream_test.go:268: optimized: 9058 bytes, 2984 events, max tick 20101, max payload 8
+=== RUN   TestSMFAutosiril/chronos.mid/Z80
+    smf_stream_test.go:268: Z80: 9058 bytes, 2984 events, max tick 20101, max payload 8
+=== RUN   TestSMFAutosiril/flim.mid/raw
+    smf_stream_test.go:268: raw: 10267 bytes, 2360 events, max tick 99690, max payload 11
+=== RUN   TestSMFAutosiril/flim.mid/optimized
+    smf_stream_test.go:268: optimized: 10267 bytes, 2360 events, max tick 99690, max payload 11
+=== RUN   TestSMFAutosiril/flim.mid/Z80
+    smf_stream_test.go:268: Z80: 10267 bytes, 2360 events, max tick 99690, max payload 11
+=== RUN   TestSMFAutosiril/imrav.mid/raw
+    smf_stream_test.go:268: raw: 52581 bytes, 14744 events, max tick 228820, max payload 40
+=== RUN   TestSMFAutosiril/imrav.mid/optimized
+    smf_stream_test.go:268: optimized: 52581 bytes, 14744 events, max tick 228820, max payload 40
+=== RUN   TestSMFAutosiril/imrav.mid/Z80
+    smf_stream_test.go:268: Z80: 52581 bytes, 14744 events, max tick 228820, max payload 40
+=== RUN   TestSMFAutosiril/tottoro_example.mid/raw
+    smf_stream_test.go:268: raw: 29273 bytes, 8636 events, max tick 225840, max payload 44
+=== RUN   TestSMFAutosiril/tottoro_example.mid/optimized
+    smf_stream_test.go:268: optimized: 29273 bytes, 8636 events, max tick 225840, max payload 44
+=== RUN   TestSMFAutosiril/tottoro_example.mid/Z80
+    smf_stream_test.go:268: Z80: 29273 bytes, 8636 events, max tick 225840, max payload 44
+--- PASS: TestSMFAutosiril (3.81s)
+    --- PASS: TestSMFAutosiril/chronos.mid/raw (0.09s)
+    --- PASS: TestSMFAutosiril/chronos.mid/optimized (0.08s)
+    --- PASS: TestSMFAutosiril/chronos.mid/Z80 (0.10s)
+    --- PASS: TestSMFAutosiril/flim.mid/raw (0.09s)
+    --- PASS: TestSMFAutosiril/flim.mid/optimized (0.08s)
+    --- PASS: TestSMFAutosiril/flim.mid/Z80 (0.10s)
+    --- PASS: TestSMFAutosiril/imrav.mid/raw (0.50s)
+    --- PASS: TestSMFAutosiril/imrav.mid/optimized (0.42s)
+    --- PASS: TestSMFAutosiril/imrav.mid/Z80 (0.53s)
+    --- PASS: TestSMFAutosiril/tottoro_example.mid/raw (0.28s)
+    --- PASS: TestSMFAutosiril/tottoro_example.mid/optimized (0.24s)
+    --- PASS: TestSMFAutosiril/tottoro_example.mid/Z80 (0.31s)
+PASS
+ok  	github.com/minz/minzc/pkg/nanz	4.062s

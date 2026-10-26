@@ -1,0 +1,16 @@
+package main
+import "testing"
+func TestCrystalMetaByteSeeds(t *testing.T) {
+ for x:=int64(0);x<256;x++ {
+  cases:=[]struct{name string; f func(int64)int64; want int64}{
+   {"zero",fn_cr_no_iterations_0,x},
+   {"one",fn_cr_one_iteration_1,(x+7)&255},
+   {"three",fn_cr_three_iterations_2,(x+21)&255},
+   {"palette",fn_cr_palette_stride_3,x},
+   {"thirty-two",fn_cr_thirty_two_iterations_4,(x-32)&255},
+   {"repeated",fn_cr_repeated_specialization_5,(x+42)&255},
+   {"hygiene",fn_cr_caller_hygiene_6,((x+21)&255)^x},
+  }
+  for _,c:=range cases {if got:=c.f(x);got!=c.want{t.Fatalf("%s(%d): got %d want %d",c.name,x,got,c.want)}}
+ }
+}

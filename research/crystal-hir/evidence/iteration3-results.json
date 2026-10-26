@@ -1,0 +1,25 @@
+{
+  "cases_per_engine": 2372,
+  "engines": [
+    "native Crystal",
+    "raw MIR2",
+    "optimized MIR2",
+    "Z80"
+  ],
+  "target_pointer_bytes": 2,
+  "target_arena_bytes": 7,
+  "native_host_layout": {
+    "pointer_bytes": 8,
+    "arena_bytes": 24
+  },
+  "negative_controls": 8,
+  "source_sha256": "e7491d91b479d09e05ec9c36fe1d0c991da65626fbd83e96a2ca68b13b72b987",
+  "exporter_sha256": "7d690c906490533e616589f0d0dbc64850e1037feb9e4f7cc3e31759ac337e19",
+  "seconds": {
+    "build-exporter": 7.746,
+    "build-consumer": 0.383,
+    "export": 1.602,
+    "target": 107.648,
+    "native": 0.88
+  }
+}

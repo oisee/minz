@@ -1,0 +1,22 @@
+{
+  "cases_per_engine": 2048,
+  "engines": [
+    "native Crystal",
+    "raw MIR2",
+    "optimized MIR2",
+    "Z80"
+  ],
+  "consumer_functions": 8,
+  "all_byte_seeds": 256,
+  "native_yield_specializations": 8,
+  "negative_controls": 5,
+  "source_sha256": "2f9552f45a577d6fae942407ead9c54b4618a566670c4878dcfaed78f8ed8b44",
+  "exporter_sha256": "29a3bbf490437133e03ea7ab18203e16a40c801eb99c8d33753fdb212cac7284",
+  "seconds": {
+    "build-exporter": 9.164,
+    "build-consumer": 1.523,
+    "export": 2.022,
+    "target": 360.365,
+    "native": 0.861
+  }
+}

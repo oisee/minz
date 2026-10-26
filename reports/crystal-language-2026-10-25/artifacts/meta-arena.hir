@@ -1,0 +1,140 @@
+; HIR module: crystal_records
+struct @record_0 { tag: u8, base: ptr, cursor: u16, capacity: u16, marker: u8 }
+struct @record_1 { marker: u8, word: u16 }
+
+fun @rec_meta_arena_memory_0(seed: u8) -> u8
+  var storage: [16]u8
+  for $record_value_1 in 0:u16..16:u16
+    (addr((storage:[16]u8)):ptr)[($record_value_1:u16)]:u8 = 0:u8
+  var arena: record_0
+  var $record_value_2: ptr = addr((storage:[16]u8)):ptr
+  call @rec_initialize_1(addr((arena:record_0)):ptr, ($record_value_2:ptr), 16:u16):u8
+  var $record_value_3: ^record_0 = addr((arena:record_0)):ptr
+  var $record_value_4: ptr = call @rec_alloc_2(($record_value_3:^record_0), 3:u16):ptr
+  var p: ptr = ($record_value_4:ptr)
+  var $record_value_5: ptr = (p:ptr)
+  var $record_value_6: u8 = (seed:u8)
+  var $record_value_7: u8 = call @meta_repeat_u8_3_7(($record_value_6:u8)):u8
+  (($record_value_5:ptr))[0:u16]:u8 = ($record_value_7:u8)
+  var $record_value_8: ^record_0 = addr((arena:record_0)):ptr
+  var $record_value_9: ptr = (p:ptr)
+  var $record_value_10: u8 = (($record_value_9:ptr))[0:u16]:u8
+  var $record_value_11: u8 = call @rec_set_marker_3(($record_value_8:^record_0), ($record_value_10:u8)):u8
+  var $record_value_12: ^record_0 = addr((arena:record_0)):ptr
+  var $record_value_13: u8 = call @meta_layout_byte_8_7(cast(($record_value_12:^record_0)):ptr):u8
+  var $record_value_14: u8 = (seed:u8)
+  var $record_value_15: u8 = (($record_value_13:u8) ^ ($record_value_14:u8)):u8
+  return ($record_value_15:u8)
+
+fun @rec_initialize_1($self: ^record_0, base: ptr, capacity: u16) -> u8
+  var $record_value_16: ptr = (base:ptr)
+  (($self:^record_0)).base[+1]:ptr = ($record_value_16:ptr)
+  var $record_value_17: u16 = (capacity:u16)
+  (($self:^record_0)).capacity[+5]:u16 = ($record_value_17:u16)
+  (($self:^record_0)).tag[+0]:u8 = 90:u8
+  (($self:^record_0)).cursor[+3]:u16 = 0:u16
+  (($self:^record_0)).marker[+7]:u8 = 0:u8
+  return 0:u8
+
+fun @rec_alloc_2($self: ^record_0, size: u16) -> ptr
+  var $record_value_18: u16 = (size:u16)
+  var $record_value_19: ^record_0 = ($self:^record_0)
+  var $record_value_20: u16 = (($record_value_19:^record_0)).capacity[+5]:u16
+  var $record_value_21: ^record_0 = ($self:^record_0)
+  var $record_value_22: u16 = (($record_value_21:^record_0)).cursor[+3]:u16
+  var $record_value_23: u16 = (($record_value_20:u16) - ($record_value_22:u16)):u16
+  var $record_value_24: bool = (($record_value_18:u16) > ($record_value_23:u16)):bool
+  if ($record_value_24:bool)
+    return 0:ptr
+  else
+  var $record_value_25: ^record_0 = ($self:^record_0)
+  var $record_value_26: ptr = (($record_value_25:^record_0)).base[+1]:ptr
+  var $record_value_27: ^record_0 = ($self:^record_0)
+  var $record_value_28: u16 = (($record_value_27:^record_0)).cursor[+3]:u16
+  var $record_value_29: ptr = addr((($record_value_26:ptr))[($record_value_28:u16)]:u8):ptr
+  var result: ptr = ($record_value_29:ptr)
+  var $record_value_30: ^record_0 = ($self:^record_0)
+  var $record_value_31: u16 = (($record_value_30:^record_0)).cursor[+3]:u16
+  var $record_value_32: u16 = (size:u16)
+  var $record_value_33: u16 = (($record_value_31:u16) + ($record_value_32:u16)):u16
+  (($self:^record_0)).cursor[+3]:u16 = ($record_value_33:u16)
+  var $record_value_34: ptr = (result:ptr)
+  return ($record_value_34:ptr)
+
+fun @rec_set_marker_3($self: ^record_0, value: u8) -> u8
+  var $record_value_35: u8 = (value:u8)
+  (($self:^record_0)).marker[+7]:u8 = ($record_value_35:u8)
+  return ($record_value_35:u8)
+
+fun @rec_meta_arena_copy_4(seed: u8) -> u8
+  var storage: [16]u8
+  for $record_value_36 in 0:u16..16:u16
+    (addr((storage:[16]u8)):ptr)[($record_value_36:u16)]:u8 = 0:u8
+  var arena: record_0
+  var $record_value_37: ptr = addr((storage:[16]u8)):ptr
+  call @rec_initialize_1(addr((arena:record_0)):ptr, ($record_value_37:ptr), 16:u16):u8
+  var $record_value_38: ^record_0 = addr((arena:record_0)):ptr
+  var $record_value_39: u8 = (seed:u8)
+  var $record_value_40: u8 = call @rec_set_marker_3(($record_value_38:^record_0), ($record_value_39:u8)):u8
+  var second: record_0 = (arena:record_0)
+  var $record_value_41: ^record_0 = addr((arena:record_0)):ptr
+  var $record_value_42: u8 = (seed:u8)
+  var $record_value_43: u8 = (($record_value_42:u8) + 1:u8):u8
+  var $record_value_44: u8 = call @rec_set_marker_3(($record_value_41:^record_0), ($record_value_43:u8)):u8
+  var $record_value_45: ^record_0 = addr((second:record_0)):ptr
+  var $record_value_46: u8 = call @meta_layout_byte_8_7(cast(($record_value_45:^record_0)):ptr):u8
+  var old: u8 = ($record_value_46:u8)
+  var $record_value_47: ^record_0 = addr((arena:record_0)):ptr
+  var $record_value_48: u8 = call @meta_layout_byte_8_7(cast(($record_value_47:^record_0)):ptr):u8
+  var fresh: u8 = ($record_value_48:u8)
+  var $record_value_49: u8 = (old:u8)
+  var $record_value_50: u8 = (fresh:u8)
+  var $record_value_51: u8 = (($record_value_49:u8) ^ ($record_value_50:u8)):u8
+  return ($record_value_51:u8)
+
+fun @rec_meta_two_layouts_5(seed: u8) -> u8
+  var storage: [16]u8
+  for $record_value_52 in 0:u16..16:u16
+    (addr((storage:[16]u8)):ptr)[($record_value_52:u16)]:u8 = 0:u8
+  var arena: record_0
+  var $record_value_53: ptr = addr((storage:[16]u8)):ptr
+  call @rec_initialize_1(addr((arena:record_0)):ptr, ($record_value_53:ptr), 16:u16):u8
+  var $record_value_54: ^record_0 = addr((arena:record_0)):ptr
+  var $record_value_55: u8 = (seed:u8)
+  var $record_value_56: u8 = call @rec_set_marker_3(($record_value_54:^record_0), ($record_value_55:u8)):u8
+  var header: record_1
+  var $record_value_57: u8 = (seed:u8)
+  var $record_value_58: u8 = (($record_value_57:u8) + 17:u8):u8
+  call @rec_initialize_6(addr((header:record_1)):ptr, ($record_value_58:u8), 23130:u16):u16
+  var $record_value_59: ^record_0 = addr((arena:record_0)):ptr
+  var $record_value_60: u8 = call @meta_layout_byte_8_7(cast(($record_value_59:^record_0)):ptr):u8
+  var $record_value_61: ^record_1 = addr((header:record_1)):ptr
+  var $record_value_62: u8 = call @meta_layout_byte_3_0(cast(($record_value_61:^record_1)):ptr):u8
+  var $record_value_63: u8 = (($record_value_60:u8) ^ ($record_value_62:u8)):u8
+  return ($record_value_63:u8)
+
+fun @rec_initialize_6($self: ^record_1, marker: u8, word: u16) -> u16
+  var $record_value_64: u8 = (marker:u8)
+  (($self:^record_1)).marker[+0]:u8 = ($record_value_64:u8)
+  var $record_value_65: u16 = (word:u16)
+  (($self:^record_1)).word[+1]:u16 = ($record_value_65:u16)
+  return ($record_value_65:u16)
+
+fun @meta_repeat_u8_3_7(value: u8) -> u8
+  var $meta_1_meta_result: u8 = (value:u8)
+  ($meta_1_meta_result:u8) = (($meta_1_meta_result:u8) + 7:u8):u8
+  ($meta_1_meta_result:u8) = (($meta_1_meta_result:u8) + 7:u8):u8
+  ($meta_1_meta_result:u8) = (($meta_1_meta_result:u8) + 7:u8):u8
+  (value:u8) = ($meta_1_meta_result:u8)
+  return (value:u8)
+
+fun @meta_layout_byte_8_7(base: ptr) -> u8
+  var result: u8 = 0:u8
+  (result:u8) = load(((base:ptr) + 7:u16):ptr):u8
+  return (result:u8)
+
+fun @meta_layout_byte_3_0(base: ptr) -> u8
+  var result: u8 = 0:u8
+  (result:u8) = load(((base:ptr) + 0:u16):ptr):u8
+  return (result:u8)
+

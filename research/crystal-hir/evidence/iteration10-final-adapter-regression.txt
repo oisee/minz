@@ -1,0 +1,9 @@
+views Crystal records/pointers: 16 cases passed on raw MIR2, optimized MIR2 and Z80
+ [HIR-SPLIT] rec_copied_view_1 → rec_copied_view_1$split_30 (3 inputs, pressure 9)
+[HIR-SPLIT] rec_view_shrink_2 → rec_view_shrink_2$split_15 (2 inputs, pressure 15)
+[HIR-SPLIT] rec_view_grow_next_3 → rec_view_grow_next_3$split_23 (2 inputs, pressure 15)
+[HIR-SPLIT] rec_view_break_4 → rec_view_break_4$split_15 (2 inputs, pressure 13)
+[HIR-SPLIT] rec_view_wide_6 → rec_view_wide_6$split_15 (2 inputs, pressure 9)
+
+generators Crystal records/pointers: 16 cases passed on raw MIR2, optimized MIR2 and Z80
+ 

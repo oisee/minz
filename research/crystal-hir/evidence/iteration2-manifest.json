@@ -1,0 +1,133 @@
+{
+  "functions": [
+    {
+      "source": "no_iterations",
+      "args": [
+        "u8"
+      ],
+      "result": "u8",
+      "symbol": "cr_no_iterations_0",
+      "original_symbol": "cr_no_iterations_0",
+      "fallible": false
+    },
+    {
+      "source": "one_iteration",
+      "args": [
+        "u8"
+      ],
+      "result": "u8",
+      "symbol": "cr_one_iteration_1",
+      "original_symbol": "cr_one_iteration_1",
+      "fallible": false
+    },
+    {
+      "source": "three_iterations",
+      "args": [
+        "u8"
+      ],
+      "result": "u8",
+      "symbol": "cr_three_iterations_2",
+      "original_symbol": "cr_three_iterations_2",
+      "fallible": false
+    },
+    {
+      "source": "palette_stride",
+      "args": [
+        "u8"
+      ],
+      "result": "u8",
+      "symbol": "cr_palette_stride_3",
+      "original_symbol": "cr_palette_stride_3",
+      "fallible": false
+    },
+    {
+      "source": "thirty_two_iterations",
+      "args": [
+        "u8"
+      ],
+      "result": "u8",
+      "symbol": "cr_thirty_two_iterations_4",
+      "original_symbol": "cr_thirty_two_iterations_4",
+      "fallible": false
+    },
+    {
+      "source": "repeated_specialization",
+      "args": [
+        "u8"
+      ],
+      "result": "u8",
+      "symbol": "cr_repeated_specialization_5",
+      "original_symbol": "cr_repeated_specialization_5",
+      "fallible": false
+    },
+    {
+      "source": "caller_hygiene",
+      "args": [
+        "u8"
+      ],
+      "result": "u8",
+      "symbol": "cr_caller_hygiene_6",
+      "original_symbol": "cr_caller_hygiene_6",
+      "fallible": false
+    }
+  ],
+  "errors": {},
+  "merged": {},
+  "meta_generators": [
+    {
+      "protocol": "minz-meta-hir-v1",
+      "target": "z80",
+      "function": "meta_repeat_u8_0_255",
+      "count": 0,
+      "delta": 255,
+      "generated_additions": 0,
+      "generator_sha256": "6d3554216969e07d70703334597830e6ef8f48de30bf6f7dc1d4e27af5c67791",
+      "lanz": "; Lanz module: crystal-meta-repeat.nanz\n(fun meta_repeat_u8_0_255 ((value u8)) u8\n  (block\n    (block\n      (var $meta_1_meta_result u8 value)\n      (set value $meta_1_meta_result)))\n  (return value))\n",
+      "hir": "; HIR module: crystal-meta-repeat.nanz\nfun @meta_repeat_u8_0_255(value: u8) -> u8\n  var $meta_1_meta_result: u8 = (value:u8)\n  (value:u8) = ($meta_1_meta_result:u8)\n  return (value:u8)\n\n"
+    },
+    {
+      "protocol": "minz-meta-hir-v1",
+      "target": "z80",
+      "function": "meta_repeat_u8_1_7",
+      "count": 1,
+      "delta": 7,
+      "generated_additions": 1,
+      "generator_sha256": "6d3554216969e07d70703334597830e6ef8f48de30bf6f7dc1d4e27af5c67791",
+      "lanz": "; Lanz module: crystal-meta-repeat.nanz\n(fun meta_repeat_u8_1_7 ((value u8)) u8\n  (block\n    (block\n      (var $meta_1_meta_result u8 value)\n      (set $meta_1_meta_result (+ $meta_1_meta_result 7))\n      (set value $meta_1_meta_result)))\n  (return value))\n",
+      "hir": "; HIR module: crystal-meta-repeat.nanz\nfun @meta_repeat_u8_1_7(value: u8) -> u8\n  var $meta_1_meta_result: u8 = (value:u8)\n  ($meta_1_meta_result:u8) = (($meta_1_meta_result:u8) + 7:u8):u8\n  (value:u8) = ($meta_1_meta_result:u8)\n  return (value:u8)\n\n"
+    },
+    {
+      "protocol": "minz-meta-hir-v1",
+      "target": "z80",
+      "function": "meta_repeat_u8_3_7",
+      "count": 3,
+      "delta": 7,
+      "generated_additions": 3,
+      "generator_sha256": "6d3554216969e07d70703334597830e6ef8f48de30bf6f7dc1d4e27af5c67791",
+      "lanz": "; Lanz module: crystal-meta-repeat.nanz\n(fun meta_repeat_u8_3_7 ((value u8)) u8\n  (block\n    (block\n      (var $meta_1_meta_result u8 value)\n      (set $meta_1_meta_result (+ $meta_1_meta_result 7))\n      (set $meta_1_meta_result (+ $meta_1_meta_result 7))\n      (set $meta_1_meta_result (+ $meta_1_meta_result 7))\n      (set value $meta_1_meta_result)))\n  (return value))\n",
+      "hir": "; HIR module: crystal-meta-repeat.nanz\nfun @meta_repeat_u8_3_7(value: u8) -> u8\n  var $meta_1_meta_result: u8 = (value:u8)\n  ($meta_1_meta_result:u8) = (($meta_1_meta_result:u8) + 7:u8):u8\n  ($meta_1_meta_result:u8) = (($meta_1_meta_result:u8) + 7:u8):u8\n  ($meta_1_meta_result:u8) = (($meta_1_meta_result:u8) + 7:u8):u8\n  (value:u8) = ($meta_1_meta_result:u8)\n  return (value:u8)\n\n"
+    },
+    {
+      "protocol": "minz-meta-hir-v1",
+      "target": "z80",
+      "function": "meta_repeat_u8_8_32",
+      "count": 8,
+      "delta": 32,
+      "generated_additions": 8,
+      "generator_sha256": "6d3554216969e07d70703334597830e6ef8f48de30bf6f7dc1d4e27af5c67791",
+      "lanz": "; Lanz module: crystal-meta-repeat.nanz\n(fun meta_repeat_u8_8_32 ((value u8)) u8\n  (block\n    (block\n      (var $meta_1_meta_result u8 value)\n      (set $meta_1_meta_result (+ $meta_1_meta_result 32))\n      (set $meta_1_meta_result (+ $meta_1_meta_result 32))\n      (set $meta_1_meta_result (+ $meta_1_meta_result 32))\n      (set $meta_1_meta_result (+ $meta_1_meta_result 32))\n      (set $meta_1_meta_result (+ $meta_1_meta_result 32))\n      (set $meta_1_meta_result (+ $meta_1_meta_result 32))\n      (set $meta_1_meta_result (+ $meta_1_meta_result 32))\n      (set $meta_1_meta_result (+ $meta_1_meta_result 32))\n      (set value $meta_1_meta_result)))\n  (return value))\n",
+      "hir": "; HIR module: crystal-meta-repeat.nanz\nfun @meta_repeat_u8_8_32(value: u8) -> u8\n  var $meta_1_meta_result: u8 = (value:u8)\n  ($meta_1_meta_result:u8) = (($meta_1_meta_result:u8) + 32:u8):u8\n  ($meta_1_meta_result:u8) = (($meta_1_meta_result:u8) + 32:u8):u8\n  ($meta_1_meta_result:u8) = (($meta_1_meta_result:u8) + 32:u8):u8\n  ($meta_1_meta_result:u8) = (($meta_1_meta_result:u8) + 32:u8):u8\n  ($meta_1_meta_result:u8) = (($meta_1_meta_result:u8) + 32:u8):u8\n  ($meta_1_meta_result:u8) = (($meta_1_meta_result:u8) + 32:u8):u8\n  ($meta_1_meta_result:u8) = (($meta_1_meta_result:u8) + 32:u8):u8\n  ($meta_1_meta_result:u8) = (($meta_1_meta_result:u8) + 32:u8):u8\n  (value:u8) = ($meta_1_meta_result:u8)\n  return (value:u8)\n\n"
+    },
+    {
+      "protocol": "minz-meta-hir-v1",
+      "target": "z80",
+      "function": "meta_repeat_u8_32_255",
+      "count": 32,
+      "delta": 255,
+      "generated_additions": 32,
+      "generator_sha256": "6d3554216969e07d70703334597830e6ef8f48de30bf6f7dc1d4e27af5c67791",
+      "lanz": "; Lanz module: crystal-meta-repeat.nanz\n(fun meta_repeat_u8_32_255 ((value u8)) u8\n  (block\n    (block\n      (var $meta_1_meta_result u8 value)\n      (set $meta_1_meta_result (+ $meta_1_meta_result 255))\n      (set $meta_1_meta_result (+ $meta_1_meta_result 255))\n      (set $meta_1_meta_result (+ $meta_1_meta_result 255))\n      (set $meta_1_meta_result (+ $meta_1_meta_result 255))\n      (set $meta_1_meta_result (+ $meta_1_meta_result 255))\n      (set $meta_1_meta_result (+ $meta_1_meta_result 255))\n      (set $meta_1_meta_result (+ $meta_1_meta_result 255))\n      (set $meta_1_meta_result (+ $meta_1_meta_result 255))\n      (set $meta_1_meta_result (+ $meta_1_meta_result 255))\n      (set $meta_1_meta_result (+ $meta_1_meta_result 255))\n      (set $meta_1_meta_result (+ $meta_1_meta_result 255))\n      (set $meta_1_meta_result (+ $meta_1_meta_result 255))\n      (set $meta_1_meta_result (+ $meta_1_meta_result 255))\n      (set $meta_1_meta_result (+ $meta_1_meta_result 255))\n      (set $meta_1_meta_result (+ $meta_1_meta_result 255))\n      (set $meta_1_meta_result (+ $meta_1_meta_result 255))\n      (set $meta_1_meta_result (+ $meta_1_meta_result 255))\n      (set $meta_1_meta_result (+ $meta_1_meta_result 255))\n      (set $meta_1_meta_result (+ $meta_1_meta_result 255))\n      (set $meta_1_meta_result (+ $meta_1_meta_result 255))\n      (set $meta_1_meta_result (+ $meta_1_meta_result 255))\n      (set $meta_1_meta_result (+ $meta_1_meta_result 255))\n      (set $meta_1_meta_result (+ $meta_1_meta_result 255))\n      (set $meta_1_meta_result (+ $meta_1_meta_result 255))\n      (set $meta_1_meta_result (+ $meta_1_meta_result 255))\n      (set $meta_1_meta_result (+ $meta_1_meta_result 255))\n      (set $meta_1_meta_result (+ $meta_1_meta_result 255))\n      (set $meta_1_meta_result (+ $meta_1_meta_result 255))\n      (set $meta_1_meta_result (+ $meta_1_meta_result 255))\n      (set $meta_1_meta_result (+ $meta_1_meta_result 255))\n      (set $meta_1_meta_result (+ $meta_1_meta_result 255))\n      (set $meta_1_meta_result (+ $meta_1_meta_result 255))\n      (set value $meta_1_meta_result)))\n  (return value))\n",
+      "hir": "; HIR module: crystal-meta-repeat.nanz\nfun @meta_repeat_u8_32_255(value: u8) -> u8\n  var $meta_1_meta_result: u8 = (value:u8)\n  ($meta_1_meta_result:u8) = (($meta_1_meta_result:u8) + 255:u8):u8\n  ($meta_1_meta_result:u8) = (($meta_1_meta_result:u8) + 255:u8):u8\n  ($meta_1_meta_result:u8) = (($meta_1_meta_result:u8) + 255:u8):u8\n  ($meta_1_meta_result:u8) = (($meta_1_meta_result:u8) + 255:u8):u8\n  ($meta_1_meta_result:u8) = (($meta_1_meta_result:u8) + 255:u8):u8\n  ($meta_1_meta_result:u8) = (($meta_1_meta_result:u8) + 255:u8):u8\n  ($meta_1_meta_result:u8) = (($meta_1_meta_result:u8) + 255:u8):u8\n  ($meta_1_meta_result:u8) = (($meta_1_meta_result:u8) + 255:u8):u8\n  ($meta_1_meta_result:u8) = (($meta_1_meta_result:u8) + 255:u8):u8\n  ($meta_1_meta_result:u8) = (($meta_1_meta_result:u8) + 255:u8):u8\n  ($meta_1_meta_result:u8) = (($meta_1_meta_result:u8) + 255:u8):u8\n  ($meta_1_meta_result:u8) = (($meta_1_meta_result:u8) + 255:u8):u8\n  ($meta_1_meta_result:u8) = (($meta_1_meta_result:u8) + 255:u8):u8\n  ($meta_1_meta_result:u8) = (($meta_1_meta_result:u8) + 255:u8):u8\n  ($meta_1_meta_result:u8) = (($meta_1_meta_result:u8) + 255:u8):u8\n  ($meta_1_meta_result:u8) = (($meta_1_meta_result:u8) + 255:u8):u8\n  ($meta_1_meta_result:u8) = (($meta_1_meta_result:u8) + 255:u8):u8\n  ($meta_1_meta_result:u8) = (($meta_1_meta_result:u8) + 255:u8):u8\n  ($meta_1_meta_result:u8) = (($meta_1_meta_result:u8) + 255:u8):u8\n  ($meta_1_meta_result:u8) = (($meta_1_meta_result:u8) + 255:u8):u8\n  ($meta_1_meta_result:u8) = (($meta_1_meta_result:u8) + 255:u8):u8\n  ($meta_1_meta_result:u8) = (($meta_1_meta_result:u8) + 255:u8):u8\n  ($meta_1_meta_result:u8) = (($meta_1_meta_result:u8) + 255:u8):u8\n  ($meta_1_meta_result:u8) = (($meta_1_meta_result:u8) + 255:u8):u8\n  ($meta_1_meta_result:u8) = (($meta_1_meta_result:u8) + 255:u8):u8\n  ($meta_1_meta_result:u8) = (($meta_1_meta_result:u8) + 255:u8):u8\n  ($meta_1_meta_result:u8) = (($meta_1_meta_result:u8) + 255:u8):u8\n  ($meta_1_meta_result:u8) = (($meta_1_meta_result:u8) + 255:u8):u8\n  ($meta_1_meta_result:u8) = (($meta_1_meta_result:u8) + 255:u8):u8\n  ($meta_1_meta_result:u8) = (($meta_1_meta_result:u8) + 255:u8):u8\n  ($meta_1_meta_result:u8) = (($meta_1_meta_result:u8) + 255:u8):u8\n  ($meta_1_meta_result:u8) = (($meta_1_meta_result:u8) + 255:u8):u8\n  (value:u8) = ($meta_1_meta_result:u8)\n  return (value:u8)\n\n"
+    }
+  ]
+}

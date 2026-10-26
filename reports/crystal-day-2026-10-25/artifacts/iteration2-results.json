@@ -1,0 +1,24 @@
+{
+  "crystal_functions": 7,
+  "nanz_meta_specializations": 5,
+  "generated_additions_before_optimization": 44,
+  "cases_per_engine": 1792,
+  "engines": [
+    "native Crystal reference",
+    "raw MIR2",
+    "optimized MIR2",
+    "Z80"
+  ],
+  "negative_controls": 8,
+  "showcase_sha256": "5d7134bfadbcbd8b4a2c2f0602a10aa20f2525efba79b30cbcd6a29264c747a5",
+  "exporter_sha256": "36b0dee61f51bebbd7e00b811f0a995365359209bffbe622b1655afb8d76b834",
+  "nanz_generator_sha256": "6d3554216969e07d70703334597830e6ef8f48de30bf6f7dc1d4e27af5c67791",
+  "seconds": {
+    "build-bridge": 0.238,
+    "build-exporter": 8.445,
+    "build-consumer": 0.088,
+    "export": 2.049,
+    "target": 6.841,
+    "native": 0.895
+  }
+}

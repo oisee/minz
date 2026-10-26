@@ -1,0 +1,26 @@
+; MIR2 module: bits.nanz
+fun @Header_decode(%r1: u16 [pointer], %r2: ptr [pointer])
+  block @entry:
+    %r3 = const 5 : u16 [pointer]
+    %r4 = shr %r1, %r3 : u16 [pointer]
+    %r5 = const 7 : u16 [pointer]
+    %r6 = and %r4, %r5 : u16 [pointer]
+    %r7 = trunc %r6 : u16 -> u8 [general]
+    store %r2, %r7 : u8
+    %r8 = const 0 : u16 [pointer]
+    %r9 = shr %r1, %r8 : u16 [pointer]
+    %r10 = const 31 : u16 [pointer]
+    %r11 = and %r9, %r10 : u16 [pointer]
+    %r12 = trunc %r11 : u16 -> u8 [general]
+    %r13 = field %r2, +1 : ptr [pointer]
+    store %r13, %r12 : u8
+    ret void
+
+fun @kind(%r14: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r15 = alloca 2 : ptr
+    %r16 = ext %r14 : u8 -> u16 [pointer]
+    %r17 = move %r15 : ptr [pointer]
+    call @Header_decode(%r16, %r17)
+    %r18 = load %r15 : u8 [acc]
+    ret %r18

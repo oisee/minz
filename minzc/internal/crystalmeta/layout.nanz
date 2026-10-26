@@ -1,0 +1,29 @@
+// Layout facts arrive from MIR2 target types, never Crystal host sizeof/offsets.
+fun @layout_byte(offset_text:^u8, size_text:^u8, pointer_text:^u8) {
+    var offset:u16 = 0
+    var i:u16 = 0
+    while offset_text[i] != 0 {
+        offset = offset * 10 + u16(offset_text[i]) - 48
+        i = i + 1
+    }
+    var size:u16 = 0
+    i = 0
+    while size_text[i] != 0 {
+        size = size * 10 + u16(size_text[i]) - 48
+        i = i + 1
+    }
+    var pointer_bytes:u16 = 0
+    i = 0
+    while pointer_text[i] != 0 {
+        pointer_bytes = pointer_bytes * 10 + u16(pointer_text[i]) - 48
+        i = i + 1
+    }
+    let pointer:u16 = hir_caller_ref(c"base", c"ptr")
+    let address:u16 = hir_binary(c"+", pointer, hir_int(offset,c"u16"))
+    let output:u16 = hir_caller_ref(c"result", c"u8")
+    if offset < size {
+        if pointer_bytes == 2 {
+            emit_hir(hir_assign(output,hir_load(address)))
+        }
+    }
+}

@@ -284,8 +284,62 @@ func (r *genRewriter) emit(s Stmt) { r.out = append(r.out, s) }
 
 // emitRewritten keeps a statement structured and rewrites its sub-expressions.
 func (r *genRewriter) emitRewritten(s Stmt) {
+	s = r.completeReturns(s)
 	mapStmtExprs(s, r.expr)
 	r.emit(s)
+}
+
+// completeReturns rewrites source completion even in yield-free structured
+// regions. Such regions bypass flattenStmt's ReturnStmt case, but still must
+// publish false and set sticky DONE. The true returns injected by yield are
+// emitted later and never pass through this source-statement rewrite.
+func (r *genRewriter) completeReturns(s Stmt) Stmt {
+	block := func(b *Block) *Block {
+		if b == nil {
+			return nil
+		}
+		out := &Block{Body: make([]Stmt, len(b.Body))}
+		for i, child := range b.Body {
+			out.Body[i] = r.completeReturns(child)
+		}
+		return out
+	}
+	switch s := s.(type) {
+	case *ReturnStmt:
+		if s.Val == nil && len(s.Vals) == 0 {
+			return &Block{Body: r.doneSeq()}
+		}
+	case *Block:
+		return block(s)
+	case *IfStmt:
+		out := *s
+		out.Then = block(s.Then)
+		out.Else = block(s.Else)
+		return &out
+	case *WhileStmt:
+		out := *s
+		out.Body = block(s.Body)
+		return &out
+	case *ForRangeStmt:
+		out := *s
+		out.Body = block(s.Body)
+		return &out
+	case *ForEachStmt:
+		out := *s
+		out.Body = block(s.Body)
+		return &out
+	case *SwitchStmt:
+		out := *s
+		out.Cases = make([]*SwitchCase, len(s.Cases))
+		for i, c := range s.Cases {
+			copyCase := *c
+			copyCase.Body = block(c.Body)
+			out.Cases[i] = &copyCase
+		}
+		out.Default = block(s.Default)
+		return &out
+	}
+	return s
 }
 
 // flatten compiles the generator body to a flat label/goto form. Structured
@@ -924,6 +978,9 @@ func hasGenNodes(b *Block) bool {
 // — the loop condition and the whole body again, because the back edge
 // re-executes statements that precede the yield.
 func genLiveAcrossYield(body *Block) map[string]bool {
+	if live, ok := genCFGLiveAcrossYield(body); ok {
+		return live
+	}
 	live := map[string]bool{}
 	walkBlockCont(body, map[string]bool{}, live)
 	return live

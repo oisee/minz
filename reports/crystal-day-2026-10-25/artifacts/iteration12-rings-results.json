@@ -1,0 +1,57 @@
+{
+  "cases_per_engine": 525,
+  "engines": [
+    "native Crystal",
+    "raw MIR2",
+    "optimized MIR2",
+    "Z80"
+  ],
+  "shared_library_bindings": [
+    "ByteRing_clear",
+    "ByteRing_init",
+    "ByteRing_segments",
+    "ByteRing_try_pop",
+    "ByteRing_try_push",
+    "ByteView_init",
+    "ByteView_try_get",
+    "ByteView_try_set"
+  ],
+  "negative_controls": [
+    "unknown-binding",
+    "binding-with-body",
+    "wrong-return",
+    "wrong-argument",
+    "wrong-view-schema",
+    "reordered-ring"
+  ],
+  "target_view_bytes": 4,
+  "target_ring_bytes": 8,
+  "all_byte_seeds": 256,
+  "crystal_linked_to_shared_library": true,
+  "library_sha256": "ff993d0018bacb114766b830d76c3c62f7742928e978eff04875ac88f7299d24",
+  "fifo_model_traces": 10,
+  "fifo_model_operations_per_engine": 3224,
+  "fifo_model_observed_queue_bytes_per_engine": 2578,
+  "export_via_symlink_matches": true,
+  "legacy_buffer_cases_per_engine": 7,
+  "sha256": {
+    "stdlib/mem/bytes.nanz": "ff993d0018bacb114766b830d76c3c62f7742928e978eff04875ac88f7299d24",
+    "minzc/pkg/nanz/byte_ring_test.go": "5178d26a26b4ff58115b300eaf8b8fbb91550f119f8c0b6eef8bc5bac8c9f25c",
+    "research/crystal-hir/bytes.cr": "2a9dcf48354754f0c623f2258ebc50d53ecd060b8fd4916a9c797b09568d2080",
+    "research/crystal-hir/ring_showcase.cr": "4abdb011744958290dc7220e3da1f159b1d492fd581a646d502870ecf1d760e3",
+    "research/crystal-hir/record_export.cr": "29a3bbf490437133e03ea7ab18203e16a40c801eb99c8d33753fdb212cac7284",
+    "minzc/cmd/crystal-record-hir/main.go": "b831bbd9a478df929d160444814794327d76b7aba29a03599d3b5b235a2d6208"
+  },
+  "seconds": {
+    "build-exporter": 8.363,
+    "build-consumer": 0.489,
+    "export": 2.021,
+    "export-via-alias": 1.382,
+    "native": 0.873,
+    "fifo-model": 2.752,
+    "legacy-export-via-alias": 1.383,
+    "legacy-native": 0.793,
+    "legacy-target": 2.957,
+    "target": 156.008
+  }
+}

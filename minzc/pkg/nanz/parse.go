@@ -1747,6 +1747,7 @@ func (p *parser) parseImport() error {
 	// Dispatch to the right parser based on file extension.
 	var imported *hir.Module
 	var importedMetaFuncs map[string]string
+	var importedSimpleEnums map[string]map[string]int64
 	ext := filepath.Ext(filePath)
 	switch ext {
 	case ".c":
@@ -1774,6 +1775,14 @@ func (p *parser) parseImport() error {
 		child := &parser{l: newLexer(string(src)), name: modPath, opts: childOpts}
 		imported, err = child.parseModule()
 		importedMetaFuncs = child.metaFuncs
+		importedSimpleEnums = make(map[string]map[string]int64)
+		for name, variants := range child.enums {
+			// Payload ADTs require constructor metadata as well; keep their
+			// existing separate admission. Export simple enum constants/types.
+			if child.enumBaseTy[name] == mir2.TyU8 {
+				importedSimpleEnums[name] = variants
+			}
+		}
 	}
 	if err != nil {
 		return fmt.Errorf("line %d: import %s: %w", line, modPath, err)
@@ -1961,7 +1970,7 @@ func (p *parser) parseImport() error {
 	}
 
 	// Merge enums
-	for eName, variants := range p.childEnums(imported) {
+	for eName, variants := range importedSimpleEnums {
 		mangledEnum := modPrefix + eName
 		p.enums[mangledEnum] = variants
 		p.enumBaseTy[mangledEnum] = mir2.TyU8
@@ -2010,13 +2019,6 @@ func (p *parser) parseImport() error {
 		p.importedModules[modPath] = modPrefix
 	}
 
-	return nil
-}
-
-// childEnums is a no-op placeholder — enums from imported modules are already
-// in the parser's enums map from the child parse.  For now returns empty map;
-// a proper implementation would pass enum data through hir.Module.
-func (p *parser) childEnums(_ *hir.Module) map[string]map[string]int64 {
 	return nil
 }
 
@@ -3809,6 +3811,21 @@ func (p *parser) parseTypeWithIface() (mir2.Ty, string, error) {
 	return ty, "", err
 }
 
+// Local ^Struct annotations need the same receiver metadata as parameters.
+// Their public HIR ABI remains TyPtr; without this entry field offsets silently
+// fall back to byte zero and UFCS calls lose their concrete return signature.
+func (p *parser) parseLocalBindingType(name string) (mir2.Ty, error) {
+	delete(p.varPtrElem, name)
+	if p.l.is(tokCaret) {
+		ty, _, elem, err := p.parseParamType()
+		if err == nil && elem != nil {
+			p.varPtrElem[name] = elem
+		}
+		return ty, err
+	}
+	return p.parseType()
+}
+
 // parseParamType parses a parameter type and returns (ty, ifaceName, ptrElemSt, error).
 // Handles three cases:
 //   - Interface name (e.g. "Animal") → (TyPtr, "Animal", nil, nil)
@@ -4252,7 +4269,7 @@ func (p *parser) parseLetDecl() (hir.Stmt, error) {
 				p.varEnumType[nameTok.val] = tname.val
 			}
 		}
-		ty, err = p.parseType()
+		ty, err = p.parseLocalBindingType(nameTok.val)
 		if p.lastCallable != nil {
 			p.varCallables[nameTok.val] = p.lastCallable
 		}
@@ -4456,7 +4473,7 @@ func (p *parser) parseVarDecl() (hir.Stmt, error) {
 				p.varEnumType[nameTok.val] = tname.val
 			}
 		}
-		ty, err = p.parseType()
+		ty, err = p.parseLocalBindingType(nameTok.val)
 		if p.lastCallable != nil {
 			p.varCallables[nameTok.val] = p.lastCallable
 		}

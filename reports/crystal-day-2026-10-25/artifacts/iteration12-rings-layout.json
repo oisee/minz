@@ -1,0 +1,183 @@
+{
+  "byte_library_sha256": "ff993d0018bacb114766b830d76c3c62f7742928e978eff04875ac88f7299d24",
+  "cases_per_engine": 525,
+  "layouts": [
+    {
+      "bytes": 8,
+      "fields": [
+        {
+          "bytes": 2,
+          "name": "data",
+          "offset": 0,
+          "ty": "ptr"
+        },
+        {
+          "bytes": 2,
+          "name": "head",
+          "offset": 2,
+          "ty": "u16"
+        },
+        {
+          "bytes": 2,
+          "name": "len",
+          "offset": 4,
+          "ty": "u16"
+        },
+        {
+          "bytes": 2,
+          "name": "cap",
+          "offset": 6,
+          "ty": "u16"
+        }
+      ],
+      "name": "record_0",
+      "native": "MinzBytes::Ring"
+    },
+    {
+      "bytes": 4,
+      "fields": [
+        {
+          "bytes": 2,
+          "name": "data",
+          "offset": 0,
+          "ty": "ptr"
+        },
+        {
+          "bytes": 2,
+          "name": "len",
+          "offset": 2,
+          "ty": "u16"
+        }
+      ],
+      "name": "record_1",
+      "native": "MinzBytes::View"
+    },
+    {
+      "bytes": 4,
+      "fields": [
+        {
+          "bytes": 2,
+          "name": "data",
+          "offset": 0,
+          "ty": "ptr"
+        },
+        {
+          "bytes": 2,
+          "name": "len",
+          "offset": 2,
+          "ty": "u16"
+        }
+      ],
+      "name": "ByteView",
+      "native": ""
+    },
+    {
+      "bytes": 6,
+      "fields": [
+        {
+          "bytes": 2,
+          "name": "data",
+          "offset": 0,
+          "ty": "ptr"
+        },
+        {
+          "bytes": 2,
+          "name": "len",
+          "offset": 2,
+          "ty": "u16"
+        },
+        {
+          "bytes": 2,
+          "name": "cap",
+          "offset": 4,
+          "ty": "u16"
+        }
+      ],
+      "name": "ByteBuffer",
+      "native": ""
+    },
+    {
+      "bytes": 8,
+      "fields": [
+        {
+          "bytes": 2,
+          "name": "data",
+          "offset": 0,
+          "ty": "ptr"
+        },
+        {
+          "bytes": 2,
+          "name": "head",
+          "offset": 2,
+          "ty": "u16"
+        },
+        {
+          "bytes": 2,
+          "name": "len",
+          "offset": 4,
+          "ty": "u16"
+        },
+        {
+          "bytes": 2,
+          "name": "cap",
+          "offset": 6,
+          "ty": "u16"
+        }
+      ],
+      "name": "ByteRing",
+      "native": ""
+    },
+    {
+      "bytes": 13,
+      "fields": [
+        {
+          "bytes": 1,
+          "name": "tag",
+          "offset": 0,
+          "ty": "u8"
+        },
+        {
+          "bytes": 2,
+          "name": "first",
+          "offset": 1,
+          "ty": "ptr"
+        },
+        {
+          "bytes": 2,
+          "name": "count",
+          "offset": 3,
+          "ty": "u16"
+        },
+        {
+          "bytes": 2,
+          "name": "second",
+          "offset": 5,
+          "ty": "ptr"
+        },
+        {
+          "bytes": 2,
+          "name": "rest",
+          "offset": 7,
+          "ty": "u16"
+        },
+        {
+          "bytes": 2,
+          "name": "reads",
+          "offset": 9,
+          "ty": "ptr"
+        },
+        {
+          "bytes": 2,
+          "name": "i",
+          "offset": 11,
+          "ty": "u16"
+        }
+      ],
+      "name": "rec_ring_values_15$frame",
+      "native": ""
+    }
+  ],
+  "meta_layout": null,
+  "pointer_bytes": 2,
+  "target": "z80"
+}

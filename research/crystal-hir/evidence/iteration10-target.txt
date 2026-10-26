@@ -1,0 +1,4 @@
+Crystal records/pointers: 538 cases passed on raw MIR2, optimized MIR2 and Z80
+[HIR-SPLIT] rec_library_buffer_0 → rec_library_buffer_0$split_114 (1 inputs, pressure 37)
+[HIR-SPLIT] rec_library_wide_12 → rec_library_wide_12$split_16 (1 inputs, pressure 16)
+[HIR-SPLIT] rec_library_iteration_18 → rec_library_iteration_18$split_27 (1 inputs, pressure 16)

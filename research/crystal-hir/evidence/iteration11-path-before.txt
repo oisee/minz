@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "<stdin>", line 10, in <module>
+RuntimeError: class/GC objects unsupported: MinzBytes::Buffer.class
+

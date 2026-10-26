@@ -1,0 +1,689 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light dark"><title>Ruby остаётся прекрасен. А что получилось на Z80?</title><style>
+:root{--bg:var(--agterm-background,Canvas);--ink:var(--agterm-foreground,CanvasText);--teal:var(--agterm-color-6,light-dark(#087e8b,#55c9d6));--violet:var(--agterm-color-5,light-dark(#8855bd,#c5a1f2));--green:var(--agterm-color-2,light-dark(#287d49,#7dce98));--amber:var(--agterm-color-3,light-dark(#a36508,#efbc6b));--line:color-mix(in srgb,var(--ink) 17%,transparent);--panel:color-mix(in srgb,var(--ink) 4%,var(--bg));font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--ink);background:var(--bg);font-size:16px;line-height:1.6}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0}main{max-width:1192px;padding:38px 40px 70px;margin:auto}a{color:var(--teal);text-underline-offset:4px;overflow-wrap:anywhere}nav{display:flex;gap:18px;flex-wrap:wrap;font-size:.8rem;border-bottom:1px solid var(--line);padding-bottom:18px}.eyebrow,.kicker{font-size:.72rem;letter-spacing:.15em;text-transform:uppercase;font-weight:750;color:var(--teal)}.eyebrow{margin:52px 0 15px}h1{font-size:clamp(2.8rem,6.5vw,5.8rem);letter-spacing:-.065em;line-height:1.02;max-width:950px;margin:15px 0 28px}h1 span{color:var(--teal)}.lead{font-size:1.24rem;max-width:810px;line-height:1.65}.muted,small{opacity:.7}.stamp{font: .75rem ui-monospace,SFMono-Regular,monospace;margin-top:25px;overflow-wrap:anywhere}.stats{display:grid;grid-template-columns:2fr 1fr 1fr;gap:14px;margin:38px 0 20px}.stat{padding:26px;border:1px solid var(--line);border-radius:18px;background:var(--panel)}.stat.primary{background:color-mix(in srgb,var(--teal) 10%,var(--bg));border-color:var(--teal)}.number{display:block;font-size:3.2rem;letter-spacing:-.055em;font-weight:750;line-height:1.15}.unit{font-size:.85rem;display:block;margin-top:10px}.legend{display:flex;gap:20px;flex-wrap:wrap;font-size:.76rem}.pill{display:inline-block;font-size:.65rem;font-weight:750;text-transform:uppercase;letter-spacing:.07em;padding:4px 9px;border-radius:30px;border:1px solid currentColor;color:var(--green)}.pill.idea{color:var(--violet)}.pill.limit{color:var(--amber)}section{margin-top:80px;scroll-margin-top:24px}.section-head{display:flex;gap:18px;align-items:baseline;border-top:1px solid var(--line);padding-top:20px}.section-head .num{font-family:ui-monospace,monospace;color:var(--teal);font-size:.8rem}h2{font-size:clamp(1.8rem,3.5vw,2.7rem);line-height:1.15;letter-spacing:-.04em;margin:0 0 20px}h3{font-size:1.16rem;line-height:1.3;letter-spacing:-.02em;margin:12px 0}p{margin:12px 0 18px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}.grid>*{min-width:0}.card{border:1px solid var(--line);border-radius:16px;padding:24px;min-width:0}.card p:last-child{margin-bottom:0}.card .source{font-size:.75rem}.timeline{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:26px 0}.stage{padding:20px 18px;background:var(--panel);border-top:3px solid var(--teal);border-radius:0 0 12px 12px;min-width:0}.stage strong{font-size:2rem;letter-spacing:-.04em;display:block}.stage p{font-size:.85rem}.stage small{display:block;font-size:.72rem}.note{padding:18px 22px;border-left:3px solid var(--teal);background:var(--panel);font-size:.9rem;margin:22px 0}.warning{border-color:var(--amber)}.path{display:grid;grid-template-columns:1.15fr .2fr 1.4fr .2fr .7fr;align-items:center;gap:10px;margin:16px 0}.node{padding:18px;border:1px solid var(--line);border-radius:12px;font-size:.85rem}.node strong{display:block}.arrow{color:var(--teal);text-align:center;font-size:1.6rem}.common{display:flex;justify-content:center;gap:16px;align-items:center;padding:24px;border:1px solid var(--teal);border-radius:14px;margin-top:20px;font-size:1.3rem;font-weight:700}.bridge{padding:17px;border:1px dashed var(--violet);border-radius:12px;font-size:.84rem;color:var(--violet)}pre{padding:20px;background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:auto;font: .78rem/1.65 ui-monospace,SFMono-Regular,Consolas,monospace;tab-size:2}code{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.88em;overflow-wrap:anywhere}.memory{margin:26px 0}.memory-row{display:grid;grid-template-columns:100px 1fr 70px;gap:15px;align-items:center;margin:16px 0}.memory-row>strong{font-size:.8rem}.bar{height:52px;border:1px solid var(--line);border-radius:8px;overflow:hidden;display:flex}.bar.host{background:color-mix(in srgb,var(--ink) 13%,transparent)}.bar.target{width:29.1667%;min-width:100px;border:none}.segment{border-right:1px solid var(--bg);display:flex;align-items:center;justify-content:center;color:var(--bg);font-size:.65rem;font-weight:800;background:var(--teal)}.segment:nth-child(2){background:var(--violet)}.segment:nth-child(3){background:var(--green)}.segment:nth-child(4){background:var(--amber)}.field-key{display:flex;gap:16px;flex-wrap:wrap;font-size:.76rem}.dot{display:inline-block;width:9px;height:9px;border-radius:2px;background:var(--teal);margin-right:6px}.truth{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:22px 0}.truth div{padding:18px;background:var(--panel);border-radius:12px}.truth strong{display:block;font-size:1.5rem}.truth span{font-size:.75rem}.table-scroll{overflow:auto}table{width:100%;border-collapse:collapse;font-size:.84rem}th{text-align:left;color:var(--teal);font-size:.7rem;text-transform:uppercase;letter-spacing:.07em}td,th{padding:17px 13px;border-bottom:1px solid var(--line);vertical-align:top}td:first-child{font-weight:700}details{border:1px solid var(--line);border-radius:12px;margin-top:14px;padding:16px 20px}summary{cursor:pointer;font-size:.9rem;font-weight:650}details pre{font-size:.7rem;max-height:650px}ol.roadmap{list-style:none;counter-reset:step;padding:0}ol.roadmap li{counter-increment:step;position:relative;padding:8px 0 20px 55px;border-bottom:1px solid var(--line);margin:16px 0}ol.roadmap li:before{content:"0" counter(step);position:absolute;left:0;top:6px;font:1.3rem ui-monospace,monospace;color:var(--violet)}ol.roadmap p{font-size:.88rem;margin:6px 0}footer{margin-top:70px;padding-top:24px;border-top:1px solid var(--line);font-size:.76rem}.big-quote{font-size:clamp(1.5rem,3vw,2.3rem);line-height:1.35;letter-spacing:-.03em;padding:26px 0;max-width:870px}.capsule{display:flex;gap:10px;align-items:center}.capsule svg{flex-shrink:0;width:44px;height:44px;color:var(--teal)}
+@media(max-width:750px){main{padding:24px 20px 44px}.stats{grid-template-columns:1fr 1fr}.stat.primary{grid-column:1/-1}.timeline,.grid{grid-template-columns:1fr 1fr}.path{grid-template-columns:1fr}.arrow{transform:rotate(90deg)}.common{font-size:1rem;gap:9px}.memory-row{grid-template-columns:65px 1fr 45px;gap:8px}.bar.target{min-width:80px}.truth strong{font-size:1.15rem}section{margin-top:55px}}
+@media(max-width:460px){.grid,.timeline{grid-template-columns:1fr}.stat{padding:20px}.number{font-size:2.6rem}.truth{grid-template-columns:1fr}.truth div{display:flex;align-items:center;justify-content:space-between}.common{flex-wrap:wrap}.card{padding:20px}nav{gap:12px}}
+@media print{main{max-width:none;padding:0}section{margin-top:30px}.card,.stage,pre,details{break-inside:avoid}nav{display:none}a{color:inherit}details pre{max-height:none}.stats{margin-top:20px}h1{font-size:50px}footer{margin-top:30px}}
+
+main{max-width:1150px}.prose{max-width:830px}.prose p{font-size:1.08rem;line-height:1.8}h1{font-size:clamp(2.7rem,6.5vw,5.3rem)}.ribbon{border:1px solid var(--teal);border-radius:16px;padding:24px;margin:30px 0}.flow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:25px 0}.flow>div{padding:20px 16px;background:var(--panel);border-radius:12px;border-top:3px solid var(--teal);min-width:0}.flow strong{display:block}.flow small{font-size:.75rem}.lane{font-size:.72rem;text-transform:uppercase;letter-spacing:.13em;color:var(--teal);margin-top:25px}.take{font-size:1.4rem;line-height:1.5;letter-spacing:-.025em;margin:28px 0;padding-left:22px;border-left:3px solid var(--teal)}.comparison{border-left:3px solid var(--violet);padding-left:16px}.code-label{font-size:.74rem;color:var(--teal);font-weight:700;margin:16px 0 6px}pre{margin:7px 0 20px}.constraint{font-size:.8rem;color:var(--amber)}.stat .number{font-size:2.7rem}.mini-layout{display:grid;grid-template-columns:1fr 1fr;gap:15px}.mini-layout>div{padding:22px;background:var(--panel);border-radius:12px}.mini-layout b{font-size:2rem;display:block}blockquote{margin:25px 0;padding:10px 24px;border-left:3px solid var(--violet);font-size:1.2rem}section{margin-top:64px}.table-scroll{border:1px solid var(--line);border-radius:12px}td{min-width:140px}.arrowline{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:22px;border:1px solid var(--line);border-radius:12px;font: .85rem ui-monospace,monospace}.arrowline span{color:var(--teal)}.reading{font-size:.8rem;opacity:.7}
+@media(max-width:700px){.flow{grid-template-columns:1fr 1fr}.mini-layout{grid-template-columns:1fr}.prose p{font-size:1rem}.ribbon{padding:19px}}
+@media print{.prose{max-width:none}.flow{break-inside:avoid}.reading{display:none}}
+</style></head><body><main>
+<nav><a href="#language">Язык</a><a href="#pipeline">Компиляция</a><a href="#assembly">Настоящий ASM</a><a href="#frontend">Frontend и Go</a><a href="#parsers">ABAPiti и парсеры</a><a href="#music">Autosiril</a></nav>
+<header><p class="eyebrow">Записки о компиляторе · MinZ / mzc / Nanz · 25.10.2026</p><h1>Ruby остаётся прекрасен.<br>А что получилось <span>на Z80?</span></h1>
+<p class="lead">Мы взяли настоящий Crystal frontend, сохранили его inference и специализации, подключили Nanz meta и научили код жить в нашей памяти. Теперь можно посмотреть на результат сразу с двух сторон: как на язык для человека и как на инструкции для процессора.</p>
+<p class="stamp">spike/crystal-hir · ASM snapshot cf4e395ff · дополнения до итерации 11<br>Crystal 1.20.1 / LLVM 22.1.4 на host · HIR → MIR2 → Z80 / PBQP</p>
+<div class="ribbon"><b>Мой вердикт:</b> архитектура уже красива; язык узнаваем; качество ASM неоднородно. Маленький reader превращается в четыре инструкции. В сложной arena-функции остаются длинные сохранения регистров и многословная работа со стеком. Это видно в реальном листинге ниже.</div>
+<p class="reading">Статья о проверенном prototype. Предложения по оптимизации и новым интеграциям отдельно помечены; листинги извлечены из сохранённых артефактов.</p></header>
+<section id="language"><div class="section-head"><span class="num">01</span><h2>Какой язык у нас получился?</h2></div>
+<div class="prose"><p>Уместнее всего назвать его <b>экспериментальным системным профилем Crystal для MinZ</b>. Parser, macros, вывод типов и разрешение overloads остаются нативными. Наш адаптер принимает выбранные конструкции и определяет, как их смысл выразить в HIR и target memory.</p>
+<p>Ruby узнаётся в ритме <code>def … end</code>, в выражениях, <code>@fields</code>, вызовах методов и отсутствии синтаксического шума. Crystal добавляет статические типы и compile-time специализацию. Например, один <code>def twice(x); x &amp;+ x; end</code> уже даёт отдельные native специализации для UInt8 и UInt16.</p>
+<p>Пока шероховатости хорошо заметны: <code>pointerof</code>, явные разрядности, wrapping operators и специальные marker-функции. Разрядности и владение памятью действительно важны для Z80. Marker-протокол — временный шов интеграции, который хочется спрятать за общим meta API.</p></div>
+<p class="code-label">Реальный исходник · meta_arena_showcase.cr</p><pre>def meta_arena_memory(seed : UInt8)
+  storage = StaticArray(UInt8, 16).new(0_u8)
+  arena = MetaArena.new(storage.to_unsafe, 16_u16)
+  p = arena.alloc(3_u16)
+  p[0_u16] = meta_repeat(seed, 3_u8, 7_u8)
+  arena.set_marker(p[0_u16])
+  meta_byte(arena, &quot;marker&quot;) ^ seed
+end</pre>
+<div class="prose"><p><b>Ruby всё ещё прекрасен.</b> Его выразительность особенно видна в обработке коллекций. В общем compiler уже есть полезная основа: Nanz map/filter/fold/reduce, fusion распознаваемых iterator chains, а также scalar gen/yield. В итерации 6 Crystal bridge уже подключает borrowed <code>Slice.new(ptr,length).each</code> к общему HIR foreach: 1822 набора прошли native Crystal, оба MIR2 и Z80, ещё 5 случаев проверяют отказы. map/filter и lazy Iterator требуют следующего подключения; общий byte buffer/view API появился в итерации 9, пока со стороны Nanz.</p>
+<p>В итерации 7 добавлен общий <code>hir.BorrowedViewType</code>: addressable descriptor <code>data: ^T, len: u16</code>. Локальный Crystal Slice теперь можно сохранять, копировать и обходить; target descriptor занимает 4 B против 16 B на native host. Проверены 1566 наборов на четырёх engine и 7 отказов. Отдельная Nanz-функция читает descriptor, созданный через этот HIR API: 256 входов прошли raw/optimized MIR2 и Z80.</p>
+<p>Native oracle выявил важную деталь: rebind локальной view внутри each меняет её дальнейший обход. Поэтому стабильная view использует общий foreach, а изменяемая — обычный HIR while с живыми полями descriptor. Это сохраняет семантику Crystal. Lifetime остаётся контрактом: новый тип не является borrow checker.</p>
+<p>В итерации 8 обычные Crystal-методы с односторонним <code>yield</code> подключены к общим HIR <code>YieldStmt</code> / <code>GenForStmt</code> и pull lowering. 8 consumers × 256 byte seeds = 2048 наборов прошли четыре engine, ещё 5 проверяют отказы. Работают break/next/nonlocal return, demand-preserving filter, RLE, empty source и конечное потребление бесконечного producer.</p>
+<p>Этот шаг нашёл общий Nanz/HIR bug: явный return в некоторых structured regions не выставлял DONE. До исправления отдельный Nanz reproducer потреблял три элемента вместо одного; теперь проверены завершение, повторный pull после DONE и сохранение out. Однако frame layout пока консервативен: byte-stream frame занимает 33 B, RLE frame — 47 B. Это рабочая семантика, не обещание минимального RAM или идеального ASM. Стандартные Crystal Iterator objects и общий generator fusion ещё не подключены.</p>
+<p>В итерации 9 появился импортируемый Nanz-модуль <code>mem.bytes</code>: ByteView (4 B) и ByteBuffer (6 B), init/get/set/subview/push/view/clear без allocation. 22 сценария прошли оба MIR2 и Z80, ещё 22 соответствующих native reference сценария — stock Crystal Slice. Проверены границы, ёмкость 256, alias writes, независимая длина snapshot и пустой null view. На этом этапе Crystal-фасад ещё не был связан: native reference не выдавался за сквозной вызов библиотеки.</p>
+<p>Итерация 10 связывает обычные методы <code>MinzBytes::Buffer</code> и <code>MinzBytes::View</code> с теми же функциями из настоящего Nanz-модуля <code>mem.bytes</code>. Прикладной Crystal-код больше не нуждается в marker-вызовах для этой библиотеки. Native fallback остаётся Crystal-кодом; target использует общую реализацию. 538 наборов прошли native Crystal, оба MIR2 и Z80; ещё 6 случаев проверяют отказы. Receipt сквозного прогона встроен ниже.</p>
+<div class="mini-layout"><div><b>6 B · Buffer</b><code>data · len · cap</code><p>Длина меняется при push и clear. Память предоставляет вызывающая сторона.</p></div><div><b>4 B · View</b><code>data · len</code><p>Собственная длина, общие bytes. Clear буфера не сокращает сохранённый view.</p></div></div>
+<div class="arrowline">Crystal methods <span>→</span> shared Nanz mem.bytes <span>→</span> HIR / MIR2 <span>→</span> Z80</div>
+<p>Два примера соединяют эту библиотеку с существующим iteration: сохранённый view → Slice#each и view → pull-generator. Второй обнаружил общий backend bug: адресация поля через ADD HL затирала carry сравнения до записи bool в frame. Отдельный native regression до исправления превращал 1 &lt; 2 в false; сохранение pending predicate исправляет эту ошибку для любого frontend.</p>
+<p>ASM остаётся неровным: clear компактен, а try_push занимает 92 статических инструкций и тратит их на загрузку полей и сохранение регистров. Ниже настоящий clear; число инструкций относится к листингу, а не к cycles или размеру binary.</p>
+</div><p class="code-label">Shared ByteBuffer.clear · 8 инструкций Z80</p><pre>ByteBuffer_clear:
+    LD DE, 0
+    INC HL
+    INC HL
+    LD (HL), E     ; lo
+    INC HL
+    LD (HL), D     ; hi
+    DEC HL
+    RET</pre><details><summary>Настоящий ByteBuffer.try_push: текущая цена checked append</summary><pre>ByteBuffer_try_push:
+    LD D, H
+    LD E, L
+    INC DE
+    INC DE
+    PUSH AF          ; preserve word-load scratch
+    LD A, (DE)     ; lo
+    PUSH AF          ; stage low byte before replacing address
+    INC DE
+    LD A, (DE)     ; hi
+    LD D, A
+    POP AF
+    LD E, A
+    POP AF           ; restore word-load scratch
+    LD C, L
+    LD B, H
+    PUSH HL
+    PUSH DE
+    LD L, C
+    LD H, B
+    LD DE, 4
+    ADD HL, DE
+    LD C, L
+    LD B, H
+    POP DE
+    POP HL
+    PUSH AF          ; preserve word-load scratch
+    LD A, (BC)     ; lo
+    PUSH AF          ; stage low byte before replacing address
+    INC BC
+    LD A, (BC)     ; hi
+    LD B, A
+    POP AF
+    LD C, A
+    POP AF           ; restore word-load scratch
+    LD IYH, A    ; preserve live accumulator before CMP
+    PUSH HL
+    LD H, D
+    LD L, E
+    OR A
+    SBC HL, BC
+    POP HL
+    ; restore live-out r619 from scratch
+    LD A, IYH
+    JRS C, .ByteBuffer_try_push_if_join2
+.ByteBuffer_try_push_if_then1:
+    LD A, 0
+    RET
+.ByteBuffer_try_push_if_join2:
+    LD C, (HL)     ; lo
+    INC HL
+    LD B, (HL)     ; hi
+    DEC HL
+    LD D, H
+    LD E, L
+    INC DE
+    INC DE
+    PUSH AF          ; preserve word-load scratch
+    LD A, (DE)     ; lo
+    PUSH AF          ; stage low byte before replacing address
+    INC DE
+    LD A, (DE)     ; hi
+    LD D, A
+    POP AF
+    LD E, A
+    POP AF           ; restore word-load scratch
+    PUSH HL
+    LD L, C
+    LD H, B
+    ADD HL, DE
+    LD D, H
+    LD E, L
+    POP HL
+    LD (DE), A
+    LD D, H
+    LD E, L
+    INC DE
+    INC DE
+    PUSH AF          ; preserve word-load scratch
+    LD A, (DE)     ; lo
+    PUSH AF          ; stage low byte before replacing address
+    INC DE
+    LD A, (DE)     ; hi
+    LD D, A
+    POP AF
+    LD E, A
+    POP AF           ; restore word-load scratch
+    INC DE
+    INC HL
+    INC HL
+    LD (HL), E     ; lo
+    INC HL
+    LD (HL), D     ; hi
+    DEC HL
+    LD A, 1
+    RET</pre></details><div class="prose">
+<p>Итерация 11 добавляет общий <code>ByteRing</code>: fixed-capacity FIFO без allocation и division. Crystal и Nanz вызывают одну реализацию; <b>525 наборов</b> прошли native Crystal, оба MIR2 и Z80, плюс шесть отрицательных ABI controls. Независимый Go FIFO model проверил 10 трасс — 3224 операции на каждом target engine, включая capacities 0/1/3/255/256.</p>
+</div><div class="mini-layout"><div><b>8 B · Ring</b><code>data · head · len · cap</code><p>Одна caller-owned область. Full и empty различаются длиной; отказ pop сохраняет output.</p></div><div><b>2 × 4 B · Views</b><code>first · second</code><p>Два непрерывных окна дают FIFO-порядок даже после wrap. Bytes не копируются.</p></div></div>
+<svg viewBox="0 0 600 190" width="100%" role="img" aria-label="Storage 3,1,2 с head=1 даёт first 1,2 и second 3" style="max-width:680px;display:block;margin:20px auto;font:15px ui-monospace,monospace">
+<text x="20" y="25" fill="var(--ink)" opacity="0.7">physical storage</text><text x="330" y="25" fill="var(--ink)" opacity="0.7">FIFO segments · head = 1</text>
+<g fill="var(--panel)" stroke="var(--teal)" stroke-width="2"><rect x="25" y="45" width="65" height="55" rx="8"/><rect x="95" y="45" width="65" height="55" rx="8"/><rect x="165" y="45" width="65" height="55" rx="8"/><rect x="330" y="45" width="65" height="55" rx="8"/><rect x="400" y="45" width="65" height="55" rx="8"/></g>
+<rect x="495" y="45" width="65" height="55" rx="8" fill="var(--panel)" stroke="var(--violet)" stroke-width="2"/>
+<g fill="var(--ink)" text-anchor="middle" font-size="26"><text x="58" y="81">3</text><text x="128" y="81">1</text><text x="198" y="81">2</text><text x="363" y="81">1</text><text x="433" y="81">2</text><text x="528" y="81">3</text></g>
+<path d="M128 105 C190 160 260 160 363 105" fill="none" stroke="var(--teal)" stroke-width="2"/><path d="M58 105 C150 185 470 185 528 105" fill="none" stroke="var(--violet)" stroke-width="2" stroke-dasharray="5 4"/>
+<text x="365" y="125" fill="var(--teal)">first</text><text x="490" y="177" fill="var(--violet)">second</text></svg><div class="prose">
+<p>Пример потребляет первые два байта и останавливается до второго сегмента. Counter подтверждает ровно два чтения. Это lazy pull, но не готовый channel runtime: нет scheduler или IRQ synchronization. View сохраняет свои pointer/length; после clear и новых записей оно может увидеть другие bytes в той же живой памяти.</p>
+<p>Важно различать размеры: descriptor Ring занимает 8 B, а frame показанного двухсегментного generator — 53 B. Layout frame пока консервативен. Исправление canonical path также закреплено проверкой: export через symlink даёт тот же wire, семь прежних buffer-примеров проходят четыре engine.</p>
+<p><b>Что уже общее:</b> MIR2 имеет SliceTy как пару pointer/length; HIR — ForEachStmt для непрерывного диапазона памяти и ExpandGenerators для stackless pull generators. Generator frame хранит continuation tag и живые через yield значения; next выполняется до следующего yield. В Nanz есть проверки lifecycle, early stop и независимости экземпляров. Полный generic slice API во всех frontend этим не подтверждён.</p>
+<p>Общий generator fusion остаётся draft ADR 0050. Byte ring buffer появился в итерации 11; channel runtime и scheduler goroutines ещё не подключены. Генераторы дают ленивый pull-протокол; очереди, backpressure, close/cancellation и lifetime сообщений потребуют дополнительных контрактов. Такие buffers и adapters действительно смогут служить всем frontend, которые научатся их выражать.</p>
+<p>И универсальность пока проявляется прежде всего в архитектуре: разные синтаксисы смогут обращаться к общей генерации и backend. Для конкретного языка каждый раз придётся сохранять правила вычисления, ошибок и памяти. Например, числовой ноль в Crystal истинен, а null pointer ложен; это уже проверено нативным oracle и учтено importer.</p></div>
+</section>
+<section id="pipeline"><div class="section-head"><span class="num">02</span><h2>Как строка Crystal становится инструкциями</h2></div>
+<p class="lane">На машине разработчика · compile time</p><div class="flow"><div><span class="kicker">01</span><strong>Native frontend</strong><small>Parse, normalize, macros, semantic analysis</small></div><div><span class="kicker">02</span><strong>Typed adapter</strong><small>Reachable specializations → Lanz или record JSON</small></div><div><span class="kicker">03</span><strong>Go + Nanz meta</strong><small>Target layout, meta VM, построение HIR</small></div><div><span class="kicker">04</span><strong>MIR2 / PBQP</strong><small>Lowering, оптимизация, allocation, ASM</small></div></div>
+<p class="lane">На target · runtime</p><div class="arrowline">Z80 instructions <span>→</span> регистры / stack <span>→</span> buffer + arena <span>→</span> результат</div>
+<div class="prose"><p>Из semantic AST мы берём уже разрешённые вызовы и специализации. Примитивы становятся HIR operations, методы структуры — обычными функциями с явным self pointer. Layout вычисляется по нашим target types, без переноса host offsets.</p>
+<p>Nanz meta-функция исполняется на существующем meta VM во время компиляции. Она генерирует typed HIR; сам target получает обычные инструкции. Meta VM, compiler AST и host allocator в этот target-пример не попадают.</p>
+<p>Ниже HIR и optimized MIR2 одного и того же helper. В первом ещё видны локальная переменная и return. Во втором остаются pointer addition и byte load.</p></div>
+<div class="grid"><div><p class="code-label">HIR · настоящий dump</p><pre>fun @meta_layout_byte_8_7(base: ptr) -&gt; u8
+  var result: u8 = 0:u8
+  (result:u8) = load(((base:ptr) + 7:u16):ptr):u8
+  return (result:u8)</pre></div><div><p class="code-label">MIR2 после оптимизации · настоящий dump</p><pre>fun @meta_layout_byte_8_7(%r164: ptr [pointer]) -&gt; u8 [acc]
+  block @entry:
+    %r166 = const 7 : u16 [pointer]
+    %r167 = add %r164, %r166 : ptr [acc]
+    %r168 = load %r167 : u8 [general]
+    ret %r168</pre></div></div>
+<div class="note">В scalar spike работают native inference, overloads, ограниченный raise/rescue и exact-body merge: 19 специализаций стали 18 функциями. В record path теперь работают repeat и layout-aware meta helpers. Полная модель exceptions ещё не объединена со всеми record-возможностями.</div>
+</section>
+<section id="assembly"><div class="section-head"><span class="num">03</span><h2>ASM: красивый, страшный, настоящий</h2></div>
+<p>Следующие листинги взяты из <code>meta-arena.a80</code> прогона итерации 4. Инструкции сохранены без ручной «чистки». Числа ниже — число инструкций в тексте отдельного helper, без комментариев и labels; это не байты и не такты.</p>
+<div class="stats"><div class="stat primary"><span class="number">4 инструкции</span><span class="unit">прочитать byte field по offset 7</span></div><div class="stat"><span class="number">2</span><span class="unit">прочитать поле по offset 0</span></div><div class="stat"><span class="number">7</span><span class="unit">три сложения с 7<br>в текущем repeat helper</span></div></div>
+<div class="grid"><article class="card"><span class="pill">Уже компактно</span><h3>Поле по target offset 7</h3><pre>meta_layout_byte_8_7:
+    LD HL, 7
+    ADD HL, DE
+    LD A, (HL)
+    RET</pre><p>Аргумент base приходит в DE; результат — в A. Пара HL вычисляет адрес, load читает байт. Никаких object headers, lookup таблиц или dynamic dispatch здесь нет.</p></article><article class="card"><span class="pill">Уже компактно</span><h3>То же действие по offset 0</h3><pre>meta_layout_byte_3_0:
+    LD A, (HL)
+    RET</pre><p>Здесь base приходит сразу в HL. Нулевое смещение исчезло: остались load и return. Это соседний helper того же модуля, а не вручную написанный образец.</p></article></div>
+<h3>А вот repeat ещё просит внимания</h3><div class="grid"><div><p class="code-label">Что compiler действительно выдал</p><pre>meta_repeat_u8_3_7:
+    LD C, 7
+    ADD A, 7
+    LD C, 7
+    ADD A, 7
+    LD C, 7
+    ADD A, 7
+    RET</pre></div><div class="comparison"><p class="code-label">Возможный результат будущей оптимизации · НЕ текущий output</p><pre>; Эскиз при wrapping UInt8 контракте
+; и отсутствии требований к промежуточным flags:
+ADD A, 21
+RET</pre><p>В фактическом helper регистр C после этих загрузок не читается. Видны кандидаты на удаление лишних <code>LD C,7</code> и объединение цепочки сложений. Для compiler-pass нужно отдельно учесть flags, ABI и wrapping semantics.</p></div></div>
+<div class="prose"><p>Meta развернула цикл успешно — runtime loop больше нет. Но «генерация во время компиляции» не означает автоматически «идеальный машинный код». Оптимизатор ещё должен убрать то, что осталось после генерации и register allocation.</p></div>
+<h3>Большая функция показывает цену консервативного codegen</h3><div class="prose"><p>В <code>rec_meta_arena_memory_0</code> локальные данные занимают 24 байта: buffer на 16 плюс MetaArena на 8. Текущий листинг резервирует их через <b>24 отдельных DEC SP</b> и освобождает через <b>24 INC SP</b>. Между вызовами много PUSH/POP и перемещений регистров. Весь текст функции содержит 134 инструкций.</p>
+<p>Это многословно. При этом stack adjustment не всегда можно заменить короткой последовательностью без анализа живых регистров и flags. Хорошие следующие цели — frame lowering, более точные clobber sets, byte store/address selection и оптимизация после allocation. Подтверждённых измерений выигрыша по тактам пока нет.</p></div>
+<details><summary>Полный фактический листинг arena-функции</summary><pre>rec_meta_arena_memory_0:
+    DEC SP
+    DEC SP
+    DEC SP
+    DEC SP
+    DEC SP
+    DEC SP
+    DEC SP
+    DEC SP
+    PUSH AF
+    LD HL, 2
+    ADD HL, SP
+    POP AF
+    DEC SP
+    DEC SP
+    DEC SP
+    DEC SP
+    DEC SP
+    DEC SP
+    DEC SP
+    DEC SP
+    DEC SP
+    DEC SP
+    DEC SP
+    DEC SP
+    DEC SP
+    DEC SP
+    DEC SP
+    DEC SP
+    PUSH AF
+    PUSH HL
+    LD HL, 4
+    ADD HL, SP
+    LD D, H
+    LD E, L
+    POP HL
+    POP AF
+    LD C, 16
+.rec_meta_arena_memory_0_loop_head2:
+    LD B, 0
+    ; genCall: @mir.mem.fill_bytes16 dst=0
+    PUSH BC
+    PUSH AF
+    PUSH HL
+    PUSH DE
+    LD H, D
+    LD L, E
+    LD A, B
+    LD B, 0
+    INC C
+    DEC C
+    JRS Z, .byte_fill_done_0
+    LD (HL), A
+    DEC C
+    JRS Z, .byte_fill_done_0
+    LD D, H
+    LD E, L
+    INC DE
+    LDIR
+.byte_fill_done_0:
+    POP DE
+    POP HL
+    POP BC
+    LD A, B
+    POP BC
+.rec_meta_arena_memory_0_loop_exit4:
+    LD BC, 16
+    ; genCall: rec_initialize_1 dst=7
+    PUSH AF
+    PUSH HL
+    CALL rec_initialize_1
+    LD B, A
+    POP HL
+    POP AF
+    LD DE, 3
+    ; genCall: rec_alloc_2 dst=9
+    PUSH AF
+    PUSH HL
+    CALL rec_alloc_2
+    LD D, H
+    LD E, L
+    POP HL
+    POP AF
+    ; genCall: meta_repeat_u8_3_7 dst=10
+    PUSH AF
+    PUSH DE
+    PUSH HL
+    CALL meta_repeat_u8_3_7
+    LD B, A
+    POP HL
+    POP DE
+    POP AF
+    PUSH AF    ; preserve live A across byte store
+    LD A, B
+    LD (DE), A
+    POP AF
+    EX AF, AF&#x27;      ; preserve byte-load scratch
+    LD A, (DE)
+    LD C, A
+    EX AF, AF&#x27;      ; restore byte-load scratch
+    PUSH HL
+    POP IX
+    PUSH HL
+    PUSH BC
+    PUSH IX
+    POP HL
+    LD BC, 7
+    ADD HL, BC
+    PUSH HL
+    POP IX
+    POP BC
+    POP HL
+    LD (IX+0), C
+    LD DE, 7
+    ADD HL, DE
+    LD C, (HL)
+    XOR C
+    INC SP    ; release local frame
+    INC SP    ; release local frame
+    INC SP    ; release local frame
+    INC SP    ; release local frame
+    INC SP    ; release local frame
+    INC SP    ; release local frame
+    INC SP    ; release local frame
+    INC SP    ; release local frame
+    INC SP    ; release local frame
+    INC SP    ; release local frame
+    INC SP    ; release local frame
+    INC SP    ; release local frame
+    INC SP    ; release local frame
+    INC SP    ; release local frame
+    INC SP    ; release local frame
+    INC SP    ; release local frame
+    INC SP    ; release local frame
+    INC SP    ; release local frame
+    INC SP    ; release local frame
+    INC SP    ; release local frame
+    INC SP    ; release local frame
+    INC SP    ; release local frame
+    INC SP    ; release local frame
+    INC SP    ; release local frame
+    RET</pre><p>В полном listing встречается assembler pseudo-op JRS: окончательный короткий или длинный переход выбирает assembler. Это ещё один этап между текстом ASM и байтами программы.</p></details>
+</section>
+<section id="layout"><div class="section-head"><span class="num">04</span><h2>Самый важный результат — offset 20 стал offset 7</h2></div>
+<div class="mini-layout"><div><span class="kicker">Native host Crystal</span><b>24 B / offset 20</b><small>MetaArena / поле marker · pointer 8 B</small></div><div><span class="kicker">Наш Z80</span><b>8 B / offset 7</b><small>Та же схема полей · pointer 2 B</small></div></div>
+<div class="prose"><p>Программа читает одно и то же значение при разном представлении структуры. Go importer вычисляет target offset, sizeof структуры и pointer width. Эти числа получает Nanz meta-генератор, который строит byte reader.</p>
+<p>В том же модуле другая структура, HeaderProbe, имеет marker на offset 0. Это проверяет и правильный layout, и то, что cache не спутал два одноимённых поля. Копирование arena дополнительно проверяет, что helper получает адрес нужного экземпляра.</p>
+<p>Здесь MetaArena с дополнительным marker занимает 8 байт. ByteArena предыдущей итерации без этого поля занимает 7; смешивать эти два измерения нельзя.</p></div>
+<div class="note warning"><b>Честная граница:</b> текущий Crystal macro допускает literal имя <code>marker</code> и pointerof локальной структуры. Native fallback читает соответствующий getter. Это специальный проверенный protocol; общий MetaContext и произвольная field reflection ещё не реализованы.</div>
+</section>
+<section id="frontend"><div class="section-head"><span class="num">05</span><h2>Можно ли пересадить frontend прямо в mzc?</h2></div>
+<div class="prose"><p><b>Да — практическое переиспользование уже доказано через отдельный процесс.</b> Crystal compiler написан на Crystal и self-hosted: его собирает предыдущий Crystal compiler. Это подтверждают и установленный исходник compiler, и <a href="https://crystal-lang.org/install/#building-from-source">официальные инструкции сборки</a>.</p>
+<p>Сейчас проверочный Python runner запускает Crystal-exporter, сохраняет typed JSON/Lanz и запускает Go-consumer. Production CLI mzc ещё не вызывает exporter самостоятельно. Естественная следующая интеграция — добавить в Go CLI управляемый запуск через <code>os/exec</code>, versioned protocol, source locations и проверку совместимой версии frontend.</p></div>
+<div class="arrowline">.cr <span>→</span> exporter, собранный Crystal <span>→</span> typed JSON / Lanz <span>→</span> Go importer <span>→</span> HIR</div>
+<div class="prose"><p>«Встроить внутрь Go-процесса» — другая задача. Понадобится C ABI/FFI граница, согласование runtime initialization, GC и владения объектами. Такой вариант мы не проверяли. Переписать весь semantic frontend на Go тоже можно только как отдельный существенный порт.</p>
+<p>Наш exporter использует <code>Compiler#no_codegen</code>, но это не делает сам host executable независимым от LLVM: native compiler library всё ещё имеет LLVM dependencies. От target Z80 эта host-инфраструктура отделена. Обновление Crystal потребует повторной проверки внутренних API и семантики адаптера.</p></div>
+</section>
+<section id="parsers"><div class="section-head"><span class="num">06</span><h2>ABAPiti, ANTLR и Tree-sitter: где мост уже есть?</h2></div>
+<div class="prose"><p><a href="https://github.com/oisee/abapiti">ABAPiti</a> действительно имеет путь TypeScript → собственный HIR → Go. Frontend использует vendored tsgo. Но его объектный HIR и MinZ HIR — разные IR: ABAPiti хранит богатую объектную семантику, MinZ работает ближе к target memory. Это <a href="https://github.com/oisee/abapiti/blob/main/docs/adr/0001-own-object-hir.md">явное архитектурное решение проекта</a>, а не готовый общий формат.</p>
+<p>Поэтому идея перевести TS parser/runtime через ABAPiti интересна как отдельный experiment. Успех на abaplint ещё не доказывает поддержку другой библиотеки: <a href="https://github.com/oisee/abapiti/blob/main/docs/generality-transpiler.md">generality probe</a> документирует оставшиеся language/API gaps. Этот путь не превращает Crystal source в Go.</p></div>
+<div class="table-scroll"><table><thead><tr><th>Задача</th><th>Прямой путь</th><th>Что остаётся проверить</th></tr></thead><tbody><tr><td>ANTLR grammar → Go</td><td>Штатный Go target генератора ANTLR</td><td>Actions и predicates, написанные на JS, надо адаптировать; связать Go runtime</td></tr><tr><td>Tree-sitter grammar → Go-приложение</td><td>grammar.js → generated C parser → Go bindings</td><td>Сборка C/runtime, scanners и выбранная binding integration</td></tr><tr><td>TS parser/runtime → Go через ABAPiti</td><td>Отдельный transpilation probe</td><td>TS/JS semantics, library APIs и Node oracle corpus</td></tr><tr><td>Наш scalar subset Crystal → Go</td><td>HIR → MIR2 → существующий mir2go: проверено</td><td>1792 byte/meta набора; records и exceptions на Go здесь не проверены</td></tr><tr><td>Сам Crystal compiler → Go source</td><td>Готового пути в нашем spike нет</td><td>Отдельный порт compiler/runtime; это не задача TS transpiler</td></tr></tbody></table></div>
+<p class="reading">Первичные источники: <a href="https://github.com/antlr/antlr4/blob/dev/doc/go-target.md">ANTLR Go target</a> · <a href="https://tree-sitter.github.io/tree-sitter/cli/generate.html">Tree-sitter generation</a> · <a href="https://tree-sitter.github.io/tree-sitter/using-parsers/">bindings</a> · <a href="https://github.com/oisee/abapiti/blob/main/docs/adr/0002-tsgo-front-end.md">ABAPiti / tsgo</a>.</p>
+<h3>Неожиданный короткий путь: Go backend уже был в MinZ</h3><div class="prose"><p>Проверка репозитория нашла <code>minzc/pkg/mir2go</code>. Мы подключили scalar/meta Lanz к этому backend и получили работающий путь <b>Crystal → HIR → MIR2 → Go</b>, без ABAPiti. Повторный native Crystal reference и generated Go прошли <b>7 функций × 256 byte inputs = 1792 набора</b>.</p><p>Это unsigned scalar/meta corpus. Ни records/arena на Go, ни весь Crystal compiler этим не проверены. Probe отклоняет output с TODO от неподдержанного opcode. Generated Go использует int64 register variables, маски, goto и flat byte heap; host program живёт на обычном Go runtime. «Без GC на Z80» не является обещанием о runtime этой Go-программы.</p></div><p class="code-label">Настоящий generated Go · wrapper three_iterations</p><pre>func fn_cr_three_iterations_2(p0 int64 /*u8*/) int64 {
+	var r7, r8, r9 int64
+	_ = r7
+	_ = r8
+	_ = r9
+	r7 = p0
+
+	r8 = (r7) &amp; 0xFF
+	r9 = fn_meta_repeat_u8_3_7(r8)
+	return r9
+	return 0
+}</pre><details><summary>Receipt дополнительного Crystal → Go прогона</summary><pre>{
+  &quot;cases_per_engine&quot;: 1792,
+  &quot;engines&quot;: [
+    &quot;native Crystal&quot;,
+    &quot;generated Go&quot;
+  ],
+  &quot;functions&quot;: 7,
+  &quot;byte_inputs_per_function&quot;: 256,
+  &quot;lowering&quot;: &quot;raw HIR -&gt; raw MIR2 -&gt; existing mir2go&quot;,
+  &quot;scope&quot;: &quot;unsigned byte scalar/meta kernels; no record, exception or full frontend port claim&quot;,
+  &quot;fixture_sha256&quot;: &quot;f34c068f43370ae83218ea76fef524fb76ad81ba36da9e083e44e1c3b71f9dac&quot;,
+  &quot;crystal_source_sha256&quot;: &quot;5d7134bfadbcbd8b4a2c2f0602a10aa20f2525efba79b30cbcd6a29264c747a5&quot;,
+  &quot;go_source_sha256&quot;: &quot;0dfe57f666b67ac1bebdca836e1494eadd0e133925b46a99e0fd56f0f0fd005c&quot;
+}
+</pre></details>
+<div class="take">Parser переносит синтаксис. Самая дорогая добыча Crystal — inference, macros, overload resolution и специализации — находится дальше, в semantic frontend.</div>
+</section>
+<section id="music"><div class="section-head"><span class="num">07</span><h2>А можно переписать Autosiril?</h2></div>
+<div class="prose"><p><b>Музыкальное ядро — разумная следующая цель. Полный converter потребует расширения subset и библиотек.</b> Я посмотрела локальный <code>autooisee.rb</code>: там уже выделены стадии key detection, flattening, ornaments, delays и downmix. Репозиторий <a href="https://github.com/oisee/autosiril">Autosiril</a> описывает этот pipeline и указывает autooisee как продолжение разработки.</p>
+<p>Для первого переноса я бы выбрала monophonic selection или ограниченную обработку chord/ornament buffers. Это заставит добавить полезные конструкции: slices, нужные операции над small arrays и явную модель Note. Память можно организовать по времени жизни песни, pattern и временных вычислений, сохраняя состояние echo между нужными границами.</p>
+<p>В полном Ruby-коде есть midilib, File I/O, strings, вложенные динамические массивы, hashes, сортировка и float-округление MIDI time. Они сейчас не проходят через наш bridge целиком. На Z80 дополнительно нужны streaming и лимиты памяти; обычный host converter можно портировать на полный native Crystal отдельно от этого target-профиля.</p>
+<p>Самые интересные риски — музыкальная семантика. В <code>apply_diatonic_transpose</code> используется <code>(note - key) % 12</code>: отрицательные значения требуют правильного modulo. Копирование Ruby objects нельзя механически заменить value-copy structs. А изменение округления tick → row может сдвинуть музыку, даже если код стал быстрее.</p>
+<p>Нужен тот же принцип проверки: Ruby как oracle, сравнение промежуточных note events и затем музыкального output. В этой работе Autosiril ещё не портировался; здесь дана оценка по исходнику.</p></div>
+</section>
+<section id="proof"><div class="section-head"><span class="num">08</span><h2>Что именно доказано</h2></div>
+<div class="prose"><p><b>768 наборов входных данных = 3 сценария × все 256 значений seed.</b> Каждый сценарий выполняется в native Crystal, raw MIR2, optimized MIR2 и Z80 emulator. Сценарии: arena + repeat + marker read; копия структуры и изменение оригинала; чтение поля у двух layouts. Это не 768 возможностей языка.</p>
+<p>Дополнительно проверены 7 отказов, а прежние корпуса — 1792 meta-набора и 2372 arena-набора — прошли повторно. Числа не суммируются в процент покрытия языка. Они подтверждают выбранные программы, а не всю stdlib и не оптимальность ASM.</p></div>
+<details><summary>Receipt общего ring buffer, итерация 11</summary><pre>{
+  &quot;cases_per_engine&quot;: 525,
+  &quot;engines&quot;: [
+    &quot;native Crystal&quot;,
+    &quot;raw MIR2&quot;,
+    &quot;optimized MIR2&quot;,
+    &quot;Z80&quot;
+  ],
+  &quot;shared_library_bindings&quot;: [
+    &quot;ByteRing_clear&quot;,
+    &quot;ByteRing_init&quot;,
+    &quot;ByteRing_segments&quot;,
+    &quot;ByteRing_try_pop&quot;,
+    &quot;ByteRing_try_push&quot;,
+    &quot;ByteView_init&quot;,
+    &quot;ByteView_try_get&quot;,
+    &quot;ByteView_try_set&quot;
+  ],
+  &quot;negative_controls&quot;: [
+    &quot;unknown-binding&quot;,
+    &quot;binding-with-body&quot;,
+    &quot;wrong-return&quot;,
+    &quot;wrong-argument&quot;,
+    &quot;wrong-view-schema&quot;,
+    &quot;reordered-ring&quot;
+  ],
+  &quot;target_view_bytes&quot;: 4,
+  &quot;target_ring_bytes&quot;: 8,
+  &quot;all_byte_seeds&quot;: 256,
+  &quot;crystal_linked_to_shared_library&quot;: true,
+  &quot;library_sha256&quot;: &quot;ff993d0018bacb114766b830d76c3c62f7742928e978eff04875ac88f7299d24&quot;,
+  &quot;fifo_model_traces&quot;: 10,
+  &quot;fifo_model_operations_per_engine&quot;: 3224,
+  &quot;fifo_model_observed_queue_bytes_per_engine&quot;: 2578,
+  &quot;export_via_symlink_matches&quot;: true,
+  &quot;legacy_buffer_cases_per_engine&quot;: 7,
+  &quot;sha256&quot;: {
+    &quot;stdlib/mem/bytes.nanz&quot;: &quot;ff993d0018bacb114766b830d76c3c62f7742928e978eff04875ac88f7299d24&quot;,
+    &quot;minzc/pkg/nanz/byte_ring_test.go&quot;: &quot;5178d26a26b4ff58115b300eaf8b8fbb91550f119f8c0b6eef8bc5bac8c9f25c&quot;,
+    &quot;research/crystal-hir/bytes.cr&quot;: &quot;2a9dcf48354754f0c623f2258ebc50d53ecd060b8fd4916a9c797b09568d2080&quot;,
+    &quot;research/crystal-hir/ring_showcase.cr&quot;: &quot;4abdb011744958290dc7220e3da1f159b1d492fd581a646d502870ecf1d760e3&quot;,
+    &quot;research/crystal-hir/record_export.cr&quot;: &quot;29a3bbf490437133e03ea7ab18203e16a40c801eb99c8d33753fdb212cac7284&quot;,
+    &quot;minzc/cmd/crystal-record-hir/main.go&quot;: &quot;b831bbd9a478df929d160444814794327d76b7aba29a03599d3b5b235a2d6208&quot;
+  },
+  &quot;seconds&quot;: {
+    &quot;build-exporter&quot;: 7.463,
+    &quot;build-consumer&quot;: 0.31,
+    &quot;export&quot;: 1.762,
+    &quot;export-via-alias&quot;: 1.283,
+    &quot;native&quot;: 0.875,
+    &quot;fifo-model&quot;: 3.019,
+    &quot;legacy-export-via-alias&quot;: 1.277,
+    &quot;legacy-native&quot;: 1.012,
+    &quot;legacy-target&quot;: 2.713,
+    &quot;target&quot;: 162.988
+  }
+}
+</pre></details>
+<details><summary>Receipt Crystal → shared byte library, итерация 10</summary><pre>{
+  &quot;cases_per_engine&quot;: 538,
+  &quot;engines&quot;: [
+    &quot;native Crystal&quot;,
+    &quot;raw MIR2&quot;,
+    &quot;optimized MIR2&quot;,
+    &quot;Z80&quot;
+  ],
+  &quot;shared_library_bindings&quot;: [
+    &quot;ByteBuffer_clear&quot;,
+    &quot;ByteBuffer_init&quot;,
+    &quot;ByteBuffer_try_push&quot;,
+    &quot;ByteBuffer_view&quot;,
+    &quot;ByteView_init&quot;,
+    &quot;ByteView_subview&quot;,
+    &quot;ByteView_try_get&quot;,
+    &quot;ByteView_try_set&quot;
+  ],
+  &quot;negative_controls&quot;: [
+    &quot;unknown-binding&quot;,
+    &quot;binding-with-body&quot;,
+    &quot;wrong-return&quot;,
+    &quot;wrong-argument&quot;,
+    &quot;wrong-view-schema&quot;,
+    &quot;reordered-buffer&quot;
+  ],
+  &quot;target_view_bytes&quot;: 4,
+  &quot;target_buffer_bytes&quot;: 6,
+  &quot;all_byte_seeds&quot;: 256,
+  &quot;crystal_linked_to_shared_library&quot;: true,
+  &quot;library_sha256&quot;: &quot;cc6a6aa6b02193298a0e0c3c8541e8f1fcadb21bb4d6bd09e4246a4808f51431&quot;,
+  &quot;sha256&quot;: {
+    &quot;stdlib/mem/bytes.nanz&quot;: &quot;cc6a6aa6b02193298a0e0c3c8541e8f1fcadb21bb4d6bd09e4246a4808f51431&quot;,
+    &quot;research/crystal-hir/bytes.cr&quot;: &quot;04edbb55b6afdf18c2b254101dbdc36c6327d420ae3dd0ae2c6160e3b8671ff5&quot;,
+    &quot;research/crystal-hir/buffer_showcase.cr&quot;: &quot;0d074a10ca91b4c08c9d904a413f9e58dc75754c861133f7c8d00fc77624b72b&quot;,
+    &quot;research/crystal-hir/record_export.cr&quot;: &quot;dbc15186d6790c99a3f0284b4c16b0ed55d5bd52a42b417f1e7f0846e4c38afd&quot;,
+    &quot;minzc/cmd/crystal-record-hir/main.go&quot;: &quot;81dc91e273209327f249eef35dc424b276c03e216d0d63834a763ec01f52cf82&quot;
+  },
+  &quot;seconds&quot;: {
+    &quot;build-exporter&quot;: 8.01,
+    &quot;build-consumer&quot;: 0.478,
+    &quot;export&quot;: 1.784,
+    &quot;target&quot;: 144.28,
+    &quot;native&quot;: 1.162
+  }
+}
+</pre></details>
+<details><summary>Receipt общей byte-библиотеки, итерация 9</summary><pre>{
+  &quot;stage&quot;: &quot;shared-library-before-crystal-facade&quot;,
+  &quot;target_cases_per_engine&quot;: 22,
+  &quot;target_engines&quot;: [
+    &quot;raw MIR2&quot;,
+    &quot;optimized MIR2&quot;,
+    &quot;Z80&quot;
+  ],
+  &quot;native_reference_scenarios&quot;: 22,
+  &quot;capacities&quot;: [
+    0,
+    1,
+    3,
+    255,
+    256
+  ],
+  &quot;seeds&quot;: [
+    0,
+    1,
+    127,
+    255
+  ],
+  &quot;full_backing_and_guard_bytes_checked_per_workload&quot;: 258,
+  &quot;target_view_bytes&quot;: 4,
+  &quot;target_buffer_bytes&quot;: 6,
+  &quot;crystal_linked_to_shared_library&quot;: false,
+  &quot;sha256&quot;: {
+    &quot;stdlib/mem/bytes.nanz&quot;: &quot;cc6a6aa6b02193298a0e0c3c8541e8f1fcadb21bb4d6bd09e4246a4808f51431&quot;,
+    &quot;minzc/pkg/nanz/byte_buffer_test.go&quot;: &quot;f30733143c29e1dcc541cdd62f44b9f895f729080a1351194c09526843e25d29&quot;,
+    &quot;research/crystal-hir/buffer_reference.cr&quot;: &quot;0ea9dbbcb7a8a5fa8322fb215e01ccad945e84c1bbd5b654aa2f1daa33840c74&quot;
+  },
+  &quot;seconds&quot;: {
+    &quot;target&quot;: 2.517,
+    &quot;native&quot;: 0.913
+  }
+}
+</pre></details>
+<details><summary>Receipt yield/generator прогона, итерация 8</summary><pre>{
+  &quot;cases_per_engine&quot;: 2048,
+  &quot;engines&quot;: [
+    &quot;native Crystal&quot;,
+    &quot;raw MIR2&quot;,
+    &quot;optimized MIR2&quot;,
+    &quot;Z80&quot;
+  ],
+  &quot;consumer_functions&quot;: 8,
+  &quot;all_byte_seeds&quot;: 256,
+  &quot;native_yield_specializations&quot;: 8,
+  &quot;negative_controls&quot;: 5,
+  &quot;source_sha256&quot;: &quot;2f9552f45a577d6fae942407ead9c54b4618a566670c4878dcfaed78f8ed8b44&quot;,
+  &quot;exporter_sha256&quot;: &quot;3286f50786929386072ec33247a4e0383c3c6b119f2166c1eca5b57c07c5443f&quot;,
+  &quot;seconds&quot;: {
+    &quot;build-exporter&quot;: 8.174,
+    &quot;build-consumer&quot;: 1.351,
+    &quot;export&quot;: 1.763,
+    &quot;target&quot;: 360.95,
+    &quot;native&quot;: 1.257
+  }
+}
+</pre></details>
+<details><summary>Receipt borrowed-view прогона, итерация 7</summary><pre>{
+  &quot;cases_per_engine&quot;: 1566,
+  &quot;engines&quot;: [
+    &quot;native Crystal&quot;,
+    &quot;raw MIR2&quot;,
+    &quot;optimized MIR2&quot;,
+    &quot;Z80&quot;
+  ],
+  &quot;byte_functions&quot;: 6,
+  &quot;all_byte_seeds&quot;: 256,
+  &quot;wide_length_cases&quot;: 20,
+  &quot;word_cases&quot;: 10,
+  &quot;negative_controls&quot;: 7,
+  &quot;target_descriptor_bytes&quot;: 4,
+  &quot;native_descriptor_bytes&quot;: &quot;16,16&quot;,
+  &quot;source_sha256&quot;: &quot;48bc5154d19ca0d5e2c2915ef077f1a4ef49b9de17ec0a2553836884950c9fd9&quot;,
+  &quot;exporter_sha256&quot;: &quot;0de2a1d1fcbd430903d7d7010392c0382c79a731d6e5ad5a97386d3cd2eac501&quot;,
+  &quot;seconds&quot;: {
+    &quot;build-exporter&quot;: 7.159,
+    &quot;build-consumer&quot;: 0.084,
+    &quot;export&quot;: 1.646,
+    &quot;target&quot;: 80.742,
+    &quot;native&quot;: 0.975,
+    &quot;native-layout&quot;: 0.626
+  }
+}
+</pre></details>
+<details><summary>Receipt macro/meta + records прогона, итерация 4</summary><pre>{
+  &quot;cases_per_engine&quot;: 768,
+  &quot;engines&quot;: [
+    &quot;native Crystal&quot;,
+    &quot;raw MIR2&quot;,
+    &quot;optimized MIR2&quot;,
+    &quot;Z80&quot;
+  ],
+  &quot;negative_controls&quot;: 7,
+  &quot;target_layout_receipts&quot;: [
+    {
+      &quot;protocol&quot;: &quot;minz-meta-layout-v1&quot;,
+      &quot;target&quot;: &quot;z80&quot;,
+      &quot;function&quot;: &quot;meta_layout_byte_8_7&quot;,
+      &quot;record&quot;: &quot;record_0&quot;,
+      &quot;field&quot;: &quot;marker&quot;,
+      &quot;offset&quot;: 7,
+      &quot;record_bytes&quot;: 8,
+      &quot;pointer_bytes&quot;: 2,
+      &quot;generator_sha256&quot;: &quot;553155484c0b43a3ea82e4ebef86bfb79731416566d0d01a8b7ad2a788cdf709&quot;
+    },
+    {
+      &quot;protocol&quot;: &quot;minz-meta-layout-v1&quot;,
+      &quot;target&quot;: &quot;z80&quot;,
+      &quot;function&quot;: &quot;meta_layout_byte_3_0&quot;,
+      &quot;record&quot;: &quot;record_1&quot;,
+      &quot;field&quot;: &quot;marker&quot;,
+      &quot;offset&quot;: 0,
+      &quot;record_bytes&quot;: 3,
+      &quot;pointer_bytes&quot;: 2,
+      &quot;generator_sha256&quot;: &quot;553155484c0b43a3ea82e4ebef86bfb79731416566d0d01a8b7ad2a788cdf709&quot;
+    }
+  ],
+  &quot;native_host_layout&quot;: {
+    &quot;pointer_bytes&quot;: 8,
+    &quot;arena_bytes&quot;: 24,
+    &quot;marker_offset&quot;: 20
+  },
+  &quot;source_sha256&quot;: &quot;f8b901929a5837e3b68db3959307728bcf2dac84123dde398d234391d5a54945&quot;,
+  &quot;exporter_sha256&quot;: &quot;7d690c906490533e616589f0d0dbc64850e1037feb9e4f7cc3e31759ac337e19&quot;,
+  &quot;seconds&quot;: {
+    &quot;build-exporter&quot;: 8.193,
+    &quot;build-consumer&quot;: 0.088,
+    &quot;export&quot;: 1.559,
+    &quot;target&quot;: 11.68,
+    &quot;native&quot;: 0.693
+  }
+}
+</pre></details>
+<details><summary>Provenance листингов и подсчёт инструкций</summary><pre>{
+  &quot;ring_bridge_commit&quot;: &quot;b6951b11f&quot;,
+  &quot;ring_library_commit&quot;: &quot;afe7e685b&quot;,
+  &quot;byte_bridge_commit&quot;: &quot;802c61573&quot;,
+  &quot;field_predicate_fix_commit&quot;: &quot;f0b316b84&quot;,
+  &quot;byte_library_commit&quot;: &quot;0a0eb3d2c&quot;,
+  &quot;assembly_experiment_commit&quot;: &quot;cf4e395ff&quot;,
+  &quot;go_probe_commit&quot;: &quot;0503fd753&quot;,
+  &quot;borrowed_view_commit&quot;: &quot;7267b91bb&quot;,
+  &quot;yield_bridge_commit&quot;: &quot;be9c0121e&quot;,
+  &quot;generator_fixes&quot;: [
+    &quot;94cc4337b&quot;,
+    &quot;2d7fa7904&quot;
+  ],
+  &quot;target&quot;: &quot;z80&quot;,
+  &quot;register_allocator&quot;: &quot;PBQP&quot;,
+  &quot;files&quot;: {
+    &quot;byte-library.a80&quot;: &quot;2e159f50b8ea081d778157bb5dd560f1b2f863226791c3532ec30f319cd83d58&quot;,
+    &quot;iteration10-layout.json&quot;: &quot;31da68312d3513fc4be3e3b36dc5306fece72474123221ad36dcdcccafe1a256&quot;,
+    &quot;iteration10-results.json&quot;: &quot;c76372d77bca6d2c3845a3b015950b8f8116907fa8b9360bffe3a47377270e3c&quot;,
+    &quot;iteration11-layout.json&quot;: &quot;62b4e17c26c72edf160d42f5f227afaebc147b0ee00622393fe353932517a3e0&quot;,
+    &quot;iteration11-results.json&quot;: &quot;9cf44305a4687b227a9ed7c0a685888ef40984fb968a2415897fb0fae99b1399&quot;,
+    &quot;iteration4-results.json&quot;: &quot;362b9f8f3e13e3096a5e2a0bfdde944a1bfda6328f79689119a54d8458483a76&quot;,
+    &quot;iteration5-results.json&quot;: &quot;1a3fa24c39f543aa01ceda97cb42911b20b05ee85a5e37c53d7f8fb3dfe1a6d5&quot;,
+    &quot;iteration7-results.json&quot;: &quot;889a1f758a2edce53287cf980fa6936acb56305645d82fcb2b2f07a0643c5945&quot;,
+    &quot;iteration8-layout.json&quot;: &quot;8b13f600e848a87d150046e110d29f9b45c7102470097cf71cc606ff5a8055c0&quot;,
+    &quot;iteration8-results.json&quot;: &quot;ff32c418d66f414cd445da357d6b3f6c02f4729df4beba012fafecac5e041947&quot;,
+    &quot;iteration9-library-results.json&quot;: &quot;1c415a93ff17f52583c4feea45d10a5ffffacfd3a5bf4418847bc8eefef7852c&quot;,
+    &quot;meta-arena.a80&quot;: &quot;68173bbcc747cd50ae5fe6435d93bb90f74cf012852a0460c789a93e20d69eaf&quot;,
+    &quot;meta-arena.hir&quot;: &quot;4d95573a13713d1f4471eb31d5df3eb99a34b0f08a7e2f7f39fc6e46f09c8d09&quot;,
+    &quot;meta-arena.mir2&quot;: &quot;f80daab8823145c72c20e7e58f73c8d50b4d50a678449a443a24ed0b35040ed2&quot;,
+    &quot;meta_arena_showcase.cr&quot;: &quot;f8b901929a5837e3b68db3959307728bcf2dac84123dde398d234391d5a54945&quot;,
+    &quot;scalar-meta-generated.go.txt&quot;: &quot;0dfe57f666b67ac1bebdca836e1494eadd0e133925b46a99e0fd56f0f0fd005c&quot;,
+    &quot;scalar-meta.lanz&quot;: &quot;f34c068f43370ae83218ea76fef524fb76ad81ba36da9e083e44e1c3b71f9dac&quot;
+  },
+  &quot;listing_instruction_counts&quot;: {
+    &quot;byte_buffer_clear&quot;: 8,
+    &quot;byte_buffer_try_push&quot;: 92,
+    &quot;repeat&quot;: 7,
+    &quot;reader_offset_7&quot;: 4,
+    &quot;reader_offset_0&quot;: 2,
+    &quot;arena_entry&quot;: 134
+  }
+}</pre><p>Artifact snapshots лежат рядом с исходником статьи в ветке spike/crystal-hir. Полная копия HTML не требует этих файлов при чтении: snippets и receipts уже встроены. Подсчёт относится к тексту функций, не к выполненным инструкциям, размеру binary или cycle count.</p></details>
+<div class="take">Получился узнаваемый Crystal с работающим путём до Z80 и собственными compile-time генераторами. Теперь красоту архитектуры предстоит довести до удобства API и качества каждого машинного прохода.</div>
+</section>
+<footer>Исследовательская статья · 2026-10-25 · основной эксперимент cf4e395ff + дополнительный Go probe<br>Самодостаточный HTML / CSS, без JavaScript и внешних assets. Технические выводы про ASM основаны на приложенных listings; варианты будущей интеграции помечены как предложения.</footer>
+</main></body></html>

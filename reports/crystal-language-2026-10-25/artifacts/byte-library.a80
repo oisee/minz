@@ -1,0 +1,352 @@
+; Verbatim function excerpts from iteration10 buffers.a80; not a standalone assembly unit.
+
+; fun ByteView_init(self: ptr = HL, data: ptr = BC, len: u16 = DE) ; clobbers: A, B, BC, C, D, DE, E, F, H, HL, IX, IXH, IXL, IY, IYH, IYL, L
+; [trace] backend=PBQP passes=[dse=1]
+ByteView_init:
+    PUSH HL
+    LD (HL), C     ; lo
+    INC HL
+    LD (HL), B     ; hi
+    DEC HL
+    POP HL
+    INC HL
+    INC HL
+    LD (HL), E     ; lo
+    INC HL
+    LD (HL), D     ; hi
+    DEC HL
+    RET
+
+; fun ByteView_try_get(self: ptr = HL, index: u16 = DE, out: ptr = IX) -> u8 = A ; clobbers: A, B, BC, C, D, DE, E, F, H, HL, IX, IXH, IXL, IY, IYH, IYL, L
+; [trace] backend=PBQP passes=[ident-simp=1,dse=1]
+ByteView_try_get:
+    LD C, L
+    LD B, H
+    INC BC
+    INC BC
+    PUSH AF          ; preserve word-load scratch
+    LD A, (BC)     ; lo
+    PUSH AF          ; stage low byte before replacing address
+    INC BC
+    LD A, (BC)     ; hi
+    LD B, A
+    POP AF
+    LD C, A
+    POP AF           ; restore word-load scratch
+    PUSH HL
+    LD H, D
+    LD L, E
+    OR A
+    SBC HL, BC
+    POP HL
+    JRS C, .ByteView_try_get_if_join2
+.ByteView_try_get_if_then1:
+    LD A, 0
+    RET
+.ByteView_try_get_if_join2:
+    PUSH AF          ; preserve word-load scratch
+    LD A, (HL)     ; lo
+    PUSH AF          ; stage low byte before replacing address
+    INC HL
+    LD A, (HL)     ; hi
+    LD H, A
+    POP AF
+    LD L, A
+    POP AF           ; restore word-load scratch
+    ADD HL, DE
+    LD C, (HL)
+    LD (IX+0), C
+    LD A, 1
+    RET
+
+; fun ByteView_try_set(self: ptr = HL, index: u16 = DE, value: u8 = B) -> u8 = A ; clobbers: A, B, BC, C, D, DE, E, F, H, HL, IX, IXH, IXL, IY, IYH, IYL, L
+; [trace] backend=PBQP passes=[dse=1]
+ByteView_try_set:
+    PUSH HL
+    POP IX
+    INC IX
+    INC IX
+    PUSH AF          ; preserve word-load scratch
+    LD A, (IX+0)     ; lo
+    PUSH AF          ; stage low byte before replacing address
+    LD A, (IX+1)     ; hi
+    LD IXH, A
+    POP AF
+    LD IXL, A
+    POP AF           ; restore word-load scratch
+    PUSH HL
+    PUSH BC
+    LD H, D
+    LD L, E
+    PUSH IX
+    POP BC
+    OR A
+    SBC HL, BC
+    POP BC
+    POP HL
+    JRS C, .ByteView_try_set_if_join2
+.ByteView_try_set_if_then1:
+    LD A, 0
+    RET
+.ByteView_try_set_if_join2:
+    PUSH AF          ; preserve word-load scratch
+    LD A, (HL)     ; lo
+    PUSH AF          ; stage low byte before replacing address
+    INC HL
+    LD A, (HL)     ; hi
+    LD H, A
+    POP AF
+    LD L, A
+    POP AF           ; restore word-load scratch
+    ADD HL, DE
+    LD (HL), B
+    LD A, 1
+    RET
+
+; fun ByteView_subview(self: ptr = BC, start: u16 = HL, count: u16 = DE, out: ptr = IX) -> u8 = A ; clobbers: A, B, BC, C, D, DE, E, F, H, HL, IX, IXH, IXL, IY, IYH, IYL, L
+; [trace] backend=PBQP passes=[dse=1]
+ByteView_subview:
+    LD IYH, B
+    LD IYL, C
+    INC IY
+    INC IY
+    PUSH AF          ; preserve word-load scratch
+    LD A, (IY+0)     ; lo
+    PUSH AF          ; stage low byte before replacing address
+    LD A, (IY+1)     ; hi
+    LD IYH, A
+    POP AF
+    LD IYL, A
+    POP AF           ; restore word-load scratch
+    PUSH HL
+    PUSH BC
+    PUSH IY
+    POP BC
+    OR A
+    SBC HL, BC
+    POP BC
+    POP HL
+    JRS Z, .ByteView_subview_if_join2
+    JRS C, .ByteView_subview_if_join2
+.ByteView_subview_if_then1:
+    LD A, 0
+    RET
+.ByteView_subview_if_join2:
+    PUSH HL
+    PUSH DE
+    PUSH IY
+    PUSH HL
+    POP DE
+    POP HL
+    OR A
+    SBC HL, DE
+    PUSH HL
+    POP IY
+    POP DE
+    POP HL
+    PUSH HL
+    PUSH IY
+    POP HL
+    OR A
+    SBC HL, DE
+    POP HL
+    JRS NC, .ByteView_subview_if_join4
+.ByteView_subview_if_then3:
+    LD A, 0
+    RET
+.ByteView_subview_if_join4:
+    PUSH AF          ; preserve word-load scratch
+    LD A, (BC)     ; lo
+    PUSH AF          ; stage low byte before replacing address
+    INC BC
+    LD A, (BC)     ; hi
+    LD B, A
+    POP AF
+    LD C, A
+    POP AF           ; restore word-load scratch
+    ADD HL, BC
+    LD A, L
+    LD (IX+0), A     ; lo
+    LD A, H
+    LD (IX+1), A     ; hi
+    PUSH IX
+    POP HL
+    INC HL
+    INC HL
+    LD (HL), E     ; lo
+    INC HL
+    LD (HL), D     ; hi
+    DEC HL
+    LD A, 1
+    RET
+
+; fun ByteBuffer_init(self: ptr = HL, data: ptr = BC, cap: u16 = DE) ; clobbers: A, B, BC, C, D, DE, E, F, H, HL, IX, IXH, IXL, IY, IYH, IYL, L
+; [trace] backend=PBQP passes=[const-fold=1,dse=1]
+ByteBuffer_init:
+    PUSH HL
+    LD (HL), C     ; lo
+    INC HL
+    LD (HL), B     ; hi
+    DEC HL
+    POP HL
+    LD BC, 0
+    PUSH HL
+    POP IX
+    INC IX
+    INC IX
+    LD (IX+0), C     ; lo
+    LD (IX+1), B     ; hi
+    LD BC, 4
+    ADD HL, BC
+    LD (HL), E     ; lo
+    INC HL
+    LD (HL), D     ; hi
+    DEC HL
+    RET
+
+; fun ByteBuffer_clear(self: ptr = HL) ; clobbers: A, B, BC, C, D, DE, E, F, H, HL, IX, IXH, IXL, IY, IYH, IYL, L
+; [trace] backend=PBQP passes=[const-fold=1,dse=1]
+ByteBuffer_clear:
+    LD DE, 0
+    INC HL
+    INC HL
+    LD (HL), E     ; lo
+    INC HL
+    LD (HL), D     ; hi
+    DEC HL
+    RET
+
+; fun ByteBuffer_try_push(self: ptr = HL, value: u8 = A) -> u8 = A ; clobbers: A, B, BC, C, D, DE, E, F, H, HL, IX, IXH, IXL, IY, IYH, IYL, L
+; [trace] backend=PBQP passes=[dse=1]
+ByteBuffer_try_push:
+    LD D, H
+    LD E, L
+    INC DE
+    INC DE
+    PUSH AF          ; preserve word-load scratch
+    LD A, (DE)     ; lo
+    PUSH AF          ; stage low byte before replacing address
+    INC DE
+    LD A, (DE)     ; hi
+    LD D, A
+    POP AF
+    LD E, A
+    POP AF           ; restore word-load scratch
+    LD C, L
+    LD B, H
+    PUSH HL
+    PUSH DE
+    LD L, C
+    LD H, B
+    LD DE, 4
+    ADD HL, DE
+    LD C, L
+    LD B, H
+    POP DE
+    POP HL
+    PUSH AF          ; preserve word-load scratch
+    LD A, (BC)     ; lo
+    PUSH AF          ; stage low byte before replacing address
+    INC BC
+    LD A, (BC)     ; hi
+    LD B, A
+    POP AF
+    LD C, A
+    POP AF           ; restore word-load scratch
+    LD IYH, A    ; preserve live accumulator before CMP
+    PUSH HL
+    LD H, D
+    LD L, E
+    OR A
+    SBC HL, BC
+    POP HL
+    ; restore live-out r619 from scratch
+    LD A, IYH
+    JRS C, .ByteBuffer_try_push_if_join2
+.ByteBuffer_try_push_if_then1:
+    LD A, 0
+    RET
+.ByteBuffer_try_push_if_join2:
+    LD C, (HL)     ; lo
+    INC HL
+    LD B, (HL)     ; hi
+    DEC HL
+    LD D, H
+    LD E, L
+    INC DE
+    INC DE
+    PUSH AF          ; preserve word-load scratch
+    LD A, (DE)     ; lo
+    PUSH AF          ; stage low byte before replacing address
+    INC DE
+    LD A, (DE)     ; hi
+    LD D, A
+    POP AF
+    LD E, A
+    POP AF           ; restore word-load scratch
+    PUSH HL
+    LD L, C
+    LD H, B
+    ADD HL, DE
+    LD D, H
+    LD E, L
+    POP HL
+    LD (DE), A
+    LD D, H
+    LD E, L
+    INC DE
+    INC DE
+    PUSH AF          ; preserve word-load scratch
+    LD A, (DE)     ; lo
+    PUSH AF          ; stage low byte before replacing address
+    INC DE
+    LD A, (DE)     ; hi
+    LD D, A
+    POP AF
+    LD E, A
+    POP AF           ; restore word-load scratch
+    INC DE
+    INC HL
+    INC HL
+    LD (HL), E     ; lo
+    INC HL
+    LD (HL), D     ; hi
+    DEC HL
+    LD A, 1
+    RET
+
+; fun ByteBuffer_view(self: ptr = HL, out: ptr = DE) ; clobbers: A, B, BC, C, D, DE, E, F, H, HL, IX, IXH, IXL, IY, IYH, IYL, L
+; [trace] backend=PBQP passes=[dse=1]
+ByteBuffer_view:
+    LD C, (HL)     ; lo
+    INC HL
+    LD B, (HL)     ; hi
+    DEC HL
+    PUSH DE
+    LD A, C
+    LD (DE), A     ; lo
+    INC DE
+    LD A, B
+    LD (DE), A     ; hi
+    DEC DE
+    POP DE
+    INC HL
+    INC HL
+    PUSH AF          ; preserve word-load scratch
+    LD A, (HL)     ; lo
+    PUSH AF          ; stage low byte before replacing address
+    INC HL
+    LD A, (HL)     ; hi
+    LD H, A
+    POP AF
+    LD L, A
+    POP AF           ; restore word-load scratch
+    INC DE
+    INC DE
+    LD A, L
+    LD (DE), A     ; lo
+    INC DE
+    LD A, H
+    LD (DE), A     ; hi
+    DEC DE
+    RET
