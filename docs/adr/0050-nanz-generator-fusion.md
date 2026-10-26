@@ -13,6 +13,11 @@ baseline a fusion pass must beat.
 profile: one syntactic immediate consumer; a single producer while with leading
 yield and parameter-only suffix updates. Fresh parameter bindings, conservative
 free-name collision refusal and structured consumer exits preserve pull demand.
+The subsequent [RLE checkpoint](../../research/generator-fusion/rle/README.md)
+admits two nested whiles with scalar prefix locals, fresh local bindings and
+propagated consumer break. Its measured kernel shrinks from 311 to 73 code bytes
+and 16,201 to 3,576 T-states; 14 independent demand fixtures run on both MIR2
+forms and assembled Z80, with complete ordered traces.
 Manual cursors and unsupported shapes keep the existing pull path. Explicit
 profiles/loop policies are refused; automatic variant search is disabled under
 the flag. Defaults and generalized fusion remain unchanged/proposed.

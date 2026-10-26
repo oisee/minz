@@ -41,12 +41,14 @@ whose consumer explicitly takes an element's address can still need local storag
 
 ## Admission and semantics
 
-The first profile admits a producer with exactly one structured `while`: a
+The original profile admits a producer with exactly one structured `while`: a
 leading scalar yield followed by at most four assignments to its own parameters.
 Parameters are scalar/pointer values; elements are u8/i8/u16/i16/bool. The generator
 has one syntactic immediate consumption site and no manual cursor/reference uses.
-Multiple consumers, prefix statements, producer locals, multiple yield sites and
-other producer control stay on the existing pull path.
+A second checked profile admits two nested whiles with private scalar prefix
+locals and updates before the inner loop; see the [RLE checkpoint](rle/README.md).
+Multiple consumers, unsupported prefixes, multiple yield sites and other producer
+control stay on the existing pull path.
 
 Arguments are captured once, left-to-right, under fresh private names. The consumer
 is spliced at yield. Break abandons the producer before its suffix; return leaves
@@ -60,7 +62,7 @@ HIR does not yet give every reference a resolved binding ID. Free producer globa
 and direct-call names must not collide with any caller binding (including loop
 variables and captures); such sites conservatively retain pull. The same check
 prevents calling a caller-local function alias in place of a producer's global
-callee. Producer parameter addresses are not admitted. Reflective deep cloning
+callee. Producer parameter/local addresses are not admitted. Reflective deep cloning
 retains type, volatility and call metadata; it does not use textual substitution.
 
 Explicit HIR loop policies, profiling/site collection and explicit variant policies

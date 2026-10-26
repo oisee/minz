@@ -1,0 +1,54 @@
+[
+  {
+    "variant": "pull",
+    "code_bytes": 311,
+    "binary_bytes": 327,
+    "t_states": 16201,
+    "stack_below_entry_bytes": 19,
+    "result": 1362,
+    "input_read_counts": [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ]
+  },
+  {
+    "variant": "fused",
+    "code_bytes": 73,
+    "binary_bytes": 89,
+    "t_states": 3576,
+    "stack_below_entry_bytes": 4,
+    "result": 1362,
+    "input_read_counts": [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ]
+  }
+]

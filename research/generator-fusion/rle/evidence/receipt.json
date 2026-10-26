@@ -1,0 +1,104 @@
+{
+  "protocol": "generator-fusion-g2-rle/v1",
+  "go_version": "go version go1.26.3 darwin/arm64",
+  "git_head": "f51dfc0abcafd27300b036496a57555a01d571be",
+  "git_dirty": false,
+  "source_sha256": {
+    "minzc/pkg/hir/fuse_gen.go": "82b54d3bed649dc63d6195ad8a039fa76e3590ba33a045d3c420cd9145cbecf0",
+    "minzc/pkg/hir/lower.go": "2bf993a067966e883301f5aceafbac955ddc01065e4e6a2dd2b8d0328a47a8b8",
+    "minzc/pkg/pipeline/pipeline.go": "48cb6abb9f67fb15360b4f23fa69c184e222ec86468212ad619a9d0948a7244d",
+    "minzc/pkg/pipeline/variant_search.go": "b0de03ec15c1ce7cf8c48f1684e2ee2de2a42763d08734d7a93352b06df59fb0",
+    "minzc/pkg/pipeline/generator_fusion_rle_test.go": "03ad6000b94f6ba690886eb1e9b1d80d9b979ad41a80686dacbbf5237b6c5943",
+    "minzc/cmd/minzc/main.go": "4bf18f0fbf5384e21861ac76f3a1ce408d7c5a7ee6a7a965c517e50a465bdb0d",
+    "scripts/ci/pipeline_profiles.json": "2934de60600b94433f990cec8d8f880edca8e94ef99c8e1dec4078833de50419",
+    "research/generator-fusion/rle/sum.nanz": "76574d2bf3d320e6f569b55c9456c032fb30623637bb264238e5c43d2a1c089f",
+    "research/generator-fusion/rle/verify.py": "d581a0095bf0e43243dfac0fae70f2e3862375bdebb2a68767b5d9ef4b1f8045"
+  },
+  "compiler_sha256": "e8c0158e1fdc18ae9769bce51a4ba5c852a105272d7c3a566660df9615f51e15",
+  "costs": [
+    {
+      "variant": "pull",
+      "code_bytes": 311,
+      "binary_bytes": 327,
+      "t_states": 16201,
+      "stack_below_entry_bytes": 19,
+      "result": 1362,
+      "input_read_counts": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "variant": "fused",
+      "code_bytes": 73,
+      "binary_bytes": 89,
+      "t_states": 3576,
+      "stack_below_entry_bytes": 4,
+      "result": 1362,
+      "input_read_counts": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ]
+    }
+  ],
+  "input": [
+    3,
+    65,
+    0,
+    90,
+    2,
+    66,
+    1,
+    0,
+    4,
+    255,
+    2,
+    7,
+    0,
+    33,
+    1,
+    1
+  ],
+  "native_origin": 32768,
+  "scope": "complete linked native binary minus 16 input bytes, helpers included; stack excludes initial return sentinel",
+  "options": {
+    "UseGrace": true,
+    "ContractOpt": true,
+    "DisableVariantSearch": true,
+    "AssertMode": "none"
+  },
+  "semantic_gate": "14 fixtures x pull/fused x raw MIR2/final MIR2/assembled Z80; independent Go oracle and complete ordered byte trace",
+  "pure_exit_gate": "2 fixtures x 6 paths; native input-read heatmaps exclude reads beyond consumer break",
+  "cli_checks": [
+    "ordinary pull helper retained",
+    "fused helper eliminated"
+  ]
+}

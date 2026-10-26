@@ -7,8 +7,8 @@ import (
 )
 
 // GeneratorFusionStats records admitted immediate-consumer sites. This first
-// profile admits one use of a producer, whose body is a single while with a
-// leading yield and parameter-only updates. All other generators stay pull.
+// profile admits one use of a producer with up to two nested whiles, a
+// leading inner yield and private scalar updates. Other generators stay pull.
 type GeneratorFusionStats struct {
 	Fused     int
 	Producers []string
@@ -107,7 +107,7 @@ func FuseSimpleGenerators(m *Module) (GeneratorFusionStats, error) {
 			for i, s := range b.Body {
 				if st, ok := s.(*GenForStmt); ok {
 					g := gens[st.Gen]
-					if g != nil && uses[g.Name] == 1 && !manual[g.Name] && fusionProducer(g) && fusionFreeBindingsSafe(g, used) && fusionConsumer(st.Body) && len(st.Args) == len(g.Params) && st.ElemTy == g.ElemTy {
+					if g != nil && uses[g.Name] == 1 && !manual[g.Name] && fusionProducer(g, reserved) && fusionFreeBindingsSafe(g, used) && fusionConsumer(st.Body) && len(st.Args) == len(g.Params) && st.ElemTy == g.ElemTy {
 						fused, loop := fuseGeneratorFor(g, st, fresh)
 						b.Body[i] = fused
 						removed[g.Name] = true
@@ -205,56 +205,106 @@ func fusionExpr(e Expr) bool {
 	})
 	return good
 }
-func fusionProducer(g *Func) bool {
-	if g.ElemTy != mir2.TyU8 && g.ElemTy != mir2.TyI8 && g.ElemTy != mir2.TyU16 && g.ElemTy != mir2.TyI16 && g.ElemTy != mir2.TyBool {
+
+// fusionScalar excludes aggregate storage whose identity could escape.
+func fusionScalar(ty mir2.Ty) bool {
+	return ty == mir2.TyU8 || ty == mir2.TyI8 || ty == mir2.TyU16 || ty == mir2.TyI16 || ty == mir2.TyBool
+}
+func fusionProducer(g *Func, reserved map[string]bool) bool {
+	if !fusionScalar(g.ElemTy) || g.Body == nil || g.IsExtern || len(g.Captures) != 0 || len(g.Body.Body) != 1 {
 		return false
 	}
-	if g.Body == nil || g.IsExtern || len(g.Captures) != 0 || len(g.Body.Body) != 1 {
+	root, ok := g.Body.Body[0].(*WhileStmt)
+	if !ok {
 		return false
 	}
-	loop, ok := g.Body.Body[0].(*WhileStmt)
-	if !ok || loop.Body == nil || len(loop.Body.Body) < 1 || len(loop.Body.Body) > 5 || !fusionExpr(loop.Cond) {
-		return false
-	}
-	yield, ok := loop.Body.Body[0].(*YieldStmt)
-	if !ok || yield.Val == nil || yield.Val.ExprTy() != g.ElemTy || !fusionExpr(yield.Val) {
-		return false
-	}
-	params := map[string]bool{}
+	owned := map[string]bool{}
+	available := map[string]bool{}
 	for _, p := range g.Params {
-		if p.SMC || p.Ty == nil || (!mir2.IsPointer(p.Ty) && p.Ty != mir2.TyU8 && p.Ty != mir2.TyU16 && p.Ty != mir2.TyI8 && p.Ty != mir2.TyI16 && p.Ty != mir2.TyBool) {
+		if p.SMC || p.Ty == nil || (!mir2.IsPointer(p.Ty) && !fusionScalar(p.Ty)) {
 			return false
 		}
-		params[p.Name] = true
+		owned[p.Name], available[p.Name] = true, true
 	}
-	for _, s := range loop.Body.Body[1:] {
+	valid := true
+	// Unique local names also avoid ambiguous free-global bindings before a
+	// declaration. Local declarations are admitted only before the inner loop.
+	fusionWalk(g.Body, func(s Stmt) {
+		if v, ok := s.(*VarDeclStmt); ok {
+			if v.Volatile || v.At != nil || owned[v.Name] || reserved[v.Name] || !fusionScalar(v.Ty) || v.ArrayLen != 0 || len(v.Initial) != 0 || v.Init == nil {
+				valid = false
+			}
+			owned[v.Name] = true
+		}
+	})
+	expr := func(e Expr, scope map[string]bool) bool {
+		good := fusionExpr(e)
+		walkExpr(e, func(e Expr) {
+			switch x := e.(type) {
+			case *VarRefExpr:
+				if owned[x.Name] && !scope[x.Name] {
+					good = false
+				}
+			case *CallExpr:
+				if owned[x.Fn] {
+					good = false
+				}
+			case *AddrOfExpr:
+				if owned[x.Sym] {
+					good = false
+				}
+				if v, ok := x.X.(*VarRefExpr); ok && owned[v.Name] {
+					good = false
+				}
+			}
+		})
+		return good
+	}
+	assign := func(s Stmt, scope map[string]bool) bool {
 		a, ok := s.(*AssignStmt)
 		if !ok {
 			return false
 		}
 		v, ok := a.Target.(*VarRefExpr)
-		if !ok || !params[v.Name] || !fusionExpr(a.Val) {
+		return ok && scope[v.Name] && expr(a.Val, scope)
+	}
+	var loopOK func(*WhileStmt, map[string]bool, int) bool
+	loopOK = func(loop *WhileStmt, outer map[string]bool, depth int) bool {
+		if depth > 2 || loop.Body == nil || len(loop.Body.Body) == 0 || len(loop.Body.Body) > 12 || !expr(loop.Cond, outer) {
 			return false
 		}
-	}
-	// Addressing producer-owned state would expose its pull frame identity.
-	safe := true
-	check := func(e Expr) {
-		if a, ok := e.(*AddrOfExpr); ok {
-			if params[a.Sym] {
-				safe = false
-			}
-			if v, ok := a.X.(*VarRefExpr); ok && params[v.Name] {
-				safe = false
+		scope := map[string]bool{}
+		for name := range outer {
+			scope[name] = true
+		}
+		pivot := -1
+		for i, s := range loop.Body.Body {
+			switch x := s.(type) {
+			case *YieldStmt:
+				// Inner yield stays first; no hidden prefix is moved across demand.
+				if pivot >= 0 || i != 0 || x.Val == nil || x.Val.ExprTy() != g.ElemTy || !expr(x.Val, scope) {
+					return false
+				}
+				pivot = i
+			case *WhileStmt:
+				if pivot >= 0 || !loopOK(x, scope, depth+1) {
+					return false
+				}
+				pivot = i
+			case *VarDeclStmt:
+				if pivot >= 0 || !expr(x.Init, scope) {
+					return false
+				}
+				scope[x.Name] = true
+			default:
+				if !assign(s, scope) {
+					return false
+				}
 			}
 		}
+		return pivot >= 0 && len(loop.Body.Body)-pivot-1 <= 4
 	}
-	walkExpr(loop.Cond, check)
-	walkExpr(yield.Val, check)
-	for _, s := range loop.Body.Body[1:] {
-		visitStmtExprs(s, check)
-	}
-	return safe
+	return valid && loopOK(root, available, 1)
 }
 func fusionConsumer(b *Block) bool {
 	if b == nil {
@@ -283,94 +333,160 @@ func fusionClone(b *Block) *Block {
 	return CloneModule(&Module{Funcs: []*Func{{Body: b}}}).Funcs[0].Body
 }
 func fuseGeneratorFor(g *Func, site *GenForStmt, fresh func(string) string) (*Block, *WhileStmt) {
-	params := map[string]string{}
+	names := map[string]string{}
 	var setup []Stmt
 	for i, p := range g.Params {
 		name := fresh(p.Name)
-		params[p.Name] = name
+		names[p.Name] = name
 		setup = append(setup, &VarDeclStmt{Name: name, Ty: p.Ty, Init: site.Args[i]})
 	}
 	producer := fusionClone(g.Body)
+	fusionWalk(producer, func(s Stmt) {
+		if v, ok := s.(*VarDeclStmt); ok {
+			names[v.Name] = fresh(v.Name)
+		}
+	})
 	rename := func(e Expr) Expr {
 		if v, ok := e.(*VarRefExpr); ok {
-			if name, found := params[v.Name]; found {
+			if name, found := names[v.Name]; found {
 				v.Name = name
 			}
 		}
 		return e
 	}
-	// mapStmtExprs intentionally does not rewrite YieldStmt; handle its value
-	// explicitly before removing that node.
 	mapBlockExprs(producer, rename)
-	loop := producer.Body[0].(*WhileStmt)
-	yield := loop.Body.Body[0].(*YieldStmt)
-	value := mapExprChildren(yield.Val, rename)
-	suffix := &Block{Body: loop.Body.Body[1:]}
-	consumer := fusionClone(site.Body)
-	rewriteFusionContinue(consumer, suffix, 0)
-	body := []Stmt{&AssignStmt{Target: &VarRefExpr{Name: site.Var, Ty: site.ElemTy}, Val: value}}
-	body = append(body, consumer.Body...)
-	body = append(body, suffix.Body...)
-	loop.Body = &Block{Body: body}
-	setup = append(setup, &VarDeclStmt{Name: site.Var, Ty: site.ElemTy, Init: &IntLitExpr{Val: 0, Ty: site.ElemTy}}, loop)
-	return &Block{Body: setup}, loop
-}
-func rewriteFusionContinue(b, suffix *Block, depth int) {
-	for i, s := range b.Body {
+	fusionWalk(producer, func(s Stmt) {
 		switch x := s.(type) {
-		case *ContinueStmt:
-			if depth == 0 {
-				copy := fusionClone(suffix)
-				copy.Body = append(copy.Body, &ContinueStmt{})
-				b.Body[i] = copy
-			}
-		case *Block:
-			rewriteFusionContinue(x, suffix, depth)
-		case *IfStmt:
-			rewriteFusionContinue(x.Then, suffix, depth)
-			if x.Else != nil {
-				rewriteFusionContinue(x.Else, suffix, depth)
-			}
-		case *WhileStmt:
-			rewriteFusionContinue(x.Body, suffix, depth+1)
-		case *ForRangeStmt:
-			rewriteFusionContinue(x.Body, suffix, depth+1)
-		case *ForEachStmt:
-			rewriteFusionContinue(x.Body, suffix, depth+1)
+		case *VarDeclStmt:
+			x.Name = names[x.Name]
+		case *YieldStmt:
+			x.Val = mapExprChildren(x.Val, rename)
+		}
+	})
+	root := producer.Body[0].(*WhileStmt)
+	inner := root
+	for _, s := range root.Body.Body {
+		if loop, ok := s.(*WhileStmt); ok {
+			inner = loop
 		}
 	}
+	// A consumer break must leave every producer loop, before any suspended
+	// suffix/outer condition is resumed. A private flag propagates the inner
+	// exit; consumers with no such break need no flag.
+	abort := ""
+	if inner != root && fusionConsumerBreak(site.Body, 0) {
+		abort = fresh("stop")
+		setup = append(setup, &VarDeclStmt{Name: abort, Ty: mir2.TyBool, Init: &BoolLitExpr{Val: false}})
+	}
+	yield := inner.Body.Body[0].(*YieldStmt)
+	suffix := &Block{Body: inner.Body.Body[1:]}
+	consumer := fusionClone(site.Body)
+	rewriteFusionContinue(consumer, suffix, 0)
+	if abort != "" {
+		rewriteFusionBreak(consumer, abort, 0)
+	}
+	body := []Stmt{&AssignStmt{Target: &VarRefExpr{Name: site.Var, Ty: site.ElemTy}, Val: yield.Val}}
+	body = append(body, consumer.Body...)
+	body = append(body, suffix.Body...)
+	inner.Body = &Block{Body: body}
+	if abort != "" {
+		var outerBody []Stmt
+		for _, s := range root.Body.Body {
+			outerBody = append(outerBody, s)
+			if s == inner {
+				outerBody = append(outerBody, &IfStmt{Cond: &VarRefExpr{Name: abort, Ty: mir2.TyBool}, Then: &Block{Body: []Stmt{&BreakStmt{}}}})
+			}
+		}
+		root.Body.Body = outerBody
+	}
+	setup = append(setup, &VarDeclStmt{Name: site.Var, Ty: site.ElemTy, Init: &IntLitExpr{Val: 0, Ty: site.ElemTy}}, root)
+	return &Block{Body: setup}, root
+}
+
+func fusionConsumerBreak(b *Block, depth int) bool {
+	found := false
+	fusionExitBlocks(b, depth, func(b *Block, i, depth int) {
+		if _, ok := b.Body[i].(*BreakStmt); ok && depth == 0 {
+			found = true
+		}
+	})
+	return found
+}
+func rewriteFusionBreak(b *Block, abort string, depth int) {
+	fusionExitBlocks(b, depth, func(b *Block, i, depth int) {
+		if _, ok := b.Body[i].(*BreakStmt); ok && depth == 0 {
+			b.Body[i] = &Block{Body: []Stmt{&AssignStmt{Target: &VarRefExpr{Name: abort, Ty: mir2.TyBool}, Val: &BoolLitExpr{Val: true}}, &BreakStmt{}}}
+		}
+	})
+}
+
+// Visit only structured consumer exits, keeping nested loop exits local.
+func fusionExitBlocks(b *Block, depth int, visit func(*Block, int, int)) {
+	if b == nil {
+		return
+	}
+	for i, s := range b.Body {
+		visit(b, i, depth)
+		switch x := s.(type) {
+		case *Block:
+			fusionExitBlocks(x, depth, visit)
+		case *IfStmt:
+			fusionExitBlocks(x.Then, depth, visit)
+			fusionExitBlocks(x.Else, depth, visit)
+		case *WhileStmt:
+			fusionExitBlocks(x.Body, depth+1, visit)
+		case *ForRangeStmt:
+			fusionExitBlocks(x.Body, depth+1, visit)
+		case *ForEachStmt:
+			fusionExitBlocks(x.Body, depth+1, visit)
+		}
+	}
+}
+func rewriteFusionContinue(b, suffix *Block, depth int) {
+	fusionExitBlocks(b, depth, func(b *Block, i, depth int) {
+		if _, ok := b.Body[i].(*ContinueStmt); ok && depth == 0 {
+			copy := fusionClone(suffix)
+			copy.Body = append(copy.Body, &ContinueStmt{})
+			b.Body[i] = copy
+		}
+	})
 }
 
 // HIR names do not yet carry resolved binding identities. A free producer
 // global/function name must not become a caller local after splicing. Refuse
 // whole-function binding collisions, even if some are out of lexical scope.
 func fusionFreeBindingsSafe(g *Func, callerBindings map[string]bool) bool {
-	params := map[string]bool{}
+	owned := map[string]bool{}
 	for _, p := range g.Params {
-		params[p.Name] = true
+		owned[p.Name] = true
 	}
+	fusionWalk(g.Body, func(s Stmt) {
+		if v, ok := s.(*VarDeclStmt); ok {
+			owned[v.Name] = true
+		}
+	})
 	safe := true
 	check := func(e Expr) {
 		switch x := e.(type) {
 		case *VarRefExpr:
-			if !params[x.Name] && callerBindings[x.Name] {
+			if !owned[x.Name] && callerBindings[x.Name] {
 				safe = false
 			}
 		case *CallExpr:
-			if callerBindings[x.Fn] || params[x.Fn] {
+			if callerBindings[x.Fn] || owned[x.Fn] {
 				safe = false
 			}
 		case *AddrOfExpr:
-			if !params[x.Sym] && callerBindings[x.Sym] {
+			if !owned[x.Sym] && callerBindings[x.Sym] {
 				safe = false
 			}
 		}
 	}
-	loop := g.Body.Body[0].(*WhileStmt)
-	walkExpr(loop.Cond, check)
-	walkExpr(loop.Body.Body[0].(*YieldStmt).Val, check)
-	for _, s := range loop.Body.Body[1:] {
+	fusionWalk(g.Body, func(s Stmt) {
 		visitStmtExprs(s, check)
-	}
+		if y, ok := s.(*YieldStmt); ok {
+			walkExpr(y.Val, check)
+		}
+	})
 	return safe
 }
