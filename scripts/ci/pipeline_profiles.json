@@ -161,6 +161,7 @@
     "TestGeneratorFusionNativeCost",
     "TestGeneratorFusionRefusalKeepsPull",
     "TestGeneratorFusionRejectsHIRPolicyWithoutPanic",
+    "TestGeneratorFusionUnusedYieldTraps",
     "TestGeneratorFusionWordAndBool",
     "TestGlobalByteStorePreservesLiveHL",
     "TestGlobalWordDirectEDClosedRecipe",

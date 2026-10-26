@@ -94,7 +94,9 @@ Tests compare pull/fused execution on raw MIR2, optimized MIR2 and assembled Z80
 full/empty consumption, early break/return, outer and nested continue/break,
 backing-memory mutation, captured argument mutation, parameter/name hygiene,
 left-to-right side-effectful arguments, condition/yield/consumer/suffix traces,
-an unselected condition trap, signed/unsigned elements and bool. Other controls
+an unselected condition trap, signed/unsigned elements and bool. Separate VM
+controls retain bounds/division diagnostics even when a yielded value is unused;
+raw-pointer availability remains a VM sandbox policy, not a native hardware trap. Other controls
 cover manual/multiple uses, producer refusal, free-global/call-alias collisions,
 malformed captures and policy rejection without panic. Native cases check return
 PC/SP, observable counters and stack canaries. All new focused tests are registered

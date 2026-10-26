@@ -47,5 +47,7 @@
 --- PASS: TestGeneratorFusionWordAndBool (0.04s)
 === RUN   TestGeneratorFusionMalformedHIRRefusal
 --- PASS: TestGeneratorFusionMalformedHIRRefusal (0.00s)
+=== RUN   TestGeneratorFusionUnusedYieldTraps
+--- PASS: TestGeneratorFusionUnusedYieldTraps (0.05s)
 PASS
-ok  	github.com/minz/minzc/pkg/pipeline	1.048s
+ok  	github.com/minz/minzc/pkg/pipeline	0.962s

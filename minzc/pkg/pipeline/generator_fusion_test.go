@@ -559,3 +559,45 @@ return sum}`, "capture.nanz")
 		t.Fatalf("invalid capture was transformed: %+v %v", stats, e)
 	}
 }
+
+func TestGeneratorFusionUnusedYieldTraps(t *testing.T) {
+	cases := []struct{ source, diagnostic string }{
+		{`gen stream(src:^u8,n:u8)->u8{while n!=0{yield src[0]
+src=src+1
+n=n-1}}
+fun main()->u16{for ignored in stream(ptr(28672),1){break}
+return 5}`, "load: out-of-bounds"},
+		{`gen stream(n:u8,d:u8)->u8{while n!=0{yield n/d
+n=n-1}}
+fun main()->u16{for ignored in stream(1,0){break}
+return 5}`, "division by zero"},
+	}
+	for _, tc := range cases {
+		for _, fused := range []bool{false, true} {
+			parse := func() *hir.Module {
+				h, e := nanz.Parse(tc.source, "unused-yield.nanz")
+				if e != nil {
+					t.Fatal(e)
+				}
+				return h
+			}
+			raw := hir.LowerModuleWithOptions(parse(), hir.LowerOptions{FuseGenerators: fused})
+			opt := pipeline.DefaultOptions()
+			opt.AssertMode = "none"
+			opt.DisableVariantSearch = true
+			opt.FuseGenerators = fused
+			final, e := pipeline.CompileHIRSteps(parse(), opt)
+			if e != nil {
+				t.Fatal(e)
+			}
+			for _, m := range []*mir2.Module{raw, final.MIR2Module} {
+				_, e := mir2.NewVM(m).Call("main", nil)
+				if e == nil || !strings.Contains(e.Error(), tc.diagnostic) {
+					t.Fatalf("fused=%v erased unused yield trap: %v", fused, e)
+				}
+			}
+		}
+	}
+	// Raw-pointer VM availability errors are a sandbox policy (ADR 0045), not
+	// a claim that an unchecked native Z80 pointer has a hardware bounds trap.
+}
