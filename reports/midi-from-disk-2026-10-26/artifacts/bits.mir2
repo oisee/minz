@@ -24,4 +24,3 @@ fun @kind(%r14: u8 [acc]) -> u8 [acc]
     call @Header_decode(%r16, %r17)
     %r18 = load %r15 : u8 [acc]
     ret %r18
-

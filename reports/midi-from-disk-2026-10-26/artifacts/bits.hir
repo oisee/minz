@@ -9,4 +9,3 @@ fun @kind(raw: u8) -> u8
   var out: Header
   call @Header_decode(cast((raw:u8)):u16, addr @out:ptr):void
   return ((out:Header)).kind[+0]:u8
-
