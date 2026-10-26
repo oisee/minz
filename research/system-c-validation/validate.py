@@ -35,7 +35,10 @@ def main():
     results=[]
     for library in ['inih','heatshrink']:
         executable=out/(library+'-host')
-        command=['gcc','-O2']
+        # Keep the independent oracle's dialect stable across GCC defaults.
+        # C23 glibc exposes strchr as a generic macro, conflicting with the
+        # frozen target shim; the validation workloads use C11 semantics.
+        command=['gcc','-std=c11','-O2']
         if library=='inih': command+=['-DVALIDATE_INIH']
         command+=[str(BASE/'host_driver.c'),'-o',str(executable)]
         subprocess.run(command,check=True)
