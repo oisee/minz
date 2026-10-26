@@ -1,0 +1,117 @@
+// Appended to the unchanged streaming pairing stage by compose.py.
+// Binary CP/M files have physical 128-byte records. Only SMF's terminal state
+// establishes the MIDI logical end; 0x1a is checked solely as final padding.
+@extern(0x0005) fun bdos8(@z80_c command:u8,@z80_de address:u16)->u8
+global file_input:[u8;36]
+global file_output:[u8;36]
+global file_dma:[u8;128]
+global file_cursor:u16
+global file_header:[u8;12] = [65,83,73,82,1,1,6,0,0,0,0,0]
+global input_name:[u8;11] = [73,78,80,85,84,32,32,32,77,73,68]
+global output_name:[u8;11] = [78,79,84,69,83,32,32,32,66,73,78]
+
+fun file_write_record() {
+    if fault != 0 { return }
+    if bdos8(21,u16(&file_output)) != 0 { fault = 902 }
+    file_cursor = 0
+}
+fun file_put(byte:u8) {
+    if fault != 0 { return }
+    file_dma[file_cursor] = byte
+    file_cursor = file_cursor + 1
+    if file_cursor == 128 { file_write_record() }
+}
+fun file_put_word(word:u16) {
+    file_put(u8(word))
+    file_put(u8(word >> 8))
+}
+fun file_save_notes() {
+    if bdos8(22,u16(&file_output)) == 255 { fault = 901
+        return }
+    file_cursor = 0
+    file_header[8] = u8(source_count)
+    file_header[9] = u8(source_count >> 8)
+    var index:u16 = 0
+    while index < 12 { file_put(file_header[index])
+        index = index + 1 }
+    var id:u16 = 1
+    while id <= note_count && fault == 0 {
+        file_put(1)
+        let at:u16 = record_slot(id)
+        index = 0
+        while index < 6 { file_put(note_bytes[at+index])
+            index = index + 1 }
+        id = id + 1
+    }
+    // Nonzero END + u32 count + END! signature cannot alias zero padding.
+    file_put(255)
+    file_put_word(note_count)
+    file_put_word(0)
+    file_put(69)
+    file_put(78)
+    file_put(68)
+    file_put(33)
+    if file_cursor != 0 && fault == 0 {
+        index = file_cursor
+        while index < 128 { file_dma[index] = 0
+            index = index + 1 }
+        file_write_record()
+    }
+    if bdos8(16,u16(&file_output)) == 255 && fault == 0 { fault = 903 }
+}
+fun disk_main()->u16 {
+    native_control = 0
+    native_main()
+    if fault != 0 { return fault }
+    var index:u16 = 0
+    while index < 36 {
+        file_input[index] = 0
+        file_output[index] = 0
+        index = index + 1
+    }
+    index = 0
+    while index < 11 {
+        file_input[index+1] = input_name[index]
+        file_output[index+1] = output_name[index]
+        index = index + 1
+    }
+    bdos8(26,u16(&file_dma))
+    if bdos8(15,u16(&file_input)) == 255 { fault = 900
+        return fault }
+    var done:u8 = 0
+    while done == 0 && fault == 0 {
+        let status:u8 = bdos8(20,u16(&file_input))
+        if status == 1 {
+            native_control = 2
+            native_main()
+            done = 1
+        } else {
+            if status != 0 { fault = 904 } else {
+                index = 0
+                while index < 128 && fault == 0 {
+                    if midi_decoder.phase == SmfPhase.END {
+                        if file_dma[index] != 26 { fault = 905 }
+                    } else {
+                        input_chunk[0] = file_dma[index]
+                        input_length = 1
+                        native_control = 1
+                        native_main()
+                    }
+                    index = index + 1
+                }
+                if midi_decoder.phase == SmfPhase.END && fault == 0 {
+                    // A second physical record is trailing data, even if 1a.
+                    if bdos8(20,u16(&file_input)) != 1 { fault = 905 }
+                    done = 1
+                }
+            }
+        }
+    }
+    if bdos8(16,u16(&file_input)) == 255 && fault == 0 { fault = 906 }
+    if fault == 0 {
+        native_control = 2
+        native_main()
+    }
+    if fault == 0 { file_save_notes() }
+    return fault
+}

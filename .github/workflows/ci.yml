@@ -51,6 +51,15 @@ jobs:
           python3 ../scripts/ci/run_stable_pipeline.py --output "$RUNNER_TEMP/stable-pipeline" --profile fast --shards 3 --workers 3
       - name: Verify frozen upstream system C on VM and Z80
         run: python3 ../research/system-c-validation/validate.py --out "$RUNNER_TEMP/system-c-validation"
+      - name: Verify native CP/M MIDI note files
+        run: python3 ../research/autosiril-native/files/replay.py --mze "$RUNNER_TEMP/mze" --out "$RUNNER_TEMP/autosiril-file-pair"
+      - name: Preserve CP/M file producer evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: autosiril-file-pair
+          path: ${{ runner.temp }}/autosiril-file-pair/
+          if-no-files-found: ignore
       - name: Preserve system C inputs and execution evidence
         if: always()
         uses: actions/upload-artifact@v4

@@ -1,0 +1,536 @@
+// autosiril-midi-native transports chunks, executes target code and checks Ruby.
+package main
+
+import (
+	"bytes"
+	"crypto/sha256"
+	"encoding/binary"
+	"encoding/json"
+	"flag"
+	"fmt"
+	"os"
+	"path/filepath"
+	"reflect"
+	"strings"
+
+	"github.com/minz/minzc/pkg/emulator"
+	"github.com/minz/minzc/pkg/hir"
+	"github.com/minz/minzc/pkg/lanz"
+	"github.com/minz/minzc/pkg/mir2"
+	"github.com/minz/minzc/pkg/nanz"
+	"github.com/minz/minzc/pkg/pipeline"
+	"github.com/minz/minzc/pkg/z80asm"
+)
+
+const origin = 0x4000
+const floor = 0xe000
+const initialSP = 0xeffe
+const returnPC = 0xf100
+
+type note struct {
+	Start  uint16 `json:"start"`
+	Off    uint16 `json:"off"`
+	Pitch  uint8  `json:"pitch"`
+	Source uint8  `json:"source"`
+}
+type result struct {
+	Engine  string `json:"engine"`
+	Fault   uint16 `json:"fault"`
+	Notes   []note `json:"notes"`
+	Sources uint16 `json:"sources"`
+	Peak    uint16 `json:"peak_active"`
+	Active  uint16 `json:"active"`
+	Bytes   uint32 `json:"accepted_bytes"`
+	Events  uint32 `json:"events"`
+	TStates int    `json:"t_states,omitempty"`
+	Stack   int    `json:"stack_below_entry,omitempty"`
+}
+type binding struct {
+	Source   string   `json:"source"`
+	Symbol   string   `json:"symbol"`
+	Args     []string `json:"args"`
+	Result   string   `json:"result"`
+	Fallible bool     `json:"fallible"`
+}
+
+type expectation struct {
+	Notes   []note  `json:"notes"`
+	Sources uint16  `json:"sources"`
+	Fault   uint16  `json:"fault"`
+	Active  uint16  `json:"active"`
+	Peak    *uint16 `json:"peak_active,omitempty"`
+	Bytes   *uint32 `json:"accepted_bytes,omitempty"`
+	Events  *uint32 `json:"events,omitempty"`
+}
+type testCase struct {
+	Name     string      `json:"name"`
+	MIDI     []byte      `json:"midi"`
+	Beat     uint32      `json:"per_beat"`
+	Chunks   []int       `json:"chunks"`
+	Expected expectation `json:"expected"`
+}
+type runConfig struct{ Source, Music, Manifest, Stdlib, Input, Out string }
+
+func check(e error) {
+	if e != nil {
+		panic(e)
+	}
+}
+func read(p string) []byte { b, e := os.ReadFile(p); check(e); return b }
+func hash(b []byte) string { return fmt.Sprintf("%x", sha256.Sum256(b)) }
+
+func build(source,music,meta []byte,stdlib string)(*hir.Module,error){
+ h,e:=nanz.ParseWithOpts(string(source),"linked-native",nanz.ParseOpts{StdlibDir:stdlib});if e!=nil{return nil,e}
+ c,e:=lanz.Compile(string(music),"actual-crystal");if e!=nil{return nil,e};if len(c.Globals)!=0{return nil,fmt.Errorf("export has globals")}
+ var manifest struct{Functions []binding `json:"functions"`};if e=json.Unmarshal(meta,&manifest);e!=nil{return nil,e}
+ defs:=map[string]*hir.Func{}
+ for _,f:=range c.Funcs{if f.Body!=nil{if defs[f.Name]!=nil{return nil,fmt.Errorf("duplicate actual definition")};defs[f.Name]=f}}
+ seen:=map[string]bool{};added:=map[string]bool{};closed:=&hir.Module{}
+ scalar:=func(t mir2.Ty)string{if t==mir2.TyU8{return "u8"};if t==mir2.TyU32{return "u32"};return "unsupported"}
+ for _,b:=range manifest.Functions{
+  p:=h.FuncByName(b.Source);if p==nil{continue}
+  if seen[b.Source]{return nil,fmt.Errorf("duplicate binding")};seen[b.Source]=true
+  target:=defs[b.Symbol]
+  if !p.IsExtern||target==nil||target.IsExtern||target.IsGen||target.IsIO||len(target.Captures)!=0||len(target.RetTys)!=0||len(p.RetTys)!=0||target.RetTy!=p.RetTy||b.Fallible||b.Result!=scalar(p.RetTy)||len(target.Params)!=len(p.Params)||len(b.Args)!=len(p.Params){return nil,fmt.Errorf("invalid actual binding %s",b.Source)}
+  args:=make([]hir.Expr,len(p.Params))
+  for i,v:=range p.Params{if v.Ty!=target.Params[i].Ty||scalar(v.Ty)!=b.Args[i]||b.Args[i]=="unsupported"{return nil,fmt.Errorf("actual parameter mismatch")};args[i]=hir.Var(v.Name,v.Ty)}
+  if !added[target.Name]{if h.FuncByName(target.Name)!=nil{return nil,fmt.Errorf("actual symbol collision")};added[target.Name]=true;closed.Funcs=append(closed.Funcs,target);h.Funcs=append(h.Funcs,target)}
+  p.IsExtern=false;p.Body=hir.Blk(&hir.ReturnStmt{Val:&hir.CallExpr{Fn:target.Name,Args:args,Ty:target.RetTy}})
+ }
+ if len(seen)!=3{return nil,fmt.Errorf("expected three actual Crystal roots")}
+ if e=hir.VerifyClosedNames(closed);e!=nil{return nil,e}
+ for _,f:=range hir.AnalyzeFacts(closed).Functions{if len(f.Calls)!=0||f.Direct&(hir.ReadsMemory|hir.WritesMemory|hir.DoesIO|hir.UnknownEffect)!=0{return nil,fmt.Errorf("actual import effects")}}
+ for _,f:=range h.Funcs{if f.IsExtern{return nil,fmt.Errorf("unresolved external %s",f.Name)}}
+ // The composed executable has one named external entry. Preserve compiler
+ // provider/address references while allowing ordinary private-call pruning.
+ for _,f:=range h.Funcs{f.Private=f.Name!="native_main";if f.Name=="native_main"{f.ReferencedByName=true}}
+ h.Target=hir.TargetCPM;h.NonNullObjects=true
+ if e=hir.ResolveErrorABI(h);e!=nil{return nil,e};for _,f:=range closed.Funcs{if f.FallibleCY{return nil,fmt.Errorf("fallible actual root")}}
+ return h,hir.Verify(h)
+}
+
+func collect(engine string, get func(string, int, int) []byte) result {
+	u16 := func(name string) uint16 { return binary.LittleEndian.Uint16(get(name, 0, 2)) }
+	u32 := func(name string) uint32 { return binary.LittleEndian.Uint32(get(name, 0, 4)) }
+	r := result{Engine: engine, Notes: make([]note, 0), Fault: u16("fault"), Sources: u16("source_count"), Active: u16("active_count"), Peak: u16("peak_active"), Bytes: u32("accepted_bytes"), Events: u32("event_count")}
+	count := int(u16("note_count"))
+	if count > 2046 {
+		panic("target count exceeds arena")
+	}
+	for i := 0; i < count; i++ {
+		at := (i/682)*4096 + (i%682)*6
+		b := get("note_bytes", at, 6)
+		r.Notes = append(r.Notes, note{binary.LittleEndian.Uint16(b), binary.LittleEndian.Uint16(b[2:]), b[4], b[5]})
+	}
+	return r
+}
+
+func transport(midi []byte, chunk int, beat uint32, put func(string, int, byte), call func() uint16) {
+	set := func(name string, value uint32, n int) {
+		for i := 0; i < n; i++ {
+			put(name, i, byte(value>>uint(8*i)))
+		}
+	}
+	for bank := 0; bank < 3; bank++ {
+		for j := 4092; j < 4096; j++ {
+			put("note_bytes", bank*4096+j, 0xda)
+		}
+	}
+	set("per_beat", beat, 4)
+	set("native_control", 0, 1)
+	if call() != 0 {
+		return
+	}
+	for at := 0; at < len(midi); at += chunk {
+		end := at + chunk
+		if end > len(midi) {
+			end = len(midi)
+		}
+		for i, b := range midi[at:end] {
+			put("input_chunk", i, b)
+		}
+		set("input_length", uint32(end-at), 2)
+		set("native_control", 1, 1)
+		if call() != 0 {
+			return
+		}
+	}
+	set("native_control", 2, 1)
+	if call()!=0{panic("pair finish fault")}
+	driveLinked(put,call)
+}
+
+func vmRun(m *mir2.Module, midi []byte, chunk int, beat uint32, name string) result {
+	v := mir2.NewVM(m)
+	v.MaxMemory = 65536
+
+ v.MaxSteps=1000000000
+ currentEngine=name
+ currentRead=func(name string,off,n int)[]byte{return v.ReadHeap(v.GlobalAddr(name)+int64(off),n)}
+ currentProfiler=nil
+ currentCycles=func()int{return 0}
+	transport(midi, chunk, beat, func(name string, off int, b byte) { v.WriteHeap(v.GlobalAddr(name)+int64(off), b) }, func() uint16 {
+		r, e := v.Call("native_main", nil)
+		check(e)
+		if len(r) != 1 {
+			panic("invalid target return")
+		}
+		if uint16(r[0].I) != binary.LittleEndian.Uint16(v.ReadHeap(v.GlobalAddr("fault"), 2)) {
+			panic("VM return differs from fault")
+		}
+		return uint16(r[0].I)
+	})
+	return collect(name, func(name string, off, n int) []byte { return v.ReadHeap(v.GlobalAddr(name)+int64(off), n) })
+}
+
+type dataSpan struct {
+	Name    string `json:"name"`
+	Address int    `json:"address"`
+	Bytes   int    `json:"bytes"`
+}
+
+func backendSpills(assembly string, symbols map[string]int, image []byte) (spans []dataSpan) {
+	// Exact zero-initialized spill declarations, never an executable-code range.
+	for _, line := range strings.Split(assembly, "\n") {
+		line = strings.TrimSpace(strings.SplitN(line, ";", 2)[0])
+		name, rest, ok := strings.Cut(line, ":")
+		if !ok || !strings.HasPrefix(name, "_spill_") {
+			continue
+		}
+		rest = strings.TrimSpace(rest)
+		width := 1
+		if strings.HasPrefix(rest, "DW ") {
+			width = 2
+		}
+		if !strings.HasPrefix(rest, "DB ") && !strings.HasPrefix(rest, "DW ") {
+			panic("unknown spill declaration")
+		}
+		values := strings.Split(strings.TrimSpace(rest[3:]), ",")
+		n := len(values) * width
+		if n > 4 {
+			panic("spill width")
+		}
+		at, ok := symbols[name]
+		if !ok || at < origin || at+n > origin+len(image) {
+			panic("spill address")
+		}
+		for _, v := range values {
+			if strings.TrimSpace(v) != "0" {
+				panic("spill initializer")
+			}
+		}
+		for i := 0; i < n; i++ {
+			if image[at-origin+i] != 0 {
+				panic("spill bytes")
+			}
+		}
+		spans = append(spans, dataSpan{name, at, n})
+	}
+	return
+}
+
+func nativeRun(image []byte, symbols map[string]int, globals []mir2.Global, assembly string, midi []byte, chunk int, beat uint32) result {
+	z := emulator.NewRemogattoZ80WithScreen()
+	z.SetROMEnd(0)
+	p := emulator.NewProfiler()
+	z.SetProfiler(p)
+	mem := z.Memory()
+	for i := range mem {
+		mem[i] = 0xa5
+	}
+
+ copy(mem[origin:],image)
+ currentEngine="z80"
+ currentRead=func(name string,off,n int)[]byte{at:=symbols[name]+off;return mem[at:at+n]}
+ currentProfiler=p
+ currentArenaBase=symbols["note_bytes"]
+ currentCycles=z.GetCycles
+	allowed := make([]bool, 65536)
+	for _, g := range globals {
+		if g.At != nil {
+			panic("absolute global")
+		}
+		at, ok := symbols[g.Name]
+		if !ok || at < origin || at+mir2.ByteWidth(g.Ty) > origin+len(image) {
+			panic("missing global")
+		}
+		for i := 0; i < mir2.ByteWidth(g.Ty); i++ {
+			allowed[at+i] = true
+		}
+	}
+	for _, span := range backendSpills(assembly, symbols, image) {
+		for i := 0; i < span.Bytes; i++ {
+			allowed[span.Address+i] = true
+		}
+	}
+	for i := floor; i < initialSP; i++ {
+		allowed[i] = true
+	}
+	minSP := uint16(initialSP)
+	transport(midi, chunk, beat, func(name string, off int, b byte) { mem[symbols[name]+off] = b }, func() uint16 {
+		mem[initialSP] = 0
+		mem[initialSP+1] = 0xf1
+		z.SetRegisters(emulator.Registers{PC: uint16(symbols["native_main"]), SP: initialSP})
+		for steps := 0; z.GetPC() != returnPC; steps++ {
+			if steps >= 200000000 {
+				panic("native step limit")
+			}
+			z.Step()
+			if z.GetSP() < minSP {
+				minSP = z.GetSP()
+			}
+			if z.GetSP() < floor {
+				panic("native stack floor")
+			}
+		}
+		if z.GetSP() != initialSP+2 {
+			panic("native return stack")
+		}
+		if z.GetRegisters().HL != binary.LittleEndian.Uint16(mem[symbols["fault"]:symbols["fault"]+2]) {
+			panic("native return differs from fault")
+		}
+		return z.GetRegisters().HL
+	})
+	if len(p.IORead) != 0 || len(p.IOWrite) != 0 {
+		panic("native port I/O")
+	}
+	for i, w := range p.WriteCount {
+		if w != 0 && !allowed[i] {
+			panic(fmt.Sprintf("native write outside storage %04x", i))
+		}
+		if allowed[i] && i < floor && p.ExecCount[i] != 0 {
+			panic("executed native data")
+		}
+	}
+	for _, name := range []string{"input_chunk", "input_length", "native_control", "per_beat", "native_source", "native_mode", "native_limit"} {
+		at := symbols[name]
+		width := map[string]int{"input_chunk": 256, "input_length": 2, "native_control": 1, "per_beat":4,"native_source":1,"native_mode":1,"native_limit":4}[name]
+		for i := 0; i < width; i++ {
+			if p.WriteCount[at+i] != 0 {
+				panic("native wrote transport input")
+			}
+		}
+	}
+	for bank := 0; bank < 3; bank++ {
+		for j := 4092; j < 4096; j++ {
+			at := symbols["note_bytes"] + bank*4096 + j
+			if mem[at] != 0xda || p.WriteCount[at] != 0 {
+				panic("native wrote arena padding")
+			}
+		}
+	}
+	for _, span := range [][2]int{{origin - 64, origin}, {origin + len(image), origin + len(image) + 64}, {floor - 64, floor}} {
+		for i := span[0]; i < span[1]; i++ {
+			if mem[i] != 0xa5 {
+				panic("native canary")
+			}
+		}
+	}
+	r := collect("z80", func(name string, off, n int) []byte { at := symbols[name] + off; return mem[at : at+n] })
+	r.Stack = int(initialSP - minSP)
+	r.TStates = z.GetCycles()
+	return r
+}
+
+// run confines verifier failures to a controlled error; target faults are data
+// and are compared with the independently supplied expectations below.
+func run(cfg runConfig) (err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("native MIDI verifier: %v", r)
+		}
+	}()
+	if cfg.Out == "" {
+		return fmt.Errorf("output directory required")
+	}
+	check(os.MkdirAll(cfg.Out, 0755))
+	source, music, meta := read(cfg.Source), read(cfg.Music), read(cfg.Manifest)
+	input := read(cfg.Input)
+	var matrix struct {
+		Cases []testCase `json:"cases"`
+	}
+	decoder := json.NewDecoder(bytes.NewReader(input))
+	decoder.DisallowUnknownFields()
+	check(decoder.Decode(&matrix))
+	if len(matrix.Cases) == 0 {
+		return fmt.Errorf("no cases")
+	}
+	names := map[string]bool{}
+	for _, tc := range matrix.Cases {
+		if tc.Name == "" || names[tc.Name] || len(tc.Chunks) == 0 {
+			return fmt.Errorf("invalid/duplicate case name or missing chunks")
+		}
+		names[tc.Name] = true
+		for _, chunk := range tc.Chunks {
+			if chunk < 1 || chunk > 256 {
+				return fmt.Errorf("transport chunks require 1..256 bytes")
+			}
+		}
+		if len(tc.Expected.Notes) > 2046 || tc.Expected.Sources > 64 || tc.Expected.Active > 512 {
+			return fmt.Errorf("reference exceeds bounded target fields")
+		}
+		for _, n := range tc.Expected.Notes {
+			if n.Pitch > 127 || n.Source >= 64 {
+				return fmt.Errorf("reference note field out of range")
+			}
+		}
+	}
+	h, e := build(source, music, meta, cfg.Stdlib)
+	check(e)
+	raw := hir.LowerModule(h)
+	check(mir2.Verify(raw))
+	h, e = build(source, music, meta, cfg.Stdlib)
+	check(e)
+	opts := pipeline.DefaultOptions()
+	opts.AssertMode = "none"
+	opts.DisableVariantSearch = true
+	steps, e := pipeline.CompileHIRSteps(h, opts)
+	check(e)
+	a, e := z80asm.NewAssembler().AssembleString("ORG 0x4000\n" + steps.Assembly)
+	check(e)
+	if len(a.Errors) != 0 {
+		panic(a.Errors)
+	}
+	for name, b := range map[string][]byte{"program.a80": []byte(steps.Assembly), "program.bin": a.Binary, "raw.mir": []byte(raw.Dump()), "final.mir": []byte(steps.MIR2Module.Dump())} {
+		check(os.WriteFile(filepath.Join(cfg.Out, name), b, 0644))
+	}
+	if origin+len(a.Binary)+64 >= floor {
+		return fmt.Errorf("native image exceeds stack window")
+	}
+	dataBytes := 0
+	for _, g := range steps.MIR2Module.Globals {
+		dataBytes += mir2.ByteWidth(g.Ty)
+	}
+	spills := backendSpills(steps.Assembly, a.Symbols, a.Binary)
+	spillBytes := 0
+	for _, span := range spills {
+		spillBytes += span.Bytes
+	}
+	rows := []map[string]any{}
+	for _, tc := range matrix.Cases {
+		for _, chunk := range tc.Chunks {
+			results := []result{vmRun(raw, tc.MIDI, chunk, tc.Beat, "raw-mir2"), vmRun(steps.MIR2Module, tc.MIDI, chunk, tc.Beat, "final-mir2"), nativeRun(a.Binary, a.Symbols, steps.MIR2Module.Globals, steps.Assembly, tc.MIDI, chunk, tc.Beat)}
+			summaries := []map[string]any{}
+			for _, r := range results {
+				want := tc.Expected
+				if r.Fault != want.Fault || r.Sources != want.Sources || r.Active != want.Active || len(r.Notes) != len(want.Notes) {
+					return fmt.Errorf("%s/chunk%d/%s state differs: fault%d/%d notes%d/%d sources%d/%d active%d/%d", tc.Name, chunk, r.Engine, r.Fault, want.Fault, len(r.Notes), len(want.Notes), r.Sources, want.Sources, r.Active, want.Active)
+				}
+				if want.Peak != nil && r.Peak != *want.Peak {
+					return fmt.Errorf("%s/%s peak%d want%d", tc.Name, r.Engine, r.Peak, *want.Peak)
+				}
+				if want.Bytes != nil && r.Bytes != *want.Bytes {
+					return fmt.Errorf("%s/%s accepted%d want%d", tc.Name, r.Engine, r.Bytes, *want.Bytes)
+				}
+				if want.Events != nil && r.Events != *want.Events {
+					return fmt.Errorf("%s/%s events%d want%d", tc.Name, r.Engine, r.Events, *want.Events)
+				}
+				if r.Bytes > uint32(len(tc.MIDI)) || (want.Fault == 0 && r.Bytes != uint32(len(tc.MIDI))) {
+					return fmt.Errorf("%s/%s consumed invalid byte count", tc.Name, r.Engine)
+				}
+				for i, n := range r.Notes {
+					if n != want.Notes[i] {
+						return fmt.Errorf("%s/%s note%d: %+v != %+v", tc.Name, r.Engine, i, n, want.Notes[i])
+					}
+				}
+				comparable, first := r, results[0]
+				comparable.Engine = ""
+				first.Engine = ""
+				comparable.TStates = 0
+				first.TStates = 0
+				comparable.Stack = 0
+				first.Stack = 0
+				if !reflect.DeepEqual(comparable, first) {
+					return fmt.Errorf("%s/%s cross-engine state differs", tc.Name, r.Engine)
+				}
+				b, e := json.Marshal(r.Notes)
+				check(e)
+				summaries = append(summaries, map[string]any{"engine": r.Engine, "note_count": len(r.Notes), "notes_sha256": hash(b), "fault": r.Fault, "sources": r.Sources, "active": r.Active, "peak_active": r.Peak, "accepted_bytes": r.Bytes, "events": r.Events, "t_states": r.TStates, "stack_below_entry": r.Stack})
+			}
+			rows = append(rows, map[string]any{"name": tc.Name, "chunk_size": chunk, "midi_sha256": hash(tc.MIDI), "engines": summaries})
+			fmt.Printf("PASS %s/chunk%d: %d notes fault%d, %dT stack%d\n", tc.Name, chunk, len(results[2].Notes), results[2].Fault, results[2].TStates, results[2].Stack)
+		}
+	}
+	receipt := map[string]any{"protocol": "autosiril-native-midi/v2", "image_bytes": len(a.Binary), "module_globals_bytes": dataBytes, "backend_static_spill_bytes": spillBytes, "code_bytes": len(a.Binary) - dataBytes - spillBytes, "backend_spills": spills, "source_sha256": hash(source), "music_sha256": hash(music), "manifest_sha256": hash(meta), "input_sha256": hash(input), "assembly_sha256": hash([]byte(steps.Assembly)), "binary_sha256": hash(a.Binary), "target_executions": len(rows) * 3, "cases": rows, "scope": "streamed MIDI -> paired records on actual shared decoder and Crystal quantizer; separate executable from flatten, no combined converter or physical banking"}
+	b, e := json.MarshalIndent(receipt, "", "  ")
+	check(e)
+	check(os.WriteFile(filepath.Join(cfg.Out, "receipt.json"), append(b, '\n'), 0644))
+	return nil
+}
+
+func main() {
+	root := flag.String("root", "..", "repository root")
+	input := flag.String("input", "", "case matrix JSON")
+	out := flag.String("out", "", "artifact directory")
+	source := flag.String("source", "", "Nanz pairing stage override")
+	music := flag.String("music", "", "actual Crystal export override")
+	manifest := flag.String("manifest", "", "actual Crystal manifest override")
+	flag.Parse()
+	if *source == "" {
+		*source = filepath.Join(*root, "research/autosiril-native/midi/pair.nanz")
+	}
+	if *music == "" {
+		*music = filepath.Join(*root, "research/autosiril-native/fixtures/music.lanz")
+	}
+	if *manifest == "" {
+		*manifest = filepath.Join(*root, "research/autosiril-native/fixtures/music-manifest.json")
+	}
+	if *input == "" || *out == "" {
+		fmt.Fprintln(os.Stderr, "-input and -out required")
+		os.Exit(1)
+	}
+	if e := run(runConfig{*source, *music, *manifest, filepath.Join(*root, "stdlib"), *input, *out}); e != nil {
+		fmt.Fprintln(os.Stderr, e)
+		os.Exit(1)
+	}
+}
+
+
+var linkedOracle=flag.String("linked-oracle","","original full Ruby oracle")
+var linkedRecords=flag.String("linked-records","","linked phase receipt")
+var currentRead func(string,int,int)[]byte
+var currentProfiler *emulator.Profiler
+var currentArenaBase int
+var currentEngine string
+var currentCycles func()int
+var phaseRecords=[]map[string]any{}
+
+type referenceCell struct{Row uint16 `json:"row"`;Notes [][]json.RawMessage `json:"notes"`}
+type referenceSong struct{Notes []note `json:"notes"`;Sources uint16 `json:"sources"`;Flattened [][]referenceCell `json:"flattened"`}
+
+func driveLinked(put func(string,int,byte),call func()uint16){
+ if *linkedOracle==""||*linkedRecords==""{panic("linked oracle/records required")}
+ var oracle referenceSong;check(json.Unmarshal(read(*linkedOracle),&oracle))
+ if len(oracle.Flattened)!=3{panic("expected three original reference channels")}
+ paired:=collect(currentEngine,currentRead)
+ if paired.Fault!=0||paired.Sources!=oracle.Sources||paired.Active!=0||paired.Peak!=2||len(paired.Notes)!=len(oracle.Notes){panic("linked parsed state differs")}
+ for i,n:=range paired.Notes{if n!=oracle.Notes[i]{panic("linked parsed record differs")}}
+ noteJSON,e:=json.Marshal(paired.Notes);check(e)
+ phaseRecords=append(phaseRecords,map[string]any{"engine":currentEngine,"phase":"paired","count":len(paired.Notes),"notes_sha256":hash(noteJSON),"peak_active":paired.Peak,"accepted_bytes":paired.Bytes,"events":paired.Events})
+ before:=append([]byte(nil),currentRead("note_bytes",0,12288)...)
+ writes:=make([]uint32,12288);if currentProfiler!=nil{copy(writes,currentProfiler.WriteCount[currentArenaBase:currentArenaBase+12288])}
+ set:=func(name string,value uint32,width int){for i:=0;i<width;i++{put(name,i,byte(value>>uint(8*i)))}}
+ word:=func(name string)uint16{return binary.LittleEndian.Uint16(currentRead(name,0,2))}
+ dword:=func(name string)uint32{return binary.LittleEndian.Uint32(currentRead(name,0,4))}
+ for channel,cfg:=range []struct{source,mode uint32}{{1,109},{0,112},{0,109}}{
+  type event struct{Row uint16 `json:"row"`;Value uint16 `json:"value"`}
+  expected:=[]event{};rows:=map[uint16]bool{}
+  for _,cell:=range oracle.Flattened[channel]{for _,n:=range cell.Notes{
+   if len(n)!=2{panic("invalid reference cell")};var pitch uint16;var kind string;check(json.Unmarshal(n[0],&pitch));check(json.Unmarshal(n[1],&kind))
+   action:=uint16(0);switch kind{case "s":action=1;case "r":action=4;default:panic("unexpected original note kind")}
+   expected=append(expected,event{cell.Row,pitch|(action<<8)});rows[cell.Row]=true
+  }}
+  peak:=0
+  for _,point:=range oracle.Notes{if point.Source!=uint8(cfg.source){continue};for _,row:=range []uint16{point.Start,point.Off}{active:=0;for _,n:=range oracle.Notes{if n.Source==uint8(cfg.source)&&n.Start<=row&&row<=n.Off{active++}};if active>peak{peak=active}}}
+  set("native_source",cfg.source,1);set("native_mode",cfg.mode,1);set("native_limit",1024,4);set("native_control",3,1)
+  start:=currentCycles();if call()!=0{panic("linked flatten target fault")};cycles:=currentCycles()-start
+  if int(word("output_count"))!=len(expected)||dword("yielded")!=uint32(len(expected))||dword("rows_visited")!=uint32(len(rows))||word("active_count")!=0||int(word("peak_active"))!=peak||currentRead("stream_busy",0,1)[0]!=0{panic("linked flatten counters differ")}
+  actual:=[]event{}
+  for i,want:=range expected{got:=event{binary.LittleEndian.Uint16(currentRead("output_rows",i*2,2)),binary.LittleEndian.Uint16(currentRead("output_values",i*2,2))};if got!=want{panic(fmt.Sprintf("%s channel%d event%d: %+v != %+v",currentEngine,channel,i,got,want))};actual=append(actual,got)}
+  if !bytes.Equal(before,currentRead("note_bytes",0,12288)){panic("flatten mutated shared input arena")}
+  if currentProfiler!=nil{for i,want:=range writes{if currentProfiler.WriteCount[currentArenaBase+i]!=want{panic("flatten wrote shared input arena")}}}
+  b,e:=json.Marshal(actual);check(e)
+  phaseRecords=append(phaseRecords,map[string]any{"engine":currentEngine,"phase":"flatten","channel":channel,"events":len(actual),"events_sha256":hash(b),"rows_visited":len(rows),"peak_active":peak,"t_states":cycles})
+ }
+ b,e:=json.MarshalIndent(phaseRecords,"","  ");check(e);check(os.WriteFile(*linkedRecords,append(b,'\n'),0644))
+}

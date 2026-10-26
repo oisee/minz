@@ -1,0 +1,2 @@
+[HIR-SPLIT] consume_paired_event → consume_paired_event$split_5 (3 inputs, pressure 12)
+PASS chronos_full/chunk256: 1485 notes fault0, 938952348T stack61
