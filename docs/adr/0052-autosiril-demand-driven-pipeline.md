@@ -55,6 +55,23 @@ The final budget must include code/stack/runtime, parser and every live stage.
 The ~191 KB VT2 example requires streamed output on a 128 KiB system. Measure
 128/256 KiB budgets and report exhaustion explicitly; do not promise fit in advance.
 
+## Native bounded checkpoint (2026-10-26)
+
+The same paired-note sweep and real exported Crystal selectors now have a
+[reproducible native Z80 gate](../../research/autosiril-native/README.md):
+46 fresh Ruby-backed cases plus9 target lifecycle/error controls run on raw MIR2,
+final MIR2 and assembled Z80 (165 executions). Cases include a Chronos24-note
+excerpt, p/m/d modes, demand limits, row65535 and page crossings; this is not the
+full11-score native conversion acceptance.
+
+One-bank/two-bank profiles reserve682/1364 six-byte records, retain512 active
+handles and a bounded output sink. Their complete native images are13,525/17,621
+bytes:6,923 code bytes,6,444/10,540 declared global bytes and158 static spill
+bytes. Observed below-entry stack peaks are74/80 bytes, not an all-input bound.
+The proof checks source/tool hashes, native PC/SP, read-only input, memory write
+ranges and independent cold-factory/demand counters. Physical bank switching,
+MIDI parsing/pairing and subsequent music/output stages remain separate work.
+
 ## Consequences
 
 Avoiding sustain materialization can reduce memory and traffic by orders of
