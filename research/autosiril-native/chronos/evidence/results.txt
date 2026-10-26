@@ -1,3 +1,7 @@
 PASS chronos_full_channel0: 771 events, 180203227T, stack74
 PASS chronos_full_channel1: 719 events, 162403129T, stack68
 PASS chronos_full_channel2: 663 events, 164320283T, stack74
+PASS first_bank2_record: 2 events, 117943480T, stack80
+PASS last_bank2_record: 2 events, 176699283T, stack80
+PASS full_output_1024: 1024 events, 109461169T, stack68
+PASS declared_three_bank_overflow: 0 events, 6102T, stack19

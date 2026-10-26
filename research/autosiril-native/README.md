@@ -32,6 +32,10 @@ pitch0..127 and source0..255. Original note-ID ordering is retained. This does
 not claim that an arbitrary MIDI file fits the profile or that a Chronos excerpt
 is the entire song.
 
+The subsequent [whole Chronos gate](chronos/README.md) admits a checked three-bank
+profile and compares all1,485 paired notes and all three flatten channels of
+that song, including third-page and1,024-event output capacity controls.
+
 ## Native memory and timing
 
 All native support functions, lifecycle controls, a bounded128-entry output sink

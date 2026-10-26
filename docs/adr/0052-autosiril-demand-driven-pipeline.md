@@ -57,6 +57,15 @@ The ~191 KB VT2 example requires streamed output on a 128 KiB system. Measure
 
 ## Native bounded checkpoint (2026-10-26)
 
+The follow-up [whole Chronos proof](../../research/autosiril-native/chronos/README.md)
+extends the checked resident profile to three 4-KiB pages and1,024 output slots:
+all1,485 paired intervals and all three mapped flatten channels match the full
+Ruby oracle (771/719/663 events). Raw/final MIR2 and assembled Z80 replay the
+whole song and third-page/output capacity controls in21 executions. Code and
+static data occupy25,340 bytes; observed stack is74 bytes on the song and80
+including boundary controls. This is still paired-note flattening with resident
+mapping simulation, not native MIDI parsing, physical banking or a full converter.
+
 The same paired-note sweep and real exported Crystal selectors now have a
 [reproducible native Z80 gate](../../research/autosiril-native/README.md):
 47 fresh Ruby-backed cases plus10 target lifecycle/error controls run on raw MIR2,
