@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/minz/minzc/pkg/mir2"
@@ -12,7 +13,7 @@ import (
 
 // Unit controls use explicit scalar selector fixtures. verify_lazy.py uses the
 // actual native Crystal exporter product and the fresh Ruby oracle instead.
-func lazyFixture(t *testing.T, optimized bool) (*mir2.VM, func(string) uint32) {
+func lazyFixtureFiles(t *testing.T) (string, string) {
 	t.Helper()
 	dir := t.TempDir()
 	music := filepath.Join(dir, "music.lanz")
@@ -35,6 +36,11 @@ func lazyFixture(t *testing.T, optimized bool) (*mir2.VM, func(string) uint32) {
 	if err := os.WriteFile(meta, data, 0600); err != nil {
 		t.Fatal(err)
 	}
+	return music, meta
+}
+func lazyFixture(t *testing.T, optimized bool) (*mir2.VM, func(string) uint32) {
+	t.Helper()
+	music, meta := lazyFixtureFiles(t)
 	m, err := lazyModule("../../../research/autosiril-vm/lazy_flatten.nanz", music, meta, optimized)
 	if err != nil {
 		t.Fatal(err)
@@ -148,6 +154,21 @@ func TestLazyDemandOrderAndExhaustion(t *testing.T) {
 	}
 }
 
+func TestLazyRejectedConsumerPreservesOwner(t *testing.T) {
+	for _, optimized := range []bool{false, true} {
+		for _, limit := range []int64{0, 1} {
+			vm, get := lazyFixture(t, optimized)
+			vm.WriteHeap(vm.GlobalAddr("stream_busy"), 1)
+			if _, err := vm.Call("consume", []mir2.Value{{I: 0}, {I: 112}, {I: limit}}); err != nil {
+				t.Fatal(err)
+			}
+			if get("fault") != 107 || vm.ReadHeap(vm.GlobalAddr("stream_busy"), 1)[0] != 1 || get("payload_reads") != 0 {
+				t.Fatal("rejected consumer changed another owner's lease")
+			}
+		}
+	}
+}
+
 func TestLazyCapacityErrors(t *testing.T) {
 	vm, get := lazyFixture(t, false)
 	setLazy16(vm, "note_count", 1)
@@ -174,5 +195,39 @@ func TestLazyCapacityErrors(t *testing.T) {
 	}
 	if get("fault") != 108 {
 		t.Fatal("active capacity accepted")
+	}
+}
+
+func TestLazyLastHandleAndRow(t *testing.T) {
+	for _, optimized := range []bool{false, true} {
+		vm, get := lazyFixture(t, optimized)
+		setLazy16(vm, "note_count", 8184)
+		putLazyNote(vm, 8183, 65535, 65535, 127, 255)
+		vm.WriteHeap(vm.GlobalAddr("banked"), 1)
+		vm.WriteHeap(vm.GlobalAddr("churn"), 1)
+		var got [][]int64
+		vm.Hosts["@host.lazy.emit_flat"] = func(args []mir2.Value) ([]mir2.Value, error) {
+			got = append(got, []int64{args[0].I, args[1].I})
+			return nil, nil
+		}
+		if _, err := vm.Call("consume", []mir2.Value{{I: 255}, {I: 112}, {I: 2}}); err != nil {
+			t.Fatal(err)
+		}
+		if get("fault") != 0 || len(got) != 1 || got[0][0] != 65535 || got[0][1] != 383 {
+			t.Fatalf("last handle/row: %v fault%d", got, get("fault"))
+		}
+	}
+}
+func TestLazyBudgetAdmission(t *testing.T) {
+	music, meta := lazyFixtureFiles(t)
+	dir := t.TempDir()
+	input := filepath.Join(dir, "input.json")
+	data := `{"notes":[{"start":0,"off":1,"pitch":60,"source":0}],"configs":[{"source":0,"mode":"p"}]}`
+	if err := os.WriteFile(input, []byte(data), 0600); err != nil {
+		t.Fatal(err)
+	}
+	err := runLazy(input, "../../../research/autosiril-vm/lazy_flatten.nanz", music, meta, filepath.Join(dir, "out.json"), "flat", 1024, 1, false)
+	if err == nil || !strings.Contains(err.Error(), "exceeds budget") {
+		t.Fatalf("insufficient budget accepted: %v", err)
 	}
 }

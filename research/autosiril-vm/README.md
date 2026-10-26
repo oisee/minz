@@ -171,3 +171,17 @@ the stable CI gate. Evidence is in `evidence/lazy-flat-results.json`.
 
 Next: connect the producer directly to compact LNote/echo-window consumers and
 measure their combined live memory before claiming a whole-converter RAM budget.
+
+Demand guarantees apply to the producer after input loading/validation. The probe
+host currently reads the complete paired-input JSON and validates every interval
+before the first pull. `--lazy-limit` bounds generated entries/row processing,
+not file I/O or validation. A next-source lookup may inspect other-source handles
+to find its lookahead. This checkpoint is not an end-to-end lazy MIDI reader.
+Rejected/nested consumers leave the existing scratch lease untouched, including
+zero-demand calls; this is checked in raw and optimized VM.
+
+The lazy verifier now rebuilds the native Crystal exporter and re-exports current
+`music.cr` on every run. Receipts include generator/verifier/consumer, Crystal
+source/exporter/manifest/product and Ruby source hashes plus Crystal version.
+Successful last handle 8184, row 65535 and a budget below reservation are also
+covered by the self-contained command tests.

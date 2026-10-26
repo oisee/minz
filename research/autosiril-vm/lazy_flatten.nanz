@@ -185,6 +185,9 @@ gen flattened(source:u8,mode:u8)->u16 {
     stream_busy = 0
 }
 fun consume(source:u8,mode:u8,limit:u32) {
+    // A rejected consumer must never release another cursor's scratch lease.
+    if stream_busy != 0 { fault = 107
+        return }
     var it = flattened(source,mode)
     var value:u16 = 0
     var count:u32 = 0

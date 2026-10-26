@@ -17,11 +17,20 @@ def main():
  if out==ROOT or ROOT in out.parents:p.error('output directory must be outside checkout')
  out.mkdir(parents=True,exist_ok=True);ref=args.reference_dir
  env=dict(os.environ);env.setdefault('GOCACHE','/tmp/minz-crystal-go-cache')
+ env.setdefault('CRYSTAL_CACHE_DIR','/tmp/minz-crystal-cache')
+ env.setdefault('CRYSTAL_PATH',subprocess.check_output(['crystal','env','CRYSTAL_PATH'],text=True).strip())
+ import shutil
+ if shutil.which('brew'):
+  llvm=subprocess.run(['brew','--prefix','llvm@22'],capture_output=True,text=True)
+  if llvm.returncode==0:env['PATH']=llvm.stdout.strip()+'/bin:'+env['PATH']
  def run(cmd):
   r=subprocess.run(list(map(str,cmd)),cwd=ROOT,env=env,capture_output=True,text=True,timeout=180)
   if r.returncode:raise RuntimeError(r.stdout[-1200:]+r.stderr[-1600:])
   return r.stdout
  consumer=out/'consume';run(['go','-C','minzc','build','-o',consumer,'./cmd/autosiril-vm'])
+ exporter=out/'export';music=out/'music.lanz';manifest=out/'music-manifest.json'
+ run(['crystal','build','-Dcrystal_semantic',ROOT/'research/crystal-hir/typed_export.cr','-o',exporter])
+ music.write_text(run([exporter,HERE/'music.cr',manifest]))
  rows=[];baseline=json.loads((HERE/'evidence/module-results.json').read_text())
  cases={r['case']:r for r in baseline['corpora']};start=time.monotonic()
  for name,meta in cases.items():
@@ -42,7 +51,7 @@ def main():
    for backend in ('flat','banked','churn'):
     destination=out/f'{name}-{backend}-{"opt" if optimized else "raw"}.json'
     budget=262144 if backend=='churn' else 131072
-    cmd=[consumer,'-lazy-input',input_path,'-music',ref/'music.lanz','-manifest',ref/'music-manifest.json','-out',destination,'-arena-backend',backend,'-arena-budget',budget]
+    cmd=[consumer,'-lazy-input',input_path,'-music',music,'-manifest',manifest,'-out',destination,'-arena-backend',backend,'-arena-budget',budget]
     if optimized:cmd+=['-opt']
     run(cmd);got=json.loads(destination.read_text())
     assert got['flattened']==oracle['flattened'],(name,optimized,backend,'flattened mismatch')
@@ -51,7 +60,7 @@ def main():
     row={k:v for k,v in got.items() if k not in ('flattened','scope')};row['case']=name
     row['flattened_sha256']=hashlib.sha256(json.dumps(got['flattened'],separators=(',',':')).encode()).hexdigest();rows.append(row)
     print(name,optimized,backend,'heap',got['vm_heap_bytes'],'active',got['peak_active'],flush=True)
- receipt={'protocol':'autosiril-lazy-flat-v1','runs':len(rows),'oracle':'fresh Ruby autooisee.rb through oracle.rb','source_sha256':hashlib.sha256((HERE/'lazy_flatten.nanz').read_bytes()).hexdigest(),'ruby_source_sha256':hashlib.sha256((args.autosiril/'autooisee.rb').read_bytes()).hexdigest(),'music_lanz_sha256':hashlib.sha256((ref/'music.lanz').read_bytes()).hexdigest(),'elapsed_seconds':round(time.monotonic()-start,3),'scope':'paired interval input -> flattened entries only; simulated bank mapping; VM data/frame budget excludes target code/stack/runtime and other stages; host sink captures verification output','cases':rows}
+ receipt={'protocol':'autosiril-lazy-flat-v1','runs':len(rows),'oracle':'fresh Ruby autooisee.rb through oracle.rb','source_sha256':hashlib.sha256((HERE/'lazy_flatten.nanz').read_bytes()).hexdigest(),'ruby_source_sha256':hashlib.sha256((args.autosiril/'autooisee.rb').read_bytes()).hexdigest(),'music_lanz_sha256':hashlib.sha256(music.read_bytes()).hexdigest(),'verifier_sha256':hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),'consumer_sha256':hashlib.sha256(consumer.read_bytes()).hexdigest(),'music_source_sha256':hashlib.sha256((HERE/'music.cr').read_bytes()).hexdigest(),'music_manifest_sha256':hashlib.sha256(manifest.read_bytes()).hexdigest(),'typed_exporter_source_sha256':hashlib.sha256((ROOT/'research/crystal-hir/typed_export.cr').read_bytes()).hexdigest(),'exporter_common_source_sha256':hashlib.sha256((ROOT/'research/crystal-hir/export.cr').read_bytes()).hexdigest(),'crystal_version':run(['crystal','--version']).strip(),'elapsed_seconds':round(time.monotonic()-start,3),'scope':'paired interval input -> flattened entries only; simulated bank mapping; VM data/frame budget excludes target code/stack/runtime and other stages; host sink captures verification output','cases':rows}
  (out/'receipt.json').write_text(json.dumps(receipt,indent=2)+'\n')
  print('PASS',len(rows),'Ruby-equivalent generator runs')
 if __name__=='__main__':main()
