@@ -170,14 +170,14 @@ func TestLazyRejectedConsumerPreservesOwner(t *testing.T) {
 }
 
 func TestLazyCapacityErrors(t *testing.T) {
-	vm, get := lazyFixture(t, false)
+	vm, _ := lazyFixture(t, false)
 	setLazy16(vm, "note_count", 1)
 	putLazyNote(vm, 0, 0, 1, 60, 0)
 	out, err := vm.Call("exclusive_probe", nil)
 	if err != nil || len(out) != 1 || out[0].I != 107 {
 		t.Fatalf("concurrent scratch ownership accepted: %v %v", out, err)
 	}
-	vm, get = lazyFixture(t, false)
+	vm, get := lazyFixture(t, false)
 	setLazy16(vm, "note_count", 8185)
 	if _, err := vm.Call("validate_input", nil); err != nil {
 		t.Fatal(err)
