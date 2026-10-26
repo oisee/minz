@@ -13,6 +13,7 @@ fun cpm_directory_status(status:u8)->u8 {
 fun open_input()->u8 {
     chunk_capacity = 128
     input_padding = 1
+    input_padding_quantum = 128
     var index:u16 = 0
     while index < 36 {
         file_input[index] = 0

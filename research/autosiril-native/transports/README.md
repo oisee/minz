@@ -34,6 +34,13 @@ output capacity (CP/M128, TRD256) and input-padding policy. Invalid capacity
 is rejected before reading or creating output. The bounded buffer and ASIR
 serializer are common code, not duplicated musical logic.
 
+Input padding quantum is explicit binding metadata:128 for CP/M records,0 for
+TRD's exact logical length. The MIDI producer counts position within a physical
+record across short refills. After declared SMF END it accepts1A only to that
+record boundary, then requires EOF. Chunks of1/7 bytes therefore do not turn
+valid padding into a new record, and an extra padding-only record remains an
+error. Invalid padding metadata is rejected before reading.
+
 The CP/M binding normalizes successful directory results0..3 to the common
 zero-success contract for BDOS15/16/22. This matters on CP/M2.2 even though the
 current mze provider returns0. Read/write statuses retain their distinct rules.
@@ -45,7 +52,7 @@ then tag01 plus six note bytes per DATA record, then
 Chronos is **10416 logical bytes**: CP/M stores10496 bytes, TRD allocates41 sectors
 (10496 bytes) and records logical length10416 in its directory. The logical
 streams are compared directly across the two transports. The new common CP/M
-image also runs independently through ordinary `mze`: 455542736 T-states and
+image also runs independently through ordinary `mze`: 458365926 T-states and
 byte-identical physical `NOTES.BIN`.
 
 ## Verified execution
@@ -59,8 +66,10 @@ including standalone mze, then runs:
   Chronos, all original capacity/error cases, record boundaries and empty file,
   failures of each of eight disk operations, malformed directory/free-space
   metadata, duplicate input/existing output, full directory/disk and last sector.
-- **21** API-contract executions: empty progress, permanent stalls, EOF with
-  bytes, oversized reads, unknown status, short writes and invalid capacity.
+- **48** API-contract executions: empty progress, permanent stalls, EOF with
+  bytes, oversized reads, unknown status, short writes and invalid capacity/input
+  padding quantum; progress chunks of1/7 bytes across ordinary/exact physical
+  record endings and an extra padding record.
 - **9** directory-success executions: codes1/2/3 for open, create and both
   closes, each on raw/final MIR2 and assembled Z80, with real underlying file I/O.
 - **Three rejected native mutants**: broken mapping restoration, a257-byte
@@ -78,29 +87,29 @@ MIDI or manufacturing musical results.
 
 | Item | Common CP/M | Scorpion TRD |
 |---|---:|---:|
-| Loaded image | 32134 B | 20517 B |
-| Code/bootstrap or code/stub | 16713 B | 19807 B |
-| Loaded globals | 14938 B | 166 B |
-| Static spills | 483 B | 544 B |
+| Loaded image | 32352 B | 20731 B |
+| Code/bootstrap or code/stub | 16929 B | 20019 B |
+| Loaded globals | 14942 B | 170 B |
+| Static spills | 481 B | 542 B |
 | External fixed workspace | 0 | 2432 B |
 | External note arena | included in globals | 12288 B in bank0 |
 | Additional bounce bank reservation | 0 | 16384 B in bank8,256 B used |
-| Maximum kernel stack below entry | 72 B | 72 B |
-| Full Chronos Z80 T-states | 455542653 | 456287840 |
+| Maximum kernel stack below entry | 70 B | 70 B |
+| Full Chronos Z80 T-states | 458365843 | 455426256 |
 
 Stack measurements exclude the two-byte incoming return address. CP/M Chronos
 uses72 BDOS reads (71 records plus EOF),82 writes, one open/create/DMA setup and
 two closes. TRD uses83 sector calls including catalog/system metadata. T-states
 exclude real disk latency; these are offline converter measurements.
 
-The smaller TRD binary is **not** a smaller total memory claim: loaded20517 +
-fixed2432 + arena12288 + reserved bounce bank16384 = **51621 bytes**, plus the
+The smaller TRD binary is **not** a smaller total memory claim: loaded20731 +
+fixed2432 + arena12288 + reserved bounce bank16384 = **51835 bytes**, plus the
 fixed stack reservation and reserved ROM/runtime areas.
 
 | Region | Placement and rule |
 |---|---|
 | Fixed workspace | `4000..497F`, explicitly consumes screen RAM |
-| Code, stub, remaining globals and spills | `6000..B024`, fixed banks5/2 |
+| Code, stub, remaining globals and spills | `6000..B0FA`, fixed banks5/2 |
 | Stack reservation | `B800..BFFF`, initial SP=`BFFE` |
 | Note arena | `C000..EFFF`, physical bank0; three4096-byte regions with4-byte padding each |
 | Disk bounce | bank8, first256 bytes; whole16K bank reserved |
@@ -152,6 +161,11 @@ go test ./pkg/spectrum ./pkg/spectrum/formats -count=1
 Use a fresh output directory. Generated `.bin`, assembly, raw/final MIR2,
 per-engine `.trd` images, note files, contract cases, mutant sources and logs are
 kept outside checkout. CI uploads them as `autosiril-transports`.
+
+After a transport-only edit, `verify.py --reuse-reference-root /path/to/completed-reference`
+can reuse completed fresh `files/verify.py` products after checking their source
+hashes and the original Ruby/MIDI digests. All changed-transport executions still
+run, and the receipt explicitly records reference reuse.
 
 ## Limits
 

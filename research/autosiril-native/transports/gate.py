@@ -9,6 +9,7 @@ import sys
 
 sys.dont_write_bytecode = True
 from corpus import trd_cases
+from tiny_chunks import TINY_READ
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[2]
@@ -123,28 +124,42 @@ def execute(out, raw, cpm, mze):
         ('unknown-status', 'fun read_chunk()->u32 {', 'fun read_chunk()->u32 { return 196608\n', 904, True),
         ('short-write', 'return u32(count)', 'return u32(count-1)', 902, False),
         ('invalid-capacity', 'chunk_capacity = 128', 'chunk_capacity = 0', 910, True),
+        ('invalid-input-quantum', 'input_padding_quantum = 128', 'input_padding_quantum = 0', 910, True),
+        ('tiny-1', 'fun read_chunk()->u32 {', 'fun physical_read_chunk()->u32 {', 0, False),
+        ('tiny-7', 'fun read_chunk()->u32 {', 'fun physical_read_chunk()->u32 {', 0, False),
     ]
+    contract_executions = 0
     for name, old, new, fault, unparsed in contracts:
         assert source.count(old) == 1
         path = out / (name + '.nanz')
-        path.write_text(source.replace(old, new, 1))
+        modified = source.replace(old, new, 1)
+        if name.startswith('tiny-'):
+            modified += TINY_READ.replace('CHUNK', name.split('-')[1])
+        path.write_text(modified)
         case = deepcopy(single)
         case['name'] = name
         if unparsed:
             case['expected'] = deepcopy(empty)
         case['expected']['fault'] = fault
         fixture = out / (name + '.json')
-        fixture.write_text(json.dumps(dict(cases=[case]), indent=2) + '\n')
+        selected = [case]
+        if name.startswith('tiny-'):
+            selected = [deepcopy(c) for c in cpm['cases'] if c['name'] in [
+                'single', 'smf_exact_physical_record', 'wire_end_exact_physical_record', 'extra_padding_record']]
+            assert len(selected) == 4
+        fixture.write_text(json.dumps(dict(cases=selected), indent=2) + '\n')
         run(out, name, [exe, '-source', path, '-input', fixture, '-out', out / name])
+        contract_executions += json.loads((out / name / 'receipt.json').read_text())['target_executions']
     assert before == sources(), 'source changed during transport proof'
     proof = dict(protocol='autosiril-interchangeable-transports/v1',
                  source_sha256=before, trd_matrix_sha256=sha(trd_path),
                  cpm_matrix_sha256=sha(cpm_path), cpm=results['cpm'], trd=results['trd'],
-                 contract_executions=len(contracts)*3, rejected_native_mutants=3,
+                 contract_executions=contract_executions, rejected_native_mutants=3,
                  directory_success_executions=9,
                  standalone_wire_sha256=sha(standalone / 'NOTES.BIN'),
                  standalone_mze_sha256=sha(mze),
                  chronos_logical_sha256=sha(b), scope='CP/M and Scorpion API traps; not physical ROM/hardware')
     (out / 'receipt.json').write_text(json.dumps(proof, indent=2) + '\n')
-    print('PASS: 147 common CP/M + 186 TRD + 21 API contract + 9 directory success executions; three native mutants rejected')
+    print('PASS: 147 common CP/M + 186 TRD +', contract_executions,
+          'API contract + 9 directory success executions; three native mutants rejected')
     return proof
