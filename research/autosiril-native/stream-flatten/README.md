@@ -43,6 +43,8 @@ The common reader/writer is checked against the original independent corpus:
 - **30 transport-contract executions**: progress chunks of1 and7 bytes, empty
   progress, stalls, EOF with bytes, oversized reads, unknown status, short write,
   zero and oversized output capacities.
+- **9 directory-success executions** verify normalized CP/M2.2 success codes
+  1/2/3 for open/create/close on all three engines, using the shared binding.
 - The original **three native negative mutants** still fail: a restoring write
   to the input arena, bypassed note capacity and removed END signature check.
 - Two separate **common** `.COM` programs execute through ordinary mze. Only
@@ -59,20 +61,20 @@ It does not infer expectations from the modified target.
 
 | Item | Measured |
 |---|---:|
-| Loaded image | 24223 B |
-| Code/bootstrap | 9501 B |
+| Loaded image | 24247 B |
+| Code/bootstrap | 9525 B |
 | Globals, including12288-byte note arena and256-byte input buffer | 14517 B |
 | Static spills | 205 B |
 | External target data | 0 |
 | Maximum stack below entry | 65 B |
-| Chronos kernel | 449872310 T-states |
-| Ordinary mze standalone | 449872341 T-states |
+| Chronos kernel | 449872550 T-states |
+| Ordinary mze standalone | 449872581 T-states |
 
 Stack excludes the incoming two-byte return address. Chronos performs83 BDOS
 reads (82 records plus EOF),102 writes, one input open/output create/DMA setup
 and two closes. It emits2153 events:12939 logical bytes,13056 stored bytes.
 The original special-purpose flatten image was22750 bytes and446711944
-standalone T-states. The shared API/padding accounting adds1473 image bytes
+standalone T-states. The shared API/padding accounting adds1497 image bytes
 and about0.7% runtime in this particular offline conversion. No real disk latency
 is included, and this does not claim a real-time MIDI converter.
 
@@ -86,7 +88,11 @@ python3 research/autosiril-native/stream-flatten/verify.py \
 
 Requires Go, Ruby and Crystal. On macOS an optional `--go-overlay` can supply
 the local mze tick-input portability change without committing user files. Use
-a fresh output directory outside the checkout.
+a fresh output directory outside the checkout. After a composition-only fix,
+`--reuse-reference-root /path/to/previous-fresh-output` can reuse completed
+independent reference/producer gates: their recorded source hashes, original
+Ruby source and MIDI digest are checked. The new common-stage tests still run
+in full; the receipt explicitly records reference reuse.
 
 CI uses Go/Python and prior completed gate directories:
 
@@ -102,6 +108,10 @@ standalone programs/files are retained outside checkout and uploaded by CI as
 `autosiril-common-flatten`.
 
 ## Scope
+
+Under native CP/M2.2 the output filenames must initially be absent; BDOS22 is
+make-file, not a portable overwrite operation. mze host-file truncation does
+not establish overwrite semantics on another CP/M implementation.
 
 This change connects the second stage to the common interface using the proven
 CP/M binding. It does not yet provide a TRD flatten utility: that adapter also

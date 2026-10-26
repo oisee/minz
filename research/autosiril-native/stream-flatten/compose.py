@@ -7,6 +7,9 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[3]
 HERE = Path(__file__).resolve().parent
+sys.dont_write_bytecode = True
+sys.path.insert(0, str(HERE.parent / 'transports'))
+from directory_codes import instrument
 
 
 def once(text, old, new):
@@ -32,9 +35,12 @@ def main():
     writer = pair[pair.index('fun file_write_record('):pair.index('fun file_save_notes(')]
     binding = (HERE.parent / 'transports/cpm.nanz').read_text()
     binding = once(binding, 'input_padding = 1', 'input_padding = 1\n    input_padding_quantum = 128')
-    binding = once(binding, '[73,78,80,85,84,32,32,32,77,73,68]', '[78,79,84,69,83,32,32,32,66,73,78]')
-    binding = once(binding, '[78,79,84,69,83,32,32,32,66,73,78]\nfun', '[69,86,69,78,84,83,32,32,66,73,78]\nfun')
+    binding = once(binding, 'global input_name:[u8;11] = [73,78,80,85,84,32,32,32,77,73,68]',
+                   'global input_name:[u8;11] = [78,79,84,69,83,32,32,32,66,73,78]')
+    binding = once(binding, 'global output_name:[u8;11] = [78,79,84,69,83,32,32,32,66,73,78]',
+                   'global output_name:[u8;11] = [69,86,69,78,84,83,32,32,66,73,78]')
     (out / 'flatten-cpm.nanz').write_text(flat + '\n' + (HERE / 'common.nanz').read_text() + '\n' + writer + '\n' + binding)
+    (out / 'probe.go').write_text(instrument((out / 'probe.go').read_text()))
 
 
 if __name__ == '__main__':

@@ -48,7 +48,7 @@ def sha(p):
 
 def sources():
     files = list(HERE.glob('*.py')) + [HERE / 'common.nanz']
-    files += [HERE.parent / 'transports' / n for n in ['pair-file.nanz', 'cpm.nanz']]
+    files += [HERE.parent / 'transports' / n for n in ['pair-file.nanz', 'cpm.nanz', 'directory_codes.py']]
     files += [HERE.parent / 'file-flatten' / n for n in ['compose.py', 'driver.go.txt', 'negative.py']]
     files += [ROOT / 'research/autosiril-vm/lazy_flatten.nanz', HERE.parent / 'linked/compose.py']
     return {str(p.relative_to(ROOT)): sha(p) for p in sorted(files)}
@@ -84,6 +84,12 @@ def execute(out, reference, producer, mze):
                          '--probe', probe, '--source', source, '--input', matrix,
                          '--out', out / 'negative'])
     single = next(c for c in cases['cases'] if c['name'] == 'single')
+    fixture = out / 'directory-success.json'
+    fixture.write_text(json.dumps(dict(cases=[single]), indent=2) + '\n')
+    for code in [1, 2, 3]:
+        name = 'directory-success-' + str(code)
+        run(out, name, [probe, '-source', source, '-input', fixture,
+                        '-directory-code', code, '-out', out / name])
     text = source.read_text()
     controls = [
         ('empty-progress', 'fun read_chunk()->u32 {',
@@ -129,10 +135,11 @@ def execute(out, reference, producer, mze):
                  independent_matrix_sha256=sha(matrix), generated_source_sha256=sha(source),
                  generated_driver_sha256=sha(dest / 'probe.go'), flatten=measured,
                  contract_executions=len(controls)*3, native_mutants_rejected=3,
+                 directory_success_executions=9,
                  standalone_notes_sha256=sha(standalone / 'NOTES.BIN'),
                  standalone_events_sha256=sha(standalone / 'EVENTS.BIN'))
     (out / 'receipt.json').write_text(json.dumps(proof, indent=2) + '\n')
-    print('PASS: 201 common flatten + 30 contract executions, three native mutants, two standalone common .COM programs')
+    print('PASS: 201 common flatten + 30 contract + 9 directory success executions, three native mutants, two standalone common .COM programs')
     return proof
 
 

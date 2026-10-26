@@ -6,20 +6,21 @@
     "research/autosiril-native/file-flatten/negative.py": "a07c93658994cd484b7c726f4f248d7021d2dbd0fe3f02e35fb195ef87f7c96a",
     "research/autosiril-native/linked/compose.py": "76577d6aae0d6fab45577868cc060067ae48e3398a18c48a3d7973e80ab33a2a",
     "research/autosiril-native/stream-flatten/common.nanz": "cafe68bd9cc90a8bfb2f27cc188ecb4bfb7f2272cb24f72e45e87a3661754144",
-    "research/autosiril-native/stream-flatten/compose.py": "93dcf8701521313270dd0dfa5538aa59ffd20f116755161dd91aabe76a539060",
-    "research/autosiril-native/stream-flatten/replay.py": "08a08789b5b88f4eebad548312e1d3d7bd5b537cf9acf8f34d27846bda81fb85",
-    "research/autosiril-native/stream-flatten/verify.py": "32a7662bc944871eb2fd90b9fca627eb22c407e14c93b07ec9956405df1a7e6c",
-    "research/autosiril-native/transports/cpm.nanz": "1cf2320c66bacb0f41b5c28b7855142e434e984e2aef7edf61cf6e2f11c94baa",
+    "research/autosiril-native/stream-flatten/compose.py": "72ea483e05d681515496ee30a4948f6c2c68d28b3a3679aacdc19e7e30fcc29f",
+    "research/autosiril-native/stream-flatten/replay.py": "728e0a3539f9065360404e6aaad201239a50bce6044777d861c8db39b32fd880",
+    "research/autosiril-native/stream-flatten/verify.py": "b46b848167b74c439dd9bd7a27c79ba121642196ccc85981499d0f4e16cfdfd7",
+    "research/autosiril-native/transports/cpm.nanz": "d93b9bd31bd41026dd61c09a8eda05dc6bc61eb2e03dda9a9b5878f2cfcfc0c3",
+    "research/autosiril-native/transports/directory_codes.py": "d6edbbeec62b415056bc9805741cc46d276c556691c65d7b64ff1dfba25c52fd",
     "research/autosiril-native/transports/pair-file.nanz": "d1a77d83bd3270354c52ff1ff6e2d3160ae9a21003fce7c9bceecafb270c781f",
     "research/autosiril-vm/lazy_flatten.nanz": "b9059032e78d9945eb2468f58aaaa08d380c4a442e678e2362afa2e35aca9169"
   },
   "independent_matrix_sha256": "b9d48e6ac84de63c5d095b3e3217196a8fc6ee9ec1024bd500ae5418e6628425",
-  "generated_source_sha256": "89b8bf237a974d1a3883de11a81a0c1c6834bc6e21acaf944d970851f68a88f4",
-  "generated_driver_sha256": "7f3622dfa1e32f871326ef45da44e570fe94e78ba5e768d73e761651f49c64a4",
+  "generated_source_sha256": "fae3e180ccae57461a2662dcb9f8c1cb647802a4e3783a7beb15b474dae7b28f",
+  "generated_driver_sha256": "6d19f8edb4ed59ef5f8a3a0f7866bcfb3d72c61beaf16ef3ec1ef60bd96d6c78",
   "flatten": {
-    "assembly_sha256": "b0b527587599663c547c4c14aa7289a670ab4f48edca3ab28f16d32ef95260bb",
+    "assembly_sha256": "23c79a43a06f4df0c13c7161aceb5c11490a41be247c9bac78ca7c4aed259946",
     "backend_spill_bytes": 205,
-    "binary_sha256": "71751386bfa35aff513c927ef05e2381f4ad6e7e6c5be55e46b832440994b914",
+    "binary_sha256": "1b669072ec4abf1e1c122b08d87b7ab4284619c6caf7a6f117964904288f2403",
     "cases": [
       {
         "bdos_calls": {
@@ -74,7 +75,7 @@
         "notes": 1485,
         "output_stage_entered": 1,
         "stack_below_entry": 65,
-        "t_states": 449872310,
+        "t_states": 449872550,
         "wire_bytes": 13056,
         "wire_sha256": "7a6a96d5a438bc27488295a580245baa14f3b6a4b6c1b896274538286891fff7"
       },
@@ -131,7 +132,7 @@
         "notes": 0,
         "output_stage_entered": 1,
         "stack_below_entry": 39,
-        "t_states": 313567,
+        "t_states": 313807,
         "wire_bytes": 128,
         "wire_sha256": "80c059ed956b48bcc1ac8b0f05132278b02fdd958a629a6023560d44b313babd"
       },
@@ -188,7 +189,7 @@
         "notes": 1,
         "output_stage_entered": 1,
         "stack_below_entry": 65,
-        "t_states": 664200,
+        "t_states": 664440,
         "wire_bytes": 128,
         "wire_sha256": "5ef2db9798d0d58fa6d16d873711a83dc8692d1bbdf79344d3a363fff5992acb"
       },
@@ -245,7 +246,7 @@
         "notes": 2,
         "output_stage_entered": 1,
         "stack_below_entry": 65,
-        "t_states": 1387754,
+        "t_states": 1387994,
         "wire_bytes": 128,
         "wire_sha256": "1aaeef40431ac010f58de4c126e03abd7b66b26c7a1447dbea3158f16b0ae5d4"
       },
@@ -302,7 +303,7 @@
         "notes": 2,
         "output_stage_entered": 1,
         "stack_below_entry": 65,
-        "t_states": 1388150,
+        "t_states": 1388390,
         "wire_bytes": 128,
         "wire_sha256": "4d8aa05b5ac95b55903c0e6738c27d7859b159d9831f76a5ab69ef83a034c488"
       },
@@ -359,7 +360,7 @@
         "notes": 4,
         "output_stage_entered": 1,
         "stack_below_entry": 65,
-        "t_states": 3121629,
+        "t_states": 3121869,
         "wire_bytes": 256,
         "wire_sha256": "e1a601244545915d55019a511d0833887b642f406c732523ae3654d72eb80e03"
       },
@@ -416,7 +417,7 @@
         "notes": 1,
         "output_stage_entered": 1,
         "stack_below_entry": 65,
-        "t_states": 664200,
+        "t_states": 664440,
         "wire_bytes": 128,
         "wire_sha256": "05f5ae50b55aa4161c8e5cfe2b7611e136e843b03e9859651fef6dde330330d6"
       },
@@ -473,7 +474,7 @@
         "notes": 2,
         "output_stage_entered": 1,
         "stack_below_entry": 65,
-        "t_states": 1387740,
+        "t_states": 1387980,
         "wire_bytes": 128,
         "wire_sha256": "297de252b387af9b20c9350f43c3d63eb22d431a05941e16fae7ffe9797b596b"
       },
@@ -530,7 +531,7 @@
         "notes": 2,
         "output_stage_entered": 1,
         "stack_below_entry": 65,
-        "t_states": 858948,
+        "t_states": 859188,
         "wire_bytes": 128,
         "wire_sha256": "0e9e536c5a5c617cb82281eee4bf42fd5b87c2ca0e4363ec673156c68074a37a"
       },
@@ -587,7 +588,7 @@
         "notes": 2,
         "output_stage_entered": 1,
         "stack_below_entry": 65,
-        "t_states": 1387740,
+        "t_states": 1387980,
         "wire_bytes": 128,
         "wire_sha256": "35cc790ec13aff12acc0c82bfea35f0f604c448a7ed66c5ed91412798939f002"
       },
@@ -644,7 +645,7 @@
         "notes": 1,
         "output_stage_entered": 1,
         "stack_below_entry": 65,
-        "t_states": 664200,
+        "t_states": 664440,
         "wire_bytes": 128,
         "wire_sha256": "9c9234282e10020b486339ed9d11ea9dd846146c66cd917a3b752f9c77bcd7b7"
       },
@@ -701,7 +702,7 @@
         "notes": 1,
         "output_stage_entered": 1,
         "stack_below_entry": 65,
-        "t_states": 664200,
+        "t_states": 664440,
         "wire_bytes": 128,
         "wire_sha256": "9c9234282e10020b486339ed9d11ea9dd846146c66cd917a3b752f9c77bcd7b7"
       },
@@ -758,7 +759,7 @@
         "notes": 1,
         "output_stage_entered": 1,
         "stack_below_entry": 65,
-        "t_states": 664200,
+        "t_states": 664440,
         "wire_bytes": 128,
         "wire_sha256": "9c9234282e10020b486339ed9d11ea9dd846146c66cd917a3b752f9c77bcd7b7"
       },
@@ -815,7 +816,7 @@
         "notes": 0,
         "output_stage_entered": 1,
         "stack_below_entry": 39,
-        "t_states": 313567,
+        "t_states": 313807,
         "wire_bytes": 128,
         "wire_sha256": "80c059ed956b48bcc1ac8b0f05132278b02fdd958a629a6023560d44b313babd"
       },
@@ -872,7 +873,7 @@
         "notes": 1,
         "output_stage_entered": 1,
         "stack_below_entry": 65,
-        "t_states": 528738,
+        "t_states": 528978,
         "wire_bytes": 128,
         "wire_sha256": "4b09151347ddff58925febfff1c4f56a5d688faa95c7bd2d5164aa03895591de"
       },
@@ -929,7 +930,7 @@
         "notes": 512,
         "output_stage_entered": 1,
         "stack_below_entry": 65,
-        "t_states": 99434494,
+        "t_states": 99434734,
         "wire_bytes": 3200,
         "wire_sha256": "d8c735bca82702017819a497c4f5ce6b98d95f74f2b398c5353e71b0c1794932"
       },
@@ -986,7 +987,7 @@
         "notes": 2046,
         "output_stage_entered": 1,
         "stack_below_entry": 61,
-        "t_states": 185946891,
+        "t_states": 185947131,
         "wire_bytes": 0,
         "wire_sha256": ""
       },
@@ -1043,7 +1044,7 @@
         "notes": 64,
         "output_stage_entered": 1,
         "stack_below_entry": 65,
-        "t_states": 3959841,
+        "t_states": 3960081,
         "wire_bytes": 128,
         "wire_sha256": "3c199d63cedc6486f0bb72ee0bc411dc7cff5f2999ad40a88ac18e2604ea570f"
       },
@@ -1100,7 +1101,7 @@
         "notes": 0,
         "output_stage_entered": 1,
         "stack_below_entry": 39,
-        "t_states": 313567,
+        "t_states": 313807,
         "wire_bytes": 128,
         "wire_sha256": "80c059ed956b48bcc1ac8b0f05132278b02fdd958a629a6023560d44b313babd"
       },
@@ -1157,7 +1158,7 @@
         "notes": 125,
         "output_stage_entered": 1,
         "stack_below_entry": 65,
-        "t_states": 54707496,
+        "t_states": 54707736,
         "wire_bytes": 3072,
         "wire_sha256": "e898d75367db1f44b2a4e52a3590eb35e5ab4e59806376c16e00b913ea6bed6b"
       },
@@ -1214,7 +1215,7 @@
         "notes": 1,
         "output_stage_entered": 1,
         "stack_below_entry": 65,
-        "t_states": 664200,
+        "t_states": 664440,
         "wire_bytes": 128,
         "wire_sha256": "c29042d16c247517de08905ff1418c6e690849778d8c60730ccfed6984e4fba9"
       },
@@ -1271,7 +1272,7 @@
         "notes": 512,
         "output_stage_entered": 1,
         "stack_below_entry": 65,
-        "t_states": 224316590,
+        "t_states": 224316830,
         "wire_bytes": 12416,
         "wire_sha256": "5b7cd36ff58de4c69db96fb9463337aeb65453d4062e962e5762715db12f725c"
       },
@@ -1328,7 +1329,7 @@
         "notes": 513,
         "output_stage_entered": 1,
         "stack_below_entry": 61,
-        "t_states": 122530206,
+        "t_states": 122530446,
         "wire_bytes": 0,
         "wire_sha256": ""
       },
@@ -1385,7 +1386,7 @@
         "notes": 1365,
         "output_stage_entered": 1,
         "stack_below_entry": 65,
-        "t_states": 71634351,
+        "t_states": 71634591,
         "wire_bytes": 128,
         "wire_sha256": "f4f3b64b8e76370e3b7fb4d53c8050a78149adc80d3a4f3a261b49e3e4204f68"
       },
@@ -1442,7 +1443,7 @@
         "notes": 2046,
         "output_stage_entered": 1,
         "stack_below_entry": 65,
-        "t_states": 107355140,
+        "t_states": 107355380,
         "wire_bytes": 128,
         "wire_sha256": "f4f3b64b8e76370e3b7fb4d53c8050a78149adc80d3a4f3a261b49e3e4204f68"
       },
@@ -1496,7 +1497,7 @@
         "notes": 513,
         "output_stage_entered": 1,
         "stack_below_entry": 59,
-        "t_states": 30510192,
+        "t_states": 30510432,
         "wire_bytes": 0,
         "wire_sha256": ""
       },
@@ -1547,7 +1548,7 @@
         "notes": 0,
         "output_stage_entered": 0,
         "stack_below_entry": 22,
-        "t_states": 19922,
+        "t_states": 20042,
         "wire_bytes": 0,
         "wire_sha256": ""
       },
@@ -1598,7 +1599,7 @@
         "notes": 0,
         "output_stage_entered": 0,
         "stack_below_entry": 22,
-        "t_states": 21898,
+        "t_states": 22018,
         "wire_bytes": 0,
         "wire_sha256": ""
       },
@@ -1649,7 +1650,7 @@
         "notes": 0,
         "output_stage_entered": 0,
         "stack_below_entry": 22,
-        "t_states": 24471,
+        "t_states": 24591,
         "wire_bytes": 0,
         "wire_sha256": ""
       },
@@ -1700,7 +1701,7 @@
         "notes": 0,
         "output_stage_entered": 0,
         "stack_below_entry": 22,
-        "t_states": 24492,
+        "t_states": 24612,
         "wire_bytes": 0,
         "wire_sha256": ""
       },
@@ -1751,7 +1752,7 @@
         "notes": 0,
         "output_stage_entered": 0,
         "stack_below_entry": 22,
-        "t_states": 24520,
+        "t_states": 24640,
         "wire_bytes": 0,
         "wire_sha256": ""
       },
@@ -1802,7 +1803,7 @@
         "notes": 0,
         "output_stage_entered": 0,
         "stack_below_entry": 22,
-        "t_states": 24555,
+        "t_states": 24675,
         "wire_bytes": 0,
         "wire_sha256": ""
       },
@@ -1853,7 +1854,7 @@
         "notes": 0,
         "output_stage_entered": 0,
         "stack_below_entry": 22,
-        "t_states": 24712,
+        "t_states": 24832,
         "wire_bytes": 0,
         "wire_sha256": ""
       },
@@ -1904,7 +1905,7 @@
         "notes": 0,
         "output_stage_entered": 0,
         "stack_below_entry": 22,
-        "t_states": 25228,
+        "t_states": 25348,
         "wire_bytes": 0,
         "wire_sha256": ""
       },
@@ -1955,7 +1956,7 @@
         "notes": 0,
         "output_stage_entered": 0,
         "stack_below_entry": 22,
-        "t_states": 28577,
+        "t_states": 28697,
         "wire_bytes": 0,
         "wire_sha256": ""
       },
@@ -2006,7 +2007,7 @@
         "notes": 0,
         "output_stage_entered": 0,
         "stack_below_entry": 22,
-        "t_states": 28654,
+        "t_states": 28774,
         "wire_bytes": 0,
         "wire_sha256": ""
       },
@@ -2057,7 +2058,7 @@
         "notes": 1,
         "output_stage_entered": 0,
         "stack_below_entry": 22,
-        "t_states": 34731,
+        "t_states": 34851,
         "wire_bytes": 0,
         "wire_sha256": ""
       },
@@ -2108,7 +2109,7 @@
         "notes": 1,
         "output_stage_entered": 0,
         "stack_below_entry": 22,
-        "t_states": 34756,
+        "t_states": 34876,
         "wire_bytes": 0,
         "wire_sha256": ""
       },
@@ -2159,7 +2160,7 @@
         "notes": 1,
         "output_stage_entered": 0,
         "stack_below_entry": 22,
-        "t_states": 37031,
+        "t_states": 37151,
         "wire_bytes": 0,
         "wire_sha256": ""
       },
@@ -2210,7 +2211,7 @@
         "notes": 1,
         "output_stage_entered": 0,
         "stack_below_entry": 22,
-        "t_states": 39437,
+        "t_states": 39557,
         "wire_bytes": 0,
         "wire_sha256": ""
       },
@@ -2261,7 +2262,7 @@
         "notes": 0,
         "output_stage_entered": 0,
         "stack_below_entry": 22,
-        "t_states": 25228,
+        "t_states": 25348,
         "wire_bytes": 0,
         "wire_sha256": ""
       },
@@ -2312,7 +2313,7 @@
         "notes": 0,
         "output_stage_entered": 0,
         "stack_below_entry": 22,
-        "t_states": 27269,
+        "t_states": 27389,
         "wire_bytes": 0,
         "wire_sha256": ""
       },
@@ -2363,7 +2364,7 @@
         "notes": 1,
         "output_stage_entered": 0,
         "stack_below_entry": 22,
-        "t_states": 255934,
+        "t_states": 256054,
         "wire_bytes": 0,
         "wire_sha256": ""
       },
@@ -2414,7 +2415,7 @@
         "notes": 0,
         "output_stage_entered": 0,
         "stack_below_entry": 22,
-        "t_states": 19712,
+        "t_states": 19832,
         "wire_bytes": 0,
         "wire_sha256": ""
       },
@@ -2465,7 +2466,7 @@
         "notes": 0,
         "output_stage_entered": 0,
         "stack_below_entry": 22,
-        "t_states": 20932,
+        "t_states": 21052,
         "wire_bytes": 0,
         "wire_sha256": ""
       },
@@ -2516,7 +2517,7 @@
         "notes": 0,
         "output_stage_entered": 0,
         "stack_below_entry": 22,
-        "t_states": 21898,
+        "t_states": 22018,
         "wire_bytes": 0,
         "wire_sha256": ""
       },
@@ -2567,7 +2568,7 @@
         "notes": 0,
         "output_stage_entered": 0,
         "stack_below_entry": 22,
-        "t_states": 24471,
+        "t_states": 24591,
         "wire_bytes": 0,
         "wire_sha256": ""
       },
@@ -2618,7 +2619,7 @@
         "notes": 0,
         "output_stage_entered": 0,
         "stack_below_entry": 22,
-        "t_states": 25228,
+        "t_states": 25348,
         "wire_bytes": 0,
         "wire_sha256": ""
       },
@@ -2669,7 +2670,7 @@
         "notes": 0,
         "output_stage_entered": 0,
         "stack_below_entry": 22,
-        "t_states": 28654,
+        "t_states": 28774,
         "wire_bytes": 0,
         "wire_sha256": ""
       },
@@ -2720,7 +2721,7 @@
         "notes": 0,
         "output_stage_entered": 0,
         "stack_below_entry": 22,
-        "t_states": 28654,
+        "t_states": 28774,
         "wire_bytes": 0,
         "wire_sha256": ""
       },
@@ -2771,7 +2772,7 @@
         "notes": 1,
         "output_stage_entered": 0,
         "stack_below_entry": 22,
-        "t_states": 33274,
+        "t_states": 33394,
         "wire_bytes": 0,
         "wire_sha256": ""
       },
@@ -2822,7 +2823,7 @@
         "notes": 1,
         "output_stage_entered": 0,
         "stack_below_entry": 22,
-        "t_states": 34731,
+        "t_states": 34851,
         "wire_bytes": 0,
         "wire_sha256": ""
       },
@@ -2873,7 +2874,7 @@
         "notes": 1,
         "output_stage_entered": 0,
         "stack_below_entry": 22,
-        "t_states": 35315,
+        "t_states": 35435,
         "wire_bytes": 0,
         "wire_sha256": ""
       },
@@ -2924,7 +2925,7 @@
         "notes": 1,
         "output_stage_entered": 0,
         "stack_below_entry": 22,
-        "t_states": 37031,
+        "t_states": 37151,
         "wire_bytes": 0,
         "wire_sha256": ""
       },
@@ -2975,7 +2976,7 @@
         "notes": 1,
         "output_stage_entered": 0,
         "stack_below_entry": 22,
-        "t_states": 39437,
+        "t_states": 39557,
         "wire_bytes": 0,
         "wire_sha256": ""
       },
@@ -3026,7 +3027,7 @@
         "notes": 16,
         "output_stage_entered": 0,
         "stack_below_entry": 24,
-        "t_states": 158588,
+        "t_states": 158708,
         "wire_bytes": 0,
         "wire_sha256": ""
       },
@@ -3077,7 +3078,7 @@
         "notes": 2046,
         "output_stage_entered": 0,
         "stack_below_entry": 24,
-        "t_states": 16751226,
+        "t_states": 16751346,
         "wire_bytes": 0,
         "wire_sha256": ""
       },
@@ -3128,7 +3129,7 @@
         "notes": 1,
         "output_stage_entered": 0,
         "stack_below_entry": 28,
-        "t_states": 288233,
+        "t_states": 288353,
         "wire_bytes": 0,
         "wire_sha256": ""
       },
@@ -3179,7 +3180,7 @@
         "notes": 2,
         "output_stage_entered": 0,
         "stack_below_entry": 28,
-        "t_states": 308927,
+        "t_states": 309047,
         "wire_bytes": 0,
         "wire_sha256": ""
       },
@@ -3230,7 +3231,7 @@
         "notes": 0,
         "output_stage_entered": 0,
         "stack_below_entry": 22,
-        "t_states": 28654,
+        "t_states": 28774,
         "wire_bytes": 0,
         "wire_sha256": ""
       },
@@ -3275,7 +3276,7 @@
         "notes": 0,
         "output_stage_entered": 0,
         "stack_below_entry": 6,
-        "t_states": 16871,
+        "t_states": 16926,
         "wire_bytes": 0,
         "wire_sha256": ""
       },
@@ -3326,7 +3327,7 @@
         "notes": 0,
         "output_stage_entered": 0,
         "stack_below_entry": 22,
-        "t_states": 19722,
+        "t_states": 19842,
         "wire_bytes": 0,
         "wire_sha256": ""
       },
@@ -3377,7 +3378,7 @@
         "notes": 1,
         "output_stage_entered": 0,
         "stack_below_entry": 22,
-        "t_states": 255899,
+        "t_states": 256019,
         "wire_bytes": 0,
         "wire_sha256": ""
       },
@@ -3428,7 +3429,7 @@
         "notes": 1,
         "output_stage_entered": 0,
         "stack_below_entry": 22,
-        "t_states": 255920,
+        "t_states": 256035,
         "wire_bytes": 0,
         "wire_sha256": ""
       },
@@ -3482,7 +3483,7 @@
         "notes": 1,
         "output_stage_entered": 1,
         "stack_below_entry": 28,
-        "t_states": 288892,
+        "t_states": 289067,
         "wire_bytes": 0,
         "wire_sha256": ""
       },
@@ -3539,7 +3540,7 @@
         "notes": 1,
         "output_stage_entered": 1,
         "stack_below_entry": 65,
-        "t_states": 663777,
+        "t_states": 664017,
         "wire_bytes": 0,
         "wire_sha256": ""
       },
@@ -3596,28 +3597,29 @@
         "notes": 1,
         "output_stage_entered": 1,
         "stack_below_entry": 65,
-        "t_states": 664255,
+        "t_states": 664490,
         "wire_bytes": 0,
         "wire_sha256": ""
       }
     ],
-    "code_bytes": 9501,
-    "image_bytes": 24223,
+    "code_bytes": 9525,
+    "image_bytes": 24247,
     "input_sha256": "b9d48e6ac84de63c5d095b3e3217196a8fc6ee9ec1024bd500ae5418e6628425",
     "manifest_sha256": "f2ba3f05a0700c79e9b6deff99461d1cc57d70f3c4a460ba69fcb5f82d80835d",
     "module_globals_bytes": 14517,
     "music_sha256": "9fb9f831651875e5b4b65b45a121d3f8d3b9ebce7ec6f7652a7abd909485ce9a",
     "protocol": "autosiril-file-flatten/v1",
     "scope": "separate target file reader and streaming three-channel flatten producer; CP/M API adapter, not physical ROM/paging/full tracker converter",
-    "source_sha256": "89b8bf237a974d1a3883de11a81a0c1c6834bc6e21acaf944d970851f68a88f4",
+    "source_sha256": "fae3e180ccae57461a2662dcb9f8c1cb647802a4e3783a7beb15b474dae7b28f",
     "target_executions": 201
   },
   "contract_executions": 30,
   "native_mutants_rejected": 3,
+  "directory_success_executions": 9,
   "standalone_notes_sha256": "4ecfa8a78d0146fe2f7dbcdcab711fa1ca803332044b3e4d81f684c80a37039f",
   "standalone_events_sha256": "7a6a96d5a438bc27488295a580245baa14f3b6a4b6c1b896274538286891fff7",
-  "fresh_reference_sha256": "eaa4e64d615c89c855b780353acfb6a969ea5e7c19ec4afa606fa8650c77d27f",
-  "fresh_producer_sha256": "f859392b94601245b6f7115fade573f064f34c29d9ba092660c574aa99e1e485",
+  "fresh_reference_sha256": "adb3395945cd3515b3e0447e8561d6c83be890d7c802901731053a86b4b70dcf",
+  "fresh_producer_sha256": "b4877caac4c19703cc060daf7a38acf3f19ed656d58515b45cdf52aea9356568",
   "fresh_reference": {
     "protocol": "autosiril-cpm-file-chain-fresh/v1",
     "source_sha256": {
@@ -3627,7 +3629,7 @@
       "research/autosiril-native/file-flatten/cpm.nanz": "ea5affe2477bd1133059efde61b21414dfa45b53ff93ab217ab8b41fa2f5c503",
       "research/autosiril-native/file-flatten/driver.go.txt": "ef255a6adcb0feabe0c5781b20f370de6ffba98ef94b10d2e898cd59f68ca777"
     },
-    "pair_receipt_sha256": "6dce701a9c3ed31dce4956089bc06db1a983eea392158082ac4e49a35f38231a",
+    "pair_receipt_sha256": "6b3c85c4181383aa8a5d7842e780694b91ea9feb91a450c96053c2e1575377a3",
     "matrix_sha256": "b9d48e6ac84de63c5d095b3e3217196a8fc6ee9ec1024bd500ae5418e6628425",
     "oracle_source_sha256": "5575b3ac8e8a7bc5fd051ee48745726d09a205a25be0847efdc3bdf7e5a01942",
     "oracle_input_sha256": "70d0a0387564341561d7fa2247587f77904cd1780c81d503a4b0230784be5971",
@@ -7245,10 +7247,11 @@
       "research/autosiril-native/midi/fixtures/music-manifest.json": "f2ba3f05a0700c79e9b6deff99461d1cc57d70f3c4a460ba69fcb5f82d80835d",
       "research/autosiril-native/midi/fixtures/music.lanz": "9fb9f831651875e5b4b65b45a121d3f8d3b9ebce7ec6f7652a7abd909485ce9a",
       "research/autosiril-native/midi/pair.nanz": "ff4421d521514c3a719505e4a36df7cfabd2d29978a44261762c1eb4d425ec88",
-      "research/autosiril-native/transports/compose.py": "050a5c561aa4d9ed692426fa021a5f89a4db2e83b85f0d8697230d4246e6f9b4",
+      "research/autosiril-native/transports/compose.py": "38ee3b5f2307b2b56121af7b6967f1e749b1bf22ebc122a381688260e600b61d",
       "research/autosiril-native/transports/corpus.py": "4ee802d8b618a1e7dfbd858a0b0f37ad1df71ccf00cb26d67f91ecb70e5de83d",
-      "research/autosiril-native/transports/cpm.nanz": "1cf2320c66bacb0f41b5c28b7855142e434e984e2aef7edf61cf6e2f11c94baa",
-      "research/autosiril-native/transports/gate.py": "466963a99bd82479b59fe27aa08b15a3fb9552e3c43a060365a35125c5b6e523",
+      "research/autosiril-native/transports/cpm.nanz": "d93b9bd31bd41026dd61c09a8eda05dc6bc61eb2e03dda9a9b5878f2cfcfc0c3",
+      "research/autosiril-native/transports/directory_codes.py": "d6edbbeec62b415056bc9805741cc46d276c556691c65d7b64ff1dfba25c52fd",
+      "research/autosiril-native/transports/gate.py": "bc03f536d7ccc2dc5023050f8341b5a0415def25ed386a3467850698da0b7b50",
       "research/autosiril-native/transports/pair-file.nanz": "d1a77d83bd3270354c52ff1ff6e2d3160ae9a21003fce7c9bceecafb270c781f",
       "research/autosiril-native/transports/replay.py": "256da3813a213af530ee9b1316c9e69fd653e2c53d2cbfe3f0439d1817a1ee68",
       "research/autosiril-native/transports/trd-driver.go.txt": "2801ceff426404755eb1ff6ce8124c85f4ec7ce6527bab3d828f18d7bd742a8f",
@@ -7262,7 +7265,7 @@
     "cpm_matrix_sha256": "29d8568e2178f72c60c2005e520a7ecfceb6056f5627bb21a53a796fb64a3dd8",
     "cpm": {
       "backend_spill_bytes": 483,
-      "binary_sha256": "c5bfd3141283ad19d6848da0cb9564cf1e3ffc22a8df305891764da1260c8a4c",
+      "binary_sha256": "ff1190bdbf0fa7bc252f87425cae1925d34dd947e1e30fdd2ed522b71dfb71a5",
       "cases": [
         {
           "bdos_calls": {
@@ -7323,7 +7326,7 @@
           "notes": 1485,
           "peak": 2,
           "stack_below_entry": 68,
-          "t_states": 455542413,
+          "t_states": 455542653,
           "wire_bytes": 10496,
           "wire_sha256": "4ecfa8a78d0146fe2f7dbcdcab711fa1ca803332044b3e4d81f684c80a37039f"
         },
@@ -7386,7 +7389,7 @@
           "notes": 0,
           "peak": 0,
           "stack_below_entry": 38,
-          "t_states": 259122,
+          "t_states": 259362,
           "wire_bytes": 128,
           "wire_sha256": "93dc6b88ad9d894a59155bf7f805dcb03ed26d5a01d1afaea3fc79f1524e388a"
         },
@@ -7449,7 +7452,7 @@
           "notes": 1,
           "peak": 1,
           "stack_below_entry": 68,
-          "t_states": 629545,
+          "t_states": 629785,
           "wire_bytes": 128,
           "wire_sha256": "2794f8c3c0c7071dfc1ebe38670eede336d6bbb96b264b1e3c83b92246433ccb"
         },
@@ -7512,7 +7515,7 @@
           "notes": 2,
           "peak": 2,
           "stack_below_entry": 68,
-          "t_states": 947819,
+          "t_states": 948059,
           "wire_bytes": 128,
           "wire_sha256": "57cfda3ee82da792cf05f92f3a2a990c5f0d9b2ad87925ce2f7caa919bbd6435"
         },
@@ -7575,7 +7578,7 @@
           "notes": 2,
           "peak": 2,
           "stack_below_entry": 68,
-          "t_states": 951698,
+          "t_states": 951938,
           "wire_bytes": 128,
           "wire_sha256": "759c70cf643e75494c1954131f5bbb16b64f9d99125ee78c914affa4648d3af1"
         },
@@ -7638,7 +7641,7 @@
           "notes": 4,
           "peak": 3,
           "stack_below_entry": 68,
-          "t_states": 1593219,
+          "t_states": 1593459,
           "wire_bytes": 128,
           "wire_sha256": "fdbfc7f3c70c3226cfeb4b5652214d38738815f32b5079bfe2b9492b68f34230"
         },
@@ -7701,7 +7704,7 @@
           "notes": 1,
           "peak": 1,
           "stack_below_entry": 68,
-          "t_states": 697977,
+          "t_states": 698217,
           "wire_bytes": 128,
           "wire_sha256": "d9b4625eafea8a9a1bdee683c4ca801723f59173054a85b039cde2ab85693733"
         },
@@ -7764,7 +7767,7 @@
           "notes": 2,
           "peak": 2,
           "stack_below_entry": 68,
-          "t_states": 937219,
+          "t_states": 937459,
           "wire_bytes": 128,
           "wire_sha256": "6d6a981207becd6387ed2987953d0759796c94ccbe36b9a07a87c4ccf75a7f7a"
         },
@@ -7827,7 +7830,7 @@
           "notes": 2,
           "peak": 1,
           "stack_below_entry": 68,
-          "t_states": 1189879,
+          "t_states": 1190119,
           "wire_bytes": 128,
           "wire_sha256": "27187fe5751d12bef6c905e65e3048565597ad0393d7a88f35954385ec4fb94b"
         },
@@ -7890,7 +7893,7 @@
           "notes": 2,
           "peak": 2,
           "stack_below_entry": 72,
-          "t_states": 873605,
+          "t_states": 873845,
           "wire_bytes": 128,
           "wire_sha256": "6c5b63f8f82d46a97849a86bd54274201953e4828dfc710846bb090f41287bf9"
         },
@@ -7953,7 +7956,7 @@
           "notes": 1,
           "peak": 1,
           "stack_below_entry": 68,
-          "t_states": 628278,
+          "t_states": 628518,
           "wire_bytes": 128,
           "wire_sha256": "12eae7bbbfe7a6cb39396e4c36e0f8ecb328ab5f40559cbb0126581a17f59fd8"
         },
@@ -8016,7 +8019,7 @@
           "notes": 1,
           "peak": 1,
           "stack_below_entry": 68,
-          "t_states": 631713,
+          "t_states": 631953,
           "wire_bytes": 128,
           "wire_sha256": "12eae7bbbfe7a6cb39396e4c36e0f8ecb328ab5f40559cbb0126581a17f59fd8"
         },
@@ -8079,7 +8082,7 @@
           "notes": 1,
           "peak": 1,
           "stack_below_entry": 68,
-          "t_states": 696473,
+          "t_states": 696713,
           "wire_bytes": 128,
           "wire_sha256": "12eae7bbbfe7a6cb39396e4c36e0f8ecb328ab5f40559cbb0126581a17f59fd8"
         },
@@ -8142,7 +8145,7 @@
           "notes": 0,
           "peak": 0,
           "stack_below_entry": 38,
-          "t_states": 4798716,
+          "t_states": 4798956,
           "wire_bytes": 128,
           "wire_sha256": "93dc6b88ad9d894a59155bf7f805dcb03ed26d5a01d1afaea3fc79f1524e388a"
         },
@@ -8205,7 +8208,7 @@
           "notes": 1,
           "peak": 1,
           "stack_below_entry": 68,
-          "t_states": 636644,
+          "t_states": 636884,
           "wire_bytes": 128,
           "wire_sha256": "e17219647a481ddd061e72f74207d5026d2a2e59798f38253f3864248ce26dc6"
         },
@@ -8268,7 +8271,7 @@
           "notes": 512,
           "peak": 512,
           "stack_below_entry": 72,
-          "t_states": 145878937,
+          "t_states": 145879177,
           "wire_bytes": 3712,
           "wire_sha256": "8e0e3b6b17b094c732ade0c89432a5e972ea0e162224356eaaf39ab8b9d657f1"
         },
@@ -8331,7 +8334,7 @@
           "notes": 2046,
           "peak": 1,
           "stack_below_entry": 68,
-          "t_states": 650644311,
+          "t_states": 650644551,
           "wire_bytes": 14464,
           "wire_sha256": "0b65a2c5cab66ac615504265bdd47d3b9bc35a041232329c26e7f18a942c27c0"
         },
@@ -8394,7 +8397,7 @@
           "notes": 64,
           "peak": 1,
           "stack_below_entry": 68,
-          "t_states": 26359297,
+          "t_states": 26359537,
           "wire_bytes": 512,
           "wire_sha256": "997b51c799d322029099de817b043bc2b1b24bd23ba57bff515a1a8fe0f07545"
         },
@@ -8451,7 +8454,7 @@
           "notes": 0,
           "peak": 0,
           "stack_below_entry": 28,
-          "t_states": 45832,
+          "t_states": 45952,
           "wire_bytes": 0,
           "wire_sha256": ""
         },
@@ -8508,7 +8511,7 @@
           "notes": 0,
           "peak": 0,
           "stack_below_entry": 38,
-          "t_states": 171430,
+          "t_states": 171550,
           "wire_bytes": 0,
           "wire_sha256": ""
         },
@@ -8565,7 +8568,7 @@
           "notes": 0,
           "peak": 0,
           "stack_below_entry": 38,
-          "t_states": 160841,
+          "t_states": 160961,
           "wire_bytes": 0,
           "wire_sha256": ""
         },
@@ -8622,7 +8625,7 @@
           "notes": 0,
           "peak": 0,
           "stack_below_entry": 38,
-          "t_states": 154956,
+          "t_states": 155076,
           "wire_bytes": 0,
           "wire_sha256": ""
         },
@@ -8679,7 +8682,7 @@
           "notes": 0,
           "peak": 0,
           "stack_below_entry": 38,
-          "t_states": 167756,
+          "t_states": 167876,
           "wire_bytes": 0,
           "wire_sha256": ""
         },
@@ -8736,7 +8739,7 @@
           "notes": 0,
           "peak": 0,
           "stack_below_entry": 38,
-          "t_states": 180507,
+          "t_states": 180627,
           "wire_bytes": 0,
           "wire_sha256": ""
         },
@@ -8793,7 +8796,7 @@
           "notes": 0,
           "peak": 0,
           "stack_below_entry": 38,
-          "t_states": 182365,
+          "t_states": 182485,
           "wire_bytes": 0,
           "wire_sha256": ""
         },
@@ -8850,7 +8853,7 @@
           "notes": 0,
           "peak": 0,
           "stack_below_entry": 38,
-          "t_states": 173750,
+          "t_states": 173870,
           "wire_bytes": 0,
           "wire_sha256": ""
         },
@@ -8991,7 +8994,7 @@
           "notes": 512,
           "peak": 512,
           "stack_below_entry": 64,
-          "t_states": 79428129,
+          "t_states": 79428249,
           "wire_bytes": 0,
           "wire_sha256": ""
         },
@@ -9048,7 +9051,7 @@
           "notes": 2046,
           "peak": 1,
           "stack_below_entry": 68,
-          "t_states": 630659937,
+          "t_states": 630660057,
           "wire_bytes": 0,
           "wire_sha256": ""
         },
@@ -9105,7 +9108,7 @@
           "notes": 0,
           "peak": 0,
           "stack_below_entry": 64,
-          "t_states": 251330,
+          "t_states": 251450,
           "wire_bytes": 0,
           "wire_sha256": ""
         },
@@ -9162,7 +9165,7 @@
           "notes": 1,
           "peak": 1,
           "stack_below_entry": 64,
-          "t_states": 403534,
+          "t_states": 403654,
           "wire_bytes": 0,
           "wire_sha256": ""
         },
@@ -9219,7 +9222,7 @@
           "notes": 0,
           "peak": 0,
           "stack_below_entry": 64,
-          "t_states": 252768,
+          "t_states": 252888,
           "wire_bytes": 0,
           "wire_sha256": ""
         },
@@ -9276,7 +9279,7 @@
           "notes": 0,
           "peak": 0,
           "stack_below_entry": 38,
-          "t_states": 5664240,
+          "t_states": 5664360,
           "wire_bytes": 0,
           "wire_sha256": ""
         },
@@ -9333,7 +9336,7 @@
           "notes": 64,
           "peak": 1,
           "stack_below_entry": 68,
-          "t_states": 25744652,
+          "t_states": 25744772,
           "wire_bytes": 0,
           "wire_sha256": ""
         },
@@ -9390,7 +9393,7 @@
           "notes": 2,
           "peak": 2,
           "stack_below_entry": 72,
-          "t_states": 681384,
+          "t_states": 681504,
           "wire_bytes": 0,
           "wire_sha256": ""
         },
@@ -9447,7 +9450,7 @@
           "notes": 1,
           "peak": 1,
           "stack_below_entry": 64,
-          "t_states": 1393050,
+          "t_states": 1393170,
           "wire_bytes": 0,
           "wire_sha256": ""
         },
@@ -9504,7 +9507,7 @@
           "notes": 0,
           "peak": 0,
           "stack_below_entry": 38,
-          "t_states": 1193668,
+          "t_states": 1193788,
           "wire_bytes": 0,
           "wire_sha256": ""
         },
@@ -9567,7 +9570,7 @@
           "notes": 0,
           "peak": 0,
           "stack_below_entry": 38,
-          "t_states": 767320,
+          "t_states": 767560,
           "wire_bytes": 128,
           "wire_sha256": "93dc6b88ad9d894a59155bf7f805dcb03ed26d5a01d1afaea3fc79f1524e388a"
         },
@@ -9630,7 +9633,7 @@
           "notes": 125,
           "peak": 1,
           "stack_below_entry": 68,
-          "t_states": 40246940,
+          "t_states": 40247180,
           "wire_bytes": 896,
           "wire_sha256": "44c01f2d160fef71676d197cddce4c09e55ee0517487dc9c3413a8ed23ba57f5"
         },
@@ -9693,7 +9696,7 @@
           "notes": 1,
           "peak": 1,
           "stack_below_entry": 68,
-          "t_states": 695829,
+          "t_states": 696069,
           "wire_bytes": 128,
           "wire_sha256": "1b7db5ec237eed04c08ab0333c86b18eae1f9467ddce2e86e98c88811f682a42"
         },
@@ -9750,7 +9753,7 @@
           "notes": 0,
           "peak": 0,
           "stack_below_entry": 26,
-          "t_states": 31808,
+          "t_states": 31928,
           "wire_bytes": 0,
           "wire_sha256": ""
         },
@@ -9801,7 +9804,7 @@
           "notes": 0,
           "peak": 0,
           "stack_below_entry": 26,
-          "t_states": 28637,
+          "t_states": 28692,
           "wire_bytes": 0,
           "wire_sha256": ""
         },
@@ -9858,7 +9861,7 @@
           "notes": 0,
           "peak": 0,
           "stack_below_entry": 26,
-          "t_states": 31334,
+          "t_states": 31454,
           "wire_bytes": 0,
           "wire_sha256": ""
         },
@@ -9915,7 +9918,7 @@
           "notes": 1,
           "peak": 1,
           "stack_below_entry": 68,
-          "t_states": 586753,
+          "t_states": 586868,
           "wire_bytes": 0,
           "wire_sha256": ""
         },
@@ -9975,7 +9978,7 @@
           "notes": 1,
           "peak": 1,
           "stack_below_entry": 68,
-          "t_states": 587151,
+          "t_states": 587326,
           "wire_bytes": 0,
           "wire_sha256": ""
         },
@@ -10038,7 +10041,7 @@
           "notes": 1,
           "peak": 1,
           "stack_below_entry": 68,
-          "t_states": 629122,
+          "t_states": 629362,
           "wire_bytes": 0,
           "wire_sha256": ""
         },
@@ -10101,7 +10104,7 @@
           "notes": 1,
           "peak": 1,
           "stack_below_entry": 68,
-          "t_states": 629606,
+          "t_states": 629841,
           "wire_bytes": 0,
           "wire_sha256": ""
         },
@@ -10158,18 +10161,18 @@
           "notes": 1,
           "peak": 1,
           "stack_below_entry": 68,
-          "t_states": 586757,
+          "t_states": 586877,
           "wire_bytes": 0,
           "wire_sha256": ""
         }
       ],
-      "code_bytes": 16689,
-      "image_bytes": 32110,
+      "code_bytes": 16713,
+      "image_bytes": 32134,
       "input_sha256": "29d8568e2178f72c60c2005e520a7ecfceb6056f5627bb21a53a796fb64a3dd8",
       "module_globals_bytes": 14938,
       "protocol": "autosiril-file-pair-probe/v1",
       "scope": "CP/M record adapter with real host files; raw/final MIR2 and native CALL5; independent mze execution still required; target file reader/flatten stage pending",
-      "source_sha256": "7841bacb37f34252f98943740b4e5dc0a4d2bb5a1e2ef06fe816d1935798279b",
+      "source_sha256": "27d25d1bf0df2f0b1cc905c8acb74790e28d032b81f0c82d334f2e8ad7b848e0",
       "target_executions": 147
     },
     "trd": {
@@ -12827,12 +12830,13 @@
     },
     "contract_executions": 21,
     "rejected_native_mutants": 3,
+    "directory_success_executions": 9,
     "standalone_wire_sha256": "4ecfa8a78d0146fe2f7dbcdcab711fa1ca803332044b3e4d81f684c80a37039f",
     "standalone_mze_sha256": "472357ec9514551ac828291763865d40bad55a5b59e4b22ec53aa5fbcd85d887",
     "chronos_logical_sha256": "56e0b7266c9f4ba610f8d77d2475c6293d49af40e5778ad96a162f7daf50d76b",
     "scope": "CP/M and Scorpion API traps; not physical ROM/hardware",
-    "fresh_file_reference_sha256": "6dce701a9c3ed31dce4956089bc06db1a983eea392158082ac4e49a35f38231a",
-    "fresh_midi_reference_sha256": "6588576d2b16d8fa3cc5d314c3ffbbfb51bfe2368f61ba72aba6472a4249b451",
+    "fresh_file_reference_sha256": "6b3c85c4181383aa8a5d7842e780694b91ea9feb91a450c96053c2e1575377a3",
+    "fresh_midi_reference_sha256": "f6d0f355f1f2696fe527e80cb2f89b0a80781e56c0fca84ed0238bfe7ddfe484",
     "fresh_midi_executions": 342,
     "fresh_file_reference": {
       "protocol": "autosiril-file-pair-fresh/v1",
@@ -12845,7 +12849,7 @@
         "minzc/cmd/mze/cpm_record.go": "2959ad5fbd05889fdc0d1bdf991429ae163b948a424c369bd3f311f5d2a667c7",
         "minzc/cmd/mze/cpm_record_test.go": "ed65e0346a0773ddcb167ac3222a6fd434221c333bd6f995a57e1b7a889ed8d5"
       },
-      "reference_sha256": "6588576d2b16d8fa3cc5d314c3ffbbfb51bfe2368f61ba72aba6472a4249b451",
+      "reference_sha256": "f6d0f355f1f2696fe527e80cb2f89b0a80781e56c0fca84ed0238bfe7ddfe484",
       "matrix_sha256": "29d8568e2178f72c60c2005e520a7ecfceb6056f5627bb21a53a796fb64a3dd8",
       "generated_source_sha256": "d214edcd4ef504308e4e1aa1ef34f4d7842cc34ea39741342c043e872ba0a875",
       "generated_driver_sha256": "2988674e20602b0f3f4e99df1b718666a918ef2a86e3e3e19f1202ccf278b47c",
@@ -21743,9 +21747,10 @@
       "go_version": "go version go1.26.3 darwin/arm64",
       "ruby_version": "ruby 2.6.10p210 (2022-04-12 revision 67958) [universal.arm64e-darwin26]",
       "crystal_version": "Crystal 1.20.1 (2026-04-29)\n\nLLVM: 22.1.4\nDefault target: aarch64-apple-darwin27.0.0",
-      "git_head": "2c504d6287811799c921b46b6eaab0a53c27e948",
+      "git_head": "5f682d729bd7d28b079bbc637baee8b1def98f18",
       "git_dirty": true,
       "scope": "complete Chronos streamed MIDI parsing/pairing/quantization on target; separate image from flatten; fresh Ruby/target boundary corpus; no combined converter or physical banking"
     }
-  }
+  },
+  "reused_reference_root": "/private/tmp/minz-common-flatten-fresh-v3"
 }
