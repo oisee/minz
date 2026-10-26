@@ -91,9 +91,11 @@ func TestMultiFunctionProfileVMZ80(t *testing.T) {
 		name   string
 		n      int64
 		cycles int
-	}{{"short_sum", 1, 95}, {"long_sum", 40, 1426}} {
+	}{{"short_sum", 1, 95}, {"long_sum", 40, 1430}} {
 		// short_sum now uses the ordinary counted-pointer pass: 41 + 54*n.
-		// The guarded long_sum remains unchanged. The synthetic selector
+		// Removing a forwarding-only cycle changes long_sum entry allocation
+		// by +4T (1426 to 1430); source results and per-item demand are unchanged.
+		// The synthetic selector
 		// coefficients deliberately test dispatch, not production cost evidence.
 		want := call.n * (call.n + 1) / 2 & 255
 		values, err := vm.Call(call.name, []mir2.Value{{I: 0x4000}, {I: call.n}})

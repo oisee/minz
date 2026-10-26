@@ -49,9 +49,11 @@ func TestProfileGuidedSumVMZ80(t *testing.T) {
 	profileJSON, _ := json.MarshalIndent(profileRun.Profile, "", "  ")
 	// The counted-pointer pass improves the ordinary loop as well as copy.
 	// These coefficients were remeasured over all 1022 length/address cases;
-	// pair-move codegen also removes 27 module bytes and 13T per fallback
-	// iteration. Guarded fast-path costs are unchanged.
-	model := hir.LoopCostModel{CompilerID: context.CompilerID, SemanticsID: context.SemanticsID, Function: "sum_array", HIRSHA256: profileRun.Profile.Compatibility.HIRSHA256, TargetID: context.TargetID, EvidenceID: "sum-array-z80-pair-moves-v9", OriginalBytes: 171, PointerBytes: 248, OriginalEntry: 41, OriginalIteration: 54, EqualEntryExtra: 7, FastEntry: 231, FastIteration: 37, FastZeroEntry: 232, FastZeroMeasured: true, FallbackEntry: 258, FallbackIteration: 178, FallbackMeasured: true}
+	// pair-move codegen removed 27 module bytes; forwarding-cycle elimination
+	// now removes another 10. The guarded fast path remains 231+37*n T.
+	// Current ordinary-options fallback was independently remeasured over
+	// all length/address families: 326+78*n T.
+	model := hir.LoopCostModel{CompilerID: context.CompilerID, SemanticsID: context.SemanticsID, Function: "sum_array", HIRSHA256: profileRun.Profile.Compatibility.HIRSHA256, TargetID: context.TargetID, EvidenceID: "sum-array-z80-forwarded-params-v10", OriginalBytes: 171, PointerBytes: 238, OriginalEntry: 41, OriginalIteration: 54, EqualEntryExtra: 7, FastEntry: 231, FastIteration: 37, FastZeroEntry: 232, FastZeroMeasured: true, FallbackEntry: 326, FallbackIteration: 78, FallbackMeasured: true}
 	decisions, e := hir.SelectLoopVariants(bytes.NewReader(profileJSON), input, context, model, false)
 	if e != nil {
 		t.Fatal(e)
