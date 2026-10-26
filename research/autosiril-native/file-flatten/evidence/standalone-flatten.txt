@@ -1,0 +1,1 @@
+Total execution: 446711944 T-states

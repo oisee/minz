@@ -1,0 +1,3617 @@
+{
+  "protocol": "autosiril-cpm-file-chain-fresh/v1",
+  "source_sha256": {
+    "research/autosiril-native/file-flatten/compose.py": "a4ac184ba65efd3a2fc6097ea3f19db5ccdaf25b64b11e373e50beba8f4dd935",
+    "research/autosiril-native/file-flatten/verify.py": "9090308a8fb73df84f1c09dcb11076afd12c534c634ff5fe88a957b95e1938ac",
+    "research/autosiril-native/file-flatten/corpus.py": "cb667e65ad924bce032ea5581b508595acda9e340f4690d169acbca48047216c",
+    "research/autosiril-native/file-flatten/cpm.nanz": "ea5affe2477bd1133059efde61b21414dfa45b53ff93ab217ab8b41fa2f5c503",
+    "research/autosiril-native/file-flatten/driver.go.txt": "ef255a6adcb0feabe0c5781b20f370de6ffba98ef94b10d2e898cd59f68ca777"
+  },
+  "pair_receipt_sha256": "6defa0f914ba11bf8620b0722386aac3aad9439f482f702dc2eb1d9b0ad1d986",
+  "matrix_sha256": "b9d48e6ac84de63c5d095b3e3217196a8fc6ee9ec1024bd500ae5418e6628425",
+  "oracle_source_sha256": "5575b3ac8e8a7bc5fd051ee48745726d09a205a25be0847efdc3bdf7e5a01942",
+  "oracle_input_sha256": "70d0a0387564341561d7fa2247587f77904cd1780c81d503a4b0230784be5971",
+  "oracle_output_sha256": "4b13163dcb83522615a04c33005415413da2e84391709da7355803850c82d585",
+  "ruby_full_sha256": "4fdd78d236e07c440d418cd605c4c2843051efbedc49392803f7a42cba19a00b",
+  "generated_source_sha256": "fb07ee19839e2aebbdfc8c07f8b12ed25064c57c9c3d20f57fc692b7576a0a43",
+  "generated_driver_sha256": "7f3622dfa1e32f871326ef45da44e570fe94e78ba5e768d73e761651f49c64a4",
+  "flatten": {
+    "assembly_sha256": "d59c26ae6f13aedfbd15e4a4171ec183ab7fd2a7086bf25a6fcf731d2ae7e744",
+    "backend_spill_bytes": 165,
+    "binary_sha256": "4fe456659e04211c0337dadb75ca8806d692a8219e5e987e5ff78e32b219aeca",
+    "cases": [
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 2,
+          "20": 83,
+          "21": 102,
+          "22": 1,
+          "26": 1
+        },
+        "case": "chronos_full",
+        "engine": "raw-mir2",
+        "fault": 0,
+        "notes": 1485,
+        "output_stage_entered": 1,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 13056,
+        "wire_sha256": "7a6a96d5a438bc27488295a580245baa14f3b6a4b6c1b896274538286891fff7"
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 2,
+          "20": 83,
+          "21": 102,
+          "22": 1,
+          "26": 1
+        },
+        "case": "chronos_full",
+        "engine": "final-mir2",
+        "fault": 0,
+        "notes": 1485,
+        "output_stage_entered": 1,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 13056,
+        "wire_sha256": "7a6a96d5a438bc27488295a580245baa14f3b6a4b6c1b896274538286891fff7"
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 2,
+          "20": 83,
+          "21": 102,
+          "22": 1,
+          "26": 1
+        },
+        "case": "chronos_full",
+        "engine": "z80",
+        "fault": 0,
+        "notes": 1485,
+        "output_stage_entered": 1,
+        "stack_below_entry": 63,
+        "t_states": 446711913,
+        "wire_bytes": 13056,
+        "wire_sha256": "7a6a96d5a438bc27488295a580245baa14f3b6a4b6c1b896274538286891fff7"
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 2,
+          "20": 2,
+          "21": 1,
+          "22": 1,
+          "26": 1
+        },
+        "case": "empty",
+        "engine": "raw-mir2",
+        "fault": 0,
+        "notes": 0,
+        "output_stage_entered": 1,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 128,
+        "wire_sha256": "80c059ed956b48bcc1ac8b0f05132278b02fdd958a629a6023560d44b313babd"
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 2,
+          "20": 2,
+          "21": 1,
+          "22": 1,
+          "26": 1
+        },
+        "case": "empty",
+        "engine": "final-mir2",
+        "fault": 0,
+        "notes": 0,
+        "output_stage_entered": 1,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 128,
+        "wire_sha256": "80c059ed956b48bcc1ac8b0f05132278b02fdd958a629a6023560d44b313babd"
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 2,
+          "20": 2,
+          "21": 1,
+          "22": 1,
+          "26": 1
+        },
+        "case": "empty",
+        "engine": "z80",
+        "fault": 0,
+        "notes": 0,
+        "output_stage_entered": 1,
+        "stack_below_entry": 37,
+        "t_states": 98044,
+        "wire_bytes": 128,
+        "wire_sha256": "80c059ed956b48bcc1ac8b0f05132278b02fdd958a629a6023560d44b313babd"
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 2,
+          "20": 2,
+          "21": 1,
+          "22": 1,
+          "26": 1
+        },
+        "case": "single",
+        "engine": "raw-mir2",
+        "fault": 0,
+        "notes": 1,
+        "output_stage_entered": 1,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 128,
+        "wire_sha256": "5ef2db9798d0d58fa6d16d873711a83dc8692d1bbdf79344d3a363fff5992acb"
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 2,
+          "20": 2,
+          "21": 1,
+          "22": 1,
+          "26": 1
+        },
+        "case": "single",
+        "engine": "final-mir2",
+        "fault": 0,
+        "notes": 1,
+        "output_stage_entered": 1,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 128,
+        "wire_sha256": "5ef2db9798d0d58fa6d16d873711a83dc8692d1bbdf79344d3a363fff5992acb"
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 2,
+          "20": 2,
+          "21": 1,
+          "22": 1,
+          "26": 1
+        },
+        "case": "single",
+        "engine": "z80",
+        "fault": 0,
+        "notes": 1,
+        "output_stage_entered": 1,
+        "stack_below_entry": 63,
+        "t_states": 457913,
+        "wire_bytes": 128,
+        "wire_sha256": "5ef2db9798d0d58fa6d16d873711a83dc8692d1bbdf79344d3a363fff5992acb"
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 2,
+          "20": 2,
+          "21": 1,
+          "22": 1,
+          "26": 1
+        },
+        "case": "duplicate_fifo",
+        "engine": "raw-mir2",
+        "fault": 0,
+        "notes": 2,
+        "output_stage_entered": 1,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 128,
+        "wire_sha256": "1aaeef40431ac010f58de4c126e03abd7b66b26c7a1447dbea3158f16b0ae5d4"
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 2,
+          "20": 2,
+          "21": 1,
+          "22": 1,
+          "26": 1
+        },
+        "case": "duplicate_fifo",
+        "engine": "final-mir2",
+        "fault": 0,
+        "notes": 2,
+        "output_stage_entered": 1,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 128,
+        "wire_sha256": "1aaeef40431ac010f58de4c126e03abd7b66b26c7a1447dbea3158f16b0ae5d4"
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 2,
+          "20": 2,
+          "21": 1,
+          "22": 1,
+          "26": 1
+        },
+        "case": "duplicate_fifo",
+        "engine": "z80",
+        "fault": 0,
+        "notes": 2,
+        "output_stage_entered": 1,
+        "stack_below_entry": 63,
+        "t_states": 1189799,
+        "wire_bytes": 128,
+        "wire_sha256": "1aaeef40431ac010f58de4c126e03abd7b66b26c7a1447dbea3158f16b0ae5d4"
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 2,
+          "20": 2,
+          "21": 1,
+          "22": 1,
+          "26": 1
+        },
+        "case": "channel_isolation",
+        "engine": "raw-mir2",
+        "fault": 0,
+        "notes": 2,
+        "output_stage_entered": 1,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 128,
+        "wire_sha256": "4d8aa05b5ac95b55903c0e6738c27d7859b159d9831f76a5ab69ef83a034c488"
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 2,
+          "20": 2,
+          "21": 1,
+          "22": 1,
+          "26": 1
+        },
+        "case": "channel_isolation",
+        "engine": "final-mir2",
+        "fault": 0,
+        "notes": 2,
+        "output_stage_entered": 1,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 128,
+        "wire_sha256": "4d8aa05b5ac95b55903c0e6738c27d7859b159d9831f76a5ab69ef83a034c488"
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 2,
+          "20": 2,
+          "21": 1,
+          "22": 1,
+          "26": 1
+        },
+        "case": "channel_isolation",
+        "engine": "z80",
+        "fault": 0,
+        "notes": 2,
+        "output_stage_entered": 1,
+        "stack_below_entry": 63,
+        "t_states": 1190195,
+        "wire_bytes": 128,
+        "wire_sha256": "4d8aa05b5ac95b55903c0e6738c27d7859b159d9831f76a5ab69ef83a034c488"
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 2,
+          "20": 2,
+          "21": 2,
+          "22": 1,
+          "26": 1
+        },
+        "case": "compaction_preserves_fifo",
+        "engine": "raw-mir2",
+        "fault": 0,
+        "notes": 4,
+        "output_stage_entered": 1,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 256,
+        "wire_sha256": "e1a601244545915d55019a511d0833887b642f406c732523ae3654d72eb80e03"
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 2,
+          "20": 2,
+          "21": 2,
+          "22": 1,
+          "26": 1
+        },
+        "case": "compaction_preserves_fifo",
+        "engine": "final-mir2",
+        "fault": 0,
+        "notes": 4,
+        "output_stage_entered": 1,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 256,
+        "wire_sha256": "e1a601244545915d55019a511d0833887b642f406c732523ae3654d72eb80e03"
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 2,
+          "20": 2,
+          "21": 2,
+          "22": 1,
+          "26": 1
+        },
+        "case": "compaction_preserves_fifo",
+        "engine": "z80",
+        "fault": 0,
+        "notes": 4,
+        "output_stage_entered": 1,
+        "stack_below_entry": 63,
+        "t_states": 2937862,
+        "wire_bytes": 256,
+        "wire_sha256": "e1a601244545915d55019a511d0833887b642f406c732523ae3654d72eb80e03"
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 2,
+          "20": 2,
+          "21": 1,
+          "22": 1,
+          "26": 1
+        },
+        "case": "velocity_zero_and_unknown_off",
+        "engine": "raw-mir2",
+        "fault": 0,
+        "notes": 1,
+        "output_stage_entered": 1,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 128,
+        "wire_sha256": "05f5ae50b55aa4161c8e5cfe2b7611e136e843b03e9859651fef6dde330330d6"
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 2,
+          "20": 2,
+          "21": 1,
+          "22": 1,
+          "26": 1
+        },
+        "case": "velocity_zero_and_unknown_off",
+        "engine": "final-mir2",
+        "fault": 0,
+        "notes": 1,
+        "output_stage_entered": 1,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 128,
+        "wire_sha256": "05f5ae50b55aa4161c8e5cfe2b7611e136e843b03e9859651fef6dde330330d6"
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 2,
+          "20": 2,
+          "21": 1,
+          "22": 1,
+          "26": 1
+        },
+        "case": "velocity_zero_and_unknown_off",
+        "engine": "z80",
+        "fault": 0,
+        "notes": 1,
+        "output_stage_entered": 1,
+        "stack_below_entry": 63,
+        "t_states": 457913,
+        "wire_bytes": 128,
+        "wire_sha256": "05f5ae50b55aa4161c8e5cfe2b7611e136e843b03e9859651fef6dde330330d6"
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 2,
+          "20": 2,
+          "21": 1,
+          "22": 1,
+          "26": 1
+        },
+        "case": "running_status",
+        "engine": "raw-mir2",
+        "fault": 0,
+        "notes": 2,
+        "output_stage_entered": 1,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 128,
+        "wire_sha256": "297de252b387af9b20c9350f43c3d63eb22d431a05941e16fae7ffe9797b596b"
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 2,
+          "20": 2,
+          "21": 1,
+          "22": 1,
+          "26": 1
+        },
+        "case": "running_status",
+        "engine": "final-mir2",
+        "fault": 0,
+        "notes": 2,
+        "output_stage_entered": 1,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 128,
+        "wire_sha256": "297de252b387af9b20c9350f43c3d63eb22d431a05941e16fae7ffe9797b596b"
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 2,
+          "20": 2,
+          "21": 1,
+          "22": 1,
+          "26": 1
+        },
+        "case": "running_status",
+        "engine": "z80",
+        "fault": 0,
+        "notes": 2,
+        "output_stage_entered": 1,
+        "stack_below_entry": 63,
+        "t_states": 1189785,
+        "wire_bytes": 128,
+        "wire_sha256": "297de252b387af9b20c9350f43c3d63eb22d431a05941e16fae7ffe9797b596b"
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 2,
+          "20": 2,
+          "21": 1,
+          "22": 1,
+          "26": 1
+        },
+        "case": "source_ids_skip_empty_tracks",
+        "engine": "raw-mir2",
+        "fault": 0,
+        "notes": 2,
+        "output_stage_entered": 1,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 128,
+        "wire_sha256": "0e9e536c5a5c617cb82281eee4bf42fd5b87c2ca0e4363ec673156c68074a37a"
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 2,
+          "20": 2,
+          "21": 1,
+          "22": 1,
+          "26": 1
+        },
+        "case": "source_ids_skip_empty_tracks",
+        "engine": "final-mir2",
+        "fault": 0,
+        "notes": 2,
+        "output_stage_entered": 1,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 128,
+        "wire_sha256": "0e9e536c5a5c617cb82281eee4bf42fd5b87c2ca0e4363ec673156c68074a37a"
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 2,
+          "20": 2,
+          "21": 1,
+          "22": 1,
+          "26": 1
+        },
+        "case": "source_ids_skip_empty_tracks",
+        "engine": "z80",
+        "fault": 0,
+        "notes": 2,
+        "output_stage_entered": 1,
+        "stack_below_entry": 63,
+        "t_states": 663705,
+        "wire_bytes": 128,
+        "wire_sha256": "0e9e536c5a5c617cb82281eee4bf42fd5b87c2ca0e4363ec673156c68074a37a"
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 2,
+          "20": 2,
+          "21": 1,
+          "22": 1,
+          "26": 1
+        },
+        "case": "unmatched_eot_inherited_delta",
+        "engine": "raw-mir2",
+        "fault": 0,
+        "notes": 2,
+        "output_stage_entered": 1,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 128,
+        "wire_sha256": "35cc790ec13aff12acc0c82bfea35f0f604c448a7ed66c5ed91412798939f002"
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 2,
+          "20": 2,
+          "21": 1,
+          "22": 1,
+          "26": 1
+        },
+        "case": "unmatched_eot_inherited_delta",
+        "engine": "final-mir2",
+        "fault": 0,
+        "notes": 2,
+        "output_stage_entered": 1,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 128,
+        "wire_sha256": "35cc790ec13aff12acc0c82bfea35f0f604c448a7ed66c5ed91412798939f002"
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 2,
+          "20": 2,
+          "21": 1,
+          "22": 1,
+          "26": 1
+        },
+        "case": "unmatched_eot_inherited_delta",
+        "engine": "z80",
+        "fault": 0,
+        "notes": 2,
+        "output_stage_entered": 1,
+        "stack_below_entry": 63,
+        "t_states": 1189785,
+        "wire_bytes": 128,
+        "wire_sha256": "35cc790ec13aff12acc0c82bfea35f0f604c448a7ed66c5ed91412798939f002"
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 2,
+          "20": 2,
+          "21": 1,
+          "22": 1,
+          "26": 1
+        },
+        "case": "round_half",
+        "engine": "raw-mir2",
+        "fault": 0,
+        "notes": 1,
+        "output_stage_entered": 1,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 128,
+        "wire_sha256": "9c9234282e10020b486339ed9d11ea9dd846146c66cd917a3b752f9c77bcd7b7"
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 2,
+          "20": 2,
+          "21": 1,
+          "22": 1,
+          "26": 1
+        },
+        "case": "round_half",
+        "engine": "final-mir2",
+        "fault": 0,
+        "notes": 1,
+        "output_stage_entered": 1,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 128,
+        "wire_sha256": "9c9234282e10020b486339ed9d11ea9dd846146c66cd917a3b752f9c77bcd7b7"
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 2,
+          "20": 2,
+          "21": 1,
+          "22": 1,
+          "26": 1
+        },
+        "case": "round_half",
+        "engine": "z80",
+        "fault": 0,
+        "notes": 1,
+        "output_stage_entered": 1,
+        "stack_below_entry": 63,
+        "t_states": 457913,
+        "wire_bytes": 128,
+        "wire_sha256": "9c9234282e10020b486339ed9d11ea9dd846146c66cd917a3b752f9c77bcd7b7"
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 2,
+          "20": 2,
+          "21": 1,
+          "22": 1,
+          "26": 1
+        },
+        "case": "one_row_per_beat",
+        "engine": "raw-mir2",
+        "fault": 0,
+        "notes": 1,
+        "output_stage_entered": 1,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 128,
+        "wire_sha256": "9c9234282e10020b486339ed9d11ea9dd846146c66cd917a3b752f9c77bcd7b7"
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 2,
+          "20": 2,
+          "21": 1,
+          "22": 1,
+          "26": 1
+        },
+        "case": "one_row_per_beat",
+        "engine": "final-mir2",
+        "fault": 0,
+        "notes": 1,
+        "output_stage_entered": 1,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 128,
+        "wire_sha256": "9c9234282e10020b486339ed9d11ea9dd846146c66cd917a3b752f9c77bcd7b7"
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 2,
+          "20": 2,
+          "21": 1,
+          "22": 1,
+          "26": 1
+        },
+        "case": "one_row_per_beat",
+        "engine": "z80",
+        "fault": 0,
+        "notes": 1,
+        "output_stage_entered": 1,
+        "stack_below_entry": 63,
+        "t_states": 457913,
+        "wire_bytes": 128,
+        "wire_sha256": "9c9234282e10020b486339ed9d11ea9dd846146c66cd917a3b752f9c77bcd7b7"
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 2,
+          "20": 2,
+          "21": 1,
+          "22": 1,
+          "26": 1
+        },
+        "case": "header_extra_and_short_messages",
+        "engine": "raw-mir2",
+        "fault": 0,
+        "notes": 1,
+        "output_stage_entered": 1,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 128,
+        "wire_sha256": "9c9234282e10020b486339ed9d11ea9dd846146c66cd917a3b752f9c77bcd7b7"
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 2,
+          "20": 2,
+          "21": 1,
+          "22": 1,
+          "26": 1
+        },
+        "case": "header_extra_and_short_messages",
+        "engine": "final-mir2",
+        "fault": 0,
+        "notes": 1,
+        "output_stage_entered": 1,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 128,
+        "wire_sha256": "9c9234282e10020b486339ed9d11ea9dd846146c66cd917a3b752f9c77bcd7b7"
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 2,
+          "20": 2,
+          "21": 1,
+          "22": 1,
+          "26": 1
+        },
+        "case": "header_extra_and_short_messages",
+        "engine": "z80",
+        "fault": 0,
+        "notes": 1,
+        "output_stage_entered": 1,
+        "stack_below_entry": 63,
+        "t_states": 457913,
+        "wire_bytes": 128,
+        "wire_sha256": "9c9234282e10020b486339ed9d11ea9dd846146c66cd917a3b752f9c77bcd7b7"
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 2,
+          "20": 2,
+          "21": 1,
+          "22": 1,
+          "26": 1
+        },
+        "case": "payload_exact_512",
+        "engine": "raw-mir2",
+        "fault": 0,
+        "notes": 0,
+        "output_stage_entered": 1,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 128,
+        "wire_sha256": "80c059ed956b48bcc1ac8b0f05132278b02fdd958a629a6023560d44b313babd"
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 2,
+          "20": 2,
+          "21": 1,
+          "22": 1,
+          "26": 1
+        },
+        "case": "payload_exact_512",
+        "engine": "final-mir2",
+        "fault": 0,
+        "notes": 0,
+        "output_stage_entered": 1,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 128,
+        "wire_sha256": "80c059ed956b48bcc1ac8b0f05132278b02fdd958a629a6023560d44b313babd"
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 2,
+          "20": 2,
+          "21": 1,
+          "22": 1,
+          "26": 1
+        },
+        "case": "payload_exact_512",
+        "engine": "z80",
+        "fault": 0,
+        "notes": 0,
+        "output_stage_entered": 1,
+        "stack_below_entry": 37,
+        "t_states": 98044,
+        "wire_bytes": 128,
+        "wire_sha256": "80c059ed956b48bcc1ac8b0f05132278b02fdd958a629a6023560d44b313babd"
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 2,
+          "20": 2,
+          "21": 1,
+          "22": 1,
+          "26": 1
+        },
+        "case": "last_u16_row",
+        "engine": "raw-mir2",
+        "fault": 0,
+        "notes": 1,
+        "output_stage_entered": 1,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 128,
+        "wire_sha256": "4b09151347ddff58925febfff1c4f56a5d688faa95c7bd2d5164aa03895591de"
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 2,
+          "20": 2,
+          "21": 1,
+          "22": 1,
+          "26": 1
+        },
+        "case": "last_u16_row",
+        "engine": "final-mir2",
+        "fault": 0,
+        "notes": 1,
+        "output_stage_entered": 1,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 128,
+        "wire_sha256": "4b09151347ddff58925febfff1c4f56a5d688faa95c7bd2d5164aa03895591de"
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 2,
+          "20": 2,
+          "21": 1,
+          "22": 1,
+          "26": 1
+        },
+        "case": "last_u16_row",
+        "engine": "z80",
+        "fault": 0,
+        "notes": 1,
+        "output_stage_entered": 1,
+        "stack_below_entry": 63,
+        "t_states": 324259,
+        "wire_bytes": 128,
+        "wire_sha256": "4b09151347ddff58925febfff1c4f56a5d688faa95c7bd2d5164aa03895591de"
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 2,
+          "20": 30,
+          "21": 25,
+          "22": 1,
+          "26": 1
+        },
+        "case": "active_exact_512",
+        "engine": "raw-mir2",
+        "fault": 0,
+        "notes": 512,
+        "output_stage_entered": 1,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 3200,
+        "wire_sha256": "d8c735bca82702017819a497c4f5ce6b98d95f74f2b398c5353e71b0c1794932"
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 2,
+          "20": 30,
+          "21": 25,
+          "22": 1,
+          "26": 1
+        },
+        "case": "active_exact_512",
+        "engine": "final-mir2",
+        "fault": 0,
+        "notes": 512,
+        "output_stage_entered": 1,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 3200,
+        "wire_sha256": "d8c735bca82702017819a497c4f5ce6b98d95f74f2b398c5353e71b0c1794932"
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 2,
+          "20": 30,
+          "21": 25,
+          "22": 1,
+          "26": 1
+        },
+        "case": "active_exact_512",
+        "engine": "z80",
+        "fault": 0,
+        "notes": 512,
+        "output_stage_entered": 1,
+        "stack_below_entry": 63,
+        "t_states": 98417607,
+        "wire_bytes": 3200,
+        "wire_sha256": "d8c735bca82702017819a497c4f5ce6b98d95f74f2b398c5353e71b0c1794932"
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 2,
+          "20": 114,
+          "21": 48,
+          "22": 1,
+          "26": 1
+        },
+        "case": "capacity_exact_2046",
+        "engine": "raw-mir2",
+        "fault": 200,
+        "notes": 2046,
+        "output_stage_entered": 1,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 2,
+          "20": 114,
+          "21": 48,
+          "22": 1,
+          "26": 1
+        },
+        "case": "capacity_exact_2046",
+        "engine": "final-mir2",
+        "fault": 200,
+        "notes": 2046,
+        "output_stage_entered": 1,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 2,
+          "20": 114,
+          "21": 48,
+          "22": 1,
+          "26": 1
+        },
+        "case": "capacity_exact_2046",
+        "engine": "z80",
+        "fault": 200,
+        "notes": 2046,
+        "output_stage_entered": 1,
+        "stack_below_entry": 59,
+        "t_states": 183562403,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 2,
+          "20": 5,
+          "21": 1,
+          "22": 1,
+          "26": 1
+        },
+        "case": "source_ids_exact_64",
+        "engine": "raw-mir2",
+        "fault": 0,
+        "notes": 64,
+        "output_stage_entered": 1,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 128,
+        "wire_sha256": "3c199d63cedc6486f0bb72ee0bc411dc7cff5f2999ad40a88ac18e2604ea570f"
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 2,
+          "20": 5,
+          "21": 1,
+          "22": 1,
+          "26": 1
+        },
+        "case": "source_ids_exact_64",
+        "engine": "final-mir2",
+        "fault": 0,
+        "notes": 64,
+        "output_stage_entered": 1,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 128,
+        "wire_sha256": "3c199d63cedc6486f0bb72ee0bc411dc7cff5f2999ad40a88ac18e2604ea570f"
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 2,
+          "20": 5,
+          "21": 1,
+          "22": 1,
+          "26": 1
+        },
+        "case": "source_ids_exact_64",
+        "engine": "z80",
+        "fault": 0,
+        "notes": 64,
+        "output_stage_entered": 1,
+        "stack_below_entry": 63,
+        "t_states": 3825524,
+        "wire_bytes": 128,
+        "wire_sha256": "3c199d63cedc6486f0bb72ee0bc411dc7cff5f2999ad40a88ac18e2604ea570f"
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 2,
+          "20": 2,
+          "21": 1,
+          "22": 1,
+          "26": 1
+        },
+        "case": "smf_exact_physical_record",
+        "engine": "raw-mir2",
+        "fault": 0,
+        "notes": 0,
+        "output_stage_entered": 1,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 128,
+        "wire_sha256": "80c059ed956b48bcc1ac8b0f05132278b02fdd958a629a6023560d44b313babd"
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 2,
+          "20": 2,
+          "21": 1,
+          "22": 1,
+          "26": 1
+        },
+        "case": "smf_exact_physical_record",
+        "engine": "final-mir2",
+        "fault": 0,
+        "notes": 0,
+        "output_stage_entered": 1,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 128,
+        "wire_sha256": "80c059ed956b48bcc1ac8b0f05132278b02fdd958a629a6023560d44b313babd"
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 2,
+          "20": 2,
+          "21": 1,
+          "22": 1,
+          "26": 1
+        },
+        "case": "smf_exact_physical_record",
+        "engine": "z80",
+        "fault": 0,
+        "notes": 0,
+        "output_stage_entered": 1,
+        "stack_below_entry": 37,
+        "t_states": 98044,
+        "wire_bytes": 128,
+        "wire_sha256": "80c059ed956b48bcc1ac8b0f05132278b02fdd958a629a6023560d44b313babd"
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 2,
+          "20": 8,
+          "21": 24,
+          "22": 1,
+          "26": 1
+        },
+        "case": "wire_end_exact_physical_record",
+        "engine": "raw-mir2",
+        "fault": 0,
+        "notes": 125,
+        "output_stage_entered": 1,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 3072,
+        "wire_sha256": "e898d75367db1f44b2a4e52a3590eb35e5ab4e59806376c16e00b913ea6bed6b"
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 2,
+          "20": 8,
+          "21": 24,
+          "22": 1,
+          "26": 1
+        },
+        "case": "wire_end_exact_physical_record",
+        "engine": "final-mir2",
+        "fault": 0,
+        "notes": 125,
+        "output_stage_entered": 1,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 3072,
+        "wire_sha256": "e898d75367db1f44b2a4e52a3590eb35e5ab4e59806376c16e00b913ea6bed6b"
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 2,
+          "20": 8,
+          "21": 24,
+          "22": 1,
+          "26": 1
+        },
+        "case": "wire_end_exact_physical_record",
+        "engine": "z80",
+        "fault": 0,
+        "notes": 125,
+        "output_stage_entered": 1,
+        "stack_below_entry": 63,
+        "t_states": 54120607,
+        "wire_bytes": 3072,
+        "wire_sha256": "e898d75367db1f44b2a4e52a3590eb35e5ab4e59806376c16e00b913ea6bed6b"
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 2,
+          "20": 2,
+          "21": 1,
+          "22": 1,
+          "26": 1
+        },
+        "case": "padding_value_inside_midi",
+        "engine": "raw-mir2",
+        "fault": 0,
+        "notes": 1,
+        "output_stage_entered": 1,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 128,
+        "wire_sha256": "c29042d16c247517de08905ff1418c6e690849778d8c60730ccfed6984e4fba9"
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 2,
+          "20": 2,
+          "21": 1,
+          "22": 1,
+          "26": 1
+        },
+        "case": "padding_value_inside_midi",
+        "engine": "final-mir2",
+        "fault": 0,
+        "notes": 1,
+        "output_stage_entered": 1,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 128,
+        "wire_sha256": "c29042d16c247517de08905ff1418c6e690849778d8c60730ccfed6984e4fba9"
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 2,
+          "20": 2,
+          "21": 1,
+          "22": 1,
+          "26": 1
+        },
+        "case": "padding_value_inside_midi",
+        "engine": "z80",
+        "fault": 0,
+        "notes": 1,
+        "output_stage_entered": 1,
+        "stack_below_entry": 63,
+        "t_states": 457913,
+        "wire_bytes": 128,
+        "wire_sha256": "c29042d16c247517de08905ff1418c6e690849778d8c60730ccfed6984e4fba9"
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 2,
+          "20": 30,
+          "21": 97,
+          "22": 1,
+          "26": 1
+        },
+        "case": "output_exact_1024",
+        "engine": "raw-mir2",
+        "fault": 0,
+        "notes": 512,
+        "output_stage_entered": 1,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 12416,
+        "wire_sha256": "5b7cd36ff58de4c69db96fb9463337aeb65453d4062e962e5762715db12f725c"
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 2,
+          "20": 30,
+          "21": 97,
+          "22": 1,
+          "26": 1
+        },
+        "case": "output_exact_1024",
+        "engine": "final-mir2",
+        "fault": 0,
+        "notes": 512,
+        "output_stage_entered": 1,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 12416,
+        "wire_sha256": "5b7cd36ff58de4c69db96fb9463337aeb65453d4062e962e5762715db12f725c"
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 2,
+          "20": 30,
+          "21": 97,
+          "22": 1,
+          "26": 1
+        },
+        "case": "output_exact_1024",
+        "engine": "z80",
+        "fault": 0,
+        "notes": 512,
+        "output_stage_entered": 1,
+        "stack_below_entry": 63,
+        "t_states": 221733791,
+        "wire_bytes": 12416,
+        "wire_sha256": "5b7cd36ff58de4c69db96fb9463337aeb65453d4062e962e5762715db12f725c"
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 2,
+          "20": 30,
+          "21": 48,
+          "22": 1,
+          "26": 1
+        },
+        "case": "output_over_1024",
+        "engine": "raw-mir2",
+        "fault": 200,
+        "notes": 513,
+        "output_stage_entered": 1,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 2,
+          "20": 30,
+          "21": 48,
+          "22": 1,
+          "26": 1
+        },
+        "case": "output_over_1024",
+        "engine": "final-mir2",
+        "fault": 200,
+        "notes": 513,
+        "output_stage_entered": 1,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 2,
+          "20": 30,
+          "21": 48,
+          "22": 1,
+          "26": 1
+        },
+        "case": "output_over_1024",
+        "engine": "z80",
+        "fault": 200,
+        "notes": 513,
+        "output_stage_entered": 1,
+        "stack_below_entry": 59,
+        "t_states": 121008839,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 2,
+          "20": 76,
+          "21": 1,
+          "22": 1,
+          "26": 1
+        },
+        "case": "first_bank2_record",
+        "engine": "raw-mir2",
+        "fault": 0,
+        "notes": 1365,
+        "output_stage_entered": 1,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 128,
+        "wire_sha256": "f4f3b64b8e76370e3b7fb4d53c8050a78149adc80d3a4f3a261b49e3e4204f68"
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 2,
+          "20": 76,
+          "21": 1,
+          "22": 1,
+          "26": 1
+        },
+        "case": "first_bank2_record",
+        "engine": "final-mir2",
+        "fault": 0,
+        "notes": 1365,
+        "output_stage_entered": 1,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 128,
+        "wire_sha256": "f4f3b64b8e76370e3b7fb4d53c8050a78149adc80d3a4f3a261b49e3e4204f68"
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 2,
+          "20": 76,
+          "21": 1,
+          "22": 1,
+          "26": 1
+        },
+        "case": "first_bank2_record",
+        "engine": "z80",
+        "fault": 0,
+        "notes": 1365,
+        "output_stage_entered": 1,
+        "stack_below_entry": 63,
+        "t_states": 70840983,
+        "wire_bytes": 128,
+        "wire_sha256": "f4f3b64b8e76370e3b7fb4d53c8050a78149adc80d3a4f3a261b49e3e4204f68"
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 2,
+          "20": 114,
+          "21": 1,
+          "22": 1,
+          "26": 1
+        },
+        "case": "last_bank2_record",
+        "engine": "raw-mir2",
+        "fault": 0,
+        "notes": 2046,
+        "output_stage_entered": 1,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 128,
+        "wire_sha256": "f4f3b64b8e76370e3b7fb4d53c8050a78149adc80d3a4f3a261b49e3e4204f68"
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 2,
+          "20": 114,
+          "21": 1,
+          "22": 1,
+          "26": 1
+        },
+        "case": "last_bank2_record",
+        "engine": "final-mir2",
+        "fault": 0,
+        "notes": 2046,
+        "output_stage_entered": 1,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 128,
+        "wire_sha256": "f4f3b64b8e76370e3b7fb4d53c8050a78149adc80d3a4f3a261b49e3e4204f68"
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 2,
+          "20": 114,
+          "21": 1,
+          "22": 1,
+          "26": 1
+        },
+        "case": "last_bank2_record",
+        "engine": "z80",
+        "fault": 0,
+        "notes": 2046,
+        "output_stage_entered": 1,
+        "stack_below_entry": 63,
+        "t_states": 106007775,
+        "wire_bytes": 128,
+        "wire_sha256": "f4f3b64b8e76370e3b7fb4d53c8050a78149adc80d3a4f3a261b49e3e4204f68"
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 2,
+          "20": 30,
+          "22": 1,
+          "26": 1
+        },
+        "case": "active_513",
+        "engine": "raw-mir2",
+        "fault": 108,
+        "notes": 513,
+        "output_stage_entered": 1,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 2,
+          "20": 30,
+          "22": 1,
+          "26": 1
+        },
+        "case": "active_513",
+        "engine": "final-mir2",
+        "fault": 108,
+        "notes": 513,
+        "output_stage_entered": 1,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 2,
+          "20": 30,
+          "22": 1,
+          "26": 1
+        },
+        "case": "active_513",
+        "engine": "z80",
+        "fault": 108,
+        "notes": 513,
+        "output_stage_entered": 1,
+        "stack_below_entry": 57,
+        "t_states": 30033369,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "bad_magic",
+        "engine": "raw-mir2",
+        "fault": 950,
+        "notes": 0,
+        "output_stage_entered": 0,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "bad_magic",
+        "engine": "final-mir2",
+        "fault": 950,
+        "notes": 0,
+        "output_stage_entered": 0,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "bad_magic",
+        "engine": "z80",
+        "fault": 950,
+        "notes": 0,
+        "output_stage_entered": 0,
+        "stack_below_entry": 6,
+        "t_states": 17519,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "unknown_version",
+        "engine": "raw-mir2",
+        "fault": 952,
+        "notes": 0,
+        "output_stage_entered": 0,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "unknown_version",
+        "engine": "final-mir2",
+        "fault": 952,
+        "notes": 0,
+        "output_stage_entered": 0,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "unknown_version",
+        "engine": "z80",
+        "fault": 952,
+        "notes": 0,
+        "output_stage_entered": 0,
+        "stack_below_entry": 6,
+        "t_states": 19450,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "wrong_kind",
+        "engine": "raw-mir2",
+        "fault": 953,
+        "notes": 0,
+        "output_stage_entered": 0,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "wrong_kind",
+        "engine": "final-mir2",
+        "fault": 953,
+        "notes": 0,
+        "output_stage_entered": 0,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "wrong_kind",
+        "engine": "z80",
+        "fault": 953,
+        "notes": 0,
+        "output_stage_entered": 0,
+        "stack_below_entry": 10,
+        "t_states": 21589,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "wrong_width",
+        "engine": "raw-mir2",
+        "fault": 953,
+        "notes": 0,
+        "output_stage_entered": 0,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "wrong_width",
+        "engine": "final-mir2",
+        "fault": 953,
+        "notes": 0,
+        "output_stage_entered": 0,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "wrong_width",
+        "engine": "z80",
+        "fault": 953,
+        "notes": 0,
+        "output_stage_entered": 0,
+        "stack_below_entry": 10,
+        "t_states": 21610,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "unknown_flags",
+        "engine": "raw-mir2",
+        "fault": 953,
+        "notes": 0,
+        "output_stage_entered": 0,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "unknown_flags",
+        "engine": "final-mir2",
+        "fault": 953,
+        "notes": 0,
+        "output_stage_entered": 0,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "unknown_flags",
+        "engine": "z80",
+        "fault": 953,
+        "notes": 0,
+        "output_stage_entered": 0,
+        "stack_below_entry": 10,
+        "t_states": 21638,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "reserved_nonzero",
+        "engine": "raw-mir2",
+        "fault": 953,
+        "notes": 0,
+        "output_stage_entered": 0,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "reserved_nonzero",
+        "engine": "final-mir2",
+        "fault": 953,
+        "notes": 0,
+        "output_stage_entered": 0,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "reserved_nonzero",
+        "engine": "z80",
+        "fault": 953,
+        "notes": 0,
+        "output_stage_entered": 0,
+        "stack_below_entry": 10,
+        "t_states": 21673,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "sources_65",
+        "engine": "raw-mir2",
+        "fault": 954,
+        "notes": 0,
+        "output_stage_entered": 0,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "sources_65",
+        "engine": "final-mir2",
+        "fault": 954,
+        "notes": 0,
+        "output_stage_entered": 0,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "sources_65",
+        "engine": "z80",
+        "fault": 954,
+        "notes": 0,
+        "output_stage_entered": 0,
+        "stack_below_entry": 10,
+        "t_states": 21830,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "unknown_tag",
+        "engine": "raw-mir2",
+        "fault": 955,
+        "notes": 0,
+        "output_stage_entered": 0,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "unknown_tag",
+        "engine": "final-mir2",
+        "fault": 955,
+        "notes": 0,
+        "output_stage_entered": 0,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "unknown_tag",
+        "engine": "z80",
+        "fault": 955,
+        "notes": 0,
+        "output_stage_entered": 0,
+        "stack_below_entry": 10,
+        "t_states": 22284,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "pitch_128",
+        "engine": "raw-mir2",
+        "fault": 958,
+        "notes": 0,
+        "output_stage_entered": 0,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "pitch_128",
+        "engine": "final-mir2",
+        "fault": 958,
+        "notes": 0,
+        "output_stage_entered": 0,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "pitch_128",
+        "engine": "z80",
+        "fault": 958,
+        "notes": 0,
+        "output_stage_entered": 0,
+        "stack_below_entry": 10,
+        "t_states": 25261,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "source_outside_header",
+        "engine": "raw-mir2",
+        "fault": 958,
+        "notes": 0,
+        "output_stage_entered": 0,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "source_outside_header",
+        "engine": "final-mir2",
+        "fault": 958,
+        "notes": 0,
+        "output_stage_entered": 0,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "source_outside_header",
+        "engine": "z80",
+        "fault": 958,
+        "notes": 0,
+        "output_stage_entered": 0,
+        "stack_below_entry": 10,
+        "t_states": 25338,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "count_mismatch",
+        "engine": "raw-mir2",
+        "fault": 956,
+        "notes": 1,
+        "output_stage_entered": 0,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "count_mismatch",
+        "engine": "final-mir2",
+        "fault": 956,
+        "notes": 1,
+        "output_stage_entered": 0,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "count_mismatch",
+        "engine": "z80",
+        "fault": 956,
+        "notes": 1,
+        "output_stage_entered": 0,
+        "stack_below_entry": 10,
+        "t_states": 31105,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "count_high_word",
+        "engine": "raw-mir2",
+        "fault": 956,
+        "notes": 1,
+        "output_stage_entered": 0,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "count_high_word",
+        "engine": "final-mir2",
+        "fault": 956,
+        "notes": 1,
+        "output_stage_entered": 0,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "count_high_word",
+        "engine": "z80",
+        "fault": 956,
+        "notes": 1,
+        "output_stage_entered": 0,
+        "stack_below_entry": 10,
+        "t_states": 31130,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "end_signature",
+        "engine": "raw-mir2",
+        "fault": 956,
+        "notes": 1,
+        "output_stage_entered": 0,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "end_signature",
+        "engine": "final-mir2",
+        "fault": 956,
+        "notes": 1,
+        "output_stage_entered": 0,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "end_signature",
+        "engine": "z80",
+        "fault": 956,
+        "notes": 1,
+        "output_stage_entered": 0,
+        "stack_below_entry": 10,
+        "t_states": 33157,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "nonzero_padding",
+        "engine": "raw-mir2",
+        "fault": 957,
+        "notes": 1,
+        "output_stage_entered": 0,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "nonzero_padding",
+        "engine": "final-mir2",
+        "fault": 957,
+        "notes": 1,
+        "output_stage_entered": 0,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "nonzero_padding",
+        "engine": "z80",
+        "fault": 957,
+        "notes": 1,
+        "output_stage_entered": 0,
+        "stack_below_entry": 10,
+        "t_states": 33525,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "missing_empty_end",
+        "engine": "raw-mir2",
+        "fault": 955,
+        "notes": 0,
+        "output_stage_entered": 0,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "missing_empty_end",
+        "engine": "final-mir2",
+        "fault": 955,
+        "notes": 0,
+        "output_stage_entered": 0,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "missing_empty_end",
+        "engine": "z80",
+        "fault": 955,
+        "notes": 0,
+        "output_stage_entered": 0,
+        "stack_below_entry": 10,
+        "t_states": 22284,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "missing_empty_count_and_signature",
+        "engine": "raw-mir2",
+        "fault": 956,
+        "notes": 0,
+        "output_stage_entered": 0,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "missing_empty_count_and_signature",
+        "engine": "final-mir2",
+        "fault": 956,
+        "notes": 0,
+        "output_stage_entered": 0,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "missing_empty_count_and_signature",
+        "engine": "z80",
+        "fault": 956,
+        "notes": 0,
+        "output_stage_entered": 0,
+        "stack_below_entry": 10,
+        "t_states": 24015,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 2,
+          "26": 1
+        },
+        "case": "extra_physical_record",
+        "engine": "raw-mir2",
+        "fault": 957,
+        "notes": 1,
+        "output_stage_entered": 0,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 2,
+          "26": 1
+        },
+        "case": "extra_physical_record",
+        "engine": "final-mir2",
+        "fault": 957,
+        "notes": 1,
+        "output_stage_entered": 0,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 2,
+          "26": 1
+        },
+        "case": "extra_physical_record",
+        "engine": "z80",
+        "fault": 957,
+        "notes": 1,
+        "output_stage_entered": 0,
+        "stack_below_entry": 10,
+        "t_states": 58508,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "truncated_host_0",
+        "engine": "raw-mir2",
+        "fault": 951,
+        "notes": 0,
+        "output_stage_entered": 0,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "truncated_host_0",
+        "engine": "final-mir2",
+        "fault": 951,
+        "notes": 0,
+        "output_stage_entered": 0,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "truncated_host_0",
+        "engine": "z80",
+        "fault": 951,
+        "notes": 0,
+        "output_stage_entered": 0,
+        "stack_below_entry": 6,
+        "t_states": 17291,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "truncated_host_2",
+        "engine": "raw-mir2",
+        "fault": 950,
+        "notes": 0,
+        "output_stage_entered": 0,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "truncated_host_2",
+        "engine": "final-mir2",
+        "fault": 950,
+        "notes": 0,
+        "output_stage_entered": 0,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "truncated_host_2",
+        "engine": "z80",
+        "fault": 950,
+        "notes": 0,
+        "output_stage_entered": 0,
+        "stack_below_entry": 6,
+        "t_states": 18537,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "truncated_host_4",
+        "engine": "raw-mir2",
+        "fault": 952,
+        "notes": 0,
+        "output_stage_entered": 0,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "truncated_host_4",
+        "engine": "final-mir2",
+        "fault": 952,
+        "notes": 0,
+        "output_stage_entered": 0,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "truncated_host_4",
+        "engine": "z80",
+        "fault": 952,
+        "notes": 0,
+        "output_stage_entered": 0,
+        "stack_below_entry": 6,
+        "t_states": 19450,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "truncated_host_5",
+        "engine": "raw-mir2",
+        "fault": 953,
+        "notes": 0,
+        "output_stage_entered": 0,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "truncated_host_5",
+        "engine": "final-mir2",
+        "fault": 953,
+        "notes": 0,
+        "output_stage_entered": 0,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "truncated_host_5",
+        "engine": "z80",
+        "fault": 953,
+        "notes": 0,
+        "output_stage_entered": 0,
+        "stack_below_entry": 10,
+        "t_states": 21589,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "truncated_host_12",
+        "engine": "raw-mir2",
+        "fault": 955,
+        "notes": 0,
+        "output_stage_entered": 0,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "truncated_host_12",
+        "engine": "final-mir2",
+        "fault": 955,
+        "notes": 0,
+        "output_stage_entered": 0,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "truncated_host_12",
+        "engine": "z80",
+        "fault": 955,
+        "notes": 0,
+        "output_stage_entered": 0,
+        "stack_below_entry": 10,
+        "t_states": 22284,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "truncated_host_13",
+        "engine": "raw-mir2",
+        "fault": 958,
+        "notes": 0,
+        "output_stage_entered": 0,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "truncated_host_13",
+        "engine": "final-mir2",
+        "fault": 958,
+        "notes": 0,
+        "output_stage_entered": 0,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "truncated_host_13",
+        "engine": "z80",
+        "fault": 958,
+        "notes": 0,
+        "output_stage_entered": 0,
+        "stack_below_entry": 10,
+        "t_states": 25338,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "truncated_host_18",
+        "engine": "raw-mir2",
+        "fault": 958,
+        "notes": 0,
+        "output_stage_entered": 0,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "truncated_host_18",
+        "engine": "final-mir2",
+        "fault": 958,
+        "notes": 0,
+        "output_stage_entered": 0,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "truncated_host_18",
+        "engine": "z80",
+        "fault": 958,
+        "notes": 0,
+        "output_stage_entered": 0,
+        "stack_below_entry": 10,
+        "t_states": 25338,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "truncated_host_19",
+        "engine": "raw-mir2",
+        "fault": 955,
+        "notes": 1,
+        "output_stage_entered": 0,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "truncated_host_19",
+        "engine": "final-mir2",
+        "fault": 955,
+        "notes": 1,
+        "output_stage_entered": 0,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "truncated_host_19",
+        "engine": "z80",
+        "fault": 955,
+        "notes": 1,
+        "output_stage_entered": 0,
+        "stack_below_entry": 10,
+        "t_states": 29896,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "truncated_host_20",
+        "engine": "raw-mir2",
+        "fault": 956,
+        "notes": 1,
+        "output_stage_entered": 0,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "truncated_host_20",
+        "engine": "final-mir2",
+        "fault": 956,
+        "notes": 1,
+        "output_stage_entered": 0,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "truncated_host_20",
+        "engine": "z80",
+        "fault": 956,
+        "notes": 1,
+        "output_stage_entered": 0,
+        "stack_below_entry": 10,
+        "t_states": 31105,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "truncated_host_24",
+        "engine": "raw-mir2",
+        "fault": 956,
+        "notes": 1,
+        "output_stage_entered": 0,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "truncated_host_24",
+        "engine": "final-mir2",
+        "fault": 956,
+        "notes": 1,
+        "output_stage_entered": 0,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "truncated_host_24",
+        "engine": "z80",
+        "fault": 956,
+        "notes": 1,
+        "output_stage_entered": 0,
+        "stack_below_entry": 10,
+        "t_states": 31627,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "truncated_host_27",
+        "engine": "raw-mir2",
+        "fault": 956,
+        "notes": 1,
+        "output_stage_entered": 0,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "truncated_host_27",
+        "engine": "final-mir2",
+        "fault": 956,
+        "notes": 1,
+        "output_stage_entered": 0,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "truncated_host_27",
+        "engine": "z80",
+        "fault": 956,
+        "notes": 1,
+        "output_stage_entered": 0,
+        "stack_below_entry": 10,
+        "t_states": 33157,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "truncated_host_28",
+        "engine": "raw-mir2",
+        "fault": 957,
+        "notes": 1,
+        "output_stage_entered": 0,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "truncated_host_28",
+        "engine": "final-mir2",
+        "fault": 957,
+        "notes": 1,
+        "output_stage_entered": 0,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "truncated_host_28",
+        "engine": "z80",
+        "fault": 957,
+        "notes": 1,
+        "output_stage_entered": 0,
+        "stack_below_entry": 10,
+        "t_states": 33525,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 2,
+          "26": 1
+        },
+        "case": "physical_eof_inside_record",
+        "engine": "raw-mir2",
+        "fault": 951,
+        "notes": 16,
+        "output_stage_entered": 0,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 2,
+          "26": 1
+        },
+        "case": "physical_eof_inside_record",
+        "engine": "final-mir2",
+        "fault": 951,
+        "notes": 16,
+        "output_stage_entered": 0,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 2,
+          "26": 1
+        },
+        "case": "physical_eof_inside_record",
+        "engine": "z80",
+        "fault": 951,
+        "notes": 16,
+        "output_stage_entered": 0,
+        "stack_below_entry": 10,
+        "t_states": 146619,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 112,
+          "26": 1
+        },
+        "case": "note_2047",
+        "engine": "raw-mir2",
+        "fault": 959,
+        "notes": 2046,
+        "output_stage_entered": 0,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 112,
+          "26": 1
+        },
+        "case": "note_2047",
+        "engine": "final-mir2",
+        "fault": 959,
+        "notes": 2046,
+        "output_stage_entered": 0,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 112,
+          "26": 1
+        },
+        "case": "note_2047",
+        "engine": "z80",
+        "fault": 959,
+        "notes": 2046,
+        "output_stage_entered": 0,
+        "stack_below_entry": 10,
+        "t_states": 15652526,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 2,
+          "26": 1
+        },
+        "case": "reversed_interval",
+        "engine": "raw-mir2",
+        "fault": 105,
+        "notes": 1,
+        "output_stage_entered": 0,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 2,
+          "26": 1
+        },
+        "case": "reversed_interval",
+        "engine": "final-mir2",
+        "fault": 105,
+        "notes": 1,
+        "output_stage_entered": 0,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 2,
+          "26": 1
+        },
+        "case": "reversed_interval",
+        "engine": "z80",
+        "fault": 105,
+        "notes": 1,
+        "output_stage_entered": 0,
+        "stack_below_entry": 28,
+        "t_states": 90883,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 2,
+          "26": 1
+        },
+        "case": "unsorted_source",
+        "engine": "raw-mir2",
+        "fault": 106,
+        "notes": 2,
+        "output_stage_entered": 0,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 2,
+          "26": 1
+        },
+        "case": "unsorted_source",
+        "engine": "final-mir2",
+        "fault": 106,
+        "notes": 2,
+        "output_stage_entered": 0,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 2,
+          "26": 1
+        },
+        "case": "unsorted_source",
+        "engine": "z80",
+        "fault": 106,
+        "notes": 2,
+        "output_stage_entered": 0,
+        "stack_below_entry": 28,
+        "t_states": 124429,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "note_with_zero_sources",
+        "engine": "raw-mir2",
+        "fault": 958,
+        "notes": 0,
+        "output_stage_entered": 0,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "note_with_zero_sources",
+        "engine": "final-mir2",
+        "fault": 958,
+        "notes": 0,
+        "output_stage_entered": 0,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "note_with_zero_sources",
+        "engine": "z80",
+        "fault": 958,
+        "notes": 0,
+        "output_stage_entered": 0,
+        "stack_below_entry": 10,
+        "t_states": 25338,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "26": 1
+        },
+        "case": "open_failure",
+        "engine": "raw-mir2",
+        "fault": 900,
+        "notes": 0,
+        "output_stage_entered": 0,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "26": 1
+        },
+        "case": "open_failure",
+        "engine": "final-mir2",
+        "fault": 900,
+        "notes": 0,
+        "output_stage_entered": 0,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "26": 1
+        },
+        "case": "open_failure",
+        "engine": "z80",
+        "fault": 900,
+        "notes": 0,
+        "output_stage_entered": 0,
+        "stack_below_entry": 6,
+        "t_states": 16794,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "read_failure",
+        "engine": "raw-mir2",
+        "fault": 904,
+        "notes": 0,
+        "output_stage_entered": 0,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "read_failure",
+        "engine": "final-mir2",
+        "fault": 904,
+        "notes": 0,
+        "output_stage_entered": 0,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 1,
+          "26": 1
+        },
+        "case": "read_failure",
+        "engine": "z80",
+        "fault": 904,
+        "notes": 0,
+        "output_stage_entered": 0,
+        "stack_below_entry": 6,
+        "t_states": 17308,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 2,
+          "26": 1
+        },
+        "case": "eof_probe_io_failure",
+        "engine": "raw-mir2",
+        "fault": 904,
+        "notes": 1,
+        "output_stage_entered": 0,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 2,
+          "26": 1
+        },
+        "case": "eof_probe_io_failure",
+        "engine": "final-mir2",
+        "fault": 904,
+        "notes": 1,
+        "output_stage_entered": 0,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 2,
+          "26": 1
+        },
+        "case": "eof_probe_io_failure",
+        "engine": "z80",
+        "fault": 904,
+        "notes": 1,
+        "output_stage_entered": 0,
+        "stack_below_entry": 10,
+        "t_states": 58539,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 2,
+          "26": 1
+        },
+        "case": "input_close_failure",
+        "engine": "raw-mir2",
+        "fault": 906,
+        "notes": 1,
+        "output_stage_entered": 0,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 2,
+          "26": 1
+        },
+        "case": "input_close_failure",
+        "engine": "final-mir2",
+        "fault": 906,
+        "notes": 1,
+        "output_stage_entered": 0,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 2,
+          "26": 1
+        },
+        "case": "input_close_failure",
+        "engine": "z80",
+        "fault": 906,
+        "notes": 1,
+        "output_stage_entered": 0,
+        "stack_below_entry": 10,
+        "t_states": 58570,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 2,
+          "22": 1,
+          "26": 1
+        },
+        "case": "create_failure",
+        "engine": "raw-mir2",
+        "fault": 901,
+        "notes": 1,
+        "output_stage_entered": 1,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 2,
+          "22": 1,
+          "26": 1
+        },
+        "case": "create_failure",
+        "engine": "final-mir2",
+        "fault": 901,
+        "notes": 1,
+        "output_stage_entered": 1,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 1,
+          "20": 2,
+          "22": 1,
+          "26": 1
+        },
+        "case": "create_failure",
+        "engine": "z80",
+        "fault": 901,
+        "notes": 1,
+        "output_stage_entered": 1,
+        "stack_below_entry": 28,
+        "t_states": 91549,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 2,
+          "20": 2,
+          "21": 1,
+          "22": 1,
+          "26": 1
+        },
+        "case": "write_failure",
+        "engine": "raw-mir2",
+        "fault": 902,
+        "notes": 1,
+        "output_stage_entered": 1,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 2,
+          "20": 2,
+          "21": 1,
+          "22": 1,
+          "26": 1
+        },
+        "case": "write_failure",
+        "engine": "final-mir2",
+        "fault": 902,
+        "notes": 1,
+        "output_stage_entered": 1,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 2,
+          "20": 2,
+          "21": 1,
+          "22": 1,
+          "26": 1
+        },
+        "case": "write_failure",
+        "engine": "z80",
+        "fault": 902,
+        "notes": 1,
+        "output_stage_entered": 1,
+        "stack_below_entry": 63,
+        "t_states": 457938,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 2,
+          "20": 2,
+          "21": 1,
+          "22": 1,
+          "26": 1
+        },
+        "case": "output_close_failure",
+        "engine": "raw-mir2",
+        "fault": 903,
+        "notes": 1,
+        "output_stage_entered": 1,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 2,
+          "20": 2,
+          "21": 1,
+          "22": 1,
+          "26": 1
+        },
+        "case": "output_close_failure",
+        "engine": "final-mir2",
+        "fault": 903,
+        "notes": 1,
+        "output_stage_entered": 1,
+        "stack_below_entry": 0,
+        "t_states": 0,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      },
+      {
+        "bdos_calls": {
+          "15": 1,
+          "16": 2,
+          "20": 2,
+          "21": 1,
+          "22": 1,
+          "26": 1
+        },
+        "case": "output_close_failure",
+        "engine": "z80",
+        "fault": 903,
+        "notes": 1,
+        "output_stage_entered": 1,
+        "stack_below_entry": 63,
+        "t_states": 457968,
+        "wire_bytes": 0,
+        "wire_sha256": ""
+      }
+    ],
+    "code_bytes": 8205,
+    "image_bytes": 22750,
+    "input_sha256": "b9d48e6ac84de63c5d095b3e3217196a8fc6ee9ec1024bd500ae5418e6628425",
+    "manifest_sha256": "f2ba3f05a0700c79e9b6deff99461d1cc57d70f3c4a460ba69fcb5f82d80835d",
+    "module_globals_bytes": 14380,
+    "music_sha256": "9fb9f831651875e5b4b65b45a121d3f8d3b9ebce7ec6f7652a7abd909485ce9a",
+    "protocol": "autosiril-file-flatten/v1",
+    "scope": "separate target file reader and streaming three-channel flatten producer; CP/M API adapter, not physical ROM/paging/full tracker converter",
+    "source_sha256": "fb07ee19839e2aebbdfc8c07f8b12ed25064c57c9c3d20f57fc692b7576a0a43",
+    "target_executions": 201
+  },
+  "standalone_notes_sha256": "4ecfa8a78d0146fe2f7dbcdcab711fa1ca803332044b3e4d81f684c80a37039f",
+  "standalone_events_sha256": "7a6a96d5a438bc27488295a580245baa14f3b6a4b6c1b896274538286891fff7",
+  "scope": "two sequential CP/M transient programs; all Chronos notes/events; no host music, Spectrum ROM/paging and later tracker stages pending"
+}
