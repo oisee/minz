@@ -108,6 +108,10 @@ def execute(out, raw, cpm, mze):
                               '-input', small, '-out', out / 'arena-padding'], reject='wrote arena bank padding')
 
     dest, exe = generated['cpm']
+    for code in [1, 2, 3]:
+        name = 'directory-success-' + str(code)
+        run(out, name, [exe, '-source', dest / 'pair-file.nanz', '-input', small,
+                        '-directory-code', code, '-out', out / name])
     source = (dest / 'pair-file.nanz').read_text()
     empty = dict(notes=[], sources=0, active=0, peak_active=0, accepted_bytes=0, events=0)
     contracts = [
@@ -137,9 +141,10 @@ def execute(out, raw, cpm, mze):
                  source_sha256=before, trd_matrix_sha256=sha(trd_path),
                  cpm_matrix_sha256=sha(cpm_path), cpm=results['cpm'], trd=results['trd'],
                  contract_executions=len(contracts)*3, rejected_native_mutants=3,
+                 directory_success_executions=9,
                  standalone_wire_sha256=sha(standalone / 'NOTES.BIN'),
                  standalone_mze_sha256=sha(mze),
                  chronos_logical_sha256=sha(b), scope='CP/M and Scorpion API traps; not physical ROM/hardware')
     (out / 'receipt.json').write_text(json.dumps(proof, indent=2) + '\n')
-    print('PASS: 147 common CP/M + 186 TRD + 21 API contract executions; three native mutants rejected')
+    print('PASS: 147 common CP/M + 186 TRD + 21 API contract + 9 directory success executions; three native mutants rejected')
     return proof

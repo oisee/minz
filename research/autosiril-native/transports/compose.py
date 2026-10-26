@@ -3,6 +3,10 @@
 from pathlib import Path
 import argparse
 import subprocess
+import sys
+
+sys.dont_write_bytecode = True
+from directory_codes import instrument
 
 ROOT = Path(__file__).resolve().parents[3]
 HERE = Path(__file__).resolve().parent
@@ -25,7 +29,7 @@ def main():
     if args.transport == 'cpm':
         # Reuse the existing fully guarded executor, OS handler and scalar binder.
         # files/compose writes only its differently named source + probe.go.
-        pass
+        (out / 'probe.go').write_text(instrument((out / 'probe.go').read_text()))
     else:
         runner = (out / 'probe.go').read_text()
         prefix = runner[:runner.index('// Research OS adapter:')]

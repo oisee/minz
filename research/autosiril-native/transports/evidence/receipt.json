@@ -8,10 +8,11 @@
     "research/autosiril-native/midi/fixtures/music-manifest.json": "f2ba3f05a0700c79e9b6deff99461d1cc57d70f3c4a460ba69fcb5f82d80835d",
     "research/autosiril-native/midi/fixtures/music.lanz": "9fb9f831651875e5b4b65b45a121d3f8d3b9ebce7ec6f7652a7abd909485ce9a",
     "research/autosiril-native/midi/pair.nanz": "ff4421d521514c3a719505e4a36df7cfabd2d29978a44261762c1eb4d425ec88",
-    "research/autosiril-native/transports/compose.py": "050a5c561aa4d9ed692426fa021a5f89a4db2e83b85f0d8697230d4246e6f9b4",
+    "research/autosiril-native/transports/compose.py": "38ee3b5f2307b2b56121af7b6967f1e749b1bf22ebc122a381688260e600b61d",
     "research/autosiril-native/transports/corpus.py": "4ee802d8b618a1e7dfbd858a0b0f37ad1df71ccf00cb26d67f91ecb70e5de83d",
-    "research/autosiril-native/transports/cpm.nanz": "1cf2320c66bacb0f41b5c28b7855142e434e984e2aef7edf61cf6e2f11c94baa",
-    "research/autosiril-native/transports/gate.py": "466963a99bd82479b59fe27aa08b15a3fb9552e3c43a060365a35125c5b6e523",
+    "research/autosiril-native/transports/cpm.nanz": "d93b9bd31bd41026dd61c09a8eda05dc6bc61eb2e03dda9a9b5878f2cfcfc0c3",
+    "research/autosiril-native/transports/directory_codes.py": "d6edbbeec62b415056bc9805741cc46d276c556691c65d7b64ff1dfba25c52fd",
+    "research/autosiril-native/transports/gate.py": "bc03f536d7ccc2dc5023050f8341b5a0415def25ed386a3467850698da0b7b50",
     "research/autosiril-native/transports/pair-file.nanz": "d1a77d83bd3270354c52ff1ff6e2d3160ae9a21003fce7c9bceecafb270c781f",
     "research/autosiril-native/transports/replay.py": "256da3813a213af530ee9b1316c9e69fd653e2c53d2cbfe3f0439d1817a1ee68",
     "research/autosiril-native/transports/trd-driver.go.txt": "2801ceff426404755eb1ff6ce8124c85f4ec7ce6527bab3d828f18d7bd742a8f",
@@ -25,7 +26,7 @@
   "cpm_matrix_sha256": "29d8568e2178f72c60c2005e520a7ecfceb6056f5627bb21a53a796fb64a3dd8",
   "cpm": {
     "backend_spill_bytes": 483,
-    "binary_sha256": "c5bfd3141283ad19d6848da0cb9564cf1e3ffc22a8df305891764da1260c8a4c",
+    "binary_sha256": "ff1190bdbf0fa7bc252f87425cae1925d34dd947e1e30fdd2ed522b71dfb71a5",
     "cases": [
       {
         "bdos_calls": {
@@ -86,7 +87,7 @@
         "notes": 1485,
         "peak": 2,
         "stack_below_entry": 68,
-        "t_states": 455542413,
+        "t_states": 455542653,
         "wire_bytes": 10496,
         "wire_sha256": "4ecfa8a78d0146fe2f7dbcdcab711fa1ca803332044b3e4d81f684c80a37039f"
       },
@@ -149,7 +150,7 @@
         "notes": 0,
         "peak": 0,
         "stack_below_entry": 38,
-        "t_states": 259122,
+        "t_states": 259362,
         "wire_bytes": 128,
         "wire_sha256": "93dc6b88ad9d894a59155bf7f805dcb03ed26d5a01d1afaea3fc79f1524e388a"
       },
@@ -212,7 +213,7 @@
         "notes": 1,
         "peak": 1,
         "stack_below_entry": 68,
-        "t_states": 629545,
+        "t_states": 629785,
         "wire_bytes": 128,
         "wire_sha256": "2794f8c3c0c7071dfc1ebe38670eede336d6bbb96b264b1e3c83b92246433ccb"
       },
@@ -275,7 +276,7 @@
         "notes": 2,
         "peak": 2,
         "stack_below_entry": 68,
-        "t_states": 947819,
+        "t_states": 948059,
         "wire_bytes": 128,
         "wire_sha256": "57cfda3ee82da792cf05f92f3a2a990c5f0d9b2ad87925ce2f7caa919bbd6435"
       },
@@ -338,7 +339,7 @@
         "notes": 2,
         "peak": 2,
         "stack_below_entry": 68,
-        "t_states": 951698,
+        "t_states": 951938,
         "wire_bytes": 128,
         "wire_sha256": "759c70cf643e75494c1954131f5bbb16b64f9d99125ee78c914affa4648d3af1"
       },
@@ -401,7 +402,7 @@
         "notes": 4,
         "peak": 3,
         "stack_below_entry": 68,
-        "t_states": 1593219,
+        "t_states": 1593459,
         "wire_bytes": 128,
         "wire_sha256": "fdbfc7f3c70c3226cfeb4b5652214d38738815f32b5079bfe2b9492b68f34230"
       },
@@ -464,7 +465,7 @@
         "notes": 1,
         "peak": 1,
         "stack_below_entry": 68,
-        "t_states": 697977,
+        "t_states": 698217,
         "wire_bytes": 128,
         "wire_sha256": "d9b4625eafea8a9a1bdee683c4ca801723f59173054a85b039cde2ab85693733"
       },
@@ -527,7 +528,7 @@
         "notes": 2,
         "peak": 2,
         "stack_below_entry": 68,
-        "t_states": 937219,
+        "t_states": 937459,
         "wire_bytes": 128,
         "wire_sha256": "6d6a981207becd6387ed2987953d0759796c94ccbe36b9a07a87c4ccf75a7f7a"
       },
@@ -590,7 +591,7 @@
         "notes": 2,
         "peak": 1,
         "stack_below_entry": 68,
-        "t_states": 1189879,
+        "t_states": 1190119,
         "wire_bytes": 128,
         "wire_sha256": "27187fe5751d12bef6c905e65e3048565597ad0393d7a88f35954385ec4fb94b"
       },
@@ -653,7 +654,7 @@
         "notes": 2,
         "peak": 2,
         "stack_below_entry": 72,
-        "t_states": 873605,
+        "t_states": 873845,
         "wire_bytes": 128,
         "wire_sha256": "6c5b63f8f82d46a97849a86bd54274201953e4828dfc710846bb090f41287bf9"
       },
@@ -716,7 +717,7 @@
         "notes": 1,
         "peak": 1,
         "stack_below_entry": 68,
-        "t_states": 628278,
+        "t_states": 628518,
         "wire_bytes": 128,
         "wire_sha256": "12eae7bbbfe7a6cb39396e4c36e0f8ecb328ab5f40559cbb0126581a17f59fd8"
       },
@@ -779,7 +780,7 @@
         "notes": 1,
         "peak": 1,
         "stack_below_entry": 68,
-        "t_states": 631713,
+        "t_states": 631953,
         "wire_bytes": 128,
         "wire_sha256": "12eae7bbbfe7a6cb39396e4c36e0f8ecb328ab5f40559cbb0126581a17f59fd8"
       },
@@ -842,7 +843,7 @@
         "notes": 1,
         "peak": 1,
         "stack_below_entry": 68,
-        "t_states": 696473,
+        "t_states": 696713,
         "wire_bytes": 128,
         "wire_sha256": "12eae7bbbfe7a6cb39396e4c36e0f8ecb328ab5f40559cbb0126581a17f59fd8"
       },
@@ -905,7 +906,7 @@
         "notes": 0,
         "peak": 0,
         "stack_below_entry": 38,
-        "t_states": 4798716,
+        "t_states": 4798956,
         "wire_bytes": 128,
         "wire_sha256": "93dc6b88ad9d894a59155bf7f805dcb03ed26d5a01d1afaea3fc79f1524e388a"
       },
@@ -968,7 +969,7 @@
         "notes": 1,
         "peak": 1,
         "stack_below_entry": 68,
-        "t_states": 636644,
+        "t_states": 636884,
         "wire_bytes": 128,
         "wire_sha256": "e17219647a481ddd061e72f74207d5026d2a2e59798f38253f3864248ce26dc6"
       },
@@ -1031,7 +1032,7 @@
         "notes": 512,
         "peak": 512,
         "stack_below_entry": 72,
-        "t_states": 145878937,
+        "t_states": 145879177,
         "wire_bytes": 3712,
         "wire_sha256": "8e0e3b6b17b094c732ade0c89432a5e972ea0e162224356eaaf39ab8b9d657f1"
       },
@@ -1094,7 +1095,7 @@
         "notes": 2046,
         "peak": 1,
         "stack_below_entry": 68,
-        "t_states": 650644311,
+        "t_states": 650644551,
         "wire_bytes": 14464,
         "wire_sha256": "0b65a2c5cab66ac615504265bdd47d3b9bc35a041232329c26e7f18a942c27c0"
       },
@@ -1157,7 +1158,7 @@
         "notes": 64,
         "peak": 1,
         "stack_below_entry": 68,
-        "t_states": 26359297,
+        "t_states": 26359537,
         "wire_bytes": 512,
         "wire_sha256": "997b51c799d322029099de817b043bc2b1b24bd23ba57bff515a1a8fe0f07545"
       },
@@ -1214,7 +1215,7 @@
         "notes": 0,
         "peak": 0,
         "stack_below_entry": 28,
-        "t_states": 45832,
+        "t_states": 45952,
         "wire_bytes": 0,
         "wire_sha256": ""
       },
@@ -1271,7 +1272,7 @@
         "notes": 0,
         "peak": 0,
         "stack_below_entry": 38,
-        "t_states": 171430,
+        "t_states": 171550,
         "wire_bytes": 0,
         "wire_sha256": ""
       },
@@ -1328,7 +1329,7 @@
         "notes": 0,
         "peak": 0,
         "stack_below_entry": 38,
-        "t_states": 160841,
+        "t_states": 160961,
         "wire_bytes": 0,
         "wire_sha256": ""
       },
@@ -1385,7 +1386,7 @@
         "notes": 0,
         "peak": 0,
         "stack_below_entry": 38,
-        "t_states": 154956,
+        "t_states": 155076,
         "wire_bytes": 0,
         "wire_sha256": ""
       },
@@ -1442,7 +1443,7 @@
         "notes": 0,
         "peak": 0,
         "stack_below_entry": 38,
-        "t_states": 167756,
+        "t_states": 167876,
         "wire_bytes": 0,
         "wire_sha256": ""
       },
@@ -1499,7 +1500,7 @@
         "notes": 0,
         "peak": 0,
         "stack_below_entry": 38,
-        "t_states": 180507,
+        "t_states": 180627,
         "wire_bytes": 0,
         "wire_sha256": ""
       },
@@ -1556,7 +1557,7 @@
         "notes": 0,
         "peak": 0,
         "stack_below_entry": 38,
-        "t_states": 182365,
+        "t_states": 182485,
         "wire_bytes": 0,
         "wire_sha256": ""
       },
@@ -1613,7 +1614,7 @@
         "notes": 0,
         "peak": 0,
         "stack_below_entry": 38,
-        "t_states": 173750,
+        "t_states": 173870,
         "wire_bytes": 0,
         "wire_sha256": ""
       },
@@ -1754,7 +1755,7 @@
         "notes": 512,
         "peak": 512,
         "stack_below_entry": 64,
-        "t_states": 79428129,
+        "t_states": 79428249,
         "wire_bytes": 0,
         "wire_sha256": ""
       },
@@ -1811,7 +1812,7 @@
         "notes": 2046,
         "peak": 1,
         "stack_below_entry": 68,
-        "t_states": 630659937,
+        "t_states": 630660057,
         "wire_bytes": 0,
         "wire_sha256": ""
       },
@@ -1868,7 +1869,7 @@
         "notes": 0,
         "peak": 0,
         "stack_below_entry": 64,
-        "t_states": 251330,
+        "t_states": 251450,
         "wire_bytes": 0,
         "wire_sha256": ""
       },
@@ -1925,7 +1926,7 @@
         "notes": 1,
         "peak": 1,
         "stack_below_entry": 64,
-        "t_states": 403534,
+        "t_states": 403654,
         "wire_bytes": 0,
         "wire_sha256": ""
       },
@@ -1982,7 +1983,7 @@
         "notes": 0,
         "peak": 0,
         "stack_below_entry": 64,
-        "t_states": 252768,
+        "t_states": 252888,
         "wire_bytes": 0,
         "wire_sha256": ""
       },
@@ -2039,7 +2040,7 @@
         "notes": 0,
         "peak": 0,
         "stack_below_entry": 38,
-        "t_states": 5664240,
+        "t_states": 5664360,
         "wire_bytes": 0,
         "wire_sha256": ""
       },
@@ -2096,7 +2097,7 @@
         "notes": 64,
         "peak": 1,
         "stack_below_entry": 68,
-        "t_states": 25744652,
+        "t_states": 25744772,
         "wire_bytes": 0,
         "wire_sha256": ""
       },
@@ -2153,7 +2154,7 @@
         "notes": 2,
         "peak": 2,
         "stack_below_entry": 72,
-        "t_states": 681384,
+        "t_states": 681504,
         "wire_bytes": 0,
         "wire_sha256": ""
       },
@@ -2210,7 +2211,7 @@
         "notes": 1,
         "peak": 1,
         "stack_below_entry": 64,
-        "t_states": 1393050,
+        "t_states": 1393170,
         "wire_bytes": 0,
         "wire_sha256": ""
       },
@@ -2267,7 +2268,7 @@
         "notes": 0,
         "peak": 0,
         "stack_below_entry": 38,
-        "t_states": 1193668,
+        "t_states": 1193788,
         "wire_bytes": 0,
         "wire_sha256": ""
       },
@@ -2330,7 +2331,7 @@
         "notes": 0,
         "peak": 0,
         "stack_below_entry": 38,
-        "t_states": 767320,
+        "t_states": 767560,
         "wire_bytes": 128,
         "wire_sha256": "93dc6b88ad9d894a59155bf7f805dcb03ed26d5a01d1afaea3fc79f1524e388a"
       },
@@ -2393,7 +2394,7 @@
         "notes": 125,
         "peak": 1,
         "stack_below_entry": 68,
-        "t_states": 40246940,
+        "t_states": 40247180,
         "wire_bytes": 896,
         "wire_sha256": "44c01f2d160fef71676d197cddce4c09e55ee0517487dc9c3413a8ed23ba57f5"
       },
@@ -2456,7 +2457,7 @@
         "notes": 1,
         "peak": 1,
         "stack_below_entry": 68,
-        "t_states": 695829,
+        "t_states": 696069,
         "wire_bytes": 128,
         "wire_sha256": "1b7db5ec237eed04c08ab0333c86b18eae1f9467ddce2e86e98c88811f682a42"
       },
@@ -2513,7 +2514,7 @@
         "notes": 0,
         "peak": 0,
         "stack_below_entry": 26,
-        "t_states": 31808,
+        "t_states": 31928,
         "wire_bytes": 0,
         "wire_sha256": ""
       },
@@ -2564,7 +2565,7 @@
         "notes": 0,
         "peak": 0,
         "stack_below_entry": 26,
-        "t_states": 28637,
+        "t_states": 28692,
         "wire_bytes": 0,
         "wire_sha256": ""
       },
@@ -2621,7 +2622,7 @@
         "notes": 0,
         "peak": 0,
         "stack_below_entry": 26,
-        "t_states": 31334,
+        "t_states": 31454,
         "wire_bytes": 0,
         "wire_sha256": ""
       },
@@ -2678,7 +2679,7 @@
         "notes": 1,
         "peak": 1,
         "stack_below_entry": 68,
-        "t_states": 586753,
+        "t_states": 586868,
         "wire_bytes": 0,
         "wire_sha256": ""
       },
@@ -2738,7 +2739,7 @@
         "notes": 1,
         "peak": 1,
         "stack_below_entry": 68,
-        "t_states": 587151,
+        "t_states": 587326,
         "wire_bytes": 0,
         "wire_sha256": ""
       },
@@ -2801,7 +2802,7 @@
         "notes": 1,
         "peak": 1,
         "stack_below_entry": 68,
-        "t_states": 629122,
+        "t_states": 629362,
         "wire_bytes": 0,
         "wire_sha256": ""
       },
@@ -2864,7 +2865,7 @@
         "notes": 1,
         "peak": 1,
         "stack_below_entry": 68,
-        "t_states": 629606,
+        "t_states": 629841,
         "wire_bytes": 0,
         "wire_sha256": ""
       },
@@ -2921,18 +2922,18 @@
         "notes": 1,
         "peak": 1,
         "stack_below_entry": 68,
-        "t_states": 586757,
+        "t_states": 586877,
         "wire_bytes": 0,
         "wire_sha256": ""
       }
     ],
-    "code_bytes": 16689,
-    "image_bytes": 32110,
+    "code_bytes": 16713,
+    "image_bytes": 32134,
     "input_sha256": "29d8568e2178f72c60c2005e520a7ecfceb6056f5627bb21a53a796fb64a3dd8",
     "module_globals_bytes": 14938,
     "protocol": "autosiril-file-pair-probe/v1",
     "scope": "CP/M record adapter with real host files; raw/final MIR2 and native CALL5; independent mze execution still required; target file reader/flatten stage pending",
-    "source_sha256": "7841bacb37f34252f98943740b4e5dc0a4d2bb5a1e2ef06fe816d1935798279b",
+    "source_sha256": "27d25d1bf0df2f0b1cc905c8acb74790e28d032b81f0c82d334f2e8ad7b848e0",
     "target_executions": 147
   },
   "trd": {
@@ -5590,12 +5591,13 @@
   },
   "contract_executions": 21,
   "rejected_native_mutants": 3,
+  "directory_success_executions": 9,
   "standalone_wire_sha256": "4ecfa8a78d0146fe2f7dbcdcab711fa1ca803332044b3e4d81f684c80a37039f",
   "standalone_mze_sha256": "930cd5e310231b7b817750eba38a99eef9390f25f1345a97091ea86c16ed2aed",
   "chronos_logical_sha256": "56e0b7266c9f4ba610f8d77d2475c6293d49af40e5778ad96a162f7daf50d76b",
   "scope": "CP/M and Scorpion API traps; not physical ROM/hardware",
-  "fresh_file_reference_sha256": "ccb600802b7d0743fb0a05c8a177b57f52761059c443e533121e4664565f7f1f",
-  "fresh_midi_reference_sha256": "39e6846f31dd379ebbe629feed62e902908020cb8f08a76d60635a8a4223b114",
+  "fresh_file_reference_sha256": "fadb7a392d0741aef10ad03fb8cf7bed0e0cac25d7d01a03a05e02075e1cd916",
+  "fresh_midi_reference_sha256": "7bb111d0d1645d1b8fb1e417045799cc3bc94419a003a9b509a45e75f9e2b8c7",
   "fresh_midi_executions": 342,
   "fresh_file_reference": {
     "protocol": "autosiril-file-pair-fresh/v1",
@@ -5608,7 +5610,7 @@
       "minzc/cmd/mze/cpm_record.go": "2959ad5fbd05889fdc0d1bdf991429ae163b948a424c369bd3f311f5d2a667c7",
       "minzc/cmd/mze/cpm_record_test.go": "ed65e0346a0773ddcb167ac3222a6fd434221c333bd6f995a57e1b7a889ed8d5"
     },
-    "reference_sha256": "39e6846f31dd379ebbe629feed62e902908020cb8f08a76d60635a8a4223b114",
+    "reference_sha256": "7bb111d0d1645d1b8fb1e417045799cc3bc94419a003a9b509a45e75f9e2b8c7",
     "matrix_sha256": "29d8568e2178f72c60c2005e520a7ecfceb6056f5627bb21a53a796fb64a3dd8",
     "generated_source_sha256": "d214edcd4ef504308e4e1aa1ef34f4d7842cc34ea39741342c043e872ba0a875",
     "generated_driver_sha256": "2988674e20602b0f3f4e99df1b718666a918ef2a86e3e3e19f1202ccf278b47c",
@@ -14506,7 +14508,7 @@
     "go_version": "go version go1.26.3 darwin/arm64",
     "ruby_version": "ruby 2.6.10p210 (2022-04-12 revision 67958) [universal.arm64e-darwin26]",
     "crystal_version": "Crystal 1.20.1 (2026-04-29)\n\nLLVM: 22.1.4\nDefault target: aarch64-apple-darwin27.0.0",
-    "git_head": "a716ff184a50c9e17eea4d6679cbcd1ed1f9b379",
+    "git_head": "ebc23f756862968bbd643fb90c3fa2125783b7ca",
     "git_dirty": true,
     "scope": "complete Chronos streamed MIDI parsing/pairing/quantization on target; separate image from flatten; fresh Ruby/target boundary corpus; no combined converter or physical banking"
   }
