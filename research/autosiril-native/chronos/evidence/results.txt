@@ -1,0 +1,3 @@
+PASS chronos_full_channel0: 771 events, 180203227T, stack74
+PASS chronos_full_channel1: 719 events, 162403129T, stack68
+PASS chronos_full_channel2: 663 events, 164320283T, stack74
