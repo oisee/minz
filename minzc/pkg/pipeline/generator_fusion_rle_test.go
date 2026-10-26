@@ -268,7 +268,7 @@ total=total+u16(v)`, "hygiene"},
 						stop = true
 						break
 					}
-					if !((tc.mode == "take" || tc.mode == "skip") && value == 0) {
+					if (tc.mode != "take" && tc.mode != "skip") || value != 0 {
 						sum += uint16(value)
 						accepted++
 					}
