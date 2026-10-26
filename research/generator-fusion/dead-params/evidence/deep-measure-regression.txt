@@ -1,0 +1,1 @@
+ok  	github.com/minz/minzc/pkg/pipeline	19.683s
