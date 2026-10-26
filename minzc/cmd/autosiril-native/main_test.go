@@ -69,6 +69,91 @@ func TestNativeFlatFrozenRubyVectors(t *testing.T) {
 	}
 
 }
+
+func TestNativeFlatWholeChronosAndThreeBankBounds(t *testing.T) {
+	engine, music, meta, _ := fixturePaths(t)
+	root := filepath.Clean("../../..")
+	base := filepath.Join(root, "research/autosiril-native/chronos/evidence")
+	data, err := os.ReadFile(filepath.Join(base, "receipt.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var proof struct {
+		Sources    map[string]string `json:"source_sha256"`
+		Input      string            `json:"input_sha256"`
+		Music      string            `json:"music_sha256"`
+		Manifest   string            `json:"manifest_sha256"`
+		Notes      int               `json:"paired_notes"`
+		Events     []int             `json:"event_counts"`
+		Executions int               `json:"target_executions"`
+	}
+	if err := json.Unmarshal(data, &proof); err != nil {
+		t.Fatal(err)
+	}
+	for file, want := range proof.Sources {
+		b, err := os.ReadFile(filepath.Join(root, file))
+		if err != nil || digest(b) != want {
+			t.Fatalf("Chronos source provenance changed: %s; rerun fresh Ruby/Crystal verifier", file)
+		}
+	}
+	inputPath := filepath.Join(base, "input.json")
+	for file, want := range map[string]string{inputPath: proof.Input, music: proof.Music, meta: proof.Manifest} {
+		b, err := os.ReadFile(file)
+		if err != nil || digest(b) != want {
+			t.Fatalf("Chronos reference provenance changed: %s", file)
+		}
+	}
+	if proof.Notes != 1485 || len(proof.Events) != 3 || proof.Events[0] != 771 || proof.Events[1] != 719 || proof.Events[2] != 663 || proof.Executions != 21 {
+		t.Fatal("whole-score reference corpus changed")
+	}
+	out := t.TempDir()
+	if err := run(engine, music, meta, inputPath, out); err != nil {
+		t.Fatal(err)
+	}
+	data, err = os.ReadFile(filepath.Join(out, "receipt.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var result struct {
+		Cases []caseResult `json:"cases"`
+	}
+	if err := json.Unmarshal(data, &result); err != nil {
+		t.Fatal(err)
+	}
+	if len(result.Cases) != 7 {
+		t.Fatal("missing whole-song/capacity cases")
+	}
+	for _, c := range result.Cases {
+		if len(c.Engines) != 3 {
+			t.Fatal("missing whole-song execution backend")
+		}
+	}
+}
+
+func TestNativeFlatThreeBankTransportBounds(t *testing.T) {
+	for _, c := range []config{{0, 1024}, {4, 1024}, {3, 0}, {3, 1025}} {
+		if checkedConfig(c) == nil {
+			t.Fatalf("out-of-range profile admitted: %+v", c)
+		}
+	}
+	c := config{3, 1024}
+	if err := checkedConfig(c); err != nil {
+		t.Fatal(err)
+	}
+	tc := testCase{Name: "bounds", Notes: make([]note, 2046), Mode: "p", Limit: 1024}
+	if err := checkCase(tc, c); err != nil {
+		t.Fatal(err)
+	}
+	tc.Limit = 1025
+	if checkCase(tc, c) == nil {
+		t.Fatal("output limit above capacity admitted")
+	}
+	tc.Limit = 1024
+	tc.Notes = append(tc.Notes, note{})
+	if checkCase(tc, c) == nil {
+		t.Fatal("note beyond third-bank capacity admitted")
+	}
+}
 func TestNativeFlatRejectsUnsafeTransport(t *testing.T) {
 	engine, music, meta, cases := fixturePaths(t)
 	data, e := os.ReadFile(cases)
