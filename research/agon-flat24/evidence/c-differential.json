@@ -5,8 +5,8 @@
   "scope": "constant-expression kernels; this is not dynamic/control-flow/pointer C coverage",
   "runner": "/private/tmp/minz-flat24-native-target/debug/minz-flat24-runner",
   "runner_sha256": "90c84ccedddac1c759e634fee59605bb4ba46da62fe5a2c221db9648163a7099",
-  "mzc_driver_sha256": "bc4db2ba0ae24d4972964d5f5bf02859a496ad73dce28c493beb78869215e5bc",
-  "mzc_driver": "/tmp/minz-ez80-c-probe",
+  "mzc_driver_sha256": "21d2b2d0a12d533e74f8ad4e16266d8717bf1871c63661265f03d338423b5b25",
+  "mzc_driver": "/tmp/minz-ez80-c-probe-postfix",
   "versions": {
     "agon_clang": "clang version 15.0.7 (https://github.com/AgonPlatform/agon-llvm-project.git c76386c0083e6a6236ff774275227e2389f85538)\nTarget: ez80-none-unknown-elf\nThread model: posix\nInstalledDir: /Users/alice/dev/agondev/agondev/bin",
     "host_clang": "Apple clang version 21.0.0 (clang-2100.3.34.2)\nTarget: arm64-apple-darwin27.0.0\nThread model: posix\nInstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin",
@@ -629,5 +629,5 @@
     "mzc_skipped": 2,
     "failed": 0
   },
-  "elapsed_seconds": 5.381
+  "elapsed_seconds": 5.646
 }

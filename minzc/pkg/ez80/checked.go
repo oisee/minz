@@ -34,7 +34,7 @@ func MIR2CodegenChecked(m *mir2.Module, ar *mir2.AllocResult) (string, error) {
 			return "", fmt.Errorf("flat24 native %s: requires one u8 return", f.Name)
 		}
 		for _, i := range f.Blocks[0].Insts {
-			if i.Ty != mir2.TyU8 && i.Ty != mir2.TyU16 && i.Ty != mir2.TyU24 && !(mir2.IsPointer(i.Ty) && i.Ty.Width() == 24) {
+			if i.Ty != mir2.TyU8 && i.Ty != mir2.TyU16 && i.Ty != mir2.TyU24 && (!mir2.IsPointer(i.Ty) || i.Ty.Width() != 24) {
 				return "", fmt.Errorf("flat24 native type %s is not admitted", i.Ty)
 			}
 			if i.Dst != mir2.NoReg && i.Ty.Width() == 8 && !classicByte(i.Dst) {

@@ -894,9 +894,6 @@ func (l *lowerer) lowerExprForRet(e Expr) mir2.Reg {
 // Explicit "must be in A" values (function return values, call returns) still
 // use ClassAcc via classForRet; parameters use classForParam.
 func classForExpr(ty mir2.Ty) mir2.RegClass {
-	if ty == mir2.TyU24 || ty == mir2.TyI24 {
-		return mir2.ClassDWord
-	}
 	if mir2.IsPointer(ty) && ty.Width() == 24 {
 		return mir2.ClassPointer
 	}
