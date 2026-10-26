@@ -9,7 +9,7 @@ reader and event serializer contain no BDOS calls. The original shared
 `compose.py` reuses the existing closed flatten bridge and verifier, takes
 the **same writer functions** from `transports/pair-file.nanz`, and binds the
 **same CP/M implementation** from `transports/cpm.nanz`. Composition changes
-only filename constants and supplies input-padding metadata; it does not fork
+only filename constants; the binding supplies input-padding metadata. It does not fork
 the record-I/O implementation or musical algorithm.
 
 ## A chunk boundary is not a physical record boundary
@@ -108,6 +108,12 @@ standalone programs/files are retained outside checkout and uploaded by CI as
 `autosiril-common-flatten`.
 
 ## Scope
+
+CP/M measurements use mze's host BDOS services, not a resident Z80 BDOS/BIOS
+image. The research bootstrap sets SP=`EFFE`, guards a kernel stack floor at
+`E000`, and stops with HALT/HL status. It does not derive the TPA top from a
+physical CP/M installation or provide a portable return to CCP. Stack/cycle
+figures measure the target kernel, not a physical OS's internal service costs.
 
 Under native CP/M2.2 the output filenames must initially be absent; BDOS22 is
 make-file, not a portable overwrite operation. mze host-file truncation does

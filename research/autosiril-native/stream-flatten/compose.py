@@ -34,7 +34,6 @@ def main():
     pair = (HERE.parent / 'transports/pair-file.nanz').read_text()
     writer = pair[pair.index('fun file_write_record('):pair.index('fun file_save_notes(')]
     binding = (HERE.parent / 'transports/cpm.nanz').read_text()
-    binding = once(binding, 'input_padding = 1', 'input_padding = 1\n    input_padding_quantum = 128')
     binding = once(binding, 'global input_name:[u8;11] = [73,78,80,85,84,32,32,32,77,73,68]',
                    'global input_name:[u8;11] = [78,79,84,69,83,32,32,32,66,73,78]')
     binding = once(binding, 'global output_name:[u8;11] = [78,79,84,69,83,32,32,32,66,73,78]',
