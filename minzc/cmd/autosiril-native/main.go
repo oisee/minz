@@ -91,8 +91,8 @@ var fields = map[string]int{"fault": 2, "output_count": 2, "peak_active": 2, "ro
 
 func digest(b []byte) string { return fmt.Sprintf("%x", sha256.Sum256(b)) }
 func checkedConfig(c config) error {
-	if c.Banks < 1 || c.Banks > 2 || c.Outputs < 1 || c.Outputs > 256 {
-		return fmt.Errorf("native configuration requires 1..2 banks and 1..256 outputs")
+	if c.Banks < 1 || c.Banks > 3 || c.Outputs < 1 || c.Outputs > 1024 {
+		return fmt.Errorf("native configuration requires 1..3 banks and 1..1024 outputs")
 	}
 	return nil
 }
