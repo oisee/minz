@@ -594,8 +594,11 @@ func setupCPMBDOS(z80 *emulator.RemogattoZ80WithScreen) {
 			fcbAddr := de
 			h := fcbAddr
 			if f, ok := fileHandles[h]; ok {
-				f.Close()
+				err := f.Close()
 				delete(fileHandles, h)
+				if err != nil {
+					return 255, 0, true
+				}
 			}
 			return 0, 0, true
 
@@ -686,11 +689,18 @@ func setupCPMBDOS(z80 *emulator.RemogattoZ80WithScreen) {
 			if !ok {
 				return 0xFF, 0, true
 			}
+			if z80.ReadMemory(fcbAddr+32) > 127 || z80.ReadMemory(fcbAddr+12) > 31 || z80.ReadMemory(fcbAddr+14) > 63 {
+				return 2, 0, true
+			}
+			record := cpmSequentialRecord(z80.ReadMemory, fcbAddr)
 			buf := make([]byte, 128)
 			for i := 0; i < 128; i++ {
 				buf[i] = z80.ReadMemory(dmaAddr + uint16(i))
 			}
-			f.Write(buf)
+			if err := cpmWriteRecord(f, buf, record); err != nil {
+				return 2, 0, true
+			}
+			cpmAdvanceRecord(z80.WriteMemory, fcbAddr, record+1)
 			return 0, 0, true
 
 		case 0x16: // Make file (create)
@@ -706,7 +716,7 @@ func setupCPMBDOS(z80 *emulator.RemogattoZ80WithScreen) {
 				old.Close()
 			}
 			fileHandles[h] = f
-			z80.WriteMemory(fcbAddr+32, 0)
+			cpmAdvanceRecord(z80.WriteMemory, fcbAddr, 0)
 			if verbose {
 				fmt.Fprintf(os.Stderr, "CREATE %s → handle %d\n", name, h)
 			}
