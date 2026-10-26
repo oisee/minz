@@ -2,9 +2,12 @@
 
 ## Status
 
-Proposed. Date: 2026-10-26. Alice proposed sequential utilities for Spectrum,
-CP/M and MOS. This decision records that direction; native file utilities,
-overlays and physical TR-DOS ROM compatibility are not yet implemented here.
+Accepted direction; implementation is staged. Date: 2026-10-26. Alice proposed
+sequential utilities for Spectrum, CP/M and MOS. CP/M MIDI→note-file and
+note-file→flatten-event-file are integrated through PRs #262/#263. The common
+producer transport and first Scorpion TRD/API-trap stage are implemented in the
+accompanying transport experiment. MOS file bindings, overlays and physical
+TR-DOS ROM compatibility remain unimplemented/unproven.
 
 ## Context
 
@@ -48,10 +51,24 @@ or copied records, never transport-buffer pointers (ADR0051).
 File representations are versioned and target independent: explicit integer
 widths/endianness, record kind/width, framing and a verifiable logical end with
 counts. Native pointers, struct padding and generator frames are not wire data.
-The initial note record can retain the existing six-byte little-endian format.
-The precise envelope must be selected with golden vectors and malformed-input
-tests before being frozen. Forward-only framing plus an end/count record is a
-candidate where total output length is not known at creation time.
+ASIR v1 retains the six-byte little-endian note format. Its 12-byte header is
+`ASIR`, version1, kind1 (notes) or2 (events), payload width6 or5, flags0,
+metadata:u16LE (source/channel count), reserved:u16LE0. A DATA record is tag01
+followed by its fixed-width payload. END is tagFF, count:u32LE, ASCII `END!`.
+Counts, widths, metadata, reserved bits and final physical padding are checked
+by the CP/M consumer; the nonzero END signature distinguishes a missing end
+record from zero fill. Golden vectors and malformed files are retained in
+`research/autosiril-native/file-flatten/evidence/`.
+
+The common first-stage binding packs count in the low16 bits and status in
+the high16 bits of a u32: 0=progress, 1=EOF, 2=error. EOF must have count0;
+unknown statuses are errors. `read_chunk()` fills a fixed buffer with at most
+256 bytes, `write_chunk(count)` must acknowledge exactly the requested count,
+and `finish(direction)` closes input0 or output1, returning zero on success.
+`open_input()` supplies physical output chunk capacity and input-padding policy;
+capacity is validated before any reading or output creation. Empty progress
+retries are bounded (1024 stalls) rather than interpreted as EOF. These are
+explicit compile/link-time bindings, not an implicit runtime scheduler.
 
 Physical record/sector padding is outside the logical stream. In particular,
 binary data must not use a text EOF character as its terminator. The source
@@ -100,6 +117,25 @@ dispatcher/stack regions from every load.
 5. Keep the in-process route usable; transport selection should not fork the
    musical algorithms or require GC. Deliver implementations through PRs and
    ordinary required CI.
+
+## Current evidence and remaining platform work
+
+- `research/autosiril-native/files/`: first CP/M utility, 147 file executions
+  plus standalone mze; original 342 streamed MIDI executions retained.
+- `research/autosiril-native/file-flatten/`: second CP/M utility, 201 file
+  executions and three native negative mutants; all 2153 Chronos events.
+- `research/autosiril-native/transports/`: shared first-stage serialization,
+  interchangeable CP/M/TRD bindings, explicit fixed/banked placement and
+  adversarial transport/paging tests. This is API-trap evidence, not a ROM proof.
+- `research/autosiril-native/linked/`: the separate 40626-byte in-process path
+  remains available. Its all-RAM layout is not the disk-service layout.
+
+The CP/M flatten utility currently owns its BDOS reader/writer binding; moving
+that second stage behind the same chunk API and adding its TRD variant is the
+next integration step. The first TRD writer is append-only; metadata publication
+is not crash-atomic. Its fixed workspace uses screen RAM and its DI disk stub
+does not establish compatibility with a physical ROM's workspace/interrupt ABI.
+MOS remains an additional future transport, independent of full eZ80 readiness.
 
 ## Consequences
 

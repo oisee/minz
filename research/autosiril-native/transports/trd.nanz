@@ -1,0 +1,181 @@
+// Native append-only TRD binding. The fixed stub pages bank8 solely for a
+// 256-byte bounce buffer, copies back to fixed input_chunk, and restores bank0.
+@extern(0x6000) fun trd_sector(@z80_a op:u8,@z80_hl address:u16,@z80_d track:u8,@z80_e sector:u8)->u8
+global input_name:[u8;9] = [73,78,80,85,84,32,32,32,77]
+global output_name:[u8;9] = [78,79,84,69,83,32,32,32,78]
+global disk_error:u16
+global input_position:u16
+global input_remaining:u16
+global free_position:u16
+global free_count:u16
+global directory_count:u16
+global output_position:u16
+global output_expected:u16
+global output_written:u16
+global output_sectors:u16
+global output_needed:u16
+global input_open:u8
+global output_open:u8
+
+fun disk_word(at:u16)->u16 {
+    return u16(input_chunk[at]) | (u16(input_chunk[at+1]) << 8)
+}
+fun disk_transfer(op:u8,position:u16)->u8 {
+    if position >= 2560 { disk_error = 1
+        return 0 }
+    let result:u8 = trd_sector(op,u16(&input_chunk),u8(position / 16),u8(position % 16 + 1))
+    if result == 0 { disk_error = 2 }
+    return result
+}
+fun disk_name(at:u16,output:u8)->u8 {
+    var index:u16 = 0
+    while index < 9 {
+        var expected:u8 = input_name[index]
+        if output != 0 { expected = output_name[index] }
+        if input_chunk[at+index] != expected { return 0 }
+        index = index + 1
+    }
+    return 1
+}
+fun open_input()->u8 {
+    chunk_capacity = 256
+    input_padding = 0
+    disk_error = 0
+    input_open = 0
+    output_open = 0
+    if disk_transfer(5,8) == 0 { return 1 }
+    if input_chunk[225] >= 16 || input_chunk[226] > 160 || input_chunk[227] != 22 {
+        disk_error = 3
+        return 1
+    }
+    free_position = u16(input_chunk[226]) * 16 + u16(input_chunk[225])
+    free_count = disk_word(229)
+    directory_count = u16(input_chunk[228])
+    if directory_count > 128 || free_position < 16 || free_position > 2560 ||
+        free_count > 2560 - free_position {
+        disk_error = 3
+        return 1
+    }
+    var found:u8 = 0
+    var ended:u8 = 0
+    var catalog_index:u16 = 0
+    var max_end:u16 = 16
+    var sector:u16 = 0
+    while sector < 8 && ended == 0 {
+        if disk_transfer(5,sector) == 0 { return 1 }
+        var at:u16 = 0
+        while at < 256 && ended == 0 {
+            if input_chunk[at] == 0 { ended = 1 } else {
+                if input_chunk[at] != 1 {
+                    let length:u16 = disk_word(at+11)
+                    let count:u16 = u16(input_chunk[at+13])
+                    let first:u16 = u16(input_chunk[at+15]) * 16 + u16(input_chunk[at+14])
+                    if input_chunk[at+14] >= 16 || input_chunk[at+15] >= 160 ||
+                        (count != 0 && first < 16) || first + count > 2560 || u32(length) > u32(count) * 256 {
+                        disk_error = 4
+                        return 1
+                    }
+                    if first + count > max_end { max_end = first + count }
+                    if disk_name(at,1) != 0 { disk_error = 5
+                        return 1 }
+                    if disk_name(at,0) != 0 {
+                        if found != 0 { disk_error = 6
+                            return 1 }
+                        found = 1
+                        input_position = first
+                        input_remaining = length
+                    }
+                }
+                catalog_index = catalog_index + 1
+                at = at + 16
+            }
+        }
+        sector = sector + 1
+    }
+    if found == 0 { disk_error = 7
+        return 1 }
+    if catalog_index != directory_count || free_position < max_end { disk_error = 8
+        return 1 }
+    input_open = 1
+    return 0
+}
+fun read_chunk()->u32 {
+    if input_open == 0 { return u32(131072) }
+    if input_remaining == 0 { return u32(65536) }
+    if disk_transfer(5,input_position) == 0 { return u32(131072) }
+    var count:u16 = input_remaining
+    if count > 256 { count = 256 }
+    input_remaining = input_remaining - count
+    input_position = input_position + 1
+    return u32(count)
+}
+fun create_output()->u8 {
+    output_expected = 21 + note_count * 7
+    output_needed = (output_expected + 255) / 256
+    if directory_count >= 128 || output_needed > free_count || output_needed > 2560 - free_position {
+        disk_error = 9
+        return 1
+    }
+    output_position = free_position
+    output_written = 0
+    output_sectors = 0
+    output_open = 1
+    return 0
+}
+fun write_chunk(count:u16)->u32 {
+    if output_open == 0 || count == 0 || count > 256 || output_written + count > output_expected ||
+        output_sectors >= output_needed { return u32(131072) }
+    var index:u16 = count
+    while index < 256 {
+        input_chunk[index] = 0
+        index = index + 1
+    }
+    if disk_transfer(6,output_position) == 0 { return u32(131072) }
+    output_written = output_written + count
+    output_position = output_position + 1
+    output_sectors = output_sectors + 1
+    return u32(count)
+}
+fun finish(direction:u8)->u8 {
+    if direction == 0 {
+        input_open = 0
+        return 0
+    }
+    if output_open == 0 { return 1 }
+    output_open = 0
+    if fault != 0 { return 0 }
+    if output_written != output_expected || output_sectors != output_needed { disk_error = 10
+        return 1 }
+    let sector:u16 = directory_count / 16
+    let at:u16 = (directory_count % 16) * 16
+    if disk_transfer(5,sector) == 0 { return 1 }
+    if input_chunk[at] != 0 { disk_error = 11
+        return 1 }
+    var index:u16 = 0
+    while index < 9 {
+        input_chunk[at+index] = output_name[index]
+        index = index + 1
+    }
+    input_chunk[at+9] = 0
+    input_chunk[at+10] = 0
+    input_chunk[at+11] = u8(output_written)
+    input_chunk[at+12] = u8(output_written >> 8)
+    input_chunk[at+13] = u8(output_sectors)
+    input_chunk[at+14] = u8(free_position % 16)
+    input_chunk[at+15] = u8(free_position / 16)
+    if disk_transfer(6,sector) == 0 { return 1 }
+    if disk_transfer(5,8) == 0 { return 1 }
+    if u16(input_chunk[228]) != directory_count || disk_word(229) != free_count ||
+        u16(input_chunk[226]) * 16 + u16(input_chunk[225]) != free_position {
+        disk_error = 12
+        return 1
+    }
+    input_chunk[225] = u8(output_position % 16)
+    input_chunk[226] = u8(output_position / 16)
+    input_chunk[228] = u8(directory_count + 1)
+    let remaining:u16 = free_count - output_needed
+    input_chunk[229] = u8(remaining)
+    input_chunk[230] = u8(remaining >> 8)
+    if disk_transfer(6,8) == 0 { return 1 }
+    return 0
+}

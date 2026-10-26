@@ -1,0 +1,43 @@
+; Fixed entry at6000. Caller buffer is256B in nonpaged RAM; DI, paging10/00.
+; A=5/6, HL=fixed buffer, D=logical track, E=1-based sector; A=1 success/0 error.
+; Copying both ways is deliberate: no near pointer into bank8 escapes the call.
+trd_sector_stub:
+    PUSH AF
+    PUSH DE
+    PUSH HL
+    LD BC,0x1ffd
+    LD A,0x10
+    OUT (C),A
+    LD BC,0x7ffd
+    OUT (C),A
+    POP HL
+    PUSH HL
+    LD DE,0xc000
+    LD BC,256
+    LDIR
+    POP HL
+    POP DE
+    POP AF
+    PUSH HL
+    LD HL,0xc000
+    LD C,A
+    LD B,1
+    CALL 0x3d13
+    LD A,B
+    POP DE
+    PUSH AF
+    LD HL,0xc000
+    LD BC,256
+    LDIR
+    LD BC,0x1ffd
+    XOR A
+    OUT (C),A
+    LD BC,0x7ffd
+    LD A,0x10
+    OUT (C),A
+    POP AF
+    OR A
+    LD A,0
+    RET NZ
+    INC A
+    RET

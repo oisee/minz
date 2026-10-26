@@ -1,0 +1,603 @@
+func linearSector(d *formats.TRDFile, position int) []byte {
+	track := position / 16
+	return d.ReadSector(track%80, track/80, position%16)
+}
+func writeLinear(d *formats.TRDFile, position int, b []byte) {
+	track := position / 16
+	d.WriteSector(track%80, track/80, position%16, b)
+}
+func sectorOffset(position int) int {
+	track := position / 16
+	return ((track%80*2+track/80)*16 + position%16) * 256
+}
+func initialDisk(midi []byte) *formats.TRDFile {
+	if len(midi) > 65280 {
+		panic("fixture exceeds TRD file length/sector field")
+	}
+	d := &formats.TRDFile{}
+	n := (len(midi) + 255) / 256
+	copy(d.Data[:9], []byte("INPUT   M"))
+	binary.LittleEndian.PutUint16(d.Data[11:13], uint16(len(midi)))
+	d.Data[13] = byte(n)
+	d.Data[15] = 1
+	for i := 0; i < n; i++ {
+		b := make([]byte, 256)
+		at := i * 256
+		end := at + 256
+		if end > len(midi) {
+			end = len(midi)
+		}
+		copy(b, midi[at:end])
+		writeLinear(d, 16+i, b)
+	}
+	sys := linearSector(d, 8)
+	pos := 16 + n
+	sys[225] = byte(pos % 16)
+	sys[226] = byte(pos / 16)
+	sys[227] = 22
+	sys[228] = 1
+	binary.LittleEndian.PutUint16(sys[229:231], uint16(2560-pos))
+	writeLinear(d, 8, sys)
+	return d
+}
+func configureDisk(d *formats.TRDFile, control string) {
+	sys := linearSector(d, 8)
+	switch control {
+	case "":
+	case "missing_input":
+		copy(d.Data[:8], []byte("OTHER   "))
+	case "existing_output":
+		copy(d.Data[16:25], []byte("NOTES   N"))
+		sys[228] = 2
+	case "duplicate_input":
+		copy(d.Data[16:32], d.Data[:16])
+		sys[228] = 2
+	case "bad_geometry":
+		sys[225] = 16
+	case "bad_directory_count":
+		sys[228] = 129
+	case "bad_source_extent":
+		d.Data[13] = 0
+	case "free_overlap":
+		sys[225] = 0
+		sys[226] = 1
+	case "no_space":
+		sys[229] = 0
+		sys[230] = 0
+	case "full_disk":
+		sys[225] = 0
+		sys[226] = 160
+		sys[229] = 0
+		sys[230] = 0
+	case "bad_full_sentinel":
+		sys[225] = 1
+		sys[226] = 160
+		sys[229] = 0
+		sys[230] = 0
+	case "last_sector":
+		sys[225] = 15
+		sys[226] = 159
+		sys[229] = 1
+		sys[230] = 0
+	case "directory_full":
+		for i := 1; i < 128; i++ {
+			at := i * 16
+			copy(d.Data[at:at+9], []byte(fmt.Sprintf("F%07dD", i)))
+		}
+		sys[228] = 128
+	default:
+		panic("unknown disk control")
+	}
+	writeLinear(d, 8, sys)
+}
+
+// Research link placement, not instruction rewriting. The current codegen data
+// emitter does not relocate Global.At; admit only the explicit zero-initialized
+// arrays below and replace their verified data reservations with EQU symbols.
+type placedSpan struct {
+	Address int `json:"address"`
+	Bytes   int `json:"bytes"`
+}
+
+var fixedPlacement = map[string]placedSpan{
+	"note_bytes":   {0xc000, 12288},
+	"midi_payload": {0x4000, 512}, "input_chunk": {0x4200, 256},
+	"active": {0x4300, 1024}, "active_channel": {0x4700, 512},
+	"track_seen": {0x4900, 64}, "track_source": {0x4940, 64},
+}
+
+func placeArena(assembly string, m *mir2.Module) string {
+	found := map[string]bool{}
+	for _, g := range m.Globals {
+		p, relocate := fixedPlacement[g.Name]
+		if !relocate {
+			continue
+		}
+		if found[g.Name] {
+			panic("duplicate fixed placement")
+		}
+		found[g.Name] = true
+		a, ok := g.Ty.(*mir2.ArrayTy)
+		if !ok || mir2.ByteWidth(g.Ty) != p.Bytes || a.Len*mir2.ByteWidth(a.Elem) != p.Bytes || g.At != nil || g.Storage != mir2.StorageNormal || g.IsConst || len(g.Relocs) != 0 || len(g.VtableSyms) != 0 {
+			panic("unadmitted external storage")
+		}
+		for _, b := range g.Init {
+			if b != 0 {
+				panic("external storage initializer")
+			}
+		}
+		label := "\n" + g.Name + ":\n"
+		if strings.Count(assembly, label) != 1 {
+			panic("external data label changed")
+		}
+		start := strings.Index(assembly, label)
+		dataStart := start + len(label)
+		end := strings.IndexByte(assembly[dataStart:], '\n')
+		if end < 0 {
+			panic("missing external data")
+		}
+		end += dataStart
+		line := strings.TrimSpace(assembly[dataStart:end])
+		unit := 1
+		if strings.HasPrefix(line, "DW ") {
+			unit = 2
+		} else if !strings.HasPrefix(line, "DB ") {
+			panic("external storage changed")
+		}
+		values := strings.Split(strings.TrimSpace(line[3:]), ",")
+		if len(values)*unit != p.Bytes {
+			panic("external reservation width")
+		}
+		for _, v := range values {
+			if strings.TrimSpace(v) != "0" {
+				panic("nonzero external reservation")
+			}
+		}
+		assembly = assembly[:start] + fmt.Sprintf("\n%s EQU 0x%04x\n", g.Name, p.Address) + assembly[end+1:]
+	}
+	if len(found) != len(fixedPlacement) {
+		panic("missing fixed placement")
+	}
+	return assembly
+}
+func checkNoteFile(d *formats.TRDFile, want []note, sources uint16) []byte {
+	e := d.FindFile("NOTES", 'N')
+	if e == nil {
+		panic("missing target-created NOTES.N")
+	}
+	b := d.ReadFile(e)
+	expected := []byte{'A', 'S', 'I', 'R', 1, 1, 6, 0, byte(sources), byte(sources >> 8), 0, 0}
+	for _, n := range want {
+		expected = append(expected, 1, byte(n.Start), byte(n.Start>>8), byte(n.Off), byte(n.Off>>8), n.Pitch, n.Source)
+	}
+	n := uint32(len(want))
+	expected = append(expected, 255, byte(n), byte(n>>8), byte(n>>16), byte(n>>24), 'E', 'N', 'D', '!')
+	if !bytes.Equal(b, expected) || int(e.Length) != len(expected) || int(e.Sectors) != (len(expected)+255)/256 {
+		panic("TRD note bytes/directory length differs")
+	}
+	// Physical tail is zero fill and is not included in the directory byte length.
+	last := linearSector(d, int(e.StartTrack)*16+int(e.StartSec)+int(e.Sectors)-1)
+	if tail := len(expected) % 256; tail != 0 {
+		for _, v := range last[tail:] {
+			if v != 0 {
+				panic("TRD output padding")
+			}
+		}
+	}
+	return b
+}
+func main() {
+	root := flag.String("root", "..", "repository root")
+	source := flag.String("source", "", "composed source")
+	stub := flag.String("stub", "", "fixed runtime stub")
+	input := flag.String("input", "", "MIDI matrix")
+	out := flag.String("out", "", "artifacts")
+	flag.Parse()
+	if *source == "" || *stub == "" || *input == "" || *out == "" {
+		panic("source/stub/input/out required")
+	}
+	check(os.MkdirAll(*out, 0755))
+	fixtures := filepath.Join(*root, "research/autosiril-native/midi/fixtures")
+	buildOne := func() *hir.Module {
+		h, e := build(read(*source), read(filepath.Join(fixtures, "music.lanz")), read(filepath.Join(fixtures, "music-manifest.json")), filepath.Join(*root, "stdlib"))
+		check(e)
+		return h
+	}
+	raw := hir.LowerModule(buildOne())
+	check(mir2.Verify(raw))
+	opts := pipeline.DefaultOptions()
+	opts.AssertMode = "none"
+	opts.DisableVariantSearch = true
+	compiled, e := pipeline.CompileHIRSteps(buildOne(), opts)
+	check(e)
+	linked := placeArena(compiled.Assembly, compiled.MIR2Module)
+	assembly := "ORG 0x6000\n" + string(read(*stub)) + "\ntrd_stub_end:\n" + linked
+	a, e := z80asm.NewAssembler().AssembleString(assembly)
+	check(e)
+	if len(a.Errors) != 0 {
+		panic(a.Errors)
+	}
+	if origin+len(a.Binary)+64 >= floor || a.Symbols["note_bytes"] != 0xc000 {
+		panic(fmt.Sprintf("fixed image %dB ends%04x, stack floor%04x, arena%04x", len(a.Binary), origin+len(a.Binary), floor, a.Symbols["note_bytes"]))
+	}
+	for name, b := range map[string][]byte{"program.a80": []byte(assembly), "program.bin": a.Binary, "raw.mir": []byte(raw.Dump()), "final.mir": []byte(compiled.MIR2Module.Dump())} {
+		check(os.WriteFile(filepath.Join(*out, name), b, 0644))
+	}
+	type trdCase struct {
+		testCase
+		Control   string  `json:"disk_control"`
+		FailCall  int     `json:"fail_call"`
+		Published bool    `json:"published"`
+		AllowData bool    `json:"allow_data"`
+		DiskError *uint16 `json:"disk_error,omitempty"`
+	}
+	var matrix struct {
+		Cases []trdCase `json:"cases"`
+	}
+	check(json.Unmarshal(read(*input), &matrix))
+	if len(matrix.Cases) == 0 {
+		panic("empty matrix")
+	}
+	rows := []map[string]any{}
+	for _, tc := range matrix.Cases {
+		for engineIndex, engine := range []string{"raw-mir2", "final-mir2", "scorpion-z80"} {
+			dir := filepath.Join(*out, tc.Name, engine)
+			check(os.MkdirAll(dir, 0755))
+			d := initialDisk(tc.MIDI)
+			configureDisk(d, tc.Control)
+			before := d.Data
+			d.Path = filepath.Join(dir, "disk.trd")
+			var get func(string, int, int) []byte
+			var returned uint16
+			cycles, stack, calls := 0, 0, 0
+			if engineIndex < 2 {
+				m := raw
+				if engineIndex == 1 {
+					m = compiled.MIR2Module
+				}
+				v := mir2.NewVM(m)
+				v.MaxMemory = 65536
+				v.MaxSteps = 1000000000
+				get = func(name string, off, n int) []byte { return v.ReadHeap(v.GlobalAddr(name)+int64(off), n) }
+				for i := 0; i < 4; i++ {
+					v.WriteHeap(v.GlobalAddr("per_beat")+int64(i), byte(tc.Beat>>uint(8*i)))
+				}
+				for bank := 0; bank < 3; bank++ {
+					for j := 4092; j < 4096; j++ {
+						v.WriteHeap(v.GlobalAddr("note_bytes")+int64(bank*4096+j), 0xda)
+					}
+				}
+				host := func(args []mir2.Value) ([]mir2.Value, error) {
+					calls++
+					op, address, track, sector := int(args[0].I), args[1].I, int(args[2].I), int(args[3].I)
+					if (op != 5 && op != 6) || track < 0 || track >= 160 || sector < 1 || sector > 16 || address != v.GlobalAddr("input_chunk") {
+						panic("invalid target sector request")
+					}
+					if tc.FailCall != 0 && calls == tc.FailCall {
+						return []mir2.Value{{I: 0}}, nil
+					}
+					pos := track*16 + sector - 1
+					if op == 5 {
+						for i, b := range linearSector(d, pos) {
+							v.WriteHeap(address+int64(i), b)
+						}
+					} else {
+						writeLinear(d, pos, v.ReadHeap(address, 256))
+					}
+					return []mir2.Value{{I: 1}}, nil
+				}
+				v.Hosts["trd_sector"] = host
+				v.Hosts["@trd_sector"] = host
+				r, e := v.Call("disk_main", nil)
+				check(e)
+				if len(r) != 1 {
+					panic("invalid VM return")
+				}
+				returned = uint16(r[0].I)
+			} else {
+				m, e := spectrum.NewScorpionMemory256(nil, nil)
+				check(e)
+				for page := 0; page < 16; page++ {
+					for j := 0; j < 16384; j++ {
+						m.Memory.WriteRAMDirect(page, uint16(j), 0xa5)
+					}
+				}
+				m.Memory.SetPaging(0x10)
+				m.Memory.SetScorpionPaging(0)
+				for i, b := range a.Binary {
+					m.Memory.Write(uint16(origin+i), b, false)
+				}
+				for name, p := range fixedPlacement {
+					if a.Symbols[name] != p.Address {
+						panic("fixed symbol relocation")
+					}
+					for i := 0; i < p.Bytes; i++ {
+						m.Memory.Write(uint16(p.Address+i), 0, false)
+					}
+				}
+				for j := 0; j < 12288; j++ {
+					m.Memory.WriteRAMDirect(0, uint16(j), 0)
+				}
+				for bank := 0; bank < 3; bank++ {
+					for j := 4092; j < 4096; j++ {
+						m.Memory.WriteRAMDirect(0, uint16(bank*4096+j), 0xda)
+					}
+				}
+				for i := 0; i < 4; i++ {
+					m.Memory.Write(uint16(a.Symbols["per_beat"]+i), byte(tc.Beat>>uint(8*i)), false)
+				}
+				get = func(name string, off, n int) []byte {
+					b := make([]byte, n)
+					at := a.Symbols[name] + off
+					for i := range b {
+						if name == "note_bytes" {
+							b[i] = m.Memory.ReadRAMDirect(0, uint16(off+i))
+						} else {
+							b[i] = m.Memory.Read(uint16(at + i))
+						}
+					}
+					return b
+				}
+				m.Memory.Write(initialSP, byte(returnPC&255), false)
+				m.Memory.Write(initialSP+1, byte(returnPC>>8), false)
+				m.CPU.SetPC(uint16(a.Symbols["disk_main"]))
+				m.CPU.SetSP(initialSP)
+				m.CPU.SetIFF1(false)
+				m.CPU.SetIFF2(false)
+				check(d.Flush())
+				d.Writeback = true
+				formats.InstallTRDTraps(m, d, false)
+				p := spectrum.NewProfiler()
+				m.SetProfiler(p)
+				minSP := uint16(initialSP)
+				pending := false
+				resume := uint16(0)
+				stubEnd := a.Symbols["trd_stub_end"]
+				for steps := 0; m.CPU.PC() != returnPC; steps++ {
+					if steps >= 250000000 {
+						panic("native instruction limit")
+					}
+					pc := m.CPU.PC()
+					if pending && pc == resume {
+						if m.Memory.PageHi() != 0 || m.Memory.PagingState() != 0x10 || m.Memory.ScorpionPagingState() != 0 {
+							panic("paging not restored on sector return")
+						}
+						pending = false
+					}
+					if pc == origin {
+						if pending || m.Memory.PageHi() != 0 || m.Memory.PagingState() != 0x10 || m.Memory.ScorpionPagingState() != 0 || m.CPU.HL() != uint16(a.Symbols["input_chunk"]) {
+							panic("invalid native sector entry")
+						}
+						pending = true
+						sp := m.CPU.SP()
+						resume = uint16(m.Memory.Read(sp)) | uint16(m.Memory.Read(sp+1))<<8
+					}
+					if m.CPU.IFF1() || m.CPU.IFF2() {
+						panic("interrupts enabled during paging")
+					}
+					if pc == 0x3d13 {
+						calls++
+						bc, de := m.CPU.BC(), m.CPU.DE()
+						if !pending || m.Memory.PageHi() != 8 || m.Memory.PagingState() != 0x10 || m.Memory.ScorpionPagingState() != 0x10 || m.CPU.HL() != 0xc000 || bc>>8 != 1 || (byte(bc) != 5 && byte(bc) != 6) || de>>8 >= 160 || byte(de) < 1 || byte(de) > 16 {
+							panic("invalid native TRD trap contract")
+						}
+						if tc.FailCall != 0 && calls == tc.FailCall {
+							m.CPU.SetBC(0x0100)
+							sp := m.CPU.SP()
+							m.CPU.SetPC(uint16(m.Memory.Read(sp)) | uint16(m.Memory.Read(sp+1))<<8)
+							m.CPU.SetSP(sp + 2)
+						} else {
+							if !m.HandlePCTrap() {
+								panic("missing actual TRD API trap")
+							}
+						}
+					} else {
+						if int(pc) < origin || int(pc) >= origin+len(a.Binary) {
+							panic("native PC outside fixed image/TRD trap")
+						}
+						if m.Memory.PageHi() != 0 && int(pc) >= stubEnd {
+							panic("paged window exposed to musical code")
+						}
+						p.BeforeOpcode(pc, int64(m.CPU.Tstates()))
+						m.CPU.DoOpcode()
+					}
+					if m.CPU.SP() < minSP {
+						minSP = m.CPU.SP()
+					}
+					if m.CPU.SP() < floor {
+						panic("native stack crossed fixed floor")
+					}
+				}
+				if pending || m.CPU.SP() != initialSP+2 || m.Memory.PageHi() != 0 || m.Memory.PagingState() != 0x10 || m.Memory.ScorpionPagingState() != 0 {
+					panic("native return/mapping")
+				}
+				returned = m.CPU.HL()
+				cycles = m.CPU.Tstates()
+				stack = int(initialSP - minSP)
+				allowed := make([]bool, 65536)
+				for _, g := range compiled.MIR2Module.Globals {
+					if g.Name == "note_bytes" {
+						continue
+					}
+					at, ok := a.Symbols[g.Name]
+					p, relocated := fixedPlacement[g.Name]
+					if !ok || g.At != nil || (!relocated && (at < origin || at+mir2.ByteWidth(g.Ty) > origin+len(a.Binary))) || (relocated && (at != p.Address || mir2.ByteWidth(g.Ty) != p.Bytes)) {
+						panic("invalid fixed global span")
+					}
+					for i := 0; i < mir2.ByteWidth(g.Ty); i++ {
+						allowed[at+i] = true
+					}
+				}
+				for _, s := range backendSpills(compiled.Assembly, a.Symbols, a.Binary) {
+					for i := 0; i < s.Bytes; i++ {
+						allowed[s.Address+i] = true
+					}
+				}
+				for i := floor; i < initialSP; i++ {
+					allowed[i] = true
+				}
+				for at, w := range p.WriteCount {
+					if at < 0xc000 && w != 0 && !allowed[at] {
+						panic(fmt.Sprintf("native write outside fixed storage %04x", at))
+					}
+					if allowed[at] && p.ExecCount[at] != 0 {
+						panic("executed native data")
+					}
+				}
+				for page := 0; page < 16; page++ {
+					for at, w := range p.PagedWrite[page] {
+						if w != 0 && !((page == 0 && at < 12288) || (page == 8 && at < 256)) {
+							panic("native write outside admitted physical bank span")
+						}
+					}
+				}
+				for bank := 0; bank < 3; bank++ {
+					for j := 4092; j < 4096; j++ {
+						if p.PagedWrite[0][bank*4096+j] != 0 {
+							panic("wrote arena bank padding")
+						}
+					}
+				}
+				for i := 0; i < 4; i++ {
+					if p.WriteCount[a.Symbols["per_beat"]+i] != 0 {
+						panic("native mutated input configuration")
+					}
+				}
+				wantPorts := 0
+				if calls != 0 {
+					wantPorts = 2
+				}
+				if len(p.IORead) != 0 || len(p.IOWrite) != wantPorts || int(p.IOWrite[0x1ffd]) != calls*2 || int(p.IOWrite[0x7ffd]) != calls*2 {
+					panic("unexpected paging port traffic")
+				}
+				for _, span := range [][2]int{{origin - 64, origin}, {origin + len(a.Binary), origin + len(a.Binary) + 64}, {floor - 64, floor}} {
+					for i := span[0]; i < span[1]; i++ {
+						if m.Memory.Read(uint16(i)) != 0xa5 {
+							panic("fixed canary")
+						}
+					}
+				}
+				for page := 0; page < 16; page++ {
+					if page == 2 || page == 5 {
+						continue
+					}
+					start := 0
+					if page == 0 {
+						start = 12288
+					}
+					if page == 8 {
+						start = 256
+					}
+					for j := start; j < 16384; j++ {
+						if m.Memory.ReadRAMDirect(page, uint16(j)) != 0xa5 {
+							panic("unused physical RAM changed")
+						}
+					}
+				}
+				if d.LastWriteError != nil {
+					panic(d.LastWriteError)
+				}
+			}
+			r := collect(engine, get)
+			if returned != r.Fault || r.Fault != tc.Expected.Fault || len(r.Notes) != len(tc.Expected.Notes) || r.Sources != tc.Expected.Sources || r.Active != tc.Expected.Active {
+				panic(fmt.Sprintf("%s/%s fault%d return%d want%d notes%d/%d sources%d/%d", tc.Name, engine, r.Fault, returned, tc.Expected.Fault, len(r.Notes), len(tc.Expected.Notes), r.Sources, tc.Expected.Sources))
+			}
+			for i, n := range r.Notes {
+				if n != tc.Expected.Notes[i] {
+					panic("paired note differs")
+				}
+			}
+			if tc.Expected.Peak != nil && r.Peak != *tc.Expected.Peak {
+				panic("peak differs")
+			}
+			if tc.Expected.Bytes != nil && r.Bytes != *tc.Expected.Bytes {
+				panic(fmt.Sprintf("%s/%s accepted%d !=%d", tc.Name, engine, r.Bytes, *tc.Expected.Bytes))
+			}
+			if tc.Expected.Events != nil && r.Events != *tc.Expected.Events {
+				panic("event count differs")
+			}
+			diskError := binary.LittleEndian.Uint16(get("disk_error", 0, 2))
+			if tc.DiskError != nil && diskError != *tc.DiskError {
+				panic(fmt.Sprintf("%s/%s disk error%d !=%d", tc.Name, engine, diskError, *tc.DiskError))
+			}
+			for bank := 0; bank < 3; bank++ {
+				for j := 4092; j < 4096; j++ {
+					if get("note_bytes", bank*4096+j, 1)[0] != 0xda {
+						panic("arena padding changed")
+					}
+				}
+			}
+			logical := []byte{}
+			published := d.FindFile("NOTES", 'N') != nil
+			if r.Fault == 0 {
+				logical = checkNoteFile(d, tc.Expected.Notes, tc.Expected.Sources)
+			} else if published != tc.Published {
+				panic("failed-stage publication differs")
+			}
+			if !bytes.Equal(d.Data[:16], before[:16]) {
+				panic("input descriptor modified")
+			}
+			for s := 0; s < (len(tc.MIDI)+255)/256; s++ {
+				off := sectorOffset(16 + s)
+				if !bytes.Equal(d.Data[off:off+256], before[off:off+256]) {
+					panic("input file payload modified")
+				}
+			}
+			allowedDisk := make([]bool, len(d.Data))
+			if r.Fault == 0 || tc.AllowData {
+				// Only the preflight-reserved allocation and two metadata sectors may vary.
+				// Metadata failures may leave a published descriptor; nonzero status remains.
+				sysBefore := before[2048:2304]
+				pos := int(sysBefore[226])*16 + int(sysBefore[225])
+				n := (21 + len(tc.Expected.Notes)*7 + 255) / 256
+				if pos < 16 || pos+n > 2560 {
+					panic("invalid expected disk allocation")
+				}
+				for s := 0; s < n; s++ {
+					off := sectorOffset(pos + s)
+					for i := 0; i < 256; i++ {
+						allowedDisk[off+i] = true
+					}
+				}
+				if r.Fault == 0 || tc.FailCall >= 6 {
+					sector := int(sysBefore[228]) / 16
+					off := sectorOffset(sector)
+					for i := 0; i < 256; i++ {
+						allowedDisk[off+i] = true
+					}
+					for i := 2048; i < 2304; i++ {
+						allowedDisk[i] = true
+					}
+				}
+			}
+			for i, b := range d.Data {
+				if b != before[i] && !allowedDisk[i] {
+					panic("disk changed outside reserved append spans")
+				}
+			}
+			check(d.Flush())
+			reloaded, e := formats.LoadTRD(d.Path)
+			check(e)
+			if reloaded.Data != d.Data {
+				panic("disk writeback/reload differs")
+			}
+			check(os.WriteFile(filepath.Join(dir, "notes.bin"), logical, 0644))
+			rows = append(rows, map[string]any{"case": tc.Name, "engine": engine, "fault": r.Fault, "notes": len(r.Notes), "wire_bytes": len(logical), "wire_sha256": hash(logical), "disk_sha256": hash(d.Data[:]), "sector_calls": calls, "t_states": cycles, "stack_below_entry": stack, "disk_error": diskError, "published": published})
+			fmt.Printf("PASS %s/%s notes%d fault%d logical%dB calls%d %dT stack%d\n", tc.Name, engine, len(r.Notes), r.Fault, len(logical), calls, cycles, stack)
+		}
+	}
+	fixedGlobals := 0
+	for _, g := range compiled.MIR2Module.Globals {
+		if _, external := fixedPlacement[g.Name]; !external {
+			fixedGlobals += mir2.ByteWidth(g.Ty)
+		}
+	}
+	spills := 0
+	for _, s := range backendSpills(compiled.Assembly, a.Symbols, a.Binary) {
+		spills += s.Bytes
+	}
+	receipt := map[string]any{"protocol": "autosiril-trd-first/v1", "source_sha256": hash(read(*source)), "stub_sha256": hash(read(*stub)), "input_sha256": hash(read(*input)), "binary_sha256": hash(a.Binary), "loaded_image_bytes": len(a.Binary), "loaded_globals_bytes": fixedGlobals, "external_fixed_workspace_bytes": 2432, "static_spill_bytes": spills, "code_and_stub_bytes": len(a.Binary) - fixedGlobals - spills, "external_arena_bytes": 12288, "fixed_placement": fixedPlacement, "bounce_bank_reserved_bytes": 16384, "bounce_used_bytes": 256, "target_executions": len(rows), "cases": rows, "scope": "native Scorpion memory model and actual MIT TRD API traps; fixed code/stack plus explicitly reserved low fixed workspace, bank0 arena and bank8 bounce; no physical ROM/hardware compatibility claim"}
+	b, e := json.MarshalIndent(receipt, "", "  ")
+	check(e)
+	check(os.WriteFile(filepath.Join(*out, "receipt.json"), append(b, '\n'), 0644))
+}

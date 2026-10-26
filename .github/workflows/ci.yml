@@ -55,6 +55,17 @@ jobs:
         run: python3 ../research/autosiril-native/files/replay.py --mze "$RUNNER_TEMP/mze" --out "$RUNNER_TEMP/autosiril-file-pair"
       - name: Verify sequential CP/M note and event files
         run: python3 ../research/autosiril-native/file-flatten/replay.py --producer "$RUNNER_TEMP/autosiril-file-pair" --mze "$RUNNER_TEMP/mze" --out "$RUNNER_TEMP/autosiril-file-chain"
+      - name: Verify common CP/M and Scorpion TRD transports
+        run: |
+          go test ./pkg/spectrum ./pkg/spectrum/formats -count=1
+          python3 ../research/autosiril-native/transports/replay.py --mze "$RUNNER_TEMP/mze" --out "$RUNNER_TEMP/autosiril-transports"
+      - name: Preserve interchangeable transport evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: autosiril-transports
+          path: ${{ runner.temp }}/autosiril-transports/
+          if-no-files-found: ignore
       - name: Preserve CP/M file chain evidence
         if: always()
         uses: actions/upload-artifact@v4
