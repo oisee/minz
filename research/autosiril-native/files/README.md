@@ -31,6 +31,13 @@ six explicit OS failures, and an extra padding-only record. It tests exact SMF
 and output END record boundaries and `0x1a` inside actual MIDI data. The target
 retains capacities of 2,046 notes, 512 active notes and 64 source tracks.
 
+The required PR gate also runs `replay.py` against its freshly built `mze`.
+This repeats the147 disk executions and standalone Chronos `.COM` without
+requiring Ruby/Crystal on the runner. The reconstructed matrix must match the
+fresh proof's exact hash: the original38 MIDI fixtures plus11 additional frozen
+cases, including the three extra Ruby-derived references. Source changes require
+refreshing the fresh proof rather than silently accepting different expectations.
+
 Native checks cover return status, every note, reference counters, arena padding,
 immutable configuration, stack floor, memory write/execute spans, canaries and
 absence of unexpected port I/O. The source/manifest/generated driver/image hashes
