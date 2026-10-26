@@ -197,7 +197,7 @@ func buildHIR(source, music, meta string) (*hir.Module, error) {
 			return fmt.Errorf("unsupported Crystal dependency %s", name)
 		}
 		if h.FuncByName(name) != nil {
-			return fmt.Errorf("Crystal symbol collision %s", name)
+			return fmt.Errorf("selector symbol collision %s", name)
 		}
 		added[name] = true
 		h.Funcs = append(h.Funcs, f)
