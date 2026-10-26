@@ -1,0 +1,95 @@
+{
+  "functions": [
+    {
+      "source": "crystal_quantize",
+      "args": [
+        "u32",
+        "u32",
+        "u32"
+      ],
+      "result": "u32",
+      "symbol": "cr_crystal_quantize_0",
+      "original_symbol": "cr_crystal_quantize_0",
+      "fallible": false
+    },
+    {
+      "source": "crystal_cell_action",
+      "args": [
+        "u8"
+      ],
+      "result": "u8",
+      "symbol": "cr_crystal_cell_action_1",
+      "original_symbol": "cr_crystal_cell_action_1",
+      "fallible": false
+    },
+    {
+      "source": "crystal_prefer",
+      "args": [
+        "u8",
+        "u8",
+        "u8"
+      ],
+      "result": "u8",
+      "symbol": "cr_crystal_prefer_2",
+      "original_symbol": "cr_crystal_prefer_2",
+      "fallible": false
+    },
+    {
+      "source": "crystal_octave",
+      "args": [
+        "u16"
+      ],
+      "result": "u16",
+      "symbol": "cr_crystal_octave_3",
+      "original_symbol": "cr_crystal_octave_3",
+      "fallible": false
+    },
+    {
+      "source": "crystal_ornament_shift",
+      "args": [
+        "u8",
+        "u16"
+      ],
+      "result": "u8",
+      "symbol": "cr_crystal_ornament_shift_4",
+      "original_symbol": "cr_crystal_ornament_shift_4",
+      "fallible": false
+    },
+    {
+      "source": "crystal_keep_offset",
+      "args": [
+        "u8",
+        "u8",
+        "u8"
+      ],
+      "result": "bool",
+      "symbol": "cr_crystal_keep_offset_5",
+      "original_symbol": "cr_crystal_keep_offset_5",
+      "fallible": false
+    },
+    {
+      "source": "crystal_echo_volume",
+      "args": [
+        "u8"
+      ],
+      "result": "u16",
+      "symbol": "cr_crystal_echo_volume_6",
+      "original_symbol": "cr_crystal_echo_volume_6",
+      "fallible": false
+    },
+    {
+      "source": "crystal_pattern_count",
+      "args": [
+        "u32",
+        "u32"
+      ],
+      "result": "u32",
+      "symbol": "cr_crystal_pattern_count_7",
+      "original_symbol": "cr_crystal_pattern_count_7",
+      "fallible": false
+    }
+  ],
+  "errors": {},
+  "merged": {},
+  "meta_generators": []
+}

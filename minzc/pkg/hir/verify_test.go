@@ -11,6 +11,50 @@ func verifierModule(body ...Stmt) *Module {
 	return &Module{Funcs: []*Func{{Name: "test", RetTy: mir2.TyU8, Body: Blk(body...)}}}
 }
 
+func TestVerifyClosedNamesPreservesDefaultAndLexicalBindings(t *testing.T) {
+	implicit := verifierModule(&AssignStmt{Target: Var("fault", mir2.TyU8), Val: U8(0)}, &ReturnStmt{Val: Var("fault", mir2.TyU8)})
+	if e := Verify(implicit); e != nil {
+		t.Fatal("default implicit assignment changed", e)
+	}
+	if e := VerifyClosedNames(implicit); e == nil || !strings.Contains(e.Error(), "undeclared local") {
+		t.Fatalf("free write admitted: %v", e)
+	}
+	explicit := verifierModule(Decl("fault", mir2.TyU8, U8(1)), &AssignStmt{Target: Var("fault", mir2.TyU8), Val: U8(2)}, &ReturnStmt{Val: Var("fault", mir2.TyU8)})
+	if e := VerifyClosedNames(explicit); e != nil {
+		t.Fatal("explicit local rejected", e)
+	}
+	parameter := verifierModule(&AssignStmt{Target: Var("fault", mir2.TyU8), Val: U8(2)}, &ReturnStmt{Val: Var("fault", mir2.TyU8)})
+	parameter.Funcs[0].Params = []Param{{Name: "fault", Ty: mir2.TyU8}}
+	if e := VerifyClosedNames(parameter); e != nil {
+		t.Fatal("parameter assignment rejected", e)
+	}
+	sibling := verifierModule(If(Bool(true), Blk(Decl("fault", mir2.TyU8, U8(1))), nil), &AssignStmt{Target: Var("fault", mir2.TyU8), Val: U8(2)}, &ReturnStmt{Val: U8(0)})
+	if e := VerifyClosedNames(sibling); e == nil {
+		t.Fatal("sibling declaration bound a free write")
+	}
+	global := verifierModule(&AssignStmt{Target: Var("fault", mir2.TyU8), Val: U8(2)}, &ReturnStmt{Val: Var("fault", mir2.TyU8)})
+	global.Globals = []mir2.Global{{Name: "fault", Ty: mir2.TyU8}}
+	if e := VerifyClosedNames(global); e != nil {
+		t.Fatal("declared global rejected", e)
+	}
+	address := verifierModule(&ReturnStmt{Val: &AddrOfExpr{Sym: "foreign"}})
+	if e := Verify(address); e != nil {
+		t.Fatal("default lazy address changed", e)
+	}
+	if e := VerifyClosedNames(address); e == nil || !strings.Contains(e.Error(), "unknown address symbol") {
+		t.Fatalf("foreign address admitted: %v", e)
+	}
+	address.Globals = []mir2.Global{{Name: "foreign", Ty: mir2.TyU8}}
+	if e := VerifyClosedNames(address); e != nil {
+		t.Fatal("declared global address rejected", e)
+	}
+	stringAddress := verifierModule(&ReturnStmt{Val: &AddrOfExpr{Sym: "@mir2.str.0"}})
+	stringAddress.Strings = []string{"x"}
+	if e := VerifyClosedNames(stringAddress); e != nil {
+		t.Fatal("interned string address rejected", e)
+	}
+}
+
 func TestVerifyRejectsMalformedHIR(t *testing.T) {
 	var nilExpr *IntLitExpr
 	cycle := &BinExpr{Op: "+", Ty: mir2.TyU8}

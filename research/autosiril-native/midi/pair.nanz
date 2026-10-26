@@ -1,0 +1,184 @@
+// Streaming SMF bytes -> compact paired note arena. No allocation or host music.
+// MIDI parsing is the shared decoder; quantization is the actual Crystal export.
+import mem.bytes
+import midi.smf
+@extern fun crystal_quantize(tick:u32,ppqn:u32,per_beat:u32)->u32
+
+global midi_payload:[u8;512]
+global midi_buffer:ByteBuffer
+global midi_decoder:SmfDecoder
+global midi_event:MidiEvent
+global input_chunk:[u8;256]
+global input_length:u16
+global input_consumed:u16
+global native_control:u8
+global per_beat:u32
+global tick_limit:u32
+global note_bytes:[u8;12288]
+global note_count:u16
+global source_count:u16
+global track_seen:[u8;64]
+global track_source:[u8;64]
+global active:[u16;512]
+global active_channel:[u8;512]
+global active_count:u16
+global peak_active:u16
+global fault:u16
+global accepted_bytes:u32
+global event_count:u32
+
+fun record_slot(id:u16)->u16 {
+    let index:u16 = id - 1
+    return (index / 682) * 4096 + (index % 682) * 6
+}
+fun paired_row(tick:u32)->u16 {
+    let ppqn:u32 = u32(midi_decoder.division)
+    if ppqn == 0 { fault = 201
+        return 0 }
+    if tick_limit == 0 {
+        // Guard before the Crystal UInt32 arithmetic can wrap.
+        tick_limit = (u32(65536) * ppqn - 1 - ppqn / 2) / per_beat
+    }
+    if tick > tick_limit { fault = 202
+        return 0 }
+    return u16(crystal_quantize(tick,ppqn,per_beat))
+}
+fun close_paired(id:u16,tick:u32) {
+    let row:u16 = paired_row(tick)
+    if fault != 0 { return }
+    let at:u16 = record_slot(id)
+    note_bytes[at+2] = u8(row)
+    note_bytes[at+3] = u8(row >> 8)
+}
+fun release_paired(channel:u8,pitch:u8,tick:u32) {
+    var index:u16 = 0
+    while index < active_count {
+        let id:u16 = active[index]
+        let at:u16 = record_slot(id)
+        if active_channel[index] == channel && note_bytes[at+4] == pitch {
+            close_paired(id,tick)
+            if fault != 0 { return }
+            // Stable compaction retains FIFO order for duplicate pitches.
+            var next:u16 = index + 1
+            while next < active_count {
+                active[next-1] = active[next]
+                active_channel[next-1] = active_channel[next]
+                next = next + 1
+            }
+            active_count = active_count - 1
+            return
+        }
+        index = index + 1
+    }
+}
+fun consume_paired_event() {
+    let track:u16 = midi_event.track
+    if track >= 64 { fault = 203
+        return }
+    let kind:u8 = midi_event.status & 240
+    let channel:u8 = midi_event.status & 15
+    let pitch:u8 = midi_event.data1
+    if kind == 144 && midi_event.data2 != 0 {
+        if note_count >= 2046 { fault = 204
+            return }
+        if active_count >= 512 { fault = 205
+            return }
+        let row:u16 = paired_row(midi_event.tick)
+        if fault != 0 { return }
+        if track_seen[track] == 0 {
+            if source_count >= 256 { fault = 206
+                return }
+            track_source[track] = u8(source_count)
+            track_seen[track] = 1
+            source_count = source_count + 1
+        }
+        note_count = note_count + 1
+        let id:u16 = note_count
+        let at:u16 = record_slot(id)
+        note_bytes[at] = u8(row)
+        note_bytes[at+1] = u8(row >> 8)
+        note_bytes[at+2] = 0
+        note_bytes[at+3] = 0
+        note_bytes[at+4] = pitch
+        note_bytes[at+5] = track_source[track]
+        active[active_count] = id
+        active_channel[active_count] = channel
+        active_count = active_count + 1
+        if active_count > peak_active { peak_active = active_count }
+        return
+    }
+    if kind == 128 || kind == 144 {
+        release_paired(channel,pitch,midi_event.tick)
+        return
+    }
+    if midi_event.status == 255 && midi_event.meta == 47 {
+        // midilib synthesizes unmatched offs in onset order, each with the
+        // final event's delta. This historical behavior is intentional.
+        var tick:u32 = midi_event.tick
+        var index:u16 = 0
+        while index < active_count {
+            if tick > u32(4294967295) - midi_event.delta { fault = 207
+                return }
+            tick = tick + midi_event.delta
+            close_paired(active[index],tick)
+            if fault != 0 { return }
+            index = index + 1
+        }
+        active_count = 0
+    }
+}
+fun paired_boot() {
+    midi_buffer.init(&midi_payload,512)
+    midi_decoder.init(&midi_buffer)
+    fault = 0
+    note_count = 0
+    source_count = 0
+    active_count = 0
+    peak_active = 0
+    input_consumed = 0
+    accepted_bytes = 0
+    event_count = 0
+    tick_limit = 0
+    var index:u16 = 0
+    while index < 64 {
+        track_seen[index] = 0
+        track_source[index] = 0
+        index = index + 1
+    }
+    if per_beat == 0 || per_beat > 256 { fault = 208 }
+}
+fun native_main()->u16 {
+    if native_control == 0 { paired_boot()
+        return fault }
+    if fault != 0 { return fault }
+    if native_control == 2 {
+        let status:u8 = midi_decoder.finish()
+        if status != SmfStatus.DONE { fault = 300 + u16(midi_decoder.error) }
+        return fault
+    }
+    if native_control != 1 { fault = 209
+        return fault }
+    if input_length > 256 { fault = 210
+        return fault }
+    input_consumed = 0
+    while input_consumed < input_length {
+        let result:u16 = midi_decoder.feed_byte(input_chunk[input_consumed],&midi_event)
+        let consumed:u16 = result >> 8
+        input_consumed = input_consumed + consumed
+        accepted_bytes = accepted_bytes + u32(consumed)
+        let status:u8 = u8(result & 255)
+        if status == SmfStatus.ERROR {
+            fault = 300 + u16(midi_decoder.error)
+            return fault
+        }
+        if status == SmfStatus.EVENT {
+            event_count = event_count + 1
+            consume_paired_event()
+            midi_decoder.ack()
+            if fault != 0 { return fault }
+        }
+        if consumed == 0 { fault = 211
+            return fault }
+    }
+    return fault
+}

@@ -1,0 +1,4 @@
+ok  	github.com/minz/minzc/pkg/hir	32.837s
+ok  	github.com/minz/minzc/cmd/autosiril-native	8.794s
+ok  	github.com/minz/minzc/cmd/autosiril-vm	1.284s
+ok  	github.com/minz/minzc/cmd/autosiril-midi-native	18.362s

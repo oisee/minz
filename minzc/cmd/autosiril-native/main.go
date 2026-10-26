@@ -240,6 +240,17 @@ func buildHIR(source, music, meta string) (*hir.Module, error) {
 			return nil, fmt.Errorf("unresolved external %s", f.Name)
 		}
 	}
+	// Validate the actual selected dependency closure without receiving globals.
+	// Otherwise a free Lanz name could capture parent Nanz storage after linking.
+	closed := &hir.Module{}
+	for _, f := range c.Funcs {
+		if f.Body != nil && added[f.Name] {
+			closed.Funcs = append(closed.Funcs, f)
+		}
+	}
+	if e := hir.VerifyClosedNames(closed); e != nil {
+		return nil, fmt.Errorf("selector must be closed scalar HIR: %w", e)
+	}
 	for _, f := range hir.AnalyzeFacts(h).Functions {
 		for _, call := range f.Calls {
 			if strings.HasPrefix(call, "@host.") {
