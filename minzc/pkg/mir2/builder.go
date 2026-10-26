@@ -218,7 +218,7 @@ func (b *Builder) Store(ptr, val Reg, ty Ty) {
 // AddrOf emits an address-of for a named symbol.
 func (b *Builder) AddrOf(sym string, cls RegClass) Reg {
 	r := b.reg()
-	b.emit(&Inst{Op: OpAddrOf, Dst: r, Sym: sym, Ty: TyPtr, Cls: cls})
+	b.emit(&Inst{Op: OpAddrOf, Dst: r, Sym: sym, Ty: b.F.mod.PointerType(), Cls: cls})
 	return r
 }
 
@@ -227,7 +227,7 @@ func (b *Builder) AddrOf(sym string, cls RegClass) Reg {
 // On Z80: offset 1-3 → INC HL ×N; offset 4+ → LD BC,N; ADD HL,BC.
 func (b *Builder) Field(ptr Reg, byteOffset int64, cls RegClass) Reg {
 	r := b.reg()
-	b.emit(&Inst{Op: OpField, Dst: r, Src: [2]Reg{ptr}, Imm: byteOffset, Ty: TyPtr, Cls: cls})
+	b.emit(&Inst{Op: OpField, Dst: r, Src: [2]Reg{ptr}, Imm: byteOffset, Ty: b.F.mod.PointerType(), Cls: cls})
 	return r
 }
 
@@ -243,7 +243,7 @@ func (b *Builder) FieldOf(ptr Reg, st *StructTy, fieldIdx int, cls RegClass) Reg
 // Distinct from Field: marks iterator-style advance for future SoA/SoA256 lowering.
 func (b *Builder) PtrBump(ptr Reg, stride int64, cls RegClass) Reg {
 	r := b.reg()
-	b.emit(&Inst{Op: OpPtrBump, Dst: r, Src: [2]Reg{ptr}, Imm: stride, Ty: TyPtr, Cls: cls})
+	b.emit(&Inst{Op: OpPtrBump, Dst: r, Src: [2]Reg{ptr}, Imm: stride, Ty: b.F.mod.PointerType(), Cls: cls})
 	return r
 }
 
@@ -252,14 +252,14 @@ func (b *Builder) PtrBump(ptr Reg, stride int64, cls RegClass) Reg {
 // Use for runtime array indexing: ptr_add(arr_base, i * element_stride).
 func (b *Builder) PtrAdd(base, offset Reg, cls RegClass) Reg {
 	r := b.reg()
-	b.emit(&Inst{Op: OpPtrAdd, Dst: r, Src: [2]Reg{base, offset}, Ty: TyPtr, Cls: cls})
+	b.emit(&Inst{Op: OpPtrAdd, Dst: r, Src: [2]Reg{base, offset}, Ty: b.F.mod.PointerType(), Cls: cls})
 	return r
 }
 
 // Alloca reserves bytes bytes on the stack and returns a pointer.
 func (b *Builder) Alloca(bytes int64) Reg {
 	r := b.reg()
-	b.emit(&Inst{Op: OpAlloca, Dst: r, Imm: bytes, Ty: TyPtr})
+	b.emit(&Inst{Op: OpAlloca, Dst: r, Imm: bytes, Ty: b.F.mod.PointerType()})
 	return r
 }
 

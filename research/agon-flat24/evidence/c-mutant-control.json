@@ -1,0 +1,125 @@
+{
+  "schema": 1,
+  "corpus_sha256": "f39b2be8228f8982e45cb102c437746de1d8a0593717594d67a4159bbff625b1",
+  "contract": "C89 unsigned-char main(void), pointer-free, constant inputs, defined unsigned arithmetic with explicit casts; no int-width or pointer-layout equality assumed",
+  "scope": "constant-expression kernels; this is not dynamic/control-flow/pointer C coverage",
+  "runner": "/private/tmp/minz-flat24-native-target/debug/minz-flat24-runner",
+  "runner_sha256": "90c84ccedddac1c759e634fee59605bb4ba46da62fe5a2c221db9648163a7099",
+  "mzc_driver_sha256": "9152824701d23264b9afda2a1b8f2349d0ce5edc5ba5fac5e99dda806ca28bce",
+  "mzc_driver": "/tmp/minz-ez80-c-mutant",
+  "versions": {
+    "agon_clang": "clang version 15.0.7 (https://github.com/AgonPlatform/agon-llvm-project.git c76386c0083e6a6236ff774275227e2389f85538)\nTarget: ez80-none-unknown-elf\nThread model: posix\nInstalledDir: /Users/alice/dev/agondev/agondev/bin",
+    "host_clang": "Apple clang version 21.0.0 (clang-2100.3.34.2)\nTarget: arm64-apple-darwin27.0.0\nThread model: posix\nInstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin",
+    "agon_as": "GNU assembler (GNU Binutils) 2.45",
+    "agon_ld": "GNU ld (GNU Binutils) 2.45"
+  },
+  "abi": {
+    "agon": {
+      "__INT_WIDTH__": "24",
+      "__SIZEOF_DOUBLE__": "4",
+      "__SIZEOF_FLOAT__": "4",
+      "__SIZEOF_INT48__": "6",
+      "__SIZEOF_INT__": "3",
+      "__SIZEOF_LONG_DOUBLE__": "8",
+      "__SIZEOF_LONG_LONG__": "8",
+      "__SIZEOF_LONG__": "4",
+      "__SIZEOF_POINTER__": "3",
+      "__SIZEOF_PTRDIFF_T__": "3",
+      "__SIZEOF_SHORT__": "2",
+      "__SIZEOF_SIZE_T__": "3",
+      "__SIZEOF_WCHAR_T__": "2",
+      "__SIZEOF_WINT_T__": "3"
+    },
+    "host": {
+      "__INT_WIDTH__": "32",
+      "__SIZEOF_DOUBLE__": "8",
+      "__SIZEOF_FLOAT__": "4",
+      "__SIZEOF_INT128__": "16",
+      "__SIZEOF_INT__": "4",
+      "__SIZEOF_LONG_DOUBLE__": "8",
+      "__SIZEOF_LONG_LONG__": "8",
+      "__SIZEOF_LONG__": "8",
+      "__SIZEOF_POINTER__": "8",
+      "__SIZEOF_PTRDIFF_T__": "8",
+      "__SIZEOF_SHORT__": "2",
+      "__SIZEOF_SIZE_T__": "8",
+      "__SIZEOF_WCHAR_T__": "4",
+      "__SIZEOF_WINT_T__": "4"
+    },
+    "known_differences": {
+      "__INT_WIDTH__": {
+        "host": "32",
+        "agon": "24"
+      },
+      "__SIZEOF_DOUBLE__": {
+        "host": "8",
+        "agon": "4"
+      },
+      "__SIZEOF_INT__": {
+        "host": "4",
+        "agon": "3"
+      },
+      "__SIZEOF_LONG__": {
+        "host": "8",
+        "agon": "4"
+      },
+      "__SIZEOF_POINTER__": {
+        "host": "8",
+        "agon": "3"
+      },
+      "__SIZEOF_PTRDIFF_T__": {
+        "host": "8",
+        "agon": "3"
+      },
+      "__SIZEOF_SIZE_T__": {
+        "host": "8",
+        "agon": "3"
+      },
+      "__SIZEOF_WCHAR_T__": {
+        "host": "4",
+        "agon": "2"
+      },
+      "__SIZEOF_WINT_T__": {
+        "host": "4",
+        "agon": "3"
+      }
+    },
+    "note": "int/pointer sizes differ intentionally; compared cases do not assume their equality"
+  },
+  "cases": [
+    {
+      "name": "zero",
+      "source_sha256": "e17e2e1d7ec183bdfcccc82fced6869a34a3ee671340d191613887e7dd4fb0c0",
+      "required_mzc": true,
+      "host_result": 0,
+      "agon": {
+        "binary_sha256": "cfdef581fdd22d3e5a6ddbaad82cb909a91544581a4c8b3b6371fbc5c969011c",
+        "bytes": 2,
+        "cpu": "ADL native: A=0 instructions=2 stack balanced"
+      },
+      "mzc": {
+        "status": "compiled",
+        "vm_result": 0,
+        "metadata": {
+          "symbols": {
+            "main": 262213
+          },
+          "vm_result": 0,
+          "raw_vm_result": 0,
+          "binary_bytes": 3,
+          "c_int_bits": 16,
+          "native_address_bits": 24
+        }
+      },
+      "error": "command failed (101): [PosixPath('/tmp/minz-flat24-native-target/debug/minz-flat24-runner'), PosixPath('/private/tmp/minz-flat24-c-mutant/zero/mzc.bin'), '0', '--plain']\n\nthread 'main' (1786301) panicked at src/main.rs:47:13:\nassertion `left == right` failed: wrong byte (address narrowed?)\n  left: 1\n right: 0\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n"
+    }
+  ],
+  "counts": {
+    "host_agon_matched": 1,
+    "mzc_vm_matched": 1,
+    "mzc_native_matched": 0,
+    "mzc_skipped": 0,
+    "failed": 1
+  },
+  "elapsed_seconds": 0.177
+}

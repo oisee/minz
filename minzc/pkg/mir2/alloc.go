@@ -455,7 +455,7 @@ func Allocate(f *Func, lr *LivenessResult, ct CostTable) *AllocResult {
 		if hintSrc, ok := coalesceHint[r]; ok {
 			if srcLoc, allocated := result.Locs[hintSrc]; allocated {
 				if !usedByNeighbors[srcLoc] && !(srcLoc.Kind == LocFlag && crossBlock[r]) &&
-					locCompatible(ri.Ty, srcLoc) &&
+					locCompatibleFor(ct, ri.Ty, srcLoc) &&
 					ct.Cost(ri.Cls, srcLoc) < InfCost {
 					result.Locs[r] = srcLoc
 					continue
@@ -474,7 +474,7 @@ func Allocate(f *Func, lr *LivenessResult, ct CostTable) *AllocResult {
 			if loc.Kind == LocFlag && crossBlock[r] {
 				continue
 			}
-			if !locCompatible(ri.Ty, loc) {
+			if !locCompatibleFor(ct, ri.Ty, loc) {
 				continue
 			}
 			c := ct.Cost(ri.Cls, loc)
@@ -686,4 +686,13 @@ func liveAcrossBlocks(f *Func, lr *LivenessResult) map[Reg]bool {
 		}
 	}
 	return out
+}
+
+// A backend may supply its physical register widths. Older cost tables retain
+// the Z80 compatibility rules without changes to their allocation behavior.
+func locCompatibleFor(ct CostTable, ty Ty, loc PhysLoc) bool {
+	if target, ok := ct.(interface{ Compatible(Ty, PhysLoc) bool }); ok {
+		return target.Compatible(ty, loc)
+	}
+	return locCompatible(ty, loc)
 }
