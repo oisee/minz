@@ -175,7 +175,7 @@ func variantSearchEnabled(h *hir.Module, options []Options) bool {
 	if h != nil && len(h.Funcs) > variantSearchMaxFuncs && !o.ForceVariantSearch {
 		return false
 	}
-	return h != nil && !o.DisableVariantSearch && !o.variantCandidate && len(o.FunctionVariants) == 0 && !o.DisableCountedLoops && !o.SkipZ80Emission &&
+	return h != nil && !o.FuseGenerators && !o.DisableVariantSearch && !o.variantCandidate && len(o.FunctionVariants) == 0 && !o.DisableCountedLoops && !o.SkipZ80Emission &&
 		(o.Backend == "" || o.Backend == "z80") && o.AssertMode != "wasm" && o.AssertMode != "llvm" && o.ProfileSelection == nil && !o.CollectHIRSites && o.CheckedLocalTablePath == "" && o.CheckedLocalTableSHA256 == "" && o.Runtime == "" && !o.CPMApplicationEntry && !o.ZXApplicationEntry && !needsZXApplication(h)
 }
 
@@ -529,5 +529,5 @@ func variantRawModule(source *hir.Module, o Options) (string, error) {
 	if e := hir.ResolveCallSignatures(h); e != nil {
 		return "", e
 	}
-	return hir.LowerModuleWithOptions(h, hir.LowerOptions{DisableCountedLoops: o.DisableCountedLoops, CountedLoopPolicy: variantCountedPolicies(o)}).Dump(), nil
+	return hir.LowerModuleWithOptions(h, hir.LowerOptions{FuseGenerators: o.FuseGenerators, DisableCountedLoops: o.DisableCountedLoops, CountedLoopPolicy: variantCountedPolicies(o)}).Dump(), nil
 }

@@ -1,0 +1,8 @@
+global data:[u8;16]
+fun main()->u16{
+ var total:u16=0
+ var i:u8=0
+ while i<16 { total=total+u16(data[i])
+ i=i+1 }
+ return total
+}

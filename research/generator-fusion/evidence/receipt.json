@@ -1,0 +1,63 @@
+{
+  "protocol": "generator-fusion-g2/v1",
+  "go_version": "go version go1.26.3 darwin/arm64",
+  "costs": [
+    {
+      "variant": "direct",
+      "fused": false,
+      "code_bytes": 32,
+      "binary_bytes": 48,
+      "t_states": 1240,
+      "stack_below_entry_bytes": 2,
+      "result": 1800
+    },
+    {
+      "variant": "pull",
+      "fused": false,
+      "code_bytes": 215,
+      "binary_bytes": 231,
+      "t_states": 13459,
+      "stack_below_entry_bytes": 17,
+      "result": 1800
+    },
+    {
+      "variant": "fused",
+      "fused": true,
+      "code_bytes": 30,
+      "binary_bytes": 46,
+      "t_states": 1586,
+      "stack_below_entry_bytes": 0,
+      "result": 1800
+    }
+  ],
+  "native_origin": 32768,
+  "native_input": "16 bytes: byte(i*37+11), written after assembly",
+  "code_scope": "complete linked binary minus shared 16-byte data array; helper code included; observed stack excludes the initial return sentinel",
+  "options": {
+    "UseGrace": true,
+    "ContractOpt": true,
+    "DisableVariantSearch": true,
+    "AssertMode": "none"
+  },
+  "cli_checks": [
+    "pull helper retained",
+    "fused helper eliminated",
+    "manual cursor retains pull"
+  ],
+  "source_sha256": {
+    "minzc/pkg/hir/fuse_gen.go": "246139a4e813ba2369b94a961e66788ce654d7ee12ff277623875e96b8e75767",
+    "minzc/pkg/hir/lower.go": "2bf993a067966e883301f5aceafbac955ddc01065e4e6a2dd2b8d0328a47a8b8",
+    "minzc/pkg/pipeline/pipeline.go": "48cb6abb9f67fb15360b4f23fa69c184e222ec86468212ad619a9d0948a7244d",
+    "minzc/pkg/pipeline/variant_search.go": "b0de03ec15c1ce7cf8c48f1684e2ee2de2a42763d08734d7a93352b06df59fb0",
+    "minzc/pkg/pipeline/generator_fusion_test.go": "1d505b07169529d1f51158b052c28ce7af2ff6ac2fddf759088966af088170f3",
+    "minzc/cmd/minzc/main.go": "4bf18f0fbf5384e21861ac76f3a1ce408d7c5a7ee6a7a965c517e50a465bdb0d",
+    "scripts/ci/pipeline_profiles.json": "a4a0dd055bfb49aa44a5b4fe8c85130904b71133780ac1f753a9bab41e1bc505",
+    "research/generator-fusion/sum.nanz": "a288caac35eb0a12ce443229185d7f585502d1931bb21790ce67bf0aae979d7d",
+    "research/generator-fusion/direct.nanz": "6cf4fe214bc5cc75edc0b4a1a1ce723a6ccc938627748273f73a138fba93a97e",
+    "research/generator-fusion/manual.nanz": "cd6d5050baa38c3a0b26b55cfa68ce7883a59c2d5658fe194bc7e76a78b94e51",
+    "research/generator-fusion/verify.py": "a8fa408efe4413c60d5c68bd5c6a005b18ed0aaae201c1063d5be39f4e39e784"
+  },
+  "compiler_sha256": "390304a1518f521ac306010e324bcc7471941c42dcfebf699e20a058a801d0e0",
+  "git_head": "4908a53b8a4b6500a3e2e1e6f323e156a4a220b6",
+  "git_dirty": true
+}

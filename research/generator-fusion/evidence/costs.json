@@ -1,0 +1,29 @@
+[
+  {
+    "variant": "direct",
+    "fused": false,
+    "code_bytes": 32,
+    "binary_bytes": 48,
+    "t_states": 1240,
+    "stack_below_entry_bytes": 2,
+    "result": 1800
+  },
+  {
+    "variant": "pull",
+    "fused": false,
+    "code_bytes": 215,
+    "binary_bytes": 231,
+    "t_states": 13459,
+    "stack_below_entry_bytes": 17,
+    "result": 1800
+  },
+  {
+    "variant": "fused",
+    "fused": true,
+    "code_bytes": 30,
+    "binary_bytes": 46,
+    "t_states": 1586,
+    "stack_below_entry_bytes": 0,
+    "result": 1800
+  }
+]
