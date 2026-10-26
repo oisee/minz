@@ -17,13 +17,20 @@ impl Machine for Ram {
 }
 fn main() {
     let args: Vec<String> = std::env::args().collect();
+    assert!(
+        args.len() == 3 || (args.len() == 4 && args[3] == "--plain"),
+        "usage: runner BINARY EXPECTED_A [--plain]"
+    );
+    let plain = args.len() == 4;
     let code = std::fs::read(&args[1]).unwrap();
     let expected: u8 = args[2].parse().unwrap();
     let mut ram = Ram(vec![0; 1 << 24]);
     ram.0[0x40045..0x40045 + code.len()].copy_from_slice(&code);
     // Deliberately distinguish a truncated address from the flat address.
-    ram.0[0] = 11;
-    ram.0[0x50000] = expected;
+    if !plain {
+        ram.0[0] = 11;
+        ram.0[0x50000] = expected;
+    }
     let sp = 0xbfff0;
     ram.0[sp] = 0x00;
     ram.0[sp + 1] = 0x31;

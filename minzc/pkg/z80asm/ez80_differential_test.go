@@ -31,9 +31,9 @@ func assembleOneEZ80QuietOrg0(source string) []byte {
 // Enable with: go test -run TestEZ80_Differential -tags ez80diff
 //
 // Supported reference assemblers (checked in order):
-//   1. EZ80ASM_PATH env var → custom path to agon-ez80asm
-//   2. "ez80asm" in PATH → agon-ez80asm
-//   3. "spasm" in PATH → spasm-ng
+//  1. EZ80ASM_PATH env var → custom path to agon-ez80asm
+//  2. "ez80asm" in PATH → agon-ez80asm
+//  3. "spasm" in PATH → spasm-ng
 //
 // Each assembler has different syntax quirks, so we normalize the input.
 func TestEZ80_Differential(t *testing.T) {
@@ -105,22 +105,22 @@ func TestEZ80_Differential(t *testing.T) {
 		{"DEC BC", "dec pair"},
 	}
 
-	pass, fail, skip := 0, 0, 0
+	pass, fail := 0, 0
 	for _, tc := range corpus {
 		t.Run(tc.desc, func(t *testing.T) {
 			// Assemble with MZA
 			mzaBytes := assembleOneEZ80QuietOrg0(tc.asm)
 			if mzaBytes == nil {
-				t.Logf("MZA failed to assemble: %s", tc.asm)
-				skip++
+				t.Errorf("MZA failed to assemble: %s", tc.asm)
+				fail++
 				return
 			}
 
 			// Assemble with reference
 			refBytes, err := assembleWithReference(refAsm, tc.asm)
 			if err != nil {
-				t.Logf("Reference assembler failed: %s: %v", tc.asm, err)
-				skip++
+				t.Errorf("Reference assembler failed: %s: %v", tc.asm, err)
+				fail++
 				return
 			}
 
@@ -134,7 +134,7 @@ func TestEZ80_Differential(t *testing.T) {
 			}
 		})
 	}
-	t.Logf("Differential results: %d pass, %d fail, %d skip", pass, fail, skip)
+	t.Logf("Differential results: %d pass, %d fail, 0 skip", pass, fail)
 }
 
 // findReferenceAssembler locates an external eZ80 assembler.
@@ -160,6 +160,12 @@ func findReferenceAssembler(t *testing.T) string {
 
 // assembleWithReference assembles a single instruction using the external assembler.
 func assembleWithReference(asmPath, instruction string) ([]byte, error) {
+	// Resolve before changing the child working directory, including custom
+	// EZ80ASM_PATH values relative to the test's directory.
+	asmPath, err := filepath.Abs(asmPath)
+	if err != nil {
+		return nil, err
+	}
 	tmpDir, err := os.MkdirTemp("", "ez80diff")
 	if err != nil {
 		return nil, err
@@ -192,14 +198,17 @@ func assembleWithReference(asmPath, instruction string) ([]byte, error) {
 	var cmd *exec.Cmd
 	switch {
 	case strings.Contains(baseName, "spasm"):
-		cmd = exec.Command(asmPath, srcPath, binPath)
+		cmd = exec.Command(asmPath, filepath.Base(srcPath), filepath.Base(binPath))
 	case strings.Contains(baseName, "ez80asm"):
 		// agon-ez80asm: positional args, no -o flag
-		cmd = exec.Command(asmPath, srcPath, binPath)
+		cmd = exec.Command(asmPath, filepath.Base(srcPath), filepath.Base(binPath))
 	default:
-		cmd = exec.Command(asmPath, srcPath, binPath)
+		cmd = exec.Command(asmPath, filepath.Base(srcPath), filepath.Base(binPath))
 	}
 
+	// Agon ez80asm has a short filename buffer: macOS temporary absolute paths
+	// exceed it. Use short relative names inside the isolated working directory.
+	cmd.Dir = tmpDir
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return nil, fmt.Errorf("assembler error: %v\noutput: %s", err, output)

@@ -109,3 +109,84 @@ See [board specifications](https://www.olimex.com/Products/Retro-Computers/AgonL
 and the [eZ80 manual](https://www.zilog.com/docs/UM0077.pdf).
 The Autosiril VM prototype's ~87 MB storage still needs a smaller layout and
 streaming design before an Agon application can fit.
+
+## Differential C smoke corpus
+
+A first executable C corpus is now included. Run:
+
+```sh
+# AGONDEV_BIN may point to another installation's bin directory.
+research/agon-flat24/verify-c.sh --out /tmp/minz-flat24-c-differential
+```
+
+It compiles the same 20 C89 `unsigned char main(void)` bodies with:
+
+1. Host Clang, through a hosted wrapper that calls the unchanged kernel.
+2. AgonDev eZ80 Clang, GNU ADL assembler/linker, then the pinned eZ80 CPU core.
+3. Our C frontend, raw and constant-folded MIR VM, checked native eZ80 codegen,
+   MZA ADL assembler, then the same CPU core.
+
+Current result: **20 host/Agon matches, 18 MZC VM matches, 18 MZC native ADL
+matches, 2 explicit unsupported control-flow cases, 0 mismatches**. All 18
+supported MZC cases are mandatory; a future rejection fails the run. The two
+optional cases use logical/conditional control flow outside checked admission.
+The separate Go native smoke test contains nine kernels and runs actual CPU
+execution when `MINZ_EZ80_RUNNER` is set; without it, logs say assembly-only.
+
+This first corpus tests constants, casts, wrapping unsigned arithmetic, shifts
+and folding. The native products are `LD A,n; RET`; it **does not establish
+runtime arithmetic, C pointer layout, calling conventions or struct support**.
+The experimental `cmd/ez80-c-probe` refuses surviving pointer-bearing MIR and
+storage before choosing native address widths. It does not implement a 24-bit
+C frontend ABI. Compile/VM failures are errors; unsupported checked-native
+shapes have a distinct exit code.
+
+Data-model differences are intentional: our current C `int`/pointer are 16 bits;
+AgonDev's `int`/pointer are 24 bits; the macOS host has a 64-bit `long`, compared
+with AgonDev's 32-bit `long`. Corpus expressions avoid relying on these widths
+being equal. Compiler versions and actual ABI macros are recorded in the JSON
+receipt alongside source, binary, driver and CPU-runner hashes.
+
+A negative control deliberately changed the MZC binary's return immediate after
+VM validation. Host, Agon and MIR still agreed, while actual native execution
+failed; the harness correctly reported one failure. See the checked-in receipts
+in `evidence/c-differential.json` and `evidence/c-mutant-control.json`.
+
+The local compatible toolchain is AgonDev Clang 15.0.7 under
+`/Users/alice/dev/agondev/agondev/bin`. Its required standalone pipeline is:
+
+```sh
+prefix="$AGONDEV_BIN/ez80-none-elf"
+"$prefix-clang" -target ez80-none-elf -Oz -ffreestanding -fno-builtin \
+  -mllvm -z80-gas-style -mllvm -z80-print-zero-offset -S kernel.c -o kernel.s
+"$prefix-as" -march=ez80+adl kernel.s -o kernel.o
+"$prefix-ld" -Ttext=0x40045 --entry=_main kernel.o -o kernel.elf
+"$prefix-objcopy" -O binary kernel.elf kernel.bin
+```
+
+Primary toolchain references: [AgonDev](https://github.com/AgonPlatform/agondev),
+[AgDev ABI](https://github.com/pcawte/AgDev). The installed SDCC 4.5.0 supports
+`ez80_z80`, which is Z80 compatibility mode, so it is useful for our existing
+Z80 C suites rather than a second flat24 C oracle. See the
+[SDCC project](https://sdcc.sourceforge.net/) for its eZ80 port scope.
+
+There is also an independent assembler differential suite:
+
+```sh
+go -C minzc test ./pkg/z80asm -tags ez80diff -run '^TestEZ80_Differential$' -count=1 -v
+```
+
+On this machine MZA and `agon-ez80asm` agreed on all **52/52** instruction vectors,
+with zero skips. `EZ80ASM_PATH` selects another reference assembler installation.
+This checks encoding, whereas the C harness compares executed behavior; binaries
+from different optimizing C compilers are not expected to be byte-identical.
+
+The next useful expansion is nonconstant scalar inputs, followed by native
+u16/three-byte pointer memory operations and a genuine C ADL data-model option.
+
+The assembler harness also needed a macOS fix: absolute temporary filenames
+exceeded `ez80asm`'s filename buffer. It now passes short names in its isolated
+working directory. Previously every reference failure could become a silent
+per-vector skip; once a reference tool is found, assembly failures now fail the
+test. A deliberately failing reference executable produced 52 failures and
+zero skips, recorded in `evidence/assembler-rejection-control.txt`.

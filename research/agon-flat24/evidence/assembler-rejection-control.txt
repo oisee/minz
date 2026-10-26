@@ -1,0 +1,3 @@
+An executable reference assembler that always exits 2 was injected through EZ80ASM_PATH.
+Go test exited nonzero, as required.
+Differential results: 0 pass, 52 fail, 0 skip
