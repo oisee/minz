@@ -122,6 +122,10 @@ func TestCountedPointerWalkPreservesUnrelatedForwardingAndOrigin(t *testing.T) {
 	head.Params = append(head.Params, BlockParam{Dst: extra, Ty: TyU8, Class: ClassCounter})
 	entry.Term.(*TermJmp).Args = append(entry.Term.(*TermJmp).Args, f.Contract.Params[2].Reg)
 	body.Term.(*TermJmp).Args = append(body.Term.(*TermJmp).Args, extra)
+	// Keep the unrelated value observable: forwarding-only dead cycles are
+	// legitimately removed by DeadBlockArgElim after pointer strength reduction.
+	head.Term.(*TermCondRet).Vals = append(head.Term.(*TermCondRet).Vals, extra)
+	f.Contract.Returns = append(f.Contract.Returns, Return{Ty: TyU8, Class: ClassGeneral})
 	next := body.Insts[len(body.Insts)-1]
 	next.SrcLine = 17
 	next.SrcFile = "counted.c"

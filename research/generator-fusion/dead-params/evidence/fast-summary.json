@@ -1,0 +1,45 @@
+{
+  "scope": "541 fast inventory entries, three exhaustive process shards",
+  "rows": [
+    {
+      "shard": 1,
+      "passed": 170,
+      "skipped": 11,
+      "failed": 0,
+      "log_sha256": "6cf24dc4bf606f6c1a338528a6ba78ac9fe196553ad23b3ce04f94bbd0224b30"
+    },
+    {
+      "shard": 2,
+      "passed": 168,
+      "skipped": 12,
+      "failed": 0,
+      "log_sha256": "0498c4ab89048de451adc2a380593a087375b7d028f0dfacf2a241f5b95b570d"
+    },
+    {
+      "shard": 3,
+      "passed": 171,
+      "skipped": 9,
+      "failed": 0,
+      "log_sha256": "b64048a21f5993d0172df612eb03eda774d45981fa324cbc44c8c20b3a24771d"
+    }
+  ],
+  "statuses": [
+    {
+      "shard": 1,
+      "exit_code": 0,
+      "log": "/tmp/minz-mir-cycle-fast-final/shard-1.log"
+    },
+    {
+      "shard": 2,
+      "exit_code": 0,
+      "log": "/tmp/minz-mir-cycle-fast-final/shard-2.log"
+    },
+    {
+      "shard": 3,
+      "exit_code": 0,
+      "log": "/tmp/minz-mir-cycle-fast-final/shard-3.log"
+    }
+  ],
+  "note": "Binary built from the working tree before implementation commit; all production changes were present. Subsequent edits were comments and the independently rerun deep PGO fixture anchors. Full logs remain in /tmp/minz-mir-cycle-fast-final; required PR CI will rebuild the committed tree.",
+  "inventory_sha256": "698acdbe7c162711066353a7ab89c372299c3276fee2baa696b367d0dfa8e483"
+}

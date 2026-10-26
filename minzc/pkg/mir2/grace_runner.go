@@ -373,16 +373,16 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 		return ret.Vals[0] == blk.Params[0].Dst
 	})
 
-	// has-dead-params: check if block has any params with zero uses
+	// has-dead-params: include forwarding-only cycles with no semantic use
 	reg.RegisterPredicate("has-dead-params", func(graph rewrite.IRGraph, bindings grace.BlockBindings, args []string) bool {
 		label := bindings[args[0]]
 		blk := f.BlockByLabel(label)
 		if blk == nil || blk == f.Blocks[0] { // skip entry block
 			return false
 		}
-		uses := countRegUses(f)
+		needed := liveBlockArguments(f)
 		for _, p := range blk.Params {
-			if uses[p.Dst] == 0 {
+			if !needed[p.Dst] {
 				return true
 			}
 		}
@@ -537,11 +537,11 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 		if blk == nil || blk == f.Blocks[0] {
 			return false
 		}
-		uses := countRegUses(f)
+		needed := liveBlockArguments(f)
 		live := make([]bool, len(blk.Params))
 		allLive := true
 		for i, p := range blk.Params {
-			live[i] = uses[p.Dst] > 0
+			live[i] = needed[p.Dst]
 			if !live[i] {
 				allLive = false
 			}

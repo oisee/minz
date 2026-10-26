@@ -1,0 +1,5 @@
+--- FAIL: TestMeasureLoopCostModel (21.09s)
+    profile_measure_test.go:56: independent ASM cost disagrees: {N:1 Base:16384 Path:fast Original:95 Pointer:268 Result:11 OriginalExecutionSHA256:af5e3dd841b9b703674cef3ce95650bfcb999444e00511825d7f33404fe0263e PointerExecutionSHA256:f77b8836cb2654db90f53ccde52d232e8191796665ccf229006dc8794c8ab525} want 95/278
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	21.721s
+FAIL
