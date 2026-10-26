@@ -27,7 +27,7 @@ package mir2
 //     is always safe unless a *third* reg already occupies the target loc.
 //   - OpMove coalescing is gated on the IG: if src and dst interfere,
 //     src is a neighbour of dst ⟹ the check fails ⟹ no coalescing.
-func coalesceAllocResult(f *Func, result *AllocResult, lr *LivenessResult) {
+func coalesceAllocResult(f *Func, result *AllocResult, lr *LivenessResult, tables ...CostTable) {
 	if len(result.Locs) == 0 {
 		return
 	}
@@ -121,10 +121,12 @@ func coalesceAllocResult(f *Func, result *AllocResult, lr *LivenessResult) {
 		}
 	}
 
-	// ct is needed to check whether a physical location is finite-cost for
-	// a given register class.  We use Z80CostTable (the only cost table in
-	// use) to determine compatibility.
-	ct := Z80CostTable{}
+	// Preserve the allocating backend's widths and class costs during
+	// recoloring. Direct callers retain the historical Z80 default.
+	var ct CostTable = Z80CostTable{}
+	if len(tables) > 0 {
+		ct = tables[0]
+	}
 	info := collectRegInfo(f)
 	canRecolor := func(r Reg, loc PhysLoc) bool {
 		// Preserve explicit instruction/ABI constraints, including a hard
@@ -132,7 +134,7 @@ func coalesceAllocResult(f *Func, result *AllocResult, lr *LivenessResult) {
 		if hard[r] && result.Locs[r] != loc {
 			return false
 		}
-		if ri, ok := info[r]; ok && !locCompatible(ri.Ty, loc) {
+		if ri, ok := info[r]; ok && !locCompatibleFor(ct, ri.Ty, loc) {
 			return false
 		}
 		cls, ok := regClass[r]

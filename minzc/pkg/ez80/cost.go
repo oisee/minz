@@ -445,3 +445,24 @@ func ez80CostDWord(loc mir2.PhysLoc) int {
 	}
 	return mir2.InfCost
 }
+
+// Compatible describes physical ADL widths independently of register cost.
+// Unsupported spill/shadow locations are refused until the native emitter
+// implements them; 32-bit values cannot fit in a 24-bit pair.
+func (EZ80CostTable) Compatible(ty mir2.Ty, loc mir2.PhysLoc) bool {
+	w := ty.Width()
+	switch loc.Kind {
+	case mir2.LocFlag:
+		return w == 1
+	case mir2.LocReg:
+		if len(loc.Name) == 1 {
+			return w <= 8 && !mir2.IsPointer(ty)
+		}
+		return w > 8 && w <= 24
+	case mir2.LocIXY:
+		return w > 8 && w <= 24
+	case mir2.LocIXY8:
+		return w <= 8 && !mir2.IsPointer(ty)
+	}
+	return false
+}

@@ -139,8 +139,8 @@ type ez80cg struct {
 	needsCallHL bool
 }
 
-func (g *ez80cg) emit(s string)                    { g.sb.WriteString(s); g.sb.WriteByte('\n') }
-func (g *ez80cg) emitf(f string, args ...any)       { g.emit(fmt.Sprintf(f, args...)) }
+func (g *ez80cg) emit(s string)               { g.sb.WriteString(s); g.sb.WriteByte('\n') }
+func (g *ez80cg) emitf(f string, args ...any) { g.emit(fmt.Sprintf(f, args...)) }
 func (g *ez80cg) loc(r mir2.Reg) string {
 	if r == mir2.NoReg {
 		return "?"
@@ -252,17 +252,20 @@ func (g *ez80cg) genInst(inst *mir2.Inst) {
 		}
 
 	case mir2.OpExt:
-		// Zero-extend u8 -> u16/u24: LD H,0 / LD L,src
 		src := g.loc(inst.Src[0])
-		pair := dst
-		if pair == "HL" || pair == "DE" || pair == "BC" {
-			hi, lo := pairHiLo(pair)
-			g.emitf("    LD %s, 0", hi)
-			if src != lo {
-				g.emitf("    LD %s, %s", lo, src)
+		if is8bit(src) && isPair(dst) {
+			// Clearing H alone leaves the ADL upper byte stale. Capture first
+			// so extension also works when the source aliases the destination.
+			g.emit("    PUSH AF")
+			if src != "A" {
+				g.emitf("    LD A, %s", src)
 			}
+			g.emitf("    LD %s, 0", dst)
+			_, lo := pairHiLo(dst)
+			g.emitf("    LD %s, A", lo)
+			g.emit("    POP AF")
 		} else {
-			g.emitf("    LD %s, %s", dst, src) // fallback
+			g.emitf("    ; TODO: extension %s -> %s", src, dst)
 		}
 
 	case mir2.OpCmp:
@@ -292,9 +295,13 @@ func (g *ez80cg) genInst(inst *mir2.Inst) {
 			} else if isIXY(ptr) {
 				g.emitf("    LD %s, (%s+%d)", dst, ptr, inst.Imm)
 			} else {
+				if dst != "A" {
+					g.emit("    PUSH AF")
+				}
 				g.emitf("    LD A, (%s)", ptr)
 				if dst != "A" {
 					g.emitf("    LD %s, A", dst)
+					g.emit("    POP AF")
 				}
 			}
 		} else {
@@ -367,16 +374,7 @@ func (g *ez80cg) genInst(inst *mir2.Inst) {
 		}
 
 	case mir2.OpPtrAdd:
-		base := g.loc(inst.Src[0])
-		idx := g.loc(inst.Src[1])
-		if base == dst {
-			g.emitf("    ADD %s, %s", base, idx)
-		} else {
-			if dst != base {
-				g.emitMov(dst, base, 24)
-			}
-			g.emitf("    ADD %s, %s", dst, idx)
-		}
+		g.emitPointerAdd(dst, g.loc(inst.Src[0]), g.loc(inst.Src[1]))
 
 	case mir2.OpPtrBump:
 		src := g.loc(inst.Src[0])
@@ -777,10 +775,6 @@ func (g *ez80cg) emitMov(dst, src string, widthBits int) {
 	}
 	// Pair-to-pair
 	if isPair(dst) && isPair(src) {
-		if (dst == "HL" && src == "DE") || (dst == "DE" && src == "HL") {
-			g.emit("    EX DE, HL")
-			return
-		}
 		g.emitf("    PUSH %s", src)
 		g.emitf("    POP %s", dst)
 		return
@@ -820,8 +814,8 @@ func (g *ez80cg) resolveWidth(reg string, widthBits int) string {
 	return reg
 }
 
-func isIXY(reg string) bool   { return reg == "IX" || reg == "IY" }
-func isPair(reg string) bool  { return reg == "HL" || reg == "DE" || reg == "BC" || isIXY(reg) }
+func isIXY(reg string) bool  { return reg == "IX" || reg == "IY" }
+func isPair(reg string) bool { return reg == "HL" || reg == "DE" || reg == "BC" || isIXY(reg) }
 func is8bit(reg string) bool {
 	switch reg {
 	case "A", "B", "C", "D", "E", "H", "L", "IXH", "IXL", "IYH", "IYL":
@@ -916,4 +910,34 @@ func classToPhys(cls mir2.RegClass) string {
 	default:
 		return "A" // fallback for ClassGeneral etc.
 	}
+}
+
+// emitPointerAdd preserves both inputs and all unrelated registers, including
+// when the destination aliases the offset. ADL PUSH/POP transfer all 24 bits.
+// This conservative sequence is a correctness baseline for later peepholes.
+func (g *ez80cg) emitPointerAdd(dst, base, offset string) {
+	if !isPair(dst) || !isPair(base) || !isPair(offset) {
+		g.emitf("    ; TODO: pointer add %s + %s -> %s", base, offset, dst)
+		return
+	}
+	scratch := "IX"
+	if dst == scratch {
+		scratch = "IY"
+	}
+	g.emitf("    PUSH %s", scratch)
+	g.emit("    PUSH AF")
+	g.emit("    PUSH HL")
+	g.emit("    PUSH DE")
+	g.emitf("    PUSH %s", base)
+	g.emitf("    PUSH %s", offset)
+	g.emit("    POP DE")
+	g.emit("    POP HL")
+	g.emit("    ADD HL, DE")
+	g.emit("    PUSH HL")
+	g.emitf("    POP %s", scratch)
+	g.emit("    POP DE")
+	g.emit("    POP HL")
+	g.emit("    POP AF")
+	g.emitMov(dst, scratch, 24)
+	g.emitf("    POP %s", scratch)
 }
