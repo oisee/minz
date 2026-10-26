@@ -1,0 +1,13 @@
+raw [{8}] <nil>
+binary=13083 module_globals=6437 remainder=6646 end=731b main=4bc3
+optimized [{8}] <nil>
+native={A:0 F:84 BC:0 DE:0 HL:8 IX:61434 IY:5 SP:61440 PC:61696} cycles=891410 stack=57 fault=0 count=8
+All native events and counters match raw/final MIR2
+event[0]=0/316
+event[1]=1/316
+event[2]=1/320
+event[3]=1/323
+event[4]=2/316
+event[5]=3/1084
+event[6]=4/328
+event[7]=5/1096

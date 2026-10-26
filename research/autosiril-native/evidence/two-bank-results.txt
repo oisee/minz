@@ -1,0 +1,7 @@
+PASS last_bank0_record: 2 events, 22568113T, stack68
+PASS first_bank1_record: 2 events, 22602262T, stack68
+PASS banked_crossing: 2 events, 29204946T, stack76
+PASS churn_crossing: 2 events, 52006929T, stack80
+PASS last_bank1_record: 2 events, 58308647T, stack76
+PASS stale_epoch: 0 events, 7550T, stack41
+PASS declared_two_bank_overflow: 0 events, 6102T, stack19
