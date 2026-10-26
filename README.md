@@ -8,6 +8,18 @@
 
 SAVE files live outside the download in your user configuration directory, so upgrades preserve them. Zork I resumes the session after a clean exit; Zork II uses disk SAVE/RESTORE. [Release verification](reports/zmachine-spectrum128/release/verified.md) · [Full Z-machine status](reports/zmachine-spectrum128/current-status.md).
 
+## Featured: один день из жизни MinZ — три новых лонгрида
+
+[**Читать иллюстрированную трилогию на русском →**](research/daily/2026-10-26/README.md) · [HTML с готовыми схемами](research/daily/2026-10-26/index.html)
+
+- [**Ruby рассказывает, Z80 считает:**](research/daily/2026-10-26/01-languages-and-ideas.md) Crystal frontend, macro ↔ meta, битовые DSL и идеи Erlang/OTP.
+- [**Мелодия между двумя файлами:**](research/daily/2026-10-26/02-melody-between-two-files.md) MIDI/Autosiril, генераторы, ленивость, fusion и 64 байта RLE; две нативные CP/M-утилиты уже в main.
+- [**Чемодан без виртуальной машины:**](research/daily/2026-10-26/03-borrowing-without-a-runtime.md) что взять у LLVM, Cranelift, Grace, C#/.NET, JVM/Kotlin, Rust и BEAM.
+
+18 Mermaid-схем, реальные Crystal/Nanz/Ruby-примеры, иллюстрации и интерактивная модель RLE в HTML. Работающие возможности, локальные эксперименты и будущие идеи отмечены отдельно.
+
+**Скачать книгу:** [EPUB](research/daily/2026-10-26/output/epub/minz-compiler-day-2026-10-26.epub) · [PDF A5, 74 страницы](research/daily/2026-10-26/output/pdf/minz-compiler-day-2026-10-26-A5.pdf)
+
 ## Featured article: My ABAP Escaped from the Server
 
 [**F4 → CSV → typed internal table → ALV, compiled for CP/M, Agon and ZX Spectrum**](docs/my-abap-escaped-from-the-server.md).
@@ -19,7 +31,7 @@ source, watch all three real emulator sessions, and follow the
 
 ## Featured design report: Nanz generators on Z80
 
-[**Lazy streams, stackless generators and demand preserving fusion**](reports/2026-10-18-nanz-generators-design.md) — a design proposal for Nanz, with control-flow diagrams, memory estimates, native verification gates and three draft ADRs. `gen/yield` is proposed; the report separates it from existing fused iterator chains and from buffered channels.
+[**Lazy streams, stackless generators and demand preserving fusion**](reports/2026-10-18-nanz-generators-design.md) is the original design proposal. `gen/yield` and limited opt-in fusion have since landed; [the new illustrated article](research/daily/2026-10-26/02-melody-between-two-files.md) follows the implemented path through RLE and native Autosiril file stages, with measured results and current limits.
 
 # MinZ
 
