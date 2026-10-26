@@ -134,7 +134,7 @@ go -C minzc test ./cmd/autosiril-vm -count=1
 
 66 executions (11 scores × raw/optimized MIR2 × flat/banked/churn) match the
 fresh Ruby oracle's exact flattened row/pitch/type/order. Maximum measured VM
-heap is **51,439 bytes**, including stage globals and generator allocations;
+heap is **51,472 bytes**, including stage globals and generator allocations;
 maximum active set is **8 notes** on this corpus. Native code/stack/runtime,
 MIDI decoding/pairing, subsequent music stages and host verification I/O are
 excluded. This proves a compact stage, not a complete 128 KiB converter.
