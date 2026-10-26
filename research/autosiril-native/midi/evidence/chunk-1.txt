@@ -1,0 +1,5 @@
+compiled image: 29990 bytes
+raw-mir2: fault0 notes1485 sources2 events2984 bytes9058
+final-mir2: fault0 notes1485 sources2 events2984 bytes9058
+PASS 1485 notes on raw/final MIR2 and Z80; 435310507T stack58
+[HIR-SPLIT] consume_paired_event → consume_paired_event$split_5 (3 inputs, pressure 12)

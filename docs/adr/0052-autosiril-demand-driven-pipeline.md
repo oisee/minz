@@ -57,6 +57,15 @@ The ~191 KB VT2 example requires streamed output on a 128 KiB system. Measure
 
 ## Native bounded checkpoint (2026-10-26)
 
+The next [streaming MIDI pairing prototype](../../research/autosiril-native/midi/README.md)
+also runs the input stage on target: shared SMF decoder, bounded ordered active
+list and actual Crystal UInt32 quantizer. A fresh Ruby oracle matches all1,485
+Chronos paired records for1/7/256-byte chunks on raw/final MIR2 and Z80 (nine
+executions). Linked image29,990 bytes, observed stack58 bytes; the target holds
+only a256-byte input chunk. This is a separate executable from flattening.
+Duplicate/channel/EOT/capacity/error corpus and CI replay remain required before
+claiming the pairing stage's complete bounded contract.
+
 The follow-up [whole Chronos proof](../../research/autosiril-native/chronos/README.md)
 extends the checked resident profile to three 4-KiB pages and1,024 output slots:
 all1,485 paired intervals and all three mapped flatten channels match the full
