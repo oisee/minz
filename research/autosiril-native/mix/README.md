@@ -1,13 +1,17 @@
-# Selected next bounded milestone: native Ruby-compatible downmix
+# Native Ruby-compatible downmix: integrated fifth stage
 
 Selected after echo PR #269 merged as `4b82cd7f5`, with11 green checks and
 independent audits of downloaded fresh/frozen artifacts. Work branch:
 `spike/autosiril-native-mix`. The fifth file stage is measured on CP/M and private Scorpion TRD API traps;
-full acceptance/CI/integration remain.
+integrated through [PR #270](https://github.com/oisee/minz/pull/270) as
+`b58fba0c6` after twelve green checks. Downloaded fresh/frozen artifacts
+independently pass1923 executions and six guard mutants each, the40626B retained
+image and five-COM chain. The sections below retain the implementation chronology.
+Next selected bounded step: original Ruby `render_into_text`.
 
 Original reference: `autooisee.rb` downmix877..919. The existing VM implements
-later stages. Main ends at the independently linked native echo stage; this
-branch adds CP/M and TRD downmix on actual saved native DELAYED files, while preserving
+later stages. The original base ended at the independently linked native echo stage; this
+merged milestone adds CP/M and TRD downmix on actual saved native DELAYED files, while preserving
 all preceding gates and user files.
 
 ## Exact semantics to prove before target code
