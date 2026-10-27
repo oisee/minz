@@ -103,7 +103,9 @@ type Options struct {
 	variantCandidate bool
 	// Search-only checkpoint: false refuses a trial before native compilation.
 	variantPrepared          bool
+	variantNativeAlternative bool
 	variantRawCallers        map[string]bool
+	variantInlinedCallers    map[string]bool
 	variantMIRReady          func(*mir2.Module, bool) bool
 	variantBranchEquivMisses map[[32]byte]bool
 
@@ -240,10 +242,10 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 		return s, fmt.Errorf("checked local tables require emitted Z80 OptSize and a content pin for PGO")
 	}
 	if !opt.variantPrepared {
-		hir.OptimizeCAggregateABI(hm)
+		hir.OptimizeAggregateABI(hm)
 	}
 	if err := hir.Verify(hm); err != nil {
-		return Steps{}, fmt.Errorf("c aggregate ABI: %w", err)
+		return Steps{}, fmt.Errorf("aggregate ABI: %w", err)
 	}
 	s.UnsignedPairComparePolicy = policy
 	s.Traces = make(map[string]*FuncTrace)
@@ -367,6 +369,11 @@ func compileMIRSteps(hm *hir.Module, opt Options, s Steps, splitInfo map[string]
 func compileMIRProductSteps(hm *hir.Module, opt Options, s Steps, splitInfo map[string]hir.SplitResult, m *mir2.Module) (Steps, error) {
 	initialSteps := s
 	inlineStats := &mir2.SingleCallInlineStats{DisableExportCopies: opt.disableExportCopies || opt.Backend != "" && opt.Backend != "z80" || opt.SkipZ80Emission}
+	inlineStats.InlinedCallers = opt.variantInlinedCallers
+	inlineStats.KeepCallers = map[string]bool{}
+	for name, v := range opt.FunctionVariants {
+		inlineStats.KeepCallers[name] = v.KeepCalls
+	}
 	mir2.InlineSingleCallSites(m, functionPruneRoots(hm), inlineStats)
 	for _, f := range m.Funcs {
 		mir2.EliminateDeadGlobalLoads(m, f)
@@ -463,7 +470,9 @@ func compileMIRProductSteps(hm *hir.Module, opt Options, s Steps, splitInfo map[
 			}
 		}
 		mir2.HoistDiamondCommon(f)
-		mir2.PrepareShiftCarry(f)
+		if !variantFor(opt, f.Name).BitTests {
+			mir2.PrepareShiftCarry(f)
+		}
 		// Return sinking/splitting (including Grace rewrites) can leave newly
 		// dead edge arguments. Remove them before allocation sees their copies.
 		if mir2.DeadBlockArgElim(f) {
@@ -477,7 +486,7 @@ func compileMIRProductSteps(hm *hir.Module, opt Options, s Steps, splitInfo map[
 		if (opt.Backend == "" || opt.Backend == "z80") && opt.Runtime == "" && !opt.CPMApplicationEntry && !opt.ZXApplicationEntry {
 			tr.PtrThreading += mir2.RecognizeByteLoops(f)
 		}
-		n := mir2.StrengthReduceCountedPointersWithOptions(f, mir2.PointerWalkOptions{DisableAffine: opt.disableAffinePointers})
+		n := mir2.StrengthReduceCountedPointersWithOptions(f, mir2.PointerWalkOptions{DisableAffine: opt.disableAffinePointers || variantFor(opt, f.Name).IndexedPointers})
 		tr.PtrThreading += n
 		affineChanged = affineChanged || n > 0
 		if opt.OptSize {
@@ -508,7 +517,7 @@ func compileMIRProductSteps(hm *hir.Module, opt Options, s Steps, splitInfo map[
 	s.MIR2Opt = m.Dump()
 	s.MIR2Module = m
 
-	if opt.variantMIRReady != nil && !opt.variantMIRReady(m, opt.OptSize && affineChanged && !opt.disableAffinePointers) {
+	if opt.variantMIRReady != nil && !opt.variantMIRReady(m, opt.variantNativeAlternative || opt.OptSize && affineChanged && !opt.disableAffinePointers) {
 		return s, nil
 	}
 
@@ -521,7 +530,7 @@ func compileMIRProductSteps(hm *hir.Module, opt Options, s Steps, splitInfo map[
 	// Run BEFORE contract optimisation: inlining removes call-graph edges,
 	// shrinking the optimiser's search space and eliminating degenerate cases
 	// (e.g. bare-RET swap when the return value is identity-projected).
-	if mir2.InlineTrivial(m, 4) {
+	if mir2.InlineTrivial(m, 4, inlineStats.KeepCallers, opt.variantInlinedCallers) {
 		for _, f := range m.Funcs {
 			mir2.PropagateCopies(f)
 			mir2.DeadStoreElim(f)
@@ -559,7 +568,11 @@ func compileMIRProductSteps(hm *hir.Module, opt Options, s Steps, splitInfo map[
 	for _, f := range m.Funcs {
 		mir2.PreallocCoalesce(f) // BUG-001 fix: union block-arg/param pairs before PBQP
 		lr := mir2.ComputeLiveness(f)
-		ar := mir2.PBQPAllocate(f, lr, ct)
+		allocationCost := ct
+		if variantFor(opt, f.Name).SizeAllocation {
+			allocationCost = mir2.Z80CostTable{OptimizeForSize: true}
+		}
+		ar := mir2.PBQPAllocate(f, lr, allocationCost)
 		for r, loc := range ar.Locs {
 			combined.Locs[r] = loc
 		}
@@ -583,6 +596,7 @@ func compileMIRProductSteps(hm *hir.Module, opt Options, s Steps, splitInfo map[
 		var codegenErr error
 		s.Assembly, codegenErr = mir2.Z80Codegen(m, combined, mir2.Z80CodegenOptions{
 			OptimizeForSize:           opt.OptSize,
+			FunctionOptions:           variantCodegenOptions(opt),
 			CalledMain:                opt.Backend == "ez80" || opt.CPMApplicationEntry || opt.Runtime == mir2.Z80RuntimeAgonZ80,
 			CPMApplicationEntry:       opt.CPMApplicationEntry,
 			ZXApplicationEntry:        opt.ZXApplicationEntry,
@@ -734,6 +748,7 @@ func CompileHIRWithOptions(hm *hir.Module, opts Options) (string, error) {
 		steps, err := CompileHIRSteps(hm, opts)
 		return steps.Assembly, err
 	}
+	hir.OptimizeAggregateABI(hm)
 	policy, err := resolveUnsignedPairComparePolicy(opts)
 	if err != nil {
 		return "", err

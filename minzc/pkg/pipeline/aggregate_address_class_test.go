@@ -110,7 +110,7 @@ return a.v}`
 					t.Fatal("native return", name, x)
 				}
 				got := z.GetRegisters().A
-				if name == "make" {
+				if _, memoryResult := f.Contract.Returns[0].Ty.(*mir2.StructTy); name == "make" && memoryResult {
 					got = z.Memory()[z.GetRegisters().HL]
 				}
 				if int(got) != x {

@@ -15,8 +15,8 @@ import (
 	"testing"
 )
 
-// Compare against a correct, caller-owned memory return ABI. Disabling only
-// C-specific scalar eligibility does not revert the ownership repair.
+// Compare against a correct, caller-owned memory return ABI. An explicit
+// natural memory layout disables scalar eligibility while preserving ownership.
 func TestC89AggregateTransferCostVMZ80(t *testing.T) {
 	for _, family := range []string{"scalar_cost", "scalar_heldout"} {
 		t.Run(family, func(t *testing.T) {
@@ -61,6 +61,16 @@ func TestC89AggregateTransferCostVMZ80(t *testing.T) {
 							t.Fatal(e)
 						}
 						if abi == "memory" {
+							// Source origin no longer disables scalarization.
+							// Explicit layout is a real memory-ABI admission
+							// boundary, while keeping the same byte offsets.
+							for _, st := range m.Structs {
+								offsets := make([]int, len(st.Fields))
+								for i := range offsets {
+									offsets[i] = st.ByteOffset(i)
+								}
+								st.FieldOffsets = offsets
+							}
 							for _, f := range m.Funcs {
 								f.CValueABI = false
 							}

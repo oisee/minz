@@ -4,6 +4,8 @@ import "fmt"
 
 type SingleCallInlineStats struct {
 	DisableExportCopies bool
+	KeepCallers         map[string]bool
+	InlinedCallers      map[string]bool
 	ExportCopies        int
 }
 
@@ -127,6 +129,9 @@ func InlineSingleCallSites(m *Module, exported map[string]bool, stats ...*Single
 	for {
 		progress := false
 		for _, caller := range m.Funcs {
+			if len(stats) > 0 && stats[0] != nil && stats[0].KeepCallers[caller.Name] {
+				continue
+			}
 			for _, block := range caller.Blocks {
 				for index, call := range block.Insts {
 					callee := eligible[call.Sym]
@@ -143,6 +148,9 @@ func InlineSingleCallSites(m *Module, exported map[string]bool, stats ...*Single
 					}
 					if pendingDependency {
 						continue
+					}
+					if len(stats) > 0 && stats[0] != nil && stats[0].InlinedCallers != nil {
+						stats[0].InlinedCallers[caller.Name] = true
 					}
 					if len(callee.Blocks) == 1 {
 						if _, ok := callee.Entry().Term.(*TermRet); ok {
