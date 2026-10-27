@@ -1,7 +1,7 @@
 {
   "protocol": "autosiril-native-mix/v1",
   "source_sha256": {
-    ".github/workflows/ci.yml": "1d807cd636b04e50eac3d104242a5b915183af65ef788fbb752f121d096659cf",
+    ".github/workflows/ci.yml": "c6d79c1cfb16b919316d59067e91e67db355ad345f625e7e6cf3a4447b855515",
     "minzc/pkg/spectrum/formats/trd.go": "574b26fdd37d2e6e7291547f9c26e635e002bfb47c9a0136dd4b568d35819681",
     "research/autosiril-native/arrange/build_matrix.py": "4675d33950d9e428656169e7eaaba4f1b03b4d5eae73c84c90e409df1297cc91",
     "research/autosiril-native/arrange/compose.py": "ae0343c1ef273c9d493a49765f978318b9b9b0acd5108cc1ee74d53cb688bfce",
@@ -574,9 +574,10 @@
     "minzc/pkg/pipeline/profile_workload.go": "65f7b61512ad4a1398c8ff4841fdca6fed3e3a0d61e9febbdbeebee58f884145",
     "minzc/pkg/pipeline/spectrum_phase_workload.go": "6c444d6285bee077e29bf8a580f2f1a0f87e6c9d0349335949960bbfdbd164b7",
     "minzc/pkg/pipeline/unsigned_pair_policy.go": "51827170455e7f841959e1dd14735e024468e0ea9a99e9d2d64ccb9d8be62360",
+    "minzc/pkg/pipeline/variant_allocation.go": "8dbb5873e8e6b915891ef5849542aaa3e893ed1ec9e6733829897f756835fb36",
     "minzc/pkg/pipeline/variant_cost.go": "193086daeb875cf568babbf1be95d77e9601bc86c75690cc64cb8376fb4dd957",
     "minzc/pkg/pipeline/variant_difference.go": "93cdac25996a27647f7242a61dc16213ad861252431286781398b6662830c049",
-    "minzc/pkg/pipeline/variant_search.go": "df6c2e3f5c92099c5f733603315be70b64cd62c7cc01c404ec6626682e4401d6",
+    "minzc/pkg/pipeline/variant_search.go": "79ef589f8171c90dffff83c4128b4228e3522e37f52377d63117e131fb565822",
     "minzc/pkg/pipeline/variant_size.go": "a2c2dc8e845f134b88f5a423df02ffb27e703aefb1cd1ed49c5bbdf64cdd31a7",
     "minzc/pkg/platform/timing.go": "5f2a6c5663616c5ab2fbbf9b0aaa8e449a27b01eb3600f4b312e6910f2bd860b",
     "minzc/pkg/plm/ast.go": "dd038cdce09998186c386f020b4d6ba719f45ef938adc4ab84b6f97694c9fe01",
@@ -736,11 +737,11 @@
     "cursor-large": 63
   },
   "guard_mutants": 6,
-  "upstream_echo_receipt_sha256": "364670afad57bb6e317320da2103eeca9548c92e12ea4f56daaf34ed09e56dc4",
+  "upstream_echo_receipt_sha256": "c5ae71a6cf379aebf1ed695694659238c4ae23d4a586fef12e71bcdc183d2113",
   "reused_upstream": null,
   "scope": "fifth independently linked native file stage, target downmix and NOTES timing, original Ruby oracle; private CP/M/TRD API traps, not physical ROM/FDC/hardware/boot/TPA-CCP/fullVT2VTX/MOS/eZ80",
-  "frozen_fixture_sha256": "23dfad9c258ed45e133d7561a574b9f8c65a9b5214c8a7e99e51f1296536ea45",
-  "fresh_receipt_sha256": "6ef9ec28dfb29780f0e0452db53f60e49c67c13b163d27dc41bfd4c2d9c477bd",
+  "frozen_fixture_sha256": "6bdda8d30225a8736e1b7bd24969acdea88f57b75208e4c7fa86626e56945c68",
+  "fresh_receipt_sha256": "e0cd6eca71129a79874e3b3998c871ac928b66cf4979e6fd86b7f83a898ed878",
   "native_images": {
     "kernel": {
       "program.com": "26912a991657b8122a12d5130bcae817ec4a6f1fb2d1110a6cfb68c570aff4bc"
