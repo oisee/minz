@@ -1,0 +1,625 @@
+// Bounded native Autosiril VT2 tail kernel: original Step9
+// split_into_patterns (pattern split, dedup, play order), Step10
+// render_ornaments and Step11 module_header/write_vt_output, executed on
+// raw/final MIR2 and assembled Z80.
+//
+// All bulk state is FILE BACKED through generic byte-file traps
+// (read/write/seek only — reserved for the later independently linked file
+// programs). The target computes every offset, order decision, digest,
+// comparison, decimal conversion and ASCII byte itself:
+//
+//   handle 0 rows     input: rendered rows, each line LF-terminated
+//           1 meta    input: [u16 title_len][title][u16 date_len][date]
+//                          [u16 arglist_len][arglist]  (explicit metadata,
+//                          pinned 1970.01.01 date for the proof; on target
+//                          this is admitted input data, never a host clock)
+//           2 orn     input: [u16 n] then n records [u32 id][u16 len][bytes]
+//                          — the Step10 input contract: an ornament
+//                          text->id map in insertion order (later text wins
+//                          per id, exactly Ruby Hash#invert). Deriving this
+//                          map from raw kind5 definition offset/repeat data
+//                          (ornament regeneration) is a PENDING adaptation,
+//                          not claimed here.
+//           3 spoolW  scratch: pattern/ornament byte spool (append)
+//           8 spoolR  scratch: same spool, independent read cursor
+//           4 index   scratch: one 16-byte record per pattern
+//                          (u32 pattern id, u32 length, u32 spool offset,
+//                          u32 candidate digest); u32 ids because the
+//                          admitted profile reaches 65568 slots (u16 wraps)
+//           5 order   scratch: u32 per pattern (first duplicate's id, or
+//                          own id on first occurrence; 0 is a valid first
+//                          id and is not a sentinel)
+//           6 use     scratch: one use flag bit per pattern, appended in
+//                          pattern order (exactly one partially-filled
+//                          byte is live in RAM)
+//           7 out     output: final VT2 file
+//           9 tpl     input: the exact original module_template.rb literal
+//                          (hash-checked by the prover); interpolation
+//                          boundaries are the fixed constants tpl_b below,
+//                          derived from that pinned constant source
+//          10 offsets scratch: u32 start offset of every row, built by the
+//                          target in a first pass over the rows file (the
+//                          negative-skip Ruby normalization can make pattern
+//                          spans jump backward when pattern_size < size, so
+//                          rows are consumed by absolute index, never by a
+//                          single sequential cursor)
+//
+// Bounded RAM: one 255-byte row, one 255-byte chunk + compare buffer, one
+// index record, one flag byte, a 64-entry ornament table (profile maximum
+// 64 definitions) of 4+2+4 bytes each, and counters. No pattern, header,
+// play-order string, ornaments text or song array is ever held in RAM:
+// patterns stream to the spool row by row, dedup compares two spool ranges
+// in <=255-byte pieces, and the final VT2 streams fragment by fragment.
+//
+// Capacity scope (honest bounds, faulted, never silent): rows <= 65567,
+// row length <= 255 bytes, pattern_size in 1..2^20, |skip_lines| <= 2^30,
+// spool offsets < 2^24 (the seek trap is 24-bit; the admitted profile's
+// worst case 65567 rows x 256 bytes = 16765152 < 16777216), title/arglist
+// <= 255 bytes, date <= 15 bytes, ornament definitions <= 64 of <= 4096
+// bytes each. A digest hit only CANDIDATES a dedup match; equality is
+// decided by streamed byte comparison, so a forced constant digest
+// (digest_mode = 1, proof instrument) cannot change the output.
+global fault:u16
+global digest_mode:u8
+global cfg_max_row:[u8;4]
+global cfg_pattern_size:[u8;4]
+global cfg_skip_lines:[u8;4]
+global cfg_row_count:[u8;4]
+global row_buf:[u8;256]
+global row_len:u16
+global feedbuf:[u8;255]
+global feed_pos:u16
+global feed_len:u16
+global feed_eof:u8
+global chunk:[u8;256]
+global cmpbuf:[u8;256]
+global rec16:[u8;16]
+global orec:[u8;4]
+global title_buf:[u8;256]
+global title_len:u16
+global date_buf:[u8;16]
+global date_len:u16
+global arglist_buf:[u8;256]
+global arglist_len:u16
+global orn_ids:[u32;64]
+global orn_lens:[u16;64]
+global orn_offs:[u32;64]
+global orn_count:u8
+global spool_len:u32
+global pat_begin:u32
+global pat_length:u32
+global pat_digest:u32
+global index_count:u32
+global use_out_byte:u8
+global use_out_bits:u8
+global use_r_byte:u8
+global use_r_bits:u8
+global found_dup:u8
+global first_dup:u32
+global decbuf:[u8;12]
+global bit_tab:[u8;8] = [1,2,4,8,16,32,64,128]
+// Interpolation boundaries in the pinned module_template.rb literal
+// (SHA256 8037f85a1c92cc32e494ba6b62a70be99fae5de041050addbf05844b7e254ad6,
+// 4004 bytes): literal ranges [0,45) [45,76) [76,156) [156,178) [178,197)
+// [197,4004) with title/date/play_order/arglist/ornaments_txt interpolated
+// between them.
+global tpl_b:[u32;6] = [45,76,156,178,197,4004]
+
+fun read_exact(h:u8, want:u16, errcode:u16) {
+    var got:u16 = 0
+    while got < want {
+        let n:u16 = file_read(h, u16(&chunk[got]), u8(want-got))
+        if n == 0 { if fault == 0 { fault = errcode } return }
+        got = got + n
+    }
+}
+fun next_row()->u8 {
+    if feed_eof != 0 { return 0 }
+    row_len = 0
+    var done:u8 = 0
+    while done == 0 {
+        if feed_pos >= feed_len {
+            feed_pos = 0
+            feed_len = file_read(0, u16(&feedbuf[0]), 255)
+            if feed_len == 0 { feed_eof = 1 }
+        }
+        if feed_eof != 0 {
+            if row_len == 0 { return 0 }
+            if fault == 0 { fault = 961 }
+            return 0
+        }
+        let b:u8 = feedbuf[feed_pos]
+        feed_pos = feed_pos + 1
+        if b == 10 { done = 1 } else {
+            if row_len >= 255 { if fault == 0 { fault = 971 } return 0 }
+            row_buf[row_len] = b
+            row_len = row_len + 1
+        }
+    }
+    return 1
+}
+fun load_row(at:u32) {
+    let at4:u32 = at*4
+    if file_seek(10, u16(at4), u8(at4 >> 16)) != 0 { if fault == 0 { fault = 966 } return }
+    read_exact(10, 4, 967)
+    if fault != 0 { return }
+    let off:u32 = chunk_dword(0)
+    if file_seek(0, u16(off), u8(off >> 16)) != 0 { if fault == 0 { fault = 966 } return }
+    feed_pos = 0
+    feed_len = 0
+    feed_eof = 0
+    if next_row() == 0 { if fault == 0 { fault = 960 } return }
+}
+fun index_rows(size:u32) {
+    if file_seek(0, 0, 0) != 0 { if fault == 0 { fault = 966 } return }
+    if file_seek(10, 0, 0) != 0 { if fault == 0 { fault = 966 } return }
+    feed_pos = 0
+    feed_len = 0
+    feed_eof = 0
+    var count:u32 = 0
+    var off:u32 = 0
+    var more:u8 = 1
+    while more == 1 {
+        if next_row() == 0 {
+            if fault != 0 { return }
+            more = 0
+        } else {
+            orec[0] = u8(off)
+            orec[1] = u8(off >> 8)
+            orec[2] = u8(off >> 16)
+            orec[3] = u8(off >> 24)
+            if file_write(10, u16(&orec[0]), 4) != 0 { if fault == 0 { fault = 902 } return }
+            off = off + u32(row_len) + 1
+            if off >= 16777216 { fault = 982 return }
+            count = count + 1
+        }
+    }
+    if count != size { fault = 981 }
+}
+fun digest_byte(b:u8) {
+    if digest_mode != 0 { return }
+    pat_digest = ((pat_digest << 1) | (pat_digest >> 31)) + u32(b)
+}
+fun spool_chunk(amount:u16) {
+    if amount == 0 { return }
+    if spool_len >= 16777216 { if fault == 0 { fault = 976 } return }
+    if file_write(3, u16(&chunk[0]), u8(amount)) != 0 { if fault == 0 { fault = 902 } return }
+    spool_len = spool_len + u32(amount)
+}
+fun spool_row() {
+    if spool_len >= 16777216 { if fault == 0 { fault = 976 } return }
+    if row_len > 0 {
+        if file_write(3, u16(&row_buf[0]), u8(row_len)) != 0 { if fault == 0 { fault = 902 } return }
+        spool_len = spool_len + u32(row_len)
+    }
+    chunk[0] = 10
+    spool_chunk(1)
+    var j:u16 = 0
+    while j < row_len {
+        digest_byte(row_buf[j])
+        j = j + 1
+    }
+    digest_byte(10)
+    pat_length = pat_length + u32(row_len) + 1
+}
+fun chunk_word(at:u8)->u16 {
+    return u16(chunk[at]) | (u16(chunk[u16(at)+1]) << 8)
+}
+fun chunk_dword(at:u8)->u32 {
+    return u32(chunk[at]) | (u32(chunk[u16(at)+1]) << 8) |
+        (u32(chunk[u16(at)+2]) << 16) | (u32(chunk[u16(at)+3]) << 24)
+}
+fun ranges_equal(a:u32, b:u32, len:u32)->u8 {
+    if len == 0 { return 1 }
+    var aa:u32 = a
+    var bb:u32 = b
+    var remaining:u32 = len
+    var equal:u8 = 1
+    while remaining > 0 && equal == 1 {
+        var take:u32 = 255
+        if remaining < take { take = remaining }
+        if file_seek(8, u16(aa), u8(aa >> 16)) != 0 { if fault == 0 { fault = 966 } return 0 }
+        read_exact(8, u16(take), 965)
+        if fault != 0 { return 0 }
+        var j:u16 = 0
+        while j < u16(take) { cmpbuf[j] = chunk[j]
+        j = j + 1 }
+        if file_seek(8, u16(bb), u8(bb >> 16)) != 0 { if fault == 0 { fault = 966 } return 0 }
+        read_exact(8, u16(take), 965)
+        if fault != 0 { return 0 }
+        j = 0
+        while j < u16(take) && equal == 1 {
+            if chunk[j] != cmpbuf[j] { equal = 0 }
+            j = j + 1
+        }
+        aa = aa + take
+        bb = bb + take
+        remaining = remaining - take
+    }
+    return equal
+}
+fun find_duplicate() {
+    found_dup = 0
+    if file_seek(4, 0, 0) != 0 { if fault == 0 { fault = 966 } return }
+    var rec:u32 = 0
+    while rec < index_count && found_dup == 0 {
+        read_exact(4, 16, 963)
+        if fault != 0 { return }
+        let rid:u32 = chunk_dword(0)
+        let rlen:u32 = chunk_dword(4)
+        let roff:u32 = chunk_dword(8)
+        let rdig:u32 = chunk_dword(12)
+        if rdig == pat_digest && rlen == pat_length {
+            if ranges_equal(roff, pat_begin, pat_length) == 1 {
+                first_dup = rid
+                found_dup = 1
+            }
+        }
+        rec = rec + 1
+    }
+}
+fun finish_pattern() {
+    rec16[0] = u8(index_count)
+    rec16[1] = u8(index_count >> 8)
+    rec16[2] = u8(index_count >> 16)
+    rec16[3] = u8(index_count >> 24)
+    rec16[4] = u8(pat_length)
+    rec16[5] = u8(pat_length >> 8)
+    rec16[6] = u8(pat_length >> 16)
+    rec16[7] = u8(pat_length >> 24)
+    rec16[8] = u8(pat_begin)
+    rec16[9] = u8(pat_begin >> 8)
+    rec16[10] = u8(pat_begin >> 16)
+    rec16[11] = u8(pat_begin >> 24)
+    rec16[12] = u8(pat_digest)
+    rec16[13] = u8(pat_digest >> 8)
+    rec16[14] = u8(pat_digest >> 16)
+    rec16[15] = u8(pat_digest >> 24)
+    if file_write(4, u16(&rec16[0]), 16) != 0 { if fault == 0 { fault = 902 } return }
+    var order:u32 = index_count
+    if found_dup != 0 { order = first_dup }
+    orec[0] = u8(order)
+    orec[1] = u8(order >> 8)
+    orec[2] = u8(order >> 16)
+    orec[3] = u8(order >> 24)
+    if file_write(5, u16(&orec[0]), 4) != 0 { if fault == 0 { fault = 902 } return }
+    if use_out_bits == 8 {
+        if file_write(6, u16(&use_out_byte), 1) != 0 { if fault == 0 { fault = 902 } return }
+        use_out_byte = 0
+        use_out_bits = 0
+    }
+    if found_dup == 0 { use_out_byte = use_out_byte | bit_tab[use_out_bits] }
+    use_out_bits = use_out_bits + 1
+    index_count = index_count + 1
+}
+fun meta_phase() {
+    read_exact(1, 2, 967)
+    if fault != 0 { return }
+    title_len = chunk_word(0)
+    if title_len > 255 { fault = 974 return }
+    read_exact(1, title_len, 967)
+    if fault != 0 { return }
+    var j:u16 = 0
+    while j < title_len { title_buf[j] = chunk[j]
+    j = j + 1 }
+    read_exact(1, 2, 967)
+    if fault != 0 { return }
+    date_len = chunk_word(0)
+    if date_len > 15 { fault = 974 return }
+    read_exact(1, date_len, 967)
+    if fault != 0 { return }
+    j = 0
+    while j < date_len { date_buf[j] = chunk[j]
+    j = j + 1 }
+    read_exact(1, 2, 967)
+    if fault != 0 { return }
+    arglist_len = chunk_word(0)
+    if arglist_len > 255 { fault = 974 return }
+    read_exact(1, arglist_len, 967)
+    if fault != 0 { return }
+    j = 0
+    while j < arglist_len { arglist_buf[j] = chunk[j]
+    j = j + 1 }
+}
+fun orn_phase() {
+    orn_count = 0
+    read_exact(2, 2, 967)
+    if fault != 0 { return }
+    let total:u16 = chunk_word(0)
+    var r:u16 = 0
+    while r < total {
+        read_exact(2, 6, 967)
+        if fault != 0 { return }
+        let ident:u32 = chunk_dword(0)
+        let tlen:u16 = chunk_word(4)
+        if tlen > 4096 { fault = 975 return }
+        var slot:u8 = 255
+        var j:u8 = 0
+        while j < orn_count {
+            if orn_ids[j] == ident { slot = j }
+            j = j + 1
+        }
+        if slot == 255 {
+            if orn_count >= 64 { fault = 972 return }
+            slot = orn_count
+            orn_count = orn_count + 1
+            orn_ids[slot] = ident
+        }
+        orn_offs[slot] = spool_len
+        orn_lens[slot] = tlen
+        var remaining:u32 = u32(tlen)
+        while remaining > 0 {
+            var take:u32 = 255
+            if remaining < take { take = remaining }
+            read_exact(2, u16(take), 967)
+            if fault != 0 { return }
+            spool_chunk(u16(take))
+            if fault != 0 { return }
+            remaining = remaining - take
+        }
+        r = r + 1
+    }
+}
+fun split_phase(max_row:u32, pattern_size:u32, skip:i32, size:u32) {
+    var patterns:u32 = max_row / pattern_size
+    if max_row % pattern_size == 0 { patterns = patterns + 1 }
+    var i:u32 = 0
+    while i < patterns {
+        let start:i32 = skip + i32(i)*i32(pattern_size)
+        var valid:u8 = 1
+        let size_i:i32 = i32(size)
+        let neg_size:i32 = 0 - size_i
+        if start > size_i { valid = 0 }
+        if start < neg_size { valid = 0 }
+        var real:i32 = start
+        if real < 0 { real = i32(size) + real }
+        var count:i32 = i32(pattern_size)
+        if real >= i32(size) { count = 0 } else {
+            let avail:i32 = i32(size) - real
+            if count > avail { count = avail }
+        }
+        pat_begin = spool_len
+        pat_length = 0
+        pat_digest = 0
+        if valid != 0 {
+            var r:u32 = 0
+            while r < u32(count) {
+                load_row(u32(real) + r)
+                if fault != 0 { return }
+                spool_row()
+                if fault != 0 { return }
+                r = r + 1
+            }
+        }
+        find_duplicate()
+        if fault != 0 { return }
+        finish_pattern()
+        if fault != 0 { return }
+        i = i + 1
+    }
+}
+fun sort_ornaments() {
+    var i:u8 = 1
+    while i < orn_count {
+        let kid:u32 = orn_ids[i]
+        let klen:u16 = orn_lens[i]
+        let koff:u32 = orn_offs[i]
+        var j:i16 = i16(i) - 1
+        var moved:u8 = 1
+        while moved == 1 {
+            if j < 0 { moved = 0 } else {
+                if orn_ids[u8(j)] > kid {
+                    orn_ids[u8(j)+1] = orn_ids[u8(j)]
+                    orn_lens[u8(j)+1] = orn_lens[u8(j)]
+                    orn_offs[u8(j)+1] = orn_offs[u8(j)]
+                    j = j - 1
+                } else { moved = 0 }
+            }
+        }
+        let at:u8 = u8(j + 1)
+        orn_ids[at] = kid
+        orn_lens[at] = klen
+        orn_offs[at] = koff
+        i = i + 1
+    }
+}
+fun out_chunk(amount:u16) {
+    if amount == 0 { return }
+    if file_write(7, u16(&chunk[0]), u8(amount)) != 0 { if fault == 0 { fault = 902 } return }
+}
+fun out_byte(b:u8) {
+    chunk[0] = b
+    out_chunk(1)
+}
+fun out_u32(v:u32) {
+    var n:u8 = 0
+    var x:u32 = v
+    var done:u8 = 0
+    while done == 0 {
+        decbuf[u16(n)] = u8(48 + u8(x % 10))
+        n = n + 1
+        x = x / 10
+        if x == 0 { done = 1 }
+    }
+    while n > 0 { n = n - 1
+    out_byte(decbuf[u16(n)]) }
+}
+fun tpl_copy(from:u32, to:u32) {
+    if to <= from { return }
+    if file_seek(9, u16(from), u8(from >> 16)) != 0 { if fault == 0 { fault = 966 } return }
+    var remaining:u32 = to - from
+    while remaining > 0 {
+        var take:u32 = 255
+        if remaining < take { take = remaining }
+        read_exact(9, u16(take), 967)
+        if fault != 0 { return }
+        out_chunk(u16(take))
+        if fault != 0 { return }
+        remaining = remaining - take
+    }
+}
+fun play_order_out() {
+    if index_count == 0 { return }
+    out_byte(76)
+    if file_seek(5, 0, 0) != 0 { if fault == 0 { fault = 966 } return }
+    var k:u32 = 0
+    while k < index_count {
+        read_exact(5, 4, 967)
+        if fault != 0 { return }
+        if k > 0 { out_byte(44) }
+        out_u32(chunk_dword(0))
+        k = k + 1
+    }
+}
+fun copy_spool(off:u32, len:u32) {
+    if len == 0 { return }
+    if file_seek(8, u16(off), u8(off >> 16)) != 0 { if fault == 0 { fault = 966 } return }
+    var remaining:u32 = len
+    while remaining > 0 {
+        var take:u32 = 255
+        if remaining < take { take = remaining }
+        read_exact(8, u16(take), 965)
+        if fault != 0 { return }
+        out_chunk(u16(take))
+        if fault != 0 { return }
+        remaining = remaining - take
+    }
+}
+fun ornaments_out() {
+    var i:u8 = 0
+    while i < orn_count {
+        if orn_ids[i] != 0 {
+            out_byte(10)
+            out_byte(91)
+            out_byte(79)
+            out_byte(114)
+            out_byte(110)
+            out_byte(97)
+            out_byte(109)
+            out_byte(101)
+            out_byte(110)
+            out_byte(116)
+            out_u32(orn_ids[i])
+            out_byte(93)
+            out_byte(10)
+            copy_spool(orn_offs[i], u32(orn_lens[i]))
+            if fault != 0 { return }
+            out_byte(10)
+        }
+        i = i + 1
+    }
+}
+fun patterns_out() {
+    if file_seek(6, 0, 0) != 0 { if fault == 0 { fault = 966 } return }
+    use_r_bits = 8
+    use_r_byte = 0
+    if file_seek(4, 0, 0) != 0 { if fault == 0 { fault = 966 } return }
+    var i:u32 = 0
+    while i < index_count {
+        if use_r_bits == 8 {
+            read_exact(6, 1, 967)
+            if fault != 0 { return }
+            use_r_byte = chunk[0]
+            use_r_bits = 0
+        }
+        let used:u8 = use_r_byte & bit_tab[use_r_bits]
+        use_r_bits = use_r_bits + 1
+        read_exact(4, 16, 963)
+        if fault != 0 { return }
+        let rid:u32 = chunk_dword(0)
+        if rid != i { fault = 964 return }
+        let rlen:u32 = chunk_dword(4)
+        let roff:u32 = chunk_dword(8)
+        if used != 0 && rlen != 0 {
+            out_byte(10)
+            out_byte(91)
+            out_byte(80)
+            out_byte(97)
+            out_byte(116)
+            out_byte(116)
+            out_byte(101)
+            out_byte(114)
+            out_byte(110)
+            out_u32(i)
+            out_byte(93)
+            out_byte(10)
+            copy_spool(roff, rlen)
+            if fault != 0 { return }
+        }
+        i = i + 1
+    }
+}
+fun output_phase() {
+    tpl_copy(0, tpl_b[0])
+    if fault != 0 { return }
+    if title_len > 0 {
+        if file_write(7, u16(&title_buf[0]), u8(title_len)) != 0 { fault = 902 return }
+    }
+    tpl_copy(tpl_b[0], tpl_b[1])
+    if fault != 0 { return }
+    if date_len > 0 {
+        if file_write(7, u16(&date_buf[0]), u8(date_len)) != 0 { fault = 902 return }
+    }
+    tpl_copy(tpl_b[1], tpl_b[2])
+    if fault != 0 { return }
+    play_order_out()
+    if fault != 0 { return }
+    tpl_copy(tpl_b[2], tpl_b[3])
+    if fault != 0 { return }
+    if arglist_len > 0 {
+        if file_write(7, u16(&arglist_buf[0]), u8(arglist_len)) != 0 { fault = 902 return }
+    }
+    tpl_copy(tpl_b[3], tpl_b[4])
+    if fault != 0 { return }
+    ornaments_out()
+    if fault != 0 { return }
+    tpl_copy(tpl_b[4], tpl_b[5])
+    if fault != 0 { return }
+    out_byte(10)
+    if fault != 0 { return }
+    patterns_out()
+}
+fun vt2_run()->u16 {
+    fault = 0
+    spool_len = 0
+    index_count = 0
+    use_out_byte = 0
+    use_out_bits = 0
+    feed_pos = 0
+    feed_len = 0
+    feed_eof = 0
+    let max_row:u32 = u32(cfg_max_row[0]) | (u32(cfg_max_row[1]) << 8) |
+        (u32(cfg_max_row[2]) << 16) | (u32(cfg_max_row[3]) << 24)
+    let pattern_size:u32 = u32(cfg_pattern_size[0]) | (u32(cfg_pattern_size[1]) << 8) |
+        (u32(cfg_pattern_size[2]) << 16) | (u32(cfg_pattern_size[3]) << 24)
+    let skip_raw:u32 = u32(cfg_skip_lines[0]) | (u32(cfg_skip_lines[1]) << 8) |
+        (u32(cfg_skip_lines[2]) << 16) | (u32(cfg_skip_lines[3]) << 24)
+    let size:u32 = u32(cfg_row_count[0]) | (u32(cfg_row_count[1]) << 8) |
+        (u32(cfg_row_count[2]) << 16) | (u32(cfg_row_count[3]) << 24)
+    if pattern_size == 0 { fault = 973 return fault }
+    if pattern_size > 1048576 { fault = 977 return fault }
+    if max_row > 65567 { fault = 978 return fault }
+    if size > 65567 { fault = 980 return fault }
+    if skip_raw >> 30 == 2 { fault = 979 return fault }
+    let skip:i32 = i32(skip_raw)
+    meta_phase()
+    if fault != 0 { return fault }
+    orn_phase()
+    if fault != 0 { return fault }
+    index_rows(size)
+    if fault != 0 { return fault }
+    split_phase(max_row, pattern_size, skip, size)
+    if fault != 0 { return fault }
+    if use_out_bits > 0 {
+        if file_write(6, u16(&use_out_byte), 1) != 0 { fault = 902 return fault }
+        use_out_bits = 0
+    }
+    sort_ornaments()
+    output_phase()
+    if fault != 0 { return fault }
+    return fault
+}
+
+@extern(0x0008) fun file_read(@z80_c handle:u8,@z80_de dest:u16,@z80_b len:u8)->u16
+@extern(0x0010) fun file_write(@z80_c handle:u8,@z80_de src:u16,@z80_b len:u8)->u8
+@extern(0x0018) fun file_seek(@z80_c handle:u8,@z80_de pos:u16,@z80_b page:u8)->u8

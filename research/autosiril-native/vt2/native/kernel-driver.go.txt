@@ -1,0 +1,145 @@
+// go:build ignore
+type vt2Case struct {
+	Name     string `json:"name"`
+	Config   struct {
+		MaxRow      uint32 `json:"max_row"`
+		PatternSize uint32 `json:"pattern_size"`
+		SkipLines   int32  `json:"skip_lines"`
+		RowCount    uint32 `json:"row_count"`
+		DigestMode  uint8  `json:"digest_mode"`
+	} `json:"config"`
+	Rows         []byte `json:"rows"`
+	Meta         []byte `json:"meta"`
+	Orn          []byte `json:"orn"`
+	ExpectFault  uint16 `json:"expect_fault"`
+	Expect       struct {
+		Patterns  uint32 `json:"patterns"`
+		PlayOrder string `json:"play_order"`
+		Use       []bool `json:"use"`
+		Wet       []uint32 `json:"wet"`
+		File      []byte `json:"file"`
+	} `json:"expect"`
+}
+type hfile struct {
+	data *[]byte
+	pos  int
+}
+func main(){
+ root:=flag.String("root","","repository root");source:=flag.String("source","","Nanz source");input:=flag.String("input","","case matrix");template:=flag.String("template","","template literal file");out:=flag.String("out","","new output")
+ flag.Parse();check(os.MkdirAll(*out,0755))
+ build:=func()*hir.Module{h,e:=nanz.ParseWithOpts(string(read(*source)),"vt2-kernel",nanz.ParseOpts{StdlibDir:filepath.Join(*root,"stdlib")});check(e);return h}
+ raw:=hir.LowerModule(build());check(mir2.Verify(raw));opts:=pipeline.DefaultOptions();opts.AssertMode="none";opts.DisableVariantSearch=true
+ steps,e:=pipeline.CompileHIRSteps(build(),opts);check(e)
+ assembly:="ORG 0x100\nLD SP,0xeffe\nCALL vt2_run\nHALT\n"+steps.Assembly
+ a,e:=z80asm.NewAssembler().AssembleString(assembly);check(e);if len(a.Errors)!=0{panic(a.Errors)};if origin+len(a.Binary)+64>=floor{panic("image overlap")}
+ for name,b:=range map[string][]byte{"program.a80":[]byte(assembly),"program.com":a.Binary,"raw.mir":[]byte(raw.Dump()),"final.mir":[]byte(steps.MIR2Module.Dump())}{check(os.WriteFile(filepath.Join(*out,name),b,0644))}
+ tpl:=read(*template)
+ var matrix struct{Cases []vt2Case `json:"cases"`};check(json.Unmarshal(read(*input),&matrix));if len(matrix.Cases)==0{panic("empty matrix")}
+ rows:=[]map[string]any{}
+ for _,tc:=range matrix.Cases{for index,engine:=range []string{"raw-mir2","final-mir2","z80"}{
+  dir:=filepath.Join(*out,tc.Name,engine);check(os.MkdirAll(dir,0755))
+  spool:=[]byte{}
+  files:=map[byte]*hfile{}
+  for h,share:=range map[byte]*[]byte{0:&tc.Rows,1:&tc.Meta,2:&tc.Orn,3:&spool,4:new([]byte),5:new([]byte),6:new([]byte),7:new([]byte),8:&spool,9:&tpl,10:new([]byte)}{
+   if h==3||h==8{continue};d:=make([]byte,len(*share));copy(d,*share);files[byte(h)]=&hfile{data:&d}
+  }
+  files[3]=&hfile{data:&spool};files[8]=&hfile{data:&spool}
+  for h:=range files{if h>10{panic("handle range")}}
+  var memread func(int64,int)[]byte;var memwrite func(int64,byte);var returned uint16
+  reads,writes,seeks:=0,0,0
+  hostRead:=func(h byte,at uint16,want byte)uint16{
+   f,ok:=files[h];if !ok{panic("invalid read handle")};reads++
+   if f.pos>=len(*f.data){return 0}
+   count:=len(*f.data)-f.pos;if count>int(want){count=int(want)}
+   for j:=0;j<count;j++{memwrite(int64(at)+int64(j),(*f.data)[f.pos+j])}
+   f.pos+=count;return uint16(count)
+  }
+  hostWrite:=func(h byte,at uint16,length byte)uint8{
+   f,ok:=files[h];if !ok{panic("invalid write handle")};writes++
+   n:=f.pos+int(length)-len(*f.data);if n>0{*f.data=append(*f.data,make([]byte,n)...)}
+   for j:=0;j<int(length);j++{(*f.data)[f.pos+j]=memread(int64(at)+int64(j),1)[0]}
+   f.pos+=int(length);return 0
+  }
+  hostSeek:=func(h byte,pos int)uint8{
+   f,ok:=files[h];if !ok{panic("invalid seek handle")};seeks++
+   if pos<0||pos>=1<<24{panic("seek range")};f.pos=pos;return 0
+  }
+  config:=map[string][]byte{
+   "cfg_max_row":{byte(tc.Config.MaxRow),byte(tc.Config.MaxRow>>8),byte(tc.Config.MaxRow>>16),byte(tc.Config.MaxRow>>24)},
+   "cfg_pattern_size":{byte(tc.Config.PatternSize),byte(tc.Config.PatternSize>>8),byte(tc.Config.PatternSize>>16),byte(tc.Config.PatternSize>>24)},
+   "cfg_skip_lines":{byte(tc.Config.SkipLines),byte(tc.Config.SkipLines>>8),byte(tc.Config.SkipLines>>16),byte(tc.Config.SkipLines>>24)},
+   "cfg_row_count":{byte(tc.Config.RowCount),byte(tc.Config.RowCount>>8),byte(tc.Config.RowCount>>16),byte(tc.Config.RowCount>>24)},
+   "digest_mode":{tc.Config.DigestMode}}
+  var get func(string,int,int)[]byte;cycles,stack:=0,0
+  if index<2{
+   m:=raw;if index==1{m=steps.MIR2Module};v:=mir2.NewVM(m);v.MaxMemory=65536;v.MaxSteps=1000000000
+   get=func(name string,at,n int)[]byte{return v.ReadHeap(v.GlobalAddr(name)+int64(at),n)};memread=v.ReadHeap;memwrite=v.WriteHeap
+   for name,b:=range config{for j,value:=range b{v.WriteHeap(v.GlobalAddr(name)+int64(j),value)}}
+   host:=func(fn byte)func([]mir2.Value)([]mir2.Value,error){return func(args []mir2.Value)([]mir2.Value,error){
+    if len(args)!=3{panic("trap arity")};h:=byte(args[0].I);at:=uint16(args[1].I);n:=byte(args[2].I)
+    if fn==8{return []mir2.Value{{I:int64(hostRead(h,at,n))}},nil}
+    if fn==16{return []mir2.Value{{I:int64(hostWrite(h,at,n))}},nil}
+    return []mir2.Value{{I:int64(hostSeek(h,int(at)|(int(n)<<16)))}},nil}}
+   for name,fn:=range map[string]byte{"file_read":8,"file_write":16,"file_seek":24}{f:=fn;h:=host(f);v.Hosts[name]=h;v.Hosts["@"+name]=h}
+   r,e:=v.Call("vt2_run",nil);check(e);if len(r)!=1{panic("invalid VM return")};returned=uint16(r[0].I)
+  }else{
+   z:=emulator.NewRemogattoZ80WithScreen();z.Hooks.OnRST08=nil;z.Hooks.OnRST10=nil;z.Hooks.OnRST18=nil;z.Hooks.OnRST20=nil;z.SetROMEnd(0);mem:=z.Memory();for i:=range mem{mem[i]=0xa5};copy(mem[origin:],a.Binary)
+   for name,b:=range config{copy(mem[a.Symbols[name]:],b)}
+   memread=func(at int64,n int)[]byte{return mem[int(at):int(at)+n]};memwrite=func(at int64,b byte){z.WriteMemory(uint16(at),b)}
+   get=func(name string,off,n int)[]byte{at:=a.Symbols[name]+off;return mem[at:at+n]}
+   mem[initialSP]=byte(returnPC&255);mem[initialSP+1]=byte(returnPC>>8);z.SetRegisters(emulator.Registers{PC:uint16(a.Symbols["vt2_run"]),SP:initialSP})
+   p:=emulator.NewProfiler();z.SetProfiler(p);minSP:=uint16(initialSP)
+   for count:=0;z.GetPC()!=returnPC;count++{
+    if count>=1000000000{panic("instruction limit")};if z.GetIFF1()||z.GetIFF2(){panic("IRQ enabled")};pc:=z.GetPC()
+    if pc!=8&&pc!=16&&pc!=24&&(int(pc)<origin||int(pc)>=origin+len(a.Binary)){panic("PC outside image/traps")}
+    if pc==8||pc==16||pc==24{
+     r:=z.GetRegisters();h:=byte(r.BC&255);at:=r.DE;n:=byte(r.BC>>8);var val uint16
+     if pc==8{val=hostRead(h,at,n)}else if pc==16{val=uint16(hostWrite(h,at,n))}else{val=uint16(hostSeek(h,int(at)|(int(n)<<16)))}
+     r.A=byte(val);r.HL=val;r.PC=binary.LittleEndian.Uint16(mem[r.SP:r.SP+2]);r.SP+=2;z.SetRegisters(r)
+    }else{z.Step()}
+    if z.GetSP()<minSP{minSP=z.GetSP()};if z.GetSP()<floor{panic("stack floor")}
+   }
+   if z.GetSP()!=initialSP+2||z.GetIFF1()||z.GetIFF2(){panic("return contract")};returned=z.GetRegisters().HL;cycles=z.GetCycles();stack=int(initialSP-minSP)
+   allowed:=make([]bool,65536)
+   for _,g:=range steps.MIR2Module.Globals{at,ok:=a.Symbols[g.Name];if !ok||g.At!=nil||at<origin||at+mir2.ByteWidth(g.Ty)>origin+len(a.Binary){panic("invalid global")};for j:=0;j<mir2.ByteWidth(g.Ty);j++{allowed[at+j]=true}}
+   for _,s:=range backendSpills(steps.Assembly,a.Symbols,a.Binary){for j:=0;j<s.Bytes;j++{allowed[s.Address+j]=true}}
+   for at:=floor;at<initialSP;at++{allowed[at]=true}
+   for at,w:=range p.WriteCount{if w!=0&&!allowed[at]{panic(fmt.Sprintf("write outside storage %04x",at))};if allowed[at]&&at<floor&&p.ExecCount[at]!=0{panic("executed data")}}
+   for name,b:=range config{for j:=range b{if p.WriteCount[a.Symbols[name]+j]!=0{panic("config write")}}}
+   if len(p.IORead)!=0||len(p.IOWrite)!=0{panic("unexpected ports")}
+   for _,span:=range [][2]int{{origin-64,origin},{origin+len(a.Binary),origin+len(a.Binary)+64},{floor-64,floor}}{for at:=span[0];at<span[1];at++{if mem[at]!=0xa5{panic("canary")}}}
+  }
+  if uint16(binary.LittleEndian.Uint16(get("fault",0,2)))!=tc.ExpectFault{panic(fmt.Sprintf("%s/%s fault%d want%d",tc.Name,engine,binary.LittleEndian.Uint16(get("fault",0,2)),tc.ExpectFault))}
+  if returned!=tc.ExpectFault{panic(fmt.Sprintf("%s/%s return%d",tc.Name,engine,returned))}
+  row:=map[string]any{"case":tc.Name,"engine":engine,"file_reads":reads,"file_writes":writes,"file_seeks":seeks,"t_states":cycles,"stack_bytes":stack}
+  if tc.ExpectFault==0{
+   outFile:=*files[7].data
+   if !bytes.Equal(outFile,tc.Expect.File){panic(fmt.Sprintf("%s/%s output mismatch got%d want%d",tc.Name,engine,len(outFile),len(tc.Expect.File)))}
+   orderData:=*files[5].data;indexData:=*files[4].data;useData:=*files[6].data
+   if len(indexData)!=int(tc.Expect.Patterns)*16{panic(fmt.Sprintf("%s/%s index size",tc.Name,engine))}
+   if len(orderData)!=int(tc.Expect.Patterns)*4{panic(fmt.Sprintf("%s/%s order size",tc.Name,engine))}
+   var play string
+   if tc.Expect.Patterns>0{play="L";for k:=0;k<int(tc.Expect.Patterns);k++{if k>0{play+=","};play+=fmt.Sprint(binary.LittleEndian.Uint32(orderData[k*4:]))}}
+   if play!=tc.Expect.PlayOrder{panic(fmt.Sprintf("%s/%s play order %q want %q",tc.Name,engine,play,tc.Expect.PlayOrder))}
+   if len(tc.Expect.Use)>0{
+    want:=make([]bool,len(tc.Expect.Use))
+    for i,flag:=range tc.Expect.Use{want[i]=flag}
+    got:=make([]bool,len(want))
+    for i:=range got{got[i]=useData[i/8]>>(uint(i)%8)&1==1}
+    for i:=range got{if got[i]!=want[i]{panic(fmt.Sprintf("%s/%s use flag %d",tc.Name,engine,i))}}
+   }
+   if len(tc.Expect.Wet)>0{for i,wantWet:=range tc.Expect.Wet{if binary.LittleEndian.Uint32(indexData[i*16+4:])!=wantWet{panic(fmt.Sprintf("%s/%s wet size %d",tc.Name,engine,i))}}}
+   check(os.WriteFile(filepath.Join(dir,"output.vt2"),outFile,0644))
+   check(os.WriteFile(filepath.Join(dir,"order.bin"),orderData,0644))
+   check(os.WriteFile(filepath.Join(dir,"use.bin"),useData,0644))
+   check(os.WriteFile(filepath.Join(dir,"index.bin"),indexData,0644))
+   check(os.WriteFile(filepath.Join(dir,"spool.bin"),*files[3].data,0644))
+   row["out_bytes"]=len(outFile);row["out_sha256"]=hash(outFile);row["patterns"]=tc.Expect.Patterns
+  }
+  rows=append(rows,row)
+  fmt.Printf("PASS %s/%s reads%d writes%d seeks%d\n",tc.Name,engine,reads,writes,seeks)
+ }}
+ globals,spills:=0,0;for _,g:=range steps.MIR2Module.Globals{globals+=mir2.ByteWidth(g.Ty)};for _,s:=range backendSpills(steps.Assembly,a.Symbols,a.Binary){spills+=s.Bytes}
+ proof:=map[string]any{"protocol":"autosiril-vt2-native-kernel/v1","scope":"original Ruby Step9/10/11 (split/dedup/play order, ornaments, template output) on raw/final MIR2 and assembled Z80 with generic byte-file traps; not independently linked file IO, no CP/M/TRD transport","source_sha256":hash(read(*source)),"matrix_sha256":hash(read(*input)),"template_sha256":hash(tpl),"binary_sha256":hash(a.Binary),"image_bytes":len(a.Binary),"globals_bytes":globals,"spill_bytes":spills,"code_bytes":len(a.Binary)-globals-spills,"cases":rows}
+ b,e:=json.MarshalIndent(proof,"","  ");check(e);check(os.WriteFile(filepath.Join(*out,"receipt.json"),append(b,'\n'),0644))
+}
