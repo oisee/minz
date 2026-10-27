@@ -164,7 +164,7 @@ def main():
 
     mutants = {
         'accept_duplicate': (base_source.replace(
-            'if lane_seen[index] != 0 && row <= lane_previous[index]', 
+            'if lane_seen[index] != 0 && row <= lane_previous[index]',
             'if lane_seen[index] != 0 && row < lane_previous[index]'), duplicate),
         'accept_capacity_overflow': (base_source.replace(
             'if source_total >= 9216', 'if source_total > 9216'), capacity),
