@@ -1,0 +1,76 @@
+// Positive full Chronos experiment; full malformed/resource/IO matrix follows.
+func main() {
+ root:=flag.String("root","..","repository root")
+ source:=flag.String("source","","composed arrangement source")
+ disk:=flag.String("disk","","saved native flatten TRD")
+ expected:=flag.String("expected","","independent Ruby arrangement wire")
+ out:=flag.String("out","","output directory")
+ flag.Parse()
+ check(os.MkdirAll(*out,0755))
+ fixtures:=filepath.Join(*root,"research/autosiril-native/midi/fixtures")
+ buildOne:=func()*hir.Module{h,e:=build(read(*source),read(filepath.Join(fixtures,"music.lanz")),read(filepath.Join(fixtures,"music-manifest.json")),filepath.Join(*root,"stdlib"));check(e);return h}
+ raw:=hir.LowerModule(buildOne());check(mir2.Verify(raw))
+ opts:=pipeline.DefaultOptions();opts.AssertMode="none";opts.DisableVariantSearch=true
+ steps,e:=pipeline.CompileHIRSteps(buildOne(),opts);check(e)
+ for name,b:=range map[string][]byte{"raw.mir":[]byte(raw.Dump()),"final.mir":[]byte(steps.MIR2Module.Dump()),"unlinked.a80":[]byte(steps.Assembly)}{check(os.WriteFile(filepath.Join(*out,name),b,0644))}
+ base,e:=formats.LoadTRD(*disk);check(e)
+ input:=base.FindFile("EVENTS",'E');if input==nil||len(base.ReadFile(input))!=12939{panic("missing full native EVENTS.E")}
+ rows:=[]map[string]any{}
+ for i,engine:=range []string{"raw-mir2","final-mir2","scorpion-z80"} {
+  d:=*base;d.Path=filepath.Join(*out,engine+".trd");d.Writeback=false
+  var get func(string,int)[]byte
+  var returned int64
+  calls,reads,writes,cycles,stack:=0,0,0,0,0
+  operations:=[]sectorOperation{}
+  var native map[string]any
+  if i<2 {
+   m:=raw;if i==1{m=steps.MIR2Module}
+   v:=mir2.NewVM(m);v.MaxMemory=65536;v.MaxSteps=1000000000
+   host:=func(args []mir2.Value)([]mir2.Value,error){
+    calls++;op,address,track,sector:=byte(args[0].I),args[1].I,int(args[2].I),int(args[3].I)
+    if (op!=5&&op!=6)||address!=v.GlobalAddr("input_chunk")||track<0||track>=160||sector<1||sector>16{panic("invalid sector request")}
+    operations=append(operations,sectorOperation{Call:calls,Op:op,Position:track*16+sector-1,Success:true})
+    if op==5{reads++;for j,b:=range d.ReadSector(track%80,track/80,sector-1){v.WriteHeap(address+int64(j),b)}}else{writes++;d.WriteSector(track%80,track/80,sector-1,v.ReadHeap(address,256))}
+    return []mir2.Value{{I:1}},nil
+   }
+   v.Hosts["trd_sector"]=host;v.Hosts["@trd_sector"]=host
+   r,e:=v.Call("disk_main",nil);check(e);if len(r)!=1{panic("invalid VM result")};returned=r[0].I
+   get=func(name string,n int)[]byte{return v.ReadHeap(v.GlobalAddr(name),n)}
+  } else {
+   n:=nativeStage(steps.Assembly,steps.MIR2Module,read(filepath.Join(*root,"research/autosiril-native/transports/trd-stub.a80")),&d,*out,0)
+   returned=int64(n.Returned);calls=n.Calls;cycles=n.Cycles;stack=n.Stack
+   operations=n.Operations
+   for _,op:=range n.Operations{if op.Op==5{reads++}else{writes++}}
+   get=func(name string,count int)[]byte{return n.Get(name,0,count)}
+   native=map[string]any{"image_bytes":n.ImageBytes,"code_and_stub_bytes":n.CodeBytes,"loaded_globals_bytes":n.GlobalsBytes,"static_spill_bytes":n.SpillBytes,"external_fixed_workspace_reserved_bytes":1536,"external_ornament_pool_bytes":4096,"bounce_bank_reserved_bytes":16384,"ornament_pool_writes_after_input_close":n.ArenaWrites}
+  }
+  word:=func(name string)uint16{return binary.LittleEndian.Uint16(get(name,2))}
+  if returned!=0||word("fault")!=0{panic(fmt.Sprintf("%s fault%d result%d",engine,word("fault"),returned))}
+  entry:=d.FindFile("ARRANGE",'A');if entry==nil{panic("missing arrangement output")}
+  actual,want:=d.ReadFile(entry),read(*expected)
+  if !bytes.Equal(actual,want){at:=0;for at<len(actual)&&at<len(want)&&actual[at]==want[at]{at++};panic(fmt.Sprintf("%s output differs at%d got%dB want%dB",engine,at,len(actual),len(want)))}
+  if word("lnote_count")!=2097||word("orn_count")!=8||word("orn_used")!=42||get("group_open",1)[0]!=0||get("input_open",1)[0]!=0||get("output_open",1)[0]!=0{panic("arrangement counters/cleanup differ")}
+  start:=int(base.Data[2048+226])*16+int(base.Data[2048+225])
+  sectors:=(len(actual)+255)/256
+  if int(entry.StartTrack)*16+int(entry.StartSec)!=start||int(entry.Sectors)!=sectors{panic("output extent differs")}
+  written:=[]int{}
+  for _,op:=range operations{if !op.Success{panic("unexpected failed operation")};if op.Op==6{written=append(written,op.Position)}}
+  if len(written)!=sectors+2{panic("output write count differs")}
+  for j:=0;j<sectors;j++{if written[j]!=start+j{panic("nonconsecutive output data")}}
+  if written[sectors]!=int(base.Data[2048+228])/16||written[sectors+1]!=8{panic("metadata publication order differs")}
+  if int(d.Data[2048+226])*16+int(d.Data[2048+225])!=start+sectors||binary.LittleEndian.Uint16(d.Data[2048+229:2048+231])!=binary.LittleEndian.Uint16(base.Data[2048+229:2048+231])-uint16(sectors)||d.Data[2048+228]!=base.Data[2048+228]+1{panic("free-space accounting differs")}
+  if tail:=len(actual)%256;tail!=0{pos:=start+sectors-1;track:=pos/16;for _,b:=range d.ReadSector(track%80,track/80,pos%16)[tail:]{if b!=0{panic("nonzero output sector padding")}}}
+  allowed:=make([]bool,len(d.Data))
+  for pos:=start;pos<start+sectors;pos++{track:=pos/16;at:=((track%80*2+track/80)*16+pos%16)*256;for j:=0;j<256;j++{allowed[at+j]=true}}
+  slot:=int(base.Data[2048+228])*16;for j:=0;j<16;j++{allowed[slot+j]=true}
+  for _,j:=range []int{225,226,228,229,230}{allowed[2048+j]=true}
+  for j,b:=range d.Data{if b!=base.Data[j]&&!allowed[j]{panic("disk write outside output extent and metadata")}}
+  check(d.Flush());reloaded,e:=formats.LoadTRD(d.Path);check(e);if reloaded.Data!=d.Data{panic("disk flush/reload differs")}
+  check(os.WriteFile(filepath.Join(*out,engine+"-arrange.bin"),actual,0644))
+  row:=map[string]any{"engine":engine,"lnote_count":word("lnote_count"),"ornament_count":word("orn_count"),"ornament_bytes":word("orn_used"),"wire_bytes":len(actual),"wire_sha256":hash(actual),"disk_sha256":hash(d.Data[:]),"operations":operations,"sector_calls":calls,"sector_reads":reads,"sector_writes":writes,"t_states":cycles,"stack_below_entry":stack}
+  if native!=nil{row["native"]=native};rows=append(rows,row)
+  fmt.Printf("PASS %s:2097 LNotes,8 ornaments/42B,full byte equality,%dB,%d sector calls\n",engine,len(actual),calls)
+ }
+ b,e:=json.MarshalIndent(map[string]any{"protocol":"autosiril-arrange-first-native/v1","source_sha256":hash(read(*source)),"input_disk_sha256":hash(read(*disk)),"expected_sha256":hash(read(*expected)),"cases":rows,"scope":"one full Chronos case on raw/final MIR2 and guarded native Scorpion via actual sector API traps; full malformed/resource/IO matrix and ROM/hardware remain pending"},"","  ");check(e)
+ check(os.WriteFile(filepath.Join(*out,"receipt.json"),append(b,'\n'),0644))
+}

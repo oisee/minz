@@ -1,0 +1,19 @@
+{
+  "scope": "analysis of saved native EVENTS.E groups against fresh full Ruby cells; not a native arrangement implementation",
+  "native_events_sha256": "f089c3c9231dd4708c1e37291eb2bb7b99d8c4e18fefd24ff4869b1a5dea4709",
+  "ruby_sha256": "c90e723ff15f9b121f07ff4880dc4c5881cf09a4faac7bd568676f0919abd825",
+  "events": 2153,
+  "cell_counts": [
+    771,
+    663,
+    663
+  ],
+  "group_size_histogram": {
+    "1": 2047,
+    "2": 48,
+    "4": 1,
+    "6": 1
+  },
+  "ornament_count": 8,
+  "ornament_bytes": 42
+}

@@ -140,6 +140,12 @@ dispatcher/stack regions from every load.
   matrix covers framing/resources, catalog and free-tail boundaries, sector
   failures and the non-atomic catalog/system publication window. Twenty-one
   native producer disks are read by separately linked second-stage images.
+- `research/autosiril-native/arrange/`: the third image groups the event stream
+  by channel/row, constructs LNotes and interns bounded ornament definitions.
+  ASIRv1 kind3 carries fixed16-byte tagged LNote/definition-fragment payloads.
+  Duplex staging keeps unread input and pending output separate from the
+  shared service buffer. The same musical core runs on CP/M and Scorpion TRD;
+  three independent CP/M images also run sequentially through saved files.
 - `research/autosiril-native/linked/`: the separate 40626-byte in-process path
   remains available. Its all-RAM layout is not the disk-service layout.
 
