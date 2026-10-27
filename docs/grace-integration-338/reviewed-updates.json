@@ -598,8 +598,8 @@
     "independent_model": "Independent Go map model checks returns, keys/values/used/count bytes and exact byte access",
     "boundary": "Named map entries with workload adapters; CP/M output main not executed.",
     "evidence": {
-      "minzc/pkg/pipeline/hashmap_program_test.go": "6e8766a1ee107548ddef9fc799c4db221c4b1959eda6add686cef9572d7e37fd",
-      "minzc/pkg/pipeline/profile_hashmap_heldout_test.go": "257e563b1b39a1b465b0e195ccbb1c3069940958c2e4d4c50bb271bac78ef364"
+      "minzc/pkg/pipeline/hashmap_program_test.go": "42ba994ca77d964ead22448cf92b911fe21fd68c38007bec527e6558b238b4c0",
+      "minzc/pkg/pipeline/profile_hashmap_heldout_test.go": "8234b5f610cc1caeece5a7aceb47850ae9d4fb15df21e85f2edf0d178e35e1bc"
     }
   },
   {

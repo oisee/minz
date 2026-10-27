@@ -448,8 +448,10 @@ func jointCheckFreshHIR(m *hir.Module, seen map[uintptr]any) error {
 
 // Execute unoptimised MIR2 independently of target code, preserving ordered
 // calls, resource resolution, globals, memory limits and cumulative VM gas.
+// The lowering keeps the memory idioms the target emits (LowerModuleForTraffic)
+// so the exact byte-traffic oracle models fill_bytes16's destination reloads.
 func jointRunRaw(m *hir.Module, w hir.ProfileWorkload) (*hir.ProfileRun, error) {
-	raw := hir.LowerModule(m)
+	raw := hir.LowerModuleForTraffic(m)
 	if err := mir2.Verify(raw); err != nil {
 		return nil, err
 	}

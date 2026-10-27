@@ -173,7 +173,11 @@ func TestHashmapMeasuredTrainingAndUnseenWorkload(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		baselineSteps, err := CompileHIRSteps(baselineModule, Options{AssertMode: "none"})
+		// The measured candidates compile with an applied ordered-byte-rw policy,
+		// which disables variant search; the baseline uses the same configuration so
+		// its binary is the all-original candidate rather than an independently
+		// searched program.
+		baselineSteps, err := CompileHIRSteps(baselineModule, Options{AssertMode: "none", DisableVariantSearch: true})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -204,8 +208,52 @@ func TestHashmapMeasuredTrainingAndUnseenWorkload(t *testing.T) {
 		for i, candidate := range result.Evidence.Candidates {
 			save(fmt.Sprintf("%s-candidate%d.bin", goal, i), candidate.Binary)
 		}
-		if selected.TotalTStates >= baseline.TotalTStates || len(result.Binary) >= len(baselineBIN.Binary) {
-			t.Fatal("frozen heldout program no longer improves both actual objectives")
+		// Frozen 2026-10-27 after O9 (fe3f327fb): byte-pair assembly made the
+		// original rd16/wr16 code as fast as the ordered-byte variants on this
+		// program, so the measured selection is the all-original candidate
+		// (heldout all-original 245106 -> 204318 T, both variants 228348/226638 ->
+		// 204318/215262 T) and a strict win over the baseline no longer exists.
+		// Kept, and re-aimed at the unseen workload: the selected program must be
+		// at least as good as the all-original baseline in both objectives, and no
+		// measured alternative may beat it on the selection's own goal when that
+		// alternative is itself measured on the heldout workload.
+		if selected.TotalTStates > baseline.TotalTStates || len(result.Binary) > len(baselineBIN.Binary) {
+			t.Fatal("frozen heldout program regressed against the all-original baseline")
+		}
+		for i, candidate := range result.Evidence.Candidates {
+			if i == result.Evidence.Selected {
+				continue
+			}
+			alternativeModule, err := factory()
+			if err != nil {
+				t.Fatal(err)
+			}
+			if err := hir.ApplyOrderedByteRWChoices(alternativeModule, result.Evidence.Compatibility, candidate.RequestedSites); err != nil {
+				t.Fatal(err)
+			}
+			alternativeSteps, err := CompileHIRSteps(alternativeModule, Options{AssertMode: "none", UseHIRGrace: true, OptSize: size, DisableVariantSearch: true})
+			if err != nil {
+				t.Fatal(err)
+			}
+			alternativeSource, err := factory()
+			if err != nil {
+				t.Fatal(err)
+			}
+			alternative, err := RunZ80ProfileWorkload(alternativeSteps, alternativeSource, heldout, *heldoutRaw)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if alternative.BinarySHA256 != candidate.BinarySHA256 {
+				t.Fatalf("heldout candidate%d is not the measured binary", i)
+			}
+			// Encoded size is a property of the binary, not of the workload.
+			better := alternative.TotalTStates < selected.TotalTStates
+			if goal == "size" {
+				better = candidate.ModuleBytes < len(result.Binary)
+			}
+			if better {
+				t.Fatalf("heldout contradicts the measured %s selection: candidate%d is better", goal, i)
+			}
 		}
 		save(goal+"-summary.json", map[string]any{"selected": result.Evidence.Selected, "training_calls": len(train.Calls), "heldout_calls": len(heldout.Calls), "baseline_bytes": len(baselineBIN.Binary), "selected_bytes": len(result.Binary), "training_baseline_t": result.Evidence.Candidates[0].TotalTStates, "training_selected_t": result.Evidence.Candidates[result.Evidence.Selected].TotalTStates, "heldout_baseline_t": baseline.TotalTStates, "heldout_selected_t": selected.TotalTStates, "selected_binary_sha256": selected.BinarySHA256})
 		t.Logf("%s selected%d training %d→%dT %d→%dB; heldout %d→%dT calls%d", goal, result.Evidence.Selected, result.Evidence.Candidates[0].TotalTStates, result.Evidence.Candidates[result.Evidence.Selected].TotalTStates, result.Evidence.Candidates[0].ModuleBytes, len(result.Binary), baseline.TotalTStates, selected.TotalTStates, len(heldout.Calls))
