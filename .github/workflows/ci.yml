@@ -222,6 +222,39 @@ jobs:
           path: ${{ runner.temp }}/autosiril-canonical6-fresh/
           retention-days: 7
           if-no-files-found: ignore
+      - name: Plan the sixth native stage (renderer) against original Ruby
+        env:
+          GEM_HOME: ${{ runner.temp }}/autosiril-gems
+        run: |
+          python3 research/autosiril-native/render/prove_planning.py \
+            --upstream "$RUNNER_TEMP/autosiril-mix-fresh" \
+            --autosiril .ci-reference/autosiril \
+            --out "$RUNNER_TEMP/autosiril-render/planning"
+      - name: Execute the CP/M renderer on actual kind5 files and the canonical six-COM chain
+        env:
+          GEM_HOME: ${{ runner.temp }}/autosiril-gems
+        run: |
+          python3 research/autosiril-native/render/prove_cpm.py \
+            --artifacts "$RUNNER_TEMP/autosiril-mix-fresh" \
+            --autosiril .ci-reference/autosiril \
+            --planning "$RUNNER_TEMP/autosiril-render/planning" \
+            --chain6 "$RUNNER_TEMP/autosiril-canonical6-fresh" \
+            --mze "$RUNNER_TEMP/mze-canonical6" \
+            --out "$RUNNER_TEMP/autosiril-render/cpm"
+      - name: Execute the TRD renderer on actual native TRD mix disks with failure guards
+        run: |
+          python3 research/autosiril-native/render/prove_trd.py \
+            --cpm-run "$RUNNER_TEMP/autosiril-render/cpm" \
+            --mix-trd "$RUNNER_TEMP/autosiril-mix-fresh/trd/measured" \
+            --out "$RUNNER_TEMP/autosiril-render/trd"
+      - name: Preserve renderer evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: autosiril-render-fresh
+          path: ${{ runner.temp }}/autosiril-render/
+          retention-days: 7
+          if-no-files-found: ignore
 
   native_mix_frozen:
     name: Frozen fifth native stage
