@@ -203,7 +203,7 @@ func (g *z80cg) genMul(inst *Inst) {
 //	2^n:     n × ADD HL,HL  (7T per shift)
 //	3,5,6,9,10,12: LD B,H / LD C,L + shift+add sequence
 //
-// Variable (software shift-and-add, Russian-peasant LSB-first, 16 iterations):
+// Variable (software shift-and-add, Russian-peasant LSB-first):
 //
 //	BC = multiplicand (lhs)
 //	DE = multiplier   (rhs)
@@ -219,6 +219,13 @@ func (g *z80cg) genMul(inst *Inst) {
 //
 // SRL D is independent of incoming carry, so ADD HL,BC's carry does not corrupt
 // the extraction.  Total: ~320T worst case.
+//
+// When the multiplier is provably a zero-extended byte (provablyBelow256), its
+// high byte is zero: iterations 9-16 always take the skip and contribute
+// nothing, so the loop runs 8 iterations instead. That body also relocates the
+// multiplier's low byte into A and the multiplicand into DE, freeing B as a
+// DJNZ counter (A = multiplier, DE = multiplicand, HL = result, B = 8) — the
+// layout of research/c89-benchmark/fusion/hand-asm/fusion_dot_product.a80.
 func (g *z80cg) genMul16(inst *Inst) {
 	// Query using the original instruction identity, before commutative staging
 	// makes a local copy. Include pair aliases and live operands, but not dst.
@@ -241,6 +248,24 @@ func (g *z80cg) genMul16(inst *Inst) {
 		copy := *inst
 		copy.Src[0], copy.Src[1] = inst.Src[1], inst.Src[0]
 		inst = &copy
+	}
+	// A proven byte multiplier halves the loop. Stage the proven operand as the
+	// shifting multiplier (rhs/DE). Constants take their own count from cv
+	// below. An HL-resident lhs must not become the rhs: staging the other
+	// operand into HL would destroy it before the multiplier load reads it.
+	byteMultiplier := false
+	if _, lhsConst := g.constVals[inst.Src[0]]; !lhsConst {
+		if _, rhsConst := g.constVals[inst.Src[1]]; !rhsConst {
+			if g.provablyBelow256(inst.Src[1], inst.Ty.Width(), make(map[Reg]bool)) {
+				byteMultiplier = true
+			} else if loc := g.loc(inst.Src[0]); loc != "HL" && loc != "H" && loc != "L" &&
+				g.provablyBelow256(inst.Src[0], inst.Ty.Width(), make(map[Reg]bool)) {
+				copy := *inst
+				copy.Src[0], copy.Src[1] = inst.Src[1], inst.Src[0]
+				inst = &copy
+				byteMultiplier = true
+			}
+		}
 	}
 	dst := g.loc(inst.Dst)
 	lhs := g.loc(inst.Src[0])
@@ -412,18 +437,49 @@ func (g *z80cg) genMul16(inst *Inst) {
 	//   BC = multiplicand (lhs, copied from HL)
 	//   DE = multiplier   (rhs)
 	//   HL = result = 0
-	//   A  = iteration counter (16)
+	//   A  = iteration counter (16, or 8 for a proven byte multiplier)
 	rhs := g.loc(inst.Src[1])
+	iterations := 16
+	if isConst {
+		// The constant's own bits above bit 7 decide, not the value's magnitude.
+		if cv&0xFFFF < 256 {
+			iterations = 8
+		}
+	} else if byteMultiplier {
+		iterations = 8
+	}
 	loopLbl := fmt.Sprintf(".%s_m16_%d_lp", sanitizeIdent(g.fn.Name), int(inst.Dst))
 	skipLbl := fmt.Sprintf(".%s_m16_%d_sk", sanitizeIdent(g.fn.Name), int(inst.Dst))
-	g.comment(fmt.Sprintf("mul16 %s * %s → HL  (~320T, 16-iter shift-and-add)", lhs, rhs))
-	// Save AF and DE: the multiply uses A as a loop counter and clobbers DE by
-	// shifting it 16 times.  Any live variable in A, D, or E would be corrupted.
+	g.comment(fmt.Sprintf("mul16 %s * %s → HL  (%d-iter shift-and-add)", lhs, rhs, iterations))
+	// Eight-iteration multipliers fit the shifting operand's low byte in A,
+	// freeing B as a DJNZ counter — the hand-asm/SDCC body. One SRL A replaces
+	// SRL D/RR E and DJNZ replaces DEC A/JRS NZ, saving ~11T per iteration.
+	// An operand homed in H or L would be destroyed by the multiplicand
+	// staging into HL; those keep the DE-based body.
+	fastByteBody := iterations == 8 && rhs != "H" && rhs != "L"
+	// Save AF and DE: the multiply uses A (multiplier or counter) and clobbers
+	// DE by shifting it.  Any live variable in A, D, or E would be corrupted.
 	g.emit("    PUSH AF") // preserve A (= possible live variable) and F
 	g.emit("    PUSH DE") // preserve D and E across multiply
-	// Load multiplier into DE BEFORE overwriting BC with the multiplicand.
+	// Load the multiplier BEFORE overwriting BC with the multiplicand.
 	// (rhs may be in C/B/BC which gets clobbered by LD B,H; LD C,L below.)
-	if isConst {
+	if fastByteBody {
+		if isConst {
+			// OpMul constants have no physical load (deadConstsForFunc).
+			g.emitf("    LD A, %d", cv&0xFF)
+			g.invalidate("A")
+		} else if isSpill(rhs) {
+			// The multiplier's low byte: byte slots hold it at offset 0, and
+			// word slots are little-endian.
+			g.loadSpill8("A", rhs)
+			g.invalidate("A")
+		} else {
+			g.emitLD8("A", rhs)
+			if rhs != "A" {
+				g.invalidate("A")
+			}
+		}
+	} else if isConst {
 		// OpMul constants have no physical load (deadConstsForFunc).
 		// Strength reduction consumes cv directly; so must this fallback.
 		g.emitf("    LD DE, %d", cv&0xFFFF)
@@ -453,21 +509,38 @@ func (g *z80cg) genMul16(inst *Inst) {
 	if savedBC {
 		g.emit("    PUSH BC")
 	}
-	g.emit("    LD B, H")
-	g.emit("    LD C, L") // BC = multiplicand (lhs)
+	if fastByteBody {
+		g.emit("    LD D, H")
+		g.emit("    LD E, L") // DE = multiplicand (lhs)
+	} else {
+		g.emit("    LD B, H")
+		g.emit("    LD C, L") // BC = multiplicand (lhs)
+	}
 	g.emit("    LD H, 0")
-	g.emit("    LD L, 0")  // HL = result = 0
-	g.emit("    LD A, 16") // A = bit counter
-	g.emitf("%s:", loopLbl)
-	g.emit("    SRL D") // DE >>= 1 (logical right shift, bit0 → carry)
-	g.emit("    RR E")
-	g.emitf("    JRS NC, %s", skipLbl)
-	g.emit("    ADD HL, BC") // result += multiplicand (current bit weight)
-	g.emitf("%s:", skipLbl)
-	g.emit("    SLA C") // BC <<= 1 (multiplicand doubles)
-	g.emit("    RL B")
-	g.emit("    DEC A") // counter-- (does not affect carry)
-	g.emitf("    JRS NZ, %s", loopLbl)
+	g.emit("    LD L, 0") // HL = result = 0
+	if fastByteBody {
+		g.emit("    LD B, 8") // B = bit counter
+		g.emitf("%s:", loopLbl)
+		g.emit("    SRL A") // A >>= 1 (logical right shift, bit0 → carry)
+		g.emitf("    JRS NC, %s", skipLbl)
+		g.emit("    ADD HL, DE") // result += multiplicand (current bit weight)
+		g.emitf("%s:", skipLbl)
+		g.emit("    SLA E") // DE <<= 1 (multiplicand doubles)
+		g.emit("    RL D")
+		g.emitf("    DJNZ %s", loopLbl) // counter-- (does not affect carry)
+	} else {
+		g.emitf("    LD A, %d", iterations)
+		g.emitf("%s:", loopLbl)
+		g.emit("    SRL D") // DE >>= 1 (logical right shift, bit0 → carry)
+		g.emit("    RR E")
+		g.emitf("    JRS NC, %s", skipLbl)
+		g.emit("    ADD HL, BC") // result += multiplicand (current bit weight)
+		g.emitf("%s:", skipLbl)
+		g.emit("    SLA C") // BC <<= 1 (multiplicand doubles)
+		g.emit("    RL B")
+		g.emit("    DEC A") // counter-- (does not affect carry)
+		g.emitf("    JRS NZ, %s", loopLbl)
+	}
 	if savedBC {
 		g.emit("    POP BC")
 	}
@@ -801,6 +874,45 @@ func (g *z80cg) nonNegative(r Reg, width int, seen map[Reg]bool) bool {
 				return i.Imm >= 0 && i.Imm < (int64(1)<<(width-1))
 			case OpMove:
 				return g.nonNegative(i.Src[0], width, seen)
+			}
+		}
+	}
+	return false
+}
+
+// provablyBelow256 reports whether r's bits above bit 7 are provably zero, so
+// the shift-and-add multiply over r needs only eight of its sixteen
+// iterations. Like nonNegative, only provenance qualifies — never a guess:
+// zero extension from an at-most-byte source (OpExt fills with zeros whatever
+// the source signedness), an unsigned parameter narrower than the multiply, a
+// constant whose bit pattern stays under 256, a copy of a proven value, and a
+// sign extension whose source is separately proven non-negative. A sign
+// extension of an arbitrary byte keeps a possible 0xFF high byte and must keep
+// all sixteen iterations.
+func (g *z80cg) provablyBelow256(r Reg, width int, seen map[Reg]bool) bool {
+	if seen[r] {
+		return false
+	}
+	seen[r] = true
+	for _, p := range g.fn.Contract.Params {
+		if p.Reg == r {
+			return p.Ty.Width() < width && !IsSigned(p.Ty)
+		}
+	}
+	for _, b := range g.fn.Blocks {
+		for _, i := range b.Insts {
+			if i.Dst != r {
+				continue
+			}
+			switch i.Op {
+			case OpExt:
+				return i.SrcTy != nil && i.SrcTy.Width() <= 8
+			case OpSext:
+				return i.SrcTy != nil && i.SrcTy.Width() <= 8 && g.nonNegative(i.Src[0], width, seen)
+			case OpConst:
+				return i.Imm >= 0 && i.Imm < 256
+			case OpMove:
+				return g.provablyBelow256(i.Src[0], width, seen)
 			}
 		}
 	}
