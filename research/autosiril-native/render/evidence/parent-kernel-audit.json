@@ -1,0 +1,9 @@
+{
+  "protocol": "autosiril-render-parent-kernel-audit/v1",
+  "complete": true,
+  "scope": "kernel609 outcomes and independently decoded row state against freshly executed actual Ruby; no file stage proof",
+  "receipt_sha256": "242fb08c2310f74e001615703e58aa6c2de75a840bca3a3fb7d4a8727f16d14e",
+  "executions": 609,
+  "cases": 203,
+  "post_rows_per_engine": 10320
+}
