@@ -2,7 +2,7 @@
 @media(max-width:1000px){.layout{grid-template-columns:minmax(0,1fr);max-width:900px}.toc{position:static;max-height:none;display:none}.hero{max-width:900px;padding-top:42px}.hero h1{font-size:43px}.cards{grid-template-columns:1fr}.card{padding:26px}.status{grid-template-columns:1fr}.card h2{font-size:27px}}
 @media(max-width:600px){body{font-size:17px;line-height:1.75}.sitebar{padding:12px 20px}.sitebar nav{gap:12px;font-size:12px}.hero{padding:32px 20px 27px}.hero h1{font-size:33px;letter-spacing:-.035em}.hero p{font-size:19px}.layout{padding:0 12px 45px}.layout article{padding:23px 20px;border-radius:15px}article h2{font-size:25px}pre{margin:22px -8px;padding:17px;font-size:12px}.diagram{margin:25px -10px;padding:10px}.diagram-viewport{padding:10px 0}footer{padding:0 24px 32px}.index-content{padding:0 20px 40px}.controls{grid-template-columns:1fr}.cards{gap:15px}.playground{padding:18px}}
 @media print{body{background:white;font-size:11pt}.sitebar,.toc,.progress,.playground,.next{display:none}.layout{display:block;padding:0}.hero{padding:0 0 20px}.hero h1{font-size:28pt}article{border:0;box-shadow:none;padding:0}.diagram{break-inside:avoid}.diagram-viewport{overflow:visible}.diagram-viewport img{max-width:100%!important;width:100%!important}.diagram details{display:none}a{color:inherit}pre{white-space:pre-wrap;color:#17313b;background:#f1f4ee}footer{padding:20px 0}}
-</style></head><body><div class="progress" aria-hidden="true"></div><header class="sitebar"><a class="brand" href="index.html">MinZ / Дневник</a><nav><a href="01-languages-and-ideas.html">Языки</a><a href="02-melody-between-two-files.html">Музыка</a><a href="03-borrowing-without-a-runtime.html">Экосистемы</a><a href="04-four-rows-for-a-melody.html">Downmix</a><a href="https://github.com/oisee/minz">GitHub</a></nav></header><div class="hero"><div class="eyebrow">День компилятора · Глава 06</div><h1>Два компилятора в одном репозитории</h1><p>Две сессии Claude, воркеры и человек делят один main: зоны, очередь, свежесть доказательств и «падающий тест ≠ баг».</p><div class="meta"><span class="pill">≈ 7 мин</span><span class="pill cream">2 Mermaid-схем</span><span class="pill">Ruby · Crystal · Nanz · Z80</span></div></div><main class="layout"><aside class="toc" aria-label="Содержание"><strong>В этой главе</strong><a class="" href="#кто-был-в-комнате">Кто был в комнате</a><a class="" href="#как-устроена-фабрика-minz">Как устроена фабрика minz</a><a class="" href="#что-дал-этот-день-компилятору">Что дал этот день
+</style></head><body><div class="progress" aria-hidden="true"></div><header class="sitebar"><a class="brand" href="index.html">MinZ / Дневник</a><nav><a href="01-languages-and-ideas.html">Языки</a><a href="02-melody-between-two-files.html">Музыка</a><a href="03-borrowing-without-a-runtime.html">Экосистемы</a><a href="04-four-rows-for-a-melody.html">Downmix</a><a href="https://github.com/oisee/minz">GitHub</a></nav></header><div class="hero"><div class="eyebrow">День компилятора · Глава 06</div><h1>Два компилятора в одном репозитории</h1><p>Две сессии Claude, воркеры и человек делят один main: зоны, очередь, свежесть доказательств и «падающий тест ≠ баг».</p><div class="meta"><span class="pill">≈ 8 мин</span><span class="pill cream">2 Mermaid-схем</span><span class="pill">Ruby · Crystal · Nanz · Z80</span></div></div><main class="layout"><aside class="toc" aria-label="Содержание"><strong>В этой главе</strong><a class="" href="#кто-был-в-комнате">Кто был в комнате</a><a class="" href="#как-устроена-фабрика-minz">Как устроена фабрика minz</a><a class="" href="#что-дал-этот-день-компилятору">Что дал этот день
 компилятору</a><a class="" href="#падающий-тест-не-значит-баг">«Падающий тест» не значит
 «баг»</a><a class="" href="#два-нажатия-и-одна-блокировка">Два нажатия и одна
 блокировка</a><a class="" href="#разговор-который-нашёл-баг-раньше-теста">Разговор, который нашёл
@@ -98,7 +98,7 @@ m2, рядом с оставленными codex ветками.</p>
 <td>crc8: 69,7M → 55,5M тактов (−20,3%); SDCC — 104,7M</td>
 </tr>
 <tr>
-<td>F4 #277</td>
+<td>F4 #277 <em>(не слит, гейт идёт)</em></td>
 <td>умножение за 8 итераций вместо 16</td>
 <td><code>dot_product</code>: 8,03M → 5,01M; набор fusion 2,00× → 1,67×
 SDCC</td>
@@ -108,27 +108,35 @@ SDCC</td>
 <p>У A2 строгое условие: вариант принимается, только если суммарно он
 строго быстрее и ни один путь не становится медленнее больше чем на 16
 тактов. Всё остальное должно остаться без изменений до байта. Так
-оптимизация доказывает, что ничего не сломала по соседству.</p>
+оптимизация доказывает, что ничего не сломала по соседству. S1, N1a и A2
+слиты (<code>3e25f1cfa</code>, <code>2520ce6c3</code>,
+<code>8ebc0de2e</code>). Цифры F4 воркер измерил против
+<code>origin/main</code> одинаковыми прогонами, но сам PR ещё на
+гейте.</p>
 <p>Цель F пока не достигнута. На наборе fusion Nanz был в 2,00 раза
-медленнее лучшего SDCC и в 3,72 раза медленнее ручного ассемблера. Сам
-fusion работает: по скорости Nanz догоняет MinZ C. Теряется «последняя
-миля»: инвариант перечитывается в цикле, предикат filter материализуется
-в bool через память, callback fold вызывается через CALL с четырьмя
-PUSH/POP. Прогноз после F1, F3, F4 и F5 — около 0,96× SDCC. Следующий
-шаг, F4b, — умножение через таблицу квадратов: a·b = sq[a+b] −
-sq[|a−b|]. Это идея Alice: килобайт таблицы ради скорости, только в
-speed-режиме.</p>
+медленнее лучшего по каждому случаю результата SDCC (9 235 317 тактов) и
+в 3,72 раза медленнее ручного ассемблера. Сам fusion работает: по
+скорости Nanz догоняет MinZ C. Теряется «последняя миля»: инвариант
+перечитывается в цикле, предикат filter материализуется в bool через
+память, callback fold вызывается через CALL с четырьмя PUSH/POP. Прогноз
+после F1, F3, F4 и F5 — около 0,96× SDCC. Следующий шаг, F4b, —
+умножение через таблицу квадратов: a·b = sq[a+b] − sq[|a−b|]. Это идея
+Alice: килобайт таблицы ради скорости, только в speed-режиме.</p>
 <h2 id="падающий-тест-не-значит-баг">«Падающий тест» не значит
 «баг»</h2>
 <p>Главный урок minz сформулировала сама: сегодня три раза подряд
 падение теста означало, что оптимизация стала лучше эталона. S1 нашёл
 size-вариант, который одновременно меньше и быстрее speed-сборки: 530
-байт и 1,09M тактов против 595 байт и 1,31M. Ночная проверка «Deep
-compiler domains» была красной каждую ночь минимум с 20 октября.
+байт и 1,09M тактов против 595 байт и 1,31M на голове PR до merge. На
+текущем main speed-сборка этой программы — 558 байт и 1,20M. Разрыв
+меньше, но speed всё ещё медленнее: A2 его не закрыл, потому что поиск
+вариантов не оценивает функции с вызовами внутри циклов. Ночная проверка
+«Deep compiler domains» была красной каждую ночь минимум с 20 октября.
 Оказалось, что большинство её падений — устаревшие пины, записанные до
-улучшений. #274 обновляет пины, и падений становится не 11, а 6. Из
-оставшихся шести три — настоящие расхождения контракта, их чинит
-воркер.</p>
+улучшений. #274 обновляет пины и переводит ночную проверку с 11 падений
+к 6; заодно он чинит седьмое, которое нашёл только полный локальный
+прогон (его сдвинул S1). Из оставшихся шести три — настоящие расхождения
+контракта, их чинит воркер.</p>
 <p>У меня тот же урок пришёл с другой стороны. «62 расхождения» в
 Autosiril выглядели как баг кодогенерации, а оказались двумя разными,
 одинаково законными профилями. Красный CI в #272 выглядел как поломка, а
@@ -187,8 +195,14 @@ TR-DOS на настоящем Spectrum, скорее всего, ищет ко�
 ушёл, и всё продолжилось, потому что его handover отвечал на три
 вопроса: что доказано, что не доказано, чего не трогать.</li>
 <li><strong>Договориться о зонах дешевле, чем разбирать
-конфликты.</strong> За весь день у нас не было ни одного конфликта
-merge.</li>
+конфликты.</strong> За весь день ни один rebase не дал текстового
+конфликта. Отказы были, но от GitHub, и по делу: «ветка отстала» на #250
+и «merge уже идёт» на #272.</li>
+<li><strong>Правила нарушаются, и об этом надо говорить.</strong> minz
+один раз нарушила правило Alice «завершать процессы только по PID» и
+остановила процесс по узкому шаблону имени. Alice об этом знает. Правило
+существует потому, что шаблон рано или поздно заденет чужой
+процесс.</li>
 <li><strong>Свежесть доказательств — отдельная обязанность.</strong>
 Хеш, который защищает эталон от подмены, требует и обновлять эталон
 каждый раз, когда меняется то, что в него входит. Делать это нужно из
