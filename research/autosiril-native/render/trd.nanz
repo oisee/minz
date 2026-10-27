@@ -1,0 +1,150 @@
+// Independently linked TRD adapter: three owned MIXED cursors over the append-
+// only sector binding, one live output at a time. Text and state are produced
+// by two identical render passes; each output stream is split into 255-sector
+// (65280-byte) segments whose concatenation is the CP/M logical stream.
+global render_pass:u8
+global segment_kind:u8
+global segment_index:u8
+global segment_bytes:u16
+global segment_names:[u8;32] = [79,85,84,80,85,84,48,84,83,84,65,84,69,48,32,83,77,69,84,65,32,32,32,65,82,69,78,68,32,32,32,73]
+global segments_published:[u8;4]
+
+fun segment_name(kind:u8,index:u8) {
+    var at:u16 = 0
+    while at < 8 {
+        output_name[at] = 32
+        at = at+1
+    }
+    at = 0
+    while at < 7 {
+        output_name[at] = segment_names[u16(kind)*8+at]
+        at = at+1
+    }
+    output_name[8] = segment_names[u16(kind)*8+7]
+    // Segment digit: OUTPUTn T, STATEn  S.
+    if kind == 0 { output_name[6] = 48+index }
+    if kind == 1 { output_name[5] = 48+index }
+}
+fun cursor_get(handle:u8)->u8 {
+    if fault != 0 { return 0 }
+    let result:u32 = trd_cursor_get(handle)
+    let status:u16 = u16(result >> 16)
+    if status != 0 { if status == 1 { fault = 951 } else { fault = 904 } return 0 }
+    return u8(result)
+}
+// TRD catalog length is logical: END must be followed immediately by EOF.
+fun cursor_finish(handle:u8) {
+    let result:u32 = trd_cursor_get(handle)
+    let status:u16 = u16(result >> 16)
+    if status == 0 { fault = 957 return }
+    if status != 1 { fault = 904 }
+}
+fun cursor_open(handle:u8) {
+    if input_live[handle] != 0 { fault = 900 return }
+    if trd_cursor_open(handle) != 0 { fault = 900 return }
+    cursor_header(handle)
+    cursor_reset(handle)
+}
+fun cursor_close(handle:u8) {
+    if input_live[handle] == 0 { return }
+    if trd_cursor_close(handle) != 0 && fault == 0 { fault = 906 }
+}
+fun segment_close() {
+    if output_live == 0 { return }
+    sink_flush()
+    if fault != 0 { return }
+    let sectors:u16 = output_sectors
+    let next:u16 = output_position
+    if finish(1) != 0 { fault = 903 return }
+    // finish() publishes catalog/system metadata on disk only; the next
+    // segment's append position must follow it.
+    free_position = next
+    free_count = free_count-sectors
+    directory_count = directory_count+1
+    segments_published[segment_kind] = segments_published[segment_kind]+1
+    segment_bytes = 0
+    segment_index = segment_index+1
+    segment_name(segment_kind,segment_index)
+}
+fun out_put(byte:u8) {
+    if fault != 0 { return }
+    if output_live == 0 {
+        if segment_index > 9 { fault = 902 return }
+        if sink_open() != 0 { fault = 901 return }
+    }
+    sink_put(byte)
+    if fault != 0 { return }
+    segment_bytes = segment_bytes+1
+    if segment_bytes == 65280 { segment_close() }
+}
+fun out_begin(kind:u8) {
+    segment_kind = kind
+    segment_index = 0
+    segment_bytes = 0
+    segment_name(kind,0)
+}
+fun text_put(byte:u8) {
+    if fault != 0 || render_pass != 0 { return }
+    out_put(byte)
+    text_logical_bytes = text_logical_bytes+1
+}
+fun state_put(byte:u8) {
+    if fault != 0 || render_pass != 1 { return }
+    out_put(byte)
+    state_logical_bytes = state_logical_bytes+1
+}
+fun meta_put(byte:u8) { out_put(byte) }
+fun info_put(byte:u8) { out_put(byte) }
+fun render_pass_run(pass:u8) {
+    render_pass = pass
+    out_begin(pass)
+    var handle:u8 = 0
+    while handle < 3 && fault == 0 { cursor_open(handle)
+        handle = handle+1 }
+    if fault == 0 { render_run() }
+    handle = 0
+    while handle < 3 { cursor_close(handle)
+        handle = handle+1 }
+    if fault == 0 { segment_close() }
+}
+fun disk_main()->u16 {
+    fault = 0
+    disk_error = 0
+    output_live = 0
+    input_open = 0
+    reset_render_state()
+    var index:u16 = 0
+    while index < 3 { input_live[index] = 0
+        index = index+1 }
+    index = 0
+    while index < 4 { segments_published[index] = 0
+        index = index+1 }
+    index = 0
+    while index < 11 { source_name[index] = 32
+        index = index+1 }
+    source_name[0] = 77
+    source_name[1] = 73
+    source_name[2] = 88
+    source_name[3] = 69
+    source_name[4] = 68
+    // The binding rejects an input catalog that already holds output_name.
+    out_begin(0)
+    if fault == 0 { validate_definitions() }
+    if fault == 0 { validate_cells() }
+    if fault == 0 { validate_metadata() }
+    cursor_close(0)
+    if fault == 0 { render_pass_run(0) }
+    if fault == 0 { render_pass_run(1) }
+    if fault == 0 {
+        out_begin(2)
+        write_meta()
+        segment_close()
+    }
+    if fault == 0 {
+        out_begin(3)
+        write_info()
+        segment_close()
+    }
+    cursors_cleanup()
+    return fault
+}

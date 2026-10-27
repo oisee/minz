@@ -1,0 +1,86 @@
+type trdCase struct {
+ Name string `json:"name"`
+ Disk string `json:"disk"`
+ Mixed []byte `json:"mixed"`
+ ExpectedText []byte `json:"expected_text"`
+ ExpectedState []byte `json:"expected_state"`
+ ExpectedMeta []byte `json:"expected_meta"`
+ RenderRows uint32 `json:"render_rows"`
+ Fault uint16 `json:"fault"`
+ FailCall int `json:"fail_call"`
+}
+const segmentBytes=65280
+func linearData(d *formats.TRDFile,pos int)[]byte{t:=pos/16;return d.ReadSector(t%80,t/80,pos%16)}
+func linearOffset(pos int)int{t:=pos/16;return ((t%80*2+t/80)*16+pos%16)*256}
+func putLinearData(d *formats.TRDFile,pos int,b []byte){t:=pos/16;d.WriteSector(t%80,t/80,pos%16,b)}
+// Segments of one logical stream: every non-final segment is exactly 255 full sectors.
+func segments(d *formats.TRDFile,prefix string,digit int,ext byte)(data []byte,count int){
+ for i:=0;i<10;i++{
+  name:=[]byte(prefix);name[digit]=byte('0'+i)
+  entry:=d.FindFile(strings.TrimRight(string(name)," "),ext);if entry==nil{break}
+  b:=d.ReadFile(entry);if len(b)==0||len(b)>segmentBytes{panic("segment length")}
+  if count>0&&len(data)%segmentBytes!=0{panic("short non-final segment")}
+  data=append(data,b...);count++
+ }
+ return
+}
+func main(){
+ root:=flag.String("root","","repository root");source:=flag.String("source","","composed source");input:=flag.String("input","","matrix");out:=flag.String("out","","new output directory");flag.Parse();check(os.MkdirAll(*out,0755))
+ build:=func()*hir.Module{h,e:=nanz.ParseWithOpts(string(read(*source)),"render-trd",nanz.ParseOpts{StdlibDir:filepath.Join(*root,"stdlib")});check(e);return h}
+ raw:=hir.LowerModule(build());check(mir2.Verify(raw));opts:=pipeline.DefaultOptions();opts.AssertMode="none";opts.DisableVariantSearch=true;steps,e:=pipeline.CompileHIRSteps(build(),opts);check(e)
+ for name,b:=range map[string][]byte{"raw.mir":[]byte(raw.Dump()),"final.mir":[]byte(steps.MIR2Module.Dump()),"unlinked.a80":[]byte(steps.Assembly)}{check(os.WriteFile(filepath.Join(*out,name),b,0644))}
+ var matrix struct{Cases []trdCase `json:"cases"`};check(json.Unmarshal(read(*input),&matrix));if len(matrix.Cases)==0{panic("empty matrix")};rows:=[]map[string]any{};var native map[string]any
+ stub:=read(filepath.Join(*root,"research/autosiril-native/transports/trd-stub.a80"))
+ for _,tc:=range matrix.Cases{
+  base,e:=formats.LoadTRD(tc.Disk);check(e)
+  if entry:=base.FindFile("MIXED",'M');entry==nil||!bytes.Equal(base.ReadFile(entry),tc.Mixed){panic("saved native TRD MIXED differs")}
+  sys0:=base.Data[2048:2304];start:=int(sys0[226])*16+int(sys0[225]);freeBefore:=int(binary.LittleEndian.Uint16(sys0[229:231]));dirBefore:=int(sys0[228])
+  for index,engine:=range []string{"raw-mir2","final-mir2","scorpion-z80"}{
+   dir:=filepath.Join(*out,tc.Name,engine);check(os.MkdirAll(dir,0755));d:=*base;d.Path=filepath.Join(dir,"disk.trd");d.Writeback=false
+   var get func(string,int,int)[]byte;var returned uint16;cycles,stack,calls,opens,closes:=0,0,0,0,0;operations:=[]sectorOperation{}
+   if index<2{
+    module:=raw;if index==1{module=steps.MIR2Module};v:=mir2.NewVM(module);v.MaxMemory=65536;v.MaxSteps=4000000000
+    var live [3]bool;lease:=v.GlobalAddr("input_live")
+    v.ObserveDataAccess=func(a mir2.VMDataAccess){if a.Op!=mir2.OpStore{return};if a.Addr>=lease&&a.Addr<lease+3{slot:=int(a.Addr-lease);if a.Value==1&&!live[slot]{opens++;live[slot]=true};if a.Value==0&&live[slot]{closes++;live[slot]=false}}}
+    host:=func(args []mir2.Value)([]mir2.Value,error){calls++;op,address,track,sector:=byte(args[0].I),args[1].I,int(args[2].I),int(args[3].I);if (op!=5&&op!=6)||address!=v.GlobalAddr("input_chunk")||track<0||track>=160||sector<1||sector>16{panic("sector ABI")};pos:=track*16+sector-1;operations=append(operations,sectorOperation{Call:calls,Op:op,Position:pos,Success:calls!=tc.FailCall});if calls==tc.FailCall{return []mir2.Value{{I:0}},nil};if op==5{for j,b:=range linearData(&d,pos){v.WriteHeap(address+int64(j),b)}}else{putLinearData(&d,pos,v.ReadHeap(address,256))};return []mir2.Value{{I:1}},nil}
+    v.Hosts["trd_sector"]=host;v.Hosts["@trd_sector"]=host;r,e:=v.Call("disk_main",nil);check(e);if len(r)!=1{panic("VM return")};returned=uint16(r[0].I);get=func(name string,at,n int)[]byte{return v.ReadHeap(v.GlobalAddr(name)+int64(at),n)}
+   }else{
+    n:=nativeStage(steps.Assembly,steps.MIR2Module,stub,&d,dir,tc.FailCall)
+    returned=n.Returned;get=n.Get;cycles=n.Cycles;stack=n.Stack;calls=n.Calls;operations=n.Operations;opens=n.InputOpens;closes=n.InputCloses
+    native=map[string]any{"image_bytes":n.ImageBytes,"code_and_stub_bytes":n.CodeBytes,"globals_bytes":n.GlobalsBytes,"spill_bytes":n.SpillBytes,"origin":origin,"stack_floor":floor,"bounce_bank_reserved_bytes":16384}
+   }
+   fault:=binary.LittleEndian.Uint16(get("fault",0,2));if returned!=tc.Fault||fault!=tc.Fault{panic(fmt.Sprintf("%s/%s fault%d return%d want%d disk_error%d",tc.Name,engine,fault,returned,tc.Fault,binary.LittleEndian.Uint16(get("disk_error",0,2))))}
+   if opens!=closes{panic("cursor leak")};for _,b:=range get("input_live",0,3){if b!=0{panic("live input")}};if get("output_live",0,1)[0]!=0{panic("live output")}
+   failed:=0;dataWrites:=[]int{};metaWrites:=0
+   for _,op:=range operations{if !op.Success{failed++;if op.Call!=tc.FailCall{panic("unexpected sector failure")}}else if op.Op==6{if op.Position<16{metaWrites++}else{dataWrites=append(dataWrites,op.Position)}}}
+   if tc.FailCall==0&&failed!=0||tc.FailCall!=0&&failed!=1{panic("failure not reached")}
+   for j,pos:=range dataWrites{if pos!=start+j||j>=freeBefore{panic("append extent")}}
+   text,textSegments:=segments(&d,"OUTPUT0 ",6,'T');state,stateSegments:=segments(&d,"STATE0  ",5,'S')
+   files:=textSegments+stateSegments
+   if tc.Fault==0{
+    if !bytes.Equal(text,tc.ExpectedText){panic(fmt.Sprintf("%s/%s text got%d want%d",tc.Name,engine,len(text),len(tc.ExpectedText)))}
+    if !bytes.Equal(state,tc.ExpectedState){panic(fmt.Sprintf("%s/%s state got%d want%d",tc.Name,engine,len(state),len(tc.ExpectedState)))}
+    if textSegments!=(len(text)+segmentBytes-1)/segmentBytes||stateSegments!=(len(state)+segmentBytes-1)/segmentBytes{panic("segment count")}
+    meta:=d.FindFile("META",'A');if meta==nil||!bytes.Equal(d.ReadFile(meta),tc.ExpectedMeta){panic("META mismatch")}
+    wantInfo:=append([]byte("RINF\x01"),append(binary.LittleEndian.AppendUint32(nil,uint32(len(tc.ExpectedText))),append(binary.LittleEndian.AppendUint32(nil,uint32(len(tc.ExpectedState))),binary.LittleEndian.AppendUint32(nil,tc.RenderRows)...)...)...)
+    info:=d.FindFile("REND",'I');if info==nil||!bytes.Equal(d.ReadFile(info),wantInfo){panic("REND.INF mismatch")}
+    files+=2
+    if opens!=9{panic(fmt.Sprintf("nine owned opens required, got %d",opens))}
+    if binary.LittleEndian.Uint32(get("render_rows",0,4))!=tc.RenderRows{panic("original render timing")}
+    sectors:=0;for _,n:=range []int{len(text),len(state),len(tc.ExpectedMeta),len(wantInfo)}{sectors+=(n+255)/256}
+    if len(dataWrites)!=sectors||metaWrites!=2*files{panic("publication sectors")}
+    sys1:=d.Data[2048:2304]
+    if int(sys1[226])*16+int(sys1[225])!=start+sectors||int(binary.LittleEndian.Uint16(sys1[229:231]))!=freeBefore-sectors||int(sys1[228])!=dirBefore+files{panic("free-space accounting")}
+   }else if tc.FailCall==0&&(files!=0||d.FindFile("META",'A')!=nil||d.FindFile("REND",'I')!=nil||metaWrites!=0){panic("failed stage published output")}
+   allowed:=make([]bool,len(d.Data));for _,pos:=range dataWrites{at:=linearOffset(pos);for j:=0;j<256;j++{allowed[at+j]=true}}
+   for slot:=dirBefore;slot<dirBefore+12&&slot<128;slot++{for j:=0;j<16;j++{allowed[slot*16+j]=true}}
+   for _,j:=range []int{225,226,228,229,230}{allowed[2048+j]=true}
+   for j,b:=range d.Data{if b!=base.Data[j]&&!allowed[j]{panic("disk changed outside output/metadata")}}
+   check(d.Flush());reload,e:=formats.LoadTRD(d.Path);check(e);if reload.Data!=d.Data{panic("disk reload")}
+   check(os.WriteFile(filepath.Join(dir,"OUTPUT.TXT"),text,0644));check(os.WriteFile(filepath.Join(dir,"STATE.BIN"),state,0644))
+   rows=append(rows,map[string]any{"case":tc.Name,"engine":engine,"fault":fault,"disk_error":binary.LittleEndian.Uint16(get("disk_error",0,2)),"text_segments":textSegments,"state_segments":stateSegments,"text_sha256":hash(text),"state_sha256":hash(state),"input_opens":opens,"sector_calls":calls,"data_sectors":len(dataWrites),"input_disk_sha256":hash(base.Data[:]),"disk_sha256":hash(d.Data[:]),"t_states":cycles,"stack_bytes":stack})
+   fmt.Printf("PASS %s/%s fault%d text%d/%dseg state%d/%dseg\n",tc.Name,engine,fault,len(text),textSegments,len(state),stateSegments)
+  }
+ }
+ proof:=map[string]any{"protocol":"autosiril-render-trd/v1","source_sha256":hash(read(*source)),"matrix_sha256":hash(read(*input)),"native":native,"scope":"independently linked target renderer over actual native TRD MIXED disks with owned cursors, 255-sector output segments and guarded Scorpion sector API traps; not ROM/FDC/hardware/boot","cases":rows};b,e:=json.MarshalIndent(proof,"","  ");check(e);check(os.WriteFile(filepath.Join(*out,"receipt.json"),append(b,'\n'),0644))
+}

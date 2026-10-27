@@ -27,40 +27,6 @@ global text_name:[u8;11] = [79,85,84,80,85,84,32,32,84,88,84]
 global state_name:[u8;11] = [83,84,65,84,69,32,32,32,66,73,78]
 global meta_name:[u8;11] = [77,69,84,65,32,32,32,32,66,73,78]
 global info_name:[u8;11] = [82,69,78,68,32,32,32,32,73,78,70]
-global wire_magic:[u8;4] = [65,83,73,82]
-global wire_header:[u8;8] = [1,5,16,0,3,0,0,0]
-global meta_magic:[u8;4] = [65,82,77,68]
-global meta_header:[u8;10]
-global wire_end_magic:[u8;4] = [69,78,68,33]
-global record_buffer:[u8;16]
-// Definitions are kept as their semantic payload (<=64 ids, <=4096 bytes total);
-// canonical 8-byte fragments are rebuilt for META.BIN, so the raw fragment
-// count (up to 568) never needs storage of its own.
-global definition_payloads:[u8;4096]
-global definition_lengths:[u16;64]
-global definition_count:u16
-global definition_fragments:u16
-global metadata_payloads:[u8;64]
-global metadata_seen:u8
-global validated_cells:u16
-global skipped_byte:u8
-global validation_skipped:u16
-global validated_extents:[u32;3]
-global cursor_records:[u32;3]
-global cursor_finished:[u8;3]
-global cursor_meta:[u8;3]
-global cursor_have_cell:[u8;3]
-global cursor_last_channel:[u8;3]
-global cursor_last_row:[u16;3]
-global cursor_defs:[u16;3]
-global cursor_fragments:[u16;3]
-global cursor_used:[u16;3]
-global cursor_def_length:[u16;3]
-global cursor_def_offset:[u16;3]
-global cursor_def_repeat:[u16;3]
-global cursor_def_previous:[u8;3]
-global text_logical_bytes:u32
-global state_logical_bytes:u32
 
 fun fcb_input_name(handle:u8) {
     var index:u16 = 0
@@ -87,41 +53,6 @@ fun cursor_get(handle:u8)->u8 {
     input_positions[handle] = input_positions[handle] + 1
     return input_buffers[at]
 }
-fun cursor_word(handle:u8)->u16 {
-    let low:u8 = cursor_get(handle)
-    if fault != 0 { return 0 }
-    let high:u8 = cursor_get(handle)
-    if fault != 0 { return 0 }
-    return u16(low) | (u16(high) << 8)
-}
-fun cursor_u32(handle:u8)->u32 {
-    let low:u16 = cursor_word(handle)
-    if fault != 0 { return 0 }
-    let high:u16 = cursor_word(handle)
-    if fault != 0 { return 0 }
-    return u32(low) | (u32(high) << 16)
-}
-fun cursor_payload(handle:u8) {
-    var index:u16 = 0
-    while index < 16 { record_buffer[index] = cursor_get(handle)
-        index = index + 1 }
-}
-fun cursor_header(handle:u8) {
-    var index:u16 = 0
-    while index < 4 {
-        let byte:u8 = cursor_get(handle)
-        if fault != 0 { return }
-        if byte != wire_magic[index] { fault = 950 return }
-        index = index + 1 }
-    index = 0
-    while index < 8 {
-        let byte:u8 = cursor_get(handle)
-        if fault != 0 { return }
-        if index == 0 && byte != wire_header[0] { fault = 952 return }
-        if index > 0 && byte != wire_header[index] { fault = 953 return }
-        index = index + 1
-    }
-}
 fun cursor_finish(handle:u8) {
     while input_positions[handle] < 128 {
         if cursor_get(handle) != 0 { fault = 957 return }
@@ -129,272 +60,18 @@ fun cursor_finish(handle:u8) {
     let status:u8 = bdos8(20,u16(&input_fcbs[u16(handle)*36]))
     if status == 0 { fault = 957 } else { if status != 1 { fault = 904 } }
 }
-fun cursor_end(handle:u8,count:u32) {
-    let low:u16 = cursor_word(handle)
-    let high:u16 = cursor_word(handle)
-    if low != u16(count) || high != u16(count >> 16) { fault = 956 return }
-    var index:u16 = 0
-    let magic0:u8 = cursor_get(handle)
-    if magic0 != 69 { fault = 960 return }
-    if cursor_get(handle) != 78 { fault = 961 return }
-    if cursor_get(handle) != 68 { fault = 962 return }
-    if cursor_get(handle) != 33 { fault = 963 return }
-    cursor_finish(handle)
-}
 fun cursor_open(handle:u8) {
     if input_live[handle] != 0 { fault = 900 return }
     input_positions[handle] = 128
     if bdos8(15,u16(&input_fcbs[u16(handle)*36])) == 255 { fault = 900 return }
     input_live[handle] = 1
     cursor_header(handle)
-    cursor_records[handle] = 0
-    cursor_finished[handle] = 0
-    cursor_meta[handle] = 0
-    cursor_have_cell[handle] = 0
-    cursor_last_channel[handle] = 0
-    cursor_last_row[handle] = 0
-    cursor_defs[handle] = 0
-    cursor_fragments[handle] = 0
-    cursor_used[handle] = 0
-    cursor_def_length[handle] = 0
-    cursor_def_offset[handle] = 0
-    cursor_def_repeat[handle] = 0
-    cursor_def_previous[handle] = 0
+    cursor_reset(handle)
 }
 fun cursor_close(handle:u8) {
     if input_live[handle] == 0 { return }
     input_live[handle] = 0
     if bdos8(16,u16(&input_fcbs[u16(handle)*36])) == 255 && fault == 0 { fault = 906 }
-}
-fun cursor_validate_payload(handle:u8,selected:u8,phase:u8)->u8 {
-    if record_buffer[0] == 0 {
-        if phase == 2 && record_buffer[1] == selected && record_buffer[15] == 0 { return 1 }
-        return 0
-    }
-    return 0
-}
-fun cursor_validate_definition(handle:u8) {
-    let id:u16 = u16(record_buffer[1]) | (u16(record_buffer[2]) << 8)
-    let length:u16 = u16(record_buffer[3]) | (u16(record_buffer[4]) << 8)
-    let offset:u16 = u16(record_buffer[5]) | (u16(record_buffer[6]) << 8)
-    let count:u8 = record_buffer[7]
-    if id != cursor_defs[handle] || id >= 64 || length == 0 || length > 4096 { fault = 985 return }
-    if offset != cursor_def_offset[handle] { fault = 985 return }
-    if offset == 0 && cursor_def_length[handle] != 0 { fault = 985 return }
-    if offset != 0 && length != cursor_def_length[handle] { fault = 985 return }
-    if cursor_used[handle] > 4096-length { fault = 985 return }
-    var want:u16 = length-offset
-    if want > 8 { want = 8 }
-    if count == 0 || u16(count) != want { fault = 985 return }
-    if offset == 0 { cursor_def_length[handle] = length }
-    var index:u8 = 0
-    while index < 8 {
-        let byte:u8 = record_buffer[8+u16(index)]
-        if index < count {
-            if byte > 127 || (id == 0 && byte != 0) { fault = 985 return }
-            definition_payloads[cursor_used[handle]+offset+u16(index)] = byte
-        } else if byte != 0 { fault = 985 return }
-        index = index + 1
-    }
-    cursor_def_offset[handle] = offset+u16(count)
-    if cursor_def_offset[handle] == length {
-        definition_lengths[id] = length
-        cursor_defs[handle] = id+1
-        cursor_used[handle] = cursor_used[handle]+length
-        cursor_def_offset[handle] = 0
-        cursor_def_length[handle] = 0
-    }
-}
-fun cursor_next(handle:u8,selected:u8)->u8 {
-    if fault != 0 { return 2 }
-    while fault == 0 {
-        if cursor_finished[handle] != 0 { return 0 }
-        let tag:u8 = cursor_get(handle)
-        if fault != 0 { return 2 }
-        if tag == 255 {
-            if cursor_meta[handle] != 4 ||
-                cursor_fragments[handle] != definition_fragments { fault = 985 return 2 }
-            cursor_end(handle,cursor_records[handle])
-            if fault == 0 { cursor_finished[handle] = 1 }
-            return 0
-        }
-        if tag != 1 { fault = 955 return 2 }
-        cursor_payload(handle)
-        if fault != 0 { return 2 }
-        cursor_records[handle] = cursor_records[handle] + 1
-        if record_buffer[0] == 1 {
-            if cursor_fragments[handle] >= definition_fragments { fault = 985 return 2 }
-            cursor_fragments[handle] = cursor_fragments[handle]+1
-        } else if record_buffer[0] == 0 {
-            let channel:u8 = record_buffer[1]
-            if cursor_meta[handle] != 0 || channel > 2 ||
-                cursor_fragments[handle] != definition_fragments { fault = 958 return 2 }
-            let row:u16 = u16(record_buffer[2]) | (u16(record_buffer[3]) << 8)
-            let kind:u8 = record_buffer[12]
-            if kind == 112 {
-                let definition:u16 = u16(record_buffer[7]) | (u16(record_buffer[8]) << 8)
-                if definition >= definition_count { fault = 985 return 2 }
-            }
-            if cursor_have_cell[handle] != 0 && channel < cursor_last_channel[handle] { fault = 970 return 2 }
-            if cursor_have_cell[handle] != 0 && channel == cursor_last_channel[handle] && row <= cursor_last_row[handle] { fault = 970 return 2 }
-            cursor_have_cell[handle] = 1
-            cursor_last_channel[handle] = channel
-            cursor_last_row[handle] = row
-            if cursor_validate_payload(handle,selected,2) == 1 { return 1 }
-        } else if record_buffer[0] >= 2 && record_buffer[0] <= 3 {
-            let index:u8 = cursor_meta[handle]
-            if index >= 4 { fault = 992 return 2 }
-            if index < 3 && (record_buffer[0] != 2 || record_buffer[1] != index) { fault = 993 return 2 }
-            if index == 3 && (record_buffer[0] != 3 || record_buffer[1] != 0) { fault = 993 return 2 }
-            cursor_meta[handle] = index + 1
-        } else { fault = 958 return 2 }
-        if fault != 0 { return 2 }
-    }
-    return 2
-}
-fun validate_definitions() {
-    cursor_open(0)
-    while fault == 0 {
-        let tag:u8 = cursor_get(0)
-        if fault != 0 { return }
-        if tag == 255 { fault = 985 return }
-        if tag != 1 { fault = 955 return }
-        cursor_payload(0)
-        if fault != 0 { return }
-        if record_buffer[0] != 1 {
-            if cursor_def_length[0] != 0 { fault = 985 return }
-            definition_count = cursor_defs[0]
-            cursor_close(0)
-            return
-        }
-        cursor_validate_definition(0)
-        if fault != 0 { return }
-        definition_fragments = definition_fragments+1
-    }
-    if fault != 0 { return }
-    cursor_close(0)
-}
-// Cached fields must equal what the original LNote constructor derives
-// (note2enote with cool_envelope): the source is rejected, never normalized.
-fun validate_cache() {
-    if record_buffer[15] != 0 { fault = 987 return }
-    let note:u8 = record_buffer[4]
-    let cached:u16 = u16(record_buffer[13]) | (u16(record_buffer[14]) << 8)
-    if record_buffer[12] == 101 {
-        if note >= 144 { fault = 987 return }
-        let volume:u16 = u16(record_buffer[9]) | (u16(record_buffer[10]) << 8)
-        var envelope:u8 = 15
-        if volume >= 1500 { envelope = env_forms[note] }
-        if record_buffer[5] != 2 || record_buffer[6] != envelope { fault = 986 return }
-        if cached != u16(i16(note) + env_offsets[note]) { fault = 986 return }
-    } else if cached != 65535 { fault = 986 return }
-}
-fun validate_cells() {
-    cursor_open(0)
-    validation_skipped = 0
-    while validation_skipped < definition_fragments && fault == 0 {
-        skipped_byte = cursor_get(0)
-        if fault != 0 { return }
-        if skipped_byte != 1 { fault = 955 return }
-        cursor_payload(0)
-        if fault != 0 { return }
-        if record_buffer[0] != 1 { fault = 985 return }
-        validation_skipped = validation_skipped+1
-    }
-    var last_channel:u8 = 0
-    var have_cell:u8 = 0
-    while fault == 0 {
-        let tag:u8 = cursor_get(0)
-        if fault != 0 { return }
-        if tag == 255 { fault = 992 return }
-        if tag != 1 { fault = 955 return }
-        cursor_payload(0)
-        if fault != 0 { return }
-        if record_buffer[0] == 2 || record_buffer[0] == 3 { cursor_close(0) return }
-        if record_buffer[0] != 0 { fault = 958 return }
-        let channel:u8 = record_buffer[1]
-        let row:u16 = u16(record_buffer[2]) | (u16(record_buffer[3]) << 8)
-        if channel > 2 { fault = 958 return }
-        let kind:u8 = record_buffer[12]
-        if kind == 112 {
-            let definition:u16 = u16(record_buffer[7]) | (u16(record_buffer[8]) << 8)
-            if definition >= definition_count { fault = 985 return }
-        }
-        validate_cache()
-        if fault != 0 { return }
-        if have_cell != 0 && channel < last_channel { fault = 991 return }
-        if have_cell != 0 && channel == last_channel && row <= validated_extents[channel]-1 { fault = 958 return }
-        have_cell = 1
-        last_channel = channel
-        validated_extents[channel] = u32(row)+1
-        if validated_cells >= 9216 { fault = 983 return }
-        validated_cells = validated_cells+1
-    }
-}
-fun validate_metadata() {
-    cursor_open(0)
-    validation_skipped = 0
-    while validation_skipped < definition_fragments+validated_cells && fault == 0 {
-        skipped_byte = cursor_get(0)
-        if fault != 0 { return }
-        if skipped_byte != 1 { fault = 955 return }
-        cursor_payload(0)
-        if fault != 0 { return }
-        validation_skipped = validation_skipped+1
-    }
-    var records:u32 = u32(definition_fragments)+u32(validated_cells)
-    while fault == 0 {
-        let tag:u8 = cursor_get(0)
-        if fault != 0 { return }
-        if tag == 255 {
-            if metadata_seen != 4 { fault = 992 return }
-            cursor_end(0,records)
-            break
-        }
-        if tag != 1 { fault = 955 return }
-        cursor_payload(0)
-        if fault != 0 { return }
-        records = records+1
-        if record_buffer[0] != 2 && record_buffer[0] != 3 { fault = 958 return }
-        let metadata_at:u8 = record_buffer[1]
-        if record_buffer[0] == 3 { metadata_at = 3 }
-        if metadata_seen >= 4 || metadata_at > 3 || metadata_at != metadata_seen { fault = 993 return }
-        if record_buffer[0] == 2 && metadata_at > 2 { fault = 993 return }
-        if record_buffer[0] == 3 && record_buffer[1] != 0 { fault = 993 return }
-        var reserved:u8 = 6
-        while reserved < 16 {
-            if record_buffer[reserved] != 0 { fault = 993 return }
-            reserved = reserved+1
-        }
-        var index:u16 = 0
-        while index < 16 { metadata_payloads[u16(metadata_at)*16+index] = record_buffer[index]
-            index = index+1 }
-        metadata_seen = metadata_seen+1
-    }
-    if fault != 0 { return }
-    var channel:u8 = 0
-    while channel < 3 {
-        let extent:u32 = u32(metadata_payloads[u16(channel)*16+2]) |
-            (u32(metadata_payloads[u16(channel)*16+3]) << 8) |
-            (u32(metadata_payloads[u16(channel)*16+4]) << 16) |
-            (u32(metadata_payloads[u16(channel)*16+5]) << 24)
-        if extent != validated_extents[channel] { fault = 994+u16(channel) return }
-        channel = channel+1
-    }
-    render_rows[0] = metadata_payloads[50]
-    render_rows[1] = metadata_payloads[51]
-    render_rows[2] = metadata_payloads[52]
-    render_rows[3] = metadata_payloads[53]
-    cursor_close(0)
-}
-fun read_record(lane:u8,destination:u16)->u8 {
-    if destination != u16(&source_record[u16(lane)*16]) { fault = 988 return 2 }
-    let status:u8 = cursor_next(lane,lane)
-    if status != 1 { return status }
-    var index:u16 = 0
-    while index < 16 { source_record[u16(lane)*16+index] = record_buffer[index]
-        index = index + 1 }
-    return 1
 }
 fun text_flush()->u8 {
     if text_position == 0 { return 0 }
@@ -434,27 +111,6 @@ fun state_put(byte:u8) {
         state_position = 0
     }
 }
-fun write_packet(sink:u8,source:u16)->u8 {
-    if sink == 0 && source != u16(&line_packet[0]) { fault = 988 return 1 }
-    if sink == 1 && source != u16(&state_packet[0]) { fault = 988 return 1 }
-    var count:u8 = 0
-    if sink == 0 { count = line_packet[0] } else { count = state_packet[0] }
-    var index:u16 = 0
-    while index < u16(count) {
-        if sink == 0 { text_put(line_packet[index+1]) }
-        index = index + 1
-    }
-    if sink == 1 {
-        state_put(state_packet[0])
-        index = 1
-        while index <= u16(count) {
-            state_put(state_packet[index])
-            index = index + 1
-        }
-    }
-    if fault != 0 { return 1 }
-    return 0
-}
 fun meta_put(byte:u8) {
     if fault != 0 { return }
     meta_buffer[u16(meta_position)] = byte
@@ -478,12 +134,6 @@ fun info_put(byte:u8) {
         if bdos8(21,u16(&info_fcb[0])) != 0 { fault = 902 return }
         info_position = 0
     }
-}
-fun info_u32(value:u32) {
-    info_put(u8(value))
-    info_put(u8(value >> 8))
-    info_put(u8(value >> 16))
-    info_put(u8(value >> 24))
 }
 fun prepare_output(which:u8) {
     var index:u16 = 0
@@ -550,83 +200,13 @@ fun cleanup() {
 fun write_companions() {
     if output_open(2) != 0 { fault = 901 return }
     meta_live = 1
-    var index:u16 = 0
-    while index < 4 { meta_put(meta_magic[index])
-        index = index+1 }
-    index = 0
-    meta_header[0] = 1
-    meta_header[1] = 5
-    // ARMD header count is the raw fragment count, as in the source file.
-    meta_header[2] = u8(definition_fragments)
-    meta_header[3] = u8(definition_fragments >> 8)
-    meta_header[4] = 4
-    while index < 10 { meta_put(meta_header[index])
-        index = index+1 }
-    var base:u16 = 0
-    index = 0
-    while index < definition_count {
-        let length:u16 = definition_lengths[index]
-        var offset:u16 = 0
-        while offset < length {
-            var count:u16 = length-offset
-            if count > 8 { count = 8 }
-            meta_put(1)
-            meta_put(1)
-            meta_put(u8(index))
-            meta_put(u8(index >> 8))
-            meta_put(u8(length))
-            meta_put(u8(length >> 8))
-            meta_put(u8(offset))
-            meta_put(u8(offset >> 8))
-            meta_put(u8(count))
-            var byte:u16 = 0
-            while byte < 8 {
-                if byte < count { meta_put(definition_payloads[base+offset+byte]) } else { meta_put(0) }
-                byte = byte+1
-            }
-            offset = offset+count
-        }
-        base = base+length
-        index = index+1
-    }
-    index = 0
-    while index < 4 {
-        meta_put(1)
-        var offset:u16 = 0
-        while offset < 16 {
-            meta_put(metadata_payloads[index*16+offset])
-            offset = offset+1
-        }
-        index = index+1
-    }
-    meta_put(255)
-    let records:u32 = u32(definition_fragments)+4
-    meta_put(u8(records))
-    meta_put(u8(records >> 8))
-    meta_put(u8(records >> 16))
-    meta_put(u8(records >> 24))
-    index = 0
-    while index < 4 { meta_put(wire_end_magic[index])
-        index = index+1 }
+    write_meta()
     if output_open(3) != 0 { fault = 901 return }
     info_live = 1
-    info_put(82)
-    info_put(73)
-    info_put(78)
-    info_put(70)
-    info_put(1)
-    info_u32(text_logical_bytes)
-    info_u32(state_logical_bytes)
-    info_u32(u32(render_rows[0]) | (u32(render_rows[1]) << 8) | (u32(render_rows[2]) << 16) | (u32(render_rows[3]) << 24))
+    write_info()
 }
 fun disk_main()->u16 {
     fault = 0
-    definition_fragments = 0
-    definition_count = 0
-    metadata_seen = 0
-    validated_cells = 0
-    text_logical_bytes = 0
-    state_logical_bytes = 0
     text_position = 0
     state_position = 0
     meta_position = 0
@@ -635,13 +215,8 @@ fun disk_main()->u16 {
     state_live = 0
     meta_live = 0
     info_live = 0
+    reset_render_state()
     var index:u16 = 0
-    while index < 4096 { definition_payloads[index] = 0
-        index = index+1 }
-    index = 0
-    while index < 64 { metadata_payloads[index] = 0
-        definition_lengths[index] = 0
-        index = index+1 }
     index = 0
     while index < 3 { input_live[index] = 0
         index = index+1 }

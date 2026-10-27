@@ -478,7 +478,7 @@ def main():
                      'ec91c1cdd4c01')
     assert sha_bytes((args.autosiril / 'autooisee.rb').read_bytes()) == expected_ruby
     kernel = (HERE / 'kernel.nanz').read_text().split('@extern(0x0008)', 1)[0]
-    (out / 'render-cpm.nanz').write_text(kernel + '\n' + (HERE / 'cpm.nanz').read_text())
+    (out / 'render-cpm.nanz').write_text(kernel + '\n' + (HERE / 'common.nanz').read_text() + '\n' + (HERE / 'cpm.nanz').read_text())
     upstream = json.loads((args.artifacts / 'cpm/measured/receipt.json').read_text())
     names = [row['case'] for row in upstream['cases']
              if row['engine'] == 'z80' and row['fault'] == 0 and
