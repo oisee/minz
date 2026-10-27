@@ -1,6 +1,6 @@
 # Next native milestone: bounded echo with explicit timeline extent
 
-Selected after PR #268 merged as4db828c61 with9 green checks; downloaded CI arrangement artifacts matched fresh evidence. Work branch:spike/autosiril-native-echo. The native TRD echo kernel now passes its first full-song and musical-boundary proofs; the complete CP/M/error/CI milestone remains open. The simulation below is historical planning evidence.
+Selected after PR #268 merged as4db828c61 with9 green checks; downloaded CI arrangement artifacts matched fresh evidence. Work branch:spike/autosiril-native-echo. The native TRD echo kernel now passes its first full-song and musical-boundary proofs; the complete error/CI milestone remains open; the initial CP/M proof and four-COM chain also pass. The simulation below is historical planning evidence.
 
 Read actual Ruby autooisee.rb apply_delays780+ and VM engine.nanz apply_echo.
 A host planning simulation over a fixed65-slot array matched actual Ruby in10
@@ -123,7 +123,7 @@ envelopes, sparse gaps, empty notes, unselected late sources, extent>65536,
 last representable data row, and1024 input cells producing3072 output cells.
 A104537B expected output is deliberately retained: TRD rejects after255 data
 sectors, leaves an exact unpublished data prefix, and preserves free-space/
-catalog state. CP/M acceptance of that larger file is still pending.
+catalog state. CP/M accepts that larger file in all3 engines:104537 logical/104576 physical bytes,6144 cells.
 
 Reproduce this checkpoint with an existing **complete fresh arrangement gate**
 (the reuse is explicit and its source/Ruby/native artifacts are checked):
@@ -139,7 +139,47 @@ python3 research/autosiril-native/echo/prove_musical.py \
 ```
 
 Remaining acceptance work: all saved native input chains; malformed input,
-capacity/row overflow, transport and publication failure matrix; CP/M fourth
-image and standalone chain; restoring-write mutants; default full fresh/frozen
+capacity/row overflow, transport and publication failure matrix; small/short/stalled
+chunk contracts and directory status variants; restoring-write mutants; default full fresh/frozen
 required CI, downloaded-artifact audit and PR merge. This checkpoint is not a
 claim that the full native echo milestone is complete.
+
+
+## CP/M checkpoint
+
+The same17 actual-Ruby musical cases pass raw MIR2, final MIR2 and native Z80
+through the common CP/M binding (51 executions). Full Chronos reads both saved
+native files, closes each input independently, and writes54912 physical bytes
+for the54880B logical stream. The larger104576B output is retained, rather than
+reducing the input to fit TRD.
+
+| Native CP/M measurement | Value |
+|---|---:|
+|Code plus bootstrap|12417B|
+|Resident globals|2997B|
+|Static spills|293B|
+|COM image, no external workspace|15707B|
+|Stack below entry, excluding caller return word|46B|
+|Full Chronos kernel T-states|402852467|
+|Open / close / make / DMA calls|2 /3 /1 /2|
+|Physical128B reads / writes|364 /429|
+
+A fresh sequence of four separate mze processes executes PAIR.COM,
+FLATTEN.COM, ARRANGE.COM and ECHO.COM from INPUT.MID. NOTES.BIN, EVENTS.BIN,
+and ARRANGE.BIN exactly reproduce the preceding integrated standalone proof;
+DELAYED.BIN exactly matches the guarded native fourth-stage result. The
+standalone emulator and every COM/data file have hashes in the CP/M receipt.
+This uses CALL5 API traps with the existing SP/HALT verifier contract, not a
+physical CP/M TPA/CCP/bootstrap claim.
+
+```sh
+python3 research/autosiril-native/echo/prove_cpm.py \
+  --upstream /tmp/minz-arrange-complete-fresh-v1 \
+  --positive /tmp/echo-positive --musical /tmp/echo-musical \
+  --out /tmp/echo-cpm
+```
+
+Checkpoint receipts: [full Chronos](evidence/positive-receipt.json),
+[TRD musical boundaries](evidence/musical-receipt.json),
+[CP/M musical boundaries and four standalone programs](evidence/cpm-receipt.json).
+These receipts explicitly record upstream reuse and pending full acceptance work.

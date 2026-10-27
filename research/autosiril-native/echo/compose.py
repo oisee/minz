@@ -42,5 +42,10 @@ def main():
     runner=once(runner,'if len(seen)!=2{return nil,fmt.Errorf("expected two actual Crystal roots")}','if len(seen)!=1{return nil,fmt.Errorf("expected one actual Crystal root")}')
     (out/'echo-vm.go').write_text(runner+(HERE/'vm-driver.go.txt').read_text()+native_code())
     (out/'echo-matrix.go').write_text(runner+(HERE/'matrix-driver.go.txt').read_text()+native_code())
+    cpm_runner=(out/'arrange-cpm.go').read_text().split('type arrangeConfig struct')[0]
+    cpm_runner=once(cpm_runner,'if len(seen)!=2{return nil,fmt.Errorf("expected two actual Crystal roots")}','if len(seen)!=1{return nil,fmt.Errorf("expected one actual Crystal root")}')
+    cpm_runner=once(cpm_runner,'name != "EVENTS.BIN" && name != "ARRANGE.BIN"','name != "NOTES.BIN" && name != "ARRANGE.BIN" && name != "DELAYED.BIN"')
+    types=(HERE/'matrix-driver.go.txt').read_text().split('func linearData(')[0]
+    (out/'echo-cpm.go').write_text(cpm_runner+types+(HERE/'cpm-driver.go.txt').read_text())
 
 if __name__=='__main__':main()
