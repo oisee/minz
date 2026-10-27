@@ -29,3 +29,11 @@ The current parser reference is 1284928 T / 2354 bytes, SHA256
 The archived measurements, logs, binaries, audit, and manifest above retain their
 historical values; the executable pin is in
 `minzc/pkg/pipeline/memory_host_baseline_test.go`.
+
+Refresh 2026-10-27 (fix/deep-drift): -4947 T / -43 bytes versus the previous executable
+pin, oracle unchanged. The binary left the pinned O7 state at P28 (a7c98cee4,
+1255941 T / 2258 B), changed bytes only at O4+ (2b70eaa74), and moved again at O9
+(fe3f327fb) to the current 1255341 T / 2226 B, SHA256
+`0da41545c3af393eaed0f59a6e81b1b07750c3fd9597f07a21bdaf50876484e9`.
+All three routes still pass the independent parser state/event oracle; the
+executable pin remains in `minzc/pkg/pipeline/memory_host_baseline_test.go`.

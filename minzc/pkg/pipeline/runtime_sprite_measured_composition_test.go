@@ -166,7 +166,13 @@ func TestRuntimeSpriteMeasuredCompositionHeldout(t *testing.T) {
 	}
 	for _, strategy := range []string{"greedy", "pbqp"} {
 		for _, grace := range []bool{false, true} {
-			options := Options{OptSize: true, AssertMode: "none", ContractOpt: true, ContractStrategy: strategy, UseGrace: grace, UseHIRGrace: grace}
+			// Measured composition compiles the exact requested configuration
+			// (the measurement machinery forces DisableVariantSearch), so the
+			// ordinary heldout comparator below must request it too — otherwise
+			// S1's searched OptSize build wins heldout against a search-free
+			// composition and the generalization check compares two different
+			// compilation regimes.
+			options := Options{OptSize: true, AssertMode: "none", ContractOpt: true, ContractStrategy: strategy, UseGrace: grace, UseHIRGrace: grace, DisableVariantSearch: true}
 			s, e := CompileHIRSteps(hardwareSpriteParse(t, runtimeSpriteMeasuredSource), options)
 			if e != nil {
 				t.Fatal(e)
