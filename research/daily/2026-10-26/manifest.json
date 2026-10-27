@@ -26,9 +26,15 @@
       "words_approx": 2101,
       "diagrams": 5,
       "reading_minutes_approx": 11
+    },
+    {
+      "slug": "05-two-pages-for-one-song",
+      "words_approx": 1664,
+      "diagrams": 3,
+      "reading_minutes_approx": 9
     }
   ],
-  "diagrams": 23,
+  "diagrams": 26,
   "illustrations": 2,
   "tools": {
     "mermaid_cli": "12.0.0",
@@ -39,8 +45,9 @@
     "02-melody-between-two-files.md": "ebeeafda71071527ed472d3dd1817a0b1ce7a0ebe67c7c660cc106a3af50eb8a",
     "03-borrowing-without-a-runtime.md": "25b3080b7ff092ad2f8351aab08504b1383902005b18a243e8b060ab8566be06",
     "04-four-rows-for-a-melody.md": "f54763af00e51df7d6a23127c057103ca938e660538dc427c4f44b25ebf7622e",
+    "05-two-pages-for-one-song.md": "06b76f754e44527cbc8d9c5b90293976631494cb5a4dc32228e9f391386d3cb8",
     "README.md": "f30487dbbf39e5dd37c531d137b6b86b0c5f1b7971cff5e16665e4ae155185a2",
-    "edition.json": "6fe8bdec4f38a9f124cc41502802cd78ff84baf2132a9ee653ba3d9b27d9bc4c",
+    "edition.json": "1e3eb5066f1ee06705817de1aa0e39525d074821729370114ff73cc096f69a12",
     "build.py": "3f0474963b5a10c192bdde854cdc4369f7446a13e445caa2dae79994b3d4085a",
     "style.css": "e3c21c5286cf6ff84d7b2abbae1dbcf386925d4fe59944d8a54e8cd4ab1f5488",
     "reader.js": "b3f8b196f4581578cf523bf6489fad4d796ce3d80aeb658ee9a88f2490d627a5"
@@ -49,7 +56,8 @@
     "01-languages-and-ideas.html": "6fd294fb9386a4de433222ecb81b226ce4839b8332496aeafeb4e09f206c0aec",
     "02-melody-between-two-files.html": "043a9d743cdc9383ccd085c5695a0261cfd1d50f4554bd4bd85b0725745d36ca",
     "03-borrowing-without-a-runtime.html": "e9b5396285d2e45a6240db2742f53d899d39104360bff7320839d5ab6e8e5bd8",
-    "04-four-rows-for-a-melody.html": "78fb5c6530e962ee88cb95b7de7dabb1f3ee5502c3e997440aea65c51dcfbb9c",
-    "index.html": "b390dda81f19098e43f6308b315f61402d130efda8d467e8cf870e02b60e5bd3"
+    "04-four-rows-for-a-melody.html": "4bb77cbd5d14a73dbaffe7379e16ce84fb0a07e195f378a70cf8f6291d9418b4",
+    "05-two-pages-for-one-song.html": "2300a3e30c322e94bb9ec07feb80650dead35d793af3b74d04f361d5af195ec0",
+    "index.html": "13fd5f9efb9ad191f523a368806db410b7601de8864a19f23840a595a1a13dfd"
   }
 }
