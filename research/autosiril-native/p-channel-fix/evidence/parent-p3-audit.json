@@ -1,0 +1,24 @@
+{
+  "scope": "Parent independent fresh/frozen canonical6 actualCPM file chain replay; stage1/2 upstream reused, native renderer/VT2 and physicalhardware excluded",
+  "source_commit": "ffc4fa372",
+  "local_mze_sha256": "4242d1f1d17eee8d7ceb5afd36316a38212c7406d810d91a3f278fa5b54be7d4",
+  "local_build_limitation": "cleanmain macOS cmd/mze build fails preexisting syscall.Select returnarity; installedmzeusedlocally; LinuxCI mustbuildfresh",
+  "fresh_receipt_sha256": "93bf7556f4cedfa1c9f65c9e05bd6ea6da139dfac6689663f224670529a0e5df",
+  "frozen_receipt_sha256": "d1c4cbd7cf0cf1323ba5803076f7f98557cb00d963958754bead6791eb502c3c",
+  "fixture_sha256": "7b58d0a90c4e7ca7f57c59984855fdab6bd6086ad0c27651cb3a0a7d9021a290",
+  "file_boundaries_exact_in_both_runs": true,
+  "all_original_jobs_steps_and_fail_dependencies_preserved": true,
+  "source_hashes_match_fixture": true,
+  "canonical_mixed": {
+    "logical_bytes": 54880,
+    "physical_bytes": 54912,
+    "cells": 3215,
+    "definitions": 8,
+    "lengths": [
+      1353,
+      1353,
+      1353
+    ],
+    "render_rows": 1352
+  }
+}

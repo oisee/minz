@@ -1,7 +1,7 @@
 {
   "protocol": "autosiril-echo-positive/v1",
   "source_sha256": {
-    ".github/workflows/ci.yml": "bd29731a15d5e820c7ac2de33edd1771f5d9c236841076b985b19db8dcf898e5",
+    ".github/workflows/ci.yml": "1d807cd636b04e50eac3d104242a5b915183af65ef788fbb752f121d096659cf",
     "minzc/pkg/spectrum/formats/trd.go": "574b26fdd37d2e6e7291547f9c26e635e002bfb47c9a0136dd4b568d35819681",
     "research/autosiril-native/arrange/build_matrix.py": "4675d33950d9e428656169e7eaaba4f1b03b4d5eae73c84c90e409df1297cc91",
     "research/autosiril-native/arrange/compose.py": "ae0343c1ef273c9d493a49765f978318b9b9b0acd5108cc1ee74d53cb688bfce",
@@ -94,10 +94,10 @@
     "research/crystal-hir/export.cr": "a96d3c756cb0798120aad69427b13259f761908ea95c9cf8f6b58317249cc663",
     "research/crystal-hir/typed_export.cr": "d06f1a8e22dec408b7ada5b5482023cb69fbf32d49183bf8d344683b44b3655c"
   },
-  "reused_completed_fresh_arrangement_sha256": "3fe481c999fae769a1b41a32253f0b61d9021b05f132bf0624dce7907ab85c2f",
+  "reused_completed_fresh_arrangement_sha256": "83d75e4cb43c8935adca50ace2eb513b640e5996289587824d6ee2090401e465",
   "actual_ruby_source_sha256": "41f621b555fc089effd711319e723494576eb47ea0282847082ec91c1cdd4c01",
   "ruby_result_sha256": "3fd0a8bd835484f4a9ca7385811b414bea09ec991805323a20db49d8e32e952a",
-  "canonical_full_ruby_sha256": "c90e723ff15f9b121f07ff4880dc4c5881cf09a4faac7bd568676f0919abd825",
+  "canonical_full_ruby_sha256": "97db7bbd3b8960394a5ed79bb667dde733f1354d839ad16ae29c81c22c20ad30",
   "input_disk_sha256": "404a8b3783b6f8549ac1b5dd07913b61a8e31889722c98921de6a2a5a2712b61",
   "input_arrangement_sha256": "c323f9032b58e233894d2f9ba56a8d93d5f9362fe023d25d18d3c3da581df0d9",
   "input_companion_sha256": "56e0b7266c9f4ba610f8d77d2475c6293d49af40e5778ad96a162f7daf50d76b",
