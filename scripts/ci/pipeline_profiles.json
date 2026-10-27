@@ -138,6 +138,7 @@
     "TestFlagWriterRetainsBranchPredicate",
     "TestFlagWriterRetainsComparisonValue",
     "TestFoldEffectsAndStageOrderVMZ80",
+    "TestFoldFilterStageInlinesPredicateVMZ80",
     "TestForEachDJNZCallsVMZ80",
     "TestForEachDJNZLoweringAndControlFallback",
     "TestForEachPreheaderConstantsAndContinue",
