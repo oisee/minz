@@ -114,3 +114,23 @@ static bugs: phase1/phase2 mismatch, shared cursor_record_count вместо
 owned-per-reader, пропущенные record tags при чтении metadata/END. Нельзя
 поднимать gas или ослаблять framing, чтобы получить ложный pass.
 Оба новых workers запущены явно; источник/task/log каждого записан runner.
+
+## Canonical6 proof и CP/M WIP checkpoint
+
+Parent independently reran canonical6 proof (arrange/echo CPM files +3-engine
+mix kernel): zero field/missing/extra diffs at all boundaries. Commit40dc4c4a3
+retains receipt, source hashes, mze hash and exact scope. Worker branch
+`fix/autosiril-p-channel` through b169e701b is pushed. Current claude-z task
+adds actual MIX.COM, portable frozen replay and scoped CI integration;
+workflow edits authorized only for that proof, existing gates remain required.
+
+Unproven CP/M adapter retained/pushed separately as8316d9944 in render-z.
+It is not cherry-picked into this parent branch or claimed passing. Standard
+tri-engine proof still needs STATE.BIN/REND.INF schema reconciliation.
+Actual kind5 format remains definitions→cells→metadata→END; earlier metadata-first
+hypothesis was wrong and was corrected using byte-level second opinion.
+New codex-z task fixes exact contracts and retries, without reimplementing the
+adapter or changing music/profile. Source hashes and pending command live in
+render-z evidence/cpm-wip-checkpoint4.json. Current external tasks/logs in
+/tmp/minz-z-workers; historical logs archivedcheckpoint4/checkpoint-p2.
+Both GLM workers now use medium effort for this debugging/integration round.
