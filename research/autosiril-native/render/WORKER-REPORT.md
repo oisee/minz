@@ -70,3 +70,70 @@ render files shown by `git status`; the checkout is otherwise clean.
 
 No wakeup daemon was created, legacy STOP markers were not modified, and files
 under the future patterns/VT2 worker's ownership were not touched.
+
+## Second checkpoint — high rows and feed guards
+
+The prior run completed but timed out at the worker checkpoint boundary after
+writing its authoritative receipt. It was not repeated. The exact command was:
+
+```sh
+python3 research/autosiril-native/render/prove_edges.py \
+  --baseline /tmp/minz-z-workers/render-results/checkpoint2-baseline-d \
+  --autosiril /Users/alice/dev/autosiril \
+  --out /tmp/minz-z-workers/render-results/checkpoint2-edges-l
+```
+
+Preserved stdout (`checkpoint2-edges-l.log`) says:
+`PASS 4 actual-Ruby high-row cases; 262174 rows on each engine; 4 feed checks; 4 mutants`.
+The proof first checks the pinned Ruby source SHA-256
+`41f621b555fc089effd711319e723494576eb47ea0282847082ec91c1cdd4c01`, then executes actual
+Ruby for `65535`, `65536`, `65567`, and empty-input `65536` rows. Raw MIR2, final MIR2,
+and assembled Z80 each match all 262,174 exact text/state rows across those four cases
+(12 engine executions). A final event is placed at source row65,535; rows after it use
+unchanged state. Kind5 source row fields remain `u16`, so no impossible source index above
+65,535 is fabricated. The render loop remains `u32`.
+
+The state wire now preserves both historical encodings: a 77-byte packet with `u16` row
+through65,535, and a 79-byte packet with `u32` row from65,536 upward. The fixture decoder
+accepts both lengths and reports `stateRows` incremented at each sink packet rather than
+dividing collected byte length by77. After the timeout, the remaining console-only use of
+`len(actualState)/77` was fixed. The smallest replay was a zero-row case:
+
+```sh
+cd minzc
+go run /tmp/minz-z-workers/render-results/checkpoint3-reporting/render-kernel.go \
+  --root .. \
+  --source ../research/autosiril-native/render/kernel.nanz \
+  --input /tmp/minz-z-workers/render-results/checkpoint3-reporting/zero.json \
+  --out /tmp/minz-z-workers/render-results/checkpoint3-reporting/measured
+```
+
+It printed `PASS zero_rows/{raw-mir2,final-mir2,z80} rows0`; its receipt records zero rows
+for each engine. The reporting replay regenerates the generated driver from the baseline
+header plus the updated owned driver body. It does not replace the authoritative edge run.
+
+Kernel-feed guards reject duplicate rows, unsorted rows, invalid feed status, and a
+9,217th source cell (`fault958`, `fault958`, `fault904`, and `fault983` respectively).
+Protective target mutants that accept duplicates/capacity overflow, truncate high-row
+trace, or skip demotion refresh all fail. These are fixture-feed checks, not malformed-file
+or CP/M I/O coverage. On each source feed the kernel drops its cached envelope-note state
+and recomputes it from admitted records; a future lossless kind5 file adapter must validate
+source/envelope-note coherence before relying on that cache (or preserve original behavior
+precisely).
+
+Portable evidence is `evidence/edges.json`
+(SHA-256 `c3296f0963a9774d91f32130c68c47e4f2aba710d3ae178cc9e29161b42792f8`). It records
+per-case source counts, Ruby hashes, engine hashes/counts, checks, mutants, the authoritative
+receipt SHA-256, and the limitations. The baseline remains exactly203 cases and10,320 post-row
+states per engine. Independently linked CP/M/TRD file stages, physical128-byte-record framing,
+full file failure/cleanup matrices, all16 banks, six-COM integration, inherited CI/audits,
+PR/main integration, and VT2 remain unfinished.
+
+Parent audit clarification: the independent edge rerun also passed all12
+positive engine executions (262174 row states per engine). Current negative
+and mutant harness exits at the first raw-MIR2 runtime failure; these four
+mutants are therefore raw-MIR2 negative controls, not independent native-Z80
+mutant executions. Logs were checked to contain runtime mismatches rather
+than compiler syntax errors. `evidence/parent-edges-audit.json` records the
+independent command, receipt/source hashes and scope. Full file/native guard
+coverage remains an acceptance requirement.
