@@ -4,6 +4,7 @@ from pathlib import Path
 import argparse,base64,json,subprocess,sys
 sys.dont_write_bytecode=True
 from corpus import musical_cases
+from native_corpus import native_cases
 from encode_reference import encode,cell_payload
 HERE=Path(__file__).resolve().parent
 
@@ -24,18 +25,25 @@ def main():
     stage=a.upstream/'trd/measured/chain_chronos_full/scorpion-z80'
     arrangement=(stage/'arrange.bin').read_bytes()
     notes=(a.upstream/'upstream/previous/producer/trd/measured/chronos_full/scorpion-z80/notes.bin').read_bytes()
-    cases=musical_cases(arrangement,notes);oracle_input=out/'oracle-input.json';oracle_input.write_text(json.dumps({'cases':cases},indent=2)+'\n')
+    cases=musical_cases(arrangement,notes)[1:]+native_cases(a.upstream.resolve())
+    native_inputs={c['name']:(c.pop('native_wire'),c.pop('native_notes')) for c in cases if 'native_wire' in c}
+    oracle_input=out/'oracle-input.json';oracle_input.write_text(json.dumps({'cases':cases},indent=2)+'\n')
     result=subprocess.run(['ruby',str(HERE/'oracle.rb'),str(a.autosiril.resolve()),str(oracle_input)],capture_output=True,text=True,timeout=120)
     (out/'ruby.json').write_text(result.stdout);(out/'ruby-stderr.txt').write_text(result.stderr)
     if result.returncode:raise RuntimeError(result.stderr[-3000:])
     refs={c['name']:c for c in json.loads(result.stdout)['cases']}
     matrix=[]
     for c in cases:
-        original=arrangement if c['name']=='native_chronos' else arrangement_wire(c)
-        companion=notes if c['name']=='native_chronos' else notes_wire(c['max_off'])
-        expected=encode(original,refs[c['name']]);fault=902 if len(expected)>65280 else 0
+        original,companion=native_inputs[c['name']] if c['name'] in native_inputs else (arrangement_wire(c),notes_wire(c['max_off']))
+        ref=refs[c['name']];overflow=any(cell['row']>65535 for ch in ref['channels'] for cell in ch)
+        # Overflow cases retain only representable Ruby cells for prefix checks;
+        # this serialization is never accepted as a successful full output.
+        expected=encode(original,ref,representable_only=overflow)
+        fault=980 if overflow else 902 if len(expected)>65280 else 0
         row=dict(name=c['name'],config=c['config'],wire=base64.b64encode(original).decode(),notes=base64.b64encode(companion).decode(),expected=base64.b64encode(expected).decode(),fault=fault,counts=[len(ch) for ch in refs[c['name']]['channels']],extents=refs[c['name']]['lengths'])
-        if c['name']=='native_chronos':row['disk']=str(stage/'disk.trd')
+        if fault==902:row['cpm_fault']=0
+        if overflow:row.update(partial_reference=True,output_exists=True)
+        if c['name'] in native_inputs:row.update(disk=c['native_disk'],cpm_arrange_file=c['cpm_arrange'],cpm_notes_file=c['cpm_notes'])
         matrix.append(row)
     (out/'cases.json').write_text(json.dumps({'cases':matrix},indent=2)+'\n')
     print('Built',len(matrix),'actual Ruby cases; output sizes',sorted(set(len(base64.b64decode(c['expected'])) for c in matrix)))

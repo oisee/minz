@@ -2,12 +2,13 @@ func main(){
  root:=flag.String("root","..","repository root")
  source:=flag.String("source","","composed CP/M source")
  upstream:=flag.String("upstream","","completed common CP/M flatten root")
+ producer:=flag.String("producer","","native common producer root")
  engineChoice:=flag.String("engine","","optional engine filter for native mutants")
  input:=flag.String("input","","independent arrangement matrix")
  out:=flag.String("out","","output directory")
  music:=flag.String("music","","actual typed Crystal export")
  manifest:=flag.String("manifest","","actual typed Crystal manifest")
- flag.Parse();check(os.MkdirAll(*out,0755))
+ flag.Parse();if *producer==""{*producer=filepath.Join(*upstream,"upstream/previous/producer")};check(os.MkdirAll(*out,0755))
  buildOne:=func()*hir.Module{h,e:=build(read(*source),read(*music),read(*manifest),filepath.Join(*root,"stdlib"));check(e);return h}
  raw:=hir.LowerModule(buildOne());check(mir2.Verify(raw))
  opts:=pipeline.DefaultOptions();opts.AssertMode="none";opts.DisableVariantSearch=true
@@ -19,13 +20,17 @@ func main(){
  var matrix struct{Cases []echoCase `json:"cases"`};check(json.Unmarshal(read(*input),&matrix));if len(matrix.Cases)==0{panic("empty matrix")}
  rows:=[]map[string]any{}
  for _,tc:=range matrix.Cases{
-  if tc.Name=="output_larger_than_trd"{tc.Fault=0};if tc.CPMFault!=nil{tc.Fault=*tc.CPMFault}
+  if tc.CPMFault!=nil{tc.Fault=*tc.CPMFault}
   cfg:=tc.Config.bytes()
   for index,engine:=range []string{"raw-mir2","final-mir2","z80"}{
    if *engineChoice!=""&&*engineChoice!=engine{continue}
    dir:=filepath.Join(*out,tc.Name,engine);check(os.MkdirAll(dir,0755))
    pad:=func(data []byte)[]byte{b:=append([]byte(nil),data...);return append(b,make([]byte,(-len(b))&127)...)}
    inputWire,notesWire:=pad(tc.Wire),pad(tc.Notes);if tc.CPMWire!=nil{inputWire=pad(tc.CPMWire)};if tc.CPMNotes!=nil{notesWire=pad(tc.CPMNotes)}
+   if tc.CPMNotesFile!=""||tc.CPMArrangeFile!=""{
+    if tc.CPMNotesFile==""||tc.CPMArrangeFile==""{panic("incomplete native input pair")}
+    if !bytes.Equal(read(filepath.Join(*producer,tc.CPMNotesFile)),notesWire)||!bytes.Equal(read(filepath.Join(*upstream,tc.CPMArrangeFile)),inputWire){panic("saved native CP/M input differs")}
+   }
    if tc.Name=="native_chronos"{
     for name,want:=range map[string][]byte{"NOTES.BIN":notesWire,"ARRANGE.BIN":inputWire}{actual:=read(filepath.Join(*upstream,"cpm/standalone",name));if !bytes.Equal(actual,want){panic("saved native CP/M input differs")}}
    }
@@ -58,6 +63,7 @@ func main(){
     opened,closed:=false,false;var openWrites uint32
     for count:=0;z.GetPC()!=returnPC;count++{
      if count>=250000000{panic("native CP/M instruction limit")}
+     if z.GetIFF1()||z.GetIFF2(){panic("native CP/M IRQ enabled")}
      pc:=z.GetPC()
      if pc!=5&&(int(pc)<origin||int(pc)>=origin+len(a.Binary)){panic("native CP/M PC outside image/BDOS")}
      if pc==5{r:=z.GetRegisters();r.A=d.invoke(byte(r.BC),r.DE);r.HL=0;r.PC=binary.LittleEndian.Uint16(mem[r.SP:r.SP+2]);r.SP+=2;z.SetRegisters(r)}else{z.Step()}
@@ -65,6 +71,7 @@ func main(){
      if now!=openWrites{value:=mem[a.Symbols["input_open"]];if value==1{opened=true;closed=false;opens++};if opened&&value==0&&!closed{closed=true;closes++};openWrites=now}
      if z.GetSP()<minSP{minSP=z.GetSP()};if z.GetSP()<floor{panic("native CP/M stack floor")}
     }
+    if z.GetIFF1()||z.GetIFF2(){panic("native CP/M IRQ enabled on return")}
     if z.GetSP()!=initialSP+2||opened&&!closed{panic("native CP/M return/lease")}
     returned=z.GetRegisters().HL;cycles=z.GetCycles();stack=int(initialSP-minSP)
     allowed:=make([]bool,65536)

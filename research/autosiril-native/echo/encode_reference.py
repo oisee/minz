@@ -10,12 +10,12 @@ def cell_payload(channel,cell):
     b[11],b[12]=ord(n['type']),ord(n['kind']);struct.pack_into('<H',b,13,n['enote']&65535)
     return bytes(b)
 
-def encode(arrangement,ruby):
+def encode(arrangement,ruby,representable_only=False):
     assert arrangement[:12]==b'ASIR'+bytes([1,3,16,0,3,0,0,0])
     assert (len(arrangement)-21)%17==0
     count=(len(arrangement)-21)//17
     assert arrangement[-9:]==b'\xff'+struct.pack('<I',count)+b'END!'
-    cells=[((ch,c['row']),cell_payload(ch,c)) for ch,channel in enumerate(ruby['channels']) for c in channel]
+    cells=[((ch,c['row']),cell_payload(ch,c)) for ch,channel in enumerate(ruby['channels']) for c in channel if not representable_only or c['row']<=65535]
     assert [x[0] for x in cells]==sorted(set(x[0] for x in cells))
     records=[];cursor=0
     for at in range(12,len(arrangement)-9,17):

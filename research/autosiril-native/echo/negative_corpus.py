@@ -87,5 +87,18 @@ def cases(musical):
     p=bytearray(records[-1]);struct.pack_into('<H',p,2,3072);records.append(bytes(p))
     c.update(name='lnote_input_1025',wire=base64.b64encode(frame(3,16,3,records)).decode(),notes=base64.b64encode(notes_wire(3072)).decode(),fault=200,input_opens=2,output_exists=True)
     rows.append(c)
+    for field in ['notes','wire']:
+        original=bytearray(base64.b64decode(base[field]));original[-6]=1
+        add(field+'_end_high_count',field,original,956)
+    for name,field,value,fault in [('arrange_channel_count_0','wire',0,953),('arrange_channel_count_4','wire',4,953),('notes_no_declared_sources','notes',0,958)]:
+        original=bytearray(base64.b64decode(base[field]));struct.pack_into('<H',original,8,value);add(name,field,original,fault)
+    from corpus import channels_from_wire
+    env=deepcopy(channels_from_wire(base64.b64decode(next(c for c in musical if c['name']=='native_chronos')['wire']))[0][0]);env['row']=0
+    for name,offset,value in [('sample',5,3),('form',6,0),('enote',13,0)]:
+        p=bytearray(cell_payload(0,env));p[offset]=value;add('envelope_'+name,'wire',frame(3,16,3,definitions([[0,0]])+[p]),984)
+    for name,values in [('repeat_33',[[0]*33]),('repeat_mismatch',[[0,0],[0,0,1]]),('decreasing_block',[[0,0],[0,0,2,1]]),('nonincreasing_step',[[0,0],[0,0,0,0]])]:
+        add('definition_'+name,'wire',frame(3,16,3,definitions(values)),985)
+    for name,key,value in [('delay_one_33','first',33),('delay_two_33','second',33),('unknown_source_mode','modes',[120,109,109])]:
+        c=deepcopy(base);c.update(name=name,fault=976,input_opens=0,output_exists=False,written_records=0);c['config'][key]=value;rows.append(c)
     assert len({c['name'] for c in rows})==len(rows)
     return rows

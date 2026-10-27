@@ -13,7 +13,9 @@ def once(text,old,new):
 def main():
     p=argparse.ArgumentParser(description=__doc__)
     for n in ['musical','positive','upstream','out']:p.add_argument('--'+n,type=Path,required=True)
+    p.add_argument('--producer',type=Path)
     a=p.parse_args();out=a.out.resolve();out.mkdir(parents=True,exist_ok=True);before=sources()
+    if a.producer is None:a.producer=a.upstream/'upstream/previous/producer'
     single=deepcopy(next(c for c in json.loads((a.musical/'reference/cases.json').read_text())['cases'] if c['name']=='equal_delays_second_is_first_inserted'))
     fixture=out/'single.json';fixture.write_text(json.dumps(dict(cases=[single]),indent=2)+'\n')
     def run(name,cmd,reject=None):
@@ -54,9 +56,9 @@ def main():
             mutations += [('restoring_mode_config',modes,stub,reason)]
         for name,text,runtime,reason in mutations:
             stem=transport+'_'+name;path=out/(stem+'.nanz');path.write_text(text);runtime_path=out/(stem+'.a80');runtime_path.write_text(runtime)
-            cmd=[probe,'-root',ROOT,'-source',path,'-input',fixture,'-music',a.positive/'music.lanz','-manifest',a.positive/'music-manifest.json','-engine','scorpion-z80' if transport=='trd' else 'z80','-out',out/stem]
+            cmd=[probe,'-root',ROOT,'-upstream',a.upstream.resolve(),'-source',path,'-input',fixture,'-music',a.positive/'music.lanz','-manifest',a.positive/'music-manifest.json','-engine','scorpion-z80' if transport=='trd' else 'z80','-out',out/stem]
             if transport=='trd':cmd+=['-stub',runtime_path]
-            else:cmd+=['-upstream',a.upstream]
+            else:cmd+=['-producer',a.producer.resolve()]
             run(stem,cmd,reason);results.append(dict(transport=transport,name=name,rejection=reason,source_sha256=sha(path),stub_sha256=sha(runtime_path)))
     assert before==sources(),'sources changed during mutant proof'
     (out/'receipt.json').write_text(json.dumps(dict(protocol='autosiril-echo-native-mutants/v1',source_sha256=before,results=results),indent=2)+'\n');print('PASS6 actual native guard mutations,including restoring bank/config writes')

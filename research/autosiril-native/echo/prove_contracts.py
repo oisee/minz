@@ -9,7 +9,9 @@ from chunk_contracts import controls
 def main():
     p=argparse.ArgumentParser(description=__doc__)
     for name in ['musical','positive','upstream','out']:p.add_argument('--'+name,type=Path,required=True)
+    p.add_argument('--producer',type=Path)
     a=p.parse_args();out=a.out.resolve();out.mkdir(parents=True,exist_ok=True);before=sources()
+    if a.producer is None:a.producer=a.upstream/'upstream/previous/producer'
     fixtures=json.loads((a.musical/'reference/cases.json').read_text())['cases']
     def run(name,cmd):
         r=subprocess.run(list(map(str,cmd)),cwd=ROOT/'minzc',capture_output=True,text=True,timeout=900)
@@ -25,8 +27,8 @@ def main():
             experiments += [('directory_'+str(code),original,[single]) for code in [1,2,3]]
         for name,text,cases in experiments:
             stem=transport+'_'+name;path=out/(stem+'.nanz');path.write_text(text);fixture=out/(stem+'.json');fixture.write_text(json.dumps(dict(cases=cases),indent=2)+'\n')
-            cmd=[probe,'-root',ROOT,'-source',path,'-input',fixture,'-music',a.positive/'music.lanz','-manifest',a.positive/'music-manifest.json','-out',out/stem]
-            if transport=='cpm':cmd+=['-upstream',a.upstream]
+            cmd=[probe,'-root',ROOT,'-upstream',a.upstream.resolve(),'-source',path,'-input',fixture,'-music',a.positive/'music.lanz','-manifest',a.positive/'music-manifest.json','-out',out/stem]
+            if transport=='cpm':cmd+=['-producer',a.producer.resolve()]
             if name.startswith('directory_'):cmd+=['-directory-code',name.split('_')[1]]
             run(stem,cmd);receipt=json.loads((out/stem/'receipt.json').read_text());rows=receipt['cases'];assert len(rows)==len(cases)*3;count+=len(rows)
             for c in cases:

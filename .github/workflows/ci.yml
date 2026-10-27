@@ -14,10 +14,10 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  pr_gate:
-    name: PR gate
+  pr_gate_work:
+    name: Compiler and frozen gates
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 90
     outputs:
       build: ${{ steps.build.outcome }}
       stable: ${{ steps.stable.outcome }}
@@ -65,6 +65,15 @@ jobs:
         run: python3 ../research/autosiril-native/trd-flatten/replay.py --reference "$RUNNER_TEMP/autosiril-file-chain" --producer "$RUNNER_TEMP/autosiril-transports" --out "$RUNNER_TEMP/autosiril-trd-flatten"
       - name: Verify third native arrangement stage on TRD and CP/M
         run: python3 ../research/autosiril-native/arrange/replay.py --trd-upstream "$RUNNER_TEMP/autosiril-trd-flatten" --cpm-upstream "$RUNNER_TEMP/autosiril-common-flatten" --producer "$RUNNER_TEMP/autosiril-transports" --mze "$RUNNER_TEMP/mze" --out "$RUNNER_TEMP/autosiril-arrange"
+      - name: Verify fourth native echo stage and all failure contracts
+        run: python3 ../research/autosiril-native/echo/replay.py --upstream "$RUNNER_TEMP/autosiril-arrange" --producer "$RUNNER_TEMP/autosiril-transports" --mze "$RUNNER_TEMP/mze" --out "$RUNNER_TEMP/autosiril-echo"
+      - name: Preserve native echo evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: autosiril-echo
+          path: ${{ runner.temp }}/autosiril-echo/
+          if-no-files-found: ignore
       - name: Preserve native arrangement evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -141,6 +150,66 @@ jobs:
         id: z3_fixtures
         run: ../examples/zmachine/z3-fixtures/smoke.sh "$RUNNER_TEMP/mzv"
 
+  native_echo_fresh:
+    name: Fresh Ruby Crystal native pipeline
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      GEM_HOME: ${{ runner.temp }}/autosiril-gems
+      CRYSTAL_CACHE_DIR: ${{ runner.temp }}/crystal-cache
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: oisee/autosiril
+          ref: 44925349147d5cd4bf3636c3f0eeffa7b46e261c
+          path: .ci-reference/autosiril
+          persist-credentials: false
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: minzc/go.mod
+          cache-dependency-path: minzc/go.sum
+      - uses: crystal-lang/install-crystal@v1
+        with:
+          crystal: 1.20.1
+          shards: false
+      - name: Install original Ruby oracle and compiler-library dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ruby llvm-dev libgc-dev libgmp-dev libevent-dev libpcre2-dev zlib1g-dev
+          gem install midilib --version 4.0.2 --no-document
+      - name: Rebuild actual Ruby Crystal and all four native stages
+        run: python3 research/autosiril-native/echo/verify.py --autosiril .ci-reference/autosiril --out "$RUNNER_TEMP/autosiril-echo-fresh"
+      - name: Preserve complete fresh native evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: autosiril-echo-fresh
+          path: ${{ runner.temp }}/autosiril-echo-fresh/
+          retention-days: 7
+          if-no-files-found: ignore
+
+  pr_gate:
+    name: PR gate
+    needs: [pr_gate_work, native_echo_fresh]
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    outputs:
+      native_fresh: ${{ needs.native_echo_fresh.result }}
+      native_frozen: ${{ needs.pr_gate_work.result }}
+      build: ${{ needs.pr_gate_work.outputs.build }}
+      stable: ${{ needs.pr_gate_work.outputs.stable }}
+      assemble: ${{ needs.pr_gate_work.outputs.assemble }}
+      metafunctions: ${{ needs.pr_gate_work.outputs.metafunctions }}
+      z3_demo: ${{ needs.pr_gate_work.outputs.z3_demo }}
+      z3_fixtures: ${{ needs.pr_gate_work.outputs.z3_fixtures }}
+    steps:
+      - name: Require both inherited frozen and complete fresh pipelines
+        env:
+          FROZEN_RESULT: ${{ needs.pr_gate_work.result }}
+          FRESH_RESULT: ${{ needs.native_echo_fresh.result }}
+        run: test "$FROZEN_RESULT" = success && test "$FRESH_RESULT" = success
+
   pr_report:
     name: PR test report
     needs: pr_gate
@@ -152,6 +221,8 @@ jobs:
       - name: Update one PR comment with test results
         uses: actions/github-script@v7
         env:
+          NATIVE_FRESH_RESULT: ${{ needs.pr_gate.outputs.native_fresh }}
+          NATIVE_FROZEN_RESULT: ${{ needs.pr_gate.outputs.native_frozen }}
           GATE_RESULT: ${{ needs.pr_gate.result }}
           BUILD_RESULT: ${{ needs.pr_gate.outputs.build }}
           STABLE_RESULT: ${{ needs.pr_gate.outputs.stable }}
@@ -164,6 +235,8 @@ jobs:
             const marker = '<!-- minz-pr-test-report -->';
             const icon = value => value === 'success' ? '🟢 pass' : value === 'failure' ? '🔴 fail' : '⚪ ' + (value || 'not run');
             const checks = [
+              ['Complete fresh Ruby/Crystal native pipeline', process.env.NATIVE_FRESH_RESULT],
+              ['Inherited compiler and complete frozen native gates', process.env.NATIVE_FROZEN_RESULT],
               ['Build mz, mza, mze, mzv', process.env.BUILD_RESULT],
               ['Fast compiler regressions (deep suites run separately)', process.env.STABLE_RESULT],
               ['Fibonacci compile + assemble', process.env.ASSEMBLE_RESULT],

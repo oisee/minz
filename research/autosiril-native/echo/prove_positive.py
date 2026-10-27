@@ -14,7 +14,7 @@ def sources():
     paths=list(HERE.glob('*.py'))+list(HERE.glob('*.rb'))+list(HERE.glob('*.nanz'))+list(HERE.glob('*.go.txt'))+[HERE/'format.md']
     for directory,patterns in [('arrange',['*.py','*.nanz','*.go.txt']),('trd-flatten',['*.py','*.nanz','*.go.txt']),('stream-flatten',['compose.py','common.nanz']),('transports',['*.nanz','*.go.txt','*.a80','*.py']),('file-flatten',['compose.py','cpm.nanz','driver.go.txt']),('linked',['compose.py']),('files',['pair-cpm.nanz','driver.go.txt']),('midi/fixtures',['music.lanz','music-manifest.json'])]:
         for pattern in patterns:paths+=list((HERE.parent/directory).glob(pattern))
-    paths += [ROOT/p for p in ['research/autosiril-vm/engine.nanz','research/autosiril-vm/lazy_flatten.nanz','research/autosiril-vm/tables.nanz','research/autosiril-vm/music.cr','research/crystal-hir/typed_export.cr','research/crystal-hir/export.cr','minzc/pkg/spectrum/formats/trd.go']]
+    paths += [ROOT/p for p in ['research/autosiril-vm/engine.nanz','research/autosiril-vm/lazy_flatten.nanz','research/autosiril-vm/tables.nanz','research/autosiril-vm/music.cr','research/crystal-hir/typed_export.cr','research/crystal-hir/export.cr','minzc/pkg/spectrum/formats/trd.go','.github/workflows/ci.yml']]
     return {str(p.relative_to(ROOT)):sha(p) for p in sorted(set(paths))}
 
 def main():
@@ -52,7 +52,7 @@ def main():
     for channel in normalized:
         for cell in channel:cell['note']['volume']=round(cell['note']['volume']*100)
     assert ref['channels']==normalized and ref['lengths']==[canonical['max_row']+1]*3
-    assert [len(ch) for ch in ref['channels']]==[1189,1013,1013] and ref['lengths']==[1353]*3
+    assert [len(ch) for ch in ref['channels']]==[1189,1013,1013] and ref['lengths']==[1353]*3 and ref['base_rows']==1353
     expected=out/'expected.bin';expected.write_bytes(encode(arrangement.read_bytes(),ref));assert expected.stat().st_size==54880
     exporter=out/'export';run('build-export',['crystal','build','-Dcrystal_semantic',ROOT/'research/crystal-hir/typed_export.cr','-o',exporter])
     music=out/'music.lanz';manifest=out/'music-manifest.json';music.write_text(run('export',[exporter,ROOT/'research/autosiril-vm/music.cr',manifest]))

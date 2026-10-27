@@ -9,7 +9,9 @@ from io_corpus import trd_cases,cpm_cases
 def main():
     p=argparse.ArgumentParser(description=__doc__)
     for name in ['musical','positive','upstream','out']:p.add_argument('--'+name,type=Path,required=True)
+    p.add_argument('--producer',type=Path)
     a=p.parse_args();out=a.out.resolve();out.mkdir(parents=True,exist_ok=True);before=sources()
+    if a.producer is None:a.producer=a.upstream/'upstream/previous/producer'
     musical=json.loads((a.musical/'reference/cases.json').read_text())['cases'];positive=json.loads((a.positive/'receipt.json').read_text())
     def run(name,cmd):
         r=subprocess.run(list(map(str,cmd)),cwd=ROOT/'minzc',capture_output=True,text=True,timeout=1800)
@@ -19,8 +21,8 @@ def main():
     for transport,cases in [('trd',trd_cases(musical,positive)),('cpm',cpm_cases(musical))]:
         fixture=out/(transport+'-cases.json');fixture.write_text(json.dumps(dict(cases=cases),indent=2)+'\n')
         probe=out/('probe-'+transport);run('build-'+transport,['go','build','-o',probe,generated/('echo-matrix.go' if transport=='trd' else 'echo-cpm.go')])
-        cmd=[probe,'-root',ROOT,'-source',generated/('echo-'+transport+'.nanz'),'-input',fixture,'-music',a.positive/'music.lanz','-manifest',a.positive/'music-manifest.json','-out',out/transport]
-        if transport=='cpm':cmd+=['-upstream',a.upstream]
+        cmd=[probe,'-root',ROOT,'-upstream',a.upstream.resolve(),'-source',generated/('echo-'+transport+'.nanz'),'-input',fixture,'-music',a.positive/'music.lanz','-manifest',a.positive/'music-manifest.json','-out',out/transport]
+        if transport=='cpm':cmd+=['-producer',a.producer.resolve()]
         run(transport,cmd);measured[transport]=json.loads((out/transport/'receipt.json').read_text());rows=measured[transport]['cases'];assert len(rows)==len(cases)*3;count+=len(rows)
         for c in cases:
             group=[r for r in rows if r['case']==c['name']];assert len(group)==3

@@ -8,8 +8,10 @@ from prove_positive import HERE,ROOT,sha,sources
 def main():
     p=argparse.ArgumentParser(description=__doc__)
     for name in ['musical','positive','upstream','out']:p.add_argument('--'+name,type=Path,required=True)
+    p.add_argument('--producer',type=Path)
     a=p.parse_args();out=a.out.resolve()
     if out==ROOT or ROOT in out.parents or (out.exists() and any(out.iterdir())):p.error('use an empty output directory outside checkout')
+    if a.producer is None:a.producer=a.upstream/'upstream/previous/producer'
     out.mkdir(parents=True,exist_ok=True);before=sources();prior=json.loads((a.positive/'receipt.json').read_text())
     assert prior['protocol']=='autosiril-echo-positive/v1'
     # Reuse is explicit. Admission inputs and target music kernel must remain
@@ -21,18 +23,18 @@ def main():
     assert sha(a.musical/'reference/cases.json')==json.loads((a.musical/'receipt.json').read_text())['matrix_sha256']
     results={}
     for name,script in [('invalid','prove_invalid.py'),('io','prove_io.py'),('mutants','prove_mutants.py'),('contracts','prove_contracts.py')]:
-        cmd=[sys.executable,HERE/script,'--musical',a.musical.resolve(),'--positive',a.positive.resolve(),'--upstream',a.upstream.resolve(),'--out',out/name]
+        cmd=[sys.executable,HERE/script,'--musical',a.musical.resolve(),'--positive',a.positive.resolve(),'--upstream',a.upstream.resolve(),'--producer',a.producer.resolve(),'--out',out/name]
         r=subprocess.run(list(map(str,cmd)),cwd=ROOT/'minzc',capture_output=True,text=True,timeout=2400)
         (out/(name+'.txt')).write_text(r.stdout+r.stderr)
         if r.returncode:raise RuntimeError(name+': '+(r.stdout+r.stderr)[-3500:])
         results[name]=json.loads((out/name/'receipt.json').read_text());assert results[name]['source_sha256']==before
         print(r.stdout.strip(),flush=True)
-    assert results['invalid']['target_executions']==360
+    assert results['invalid']['target_executions']==450
     assert results['io']['target_executions']==180
     assert results['contracts']['target_executions']==141
     assert len(results['mutants']['results'])==6
     assert before==sources(),'sources changed during robustness proof'
     proof=dict(protocol='autosiril-echo-robustness/v1',source_sha256=before,reused_positive_sha256=sha(a.positive/'receipt.json'),reused_musical_sha256=sha(a.musical/'receipt.json'),reused_arrangement_sha256=sha(a.upstream/'receipt.json'),proofs=results,scope='current native target kernels and expanded verification drivers; explicitly reused fresh actual Ruby/Crystal/native upstream; full20-chain/fresh/frozen/requiredCI/PR acceptance still pending')
-    (out/'receipt.json').write_text(json.dumps(proof,indent=2)+'\n');print('PASS681 ordinary three-engine executions plus6 real native mutation rejections')
+    (out/'receipt.json').write_text(json.dumps(proof,indent=2)+'\n');print('PASS771 ordinary three-engine executions plus6 real native mutation rejections')
 
 if __name__=='__main__':main()

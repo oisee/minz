@@ -1,251 +1,177 @@
-# Next native milestone: bounded echo with explicit timeline extent
+# Bounded native echo: fourth streaming stage
 
-Selected after PR #268 merged as4db828c61 with9 green checks; downloaded CI arrangement artifacts matched fresh evidence. Work branch:spike/autosiril-native-echo. The native TRD echo kernel now passes its first full-song and musical-boundary proofs; the complete error/CI milestone remains open; the initial CP/M proof and four-COM chain also pass. The simulation below is historical planning evidence.
+Work branch: `spike/autosiril-native-echo`, based on main `4db828c61` / PR #268.
+The fourth independently linked stage reads native `NOTES.N` + `ARRANGE.A`
+(or `NOTES.BIN` + `ARRANGE.BIN`) and writes `DELAYED.D` / `DELAYED.BIN`.
+The complete milestone still requires green fresh/frozen CI, artifact audit and
+PR merge. Mix/pattern/VT2/VTX remain subsequent stages.
 
-Read actual Ruby autooisee.rb apply_delays780+ and VM engine.nanz apply_echo.
-A host planning simulation over a fixed65-slot array matched actual Ruby in10
-cases, including the actual native Chronos ARRANGE stream. This planning result alone did not prove
-native execution; the independent native measurements are listed below. The source-bound planning receipt is saved alongside this plan; the temporary scripts remain at /tmp/minz-echo-planning until the reproducible native oracle is built.
+## Streaming algorithm and profile
 
-Observed Chronos:2097 input LNotes →3215 delayed cells (1189/1013/1013),
-all3 channel lengths1353; live pending maximum13. A dense wide-delay fixture
-reaches all65 slots. Other cases cover original starts blocking earlier echoes,
-release replacement/retention, older second echo beating newer first echo,
-zero/equal/reversed delays, u/w flags, envelope renewal and large sparse gaps.
+A target pass over the companion NOTES stream determines the extent from **all
+sources**, including unselected ones. It closes that input, switches the name,
+then opens ARRANGE. Empty notes give base extent1; otherwise the extent is
+`u32(max_off)+max(delay1,delay2)+1`, independently of unvoiced/wide flags.
+Accepted wide echoes may extend an individual channel. Sparse kind3 input alone
+cannot reveal trailing nil-array lengths.
 
-Ring rule: before consuming rowR flush pending rows<R; insert/replace the
-original if destination is absent or original.type!='r', otherwise preserve
-what earlier echoes put there. Schedule second then first from the ORIGINAL
-input object, never from delayed output. Place only into nil/release cells.
-A future original start restores its priority; an original release behaves like
-the release/nil destination Ruby pre-cloned before scheduling. Therefore no
-lookahead/full grid is needed. Effective delay<=64 (configured0..32, wide×2)
-keeps all live rows within a64-row span; index=row%65 must have either no tag or
-the identical absolute row. Never overwrite a different live row.
+The ring has65 tagged slots for a maximum effective delay64. Before consuming
+rowR, flush pending rows<R; on a channel change, flush the previous channel.
+Insert the original start with priority; an original release preserves an older
+echo already occupying that row. Schedule second echo, then first echo, from
+the **original input cell**, and place only into absent/release destinations.
+An older second echo can therefore beat a newer first echo. A different live
+absolute row must never alias the same slot. No recursive echoes, full-song grid,
+note array or GC is needed.
 
-Centi-volumes1050/735 are valid for the producer's nominal1500 input; use the
-actual typed Crystal echo_volume kernel. Ruby kind'e' renewal at these volumes
-sets sample2/envelope15 under the current cool-envelope profile and preserves
-note/ornament/type/kind/enote. Validate the producer's input invariants; do not
-silently pretend the constant-volume kernel supports arbitrary input volumes.
+The admitted producer profile uses centi-volume1500 and the cool-envelope
+settings. The actual typed Crystal `crystal_echo_volume` export produces1050/735
+through a closed scalar HIR ABI with checked effects. Other input volumes are
+explicitly rejected. Delayed kind'e' cells renew to sample2/envelope15; all other
+LNote fields and every ornament fragment are retained. Source e fields are
+checked against the original tables. Configured delays are0..32, wide doubles
+them, and unvoiced suppresses scheduling.
 
-Important extent boundary: ASIR kind3 carries nonempty LNotes/ornaments, not
-trailing nil-array lengths. Ruby seq2vmod max_row uses ALL paired-note sources,
-including unselected ones, and max(off,off+delay1,off+delay2). Do not infer length
-only from sparse selected LNotes. A bounded target pass over the existing
-NOTES.N/NOTES.BIN companion can compute max_off without storing notes (empty notes must retain Ruby base_rows1, not delay+1), then
-open ARRANGE.A/ARRANGE.BIN. This retains all-source extent without host musical
-logic or modifying the verified first3 stages. Chronos native NOTES max_off1340
-plus max_delay12 gives base_rows1353, matching original Ruby exactly.
+Input limits remain2046 paired notes,64 sources and1024 LNotes/channel. Output
+can grow to3072 delayed cells/channel; it does not inherit the1024 input bound.
+Definition limits are64 /4096 expanded bytes. DATA rows remainu16: calculate a
+scheduled row inu32 and reject>65535 **before** casting. Channel extent metadata
+isu32 and may exceed65536 for trailing silence. See the
+[kind4 wire format](format.md); no field is a native pointer.
 
-Proposed lossless output extension: ASIRv1 kind4, fixed16-byte tagged payloads;
-pass kind3 LNote/definition roles0/1 and add role2 channel extent:u32LE metadata.
-Emit all3 final channel extents, including empty/unvoiced trailing silence.
-Validate framing/count/END/EOF and definition fragments. The full Chronos
-candidate would be54880 logical bytes (3215 LNotes +9 definition fragments +3
-extent records); this fits the existing TRD file limit. That was the planning sizing
-calculation; the first native proof now measures exactly the same54880 bytes. Row data remain u16 unless explicitly
-versioned wider; check overflow, never wrap. CP/M can stream larger files than
-TRD; preserve transport-specific capacity failures rather than shrinking music
-inputs just to make both transports succeed.
+## Measured full Chronos
 
-Acceptance for the selected next goal:
-actual Ruby/Crystal oracle, raw/final MIR2/native, sequential companion/input
-files and CP/M/TRD bindings; exact collision priority, end extents and u/w/error
-cases; fixed memory/physical guards/mutants, fresh/frozen CI and a separate PR.
-Mix/pattern/VT2/VTX remain later stages. i7 read-only; no Herdr control outside
-HERDR_ENV; preserve root user files and all integrated gates.
-
-
-Implementation requirements to settle early:
-- Strictly parse NOTES kind1 and ARRANGE kind3 on target, including definition
-  fragment framing; no host note/pitch/extent computation. An unselected late
-  source must still determine the initial global extent. With no paired notes,
-  Ruby leaves max_row0 and base_rows1. With notes, use u32(max_off)+max(delay1,
-  delay2)+1, independently of u/w; wide echoes may extend individual channels.
-- New kind4 extent payloads use role2, channel byte1, row-count:u32LE at2..5,
-  zero reserved6..15. The LNote row field remainsu16. Compute scheduled rows in
-  u32 and explicitly reject data rows>65535 instead of wrapping; extent metadata
-  can faithfully exceed65536 because unselected notes/trailing silence require
-  no out-of-range LNote row. Validate record counts and terminal metadata.
-- Nominal input volume1500, cool-envelope profile and configured delay0..32,
-  wide/unvoiced flags are checked. Keep the producer's2046/512/1024 capacities.
-  Echo can produce up to3 cells per input LNote; do not impose the old output
-  event bound1024 on delayed cells. Keep CP/M and TRD file limits explicit.
-- Pass every ornament definition unchanged; preserve all LNote fields and use
-  the actual typed Crystal echo_volume kernel through the audited closed ABI.
-- Full Chronos must match3215 delayed cells,3 extents1353 and all definitions
-  against actual Ruby. Include collision priority, release/zero/equal/reversed
-  delays,u/w/envelope, sparse gaps, full65-slot window, empty/unselected extent,
-  malformed input and exact resource/overflow/I/O state cases.
-- Deliver independently linked fourth images using real saved native companion
-  and arrangement files, with fresh/frozen native/VM/CI proofs, memory/port/IRQ/
-  mapping guards and restoring-write mutants. Measure code/data/spills/external
-  RAM/stack/I/O/T-states. Preserve every integrated gate and user file, and merge
-  only through a PR with required CI. API traps are not ROM/hardware/boot proof.
-
-
-## First native checkpoint
-
-The separately linked fourth TRD stage reads and closes the real saved NOTES.N
-companion, reopens ARRANGE.A produced by the third native stage, then writes
-DELAYED.D. Target code computes all extents and echo scheduling. The host only
-transports sectors, executes the original Ruby oracle and verifies bytes/state.
-Fresh typed Crystal export is byte-checked against the admitted scalar fixture
-and actually linked through the closed ABI/effects checks.
-
-Full Chronos agrees byte-for-byte in raw MIR2, final MIR2 and guarded native
-Scorpion Z80:3215 cells (1189/1013/1013),8 definitions/42 expanded bytes,
-3 extents1353,54880 logical bytes/215 sectors. Output wire SHA256:
+Raw MIR2, final MIR2 and native Z80 agree byte-for-byte with actual Ruby:
+2097 original LNotes →3215 delayed cells (1189/1013/1013),8 definitions /42
+expanded bytes /9 fragments,3 final extents1353. Output is54880 logical bytes,
+215 TRD sectors or54912 physical CP/M bytes. Wire SHA256:
 `2b115c050b50dfa0b3cececdc84dfb4144eaae6daa37c67600b2df9058093b25`.
 
-| Native measurement | Bytes/count |
-|---|---:|
-|Code plus sector stub|15631B|
-|Loaded globals|905B|
-|Static spills|383B|
-|Linked image|16919B|
-|External fixed workspace reservation|2048B (2035 used)|
-|Bank8 disk bounce reservation|16384B (256 used)|
-|Stack below entry, excluding caller's return word|48B|
-|Sector API calls|404 (187 reads/217 writes)|
-|CPU T-states|407076575|
+| Measurement | TRD Scorpion Z80 | CP/M Z80 |
+|---|---:|---:|
+|Code + stub/bootstrap|15631B|12417B|
+|Resident globals|905B|2997B|
+|Static spills|383B|293B|
+|Linked image|16919B|15707B|
+|External fixed workspace reservation|2048B (2035 used)|0B|
+|Bank8 disk bounce reservation|16384B (256 used)|0B|
+|Stack below entry, excluding caller return word|48B|46B|
+|Kernel T-states|407076575|402852467|
+|Sector API calls|404 (187 reads/217 writes)|—|
+|Physical128B reads/writes|—|364 /429|
+|Input opens / all closes|2 /3|2 /3|
 
-Image+external reservations total35351B, before stack/runtime reservations.
+TRD image+external reservations total35351B before stack/runtime reservations.
 The ring uses no bank0 memory. All16 physical banks are profiled: only the
-bank8 first256 bytes may be written through the paged window. Code/stack/fixed
-workspace/configuration/PC/port/mapping/IRQ checks remain enabled. Two input
-open/close lifetimes are observed independently.
+first256 bytes of bank8 may be written through the paged window. Fixed code,
+globals, spills, workspace, stack, PC/data execution, paging ports, mapping and
+IRQ are guarded. Configuration write counters reject transient writes even
+when restored. CP/M observes IFF1/IFF2 and fixed storage/stack/PC/port invariants.
 
-The initial17-case/51-execution musical matrix includes maximum65-slot use,
-zero/equal/reversed delays, starts/releases and collision priority, u/w,
-envelopes, sparse gaps, empty notes, unselected late sources, extent>65536,
-last representable data row, and1024 input cells producing3072 output cells.
-A104537B expected output is deliberately retained: TRD rejects after255 data
-sectors, leaves an exact unpublished data prefix, and preserves free-space/
-catalog state. CP/M accepts that larger file in all3 engines:104537 logical/104576 physical bytes,6144 cells.
+## Reference and native chains
 
-Reproduce this checkpoint with an existing **complete fresh arrangement gate**
-(the reuse is explicit and its source/Ruby/native artifacts are checked):
+There are36 musical cases:16 isolated boundary cases and20 real saved native
+arrangement chains,108 executions per transport. Each native case verifies
+both companion and arrangement bytes against its upstream disk/files; receipts
+link upstream and fourth-stage binaries. Paths in the fixture are relative,
+so CI consumes its own newly generated upstream images.
 
-```sh
-python3 research/autosiril-native/echo/prove_positive.py \
-  --upstream /tmp/minz-arrange-complete-fresh-v1 \
-  --autosiril /path/to/autosiril --out /tmp/echo-positive
-python3 research/autosiril-native/echo/prove_musical.py \
-  --upstream /tmp/minz-arrange-complete-fresh-v1 \
-  --autosiril /path/to/autosiril --positive /tmp/echo-positive \
-  --out /tmp/echo-musical
-```
+The Ruby adapter calls the original `seq2vmod` on every paired companion note,
+with cpr1 because the wire already contains quantized rows. It verifies that the
+adapter preserves start/off/pitch. The resulting original Ruby `max_row`
+determines base extent; Python's sizing formula is only an independent assertion.
+The original `apply_delays` then determines cells and final channel lengths.
+Fresh Crystal export/manifest bytes are checked and actually linked, not hosted.
 
-Remaining acceptance work: all saved native input chains; malformed input,
-capacity/row overflow, transport and publication failure matrix; small/short/stalled
-chunk contracts and directory status variants; restoring-write mutants; default full fresh/frozen
-required CI, downloaded-artifact audit and PR merge. This checkpoint is not a
-claim that the full native echo milestone is complete.
+The real last-u16-row chain is deliberately retained: Ruby can describe delayed
+rows>65535, and native echo must return980. Its fixture is marked
+`partial_reference`; only representable Ruby cells are serialized for checking
+any written prefix, never as a successful full output. Both transports require
+the overflow fault. TRD publishes nothing; CP/M has an empty made file.
 
+A separate large case produces6144 cells /104537 logical bytes. CP/M accepts
+104576 physical bytes. TRD rejects after255 written data sectors and leaves an
+exact unpublished prefix without changing free-space/catalog metadata. Inputs
+are not reduced to make the transports appear equivalent.
 
-## CP/M checkpoint
+Four separate mze processes execute
+`PAIR.COM → FLATTEN.COM → ARRANGE.COM → ECHO.COM` from INPUT.MID. The first three
+files reproduce the preceding integrated proof; DELAYED.BIN matches guarded
+native execution exactly. Every COM/data file and the emulator have hashes.
 
-The same17 actual-Ruby musical cases pass raw MIR2, final MIR2 and native Z80
-through the common CP/M binding (51 executions). Full Chronos reads both saved
-native files, closes each input independently, and writes54912 physical bytes
-for the54880B logical stream. The larger104576B output is retained, rather than
-reducing the input to fit TRD.
+## Failure and resource coverage
 
-| Native CP/M measurement | Value |
+| Suite | Executions |
 |---|---:|
-|Code plus bootstrap|12417B|
-|Resident globals|2997B|
-|Static spills|293B|
-|COM image, no external workspace|15707B|
-|Stack below entry, excluding caller return word|46B|
-|Full Chronos kernel T-states|402852467|
-|Open / close / make / DMA calls|2 /3 /1 /2|
-|Physical128B reads / writes|364 /429|
+|75 malformed/resource/config/row-overflow cases, both transports ×3 engines|450|
+|45 sector/publication +15 BDOS cases ×3 engines|180|
+|Chunk controls on each input, both transports, plus CP/M success codes|141|
+|Actual native restoring-write / paging / bounce mutants|6 rejections|
 
-A fresh sequence of four separate mze processes executes PAIR.COM,
-FLATTEN.COM, ARRANGE.COM and ECHO.COM from INPUT.MID. NOTES.BIN, EVENTS.BIN,
-and ARRANGE.BIN exactly reproduce the preceding integrated standalone proof;
-DELAYED.BIN exactly matches the guarded native fourth-stage result. The
-standalone emulator and every COM/data file have hashes in the CP/M receipt.
-This uses CALL5 API traps with the existing SP/HALT verifier contract, not a
-physical CP/M TPA/CCP/bootstrap claim.
+The matrix includes2046/2047 companion notes;64/65 definitions;4096/4097 expanded
+bytes;1024/1025 incoming cells; row overflow; source order; header metadata;
+magic/version/kind/width/flags/reserved/tag/count/END/EOF; source LNote/envelope
+and canonical fragment invariants. Both input lifetimes and ring cleanup are
+checked after failures.
 
-```sh
-python3 research/autosiril-native/echo/prove_cpm.py \
-  --upstream /tmp/minz-arrange-complete-fresh-v1 \
-  --positive /tmp/echo-positive --musical /tmp/echo-musical \
-  --out /tmp/echo-cpm
-```
+Sector failures cover each input open/read, first/middle/last Chronos data
+writes and every catalog/system publication operation. Exactly215 free sectors
+succeed;214 leave a checked unpublished partial prefix. All16 bytes of a newly
+published TRD descriptor, padding and free-space updates are checked. If catalog
+publication succeeds before the system operation fails, the file is already
+visible while free-space accounting is unchanged. This is **not atomic**.
 
-Checkpoint receipts: [full Chronos](evidence/positive-receipt.json),
-[TRD musical boundaries](evidence/musical-receipt.json),
-[CP/M musical boundaries and four standalone programs](evidence/cpm-receipt.json).
-These receipts explicitly record upstream reuse and pending full acceptance work.
+CP/M checks failed input opens/reads/closes, make/write/output-close, preexisting
+output and actual partial physical prefixes. Chunk tests target each input
+independently: tolerated empty progress, stalls, EOF with bytes, oversize and
+unknown statuses, invalid capacity/padding, short write, and reads split into1
+or7 bytes. Dense65-slot use remains correct. Directory success values1,2,3 are
+accepted and normalized.
 
-## Robustness checkpoint
+Native mutants must fail for their named observer: bad bank restore,257-byte
+bounce copy, a bank0 write which restores its old byte, and restoring scalar/mode
+config writes. Ordinary writes to the owned ring are allowed.
 
-The expanded drivers check explicit failure contracts in addition to final byte
-comparison. Both observe each input open/close independently, require ring
-cleanup, and reject configuration writes even when a later write restores the
-old value. The TRD driver preserves successful/failed sector-call traces,
-publication state, exact data prefixes, sector padding, catalog/system changes,
-and free-space accounting. CP/M preserves immediate-make visibility, exact
-physical prefixes, independent closes and preexisting output contents.
+## Reproduce and review
 
-| Suite | Current cases / executions |
-|---|---:|
-|Malformed NOTES/ARRANGE and resource boundaries|60 cases ×3 engines ×2 transports =360|
-|Sector / BDOS / directory / space / publication failures|45 TRD +15 CP/M cases, ×3 =180|
-|Chunk behavior and CP/M success codes|141 executions|
-|Actual native guard mutants|4 TRD +2 CP/M rejections|
-
-These include2046/2047 companion notes;64/65 definitions;4096/4097 expanded
-ornament bytes;1024/1025 incoming LNotes; scheduled-row overflow before a u16
-cast; malformed magic/version/kind/width/flags/reserved/tag/count/END/EOF;
-source ordering and LNote/definition invariants. Capacity checks keep input and
-delayed-output limits separate.
-
-Sector failures cover both independent input opens/reads, first/middle/last
-Chronos data writes and every catalog/system publication operation. Exact215
-free sectors succeed for Chronos;214 leave an unpublished exact partial prefix.
-If catalog publication succeeded before the system-sector failure, the file is
-already visible while free-space accounting remains unchanged. This is checked
-explicitly and is not crash-atomic publication. CP/M tests include each input
-close, output close, failed make, preexisting output and partial physical files.
-
-Chunk controls independently target the companion and arrangement reader:
-zero progress, repeated stalls, EOF with bytes, oversize/unknown status, invalid
-capacity/padding quantum, and a short write. Read splitting to1 and7 bytes is
-checked on both transports, including the dense65-slot case. Successful CP/M
-directory results1,2,3 remain accepted and normalized.
-
-The six real native mutants include a bad bank restore, a257-byte bounce copy,
-a bank0 write which restores its old byte, and restoring scalar/mode config
-writes. Each must fail for its named profiler rejection, not merely for a final
-output mismatch. No blanket prohibition is imposed on normal writes to the
-owned ring workspace.
+Default verification rebuilds original Ruby/Crystal and **all inherited gates**
+through arrangement before executing echo:
 
 ```sh
-python3 research/autosiril-native/echo/prove_robustness.py \
-  --upstream /tmp/minz-arrange-complete-fresh-v1 \
-  --positive /tmp/echo-positive --musical /tmp/echo-musical \
-  --out /tmp/echo-robustness
+python3 research/autosiril-native/echo/verify.py \
+  --autosiril /path/to/autosiril --out /tmp/echo-fresh
 ```
 
-The wrapper explicitly checks the reused fresh Ruby/Crystal checkpoint and the
-unchanged target kernels, then records current sources and all child proofs.
-This still leaves all20 native input chains, default full fresh/frozen replay,
-required CI, artifact audit and PR merge for the complete echo milestone.
+`--reuse-upstream /path/to/completed-fresh-arrangement` is an explicit development
+shortcut; its source, Ruby and actual native files are checked and reuse is
+recorded. `--refresh-evidence` saves source-bound receipts and the portable
+fixture. Local macOS mze builds can use `--go-overlay /path/to/overlay.json` for
+the existing user syscall.Select fix; overlay/replacement hashes are recorded.
+The user file is not committed. Linux CI builds the clean repository.
 
-Before final acceptance, extend this checkpoint with the20 saved arrangement
-chains (including the last-u16-row chain, whose delayed DATA overflow must be
-reported rather than hidden). Make fixture paths relative for frozen CI replay.
-The final verifier audit should also compare all16 bytes of a newly published
-TRD descriptor and observe CP/M IFF1/IFF2, in addition to the existing per-step
-Scorpion IRQ/mapping guards. Retain every older CI gate; the current PR gate's
-60-minute timeout may need adjustment based on the measured complete replay.
+Frozen replay executes every musical/failure/contract/mutant test and the four
+COM programs against the current upstream native artifacts:
 
-[Robustness checkpoint receipt](evidence/robustness-receipt.json) records681
-ordinary executions and6 actual native mutant rejections on one source snapshot.
+```sh
+python3 research/autosiril-native/echo/replay.py \
+  --upstream /tmp/autosiril-arrange --producer /tmp/autosiril-transports \
+  --mze /tmp/mze --out /tmp/echo-frozen
+```
+
+CI runs a full fresh job with pinned Autosiril44925349147d, Crystal1.20.1 and
+midilib4.0.2, and an independent inherited/frozen job. The preserved required
+`PR gate` is an always-run barrier requiring both jobs to succeed. Every old
+compiler/native gate remains in place. Fresh and frozen artifacts retain
+sources, native binaries, MIR, assembly, files/disks, traces and receipts.
+
+Receipts: [complete](evidence/receipt.json), [full Chronos](evidence/positive-receipt.json),
+[TRD/20 native chains](evidence/trd-receipt.json),
+[CP/M/20 native pairs/four COM programs](evidence/cpm-receipt.json),
+[robustness](evidence/robustness-receipt.json).
+The [original65-slot simulation](planning-receipt.json) is historical planning
+material; native execution is proved separately.
+
+These are API-trap experiments with a fixed verifier ABI, not physical
+ROM/FDC/hardware/boot, CP/M TPA/CCP bootstrap, full VT2/VTX, MOS or eZ80 proof.
+i7 stays read-only. Herdr is not controlled outside HERDR_ENV. The four root user
+files and retained40626B in-process image remain untouched.

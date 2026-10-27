@@ -9,7 +9,9 @@ from negative_corpus import cases
 def main():
     p=argparse.ArgumentParser(description=__doc__)
     for name in ['musical','positive','upstream','out']:p.add_argument('--'+name,type=Path,required=True)
+    p.add_argument('--producer',type=Path)
     a=p.parse_args();out=a.out.resolve();out.mkdir(parents=True,exist_ok=True);before=sources()
+    if a.producer is None:a.producer=a.upstream/'upstream/previous/producer'
     matrix=dict(cases=cases(json.loads((a.musical/'reference/cases.json').read_text())['cases']))
     fixture=out/'cases.json';fixture.write_text(json.dumps(matrix,indent=2)+'\n')
     def run(name,cmd):
@@ -21,8 +23,8 @@ def main():
     for transport in ['trd','cpm']:
         probe=out/('probe-'+transport);driver=generated/('echo-matrix.go' if transport=='trd' else 'echo-cpm.go')
         run('build-'+transport,['go','build','-o',probe,driver])
-        cmd=[probe,'-root',ROOT,'-source',generated/('echo-'+transport+'.nanz'),'-input',fixture,'-music',a.positive/'music.lanz','-manifest',a.positive/'music-manifest.json','-out',out/transport]
-        if transport=='cpm':cmd+=['-upstream',a.upstream]
+        cmd=[probe,'-root',ROOT,'-upstream',a.upstream.resolve(),'-source',generated/('echo-'+transport+'.nanz'),'-input',fixture,'-music',a.positive/'music.lanz','-manifest',a.positive/'music-manifest.json','-out',out/transport]
+        if transport=='cpm':cmd+=['-producer',a.producer.resolve()]
         run(transport,cmd);measured[transport]=json.loads((out/transport/'receipt.json').read_text())
         rows=measured[transport]['cases'];assert len(rows)==len(matrix['cases'])*3
         for c in matrix['cases']:

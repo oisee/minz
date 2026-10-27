@@ -17,6 +17,13 @@ def channels_from_wire(wire):
         channels[p[1]].append(dict(row=row,note=n))
     return channels
 
+def paired_notes_from_wire(wire):
+    assert wire[:8]==b'ASIR'+bytes([1,1,6,0]) and (len(wire)-21)%7==0
+    count=(len(wire)-21)//7
+    assert wire[-9:]==b'\xff'+struct.pack('<I',count)+b'END!'
+    assert all(wire[at]==1 for at in range(12,len(wire)-9,7))
+    return [list(struct.unpack_from('<HHBB',wire,at+1)) for at in range(12,len(wire)-9,7)]
+
 def base_rows(notes,cfg):
     assert notes[:8]==b'ASIR'+bytes([1,1,6,0])
     offs=[struct.unpack_from('<H',notes,at+3)[0] for at in range(12,len(notes)-9,7)]
@@ -51,4 +58,6 @@ def musical_cases(arrangement,notes):
     add('last_u16_row',[[cell(65535,start)],[],[]],config(0,0),max_off=65535)
     add('nominal_input_limit',[[cell(i*3,start) for i in range(1024)],[],[]],config(1,2),max_off=3070)
     add('output_larger_than_trd',[ [cell(i*3,start) for i in range(1024)] for _ in range(2)]+[[]],config(1,2),max_off=3070)
+    for c in cases:
+        c['paired_notes']=paired_notes_from_wire(notes) if c['name']=='native_chronos' else ([] if c['max_off'] is None else [[0,c['max_off'],60,0]])
     return cases

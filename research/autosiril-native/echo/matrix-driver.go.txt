@@ -18,6 +18,8 @@ type echoCase struct {
  Counts [3]uint16 `json:"counts"`
  Extents [3]uint32 `json:"extents"`
  Disk string `json:"disk"`
+ CPMArrangeFile string `json:"cpm_arrange_file,omitempty"`
+ CPMNotesFile string `json:"cpm_notes_file,omitempty"`
  FailCall int `json:"fail_call,omitempty"`
  Control string `json:"disk_control,omitempty"`
  Published bool `json:"published,omitempty"`
@@ -49,6 +51,7 @@ func seedEchoDisk(notes,wire []byte)*formats.TRDFile {
 func main(){
  root:=flag.String("root","..","repository root");source:=flag.String("source","","composed echo source");input:=flag.String("input","","actual Ruby cases");out:=flag.String("out","","output directory")
  stub:=flag.String("stub","","optional native sector stub")
+ upstream:=flag.String("upstream","","completed native arrangement root")
  engineChoice:=flag.String("engine","","optional engine selector")
  music:=flag.String("music","","actual Crystal export");manifest:=flag.String("manifest","","actual Crystal manifest");flag.Parse();if *stub==""{*stub=filepath.Join(*root,"research/autosiril-native/transports/trd-stub.a80")};check(os.MkdirAll(*out,0755))
  buildOne:=func()*hir.Module{h,e:=build(read(*source),read(*music),read(*manifest),filepath.Join(*root,"stdlib"));check(e);return h}
@@ -58,7 +61,7 @@ func main(){
  var matrix struct{Cases []echoCase `json:"cases"`};check(json.Unmarshal(read(*input),&matrix));if len(matrix.Cases)==0{panic("empty matrix")};rows:=[]map[string]any{}
  for _,tc:=range matrix.Cases{
   base:=seedEchoDisk(tc.Notes,tc.Wire)
-  if tc.Disk!=""{base,e=formats.LoadTRD(tc.Disk);check(e);for _,item:=range []struct{name string;ext byte;data []byte}{{"NOTES",'N',tc.Notes},{"ARRANGE",'A',tc.Wire}}{entry:=base.FindFile(item.name,item.ext);if entry==nil||!bytes.Equal(base.ReadFile(entry),item.data){panic("saved native file differs")}}}
+  if tc.Disk!=""{base,e=formats.LoadTRD(func()string{if filepath.IsAbs(tc.Disk){return tc.Disk};return filepath.Join(*upstream,tc.Disk)}());check(e);for _,item:=range []struct{name string;ext byte;data []byte}{{"NOTES",'N',tc.Notes},{"ARRANGE",'A',tc.Wire}}{entry:=base.FindFile(item.name,item.ext);if entry==nil||!bytes.Equal(base.ReadFile(entry),item.data){panic("saved native file differs")}}}
   configureEchoDisk(base,tc.Control)
   cfg:=tc.Config.bytes()
   for i,engine:=range []string{"raw-mir2","final-mir2","scorpion-z80"}{
@@ -91,6 +94,8 @@ func main(){
    if published&&tc.Control!="existing_output"{
     actual=d.ReadFile(entry)
     if !bytes.Equal(actual,tc.Expected){at:=0;for at<len(actual)&&at<len(tc.Expected)&&actual[at]==tc.Expected[at]{at++};panic(fmt.Sprintf("%s/%s output differs at%d got%dB want%dB",tc.Name,engine,at,len(actual),len(tc.Expected)))}
+    descriptor:=make([]byte,16);copy(descriptor,"DELAYED D");binary.LittleEndian.PutUint16(descriptor[11:13],uint16(len(actual)));descriptor[13]=byte((len(actual)+255)/256);descriptor[14]=byte(start%16);descriptor[15]=byte(start/16)
+    slot:=int(base.Data[2048+228])*16;if !bytes.Equal(d.Data[slot:slot+16],descriptor){panic("published descriptor bytes differ")}
     if int(entry.StartTrack)*16+int(entry.StartSec)!=start||int(entry.Sectors)!=(len(actual)+255)/256{panic("published extent differs")}
     if tail:=len(actual)%256;tail!=0{for _,b:=range linearData(&d,start+int(entry.Sectors)-1)[tail:]{if b!=0{panic("output padding differs")}}}
    }
@@ -108,7 +113,7 @@ func main(){
    if published&&tc.Control!="existing_output"{slot:=int(base.Data[2048+228])*16;for j:=0;j<16;j++{allowed[slot+j]=true}}
    if tc.Fault==0{for _,j:=range []int{225,226,228,229,230}{allowed[2048+j]=true}}
    for j,b:=range d.Data{if b!=base.Data[j]&&!allowed[j]{panic("disk changed outside output extent/metadata")}}
-   check(d.Flush());check(os.WriteFile(filepath.Join(dir,"delayed.bin"),actual,0644));row:=map[string]any{"case":tc.Name,"engine":engine,"fault":fault,"ring_peak":word("ring_peak"),"input_opens":opens,"input_closes":closes,"wire_sha256":hash(actual),"disk_sha256":hash(d.Data[:]),"operations":operations,"sector_calls":calls,"disk_error":word("disk_error"),"published":published,"data_writes":len(data),"stack_below_entry":stack,"t_states":cycles};if native!=nil{row["native"]=native};rows=append(rows,row);fmt.Printf("PASS %s/%s fault%d peak%d data%d\n",tc.Name,engine,fault,word("ring_peak"),len(data))
+   check(d.Flush());check(os.WriteFile(filepath.Join(dir,"delayed.bin"),actual,0644));row:=map[string]any{"case":tc.Name,"engine":engine,"fault":fault,"ring_peak":word("ring_peak"),"input_opens":opens,"input_closes":closes,"wire_sha256":hash(actual),"input_disk_sha256":hash(base.Data[:]),"disk_sha256":hash(d.Data[:]),"operations":operations,"sector_calls":calls,"disk_error":word("disk_error"),"published":published,"data_writes":len(data),"stack_below_entry":stack,"t_states":cycles};if native!=nil{row["native"]=native};rows=append(rows,row);fmt.Printf("PASS %s/%s fault%d peak%d data%d\n",tc.Name,engine,fault,word("ring_peak"),len(data))
   }
  }
  b,e:=json.MarshalIndent(map[string]any{"protocol":"autosiril-echo-trd-musical/v1","cases":rows,"scope":"initial actual Ruby musical matrix; full malformed/IO/CPM/CI pending"},"","  ");check(e);check(os.WriteFile(filepath.Join(*out,"receipt.json"),append(b,'\n'),0644))
