@@ -1,7 +1,7 @@
 {
   "protocol": "autosiril-echo-trd/v1",
   "source_sha256": {
-    ".github/workflows/ci.yml": "bd29731a15d5e820c7ac2de33edd1771f5d9c236841076b985b19db8dcf898e5",
+    ".github/workflows/ci.yml": "1d807cd636b04e50eac3d104242a5b915183af65ef788fbb752f121d096659cf",
     "minzc/pkg/spectrum/formats/trd.go": "574b26fdd37d2e6e7291547f9c26e635e002bfb47c9a0136dd4b568d35819681",
     "research/autosiril-native/arrange/build_matrix.py": "4675d33950d9e428656169e7eaaba4f1b03b4d5eae73c84c90e409df1297cc91",
     "research/autosiril-native/arrange/compose.py": "ae0343c1ef273c9d493a49765f978318b9b9b0acd5108cc1ee74d53cb688bfce",
@@ -29784,7 +29784,7 @@
     }
   ],
   "scope": "108 three-engine executions/20 saved native TRD chains; traps, not physical ROM/FDC/hardware/boot/full converter",
-  "positive_proof_sha256": "1c43f07b190e32715425207ac30926d22f0bdddecc9c3b893cbd3b9bbe6ae42c",
+  "positive_proof_sha256": "a1d1376d1608a5730c2c88050b1f7e4d937e27d6909dbe394c4f02ef017c332f",
   "ruby_result_sha256": "a8ac91599be9f1335d670d228ff07841637363cda16b111e4ff2cf03abd7ea53",
   "actual_ruby_sha256": "41f621b555fc089effd711319e723494576eb47ea0282847082ec91c1cdd4c01"
 }
