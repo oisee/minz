@@ -3,7 +3,7 @@
   "date": "2026-10-27",
   "date_label": "26–27 октября 2026",
   "snapshot": "b58fba0c626fd0c82f42dbd6356d56887b4849b0",
-  "status": "Пять native стадий Autosiril в main после PR #270: pairing, flatten, arrangement, echo, downmix. Fresh/frozen CI и скачанные артефакты проверены. Полного MIDI → VT2/VTX пока нет.",
+  "status": "Пять native стадий Autosiril в main (PR #270) и каноничный профиль max_offset 6 через настоящую цепочку CP/M (PR #272). Рендер в строки трекера — draft PR #275 на CP/M и TRD. Полного MIDI → VT2/VTX пока нет.",
   "chapters": [
     {
       "slug": "01-languages-and-ideas",

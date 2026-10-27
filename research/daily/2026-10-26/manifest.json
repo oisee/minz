@@ -45,9 +45,9 @@
     "02-melody-between-two-files.md": "ebeeafda71071527ed472d3dd1817a0b1ce7a0ebe67c7c660cc106a3af50eb8a",
     "03-borrowing-without-a-runtime.md": "25b3080b7ff092ad2f8351aab08504b1383902005b18a243e8b060ab8566be06",
     "04-four-rows-for-a-melody.md": "f54763af00e51df7d6a23127c057103ca938e660538dc427c4f44b25ebf7622e",
-    "05-two-pages-for-one-song.md": "06b76f754e44527cbc8d9c5b90293976631494cb5a4dc32228e9f391386d3cb8",
-    "README.md": "f30487dbbf39e5dd37c531d137b6b86b0c5f1b7971cff5e16665e4ae155185a2",
-    "edition.json": "1e3eb5066f1ee06705817de1aa0e39525d074821729370114ff73cc096f69a12",
+    "05-two-pages-for-one-song.md": "9cfd8cb145cd5e227f39c589e0fbd64205161c4b87a3483c675e1c2991f539bd",
+    "README.md": "d76008798fb0412011d7f25537df8666c4dacc06b0ed8a9f44491ab950c61419",
+    "edition.json": "befdf52fecbde703827c231278ca6dbb4d538cd4e7f90de321e59c6ce1dfb3bb",
     "build.py": "3f0474963b5a10c192bdde854cdc4369f7446a13e445caa2dae79994b3d4085a",
     "style.css": "e3c21c5286cf6ff84d7b2abbae1dbcf386925d4fe59944d8a54e8cd4ab1f5488",
     "reader.js": "b3f8b196f4581578cf523bf6489fad4d796ce3d80aeb658ee9a88f2490d627a5"
@@ -57,7 +57,7 @@
     "02-melody-between-two-files.html": "043a9d743cdc9383ccd085c5695a0261cfd1d50f4554bd4bd85b0725745d36ca",
     "03-borrowing-without-a-runtime.html": "e9b5396285d2e45a6240db2742f53d899d39104360bff7320839d5ab6e8e5bd8",
     "04-four-rows-for-a-melody.html": "4bb77cbd5d14a73dbaffe7379e16ce84fb0a07e195f378a70cf8f6291d9418b4",
-    "05-two-pages-for-one-song.html": "2300a3e30c322e94bb9ec07feb80650dead35d793af3b74d04f361d5af195ec0",
+    "05-two-pages-for-one-song.html": "3abb3650497cd24af88c936714e0882d0675e61222883a3d417d2708edc8fb3a",
     "index.html": "13fd5f9efb9ad191f523a368806db410b7601de8864a19f23840a595a1a13dfd"
   }
 }

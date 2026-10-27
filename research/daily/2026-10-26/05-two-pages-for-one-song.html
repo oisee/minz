@@ -7,14 +7,14 @@
 каналы Autosiril превращаются в строки трекера и почему на дискете
 Spectrum песне понадобилось две страницы.</em></p>
 <blockquote>
-<p><strong>Статус на момент написания.</strong> <a
-href="https://github.com/oisee/minz/pull/272">PR #272</a> (каноничный
-профиль <code>max_offset 6</code> через настоящую цепочку CP/M) проходит
-CI и ещё не смержен. Рендер живёт в ветке
-<code>spike/autosiril-render-z</code>: CP/M checkpoint 6 (162/162
-исполнения) и TRD checkpoint 1 (75/75). В main рендера пока нет. Эта
-глава описывает работу, а не готовую возможность: полного MIDI → VT2/VTX
-на Z80 ещё нет.</p>
+<p><strong>Статус.</strong> Каноничный профиль <code>max_offset 6</code>
+в main: <a href="https://github.com/oisee/minz/pull/272">PR #272</a>
+слит как <code>f5c6cc42e</code> после 12 зелёных проверок; скачанные
+fresh/frozen артефакты canonical6 сверены (<code>MIXED.BIN</code>
+<code>8aa9cfa2…</code>, ноль расхождений на границах). Рендер живёт в
+draft <a href="https://github.com/oisee/minz/pull/275">PR #275</a>: CP/M
+checkpoint 6 (162/162 исполнения) и TRD checkpoint 1 (75/75). В main
+рендера пока нет. Полного MIDI → VT2/VTX на Z80 ещё нет.</p>
 </blockquote>
 <p>После пятой стадии у нас был файл <code>MIXED.BIN</code>: три
 выходных канала, в каждом ноты с номерами строк. Это уже музыка, но ещё
