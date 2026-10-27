@@ -41,9 +41,9 @@
     },
     {
       "slug": "07-failure-at-sector-27",
-      "words_approx": 1159,
+      "words_approx": 1299,
       "diagrams": 2,
-      "reading_minutes_approx": 6
+      "reading_minutes_approx": 7
     }
   ],
   "diagrams": 30,
@@ -59,7 +59,7 @@
     "04-four-rows-for-a-melody.md": "f54763af00e51df7d6a23127c057103ca938e660538dc427c4f44b25ebf7622e",
     "05-two-pages-for-one-song.md": "9cfd8cb145cd5e227f39c589e0fbd64205161c4b87a3483c675e1c2991f539bd",
     "06-two-compilers-one-repository.md": "3ec1ea150cd6fcfd38fb3e5062593d2e71a2b5ef6532916c451c7582e1164be9",
-    "07-failure-at-sector-27.md": "daf136b36724b1f8e77cac62d461a62e1d027f866df5a6ea5dadf850e6580c83",
+    "07-failure-at-sector-27.md": "e403761a5bf09ee7907b49822c0083a438b4d0742aa7bca70d119a2bf48fee7f",
     "README.md": "d76008798fb0412011d7f25537df8666c4dacc06b0ed8a9f44491ab950c61419",
     "edition.json": "5f4524ad92a9af9aaa1ab671a4a79c6e2fde90ec159bea9b74d7d169cd248856",
     "build.py": "3f0474963b5a10c192bdde854cdc4369f7446a13e445caa2dae79994b3d4085a",
@@ -73,7 +73,7 @@
     "04-four-rows-for-a-melody.html": "4bb77cbd5d14a73dbaffe7379e16ce84fb0a07e195f378a70cf8f6291d9418b4",
     "05-two-pages-for-one-song.html": "03437ee651ce573cf04b1ad047d532b93f9ab738d2c67ce49a4b42526bcc50bc",
     "06-two-compilers-one-repository.html": "d4798faf3d0958f28e7cf1c5c88cf7210cf5a43b9b91ea20320d355cc798300d",
-    "07-failure-at-sector-27.html": "99235cb8a44adcb6929eb7170431463ea71bddb503f46787ca4a28eaecb849b7",
+    "07-failure-at-sector-27.html": "37ac5761efe8478796d6cdd2924f26067848551cd91e1a539b793f62789dc937",
     "index.html": "ebdad19e8d4f800df26532867169369bbe96624821359d218468d1ca8fdb2052"
   }
 }

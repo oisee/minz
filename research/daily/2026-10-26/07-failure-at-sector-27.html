@@ -2,7 +2,7 @@
 @media(max-width:1000px){.layout{grid-template-columns:minmax(0,1fr);max-width:900px}.toc{position:static;max-height:none;display:none}.hero{max-width:900px;padding-top:42px}.hero h1{font-size:43px}.cards{grid-template-columns:1fr}.card{padding:26px}.status{grid-template-columns:1fr}.card h2{font-size:27px}}
 @media(max-width:600px){body{font-size:17px;line-height:1.75}.sitebar{padding:12px 20px}.sitebar nav{gap:12px;font-size:12px}.hero{padding:32px 20px 27px}.hero h1{font-size:33px;letter-spacing:-.035em}.hero p{font-size:19px}.layout{padding:0 12px 45px}.layout article{padding:23px 20px;border-radius:15px}article h2{font-size:25px}pre{margin:22px -8px;padding:17px;font-size:12px}.diagram{margin:25px -10px;padding:10px}.diagram-viewport{padding:10px 0}footer{padding:0 24px 32px}.index-content{padding:0 20px 40px}.controls{grid-template-columns:1fr}.cards{gap:15px}.playground{padding:18px}}
 @media print{body{background:white;font-size:11pt}.sitebar,.toc,.progress,.playground,.next{display:none}.layout{display:block;padding:0}.hero{padding:0 0 20px}.hero h1{font-size:28pt}article{border:0;box-shadow:none;padding:0}.diagram{break-inside:avoid}.diagram-viewport{overflow:visible}.diagram-viewport img{max-width:100%!important;width:100%!important}.diagram details{display:none}a{color:inherit}pre{white-space:pre-wrap;color:#17313b;background:#f1f4ee}footer{padding:20px 0}}
-</style></head><body><div class="progress" aria-hidden="true"></div><header class="sitebar"><a class="brand" href="index.html">MinZ / Дневник</a><nav><a href="01-languages-and-ideas.html">Языки</a><a href="02-melody-between-two-files.html">Музыка</a><a href="03-borrowing-without-a-runtime.html">Экосистемы</a><a href="04-four-rows-for-a-melody.html">Downmix</a><a href="https://github.com/oisee/minz">GitHub</a></nav></header><div class="hero"><div class="eyebrow">День компилятора · Глава 07</div><h1>Сбой на 27-м секторе</h1><p>Отказ на каждом обращении к диску, неатомарная публикация TR-DOS, схема в три записи и что взять у журналирующих ФС и Erlang.</p><div class="meta"><span class="pill">≈ 6 мин</span><span class="pill cream">2 Mermaid-схем</span><span class="pill">Ruby · Crystal · Nanz · Z80</span></div></div><main class="layout"><aside class="toc" aria-label="Содержание"><strong>В этой главе</strong><a class="" href="#сломать-каждый-шаг-по-очереди">Сломать каждый шаг по
+</style></head><body><div class="progress" aria-hidden="true"></div><header class="sitebar"><a class="brand" href="index.html">MinZ / Дневник</a><nav><a href="01-languages-and-ideas.html">Языки</a><a href="02-melody-between-two-files.html">Музыка</a><a href="03-borrowing-without-a-runtime.html">Экосистемы</a><a href="04-four-rows-for-a-melody.html">Downmix</a><a href="https://github.com/oisee/minz">GitHub</a></nav></header><div class="hero"><div class="eyebrow">День компилятора · Глава 07</div><h1>Сбой на 27-м секторе</h1><p>Отказ на каждом обращении к диску, неатомарная публикация TR-DOS, схема в три записи и что взять у журналирующих ФС и Erlang.</p><div class="meta"><span class="pill">≈ 7 мин</span><span class="pill cream">2 Mermaid-схем</span><span class="pill">Ruby · Crystal · Nanz · Z80</span></div></div><main class="layout"><aside class="toc" aria-label="Содержание"><strong>В этой главе</strong><a class="" href="#сломать-каждый-шаг-по-очереди">Сломать каждый шаг по
 очереди</a><a class="" href="#вызов-номер-27">Вызов номер 27</a><a class="" href="#три-записи-вместо-двух">Три записи вместо двух</a><a class="" href="#чему-учат-журналирующие-файловые-системы">Чему учат
 журналирующие файловые системы</a><a class="" href="#и-чему-учит-let-it-crash">И чему учит «let it crash»</a><a class="" href="#что-осталось-сделать">Что осталось сделать</a></aside><article><p><em>Ночь на 28 октября 2026 года. Что происходит с дискетой, если
 запись оборвать посередине, и чему здесь могут научить журналирующие
@@ -127,9 +127,12 @@ Spectrum, по её памяти, ищет конец каталога по пе
 указывать на сектора, которые шаг 1 уже пометил занятыми. Это не порча,
 но это лишний файл, которого никто не публиковал.</p>
 <p>Поэтому план требует ещё одного: восстановления. При следующем
-открытии диска строка за пределами счётчика зачищается. Тест отказов
-получит отдельный случай «виден ли лишний файл в CAT по правилам ROM». А
-перед PR нужно проверить по самому TR-DOS 5.0x, как он определяет конец
+открытии диска строка за пределами счётчика зачищается, причём именно
+нулём. В каталоге TR-DOS первый байт 0x00 означает конец каталога, а
+0x01 — удалённый файл: запись с 0x01 CAT покажет как удалённую, и
+разойдётся счётчик удалённых в системном секторе. Тест отказов получит
+отдельный случай «виден ли лишний файл в CAT по правилам ROM». А перед
+PR нужно проверить по самому TR-DOS 5.0x, как он определяет конец
 каталога, а не полагаться на память, ни свою, ни чужую.</p>
 <h2 id="чему-учат-журналирующие-файловые-системы">Чему учат
 журналирующие файловые системы</h2>
@@ -138,16 +141,24 @@ Spectrum, по её памяти, ищет конец каталога по пе
 очень старую: <strong>порядок записей — это часть формата</strong>.</p>
 <p>Журналирующие файловые системы решают ровно эту задачу. Изменение
 метаданных сначала записывается в журнал, и только потом применяется на
-место. После сбоя журнал либо проигрывается до конца, либо отбрасывается
-целиком. Промежуточного состояния, которое видит пользователь, нет.
-Системы с копированием при записи идут другим путём: новые данные
-пишутся рядом со старыми, а одно атомарное обновление корневого
-указателя переключает картину целиком.</p>
+место. Атомарность даёт не сам журнал, а одна запись commit в нём, после
+которой транзакция считается совершённой. После сбоя транзакция с commit
+проигрывается до конца, а без commit отбрасывается целиком.
+Промежуточного состояния, по крайней мере для метаданных, пользователь
+не видит. Данные файла, например в ext4 по умолчанию, в журнал не
+попадают: они лишь записываются до commit. Системы с копированием при
+записи идут другим путём: новые данные пишутся рядом со старыми, а одно
+атомарное обновление корневого указателя (uberblock в ZFS, суперблок в
+btrfs) переключает картину целиком.</p>
 <p>Нам на 640 КБ дискеты журнал не нужен. Хватает того же принципа в
 миниатюре: найти одну запись, после которой файл «существует», и сделать
 так, чтобы до неё сбой давал только утечку, а после неё — только
-законченный результат. В схеме в три записи это шаг 3. Всё, что
-случилось до него, восстановление может безопасно откатить.</p>
+законченный результат. В схеме в три записи это шаг 3, наш commit. Всё,
+что случилось до него, восстановление может откатить или пересчитать.
+Свободное место в TR-DOS последовательное: первый свободный сектор и
+счётчик свободных. Значит, его можно вычислить заново из конца
+последнего файла в пределах счётчика, и тогда обрыв после шага 1 не
+оставит даже утечки.</p>
 <h2 id="и-чему-учит-let-it-crash">И чему учит «let it crash»</h2>
 <p>Из BEAM и OTP глава 03 взяла жизненный цикл компонента. Здесь
 полезнее другая половина той же философии. Процесс Erlang не пытается
@@ -164,7 +175,10 @@ Spectrum, по её памяти, ищет конец каталога по пе
 <ul>
 <li>Проверить по TR-DOS 5.0x, как ROM определяет конец каталога.</li>
 <li>Переписать <code>finish()</code> обвязки по схеме в три записи и
-добавить зачистку хвоста каталога при открытии.</li>
+добавить восстановление при открытии: зачистить хвост каталога нулём и
+пересчитать свободное место.</li>
+<li>Проверить по 5.0x значения первого байта строки каталога (0x00 —
+конец, 0x01 — удалённый файл): обе сессии знают их по памяти.</li>
 <li>Перепрогнать отказы на всех TRD-стадиях (echo, arrange, mix,
 render), а не только на рендере, и убрать из проверки допуск на код
 903.</li>
