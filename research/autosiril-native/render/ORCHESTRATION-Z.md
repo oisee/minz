@@ -64,3 +64,34 @@ codex-z во втором раунде расширяет trace row до u32, п
 `/tmp/minz-z-workers/`. Второй раунд запущен тем же runner; актуальную
 жизнь процесса проверять отдельно. Root user files повторно сверены:
 все четыре SHA256 совпали с baseline; root не изменялся.
+
+## Независимые проверки и найденное end-to-end расхождение
+
+Renderer edge checkpoint `c568353f6` (+ whitespace-only `e805331ae`)
+опубликован и интегрирован в parent `3272be35d`. Parent повторил actual Ruby
+и все12 positive engine runs: 4 cases,262174 row states на каждый engine.
+Есть4 malformed-feed rejects и4 mutants; текущий harness останавливается на
+raw MIR2, поэтому это ещё не native-Z80 mutant proof. См. parent-edges-audit.
+
+VT2 checkpoint `2ba66d457` опубликован в `spike/autosiril-vt2-z`, все три
+worker commits интегрированы; parent audit `3b45fe960`. Independently replayed
+558 cases +548 forced collisions +3 canonical variants,267511 pattern slots.
+Output теперь streams header/order/ornaments/patterns до сбора proof statistics.
+Это HOST model, не native writer. Audits и corrected source/design сохранены
+в `research/autosiril-native/vt2/`.
+
+Обнаружен реальный end-to-end gap: при одинаковых canonical settings Chronos
+native kind5 имеет62 отличающиеся p-channel cells, первая row259 note51/orn4
+вместо actual-Ruby note58/orn0. Renderer правильно воспроизводит свой вход;
+это не доказывает верность всех предыдущих стадий. Parent независимо запустил
+chronos_divergence_repro.rb и подтвердил62/row259. Новый isolated worktree
+`/tmp/minz-autosiril-p-channel-z`, branch `fix/autosiril-p-channel` от main9cf3a71d5,
+передан claude-z для поиска FIRST bad stage и исправления с проверкой настоящих
+stage boundaries. Нельзя менять исходный Ruby/настройки, чтобы скрыть разницу.
+Exact retained40626B path/inherited gates остаются требованиями; конфликт с
+необходимым fix надо явно разобрать. Не заявлять end-to-end equivalence до fix.
+
+codex-z продолжает CP/M adapter в render-z. Его предыдущий30min runner завершился
+по timeout после успешного edge proof; состояние проверено, новый task адресный,
+не рестарт из-за одного observation timeout. claude-z после завершения VT2
+переключён на upstream investigation; runner/task/logs архивированы `.checkpoint3`.
