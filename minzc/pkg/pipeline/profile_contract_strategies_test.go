@@ -85,10 +85,12 @@ func TestMeasuredContractStrategiesOriginalArena(t *testing.T) {
 		if e != nil {
 			t.Fatal(e)
 		}
-		expected := 0 // off has the smallest whole-module binary
-		if goal == "speed" {
-			expected = 2 // PBQP is faster on the frozen training workload
-		}
+		// off wins both goals: smallest whole-module binary, and — since O4+
+		// affine pointer strength reduction (2b70eaa74) lowered the all-original
+		// candidate from 3803 to 3740 T while PBQP stayed at 3751 T — also the
+		// fewest T-states on the frozen training workload. Earlier candidates
+		// win ties, so off also wins speed whenever PBQP merely matches it.
+		expected := 0
 		if result.Evidence.Selected != expected {
 			t.Fatalf("%s selected %d, expected %d", goal, result.Evidence.Selected, expected)
 		}
