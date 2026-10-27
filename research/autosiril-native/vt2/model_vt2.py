@@ -21,13 +21,21 @@ slice list, a whole pattern, a payload copy or the final output in RAM.
 - Order (u32 per pattern, indices can exceed 65535) and use flags (bit per
   pattern) are file-backed records, not RAM arrays.
 - Truncated index/spool files raise instead of being treated as EOF.
-- The final VT2 output is STREAMED to a file: header text, then each used
-  non-empty pattern copied from the spool in <=CHUNK pieces.
+- The final VT2 output is STREAMED to a file end to end: the template is a
+  fixed source constant parsed once into bounded literal/interpolation
+  SEGMENTS; literal fragments are written directly; #{play_order} streams
+  one order entry at a time from the order file (Ruby framing "L" plus
+  comma-joined numbers — the whole play-order string is never assembled);
+  #{ornaments_txt} writes one bounded ornament fragment at a time; then
+  each used non-empty pattern is copied from the spool in <=CHUNK pieces.
+  No stage of the output path materializes the header, the play order, the
+  ornaments text or the full module.
 
-Proof-side observations (explicitly OUTSIDE the bounded core): run_case
-additionally reads the finished record/order/use files back to build the
-comparison statistics, and the caller may keep the corpus lines list.
-Nothing in the core depends on those arrays.
+Proof-side observations (explicitly OUTSIDE the bounded core, and strictly
+AFTER the output file is finished): run_case reads the finished
+record/order/use files back to rebuild the original wet_play_order_txt
+string and the comparison statistics, and the caller may keep the corpus
+lines list. Nothing in the output path depends on those arrays or strings.
 
 Index/order/flag widths: profile permits render_rows up to 65567 and
 pattern_size 1, i.e. 65568 pattern slots and order indices up to 65567;
@@ -303,10 +311,38 @@ def split_into_patterns(row_at, row_count, max_row, pattern_size, skip_lines,
     return patterns, kinds
 
 
+TEMPLATE_VARS = ('title', 'play_order', 'ornaments_txt',
+                 'Time.new.strftime("%Y.%m.%d")', "ARGV.join(' ')")
+
+
+def template_segments(template_literal):
+    """Parse the static template literal into bounded segments.
+
+    The template is a FIXED SOURCE CONSTANT (a few hundred bytes): this
+    returns ('lit', text) fragments and ('var', expr) placeholders and is
+    built once per run, never from case data. This replaces the checkpoint-2
+    whole-header regex interpolation: the output path below writes each
+    literal fragment directly instead of building the header string."""
+    segments = []
+    pos = 0
+    for match in re.finditer(r'#\{([^}]*)\}', template_literal):
+        if match.start() > pos:
+            segments.append(('lit', template_literal[pos:match.start()]))
+        expr = match.group(1)
+        if expr not in TEMPLATE_VARS:
+            raise AssertionError('unexpected template interpolation ' + expr)
+        segments.append(('var', expr))
+        pos = match.end()
+    if pos < len(template_literal):
+        segments.append(('lit', template_literal[pos:]))
+    return segments
+
+
 def order_text_from_store(store, patterns):
-    """Proof observation: rebuild the original wet_play_order_txt string from
-    the order file. Ruby builds 'L' + 'n,' * P then drops the last character
-    (empty for patterns == 0). The target streams this instead."""
+    """PROOF OBSERVATION ONLY (never on the output path): rebuild the
+    original wet_play_order_txt string from the order file after the output
+    is finished. Ruby builds 'L' + 'n,' * P then drops the last character
+    (empty for patterns == 0); write_vt_output streams this instead."""
     if patterns == 0:
         return ''
     parts = ['L']
@@ -316,33 +352,24 @@ def order_text_from_store(store, patterns):
     return ''.join(parts)
 
 
-def render_ornaments(ornaments):
-    """Original Step10: invert (later insertion wins), sort, skip id 0."""
+def ornament_fragments(ornaments):
+    """Original Step10 emission as BOUNDED fragments: invert (later insertion
+    wins), sort by id, skip id 0. Each fragment is one ornament's block
+    (<=64 definitions of <=4096 expanded bytes each); the joined ornaments
+    text is never assembled on the output path."""
     inverted = {}
     for key, value in ornaments.items():
         inverted[value] = key
-    out = []
     for ident, text in sorted(inverted.items()):
         if ident != 0:
-            out.append('\n[Ornament%d]\n%s\n' % (ident, text))
-    return ''.join(out)
+            yield '\n[Ornament%d]\n%s\n' % (ident, text)
 
 
-def module_header(template_literal, title, play_order, ornaments_txt, argv):
-    """Original module_header interpolation with the pinned clock."""
-    pinned_date = '1970.01.01'
-    # Ruby ARGV[1].to_s: nil.to_s is "", a String is itself.
-    values = {'title': '' if title is None else str(title),
-              'play_order': play_order,
-              'ornaments_txt': ornaments_txt,
-              'Time.new.strftime("%Y.%m.%d")': pinned_date,
-              "ARGV.join(' ')": ' '.join(str(a) for a in argv)}
-    def sub(match):
-        expr = match.group(1)
-        if expr not in values:
-            raise AssertionError('unexpected template interpolation ' + expr)
-        return values[expr]
-    return re.sub(r'#\{([^}]*)\}', sub, template_literal)
+def render_ornaments(ornaments):
+    """PROOF OBSERVATION ONLY: the original joined ornaments text, for the
+    statistics comparison. Composed from the same bounded fragments the
+    output path streams, so the two cannot drift apart."""
+    return ''.join(ornament_fragments(ornaments))
 
 
 def template_literal(source):
@@ -372,37 +399,72 @@ def template_literal(source):
     raise AssertionError('template literal end not found')
 
 
-def write_vt_output(store, header, out_path):
-    """Original Step11 emission, STREAMED to out_path: puts header, then each
-    used non-empty pattern block copied from the spool in <=CHUNK pieces."""
-    with open(out_path, 'wb') as out, open(store.spool_path, 'rb') as spool:
-        out.write(header.encode('ascii') + b'\n')
-        for i in range(store.count):
-            index, length, offset, _ = store.record(i)
-            if store.use_flag(i) and length != 0:
-                out.write(('\n[Pattern%d]\n' % index).encode('ascii'))
-                for piece in store._read_range(spool, offset, length):
-                    out.write(piece)
+def write_vt_output(store, segments, title, ornaments, argv, out_path):
+    """Original Step11 emission, STREAMED end to end: the template segments
+    (a fixed source constant) are written literally; #{play_order} streams
+    one u32 order entry at a time from the order file with Ruby's framing
+    ("L" + comma-joined numbers, trailing comma dropped, empty for zero
+    patterns); #{ornaments_txt} writes one bounded ornament fragment at a
+    time; title/date/ARGV are bounded (<=4096 B) metadata strings. The
+    header, the play-order string and the ornaments text are NEVER
+    assembled. Then each used non-empty pattern block is copied from the
+    spool in <=CHUNK pieces."""
+    pinned_date = '1970.01.01'
+    # Ruby ARGV[1].to_s: nil.to_s is "", a String is itself.
+    values = {'title': '' if title is None else str(title),
+              'Time.new.strftime("%Y.%m.%d")': pinned_date,
+              "ARGV.join(' ')": ' '.join(str(a) for a in argv)}
+    with open(out_path, 'wb') as out:
+        def put(text):
+            out.write(text.encode('ascii'))
+
+        for kind, what in segments:
+            if kind == 'lit':
+                put(what)
+            elif what == 'play_order':
+                if store.count:
+                    put('L')
+                    for k in range(store.count):
+                        if k:
+                            put(',')
+                        put(str(store.order_entry(k)))
+            elif what == 'ornaments_txt':
+                for fragment in ornament_fragments(ornaments):
+                    put(fragment)
+            else:
+                put(values[what])
+        out.write(b'\n')
+        with open(store.spool_path, 'rb') as spool:
+            for i in range(store.count):
+                index, length, offset, _ = store.record(i)
+                if store.use_flag(i) and length != 0:
+                    put('\n[Pattern%d]\n' % index)
+                    for piece in store._read_range(spool, offset, length):
+                        out.write(piece)
 
 
 def run_case(case, spill, out_path, digest_factory=sha256_digest):
-    """Full model pass. The corpus lines list and the returned statistics are
-    proof-side observations; the core consumes one row at a time."""
+    """Full model pass. The output file is written FIRST, purely from the
+    bounded core's streamed state; only AFTER it is finished are the proof
+    statistics (order string, use flags, wet sizes, ornaments text) read
+    back from the finished files. The output path depends on none of them.
+    The corpus lines list stays a proof-side input consumed one row at a
+    time."""
     lines = case['lines']
     store = PatternStore(spill, digest_factory)
     try:
         patterns, kinds = split_into_patterns(
             lambda i: lines[i], len(lines), case['max_row'],
             case['pattern_size'], case['skip_lines'], store)
-        order_txt = order_text_from_store(store, patterns)
     finally:
         store.close()
+    title = case['argv'][1] if len(case['argv']) > 1 else None
+    write_vt_output(store, case['_segments'], title, case['ornaments'],
+                    case['argv'], out_path)
+    # proof-side observations from the finished record/order/use files,
+    # strictly AFTER the streamed output above
+    order_txt = order_text_from_store(store, patterns)
     ornaments_txt = render_ornaments(case['ornaments'])
-    header = module_header(
-        case.get('_template'), case['argv'][1] if len(case['argv']) > 1 else None,
-        order_txt, ornaments_txt, case['argv'])
-    write_vt_output(store, header, out_path)
-    # statistics read back from the finished record/order/use files
     use_flags = [store.use_flag(i) for i in range(patterns)]
     wet_sizes = [store.record(i)[1] for i in range(patterns)]
     file_bytes = Path(out_path).stat().st_size

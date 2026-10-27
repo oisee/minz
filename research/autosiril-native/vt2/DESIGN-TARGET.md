@@ -1,4 +1,4 @@
-# VT2 Step9/10/11: proven semantics and target-facing design (checkpoint 2)
+# VT2 Step9/10/11: proven semantics and target-facing design (checkpoint 3)
 
 Scope of this checkpoint: a reproducible actual-Ruby vs independent bounded
 host model proof for the remaining original Step9 `split_into_patterns`
@@ -116,6 +116,19 @@ intended-bounded core in `model_vt2.py` now:
    pattern copied from the spool in ≤CHUNK pieces; the play-order string is
    reproduced from the order file with Ruby's `"L"[-1]=''` framing.
 
+Checkpoint 3 closes the remaining checkpoint-2 gap: the header itself is
+now STREAMED, not assembled. The template literal (a fixed source
+constant) is parsed once into bounded literal/interpolation segments
+(`template_segments`); `write_vt_output` writes each literal fragment
+directly, streams `#{play_order}` as one u32 order entry at a time read
+from the order file (Ruby `"L"` framing: `"L"[-1]=''`, empty for zero
+patterns), and streams `#{ornaments_txt}` as one bounded ornament fragment
+at a time (≤64 definitions of ≤4096 expanded bytes; title/date/ArgList are
+bounded metadata strings). `run_case` builds the proof statistics (order
+string, use flags, wet sizes, joined ornaments text) only AFTER the output
+file is finished; the output path no longer calls `order_text_from_store`
+or assembles any header/order/ornaments string.
+
 Peak core state: one row, one index record, one flag byte, ≤CHUNK compare
 buffers, counters. Proof-side observations (corpus line lists, statistics
 arrays, hashing finished outputs) are collected explicitly OUTSIDE the core
@@ -145,7 +158,17 @@ Provenance finding: the planning `native_chronos` rows (native chain, proven
 equal to Ruby render *on the same kind5 input*) differ from the original
 full-pipeline render in 62 of 1352 rows. The canonical variants therefore
 use the original render; the planning-row chronos cases remain labeled
-partial-real (rows real, ornaments/ARGV synthetic).
+partial-real (rows real, ornaments/ARGV synthetic). Checkpoint 3 pins this
+divergence to its first difference and mechanism — see
+[CHRONOS-DIVERGENCE.md](CHRONOS-DIVERGENCE.md): identical invocation
+settings; first diff at row 259, `noteB` block (channel 1), note
+`A#3`→`D#3` / ornament `.`→`4`; root cause is inside the native chain's
+kind5 fixture (62 cells, all channel 1: the native `p`-channel path
+collapsed a `{51,52}` dyad to note 51/ornament `L0,0,1,1` where Ruby's
+`squize_ornament` mediana/max_offset filter collapses the actual `{51,58}`
+dyad to note 58/ornament `L0,0`; the native channel 2 renders the same
+source row correctly). A real upstream native-chain content divergence,
+not a fixture-profile or invocation difference; parent coordinates the fix.
 
 ## Transport measurements (corrected; TRD file limit 65280 B / 255 sectors)
 

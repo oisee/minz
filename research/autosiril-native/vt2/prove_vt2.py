@@ -25,6 +25,18 @@ Checkpoint 2 additions over checkpoint 1:
 
 All 554 checkpoint-1 cases are kept unchanged.
 
+Checkpoint 3 over checkpoint 2: the model's output path no longer builds
+the play-order string, the ornaments text or the header. The template
+literal is parsed once into bounded segments (template_segments); write_vt_output
+writes literal fragments directly, streams #{play_order} one u32 order
+entry at a time from the order file (Ruby "L" framing), streams one bounded
+ornament fragment at a time at #{ornaments_txt}, and then copies each used
+non-empty pattern from the spool. run_case builds the proof statistics
+(order string, use flags, wet sizes, ornaments text) only AFTER the output
+file is finished. Additionally this checkpoint pins the 62-row
+native-vs-original Chronos divergence to its first differing row/field
+(see CHRONOS-DIVERGENCE.md).
+
 Usage:
   python3 research/autosiril-native/vt2/prove_vt2.py \
     --autosiril /Users/alice/dev/autosiril \
@@ -273,6 +285,7 @@ def main():
 
     template_source = (autosiril / 'module_template.rb').read_text()
     template = model_vt2.template_literal(template_source)
+    segments = model_vt2.template_segments(template)
 
     failures = []
     rows = []
@@ -282,7 +295,7 @@ def main():
         o = oracle[name]
         spill = out / 'spill' / name
         spill.mkdir(parents=True)
-        case = dict(c, _template=template)
+        case = dict(c, _segments=segments)
         stats, orn_bytes = model_vt2.run_case(case, spill, spill / 'model.vt2')
         model_file_sha = file_sha(spill / 'model.vt2')
         checks = {
@@ -337,7 +350,7 @@ def main():
         ccase = dict(name=v['name'], max_row=canonical['max_row'],
                      pattern_size=v['pattern_size'], skip_lines=v['skip_lines'],
                      argv=canonical['argv'], lines=canon_real_lines,
-                     ornaments=o['ornaments'], _template=template)
+                     ornaments=o['ornaments'], _segments=segments)
         cstats, corn = model_vt2.run_case(ccase, cspill, cspill / 'model.vt2')
         checks = {
             'patterns': cstats['patterns'] == o['patterns'],
@@ -424,6 +437,12 @@ def main():
         scope='HOST proof only: actual original Ruby Step9/10/11 vs bounded '
               'host model; no native execution, no target results, no '
               'finished MIDI->VT2 converter claimed',
+        output_path='streamed end to end: template segments written '
+                    'literally, play order streamed entry-by-entry from the '
+                    'order file, ornaments streamed fragment-by-fragment, '
+                    'patterns copied from the spool; header/order/ornaments '
+                    'strings never assembled on the output path; proof '
+                    'statistics built only after the output is finished',
         autosiril=str(autosiril),
         autooisee_sha256=AUTOOOISEE_SHA,
         module_template_sha256=hashlib.sha256(
