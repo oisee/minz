@@ -47,6 +47,7 @@ def main():
     runner = once(runner, '"io"', '"io"\n"github.com/minz/minzc/pkg/spectrum/formats"\n"github.com/minz/minzc/pkg/spectrum"')
     guards = native_code((HERE.parent / 'transports/trd-driver.go.txt').read_text())
     (out / 'prototype.go').write_text(runner + (HERE / 'vm-driver.go.txt').read_text() + guards)
+    (out / 'matrix.go').write_text(runner + (HERE / 'matrix-driver.go.txt').read_text() + guards)
 
 
 if __name__ == '__main__':

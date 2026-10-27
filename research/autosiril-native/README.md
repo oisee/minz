@@ -103,3 +103,8 @@ do not rewrite the music algorithm. The full VM reference and earlier 66 executi
 3 arena modes) remain separate evidence with their original capacities and scope.
 Historical `first-probe.*` artifacts describe the earlier single-case experiment;
 its smaller image/control scope is not the current gate.
+
+For the later sequential file utilities, see [common transports](transports/),
+[common CP/M flatten](stream-flatten/) and [native TRD flatten](trd-flatten/).
+The TRD path uses two independent images joined by saved disk bytes, with
+bounded one-pass append and explicit catalog/system failure-state checks.

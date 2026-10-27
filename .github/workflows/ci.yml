@@ -61,6 +61,15 @@ jobs:
           python3 ../research/autosiril-native/transports/replay.py --mze "$RUNNER_TEMP/mze" --out "$RUNNER_TEMP/autosiril-transports"
       - name: Verify both file stages through common chunk API
         run: python3 ../research/autosiril-native/stream-flatten/replay.py --reference "$RUNNER_TEMP/autosiril-file-chain" --producer "$RUNNER_TEMP/autosiril-transports" --mze "$RUNNER_TEMP/mze" --out "$RUNNER_TEMP/autosiril-common-flatten"
+      - name: Verify sequential native TRD note and event stages
+        run: python3 ../research/autosiril-native/trd-flatten/replay.py --reference "$RUNNER_TEMP/autosiril-file-chain" --producer "$RUNNER_TEMP/autosiril-transports" --out "$RUNNER_TEMP/autosiril-trd-flatten"
+      - name: Preserve TRD flatten evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: autosiril-trd-flatten
+          path: ${{ runner.temp }}/autosiril-trd-flatten/
+          if-no-files-found: ignore
       - name: Preserve common flatten evidence
         if: always()
         uses: actions/upload-artifact@v4
