@@ -319,7 +319,7 @@ func (g *z80cg) genTerm(f *Func, t Term) {
 		// Hoist the back-edge shuffle only after proving the exit can still
 		// read its original operands. Rewrite exit sources to their new homes.
 		bodyLabel := blockLabel(f.Name, t.Body)
-		if counter == "B" && needsBodyCopy {
+		if counter == "B" && needsBodyCopy && !g.functionOptions.DJNZTrampoline {
 			// The hoist runs the shuffle on every iteration including the last,
 			// and the exit reads the shuffled homes. The trampoline instead pays
 			// a JRS on every iteration (12T). With one iteration, the worst case,

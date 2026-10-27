@@ -5,6 +5,10 @@ package mir2
 func (g *z80cg) genByteLoop(x *Inst) {
 	g.materializePendingAcc(x)
 	g.materializePendingFlag(x)
+	if g.functionOptions.CompactByteLoops {
+		g.genCompactByteLoop(x)
+		return
+	}
 	if x.Sym == copyBytesIntrinsic {
 		g.genCopyBytes(x)
 		return

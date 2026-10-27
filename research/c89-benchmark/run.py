@@ -48,6 +48,7 @@ def main():
         assert sha(nanz_cases/case['file']) == case['sha256']
     refs = {}
     reference_dirs = {}
+    reference_variants = []
     if (args.include_refs and args.suite != 'heldout') or args.suite == 'fusion':
         reference_root = bench/'fusion' if args.suite == 'fusion' else bench
         main_names = {Path(c['file']).stem for c in json.loads((reference_root/'cases/manifest.json').read_text())['cases']}
@@ -60,6 +61,17 @@ def main():
             for case in entries:
                 assert sha(folder/case['file']) == case['sha256']
             refs[compiler] = entries
+        if args.suite != 'fusion':
+            # Explicit variants are aliases of the existing tuple reference, not
+            # replacements for the twelve idiomatic sources. Pin both source paths.
+            reference_variants = json.loads((bench/'nanz-idiomatic/manifest.json').read_text()).get('variants', [])
+            for variant in reference_variants:
+                folder = bench/'nanz-idiomatic'
+                assert variant['case'] in main_names
+                assert sha(folder/variant['file']) == variant['sha256']
+                assert sha(folder/variant['reference']) == variant['sha256']
+            if reference_variants:
+                refs['nanz-tuple'] = json.loads((bench/'nanz-tuple/manifest.json').read_text())['cases']
     if args.suite == 'fusion':
         for case in frozen + [c for entries in refs.values() for c in entries]:
             assert sha(bench/'fusion'/case['workload']) == case['workload_sha256'], case
@@ -89,6 +101,7 @@ def main():
         'sources': frozen,
         'nanz_sources': nfrozen,
         'reference_sources': refs,
+        'reference_variants': reference_variants,
         'mza_sha256': sha(out/'mza') if 'hand' in refs else None,
         'nanz_tuple_sources': json.loads((root/'research/c89-benchmark/nanz-tuple/manifest.json').read_text())['cases'] if args.include_nanz else [],
     }
@@ -166,6 +179,8 @@ def main():
         tuple_cases=json.loads((root/'research/c89-benchmark/nanz-tuple/manifest.json').read_text())['cases']
         tasks += [('nanz-tuple',p,c) for p in ['default','size','grace','nograce'] for c in tuple_cases]
     for compiler, entries in refs.items():
+        if compiler == 'nanz-tuple' and args.include_nanz:
+            continue  # already included with all four Nanz profiles
         tasks += [(compiler, p, c) for p in (['asm'] if compiler == 'hand' else ['default', 'size', 'grace'] if args.suite == 'fusion' else ['default', 'grace']) for c in entries]
     if args.sdcc45_root: tasks += [('sdcc45',p,c) for p in ['size','speed'] for c in frozen]
     with concurrent.futures.ThreadPoolExecutor(max_workers=args.jobs) as pool:

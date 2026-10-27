@@ -15,13 +15,24 @@ import (
 // FunctionVariant is a recipe, not a replacement assembly fragment. Each
 // recipe is applied before compiling a fresh complete module, including PFCCO.
 type FunctionVariant struct {
-	Counted  hir.CountedLoopPolicy
-	MIRGrace bool
-	HIRGrace bool
+	Counted          hir.CountedLoopPolicy
+	MIRGrace         bool
+	HIRGrace         bool
+	CompactByteLoops bool
+	KeepCalls        bool
+	IndexedPointers  bool
+	BitTests         bool
+	DJNZTrampoline   bool
+	CompactShifts    bool
+	SizeAllocation   bool
 }
 
 func (v FunctionVariant) String() string {
-	return fmt.Sprintf("counted=%d,mir-grace=%t,hir-grace=%t", v.Counted, v.MIRGrace, v.HIRGrace)
+	s := fmt.Sprintf("counted=%d,mir-grace=%t,hir-grace=%t", v.Counted, v.MIRGrace, v.HIRGrace)
+	if v.CompactByteLoops || v.KeepCalls || v.IndexedPointers || v.BitTests || v.DJNZTrampoline || v.CompactShifts || v.SizeAllocation {
+		s += fmt.Sprintf(",compact-bytes=%t,calls=%t,indexed=%t,bit=%t,trampoline=%t,compact-shifts=%t,size-alloc=%t", v.CompactByteLoops, v.KeepCalls, v.IndexedPointers, v.BitTests, v.DJNZTrampoline, v.CompactShifts, v.SizeAllocation)
+	}
+	return s
 }
 
 // VariantDecision records the versioned static objective and strict selection.
@@ -187,7 +198,7 @@ func compileVariantSearch(source *hir.Module, options ...Options) (Steps, error)
 	// The frontend ran once. Resolve the common ABI/signature prefix once too;
 	// every candidate still owns a deep HIR clone before Grace/splitting/lowering.
 	prepared := hir.CloneModule(source)
-	hir.OptimizeCAggregateABI(prepared)
+	hir.OptimizeAggregateABI(prepared)
 	if err := hir.ResolveErrorABI(prepared); err != nil {
 		return Steps{}, err
 	}
@@ -214,6 +225,8 @@ func compileVariantSearch(source *hir.Module, options ...Options) (Steps, error)
 	var baselineFunctions map[string]string
 	rawCallers := map[string]bool{}
 	o.variantRawCallers = rawCallers
+	inlinedCallers := map[string]bool{}
+	o.variantInlinedCallers = inlinedCallers
 	o.variantMIRReady = func(m *mir2.Module, sizeAlternative bool) bool {
 		if key, ok := variantMIRKey(m); ok && !sizeAlternative {
 			seenMIR[key] = true
@@ -227,6 +240,7 @@ func compileVariantSearch(source *hir.Module, options ...Options) (Steps, error)
 	}
 	bestStats := compiledStats
 	o.variantRawCallers = nil
+	o.variantInlinedCallers = nil
 	image, err := assembleVariant(best)
 	if err != nil { // Unsupported assembly cannot admit any scored candidate.
 		mergeGraceStats(stats, bestStats)
@@ -294,7 +308,7 @@ func compileVariantSearch(source *hir.Module, options ...Options) (Steps, error)
 		if o.OptSize {
 			cost = int64(len(image.binary))
 		}
-		d := VariantDecision{Function: name, Recipe: variantFor(o, name), Model: variantCostModel, Before: cost, After: cost}
+		d := VariantDecision{Function: name, Recipe: variantFor(o, name), Model: variantObjective(o), Before: cost, After: cost}
 		if !o.OptSize && !supported {
 			d.Rejected = []string{"baseline cost unsupported"}
 		}
@@ -305,14 +319,22 @@ func compileVariantSearch(source *hir.Module, options ...Options) (Steps, error)
 	// Otherwise cheap early Grace trials can exhaust the cap before a later
 	// function gets even its ordinary-loop alternative. Ordering and cap remain
 	// deterministic; every accepted recipe is still a fresh complete product.
-	for axis := 0; axis < 4; axis++ {
-		for i := range decisions {
+	axes := []int{0, 1, 2, 3, 10}
+	if o.OptSize {
+		axes = []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
+	}
+	for _, axis := range axes {
+		for _, i := range variantAxisOrder(axis, best.MIR2Module, decisions) {
 			d := &decisions[i]
 			name := d.Function
 			current := variantFor(o, name)
 			f := best.MIR2Module.FuncByName(name)
 			if f == nil {
 				continue // an earlier complete-module choice may have pruned it
+			}
+			// Keep loop-free speed search and its compilation budget unchanged.
+			if !o.OptSize && axis == 10 && len(f.StaticLoops) == 0 {
+				continue
 			}
 			oldCost, supported := image.score(f)
 			if o.OptSize {
@@ -330,6 +352,23 @@ func compileVariantSearch(source *hir.Module, options ...Options) (Steps, error)
 				candidate.MIRGrace = !candidate.MIRGrace
 			case 3:
 				candidate.HIRGrace = !candidate.HIRGrace
+			case 4:
+				candidate.CompactByteLoops = !candidate.CompactByteLoops
+			case 5:
+				candidate.KeepCalls = !candidate.KeepCalls
+			case 6:
+				candidate.IndexedPointers = !candidate.IndexedPointers
+			case 7:
+				candidate.BitTests = !candidate.BitTests
+			case 8:
+				candidate.DJNZTrampoline = !candidate.DJNZTrampoline
+			case 9:
+				candidate.CompactShifts = !candidate.CompactShifts
+			case 10:
+				candidate.SizeAllocation = !candidate.SizeAllocation
+			}
+			if axis >= 4 && !sizeAxisRelevant(axis, best, name, inlinedCallers) {
+				continue
 			}
 			if candidate == current {
 				continue
@@ -345,14 +384,16 @@ func compileVariantSearch(source *hir.Module, options ...Options) (Steps, error)
 			// These axes affect only HIR/lowering before MIR optimization. Exact
 			// equality of the complete raw MIR means the native product must tie;
 			// no candidate is created or accepted from this early deduplication.
-			if axis != 2 {
+			if axis < 4 && axis != 2 {
 				raw, e := variantRawModule(prepared, o)
 				if e == nil && raw == best.MIR2Raw {
 					o.FunctionVariants[name] = current
 					continue
 				}
 			}
+			o.variantNativeAlternative = axis == 4 || axis >= 7
 			trial, e := compile()
+			o.variantNativeAlternative = false
 			searchStats.CandidateCompilations++
 			d.Candidates++
 			if e == nil && trial.Assembly == "" {
@@ -376,7 +417,7 @@ func compileVariantSearch(source *hir.Module, options ...Options) (Steps, error)
 				trialImage, e = assembleVariant(trial)
 				if e != nil {
 					reason = "assembly unsupported"
-				} else if !image.sameContext(trialImage, name, sameVariantEntryABI(best.MIR2Module, trial.MIR2Module, name)) {
+				} else if !o.OptSize && !image.sameContext(trialImage, name, sameVariantEntryABI(best.MIR2Module, trial.MIR2Module, name)) {
 					reason = "changed boundary/caller/context"
 				}
 			}
@@ -387,14 +428,26 @@ func compileVariantSearch(source *hir.Module, options ...Options) (Steps, error)
 				} else {
 					var ok bool
 					cost, ok = trialImage.score(trial.MIR2Module.FuncByName(name))
-					if !supported || !ok || !image.nonIncreasingPaths(trialImage, name) || !sameVariantLoops(best.MIR2Module.FuncByName(name), trial.MIR2Module.FuncByName(name)) {
+					// Allocation-only trials may trade bounded path regressions for
+					// a lower loop-weighted maximum. Identical complete MIR keeps
+					// source branch meaning aligned for the labeled CFG comparison.
+					allocationOnly := axis == 10 && best.MIR2Opt == trial.MIR2Opt
+					pathsOK := image.nonIncreasingPaths(trialImage, name)
+					if !pathsOK && allocationOnly {
+						pathsOK = image.boundedAllocationPaths(trialImage, name)
+					}
+					if !supported || !ok || !pathsOK || !sameVariantLoops(best.MIR2Module.FuncByName(name), trial.MIR2Module.FuncByName(name)) {
 						reason = "unsupported loop comparison"
 					}
 				}
 			}
 			// Speed selection also refuses module growth. Size has its explicit byte
-			// objective; ties always retain the incumbent complete product.
-			if reason == "" && len(trialImage.binary) <= len(image.binary) && cost < oldCost {
+			// objective; only equal-byte size trials consult the static T model.
+			better := cost < oldCost
+			if o.OptSize && reason == "" && cost == oldCost {
+				better = sizeVariantFaster(image, trialImage, best.MIR2Module, trial.MIR2Module)
+			}
+			if reason == "" && len(trialImage.binary) <= len(image.binary) && better {
 				best, image, current, oldCost = trial, trialImage, candidate, cost
 				recipesChanged = true
 				bestStats = compiledStats
@@ -436,7 +489,7 @@ func finishVariantSearch(h *hir.Module, s Steps, mode string) (Steps, error) {
 	assertStats := h.AssertStats
 	h = hir.CloneModule(h)
 	h.AssertStats = assertStats
-	hir.OptimizeCAggregateABI(h)
+	hir.OptimizeAggregateABI(h)
 	if err := hir.ResolveErrorABI(h); err != nil {
 		return s, err
 	}
@@ -512,7 +565,7 @@ func sameVariantLoops(a, b *mir2.Func) bool {
 func variantRawModule(source *hir.Module, o Options) (string, error) {
 	h := hir.CloneModule(source)
 	if !o.variantPrepared {
-		hir.OptimizeCAggregateABI(h)
+		hir.OptimizeAggregateABI(h)
 		if e := hir.ResolveErrorABI(h); e != nil {
 			return "", e
 		}

@@ -483,6 +483,9 @@ func SimplifyIdentities(f *Func) bool {
 	if foldTruncOfExtension(f) {
 		changed = true
 	}
+	if CanonicalizeSingleBitTests(f) {
+		changed = true
+	}
 	if NarrowLowByteMaskTests(f) {
 		changed = true
 	}

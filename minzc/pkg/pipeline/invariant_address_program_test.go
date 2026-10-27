@@ -63,7 +63,10 @@ func TestInvariantAddressRealInternProgram(t *testing.T) {
 			t.Fatal(e)
 		}
 		stats := mir2.NewGraceStats()
-		steps, e := CompileHIRSteps(h, Options{ContractOpt: true, UseGrace: mode != "default", OptSize: mode == "grace-size", AssertMode: "none", GraceStats: stats})
+		// This test isolates the invariant-address-hoist Grace rule, so every
+		// mode runs the same unsearched pipeline; under --Osize the variant
+		// search would also move the compared baseline.
+		steps, e := CompileHIRSteps(h, Options{ContractOpt: true, UseGrace: mode != "default", OptSize: mode == "grace-size", AssertMode: "none", GraceStats: stats, DisableVariantSearch: true})
 		if e != nil {
 			t.Fatal(e)
 		}
