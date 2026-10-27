@@ -25,12 +25,13 @@ type Profiler struct {
 	ReadCount  [65536]uint32 // Memory reads (including opcode fetches)
 	WriteCount [65536]uint32 // Memory writes
 
-	// Page-aware heatmaps for the $C000-$FFFF banked region (128K only).
+	// Page-aware heatmaps for the $C000-$FFFF banked region (128K/Scorpion256).
 	// Index: [page][offset] where offset = addr - 0xC000.
-	// These separate accesses that hit different physical pages at the same address.
-	PagedExec  [8][16384]uint32
-	PagedRead  [8][16384]uint32
-	PagedWrite [8][16384]uint32
+	// These separate accesses that hit different physical pages at the same address,
+	// including the eight extended Scorpion pages.
+	PagedExec  [16][16384]uint32
+	PagedRead  [16][16384]uint32
+	PagedWrite [16][16384]uint32
 
 	// Stack access heatmaps — tracks PUSH/POP by SP-delta detection.
 	StackPush [65536]uint32 // SP decremented → write to this address
@@ -411,11 +412,11 @@ func (p *Profiler) ExportProfile(path string) error {
 	return enc.Encode(data)
 }
 
-// pagedSparseMap converts [8][16384]uint32 page arrays to nested maps.
+// pagedSparseMap converts all16 physical page heatmaps to nested maps.
 // Keys: "page_N" → {"C000": count, ...}. Only non-zero entries, only active pages.
-func pagedSparseMap(arr *[8][16384]uint32) map[string]map[string]uint32 {
+func pagedSparseMap(arr *[16][16384]uint32) map[string]map[string]uint32 {
 	result := make(map[string]map[string]uint32)
-	for pg := 0; pg < 8; pg++ {
+	for pg := 0; pg < len(arr); pg++ {
 		m := make(map[string]uint32)
 		for i, v := range arr[pg] {
 			if v > 0 {

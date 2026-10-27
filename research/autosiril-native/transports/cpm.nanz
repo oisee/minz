@@ -1,0 +1,54 @@
+// CP/M binding for the common producer. Physical blocks remain128 bytes.
+@extern(0x0005) fun bdos8(@z80_c command:u8,@z80_de address:u16)->u8
+global file_input:[u8;36]
+global file_output:[u8;36]
+global input_name:[u8;11] = [73,78,80,85,84,32,32,32,77,73,68]
+global output_name:[u8;11] = [78,79,84,69,83,32,32,32,66,73,78]
+// CP/M 2.2 directory functions15/16/22 return0..3 on success, FF on failure.
+// The common transport contract instead requires normalized zero success.
+fun cpm_directory_status(status:u8)->u8 {
+    if status <= 3 { return 0 }
+    return 1
+}
+fun open_input()->u8 {
+    chunk_capacity = 128
+    input_padding = 1
+    input_padding_quantum = 128
+    var index:u16 = 0
+    while index < 36 {
+        file_input[index] = 0
+        file_output[index] = 0
+        index = index + 1
+    }
+    index = 0
+    while index < 11 {
+        file_input[index+1] = input_name[index]
+        file_output[index+1] = output_name[index]
+        index = index + 1
+    }
+    bdos8(26,u16(&input_chunk))
+    return cpm_directory_status(bdos8(15,u16(&file_input)))
+}
+fun create_output()->u8 {
+    return cpm_directory_status(bdos8(22,u16(&file_output)))
+}
+fun read_chunk()->u32 {
+    let status:u8 = bdos8(20,u16(&file_input))
+    if status == 0 { return 128 }
+    if status == 1 { return u32(65536) }
+    return u32(131072)
+}
+fun write_chunk(count:u16)->u32 {
+    if count == 0 || count > 128 { return u32(131072) }
+    var index:u16 = count
+    while index < 128 {
+        input_chunk[index] = 0
+        index = index + 1
+    }
+    if bdos8(21,u16(&file_output)) != 0 { return u32(131072) }
+    return u32(count)
+}
+fun finish(direction:u8)->u8 {
+    if direction == 0 { return cpm_directory_status(bdos8(16,u16(&file_input))) }
+    return cpm_directory_status(bdos8(16,u16(&file_output)))
+}
