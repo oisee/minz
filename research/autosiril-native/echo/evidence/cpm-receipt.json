@@ -3217,8 +3217,8 @@
     "NOTES.BIN": "4ecfa8a78d0146fe2f7dbcdcab711fa1ca803332044b3e4d81f684c80a37039f",
     "PAIR.COM": "d8fa1666ff2bfce10900377f12364b30283f4048d9096af137ad4f4379c86c35"
   },
-  "standalone_emulator_sha256": "1e79e3997ce2579f14eaf2394f733548a90fb231b9a46b07e286168e3ab45a95",
+  "standalone_emulator_sha256": "89ade8c12b36c6cf3e05ba38c30e1c9faaa8c331b063f8f1334cc7d584b17da9",
   "scope": "108 executions/20 native file pairs and four separate COM processes; CALL5 traps and SP/HALT contract, not physical TPA/CCP/boot/full converter",
-  "positive_receipt_sha256": "a1d1376d1608a5730c2c88050b1f7e4d937e27d6909dbe394c4f02ef017c332f",
-  "musical_receipt_sha256": "2b75e2e2ffc0bdc0f6214be41870c0920820f602fd60078c3c9530a53a643a53"
+  "positive_receipt_sha256": "d78473b0af77ee56b943e310ca1fd2de21e4e7c7c04c20adf8049a48a2f664ec",
+  "musical_receipt_sha256": "52a679b9bd2ae0d9ac5ec93f8c8288ca939d39b4dc7955909f2f3b7ed409708a"
 }
