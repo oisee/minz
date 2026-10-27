@@ -1,0 +1,59 @@
+{
+  "as_of_utc": "2026-10-27T16:48:04.185508+00:00",
+  "implementation_status": "PAUSED by Alice; documentation-only workers authorized afterwards",
+  "goal_status": "paused",
+  "wakeup_STOP_exists": true,
+  "merge_authorization_at_pause": "No further implementation or merge; PR272 CI may finish, artifactaudit/mergependingcolleague",
+  "worktrees": [
+    {
+      "worktree": "/tmp/minz-autosiril-native-render",
+      "branch": "spike/autosiril-native-render",
+      "head": "bbbf668532bfefe62d4fd2398a787fde6be68fec",
+      "status": "?? research/autosiril-native/render/HANDOVER-2026-10-27-PAUSE.md"
+    },
+    {
+      "worktree": "/tmp/minz-autosiril-render-z",
+      "branch": "spike/autosiril-render-z",
+      "head": "6bbda83ae9dd8d39afe2cbd16bccf445ef68aba6",
+      "status": ""
+    },
+    {
+      "worktree": "/tmp/minz-autosiril-p-channel-z",
+      "branch": "fix/autosiril-p-channel",
+      "head": "55af8f9241aeecdaf3fe625a1f0a88fee681a117",
+      "status": ""
+    },
+    {
+      "worktree": "/tmp/minz-autosiril-canonical6-trd-z",
+      "branch": "spike/autosiril-canonical6-trd",
+      "head": "4cf27eb29703402095962ee2d4152f8bd7db724e",
+      "status": ""
+    },
+    {
+      "worktree": "/tmp/minz-autosiril-vt2-native-z",
+      "branch": "spike/autosiril-vt2-native-z",
+      "head": "13420ca32d8be183292b33a08d703c7d7c2065e0",
+      "status": ""
+    }
+  ],
+  "root_user_files_sha256": {
+    "minzc/cmd/mze/cpm_tick_input.go": "0277441152a12c17a0ea76ef53783cb1cc747f30c9ec578b2d28291bb570c4f1",
+    "reports/crystal-day-2026-10-25.html": "e57cc471a5aa373c7ea409e8eeeb9134486b5c4bccf763b0fde0fec83e49c5e5",
+    "reports/crystal-ecosystems-2026-10-25.html": "f9425de0bbba4f922672ee3d5c7a1d390f1ce3c4122f185e815741577f9750fe",
+    "reports/crystal-language-2026-10-25.html": "2efe4dac92a95868a1c3d59825159569caa8c97080c208b719dae2f65d1c0186"
+  },
+  "open_pr": "https://github.com/oisee/minz/pull/272",
+  "ci_run": "https://github.com/oisee/minz/actions/runs/40540793356",
+  "ci_last_observed": "in_progress; compiler advisory/judge checks green; core/fresh/frozen remaining",
+  "source_pin": "44925349147d5cd4bf3636c3f0eeffa7b46e261c",
+  "autooisee_sha256": "41f621b555fc089effd711319e723494576eb47ea0282847082ec91c1cdd4c01",
+  "resume_requires": "new explicit user instruction; read HANDOVER-2026-10-27-PAUSE.md first",
+  "documentation_workers": "Both completed; no implementation workers restarted after pause.",
+  "final_docs_checked_at_utc": "2026-10-27T16:51:07.354487+00:00",
+  "preservation_pushes_verified": {
+    "render": "6bbda83ae9dd8d39afe2cbd16bccf445ef68aba6",
+    "canonical6_PR272": "55af8f9241aeecdaf3fe625a1f0a88fee681a117",
+    "TRD_WIP": "4cf27eb29703402095962ee2d4152f8bd7db724e",
+    "native_VT2_WIP": "13420ca32d8be183292b33a08d703c7d7c2065e0"
+  }
+}

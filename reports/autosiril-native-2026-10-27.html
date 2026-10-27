@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ровесник ZX Spectrum: нативный рендер Autosiril — долгопровод дня 2026-10-27</title>
+<style>
+  :root{
+    --paper:#faf7f0; --ink:#26221c; --muted:#6f675a; --line:#e4dcc9;
+    --accent:#b23a2b; --accent2:#1f5fa8; --ok:#2e7d4f; --warn:#b07a1e; --bad:#a03028;
+    --card:#ffffff; --code-bg:#211d18; --code-ink:#efe7d6;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
+    font-size:19px; line-height:1.62;
+  }
+  .wrap{max-width:920px; margin:0 auto; padding:0 22px}
+  header.hero{
+    background:linear-gradient(160deg,#2a2620 0%,#3a2f24 55%,#4a3a26 100%);
+    color:#f5eddc; padding:58px 0 46px; margin-bottom:34px;
+    border-bottom:6px solid var(--accent);
+  }
+  header.hero .kicker{
+    font-family:ui-monospace,Menlo,Consolas,monospace; font-size:13px; letter-spacing:.18em;
+    text-transform:uppercase; color:#e0b96a; margin-bottom:14px;
+  }
+  header.hero h1{
+    font-size:44px; line-height:1.12; margin:0 0 14px; font-weight:700; letter-spacing:-.01em;
+  }
+  header.hero .sub{font-size:20px; color:#d8cdb8; max-width:700px; font-style:italic}
+  header.hero .meta{
+    margin-top:22px; font-family:ui-monospace,Menlo,Consolas,monospace; font-size:13px; color:#b9ac93;
+  }
+  h2{
+    font-size:29px; margin:52px 0 6px; line-height:1.2; letter-spacing:-.01em;
+  }
+  h2 .num{
+    color:var(--accent); font-family:ui-monospace,Menlo,Consolas,monospace; font-size:20px;
+    display:block; margin-bottom:2px; letter-spacing:.12em;
+  }
+  h3{font-size:22px; margin:34px 0 4px}
+  p{margin:14px 0}
+  .lead{font-size:22px; line-height:1.55; color:#3c362c}
+  strong{font-weight:700}
+  .n{white-space:nowrap; font-variant-numeric:tabular-nums}
+  a{color:var(--accent2); text-decoration-thickness:1px; text-underline-offset:3px}
+  code, pre{
+    font-family:ui-monospace,Menlo,Consolas,"SF Mono",monospace;
+  }
+  code{
+    background:#efe8d8; border-radius:4px; padding:1px 5px; font-size:.82em; color:#4a3d28;
+  }
+  pre{
+    background:var(--code-bg); color:var(--code-ink); border-radius:10px;
+    padding:18px 20px; overflow-x:auto; font-size:14.5px; line-height:1.55;
+    border:1px solid #4c4232;
+  }
+  pre .c{color:#8fa876} /* comment */
+  pre .k{color:#e0b96a} /* keyword-ish */
+  pre code{background:none; padding:0; color:inherit; font-size:inherit}
+  figure{margin:30px 0; padding:0}
+  figure svg{width:100%; height:auto; display:block}
+  figcaption{
+    font-size:15px; color:var(--muted); margin-top:8px; text-align:center; font-style:italic;
+  }
+  .callout{
+    border-left:4px solid var(--accent2); background:#eef2f6;
+    padding:14px 18px; border-radius:0 10px 10px 0; margin:22px 0; font-size:17.5px;
+  }
+  .callout.warn{border-color:var(--warn); background:#f7f0dd}
+  .callout.ok{border-color:var(--ok); background:#eaf3ec}
+  .cards{display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:14px; margin:26px 0}
+  .card{
+    background:var(--card); border:1px solid var(--line); border-radius:12px; padding:16px 18px;
+    box-shadow:0 1px 3px rgba(60,50,30,.07);
+  }
+  .card h4{
+    margin:0 0 8px; font-size:16px; font-family:ui-monospace,Menlo,Consolas,monospace;
+    letter-spacing:.06em; text-transform:uppercase;
+  }
+  .card.done h4{color:var(--ok)} .card.wip h4{color:var(--warn)} .card.future h4{color:var(--muted)}
+  .card p{margin:6px 0; font-size:16.5px}
+  .pill{
+    display:inline-block; font-family:ui-monospace,Menlo,Consolas,monospace; font-size:12px;
+    padding:2px 9px; border-radius:99px; letter-spacing:.08em; margin-bottom:8px;
+  }
+  .pill.done{background:#e2efe6; color:#21623d; border:1px solid #bcd8c6}
+  .pill.wip{background:#f7ecd2; color:#7c5410; border:1px solid #e4cf9d}
+  .pill.future{background:#eceae4; color:#6f675a; border:1px solid #d8d2c4}
+  table{width:100%; border-collapse:collapse; margin:20px 0; font-size:16.5px}
+  th,td{padding:8px 12px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top}
+  th{font-family:ui-monospace,Menlo,Consolas,monospace; font-size:13px; text-transform:uppercase; letter-spacing:.08em; color:var(--muted)}
+  td.n, th.n{text-align:right; font-variant-numeric:tabular-nums}
+  .lessonlist{counter-reset:lesson; list-style:none; padding:0; margin:22px 0}
+  .lessonlist li{
+    counter-increment:lesson; position:relative; padding:10px 0 10px 56px; border-bottom:1px dashed var(--line);
+  }
+  .lessonlist li::before{
+    content:counter(lesson,decimal-leading-zero); position:absolute; left:0; top:10px;
+    font-family:ui-monospace,Menlo,Consolas,monospace; color:var(--accent); font-size:22px; font-weight:700;
+  }
+  footer{
+    margin-top:60px; padding:34px 0 46px; border-top:4px solid var(--accent);
+    background:#f2ecdd; font-size:16.5px; color:#4c4436;
+  }
+  footer .stop{
+    font-family:ui-monospace,Menlo,Consolas,monospace; font-size:13.5px; letter-spacing:.1em;
+    color:var(--accent); text-transform:uppercase; margin-bottom:10px;
+  }
+  .svg-lbl{font:600 13px ui-monospace,Menlo,Consolas,monospace; fill:#26221c}
+  .svg-sub{font:12.5px ui-monospace,Menlo,Consolas,monospace; fill:#6f675a}
+  .svg-mono{font:12px ui-monospace,Menlo,Consolas,monospace; fill:#3c362c}
+  .svg-weak{font:11.5px ui-monospace,Menlo,Consolas,monospace; fill:#9a8f7c}
+  @media (max-width:640px){
+    header.hero h1{font-size:32px}
+    body{font-size:17.5px}
+    .lead{font-size:19px}
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="kicker">minz · autosiril-native · долгопровод дня</div>
+    <h1>Ровесник спектрума: как рендер Autosiril<br>учился жить в памяти Z80</h1>
+    <div class="sub">Один день, две изолированные ветки, 114 честных исполнений, одна найденная причина 62 расхождений — и вовремя нажатая пауза.</div>
+    <div class="meta">2026-10-27 · ветка spike/autosiril-native-render · остановлено на 4% недельного лимита · статья самодостаточна: только HTML+CSS+SVG</div>
+  </div>
+</header>
+
+<div class="wrap">
+
+<p class="lead">Сегодняшний день начался не с кода, а с точки: <strong>реализация остановлена, недельный лимит потрачен на 4%</strong>, и всё, что описано ниже — это уже сохранённые, проверенные и честно застенографированные результаты, а не приглашение продолжать. Книга к этому моменту была выпущена; оставшийся день ушил на то, чтобы нативная шестая стадия Autosiril — рендер строк трекерной музыки кодом для Z80 — продвинулась от «модели на хосте» до «исполняемого образа с доказанной побайтовой точностью». И это получилось. Частично. Что именно получилось — вся эта статья.</p>
+
+<h2><span class="num">01 · контекст</span>Зачем вообще Ruby и Crystal, если цель — Z80</h2>
+
+<p>Проект MinZ давно живёт вокруг одной идеи: <strong>много языков — одно промежуточное представление</strong>. Оригинальный Autosiril написан на Ruby, и он используется как эталон-оракул: его код заморожен по SHA-256 (<code>autooisee.rb</code>, <span class="n">41f621b5…1cdd4c01</span>) и только читается. Crystal дал другую линию: вместо написания «ещё одного парсера, похожего на Ruby» был выращен мост к настоящему фронтенду Crystal — inference, перегрузки и специализации выполняет сам Crystal, а закрытый системный сабсет уезжает в Lanz/HIR/MIR2. За двенадцать итераций этот мост накопил доказательства: от <span class="n">844</span> случаев native-инференса в первой итерации до <span class="n">2048</span> generator-наборов и <span class="n">525</span> ring-FIFO наборов в последних; frame генератора сжался с <span class="n">53</span> до <span class="n">13</span> байт. Это не «весь Crystal на Z80» — это проверенный сабсет с ареной и явным владением, без GC.</p>
+
+<p>Но главный герой дня — не они. Главный герой — <strong>нативный рендер Autosiril</strong>: шестая файловая стадия конвейера, которая превращает промежуточное kind5-представление песни в текстовые строки трекера, как это делает Ruby-функция <code>render_into_text</code>.</p>
+
+<h2><span class="num">02 · главный дизайн</span>Поток строк, а не песня в памяти</h2>
+
+<p>Z80 адресует <span class="n">64</span> КБ. Песня Chronos — <span class="n">3215</span> ячеек, <span class="n">1352</span> строки рендера, <span class="n">67 600</span> байт текста. Вывод очевиден: <strong>никаких whole-song массивов в RAM</strong>. Вместо этого ядро рендера построено как поток с крошечным фиксированным состоянием:</p>
+
+<ul>
+  <li>три «головы» каналов по <span class="n">16</span> байт (bounded window вместо всей дорожки);</li>
+  <li>одна текущая строка из трёх мутабельных нот + два retained/sentinel слота;</li>
+  <li>предыдущие формы и penote, один <span class="n">52</span>-байтный line-пакет и один <span class="n">82</span>-байтный state-пакет;</li>
+  <li>на вход — максимум <span class="n">9216</span> исходных ячеек, несортированные строки отвергаются.</li>
+</ul>
+
+<p>В файловой CP/M-версии у каждого из трёх читателей — <strong>собственные</strong> FCB, буфер и позиция: никакой общей DMA-царапалки, которую один курсор испортит другому. Это тот же урок, что и в пятой стадии: «owned cursor ≠ shared scratch».</p>
+
+<figure>
+<svg viewBox="0 0 860 400" role="img" aria-label="Схема потокового рендера: файл kind5, три собственных курсора, ограниченная арена, потоковые выходные файлы">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#b23a2b"/>
+    </marker>
+    <marker id="arrb" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#1f5fa8"/>
+    </marker>
+  </defs>
+  <!-- input file -->
+  <rect x="18" y="40" width="150" height="320" rx="10" fill="#eef2f6" stroke="#1f5fa8" stroke-width="1.6"/>
+  <text x="93" y="66" text-anchor="middle" class="svg-lbl">MIXED.BIN (kind5)</text>
+  <text x="93" y="86" text-anchor="middle" class="svg-sub">definitions → cells →</text>
+  <text x="93" y="102" text-anchor="middle" class="svg-sub">metadata → END</text>
+  <rect x="34" y="130" width="118" height="16" rx="3" fill="#cddbe9"/>
+  <rect x="34" y="152" width="118" height="16" rx="3" fill="#cddbe9"/>
+  <rect x="34" y="174" width="118" height="16" rx="3" fill="#cddbe9"/>
+  <text x="93" y="330" text-anchor="middle" class="svg-weak">файл на диске, читается</text>
+  <text x="93" y="346" text-anchor="middle" class="svg-weak">секторами по 128 Б</text>
+
+  <!-- owned cursors -->
+  <g>
+    <rect x="220" y="52" width="180" height="86" rx="9" fill="#fff" stroke="#1f5fa8" stroke-width="1.6"/>
+    <text x="310" y="74" text-anchor="middle" class="svg-lbl">курсор A (me)</text>
+    <text x="310" y="94" text-anchor="middle" class="svg-mono">свой FCB · буфер · offset</text>
+    <text x="310" y="112" text-anchor="middle" class="svg-mono">BDOS CALL 5, только чтение</text>
+  </g>
+  <g>
+    <rect x="220" y="156" width="180" height="86" rx="9" fill="#fff" stroke="#1f5fa8" stroke-width="1.6"/>
+    <text x="310" y="178" text-anchor="middle" class="svg-lbl">курсор B (p)</text>
+    <text x="310" y="198" text-anchor="middle" class="svg-mono">свой FCB · буфер · offset</text>
+    <text x="310" y="216" text-anchor="middle" class="svg-mono">не делит DMA с A и C</text>
+  </g>
+  <g>
+    <rect x="220" y="260" width="180" height="86" rx="9" fill="#fff" stroke="#1f5fa8" stroke-width="1.6"/>
+    <text x="310" y="282" text-anchor="middle" class="svg-lbl">курсор C (m)</text>
+    <text x="310" y="302" text-anchor="middle" class="svg-mono">свой FCB · буфер · offset</text>
+    <text x="310" y="320" text-anchor="middle" class="svg-mono">cleanup проверяется после</text>
+  </g>
+  <line x1="168" y1="120" x2="218" y2="98" stroke="#b23a2b" stroke-width="2" marker-end="url(#arr)"/>
+  <line x1="168" y1="200" x2="218" y2="200" stroke="#b23a2b" stroke-width="2" marker-end="url(#arr)"/>
+  <line x1="168" y1="286" x2="218" y2="304" stroke="#b23a2b" stroke-width="2" marker-end="url(#arr)"/>
+
+  <!-- bounded arena -->
+  <rect x="446" y="76" width="188" height="248" rx="10" fill="#f7f0dd" stroke="#b07a1e" stroke-width="1.8"/>
+  <text x="540" y="102" text-anchor="middle" class="svg-lbl">арена Z80</text>
+  <text x="540" y="120" text-anchor="middle" class="svg-sub">фиксировано, без кучи</text>
+  <rect x="462" y="132" width="156" height="24" rx="4" fill="#f2dfae"/>
+  <text x="540" y="148" text-anchor="middle" class="svg-mono">3 головы каналов ×16 Б</text>
+  <rect x="462" y="162" width="156" height="24" rx="4" fill="#f2dfae"/>
+  <text x="540" y="178" text-anchor="middle" class="svg-mono">текущая строка: 3 ноты</text>
+  <rect x="462" y="192" width="156" height="24" rx="4" fill="#f2dfae"/>
+  <text x="540" y="208" text-anchor="middle" class="svg-mono">line-пакет 52 Б</text>
+  <rect x="462" y="222" width="156" height="24" rx="4" fill="#f2dfae"/>
+  <text x="540" y="238" text-anchor="middle" class="svg-mono">state-пакет 82 Б</text>
+  <text x="540" y="272" text-anchor="middle" class="svg-weak">whole-song массивов нет;</text>
+  <text x="540" y="288" text-anchor="middle" class="svg-weak">строка сгенерирована —</text>
+  <text x="540" y="304" text-anchor="middle" class="svg-weak">строка записана — состояние</text>
+  <text x="540" y="320" text-anchor="middle" class="svg-weak">перекатилось вперёд</text>
+  <line x1="400" y1="200" x2="444" y2="200" stroke="#1f5fa8" stroke-width="2.4" marker-end="url(#arrb)"/>
+
+  <!-- outputs -->
+  <g font-family="ui-monospace,Menlo,monospace">
+    <rect x="684" y="70" width="158" height="52" rx="8" fill="#eaf3ec" stroke="#2e7d4f" stroke-width="1.6"/>
+    <text x="763" y="92" text-anchor="middle" font-size="13" font-weight="600" fill="#26221c">OUTPUT.TXT</text>
+    <text x="763" y="110" text-anchor="middle" font-size="12" fill="#3c362c">67 600 Б потоком</text>
+    <rect x="684" y="134" width="158" height="52" rx="8" fill="#eaf3ec" stroke="#2e7d4f" stroke-width="1.6"/>
+    <text x="763" y="156" text-anchor="middle" font-size="13" font-weight="600" fill="#26221c">STATE.BIN</text>
+    <text x="763" y="174" text-anchor="middle" font-size="12" fill="#3c362c">105 456 Б потоком</text>
+    <rect x="684" y="198" width="158" height="52" rx="8" fill="#eaf3ec" stroke="#2e7d4f" stroke-width="1.6"/>
+    <text x="763" y="220" text-anchor="middle" font-size="13" font-weight="600" fill="#26221c">META.BIN «ARMD»</text>
+    <text x="763" y="238" text-anchor="middle" font-size="12" fill="#3c362c">фрагменты defs, роль 2/3</text>
+    <rect x="684" y="262" width="158" height="52" rx="8" fill="#eaf3ec" stroke="#2e7d4f" stroke-width="1.6"/>
+    <text x="763" y="284" text-anchor="middle" font-size="13" font-weight="600" fill="#26221c">REND.INF</text>
+    <text x="763" y="302" text-anchor="middle" font-size="12" fill="#3c362c">логические длины ≠ паддинг</text>
+  </g>
+  <line x1="634" y1="180" x2="682" y2="120" stroke="#1f5fa8" stroke-width="2" marker-end="url(#arrb)"/>
+  <line x1="634" y1="200" x2="682" y2="200" stroke="#1f5fa8" stroke-width="2" marker-end="url(#arrb)"/>
+  <line x1="634" y1="230" x2="682" y2="290" stroke="#1f5fa8" stroke-width="2" marker-end="url(#arrb)"/>
+</svg>
+<figcaption>Потоковый рендер: у каждого курсора своя жизнь, у арены — свой потолок, у каждого выхода — свой поток. Общей царапалки нет.</figcaption>
+</figure>
+
+<p>Вот настоящий код из <code>research/autosiril-native/render/kernel.nanz</code> — не иллюстрация, а строка в строку из репозитория:</p>
+
+<pre><code><span class="c">// Bounded native Autosiril row renderer. Source/sink byte transports are
+// explicit fixture traps reserved for the later independently linked file stage.</span>
+<span class="k">global</span> line_packet:[u8;52]
+<span class="k">global</span> state_packet:[u8;82]
+
+<span class="k">fun</span> octave_value(note:i16)->i8 {
+    <span class="k">if</span> note &lt; 0 { <span class="k">return</span> -1 }
+    <span class="k">let</span> divided:i16 = note / 12
+    <span class="k">if</span> divided - 1 &lt; 1 { <span class="k">return</span> i8(divided) }
+    <span class="k">let</span> result:i16 = divided - 1
+    <span class="k">if</span> result &gt; 8 { <span class="k">return</span> 8 }
+    <span class="k">return</span> i8(result)
+}
+<span class="k">fun</span> refresh(index:u8) {
+    note_pitch[index] = pitch_value(signed_note(note_note[index]))
+    note_octave[index] = octave_value(signed_note(note_note[index]))
+    <span class="k">if</span> note_kind[index] == 101 {
+        <span class="k">if</span> note_volume[index] &gt;= 1500 {
+            note_envelope[index] = env_forms[note_note[index]]
+            note_sample[index] = 2
+        } <span class="k">else</span> {
+            note_envelope[index] = 15
+            note_sample[index] = 2
+            note_pnote[index] = note_note[index]
+        }
+        note_enote[index] = i16(note_note[index]) + env_offsets[note_note[index]]
+    } <span class="k">else</span> {
+        note_enote[index] = -1
+    }
+}</code></pre>
+
+<p>А вот старт файлового адаптера <code>research/autosiril-native/render/cpm.nanz</code> — обратите внимание на три набора курсорных полей, по одному на читателя:</p>
+
+<pre><code><span class="c">// Independently linked CP/M adapter for actual kind5 files.</span>
+<span class="k">@extern</span>(0x0005) <span class="k">fun</span> bdos8(@z80_c command:u8,@z80_de address:u16)->u8
+
+<span class="k">global</span> input_fcbs:[u8;108]        <span class="c">// 3 × 36 Б: FCB каждого читателя свой</span>
+<span class="k">global</span> input_buffers:[u8;384]     <span class="c">// 3 × 128 Б: буфер каждого читателя свой</span>
+<span class="k">global</span> cursor_records:[u32;3]
+<span class="k">global</span> cursor_last_row:[u16;3]
+<span class="k">global</span> cursor_defs:[u16;3]
+<span class="k">global</span> definition_payloads:[u8;4096]
+<span class="k">global</span> text_logical_bytes:u32
+<span class="k">global</span> state_logical_bytes:u32</code></pre>
+
+<h2><span class="num">03 · метод</span>Лестница доказательств: каждая ступень — против Ruby</h2>
+
+<p>Ключевой принцип дня: <strong>зелёная галочка — это не требование</strong>. Согласие двух промежуточных представлений не доказывает корректность бэкенда. Поэтому каждая граница проверяется на четырёх исполнителях, и все четверо сравниваются с замороженным оригинальным Ruby, а не друг с другом.</p>
+
+<figure>
+<svg viewBox="0 0 860 330" role="img" aria-label="Лестница доказательств из четырёх ступеней против эталонного Ruby">
+  <defs>
+    <marker id="arr2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#2e7d4f"/>
+    </marker>
+  </defs>
+  <!-- ruby column -->
+  <rect x="676" y="30" width="168" height="270" rx="10" fill="#2a2620"/>
+  <text x="760" y="62" text-anchor="middle" fill="#e0b96a" font-weight="700" font-size="14" font-family="ui-monospace,Menlo,monospace">ОРИГИНАЛЬНЫЙ RUBY</text>
+  <text x="760" y="84" text-anchor="middle" fill="#d8cdb8" font-size="12" font-family="ui-monospace,Menlo,monospace">autooisee.rb</text>
+  <text x="760" y="102" text-anchor="middle" fill="#d8cdb8" font-size="12" font-family="ui-monospace,Menlo,monospace">SHA-256 41f621b5…</text>
+  <text x="760" y="136" text-anchor="middle" fill="#9a8f7c" font-size="11.5" font-family="ui-monospace,Menlo,monospace">эталон, только чтение,</text>
+  <text x="760" y="152" text-anchor="middle" fill="#9a8f7c" font-size="11.5" font-family="ui-monospace,Menlo,monospace">запускается заново в fresh,</text>
+  <text x="760" y="168" text-anchor="middle" fill="#9a8f7c" font-size="11.5" font-family="ui-monospace,Menlo,monospace">заморожен во frozen</text>
+
+  <!-- ladder -->
+  <g>
+    <rect x="40" y="30" width="560" height="52" rx="9" fill="#eaf3ec" stroke="#2e7d4f" stroke-width="1.6"/>
+    <text x="66" y="52" class="svg-lbl">СТУПЕНЬ 1 · host-модель (model.py)</text>
+    <text x="66" y="70" class="svg-sub">203 случая планирования · целые centi-объёмы · из Ruby только таблицы констант</text>
+    <rect x="40" y="112" width="560" height="52" rx="9" fill="#eaf3ec" stroke="#2e7d4f" stroke-width="1.6"/>
+    <text x="66" y="134" class="svg-lbl">СТУПЕНЬ 2 · raw MIR2 (VM)</text>
+    <text x="66" y="152" class="svg-sub">до оптимизаций — ловит ошибки пайплайна, а не кодогенератора</text>
+    <rect x="40" y="194" width="560" height="52" rx="9" fill="#eaf3ec" stroke="#2e7d4f" stroke-width="1.6"/>
+    <text x="66" y="216" class="svg-lbl">СТУПЕНЬ 3 · final MIR2 (VM)</text>
+    <text x="66" y="234" class="svg-sub">после оптимизаций — оптимизации тоже под подозрением</text>
+    <rect x="40" y="276" width="560" height="40" rx="9" fill="#fdeee9" stroke="#b23a2b" stroke-width="1.8"/>
+    <text x="66" y="301" class="svg-lbl" fill="#b23a2b">СТУПЕНЬ 4 · собранный Z80 (COM) · эмуляция mze</text>
+  </g>
+  <line x1="320" y1="82" x2="320" y2="110" stroke="#2e7d4f" stroke-width="2.2" marker-end="url(#arr2)"/>
+  <line x1="320" y1="164" x2="320" y2="192" stroke="#2e7d4f" stroke-width="2.2" marker-end="url(#arr2)"/>
+  <line x1="320" y1="246" x2="320" y2="274" stroke="#2e7d4f" stroke-width="2.2" marker-end="url(#arr2)"/>
+  <line x1="600" y1="56" x2="674" y2="80" stroke="#b23a2b" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#arr)"/>
+  <line x1="600" y1="138" x2="674" y2="150" stroke="#b23a2b" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#arr)"/>
+  <line x1="600" y1="220" x2="674" y2="220" stroke="#b23a2b" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#arr)"/>
+  <line x1="600" y1="296" x2="674" y2="270" stroke="#b23a2b" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#arr)"/>
+  <text x="637" y="120" text-anchor="middle" class="svg-weak">каждый</text>
+  <text x="637" y="134" text-anchor="middle" class="svg-weak">≠ друг с другом,</text>
+  <text x="637" y="148" text-anchor="middle" class="svg-weak">а = с Ruby</text>
+</svg>
+<figcaption>Лестница дня: вниз — к железу, вправо — к эталону. Сравнение «побратимов» между собой не считается доказательством.</figcaption>
+</figure>
+
+<h2><span class="num">04 · ядро</span>203 случая, 609 исполнений, ни одного лишнего байта</h2>
+
+<p>Первый checkpoint дня — <strong>строковое ядро рендера доказано целиком</strong>. Команда <code>research/autosiril-native/render/prove_kernel.py</code> прогнала <span class="n">203</span> случая (по <span class="n">10 320</span> строк) на трёх исполнителях — raw MIR2, final MIR2 и собранный Z80, итого <span class="n">609</span> прогонов. Каждый ASCII-байт текста (<span class="n">515 988</span> байт) и каждый байт post-row состояния (<span class="n">794 640</span> байт) совпали с Ruby. Эмулятор при этом проверял не только результат: контракт возврата, границы PC, пол SP, состояние IRQ, отсутствие записи куда-либо, кроме глобалов/spill/стека, отсутствие исполнения данных, отсутствие лишних портов и канарейки.</p>
+
+<p>Второй checkpoint — верхние границы: случаи <span class="n">65 535</span>, <span class="n">65 536</span>, <span class="n">65 567</span> строк и пустой вход. <span class="n">262 174</span> состояния строк на каждого из трёх исполнителей — и снова побайтовое равенство. Заодно выяснилась милая деталь формата: начиная со строки <span class="n">65 536</span> state-пакет растёт с <span class="n">77</span> до <span class="n">79</span> байт, потому что номер строки перестаёт влезать в u16. Обе исторические кодировки сохранены.</p>
+
+<p>Размер образа ядра — <span class="n">7 839</span> байт: <span class="n">6 961</span> код, <span class="n">790</span> глобалы, <span class="n">88</span> spill; пиковый стек — <span class="n">34</span> байта. Для машины, где вся адресуемая память — 64 КБ, это не «детали», это и есть дизайн.</p>
+
+<h2><span class="num">05 · файловая стадия</span>Из fault 956 — в 114 зелёных исполнений</h2>
+
+<p>Файловая CP/M-стадия в этот день сначала <em>не работала</em> — и это честно зафиксировано: <code>raw-mir2 fault 956</code> на декодировании END/count/magic, а диагностический «пропуск magic» упёрся в газовый лимит VM и был откачен. Причиной оказались вполне приземлённые вещи: рассинхрон фаз валидации, общий <code>cursor_record_count</code> на всех читателей вместо собственного у каждого и пропущенные теги записей. После точечных правок (без поднятия газа и ослабления framing — иначе это была бы ложная победа) стандартное доказательство <code>prove_cpm.py</code> прошло:</p>
+
+<pre><code>PYTHONDONTWRITEBYTECODE=1 python3 research/autosiril-native/render/prove_cpm.py \
+  --artifacts /tmp/minz-ci270-artifacts/autosiril-mix-fresh \
+  --autosiril /Users/alice/dev/autosiril \
+  --planning  /tmp/minz-render-planning-v4 \
+  --out       /tmp/minz-z-workers/render-results/checkpoint5-cpm-n
+&gt; PASS 114 actual-kind5 CP/M executions</code></pre>
+
+<p><span class="n">114</span> = <strong>25 сохранённых kind5-входов × 3 исполнителя</strong> (75 прогонов) + <strong>13 защит × 3 исполнителя</strong> (39 прогонов). Chronos точен: <span class="n">67 600</span> байт текста и <span class="n">105 456</span> байт состояния; пустой вход честно даёт ноль логических байт. Защиты бьют по делу: неверный заголовок, битые definitions, регрессия сортировки ячеек, corruption END/magic, ненулевой физический паддинг и инжекции отказов BDOS на открытии, чтении, создании, записи и закрытии — с точными fault-кодами, проверкой неизменности входа и очисткой живых хэндлов.</p>
+
+<p>Финальный образ — <span class="n">28 474</span> байта: <span class="n">21 589</span> код + <span class="n">6 432</span> глобалы + <span class="n">453</span> spill. Контракты зафиксированы письменно: <code>STATE.BIN v1</code> (length-prefixed строки), <code>META.BIN v1</code> (компаньон «ARMD», не kind5), <code>REND.INF v1</code> (логические длины, чтобы нулевой паддинг 128-байтных записей не выдали за полезные байты).</p>
+
+<h2><span class="num">06 · детектив</span>62 расхождения, которые ни в чём не были виноваты</h2>
+
+<p>Параллельно разворачивалась лучшая история дня. При одинаковых канонических настройках native-цепочка Chronos расходилась с Ruby на <span class="n">62</span> ячейках p-канала: первая разница — строка <span class="n">259</span>, нота <span class="n">51/орнамент 4</span> вместо <span class="n">58/орнамент 0</span>. Подозревали всех: arrange, echo, mix, компилятор. Что называется, стандартная процедура — каждый алиби проверялся.</p>
+
+<p>Настоящий виновник оказался скучным и оттого красивым: <strong>рассинхронизация профиля</strong>. Native-цепочка и её референсы были сгенерированы с <code>max_offset 24</code>, а канонический argv Ruby — с <code>max_offset 6</code> (профиль <code>chronos.mid 2me,1p,1m 8 6 12 0 64 2 6</code>). Механизм расхождения понятен до ноты: Ruby-шный <code>squize_ornament</code> на диаде <span class="n">{58,51}</span> с медианой 7 и фильтром max_offset=6 удаляет смещение 0 и пересаживает всё на ноту 58; native-путь со своим max_offset свернул диаду иначе — и ошибка честно размножилась эхо-копиями.</p>
+
+<p>После явного canonical6-профиля — с перекомпилированным <code>ARRANGE-CANONICAL6.COM</code> и неизменными апстримными <code>ECHO.COM</code> и <code>MIX.COM</code> — паритет наступил на всех границах:</p>
+
+<table>
+  <thead><tr><th>Граница</th><th>Сравнение с Ruby</th><th class="n">Расхождений</th></tr></thead>
+  <tbody>
+    <tr><td><code>ARRANGE.BIN</code>@6 (stage 3)</td><td>lmod</td><td class="n"><strong>0</strong> (2 097 ячеек)</td></tr>
+    <tr><td><code>DELAYED.BIN</code>@6 (stage 4)</td><td>dmod</td><td class="n"><strong>0</strong> (3 215 ячеек)</td></tr>
+    <tr><td><code>MIXED.BIN</code>@6 (stage 5, файл)</td><td>mmod</td><td class="n"><strong>0</strong> (3 215 ячеек)</td></tr>
+    <tr><td>stage 1–2 (<code>NOTES</code>/<code>EVENTS</code>)</td><td>переиспользованы проверенные выходы</td><td class="n">байт-в-байт</td></tr>
+  </tbody>
+</table>
+
+<p>Доказательство переносимо: <code>research/autosiril-native/p-channel-fix/fixtures/canonical6-frozen.json.gz</code> замораживает хэши и ожидания, а <code>replay_canonical6.py</code> перепроверяет всё это <em>без запуска Ruby</em> — при этом fresh-режим сверяет саму заморозку с живым Ruby, так что фикстура не может тихо сгнить в самосогласие. CI-задания встроены в PR <a href="https://github.com/oisee/minz/pull/272">#272</a>; на момент передачи запуск <span class="n">40540793356</span> был <strong>в процессе</strong>, и слияние не предполагается, пока не позеленеет обязательное и не будет проверен скачанный артефакт. (Да, и уже ставшая знаменитой фраза дня: green badge ≠ requirements.)</p>
+
+<h2><span class="num">07 · VT2</span>Хост-модель: 267 511 слотов паттернов, без целой строки play-order в потоке вывода</h2>
+
+<p>Проверенный результат VT2 сегодня — <strong>host-модель</strong>. Черновик native-ядра уже сохранён, но успешный сквозной target-прогон пока не подтверждён. Зато модель научилась главному: вывод собирается <em>стримингом</em> — шаблонные литеральные сегменты пишутся как есть, play-order льётся по одной u32-записи из файла порядка, орнаменты — фрагмент за фрагментом, паттерны копируются из spool кусками. Целая header-строка никогда не собирается на пути вывода — она существует только в доказательной статистике, которая считается <em>после</em> записи. Проверено <span class="n">558</span> случаев против реального Ruby Step9–11, плюс <span class="n">548</span> форсированных коллизий (все паттерны — нули) и <span class="n">3</span> канонических варианта Chronos — <span class="n">267 511</span> слотов паттернов. Важная тонкость формулировки: коллизия в dedup — это совпадение байтов паттерна, а не музыкальная эквивалентность; полный header как строка — анти-паттерн.</p>
+
+<h2><span class="num">08 · статусы</span>Что сделано, что в работе, чего нет</h2>
+
+<div class="cards">
+  <div class="card done"><span class="pill done">сделано</span><h4>Ядро рендера</h4>
+    <p><span class="n">203</span> случая / <span class="n">10 320</span> строк + верхние границы <span class="n">262 174</span> состояния на исполнителя; все три движка равны Ruby побайтно.</p></div>
+  <div class="card done"><span class="pill done">сделано</span><h4>CP/M легаси-входы</h4>
+    <p><span class="n">114</span> исполнений (<span class="n">25×3 + 13×3</span>) прошли; Chronos точен до байта; защита BDOS-отказов на трёх движках.</p></div>
+  <div class="card done"><span class="pill done">сделано</span><h4>Canonical6</h4>
+    <p>Причина 62 расхождений найдена (max_offset <span class="n">24 vs 6</span>); после явного профиля — <strong>0 diff</strong> на всех границах; PR #272 ожидает CI.</p></div>
+  <div class="card done"><span class="pill done">сделано</span><h4>VT2 host-модель</h4>
+    <p><span class="n">558 + 548 + 3</span> случаев, <span class="n">267 511</span> слотов, честный стриминг без whole-header. Только хост.</p></div>
+  <div class="card wip"><span class="pill wip">открыто</span><h4>Профиль фрагментов CP/M</h4>
+    <p>Полный профиль <span class="n">4096</span> Б данных / <span class="n">64</span> defs не закрыт: raw-кэш на 256 записей может исключить длинные определения (срез <code>rawdef ≤ 64</code>); отдельного подсчёта distinct-определений нет.</p></div>
+  <div class="card wip"><span class="pill wip">открыто</span><h4>Кэш-поля и RINF</h4>
+    <p>Когерентность кэшированного enote / висячих ссылок требует проверки; фактический RINF — <span class="n">17</span> логических байт, а не <span class="n">21</span> из ранней документации.</p></div>
+  <div class="card wip"><span class="pill wip">в работе</span><h4>TRD canonical6</h4>
+    <p>Скрипт запущен, завершённого доказательства нет. TRD-адаптеры (flatten/arrange/echo/mix) — отдельный фронт работ.</p></div>
+  <div class="card wip"><span class="pill wip">в работе</span><h4>Нативный VT2</h4>
+    <p>Kernel/prover/driver написаны; целевое исполнение не доказано (раннер упёрся в 30-минутный таймаут). Никакого заявления о нативном VT2 нет.</p></div>
+  <div class="card future"><span class="pill future">впереди</span><h4>VTX и публикация</h4>
+    <p>VTX-экспорт, 16 банков, интеграция шести COM, свежие/замороженные CI-аудиты, PR/main — всё впереди.</p></div>
+</div>
+
+<div class="callout warn"><strong>Честная рамка.</strong> Всё перечисленное — <strong>ограниченные checkpoint-результаты</strong>. Готового нативного конвертера MIDI→VT2 сегодня не существует, и ни одна строка этой статьи не должна читаться как заявление об обратном. И ещё: наши CP/TRD-трапы — это <strong>API-трапы</strong> (CALL 5 и секторный API в эмуляторе), а не физические ROM, FDC или железо.</div>
+
+<h2><span class="num">09 · размеры</span>67 600 против 65 280: почему сегментация, а не GC</h2>
+
+<p>Один файл TRD — это максимум <span class="n">255</span> секторов × <span class="n">256</span> байт = <span class="n">65 280</span> байт. Чистый текст Chronos — <span class="n">67 600</span> байт. Он <strong>не влезает в один файл</strong>, и это не досадная мелочь, а проектное ограничение, вокруг которого нужно строить дизайн: явную сегментацию вывода или честный отказ по вместимости. Сборщик мусора тут не спасёт — проблема не в утечках, а в ёмкости носителя. (Наивный RLE тоже не спасает: на этом тексте он раздувает <span class="n">67 600</span> до <span class="n">69 822</span> байт. Сжатие, которое увеличивает файл, — редкий, но поучительный вид искусства.)</p>
+
+<p>Зато связка «bounded арена + span + owned cursors» оказалась именно тем набором абстракций, который Z80-проекту и нужен: фиксированные бюджеты кода/глобалов/spill/стека считаются явно, владение курсорами исключает взаимное повреждение, а отсутствие кучи делает поведение воспроизводимым до байта. Ничего из этого не требует GC — и это, пожалуй, главный переносимый вывод для любого «малого» железа.</p>
+
+<figure>
+<svg viewBox="0 0 860 190" role="img" aria-label="Хронология дня: ядро, границы, CP/M, детектив 62 расхождений, canonical6, VT2, стоп">
+  <line x1="40" y1="96" x2="820" y2="96" stroke="#c9bfa8" stroke-width="3" stroke-linecap="round"/>
+  <g font-family="ui-monospace,Menlo,monospace">
+    <circle cx="70"  cy="96" r="9" fill="#2e7d4f"/><text x="70" y="70" text-anchor="middle" font-size="12" font-weight="700" fill="#26221c">ядро</text><text x="70" y="128" text-anchor="middle" font-size="11" fill="#6f675a">203×3, 609</text>
+    <circle cx="205" cy="96" r="9" fill="#2e7d4f"/><text x="205" y="70" text-anchor="middle" font-size="12" font-weight="700" fill="#26221c">границы</text><text x="205" y="128" text-anchor="middle" font-size="11" fill="#6f675a">262 174 × 3</text>
+    <circle cx="340" cy="96" r="9" fill="#b07a1e"/><text x="340" y="70" text-anchor="middle" font-size="12" font-weight="700" fill="#26221c">CP/M fault 956</text><text x="340" y="128" text-anchor="middle" font-size="11" fill="#6f675a">диагноз → правки</text>
+    <circle cx="470" cy="96" r="9" fill="#2e7d4f"/><text x="470" y="70" text-anchor="middle" font-size="12" font-weight="700" fill="#26221c">CP/M PASS</text><text x="470" y="128" text-anchor="middle" font-size="11" fill="#6f675a">114 исполнений</text>
+    <circle cx="590" cy="96" r="9" fill="#1f5fa8"/><text x="590" y="70" text-anchor="middle" font-size="12" font-weight="700" fill="#26221c">62 diff</text><text x="590" y="128" text-anchor="middle" font-size="11" fill="#6f675a">max_offset 24 vs 6</text>
+    <circle cx="705" cy="96" r="9" fill="#2e7d4f"/><text x="705" y="70" text-anchor="middle" font-size="12" font-weight="700" fill="#26221c">canonical6</text><text x="705" y="128" text-anchor="middle" font-size="11" fill="#6f675a">0 diff на границах</text>
+    <rect x="748" y="82" width="98" height="28" rx="14" fill="#b23a2b"/>
+    <text x="797" y="100" text-anchor="middle" font-size="12" font-weight="700" fill="#faf7f0">СТОП · 4%</text>
+    <text x="797" y="128" text-anchor="middle" font-size="11" fill="#6f675a">VT2 host ✓</text>
+  </g>
+</svg>
+<figcaption>Хронология дня одним взглядом. Синяя точка — самое satisfying-расследование: баг, которого не было.</figcaption>
+</figure>
+
+<h2><span class="num">10 · уроки</span>Что забрать с собой</h2>
+
+<ol class="lessonlist">
+  <li><strong>Тесты на границах — осмысленные границы.</strong> <span class="n">65 535 / 65 536 / 65 567</span> и пустой вход нашли реальное поведение формата (77→79 байт), которое «средний» случай не показал бы никогда.</li>
+  <li><strong>Оракул обязан быть независимым.</strong> Замороженный по SHA-256 Ruby, fresh-прогон против frozen-реплея: два MIR, согласные друг с другом, ничего не доказывают о Z80.</li>
+  <li><strong>Ступени raw → final → native раздельно.</strong> Ошибка в оптимизациях и ошибка в кодогенераторе ловятся на разных ступенях; смешивать их — терять диагноз.</li>
+  <li><strong>Зелёная галочка ≠ выполненные требования.</strong> У CI #272 может позеленеть — это будет означать только то, что прошли заведённые проверки, а не что конвертер готов.</li>
+  <li><strong>«Не баг, а профиль» — тоже результат.</strong> 62 расхождения не были ошибкой компилятора; это спасло от охоты за несуществующим призраком в arrange/echo/mix.</li>
+  <li><strong>Ёмкость — это дизайн.</strong> <span class="n">67 600 &gt; 65 280</span> решается сегментацией и явным отказом, а не надеждой. Bounded-арена без GC — правильный сосед для Z80.</li>
+</ol>
+
+<div class="callout ok"><strong>Фон дня.</strong> До всей этой истории успел выйти релиз второй редакции книги «Дни из жизни компилятора MinZ» — <a href="https://github.com/oisee/minz/releases/tag/book-compiler-days-2026-10-27">book-compiler-days-2026-10-27</a>: 93 страницы A5, 23 схемы. Так что день закрыл и художественную, и доказательную часть.</div>
+
+<footer>
+  <div class="wrap">
+    <div class="stop">■ Реализация приостановлена · недельный лимит: 4% · STOP действует</div>
+    <p>Полное состояние на передачу, точные команды, хэши и обязательства — в документе
+    <a href="../research/autosiril-native/render/HANDOVER-2026-10-27-PAUSE.md">HANDOVER-2026-10-27-PAUSE.md</a>.
+    Продолжение — только по явной команде Alice.</p>
+    <p style="font-size:14px;color:#7a7160">Автономная HTML-страница: инлайн-CSS и SVG, без внешних шрифтов, скриптов и CDN. Числа в статье сверены с WORKER-REPORT веток render-z и p-channel-z, receipt-файлами checkpoint-серий и инвентарём передачи от 2026-10-27.</p>
+  </div>
+</footer>
+
+</div>
+</body>
+</html>
