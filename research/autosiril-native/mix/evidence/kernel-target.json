@@ -1,5 +1,5 @@
 {
-  "binary_sha256": "bd4fe8effcc0a17b6aa6a7afd10708c7598f28b859a445aadfc3e59358ed335d",
+  "binary_sha256": "26912a991657b8122a12d5130bcae817ec4a6f1fb2d1110a6cfb68c570aff4bc",
   "cases": [
     {
       "case": "native_chronos",
@@ -4463,7 +4463,7 @@
       "sink_writes": 0,
       "source_reads": 1,
       "stack_bytes": 14,
-      "t_states": 9273
+      "t_states": 9311
     },
     {
       "case": "read_fail_2",
@@ -4499,7 +4499,7 @@
       "sink_writes": 1,
       "source_reads": 2,
       "stack_bytes": 24,
-      "t_states": 13353
+      "t_states": 13391
     },
     {
       "case": "read_fail_8",
@@ -4535,7 +4535,7 @@
       "sink_writes": 7,
       "source_reads": 8,
       "stack_bytes": 24,
-      "t_states": 39483
+      "t_states": 39521
     },
     {
       "case": "read_fail_32",
@@ -4571,7 +4571,7 @@
       "sink_writes": 31,
       "source_reads": 32,
       "stack_bytes": 24,
-      "t_states": 144003
+      "t_states": 144041
     },
     {
       "case": "write_fail_1",
@@ -4607,7 +4607,7 @@
       "sink_writes": 1,
       "source_reads": 1,
       "stack_bytes": 16,
-      "t_states": 11359
+      "t_states": 11395
     },
     {
       "case": "write_fail_2",
@@ -4643,7 +4643,7 @@
       "sink_writes": 2,
       "source_reads": 2,
       "stack_bytes": 24,
-      "t_states": 15714
+      "t_states": 15750
     },
     {
       "case": "write_fail_32",
@@ -4679,7 +4679,7 @@
       "sink_writes": 32,
       "source_reads": 32,
       "stack_bytes": 24,
-      "t_states": 146364
+      "t_states": 146400
     },
     {
       "case": "invalid_sum2",
@@ -4898,16 +4898,16 @@
       "t_states": 14226
     }
   ],
-  "code_bytes": 6582,
+  "code_bytes": 6599,
   "globals_bytes": 323,
-  "image_bytes": 7053,
+  "image_bytes": 7070,
   "matrix_sha256": "2d36f68f296a16a167f1bd7ba5ac56268ffbc80cde0050cbf32f3229930e4619",
   "protocol": "autosiril-mix-target-kernel/v1",
   "scope": "target mix algorithm, byte-only fixture traps; not kind4 file/parser or independent musical COM proof",
-  "source_sha256": "58cf2dccb7a14a1216b1ee328a9bdfcf0460e099e3230e89a12a21e7cfef4264",
+  "source_sha256": "f4021af7f470c317eb0fbcb4faee75a2c44670f7086434c2f856ca08a7a4ecd2",
   "spill_bytes": 148,
   "runner_source_sha256": {
-    "research/autosiril-native/mix/kernel.nanz": "4a07519ea60eb9d27cd2b67c88731886ab78fb70f8da644888df94ad636edb81",
+    "research/autosiril-native/mix/kernel.nanz": "1c745a17710c70ba6f5e8ce6981cb7f355a5be696d66c95930c984862af34d36",
     "research/autosiril-native/mix/folds.nanz": "a2cdcc5073e9fb5fc041ed96264d5b9034bfc19f3ff48f12804c7132507cd24e",
     "research/autosiril-native/mix/generate_folds.py": "d441c53232746fcf633a40dc261e9368aa60c18f7421065ea059b861fe45e855",
     "research/autosiril-native/mix/kernel-driver.go.txt": "a3619177a24f3c9c8d9f9c806dba012b2786d879a93a74679f38b735d2e8740c",
@@ -4918,5 +4918,5 @@
   "actual_ruby_result_sha256": "044c3d8ab0e8bd8bfa1e3fcf8f549ece063f09c929456fadcfe87aa1b4dd4185",
   "planning_receipt_sha256": "2f519af876ca6bb20c4c188dd754dce02e8c395728afac8cda330394ad7e082a",
   "generated_driver_sha256": "85d7e0fde5d4d057e6cec71ab17d57eb92c8d38d6ac5c9e24823035a2a8f30c6",
-  "compiler_base_commit": "015717b57cbc6bc25ae8efc20abd6f18f503b9a3"
+  "compiler_base_commit": "6f15b853bfc8137f8518e2681a78c3b2531b2f5a"
 }

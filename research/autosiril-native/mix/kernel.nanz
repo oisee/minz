@@ -37,7 +37,7 @@ fun lane_next(lane:u8)->u8 {
     let status:u8 = read_cell(lane,u16(&mix_pool[at]))
     if status == 0 { lane_ended[lane] = 1
         return 0 }
-    if status != 1 { fault = 904
+    if status != 1 { if fault == 0 { fault = 904 }
         return 0 }
     if lane_counts[lane] >= 3072 { fault = 959
         return 0 }
@@ -107,7 +107,7 @@ fun mix_emit(destination:u8,source:u16) {
     if mix_total >= 9216 { fault = 983
         return }
     mix_pool[source+1] = destination
-    if write_cell(destination,u16(&mix_pool[source])) != 0 { fault = 902
+    if write_cell(destination,u16(&mix_pool[source])) != 0 { if fault == 0 { fault = 902 }
         return }
     mix_counts[destination] = mix_counts[destination] + 1
     mix_total = mix_total + 1

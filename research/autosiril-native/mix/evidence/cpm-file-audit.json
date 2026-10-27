@@ -1,0 +1,11 @@
+{
+  "protocol": "autosiril-mix-cpm-artifact-audit/v1",
+  "complete": true,
+  "scope": "current CP/M matrix artifact audit only, not completion of full mix milestone",
+  "executions": 561,
+  "full_outputs": 390,
+  "exact_prefixes": 168,
+  "explicit_absence": 75,
+  "image_bytes": 23430,
+  "binary_sha256": "ca36d293fe9a12ab08668a5c92522e274cb5bd32a65e64d0a526b2d614aa793a"
+}

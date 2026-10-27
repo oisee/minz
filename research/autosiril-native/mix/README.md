@@ -2,12 +2,12 @@
 
 Selected after echo PR #269 merged as `4b82cd7f5`, with11 green checks and
 independent audits of downloaded fresh/frozen artifacts. Work branch:
-`spike/autosiril-native-mix`. No fifth native musical file stage is claimed yet.
+`spike/autosiril-native-mix`. The fifth file stage is now measured on CP/M; TRD and full integration remain.
 
 Original reference: `autooisee.rb` downmix877..919. The existing VM implements
-later stages, but the independently linked native file chain currently ends at
-echo. This milestone will add a fifth file stage on actual saved native
-DELAYED files, while preserving all preceding gates and user files.
+later stages. Main ends at the independently linked native echo stage; this
+branch adds CP/M downmix on actual saved native DELAYED files, while preserving
+all preceding gates and user files.
 
 ## Exact semantics to prove before target code
 
@@ -99,8 +99,8 @@ python3 research/autosiril-native/mix/prove_planning.py \
 
 [Planning receipt](planning-receipt.json). This is still host-only planning
 evidence for the mixing algorithm. The subsequent transport and lazy-composition
-steps below are separate; native mix, kind5 serialization and the fifth musical
-COM program remain pending.
+steps below are separate. The later target and CP/M sections describe their
+additional evidence; this planning receipt itself remains host-only.
 
 
 ## Owned CP/M cursor groundwork
@@ -180,7 +180,7 @@ input-lane boundary and row65535. Separate negative cases cover malformed group
 configuration, duplicate/decreasing source rows and read/write failures.
 
 All136 scenarios pass on raw MIR2, final MIR2 and native Z80:408 executions.
-The whole kernel probe image is7053 bytes:6582 code/bootstrap,323 globals and148
+The whole kernel probe image is7070 bytes:6599 code/bootstrap,323 globals and148
 static spills. Maximum observed native stack is46 bytes. On three-lane Chronos
 both fold units reach four live pending slots. These budgets exclude the later
 file parser, physical bindings, kind5 serializer and NOTES companion pass.
@@ -193,7 +193,73 @@ Original Ruby references and all per-engine cell files/MIR/assembly/COM remain
 in the requested output directory.
 
 [Target kernel evidence](evidence/kernel-target.json). This proves target musical
-lowering, not a fifth independently linked file-stage or five-COM chain. Actual
-kind4 parsing, lossless definitions, NOTES render timing, kind5 output, multi-FCB
-or TRD orchestration, full malformed/physical-IO matrix, fixed bank placement,
-restoring-write mutants, required fresh/frozen CI and PR integration still remain.
+lowering alone. The file-stage evidence below covers additional CP/M behavior;
+TRD, the full acceptance matrix, required CI and integration remain outstanding.
+
+
+## Independently linked CP/M kind4 + NOTES to kind5
+
+`wire.nanz` now binds the target kernel to owned CP/M cursors. NOTES is validated
+first, including every source, and yields original render_rows inu32. An initial
+full DELAYED validation pass copies all definitions into the kind5 prefix. Then
+three actual independent FCB/read-buffer contexts scan the same channel-major
+kind4 file, selecting their own source lane while still validating the entire
+file through END and physical EOF. Input reopen never resets the live output FCB.
+
+Kind4 definitions may occur between cells. The first pass preserves their exact
+payload/order while collecting them before kind5 cells. No full-song array or
+ornament heap is needed: each scan retains bounded definition/order counters,
+per-lane last rows and its owned16-byte record. Mixing and timing are target Nanz;
+the host adapter only implements file/record IO.
+
+```sh
+python3 research/autosiril-native/mix/prove_file.py \
+  --upstream /path/to/complete-fresh-native-echo --planning /tmp/mix-planning \
+  --autosiril /path/to/autosiril --out /tmp/mix-cpm
+python3 research/autosiril-native/mix/audit_file.py \
+  --run /tmp/mix-cpm --out /tmp/mix-cpm-audit.json
+python3 research/autosiril-native/mix/bundle_cpm.py \
+  --run /tmp/mix-cpm --upstream /path/to/complete-fresh-native-echo \
+  --out /tmp/mix-cpm/standalone
+```
+
+The current matrix is187 scenarios on raw MIR2, final MIR2 and native Z80:
+561 executions. Actual Ruby is rerun for127 musical/reference fixtures. The
+matrix includes the original119 cases, all19 saved native echo inputs, six
+Chronos group variants,9K-cell capacity,3072/3073 input cells, row/spill overflow,
+64/65 definitions,4096/4097 expanded definition bytes, directory success codes,
+preexisting output, all five opens and six closes, early/late read/write failures,
+invalid configuration, malformed headers/roles/definitions/cells/END/padding and
+extra physical records. The twentieth failed echo chain is explicitly rejected
+as an empty DELAYED file before output creation; it is not treated as valid input.
+
+The independent artifact decoder verifies all561 saved outcomes:390 complete
+outputs against Ruby fields/lengths/timing and original definition bytes,168 exact
+record prefixes, three preserved existing files;75 outcomes require actual
+absence. It checks source/native/matrix hashes and retained input files. The full
+acceptance matrix is not yet claimed: more malformed boundary cases, stalled/short
+common IO, TRD publication/space/bank contracts and restoring-write mutants remain.
+
+Measured COM:23430 bytes =20874 code/bootstrap +1952 globals +604 static spill
+bytes. Maximum observed native stack is80 bytes. Canonical Chronos performs five
+input opens, six closes,1803 record reads and429 writes, taking1324001265 measured
+T-states under API traps. This four-pass input strategy is deliberately bounded
+and currently expensive; these figures are not hardware throughput measurements.
+All9216 output cells also fit in one destination:156800 physical output bytes,
+verified beyond64KB. Original render_rows can exceed65535 without truncation;
+empty mixed extents remain0 independently of input echo extents.
+
+`bundle_cpm.py` collects PAIR/FLATTEN/ARRANGE/ECHO from the verified upstream run
+and the current measured MIX.COM and MIXED.BIN. It verifies exact NOTES/DELAYED
+file links and records all five program/file hashes. This bundle is not a fresh
+five-command replay or a physical CP/M bootstrap claim.
+
+[CP/M stage receipt](evidence/cpm-file.json),
+[independent artifact audit](evidence/cpm-file-audit.json),
+[five-COM bundle manifest](evidence/cpm-chain.json).
+
+The milestone remains active. Still required: corresponding native TRD binding
+and16-bank guards, the remaining full negative/IO/resource matrix and mutants,
+default complete fresh upstream rebuild plus frozen replay in required CI,
+downloaded-artifact audits, separate PR and verified merge to main. No old echo
+or inherited gate, in-process path, compiler source or user file has been changed.

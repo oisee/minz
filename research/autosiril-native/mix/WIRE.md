@@ -1,7 +1,7 @@
-# Selected kind5 wire contract (implementation pending)
+# Kind5 wire contract (CP/M producer tested; TRD pending)
 
 Kind5 adds original render timing to the lossless kind4 vocabulary. This document
-is a selected implementation contract, not a claim that a kind5 producer exists.
+is implemented by the current CP/M stage; the TRD producer remains pending.
 All multibyte integers are little endian. A logical stream has:
 
 1.12-byte header `ASIR 01 05 10 00 03 00 00 00` (hex bytes).
