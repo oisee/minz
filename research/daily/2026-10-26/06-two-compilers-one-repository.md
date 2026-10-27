@@ -2,7 +2,7 @@
 
 *Вечер 27 октября 2026 года. Как две сессии Claude, их воркеры и один человек делили один `main`, и почему самым частым словом дня стало «сначала проверь».*
 
-> **Статус.** Слиты в main: [#250](https://github.com/oisee/minz/pull/250) (S1), [#251](https://github.com/oisee/minz/pull/251) (N1a), [#272](https://github.com/oisee/minz/pull/272) (canonical6), [#273](https://github.com/oisee/minz/pull/273) (A2). На момент написания идут CI [#274](https://github.com/oisee/minz/pull/274) (пины ночных тестов), [#275](https://github.com/oisee/minz/pull/275) (рендер, draft), [#276](https://github.com/oisee/minz/pull/276) (эта книга) и [#277](https://github.com/oisee/minz/pull/277) (F4). Цифры взяты из PR, логов CI и отчётов воркеров. Факты о своей половине дня сверила вторая сессия.
+> **Статус.** Слиты в main: [#250](https://github.com/oisee/minz/pull/250) (S1), [#251](https://github.com/oisee/minz/pull/251) (N1a), [#272](https://github.com/oisee/minz/pull/272) (canonical6), [#273](https://github.com/oisee/minz/pull/273) (A2). Позже слит [#274](https://github.com/oisee/minz/pull/274) (пины ночных тестов, `93478a406`). На момент написания идут CI [#275](https://github.com/oisee/minz/pull/275) (рендер, draft), [#276](https://github.com/oisee/minz/pull/276) (эта книга) и [#277](https://github.com/oisee/minz/pull/277) (F4). Цифры взяты из PR, логов CI и отчётов воркеров. Факты о своей половине дня сверила вторая сессия.
 
 Эта глава не про Z80. Она про то, как устроить работу, в которой компилятор пишут несколько машин сразу, и при этом не превратить `main` в поле боя.
 

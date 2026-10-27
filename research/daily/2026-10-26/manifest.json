@@ -35,7 +35,7 @@
     },
     {
       "slug": "06-two-compilers-one-repository",
-      "words_approx": 1473,
+      "words_approx": 1476,
       "diagrams": 2,
       "reading_minutes_approx": 8
     },
@@ -64,7 +64,7 @@
     "03-borrowing-without-a-runtime.md": "25b3080b7ff092ad2f8351aab08504b1383902005b18a243e8b060ab8566be06",
     "04-four-rows-for-a-melody.md": "f54763af00e51df7d6a23127c057103ca938e660538dc427c4f44b25ebf7622e",
     "05-two-pages-for-one-song.md": "9cfd8cb145cd5e227f39c589e0fbd64205161c4b87a3483c675e1c2991f539bd",
-    "06-two-compilers-one-repository.md": "3ec1ea150cd6fcfd38fb3e5062593d2e71a2b5ef6532916c451c7582e1164be9",
+    "06-two-compilers-one-repository.md": "d696a93d79bdf9e697af51531a86cfbb8d10f7402bc00b7691bdba0ebae4d328",
     "07-failure-at-sector-27.md": "e403761a5bf09ee7907b49822c0083a438b4d0742aa7bca70d119a2bf48fee7f",
     "08-last-mile-of-fusion.md": "5c67d62212bb829840b10655c6e9ae9c3dbc297c00b819f7b9d183f3fd95b09d",
     "README.md": "d76008798fb0412011d7f25537df8666c4dacc06b0ed8a9f44491ab950c61419",
@@ -79,7 +79,7 @@
     "03-borrowing-without-a-runtime.html": "e9b5396285d2e45a6240db2742f53d899d39104360bff7320839d5ab6e8e5bd8",
     "04-four-rows-for-a-melody.html": "4bb77cbd5d14a73dbaffe7379e16ce84fb0a07e195f378a70cf8f6291d9418b4",
     "05-two-pages-for-one-song.html": "03437ee651ce573cf04b1ad047d532b93f9ab738d2c67ce49a4b42526bcc50bc",
-    "06-two-compilers-one-repository.html": "d4798faf3d0958f28e7cf1c5c88cf7210cf5a43b9b91ea20320d355cc798300d",
+    "06-two-compilers-one-repository.html": "ea403d9c1dad9120a45dadc81dfccde6944a5018f64277396dedd48a4f259aa3",
     "07-failure-at-sector-27.html": "fb17a6cfc8f72163082d60af4a9b295212c939e461d329ab6bfb6b42f3e985a5",
     "08-last-mile-of-fusion.html": "9818c35b327de3ba81f739f3a3aaeaa0b2848954a942399411338cd6dde710a6",
     "index.html": "8e638c0dce35cf6e939ad569992a8f55db1c0727b7ffec4579a05c0d11680dac"
