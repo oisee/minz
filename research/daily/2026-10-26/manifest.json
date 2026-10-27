@@ -35,12 +35,18 @@
     },
     {
       "slug": "06-two-compilers-one-repository",
-      "words_approx": 1450,
+      "words_approx": 1473,
       "diagrams": 2,
       "reading_minutes_approx": 8
+    },
+    {
+      "slug": "07-failure-at-sector-27",
+      "words_approx": 1159,
+      "diagrams": 2,
+      "reading_minutes_approx": 6
     }
   ],
-  "diagrams": 28,
+  "diagrams": 30,
   "illustrations": 2,
   "tools": {
     "mermaid_cli": "12.0.0",
@@ -52,9 +58,10 @@
     "03-borrowing-without-a-runtime.md": "25b3080b7ff092ad2f8351aab08504b1383902005b18a243e8b060ab8566be06",
     "04-four-rows-for-a-melody.md": "f54763af00e51df7d6a23127c057103ca938e660538dc427c4f44b25ebf7622e",
     "05-two-pages-for-one-song.md": "9cfd8cb145cd5e227f39c589e0fbd64205161c4b87a3483c675e1c2991f539bd",
-    "06-two-compilers-one-repository.md": "ccbf2ce77499b0810d080d0101667f8b68c76e3697bc89403fcebb49de758ab3",
+    "06-two-compilers-one-repository.md": "3ec1ea150cd6fcfd38fb3e5062593d2e71a2b5ef6532916c451c7582e1164be9",
+    "07-failure-at-sector-27.md": "daf136b36724b1f8e77cac62d461a62e1d027f866df5a6ea5dadf850e6580c83",
     "README.md": "d76008798fb0412011d7f25537df8666c4dacc06b0ed8a9f44491ab950c61419",
-    "edition.json": "2186ec872fe1c7d09ae06e3361367b0e5da14c18a450cdba10df405de6948cda",
+    "edition.json": "5f4524ad92a9af9aaa1ab671a4a79c6e2fde90ec159bea9b74d7d169cd248856",
     "build.py": "3f0474963b5a10c192bdde854cdc4369f7446a13e445caa2dae79994b3d4085a",
     "style.css": "e3c21c5286cf6ff84d7b2abbae1dbcf386925d4fe59944d8a54e8cd4ab1f5488",
     "reader.js": "b3f8b196f4581578cf523bf6489fad4d796ce3d80aeb658ee9a88f2490d627a5"
@@ -65,7 +72,8 @@
     "03-borrowing-without-a-runtime.html": "e9b5396285d2e45a6240db2742f53d899d39104360bff7320839d5ab6e8e5bd8",
     "04-four-rows-for-a-melody.html": "4bb77cbd5d14a73dbaffe7379e16ce84fb0a07e195f378a70cf8f6291d9418b4",
     "05-two-pages-for-one-song.html": "03437ee651ce573cf04b1ad047d532b93f9ab738d2c67ce49a4b42526bcc50bc",
-    "06-two-compilers-one-repository.html": "234122343c2426b8d5505823771b03718f75d7e2812720ac3f1f22b4dd2a16cb",
-    "index.html": "06ca12cdde0ec57f084e35c82e813100c77cf414c636948711041921a7bc169f"
+    "06-two-compilers-one-repository.html": "d4798faf3d0958f28e7cf1c5c88cf7210cf5a43b9b91ea20320d355cc798300d",
+    "07-failure-at-sector-27.html": "99235cb8a44adcb6929eb7170431463ea71bddb503f46787ca4a28eaecb849b7",
+    "index.html": "ebdad19e8d4f800df26532867169369bbe96624821359d218468d1ca8fdb2052"
   }
 }
