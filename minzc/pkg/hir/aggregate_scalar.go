@@ -145,6 +145,12 @@ func scalarFields(st *mir2.StructTy, name string) map[string]*VarRefExpr {
 // exactly that field. An escaping pointer, volatile access, or whole-object use
 // keeps the original object and memory ABI.
 func scalarObjectUses(b *Block, decl *VarDeclStmt, fields map[string]*VarRefExpr, apply bool) bool {
+	return scalarObjectUsesWithAliases(b, decl, fields, apply, true)
+}
+
+// Only C lowering supplies the scoped lvalue temporaries admitted here.
+// Typed frontend-neutral values require that no field address is taken.
+func scalarObjectUsesWithAliases(b *Block, decl *VarDeclStmt, fields map[string]*VarRefExpr, apply, allowAliases bool) bool {
 	aliases := make(map[string]*VarRefExpr)
 	duplicate := false
 	visitAggregateStmts(b, func(s Stmt) {
@@ -162,7 +168,7 @@ func scalarObjectUses(b *Block, decl *VarDeclStmt, fields map[string]*VarRefExpr
 				}
 			}
 		}
-		if d != decl {
+		if d != decl && allowAliases {
 			if a, ok := d.Init.(*AddrOfExpr); ok {
 				if fe, ok := a.X.(*FieldExpr); ok && !fe.Volatile {
 					if r, ok := fe.X.(*VarRefExpr); ok && r.Name == decl.Name && !r.Volatile {
@@ -209,6 +215,23 @@ func scalarObjectUses(b *Block, decl *VarDeclStmt, fields map[string]*VarRefExpr
 			}
 		case *AddrOfExpr:
 			if x.Sym == decl.Name || aliases[x.Sym] != nil {
+				return e, false
+			}
+			if !inspectAggregateExpr(x.X, func(child Expr) (Expr, bool) {
+				if r, ok := child.(*VarRefExpr); ok && (r.Name == decl.Name || aliases[r.Name] != nil) {
+					return child, false
+				}
+				return child, true
+			}) {
+				return e, false
+			}
+		case *UnaryExpr:
+			if x.Op == "&" && !inspectAggregateExpr(x.X, func(child Expr) (Expr, bool) {
+				if r, ok := child.(*VarRefExpr); ok && (r.Name == decl.Name || aliases[r.Name] != nil) {
+					return child, false
+				}
+				return child, true
+			}) {
 				return e, false
 			}
 		}
@@ -411,26 +434,26 @@ func inspectAggregateStmt(s Stmt, f func(Expr) (Expr, bool)) bool {
 	return false
 }
 
-func scalarizeAggregateLocals(b *Block) {
+func scalarizeAggregateLocals(b *Block, allowAliases bool) {
 	if b == nil {
 		return
 	}
 	for _, s := range b.Body {
 		switch x := s.(type) {
 		case *Block:
-			scalarizeAggregateLocals(x)
+			scalarizeAggregateLocals(x, allowAliases)
 		case *IfStmt:
-			scalarizeAggregateLocals(x.Then)
-			scalarizeAggregateLocals(x.Else)
+			scalarizeAggregateLocals(x.Then, allowAliases)
+			scalarizeAggregateLocals(x.Else, allowAliases)
 		case *WhileStmt:
-			scalarizeAggregateLocals(x.Body)
+			scalarizeAggregateLocals(x.Body, allowAliases)
 		case *ForRangeStmt:
-			scalarizeAggregateLocals(x.Body)
+			scalarizeAggregateLocals(x.Body, allowAliases)
 		case *SwitchStmt:
 			for _, c := range x.Cases {
-				scalarizeAggregateLocals(c.Body)
+				scalarizeAggregateLocals(c.Body, allowAliases)
 			}
-			scalarizeAggregateLocals(x.Default)
+			scalarizeAggregateLocals(x.Default, allowAliases)
 		}
 	}
 	for i := 0; i < len(b.Body); i++ {
@@ -450,7 +473,7 @@ func scalarizeAggregateLocals(b *Block) {
 				ok = true
 			}
 		}
-		if !ok || !isShallowScalarStruct(lit.St) {
+		if !ok || !isShallowScalarStruct(lit.St) || !allowAliases && !isTypedScalarStruct(lit.St) || !completeScalarLiteral(lit) {
 			continue
 		}
 		fields := scalarFields(lit.St, d.Name)
@@ -495,10 +518,10 @@ func scalarizeAggregateLocals(b *Block) {
 				used[v.Name] = true
 			}
 		}
-		if !scalarObjectUses(b, d, fields, false) {
+		if !scalarObjectUsesWithAliases(b, d, fields, false, allowAliases) {
 			continue
 		}
-		scalarObjectUses(b, d, fields, true)
+		scalarObjectUsesWithAliases(b, d, fields, true, allowAliases)
 		// Preserve initialization order and evaluate each initializer once.
 		var init []Stmt
 		for _, fi := range lit.Fields {
@@ -525,10 +548,10 @@ func scalarizeAggregateLocals(b *Block) {
 
 // Scalarize only direct, module-local call sites with already materialized
 // arguments. This avoids duplicating calls or changing indirect/public ABI.
-func scalarizeAggregateParams(m *Module, onlyC bool) bool {
+func scalarizeAggregateParams(m *Module, onlyC, typedOnly bool) bool {
 	changed := false
 	for _, fn := range m.Funcs {
-		if onlyC && !fn.CValueABI {
+		if onlyC && !fn.CValueABI || typedOnly && fn.CValueABI {
 			continue
 		}
 		if fn.IsExtern || fn.Body == nil {
@@ -536,6 +559,11 @@ func scalarizeAggregateParams(m *Module, onlyC bool) bool {
 		}
 		for pi := len(fn.Params) - 1; pi >= 0; pi-- {
 			p := fn.Params[pi]
+			// Explicit register/SMC annotations define the caller's ABI and cannot
+			// be transferred to independently allocated scalar field parameters.
+			if p.RegClass != 0 || p.SMC {
+				continue
+			}
 			var decl *VarDeclStmt
 			for _, s := range fn.Body.Body {
 				if d, ok := s.(*VarDeclStmt); ok && d.Name == p.Name {
@@ -546,11 +574,42 @@ func scalarizeAggregateParams(m *Module, onlyC bool) bool {
 					}
 				}
 			}
+			if decl == nil && typedOnly {
+				if st, ok := mir2.BaseOf(p.Ty).(*mir2.StructTy); ok && isShallowScalarStruct(st) {
+					// Typed Nanz parameters alias their input storage. Only
+					// read-only bodies may replace that address by field values.
+					readOnly := true
+					visitAggregateStmts(fn.Body, func(s Stmt) {
+						switch s.(type) {
+						case *AssignStmt, *StoreStmt:
+							readOnly = false
+						}
+					})
+					inspectAggregateStmt(fn.Body, func(e Expr) (Expr, bool) {
+						switch e.(type) {
+						case *CallExpr, *CallIndirectExpr:
+							readOnly = false
+						}
+						return e, true
+					})
+					if readOnly {
+						decl = &VarDeclStmt{Name: p.Name, Ty: st}
+					}
+				}
+			}
 			if decl == nil || decl.Volatile {
 				continue
 			}
 			st := decl.Ty.(*mir2.StructTy)
+			if typedOnly && !isTypedScalarStruct(st) {
+				continue
+			}
 			fields := scalarFields(st, p.Name)
+			if typedOnly {
+				for i, field := range st.Fields {
+					fields[field.Name].Name = fmt.Sprintf("__scalar_%s_%d", p.Name, i)
+				}
+			}
 			collision := false
 			for _, existing := range fn.Params {
 				for _, v := range fields {
@@ -559,7 +618,7 @@ func scalarizeAggregateParams(m *Module, onlyC bool) bool {
 					}
 				}
 			}
-			if collision || !scalarObjectUses(fn.Body, decl, fields, false) {
+			if collision || !scalarObjectUsesWithAliases(fn.Body, decl, fields, false, !typedOnly) {
 				continue
 			}
 			safe := true
@@ -577,6 +636,19 @@ func scalarizeAggregateParams(m *Module, onlyC bool) bool {
 					}
 					if c, ok := e.(*CallExpr); ok && c.Fn == fn.Name {
 						calls++
+						if typedOnly {
+							// Snapshotting fields must not cross evaluation of
+							// another argument that could mutate their storage.
+							for _, arg := range c.Args {
+								inspectAggregateExpr(arg, func(e Expr) (Expr, bool) {
+									switch e.(type) {
+									case *CallExpr, *CallIndirectExpr:
+										safe = false
+									}
+									return e, true
+								})
+							}
+						}
 						if pi >= len(c.Args) {
 							safe = false
 						} else {
@@ -605,7 +677,7 @@ func scalarizeAggregateParams(m *Module, onlyC bool) bool {
 			if !safe || calls == 0 {
 				continue
 			}
-			scalarObjectUses(fn.Body, decl, fields, true)
+			scalarObjectUsesWithAliases(fn.Body, decl, fields, true, !typedOnly)
 			var body []Stmt
 			for _, s := range fn.Body.Body {
 				if s != decl {
@@ -662,4 +734,25 @@ func visitAggregateStmts(b *Block, f func(Stmt)) {
 			visitAggregateStmts(x.Default, f)
 		}
 	}
+}
+
+// Omitted or repeated fields retain storage. In particular a frontend may
+// permit partial literals whose remaining fields are initialized later.
+func completeScalarLiteral(lit *StructLitExpr) bool {
+	if lit.St == nil || len(lit.Fields) != len(lit.St.Fields) {
+		return false
+	}
+	seen := map[string]bool{}
+	for _, f := range lit.Fields {
+		if seen[f.Name] {
+			return false
+		}
+		seen[f.Name] = true
+	}
+	for _, f := range lit.St.Fields {
+		if !seen[f.Name] {
+			return false
+		}
+	}
+	return true
 }

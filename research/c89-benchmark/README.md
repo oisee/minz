@@ -126,6 +126,35 @@ and must not get worse; it is never used to choose or tune a rule. Before/after
 comparisons must use the same compiler set (with or without sccz80/nanz rows).
 `plot_summary.py` and `publish_snapshot.py` still assume the 6-case 2026-10-16 matrix.
 
+## Frontend parity and the tuple variant
+
+`nanz-idiomatic/struct_roundtrip.nanz` remains the idiomatic struct reference.
+`nanz-idiomatic/struct_roundtrip_tuple.nanz` is a documented tuple variant of
+that same algorithm. The manifest's `variants` entry pins it and its identical
+`nanz-tuple/struct_roundtrip.nanz` reference. `--include-refs` verifies both hashes
+and measures the variant through the existing `nanz-tuple` path, using the
+unchanged `struct_roundtrip` workload. `--include-nanz` additionally measures
+its size and nograce profiles; combining the flags does not duplicate rows.
+
+```sh
+python3 research/c89-benchmark/parity.py /path/to/artifacts/summary.json
+```
+
+The script requires idiomatic rows (`--include-refs`), compares each recorded
+idiomatic profile to the matching C profile, and prints Nanz/C T-state ratios.
+Where a tuple reference exists, it also prints struct/tuple T-state ratios.
+A missing tuple row prints `n/a` and `PASS (C only; tuple n/a)` if C parity
+passes; that row supplies no tuple-parity pass evidence.
+It exits nonzero and names every case exceeding 1.05× C, or with failed/missing
+matching measurements. This is a parity gate, not a before/after regression
+gate: existing frontend gaps in other cases can keep it red after one gap is
+fixed. Bytes and absolute T-states remain in `summary.json`.
+
+The frontend-neutral MIR2 single-bit canonicalization can change C output too:
+`(x & mask) == mask` becomes a nonzero test for a single-bit mask, including
+signed top-bit masks. The earlier unchanged C corpus measurements describe only
+those measured inputs; they do not imply byte-identical output for arbitrary C.
+
 ## Iterator fusion showcase
 
 `--suite fusion` is a separate eight-case corpus. It leaves `main`, `heldout`,
