@@ -88,7 +88,7 @@ actual Ruby `downmix` over the native `DELAYED.BIN`@6 reproduces canonical
   reproduces its self-consistent 31/62/62 diff signature against canonical
   Ruby (`stage_diffs_legacy24.json` in the checkpoint directory).
 
-No compiler default, gate, golden, workflow or shared fixture was modified.
+Checkpoint-p2 did not modify compiler defaults, gates, goldens, workflows or shared fixtures. Checkpoint-p3 adds the explicit canonical6 fixture and required fresh/frozen steps described above; legacy24 gates remain in place.
 
 ## Reproduce (all paths are flags; no hardcoded temporary paths)
 
