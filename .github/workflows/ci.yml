@@ -177,28 +177,63 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y ruby llvm-dev libgc-dev libgmp-dev libevent-dev libpcre2-dev zlib1g-dev
           gem install midilib --version 4.0.2 --no-document
-      - name: Rebuild actual Ruby Crystal and all four native stages
+      - name: Rebuild actual Ruby Crystal and all five native stages
         env:
           GEM_HOME: ${{ runner.temp }}/autosiril-gems
           CRYSTAL_CACHE_DIR: ${{ runner.temp }}/crystal-cache
-        run: python3 research/autosiril-native/echo/verify.py --autosiril .ci-reference/autosiril --out "$RUNNER_TEMP/autosiril-echo-fresh"
+        run: python3 research/autosiril-native/mix/verify.py --autosiril .ci-reference/autosiril --out "$RUNNER_TEMP/autosiril-mix-fresh"
       - name: Preserve complete fresh native evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: autosiril-echo-fresh
-          path: ${{ runner.temp }}/autosiril-echo-fresh/
+          path: ${{ runner.temp }}/autosiril-mix-fresh/upstream/
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Preserve complete fifth-stage fresh evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: autosiril-mix-fresh
+          path: ${{ runner.temp }}/autosiril-mix-fresh/
+          retention-days: 7
+          if-no-files-found: ignore
+
+  native_mix_frozen:
+    name: Frozen fifth native stage
+    needs: pr_gate_work
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: minzc/go.mod
+          cache-dependency-path: minzc/go.sum
+      - uses: actions/download-artifact@v4
+        with:
+          name: autosiril-echo
+          path: ${{ runner.temp }}/autosiril-echo
+      - name: Replay frozen fifth stage against actual frozen echo files
+        run: python3 research/autosiril-native/mix/replay.py --upstream "$RUNNER_TEMP/autosiril-echo" --out "$RUNNER_TEMP/autosiril-mix-frozen"
+      - name: Preserve complete fifth-stage frozen evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: autosiril-mix-frozen
+          path: ${{ runner.temp }}/autosiril-mix-frozen/
           retention-days: 7
           if-no-files-found: ignore
 
   pr_gate:
     name: PR gate
-    needs: [pr_gate_work, native_echo_fresh]
+    needs: [pr_gate_work, native_echo_fresh, native_mix_frozen]
     if: ${{ always() }}
     runs-on: ubuntu-latest
     outputs:
       native_fresh: ${{ needs.native_echo_fresh.result }}
-      native_frozen: ${{ needs.pr_gate_work.result }}
+      native_frozen: ${{ needs.native_mix_frozen.result }}
       build: ${{ needs.pr_gate_work.outputs.build }}
       stable: ${{ needs.pr_gate_work.outputs.stable }}
       assemble: ${{ needs.pr_gate_work.outputs.assemble }}
@@ -210,7 +245,8 @@ jobs:
         env:
           FROZEN_RESULT: ${{ needs.pr_gate_work.result }}
           FRESH_RESULT: ${{ needs.native_echo_fresh.result }}
-        run: test "$FROZEN_RESULT" = success && test "$FRESH_RESULT" = success
+          MIX_FROZEN_RESULT: ${{ needs.native_mix_frozen.result }}
+        run: test "$FROZEN_RESULT" = success && test "$FRESH_RESULT" = success && test "$MIX_FROZEN_RESULT" = success
 
   pr_report:
     name: PR test report

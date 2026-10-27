@@ -53,25 +53,9 @@ def main():
     for name,first in [('duplicate',[cell(0),cell(0)]),('decreasing',[cell(2),cell(1)])]:
         c=deepcopy(seed);c.update(name='invalid_'+name,channels=[[b64(payload(x,0)) for x in first],[],[]],counts=b64(bytes([1,1,1])),expected=b64(payload(first[0],0)),fault=958);cases.append(c)
     (out/'cases.json').write_text(json.dumps(dict(cases=cases),indent=2)+'\n')
-    source=(HERE/'kernel.nanz').read_text()+'\n'+(HERE/'folds.nanz').read_text()+'''\n@extern(0x0008) fun read_cell(@z80_c lane:u8,@z80_de destination:u16)->u8
-@extern(0x0010) fun write_cell(@z80_c lane:u8,@z80_de source:u16)->u8
-'''
-    (out/'kernel.nanz').write_text(source)
-    subprocess.run([sys.executable,HERE.parent/'echo/compose.py','--out',out/'generated'],check=True)
-    old=(out/'generated/echo-cpm.go').read_text();spills=old[old.index('type dataSpan struct'):old.index('// Research OS adapter:')]
-    pre='''package main
-import("bytes";"crypto/sha256";"encoding/binary";"encoding/json";"flag";"fmt";"os";"path/filepath";"strings"
-"github.com/minz/minzc/pkg/emulator";"github.com/minz/minzc/pkg/hir";"github.com/minz/minzc/pkg/mir2";"github.com/minz/minzc/pkg/nanz";"github.com/minz/minzc/pkg/pipeline";"github.com/minz/minzc/pkg/z80asm")
-const origin=0x100
-const floor=0xe000
-const initialSP=0xeffe
-const returnPC=0xf100
-func check(e error){if e!=nil{panic(e)}}
-func read(p string)[]byte{b,e:=os.ReadFile(p);check(e);return b}
-func hash(b []byte)string{return fmt.Sprintf("%x",sha256.Sum256(b))}
-'''
-    driver=out/'kernel.go';driver.write_text(pre+spills+(HERE/'kernel-driver.go.txt').read_text())
-    sources=[HERE/p for p in ['kernel.nanz','folds.nanz','generate_folds.py','kernel-driver.go.txt','prove_kernel.py','oracle.rb']]
+    from execution import compose_kernel
+    driver=compose_kernel(out)
+    sources=[HERE/p for p in ['kernel.nanz','folds.nanz','generate_folds.py','kernel-driver.go.txt','prove_kernel.py','oracle.rb','execution.py']]
     hashes={str(p.relative_to(ROOT)):hashlib.sha256(p.read_bytes()).hexdigest() for p in sources}
     subprocess.run(['go','run',str(driver),'--root',str(ROOT),'--source',str(out/'kernel.nanz'),'--input',str(out/'cases.json'),'--out',str(out/'measured')],cwd=ROOT/'minzc',check=True)
     assert all(hashlib.sha256((ROOT/p).read_bytes()).hexdigest()==h for p,h in hashes.items())

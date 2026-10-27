@@ -1,7 +1,7 @@
 {
   "protocol": "autosiril-echo-robustness/v1",
   "source_sha256": {
-    ".github/workflows/ci.yml": "5883141ae4b77214ff206ce18a2e09c20aeb6f373b594767b7d17da6e5c89414",
+    ".github/workflows/ci.yml": "bd29731a15d5e820c7ac2de33edd1771f5d9c236841076b985b19db8dcf898e5",
     "minzc/pkg/spectrum/formats/trd.go": "574b26fdd37d2e6e7291547f9c26e635e002bfb47c9a0136dd4b568d35819681",
     "research/autosiril-native/arrange/build_matrix.py": "4675d33950d9e428656169e7eaaba4f1b03b4d5eae73c84c90e409df1297cc91",
     "research/autosiril-native/arrange/compose.py": "ae0343c1ef273c9d493a49765f978318b9b9b0acd5108cc1ee74d53cb688bfce",
@@ -94,14 +94,14 @@
     "research/crystal-hir/export.cr": "a96d3c756cb0798120aad69427b13259f761908ea95c9cf8f6b58317249cc663",
     "research/crystal-hir/typed_export.cr": "d06f1a8e22dec408b7ada5b5482023cb69fbf32d49183bf8d344683b44b3655c"
   },
-  "reused_positive_sha256": "27dbff3ed44f986d9f40dbe748b476099c19f7449a2d7a0e116391411d50ea80",
-  "reused_musical_sha256": "dac1a557fcca0299877f297cb61a000c91ec28c7b9e41e68d262537b216a2da4",
-  "reused_arrangement_sha256": "5691d8852c21af31c2e2e356ef02a2790fe3a013bb64323972cdd49439ad8ed0",
+  "reused_positive_sha256": "1c43f07b190e32715425207ac30926d22f0bdddecc9c3b893cbd3b9bbe6ae42c",
+  "reused_musical_sha256": "405a12742551cf828f72e448a0ddabd93b7e822b07c9d2bdc750a58eeae4d807",
+  "reused_arrangement_sha256": "3fe481c999fae769a1b41a32253f0b61d9021b05f132bf0624dce7907ab85c2f",
   "proofs": {
     "invalid": {
       "protocol": "autosiril-echo-invalid/v1",
       "source_sha256": {
-        ".github/workflows/ci.yml": "5883141ae4b77214ff206ce18a2e09c20aeb6f373b594767b7d17da6e5c89414",
+        ".github/workflows/ci.yml": "bd29731a15d5e820c7ac2de33edd1771f5d9c236841076b985b19db8dcf898e5",
         "minzc/pkg/spectrum/formats/trd.go": "574b26fdd37d2e6e7291547f9c26e635e002bfb47c9a0136dd4b568d35819681",
         "research/autosiril-native/arrange/build_matrix.py": "4675d33950d9e428656169e7eaaba4f1b03b4d5eae73c84c90e409df1297cc91",
         "research/autosiril-native/arrange/compose.py": "ae0343c1ef273c9d493a49765f978318b9b9b0acd5108cc1ee74d53cb688bfce",
@@ -27312,7 +27312,7 @@
     "io": {
       "protocol": "autosiril-echo-io/v1",
       "source_sha256": {
-        ".github/workflows/ci.yml": "5883141ae4b77214ff206ce18a2e09c20aeb6f373b594767b7d17da6e5c89414",
+        ".github/workflows/ci.yml": "bd29731a15d5e820c7ac2de33edd1771f5d9c236841076b985b19db8dcf898e5",
         "minzc/pkg/spectrum/formats/trd.go": "574b26fdd37d2e6e7291547f9c26e635e002bfb47c9a0136dd4b568d35819681",
         "research/autosiril-native/arrange/build_matrix.py": "4675d33950d9e428656169e7eaaba4f1b03b4d5eae73c84c90e409df1297cc91",
         "research/autosiril-native/arrange/compose.py": "ae0343c1ef273c9d493a49765f978318b9b9b0acd5108cc1ee74d53cb688bfce",
@@ -90725,7 +90725,7 @@
     "mutants": {
       "protocol": "autosiril-echo-native-mutants/v1",
       "source_sha256": {
-        ".github/workflows/ci.yml": "5883141ae4b77214ff206ce18a2e09c20aeb6f373b594767b7d17da6e5c89414",
+        ".github/workflows/ci.yml": "bd29731a15d5e820c7ac2de33edd1771f5d9c236841076b985b19db8dcf898e5",
         "minzc/pkg/spectrum/formats/trd.go": "574b26fdd37d2e6e7291547f9c26e635e002bfb47c9a0136dd4b568d35819681",
         "research/autosiril-native/arrange/build_matrix.py": "4675d33950d9e428656169e7eaaba4f1b03b4d5eae73c84c90e409df1297cc91",
         "research/autosiril-native/arrange/compose.py": "ae0343c1ef273c9d493a49765f978318b9b9b0acd5108cc1ee74d53cb688bfce",
@@ -90866,7 +90866,7 @@
     "contracts": {
       "protocol": "autosiril-echo-chunk-contracts/v1",
       "source_sha256": {
-        ".github/workflows/ci.yml": "5883141ae4b77214ff206ce18a2e09c20aeb6f373b594767b7d17da6e5c89414",
+        ".github/workflows/ci.yml": "bd29731a15d5e820c7ac2de33edd1771f5d9c236841076b985b19db8dcf898e5",
         "minzc/pkg/spectrum/formats/trd.go": "574b26fdd37d2e6e7291547f9c26e635e002bfb47c9a0136dd4b568d35819681",
         "research/autosiril-native/arrange/build_matrix.py": "4675d33950d9e428656169e7eaaba4f1b03b4d5eae73c84c90e409df1297cc91",
         "research/autosiril-native/arrange/compose.py": "ae0343c1ef273c9d493a49765f978318b9b9b0acd5108cc1ee74d53cb688bfce",

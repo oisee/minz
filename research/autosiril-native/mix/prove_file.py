@@ -98,29 +98,9 @@ def main():
                 c=deepcopy(seed);data=bytearray(original);data[at]=value;c.update(name='bad_'+field+'_'+suffix,fault=fault,absent=field=='notes');c[field]=b64(data);matrix.append(c)
             c=deepcopy(seed);c.update(name='extra_record_'+field,fault=957,absent=field=='notes');c[field]=b64(original+bytes(128));matrix.append(c)
     (out/'cases.json').write_text(json.dumps(dict(cases=matrix),indent=2)+'\n')
-    source='\n'.join((HERE/n).read_text() for n in ['cursors-cpm.nanz','kernel.nanz','folds.nanz','wire.nanz'])
-    assert source.count('global fault:u16')==2;source=source.replace('global fault:u16','',1)
-    lines=source.splitlines();source='\n'.join([x for x in lines if x.startswith('global ')]+[x for x in lines if not x.startswith('global ')])+'\n'
-    (out/'mix.nanz').write_text(source)
-    subprocess.run([sys.executable,HERE.parent/'echo/compose.py','--out',out/'generated'],check=True)
-    old=(out/'generated/echo-cpm.go').read_text();spills=old[old.index('type dataSpan struct'):old.index('// Research OS adapter:')]
-    adapter=old[old.index('// Research OS adapter:'):old.index('type flatEvent struct')]
-    needle='name != "NOTES.BIN" && name != "ARRANGE.BIN" && name != "DELAYED.BIN"';assert adapter.count(needle)==1
-    adapter=adapter.replace(needle,'name != "NOTES.BIN" && name != "DELAYED.BIN" && name != "MIXED.BIN"')
-    directory=old[old.index('// CP/M2.2 may return'):old.index('type echoConfig struct')]
-    pre='''package main
-import("bytes";"crypto/sha256";"encoding/binary";"encoding/json";"flag";"fmt";"os";"path/filepath";"io";"strings"
-"github.com/minz/minzc/pkg/emulator";"github.com/minz/minzc/pkg/hir";"github.com/minz/minzc/pkg/mir2";"github.com/minz/minzc/pkg/nanz";"github.com/minz/minzc/pkg/pipeline";"github.com/minz/minzc/pkg/z80asm")
-const origin=0x100
-const floor=0xe000
-const initialSP=0xeffe
-const returnPC=0xf100
-func check(e error){if e!=nil{panic(e)}}
-func read(p string)[]byte{b,e:=os.ReadFile(p);check(e);return b}
-func hash(b []byte)string{return fmt.Sprintf("%x",sha256.Sum256(b))}
-'''
-    driver=out/'mix.go';driver.write_text(pre+spills+adapter+directory+(HERE/'cpm-driver.go.txt').read_text())
-    sources=[HERE/n for n in ['cursors-cpm.nanz','kernel.nanz','folds.nanz','wire.nanz','cpm-driver.go.txt','prove_file.py','oracle.rb']]
+    from execution import compose_cpm
+    driver=compose_cpm(out)
+    sources=[HERE/n for n in ['cursors-cpm.nanz','kernel.nanz','folds.nanz','wire.nanz','cpm-driver.go.txt','prove_file.py','oracle.rb','execution.py']]
     hashes={str(p.relative_to(ROOT)):sha(p) for p in sources}
     subprocess.run(['go','run',str(driver),'--root',str(ROOT),'--source',str(out/'mix.nanz'),'--input',str(out/'cases.json'),'--out',str(out/'measured')],cwd=ROOT/'minzc',check=True)
     assert all(sha(ROOT/p)==h for p,h in hashes.items())

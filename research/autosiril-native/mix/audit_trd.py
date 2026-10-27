@@ -34,6 +34,8 @@ def catalog(d,name):
 def main():
     p=argparse.ArgumentParser(description=__doc__)
     for n in ['run','cpm','out']:p.add_argument('--'+n,type=Path,required=True)
+    p.add_argument('--baseline',type=Path,help='required for deliberate catalog fixtures')
+    p.add_argument('--upstream',type=Path,help='relocate saved echo disks after artifact download')
     a=p.parse_args();run=a.run;proof=json.loads((run/'measured/receipt.json').read_text());matrix=json.loads((run/'cases.json').read_text())['cases'];cases={c['name']:c for c in matrix}
     refs={c['name']:c for c in json.loads((a.cpm/'ruby.json').read_text())['cases']}
     extra=run/'extra-ruby.json'
@@ -41,22 +43,43 @@ def main():
     assert len(cases)==len(matrix) and len(proof['cases'])==len(matrix)*3
     assert sha((run/'mix-trd.nanz').read_bytes())==proof['source_sha256'] and sha((run/'cases.json').read_bytes())==proof['matrix_sha256']
     for name,h in proof['runner_source_sha256'].items():assert sha((ROOT/name).read_bytes())==h
-    full=prefix=absent=0;seen_operations={};native_images=set()
+    full=prefix=absent=preserved=0;seen_operations={};native_images=set()
+    patches={c['name']:c for c in json.loads((run/'patches.json').read_text())} if (run/'patches.json').exists() else {}
     for row in proof['cases']:
         c=cases[row['case']];folder=run/'measured'/row['case']/row['engine'];disk=(folder/'disk.trd').read_bytes();wire=base64.b64decode(c['wire']);notes=base64.b64decode(c['notes']);expected=base64.b64decode(c['expected'])
-        base=Path(c['disk']).read_bytes() if c.get('disk') else seed(notes,wire)
+        if c.get('disk'):
+            if c.get('catalog_fixture'):path=run/'inputs'/Path(c['disk']).name
+            elif a.upstream:
+                parts=Path(c['disk']).parts;matches=[i for i in range(len(parts)-1) if parts[i:i+2]==('trd','measured')]
+                assert len(matches)==1,'unknown native disk path'
+                path=a.upstream/Path(*parts[matches[0]:])
+            else:path=Path(c['disk'])
+            base=path.read_bytes()
+        else:base=seed(notes,wire)
         assert sha(base)==row['input_disk_sha256'] and sha(disk)==row['disk_sha256']
         assert row['fault']==c['fault'] and row['input_opens']==row['input_closes']
         assert len(disk)==655360
+        source_base=base
+        if c.get('catalog_fixture'):
+            assert a.baseline is not None
+            patch=patches[c['name']];assert sha(base)==patch['input_disk_sha256']
+            restored=bytearray(base)
+            for change in patch['changes']:
+                assert base[change['at']]==change['after'];restored[change['at']]=change['before']
+            prior=json.loads((a.baseline/'measured/receipt.json').read_text())
+            original=next(r for r in prior['cases'] if r['case']=='native_chronos')
+            assert sha(restored)==original['input_disk_sha256'];source_base=restored
         for name,want in [(b'NOTES   N',notes),(b'DELAYED D',wire)]:
-            _,actual=catalog(base,name)
+            _,actual=catalog(source_base,name)
             if c.get('missing_delayed') and name==b'DELAYED D':assert actual is None
             else:assert actual==want
         slot,actual=catalog(disk,b'MIXED   M');published=slot is not None
         assert published==row['published']==(not c['fault'] or c.get('published',False))
         actual=actual or b'';assert sha(actual)==row['wire_sha256'] and len(actual)==row['wire_bytes']
         assert (folder/'mixed.bin').read_bytes()==actual
-        if published:
+        if c.get('existing_output'):
+            assert disk==base and actual==expected==b'';preserved+=1
+        elif published:
             assert actual==expected;ref=refs[c.get('reference_name',c['name'])];decoded=decode(pad(actual))
             for key in ['channels','lengths','render_rows']:assert decoded[key]==ref[key]
             assert decoded['definitions']==[r for r in records(pad(wire),4) if r[0]==1];full+=1
@@ -72,7 +95,7 @@ def main():
         for j,pos in enumerate(data):
             at=offset(pos);want=expected[j*256:(j+1)*256];assert want and sector(disk,pos)==want+bytes(256-len(want));allowed.update(range(at,at+256))
         if not published:prefix+=bool(data)
-        if published:
+        if published and not c.get('existing_output'):
             descriptor=bytearray(16);descriptor[:9]=b'MIXED   M';struct.pack_into('<H',descriptor,11,len(expected));descriptor[13:16]=bytes([(len(expected)+255)//256,start%16,start//16])
             assert slot==directory*16 and disk[slot:slot+16]==descriptor;allowed.update(range(slot,slot+16))
         if not c['fault']:
@@ -84,6 +107,6 @@ def main():
         if row['engine']=='scorpion-z80':
             image=(folder/'program.bin').read_bytes();assert len(image)==row['native']['image_bytes'];native_images.add(sha(image));assert row['native']['origin']==0x4000 and 0x4000+len(image)+64<0xb800
     assert len(native_images)==1
-    result=dict(protocol='autosiril-mix-trd-artifact-audit/v1',complete=True,scope='current TRD artifact matrix only, not full milestone completion',executions=len(proof['cases']),complete_outputs=full,absent_outputs=absent,unpublished_exact_prefixes=prefix,native_binary_sha256=next(iter(native_images)),unrepresentable_input_cases=proof['unrepresentable_input_cases'])
+    result=dict(protocol='autosiril-mix-trd-artifact-audit/v1',complete=True,scope='current TRD artifact matrix only, not full milestone completion',executions=len(proof['cases']),complete_outputs=full,absent_outputs=absent,unpublished_exact_prefixes=prefix,preserved_existing_outputs=preserved,native_binary_sha256=next(iter(native_images)),unrepresentable_input_cases=proof['unrepresentable_input_cases'])
     a.out.write_text(json.dumps(result,indent=2)+'\n');print('AUDIT PASS',result)
 if __name__=='__main__':main()

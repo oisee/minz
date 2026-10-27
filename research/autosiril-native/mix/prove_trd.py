@@ -63,22 +63,9 @@ def main():
         tc=deepcopy(original);tc.update(fault=900,wire=b64(b''),notes=b64(unpad(base64.b64decode(original['notes']),6)),expected=b64(b''),missing_delayed=True,disk=str((a.upstream/'trd/measured'/name/'scorpion-z80/disk.trd').resolve()));matrix.append(tc)
     assert matrix
     (out/'cases.json').write_text(json.dumps(dict(cases=matrix,unrepresentable_input_cases=unrepresentable),indent=2)+'\n')
-    subprocess.run([sys.executable,HERE.parent/'echo/compose.py','--out',out/'generated'],check=True)
-    (out/'mix-trd.nanz').write_text(source(out/'generated'))
-    old=(out/'generated/echo-cpm.go').read_text();spills=old[old.index('type dataSpan struct'):old.index('// Research OS adapter:')]
-    pre='''package main
-import("bytes";"crypto/sha256";"encoding/binary";"encoding/json";"flag";"fmt";"os";"path/filepath";"strings"
-"github.com/minz/minzc/pkg/spectrum";"github.com/minz/minzc/pkg/spectrum/formats";"github.com/minz/minzc/pkg/hir";"github.com/minz/minzc/pkg/mir2";"github.com/minz/minzc/pkg/nanz";"github.com/minz/minzc/pkg/pipeline";"github.com/minz/minzc/pkg/z80asm")
-const origin=0x4000
-const floor=0xb800
-const initialSP=0xbffe
-const returnPC=0x3f00
-func check(e error){if e!=nil{panic(e)}}
-func read(p string)[]byte{b,e:=os.ReadFile(p);check(e);return b}
-func hash(b []byte)string{return fmt.Sprintf("%x",sha256.Sum256(b))}
-'''
-    driver=out/'mix-trd.go';driver.write_text(pre+spills+(HERE/'trd-driver.go.txt').read_text()+code(out/'generated'))
-    sources=[HERE/n for n in ['cursors-trd.nanz','kernel.nanz','folds.nanz','wire.nanz','trd-driver.go.txt','prove_trd.py','compose_trd.py','trd_native.py','oracle.rb']]
+    from execution import compose_trd
+    driver=compose_trd(out)
+    sources=[HERE/n for n in ['cursors-trd.nanz','kernel.nanz','folds.nanz','wire.nanz','trd-driver.go.txt','prove_trd.py','compose_trd.py','trd_native.py','oracle.rb','execution.py']]
     hashes={str(p.relative_to(ROOT)):sha(p) for p in sources}
     subprocess.run(['go','run',str(driver),'--root',str(ROOT),'--source',str(out/'mix-trd.nanz'),'--input',str(out/'cases.json'),'--out',str(out/'measured')],cwd=ROOT/'minzc',check=True)
     assert all(sha(ROOT/p)==h for p,h in hashes.items())

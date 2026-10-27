@@ -356,3 +356,56 @@ framing/cursor-lifetime/catalog/free-space/common-IO cases, complete default fre
 rebuild and frozen replay in required CI, downloaded artifact audits and a PR/
 main merge. Current experiments reuse a verified fresh upstream artifact and do
 not substitute for those required gates.
+
+## Complete gate and required CI
+
+The complete fresh entry point now runs the preceding four native stages,
+including actual Ruby/Crystal, then the entire fifth-stage proof:
+
+```sh
+python3 research/autosiril-native/mix/verify.py \
+  --autosiril /path/to/autosiril --out /tmp/native-mix-fresh
+```
+
+Default execution rebuilds the upstream pipeline. `--reuse-upstream` is an
+explicit development option, records that reuse and requires a complete fresh
+echo receipt with matching source hashes. A local Go overlay can be passed
+explicitly to the preceding gate where needed. Neither option is used by the
+required fresh CI job.
+
+The matrix now contains1923 raw/final MIR2/native executions:408 kernel,561
+CP/M file,384 TRD musical/resource,72 sector failures,102 catalog/free-space,
+210 malformed/NOTES boundaries,48 common-IO,12 writer-snapshot and126 owned-cursor
+executions. Six restoring-write/paging/IRQ mutants run separately. The unchanged
+40626-byte in-process alternative is also recompiled and exercised through nine
+complete pipelines/36 phase observations, with the original native image hash.
+
+The expanded tests exposed and fixed two error paths: NOTES EOF after the header
+must preserve its original error instead of replacing it with a bad-tag error;
+EOF accompanied by a nonzero byte count is an invalid common-IO result. Unknown
+statuses are normalized to error. Data/definition/row/group/musical behavior is
+unchanged. Production fixed-sector bindings and the target short-read provider
+variant remain distinct, and their scopes are recorded in their receipts.
+
+The frozen entry point consumes the ordinary CI's actual echo files and the
+compressed actual-fresh reference bundle:
+
+```sh
+python3 research/autosiril-native/mix/replay.py \
+  --upstream /path/to/completed-frozen-echo --out /tmp/native-mix-frozen
+```
+
+It rebuilds native/MIR programs and verifies every expected outcome, operation
+trace signature and native image; Ruby and Crystal reference reuse is explicit.
+The same source/driver composition is used by fresh and frozen execution.
+Artifact audits accept `--upstream` to resolve saved native disks after download;
+catalog mutation inputs are read from their retained local artifact directory.
+
+Required CI keeps the entire existing compiler/frozen job unchanged, broadens
+the existing fresh job to all five stages, then runs a new frozen fifth-stage
+job against the actual frozen echo artifact. The required PR barrier needs all
+three jobs. Old echo artifacts remain available alongside the new mix artifacts.
+Integration still requires the real required CI runs, downloaded-artifact audit
+and PR/main merge; local successes alone do not mark that objective complete.
+
+Earlier evidence links record development checkpoints. Use [the complete gate receipt](evidence/complete-receipt.json) and the portable replay bundle for the current source version.

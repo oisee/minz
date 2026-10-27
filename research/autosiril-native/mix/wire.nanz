@@ -320,6 +320,7 @@ fun read_notes() {
         index = index+1 }
     while done == 0 && fault == 0 {
         let tag:u8 = scan_byte(0)
+        if fault != 0 { return }
         if tag == 255 {
             scan_end(0,u32(count))
             done = 1

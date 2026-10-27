@@ -76,7 +76,12 @@ fun cursor_refill(handle:u8)->u32 {
     input_position = cursor_positions[handle]
     input_remaining = cursor_remaining[handle]
     let result:u32 = read_chunk()
-    if (result >> 16) != 0 { return result }
+    let status:u16 = u16(result >> 16)
+    if status != 0 {
+        if status == 1 && u16(result) == 0 { return u32(65536) }
+        // EOF-with-bytes and unknown status codes are not a valid EOF.
+        return u32(131072)
+    }
     let count:u16 = u16(result)
     if count == 0 || count > 256 { return u32(131072) }
     cursor_positions[handle] = input_position
