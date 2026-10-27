@@ -134,3 +134,36 @@ failure; silently truncating Chronos or shrinking the admitted input profile
 would not implement the selected stage. The smoke does not establish that all
 future valid inputs have49-byte rows; wider sample/parameter edge cases still
 need actual-Ruby tests before fixing an output wire.
+
+## Actual Ruby versus independent row-state model
+
+The subsequent planning check passes203 cases and10320 post-row observations:
+25 saved native fifth-stage inputs (19 valid streams and six Chronos group
+variants), plus178 synthetic row/history/parameter cases. The deliberately
+failed upstream chain is inventoried separately as an absent MIXED file with
+fault951; it is not treated as a successful renderer input.
+
+```sh
+python3 research/autosiril-native/render/prove_planning.py \
+  --upstream /path/to/complete-native-mix --autosiril /path/to/autosiril \
+  --out /tmp/render-planning
+```
+
+`oracle.rb` calls the unchanged original renderer. A read-only TracePoint at
+the outer row-block return observes pforms, penote and all three current notes,
+including cached pitch/octave/envelope fields. The observer's line location is
+guarded by the exact original-source hash. `model.py` independently computes
+the row transitions and output using integer centi-volumes; only the domain's
+constant tables come from original Ruby. Every output byte and observed state
+matches. The model does not mutate its input fixture.
+
+Witnesses include envelope demotion, octave adjustment, pforms captured before
+note mutation, and empty-note envelope reset. All four observed text widths
+46..49 occur: original PARAMS indexing can return nil for sample32/255, leaving
+that character absent. A fixed49-byte logical-row assumption is therefore not
+the admitted language behavior.
+
+The computation uses three iterator heads and bounded row state; input fixtures,
+Ruby arrays and collected proof sinks still live on the host. This is a host
+algorithm/semantic comparison, not a target RAM bound or a native sixth stage.
+See [planning receipt](evidence/planning.json).
