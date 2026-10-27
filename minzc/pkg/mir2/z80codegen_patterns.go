@@ -926,6 +926,11 @@ func (g *z80cg) scanGlobalFieldPatterns(b *Block) {
 		value := g.ar.Loc(inst.Src[1]).Name
 		if value == "HL" {
 			g.globalU16StoreSym[addrReg] = def.Sym // existing direct HL path
+			// The literal pointer has no observer: the adjacent store already
+			// names its global directly. Its materialization is pure overhead.
+			if g.optimizeForSize && !inst.Volatile && !def.Volatile && allUses[addrReg] == 1 && i > 0 && b.Insts[i-1] == def {
+				g.globalFieldSkip[addrReg] = true
+			}
 			continue
 		}
 		// LD (nn),DE/BC preserves A, flags and all register pairs. Suppress
@@ -1049,6 +1054,9 @@ func (g *z80cg) scanPtrAddBase(b *Block) {
 // carry provenance recorded by that exact emitted instruction.
 func (g *z80cg) scanShiftCarryPattern(b *Block) {
 	g.shiftCarryCmp, g.shiftCarryInst = nil, nil
+	if g.functionOptions.BitTests {
+		return
+	}
 	cond := NoReg
 	switch t := b.Term.(type) {
 	case *TermBrIf:

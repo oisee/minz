@@ -41,7 +41,11 @@ func TestCheckedByteMemoryFragmentsHeldoutDescriptors(t *testing.T) {
 					}
 					source := strings.Replace(hardwareSpriteSource(tc.body("pointer")), "sprite_test", "heldout_draw", 1)
 					options := Options{OptSize: true, AssertMode: "none", ContractOpt: true, ContractStrategy: strategy, UseGrace: grace, UseHIRGrace: grace}
-					baseline, e := CompileHIRSteps(hardwareSpriteParse(t, source), options)
+					// A checked local table is an exact configuration, which variant
+					// search never touches; compare it with the same unsearched pipeline.
+					baselineOptions := options
+					baselineOptions.DisableVariantSearch = true
+					baseline, e := CompileHIRSteps(hardwareSpriteParse(t, source), baselineOptions)
 					if e != nil {
 						t.Fatal(e)
 					}

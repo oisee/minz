@@ -16,7 +16,11 @@ func TestCheckedWordShiftComposedNative(t *testing.T) {
 			for _, amount := range []int{1, 4, 8, 15} {
 				source := fmt.Sprintf("fun shifted(x:u16)->u16{return x << %d}", amount)
 				opts := Options{OptSize: true, AssertMode: "none", ContractOpt: true, ContractStrategy: strategy, UseGrace: grace, UseHIRGrace: grace}
-				base, err := CompileHIRSteps(graceMeasureParse(t, source), opts)
+				// A checked local table is an exact configuration, which variant
+				// search never touches; compare it with the same unsearched pipeline.
+				baselineOpts := opts
+				baselineOpts.DisableVariantSearch = true
+				base, err := CompileHIRSteps(graceMeasureParse(t, source), baselineOpts)
 				if err != nil {
 					t.Fatal(err)
 				}
