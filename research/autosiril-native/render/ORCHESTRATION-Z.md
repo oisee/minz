@@ -95,3 +95,22 @@ codex-z продолжает CP/M adapter в render-z. Его предыдущи
 по timeout после успешного edge proof; состояние проверено, новый task адресный,
 не рестарт из-за одного observation timeout. claude-z после завершения VT2
 переключён на upstream investigation; runner/task/logs архивированы `.checkpoint3`.
+
+## Уточнение причины Chronos и следующий раунд
+
+Worker investigation `f17bffa8e` нашёл config mismatch: native standalone и его
+references используют max_offset24, canonical Ruby argv —6. Flatten совпадает
+по2097groups; arrange отличается по31cells; echo/mix по62. Это исправляет
+прежнюю гипотезу про повреждённую ноту и одинаковые settings; в native intern
+map id4 означает другой ornament. VT2/CHRONOS-DIVERGENCE.md исправлен.
+Новый task требует actual native canonical6 execution на всех границах,
+сохранения легитимного profile24 и portable end-to-end regression, без
+предсказания after-counts по одной только детерминированности стадий.
+
+CP/M adapter checkpoint3 пока НЕ проходит: raw-MIR2 fault956 END/count,
+диагностическое пропускание magic вызвало gas limit и было отменено. Код
+сохранён в render-z, не main. Следующий codex-z task адресует найденные
+static bugs: phase1/phase2 mismatch, shared cursor_record_count вместо
+owned-per-reader, пропущенные record tags при чтении metadata/END. Нельзя
+поднимать gas или ослаблять framing, чтобы получить ложный pass.
+Оба новых workers запущены явно; источник/task/log каждого записан runner.
