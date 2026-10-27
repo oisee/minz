@@ -21,7 +21,11 @@ func TestCheckedByteMemoryComposedSpriteNative(t *testing.T) {
 		for _, grace := range []bool{false, true} {
 			t.Run(fmt.Sprintf("%s-grace%v", strategy, grace), func(t *testing.T) {
 				options := Options{OptSize: true, AssertMode: "none", ContractOpt: true, ContractStrategy: strategy, UseGrace: grace, UseHIRGrace: grace}
-				baseline, e := CompileHIRSteps(hardwareSpriteParse(t, source), options)
+				// A checked local table is an exact configuration, which variant
+				// search never touches; compare it with the same unsearched pipeline.
+				baselineOptions := options
+				baselineOptions.DisableVariantSearch = true
+				baseline, e := CompileHIRSteps(hardwareSpriteParse(t, source), baselineOptions)
 				if e != nil {
 					t.Fatal(e)
 				}
