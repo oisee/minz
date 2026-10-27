@@ -1,0 +1,75 @@
+// Bounded append for ASIR streams whose final count is not known at create.
+// Directory/system metadata is published only after successful exhaustion.
+// Partial final sectors are allowed; no later DATA write may follow a short one.
+global output_tail:u8
+fun create_output()->u8 {
+    if directory_count >= 128 || free_count == 0 || free_position >= 2560 {
+        disk_error = 9
+        return 1
+    }
+    output_position = free_position
+    output_written = 0
+    output_sectors = 0
+    output_tail = 0
+    output_open = 1
+    return 0
+}
+fun write_chunk(count:u16)->u32 {
+    if output_open == 0 || output_tail != 0 || count == 0 || count > 256 ||
+        output_sectors >= free_count || output_sectors >= 255 ||
+        u32(output_written) + u32(count) > 65535 { return u32(131072) }
+    var index:u16 = count
+    while index < 256 {
+        input_chunk[index] = 0
+        index = index + 1
+    }
+    if disk_transfer(6,output_position) == 0 { return u32(131072) }
+    output_written = output_written + count
+    output_position = output_position + 1
+    output_sectors = output_sectors + 1
+    if count < 256 { output_tail = 1 }
+    return u32(count)
+}
+fun finish(direction:u8)->u8 {
+    if direction == 0 {
+        input_open = 0
+        return 0
+    }
+    if output_open == 0 { return 1 }
+    output_open = 0
+    if fault != 0 { return 0 }
+    if output_sectors == 0 || output_written == 0 { disk_error = 10
+        return 1 }
+    let sector:u16 = directory_count / 16
+    let at:u16 = (directory_count % 16) * 16
+    if disk_transfer(5,sector) == 0 { return 1 }
+    if input_chunk[at] != 0 { disk_error = 11
+        return 1 }
+    var index:u16 = 0
+    while index < 9 {
+        input_chunk[at+index] = output_name[index]
+        index = index + 1
+    }
+    input_chunk[at+9] = 0
+    input_chunk[at+10] = 0
+    input_chunk[at+11] = u8(output_written)
+    input_chunk[at+12] = u8(output_written >> 8)
+    input_chunk[at+13] = u8(output_sectors)
+    input_chunk[at+14] = u8(free_position % 16)
+    input_chunk[at+15] = u8(free_position / 16)
+    if disk_transfer(6,sector) == 0 { return 1 }
+    if disk_transfer(5,8) == 0 { return 1 }
+    if u16(input_chunk[228]) != directory_count || disk_word(229) != free_count ||
+        u16(input_chunk[226]) * 16 + u16(input_chunk[225]) != free_position {
+        disk_error = 12
+        return 1
+    }
+    input_chunk[225] = u8(output_position % 16)
+    input_chunk[226] = u8(output_position / 16)
+    input_chunk[228] = u8(directory_count + 1)
+    let remaining:u16 = free_count - output_sectors
+    input_chunk[229] = u8(remaining)
+    input_chunk[230] = u8(remaining >> 8)
+    if disk_transfer(6,8) == 0 { return 1 }
+    return 0
+}

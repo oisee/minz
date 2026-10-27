@@ -1,0 +1,48 @@
+{
+  "cases": [
+    {
+      "arena_writes_after_input_close": 0,
+      "engine": "raw-mir2",
+      "events": 2153,
+      "logical_bytes": 12939,
+      "sector_calls": 98,
+      "sectors": 51,
+      "wire_sha256": "f089c3c9231dd4708c1e37291eb2bb7b99d8c4e18fefd24ff4869b1a5dea4709",
+      "yielded": 2153
+    },
+    {
+      "arena_writes_after_input_close": 0,
+      "engine": "final-mir2",
+      "events": 2153,
+      "logical_bytes": 12939,
+      "sector_calls": 98,
+      "sectors": 51,
+      "wire_sha256": "f089c3c9231dd4708c1e37291eb2bb7b99d8c4e18fefd24ff4869b1a5dea4709",
+      "yielded": 2153
+    }
+  ],
+  "expected_sha256": "f089c3c9231dd4708c1e37291eb2bb7b99d8c4e18fefd24ff4869b1a5dea4709",
+  "input_disk_sha256": "934fd20473f9ea352379a33fe23271ecd0828f12f99a1abe66f2faa133907b24",
+  "protocol": "autosiril-trd-flatten-vm-prototype/v1",
+  "scope": "raw/final MIR2 only; native Scorpion paging/stack/disk-error proof pending",
+  "source_sha256": "4f1cbca5a0cc0884b18f7910b21ce0460abfbc5f4d50c871ba08ca9710a7e065",
+  "source_sha256_inputs": {
+    "research/autosiril-native/trd-flatten/compose.py": "d060d11f2cb03502610a23d13daf8f8dc14fc245a37339b185f797ec0652c4b1",
+    "research/autosiril-native/trd-flatten/append.nanz": "b33edca4ef0928fff1a4a33d49c345dade1158571205f8bcd8bf25ed27c8fe27",
+    "research/autosiril-native/trd-flatten/vm-driver.go.txt": "2280e03af15458887ec17a5927e44b19313fe44292641b1a6b9519b7007ba6f5",
+    "research/autosiril-native/stream-flatten/common.nanz": "cafe68bd9cc90a8bfb2f27cc188ecb4bfb7f2272cb24f72e45e87a3661754144",
+    "research/autosiril-native/stream-flatten/compose.py": "a42432ae8fc7e6039b7b750f83b66dad781a12bf08821567b4862e98a2b4bfa6",
+    "research/autosiril-native/transports/pair-file.nanz": "2529bd98e577d126bed822a48a2af44fb301ece879a82c4f0b8465c74b8f60e0",
+    "research/autosiril-native/transports/trd.nanz": "8a470d18ca7e05d7ab3d30982e3cfa3696cc7b8fa3bfec3ae30bddc7bc23bc17",
+    "research/autosiril-native/transports/cpm.nanz": "3a24e997a499b71425b4a5394681992b75f308c8e2d981705736c4948148faf2",
+    "research/autosiril-native/transports/directory_codes.py": "d6edbbeec62b415056bc9805741cc46d276c556691c65d7b64ff1dfba25c52fd",
+    "research/autosiril-native/file-flatten/compose.py": "a4ac184ba65efd3a2fc6097ea3f19db5ccdaf25b64b11e373e50beba8f4dd935",
+    "research/autosiril-native/file-flatten/driver.go.txt": "ef255a6adcb0feabe0c5781b20f370de6ffba98ef94b10d2e898cd59f68ca777",
+    "research/autosiril-native/linked/compose.py": "76577d6aae0d6fab45577868cc060067ae48e3398a18c48a3d7973e80ab33a2a",
+    "research/autosiril-vm/lazy_flatten.nanz": "b9059032e78d9945eb2468f58aaaa08d380c4a442e678e2362afa2e35aca9169",
+    "research/autosiril-native/midi/fixtures/music.lanz": "9fb9f831651875e5b4b65b45a121d3f8d3b9ebce7ec6f7652a7abd909485ce9a",
+    "research/autosiril-native/midi/fixtures/music-manifest.json": "f2ba3f05a0700c79e9b6deff99461d1cc57d70f3c4a460ba69fcb5f82d80835d"
+  },
+  "git_head": "c430a0fe0bcd6e1602d4f31fc3898155bb7040cd",
+  "native_verified": false
+}
