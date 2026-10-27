@@ -51,6 +51,8 @@ def native_code(generated):
     s = mix_native_code(generated)
     s = once(s, 'map[string]int{"delay_one":2,"delay_two":2,"mix_counts_config":3,"mix_policies":3}',
              'map[string]int{}')
+    s = once(s, 'panic("fixed image overlaps stack guard")',
+             'panic(fmt.Sprintf("fixed image overlaps stack guard: %d bytes, window %d", len(a.Binary), floor-origin-64))')
     return s
 
 
@@ -58,7 +60,7 @@ PRE = '''package main
 import("bytes";"crypto/sha256";"encoding/binary";"encoding/json";"flag";"fmt";"os";"path/filepath";"strings"
 "github.com/minz/minzc/pkg/spectrum";"github.com/minz/minzc/pkg/spectrum/formats";"github.com/minz/minzc/pkg/hir";"github.com/minz/minzc/pkg/mir2";"github.com/minz/minzc/pkg/nanz";"github.com/minz/minzc/pkg/pipeline";"github.com/minz/minzc/pkg/z80asm")
 const origin=0x4000
-const floor=0xb800
+const floor=0xbf00
 const initialSP=0xbffe
 const returnPC=0x3f00
 func check(e error){if e!=nil{panic(e)}}

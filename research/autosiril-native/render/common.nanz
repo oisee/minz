@@ -43,13 +43,6 @@ fun cursor_word(handle:u8)->u16 {
     if fault != 0 { return 0 }
     return u16(low) | (u16(high) << 8)
 }
-fun cursor_u32(handle:u8)->u32 {
-    let low:u16 = cursor_word(handle)
-    if fault != 0 { return 0 }
-    let high:u16 = cursor_word(handle)
-    if fault != 0 { return 0 }
-    return u32(low) | (u32(high) << 16)
-}
 fun cursor_payload(handle:u8) {
     var index:u16 = 0
     while index < 16 { record_buffer[index] = cursor_get(handle)
@@ -71,11 +64,12 @@ fun cursor_header(handle:u8) {
         index = index + 1
     }
 }
-fun cursor_end(handle:u8,count:u32) {
+// Admitted files hold <= 568 fragments + 9216 cells + 4 roles, so the u32
+// END count's high half must be zero.
+fun cursor_end(handle:u8,count:u16) {
     let low:u16 = cursor_word(handle)
     let high:u16 = cursor_word(handle)
-    if low != u16(count) || high != u16(count >> 16) { fault = 956 return }
-    var index:u16 = 0
+    if low != count || high != 0 { fault = 956 return }
     let magic0:u8 = cursor_get(handle)
     if magic0 != 69 { fault = 960 return }
     if cursor_get(handle) != 78 { fault = 961 return }
@@ -146,7 +140,7 @@ fun cursor_next(handle:u8,selected:u8)->u8 {
         if tag == 255 {
             if cursor_meta[handle] != 4 ||
                 cursor_fragments[handle] != definition_fragments { fault = 985 return 2 }
-            cursor_end(handle,cursor_records[handle])
+            cursor_end(handle,u16(cursor_records[handle]))
             if fault == 0 { cursor_finished[handle] = 1 }
             return 0
         }
@@ -280,7 +274,7 @@ fun validate_metadata() {
         if fault != 0 { return }
         if tag == 255 {
             if metadata_seen != 4 { fault = 992 return }
-            cursor_end(0,records)
+            cursor_end(0,u16(records))
             break
         }
         if tag != 1 { fault = 955 return }
@@ -306,17 +300,20 @@ fun validate_metadata() {
     if fault != 0 { return }
     var channel:u8 = 0
     while channel < 3 {
-        let extent:u32 = u32(metadata_payloads[u16(channel)*16+2]) |
-            (u32(metadata_payloads[u16(channel)*16+3]) << 8) |
-            (u32(metadata_payloads[u16(channel)*16+4]) << 16) |
-            (u32(metadata_payloads[u16(channel)*16+5]) << 24)
-        if extent != validated_extents[channel] { fault = 994+u16(channel) return }
+        var rest:u32 = validated_extents[channel]
+        var at:u16 = u16(channel)*16+2
+        while at < u16(channel)*16+6 {
+            if metadata_payloads[at] != u8(rest) { fault = 994+u16(channel) return }
+            rest = rest >> 8
+            at = at+1
+        }
         channel = channel+1
     }
-    render_rows[0] = metadata_payloads[50]
-    render_rows[1] = metadata_payloads[51]
-    render_rows[2] = metadata_payloads[52]
-    render_rows[3] = metadata_payloads[53]
+    var index:u8 = 0
+    while index < 4 {
+        render_rows[index] = metadata_payloads[50+u16(index)]
+        index = index+1
+    }
     cursor_close(0)
 }
 fun read_record(lane:u8,destination:u16)->u8 {
@@ -350,10 +347,13 @@ fun write_packet(sink:u8,source:u16)->u8 {
     return 0
 }
 fun info_u32(value:u32) {
-    info_put(u8(value))
-    info_put(u8(value >> 8))
-    info_put(u8(value >> 16))
-    info_put(u8(value >> 24))
+    var rest:u32 = value
+    var index:u8 = 0
+    while index < 4 {
+        info_put(u8(rest))
+        rest = rest >> 8
+        index = index+1
+    }
 }
 fun write_meta() {
     var index:u16 = 0
@@ -376,20 +376,25 @@ fun write_meta() {
         while offset < length {
             var count:u16 = length-offset
             if count > 8 { count = 8 }
-            meta_put(1)
-            meta_put(1)
-            meta_put(u8(index))
-            meta_put(u8(index >> 8))
-            meta_put(u8(length))
-            meta_put(u8(length >> 8))
-            meta_put(u8(offset))
-            meta_put(u8(offset >> 8))
-            meta_put(u8(count))
+            // Rebuild the canonical fragment in the (now idle) record buffer.
+            record_buffer[0] = 1
+            record_buffer[1] = u8(index)
+            record_buffer[2] = 0
+            record_buffer[3] = u8(length)
+            record_buffer[4] = u8(length >> 8)
+            record_buffer[5] = u8(offset)
+            record_buffer[6] = u8(offset >> 8)
+            record_buffer[7] = u8(count)
             var byte:u16 = 0
             while byte < 8 {
-                if byte < count { meta_put(definition_payloads[base+offset+byte]) } else { meta_put(0) }
+                record_buffer[8+byte] = 0
+                if byte < count { record_buffer[8+byte] = definition_payloads[base+offset+byte] }
                 byte = byte+1
             }
+            meta_put(1)
+            byte = 0
+            while byte < 16 { meta_put(record_buffer[byte])
+                byte = byte+1 }
             offset = offset+count
         }
         base = base+length
@@ -406,11 +411,12 @@ fun write_meta() {
         index = index+1
     }
     meta_put(255)
-    let records:u32 = u32(definition_fragments)+4
+    // At most 568 fragments + 4 roles: the u32 count's high half is zero.
+    let records:u16 = definition_fragments+4
     meta_put(u8(records))
     meta_put(u8(records >> 8))
-    meta_put(u8(records >> 16))
-    meta_put(u8(records >> 24))
+    meta_put(0)
+    meta_put(0)
     index = 0
     while index < 4 { meta_put(wire_end_magic[index])
         index = index+1 }
@@ -423,7 +429,11 @@ fun write_info() {
     info_put(1)
     info_u32(text_logical_bytes)
     info_u32(state_logical_bytes)
-    info_u32(u32(render_rows[0]) | (u32(render_rows[1]) << 8) | (u32(render_rows[2]) << 16) | (u32(render_rows[3]) << 24))
+    var index:u8 = 0
+    while index < 4 {
+        info_put(render_rows[index])
+        index = index+1
+    }
 }
 fun reset_render_state() {
     definition_fragments = 0

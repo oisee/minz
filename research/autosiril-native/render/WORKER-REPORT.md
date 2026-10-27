@@ -299,3 +299,24 @@ so the kernel and high-row proofs were not rerun. Details:
 
 Still open: TRD 16-bank renderer, native VT2/VTX writer, CI wiring for this
 proof.
+
+## TRD checkpoint 1 (2026-10-27)
+
+The renderer now runs on TRD over the actual native TRD mix disks. 75/75
+executions pass (25 cases × raw MIR2 / final MIR2 / Scorpion Z80), and the
+CP/M proof still passes 162/162 after the refactor.
+
+- `common.nanz` holds the transport-neutral kind5 reader, validation and
+  META/REND encoders; `cpm.nanz` and `trd.nanz` only supply I/O.
+- The TRD binding allows one live output, so text and state come from two
+  identical render passes. Each stream is split into `OUTPUTn T` /
+  `STATEn S` segments of 65,280 bytes (255 sectors); their concatenation
+  must equal the CP/M logical stream. All seven Chronos variants need two
+  text and two state segments. Empty streams publish no file.
+- The 32,235-byte image fits after compacting the shared encoders and moving
+  the stack floor to 0xBF00 (254-byte budget, 60 bytes measured). The
+  fixed/paged RAM, PC, IRQ and port guards of the mix specialization are kept.
+
+Not yet covered on TRD: profile-edge and canonical6 cases (no native TRD mix
+disk exists for them), sector failures, disk-full and malformed inputs,
+renderer guard mutants, CI. See `evidence/trd-checkpoint1.json`.
