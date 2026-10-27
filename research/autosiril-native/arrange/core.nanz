@@ -1,0 +1,200 @@
+// One row-group -> Ruby-compatible LNote and bounded interned ornaments.
+@extern fun crystal_keep_offset(offset:u8,median:u8,limit:u8)->bool
+@extern fun crystal_ornament_shift(note:u8,ornament:u16)->u8
+global fault:u16
+global orn_repeat:u16 = 2
+global max_offset:u8 = 24
+global channel_modes:[u8;3] = [109,112,109]
+global config_samples:[u8;3] = [2,2,2]
+global config_ornaments:[u16;3]
+global config_envelopes:[u8;3] = [1,0,0]
+global orn_count:u16
+global orn_used:u16
+global orn_start:[u16;64]
+global orn_length:[u16;64]
+global orn_bytes:[u8;4096]
+global pitch_seen:[u8;128]
+global offsets:[u8;128]
+global clipped:[u8;128]
+global group_open:u8
+global group_channel:u8
+global group_row:u16
+global group_action:u8
+global group_members:u16
+global input_events:u32
+global event_counts:[u16;3]
+global lnote_count:u16
+global output_records:u32
+global record_payload:[u8;16]
+
+fun payload_clear() {
+    var index:u16 = 0
+    while index < 16 { record_payload[index] = 0
+        index = index + 1 }
+}
+fun payload_word(at:u16,value:u16) {
+    record_payload[at] = u8(value)
+    record_payload[at+1] = u8(value >> 8)
+}
+fun emit_payload() {
+    if fault != 0 { return }
+    file_put(1)
+    var index:u16 = 0
+    while index < 16 { file_put(record_payload[index])
+        index = index + 1 }
+    if fault == 0 { output_records = output_records + 1 }
+}
+fun emit_ornament(id:u16) {
+    var at:u16 = 0
+    while at < orn_length[id] && fault == 0 {
+        payload_clear()
+        record_payload[0] = 1
+        payload_word(1,id)
+        payload_word(3,orn_length[id])
+        payload_word(5,at)
+        var count:u16 = orn_length[id] - at
+        if count > 8 { count = 8 }
+        record_payload[7] = u8(count)
+        var index:u16 = 0
+        while index < count {
+            record_payload[8+index] = orn_bytes[orn_start[id]+at+index]
+            index = index + 1
+        }
+        emit_payload()
+        at = at + count
+    }
+}
+fun ornament_find(length:u16)->u16 {
+    var id:u16 = 0
+    while id < orn_count {
+        if orn_length[id] == length {
+            var equal:u8 = 1
+            var index:u16 = 0
+            while index < length {
+                if orn_bytes[orn_start[id]+index] != clipped[index / orn_repeat] { equal = 0 }
+                index = index + 1
+            }
+            if equal != 0 { return id }
+        }
+        id = id + 1
+    }
+    if length == 0 || length > 4096 || orn_count >= 64 { fault = 982
+        return 0 }
+    if orn_used > 4096 - length { fault = 982
+        return 0 }
+    id = orn_count
+    orn_start[id] = orn_used
+    orn_length[id] = length
+    var index:u16 = 0
+    while index < length {
+        orn_bytes[orn_used] = clipped[index / orn_repeat]
+        orn_used = orn_used + 1
+        index = index + 1
+    }
+    orn_count = orn_count + 1
+    emit_ornament(id)
+    return id
+}
+fun arrange_group() {
+    if fault != 0 || group_open == 0 { return }
+    var base:u8 = 127
+    var count:u16 = 0
+    var pitch:u16 = 0
+    while pitch < 128 {
+        if pitch_seen[pitch] != 0 {
+            if count == 0 { base = u8(pitch) }
+            offsets[count] = u8(pitch) - base
+            count = count + 1
+        }
+        pitch = pitch + 1
+    }
+    if count == 0 { fault = 975
+        return }
+    let median:u8 = offsets[count / 2]
+    var first:u8 = 0
+    var kept:u16 = 0
+    var index:u16 = 0
+    while index < count {
+        let offset:u8 = offsets[index]
+        if crystal_keep_offset(offset,median,max_offset) {
+            if kept == 0 { first = offset }
+            clipped[kept] = offset - first
+            kept = kept + 1
+        }
+        index = index + 1
+    }
+    if kept == 0 { fault = 975
+        return }
+    base = base + first
+    let ornament:u16 = ornament_find(kept * orn_repeat)
+    if fault != 0 { return }
+    let mode:u8 = channel_modes[group_channel]
+    var sample:u8 = config_samples[group_channel]
+    var chosen:u16 = config_ornaments[group_channel]
+    if mode == 112 {
+        base = crystal_ornament_shift(base,ornament)
+        chosen = ornament
+    }
+    if mode == 100 {
+        sample = drum_samples[base]
+        base = drum_notes[base]
+        chosen = 0
+    }
+    var kind:u8 = mode
+    var envelope:u8 = 0
+    var enote:u16 = 65535
+    if config_envelopes[group_channel] != 0 {
+        kind = 101
+        sample = 2
+        envelope = env_forms[base]
+        enote = u16(i16(base) + env_offsets[base])
+    }
+    payload_clear()
+    record_payload[1] = group_channel
+    payload_word(2,group_row)
+    record_payload[4] = base
+    record_payload[5] = sample
+    record_payload[6] = envelope
+    payload_word(7,chosen)
+    payload_word(9,1500)
+    record_payload[11] = 115
+    if group_action == 4 { record_payload[11] = 114 }
+    record_payload[12] = kind
+    payload_word(13,enote)
+    emit_payload()
+    if fault == 0 { lnote_count = lnote_count + 1 }
+    group_open = 0
+}
+fun accept_event(channel:u8,row:u16,value:u16) {
+    if fault != 0 { return }
+    let pitch:u8 = u8(value)
+    let action:u8 = u8(value >> 8)
+    if channel >= 3 || pitch > 127 || (action != 1 && action != 4) { fault = 958
+        return }
+    if event_counts[channel] >= 1024 { fault = 200
+        return }
+    if group_open != 0 {
+        if channel < group_channel || (channel == group_channel && row < group_row) { fault = 970
+            return }
+        if channel != group_channel || row != group_row { arrange_group() }
+    }
+    if fault != 0 { return }
+    if group_open == 0 {
+        var index:u16 = 0
+        while index < 128 { pitch_seen[index] = 0
+            index = index + 1 }
+        group_channel = channel
+        group_row = row
+        group_action = action
+        group_members = 0
+        group_open = 1
+    }
+    if group_action != action { fault = 972
+        return }
+    if group_members >= 512 { fault = 974
+        return }
+    pitch_seen[u16(pitch)] = 1
+    group_members = group_members + 1
+    event_counts[channel] = event_counts[channel] + 1
+    input_events = input_events + 1
+}

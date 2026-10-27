@@ -1,0 +1,18 @@
+// Track duplex lifetimes around the unchanged normalized common CP/M binding.
+fun open_input()->u8 {
+    input_open = 0
+    output_open = 0
+    let status:u8 = cpm_open_input()
+    if status == 0 { input_open = 1 }
+    return status
+}
+fun create_output()->u8 {
+    let status:u8 = cpm_create_output()
+    if status == 0 { output_open = 1 }
+    return status
+}
+fun finish(direction:u8)->u8 {
+    let status:u8 = cpm_finish(direction)
+    if direction == 0 { input_open = 0 } else { output_open = 0 }
+    return status
+}
