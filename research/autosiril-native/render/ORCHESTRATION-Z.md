@@ -37,3 +37,30 @@ files, books/workflow или compiler defaults. Shared MIR/pipeline bug снач
 timeout не перезапускать автоматически: проверить процесс, diff и причину,
 передать адресный follow-up. При stop Alice остановить оба процесса; не
 продолжать из старого wakeup.
+
+## Проверенный kernel и второй раунд
+
+Kernel checkpoint `215dabd7f617c1f79c6df0dcb0a8fbf79676d3cc` опубликован в
+`spike/autosiril-render-z`, интегрирован в parent ветку как `bdfe28bfe`.
+Parent заново получил actual-Ruby reference, пересобрал target и сравнил все
+609 engine runs и каждый post-row state: 203 cases × raw/final MIR2/Z80,
+10320 states на engine. Образ7839B; binary SHA256
+`e8158b59563f3357878eb4b13fbe268c4890eaa390f9a5d7e64528d8857c72a0`.
+Portable audit: `evidence/parent-kernel-audit.json`. Это kernel proof,
+а не самостоятельная шестая файловая стадия.
+
+VT2 worker оставил локальный `3073d8fd7` (554 host cases); parent ещё не
+принял его bounded-memory claims. Найдены whole-pattern allocations,
+необоснованный u16 order bound и противоречивые размеры transport. Второй
+раунд поручен тому же claude-z: streaming spool/index/order, u32 indices,
+65535/65536/65567 edges, forced collision, actual ornament provenance и
+исправленные измерения. Target VT2 пока не реализован.
+
+codex-z во втором раунде расширяет trace row до u32, проверяет старшие
+временные границы и защитные mutants, затем переходит к CP/M file adapter
+при наличии времени. Никакого сокращения admitted kind5 profile ради TRD.
+
+Задания и logs первого раунда сохранены с суффиксом `.checkpoint1` в
+`/tmp/minz-z-workers/`. Второй раунд запущен тем же runner; актуальную
+жизнь процесса проверять отдельно. Root user files повторно сверены:
+все четыре SHA256 совпали с baseline; root не изменялся.
