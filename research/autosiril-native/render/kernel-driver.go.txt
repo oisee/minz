@@ -2,6 +2,7 @@ type renderCase struct {
 	Name          string   `json:"name"`
 	Rows          []byte   `json:"rows"`
 	Channels      [][][]byte `json:"channels"`
+	FeedStatus    [][]int  `json:"feed_status"`
 	ExpectedText  []byte   `json:"expected_text"`
 	ExpectedState []byte   `json:"expected_state"`
 }
@@ -19,19 +20,22 @@ func main(){
  for _,tc:=range matrix.Cases{for index,engine:=range []string{"raw-mir2","final-mir2","z80"}{
   dir:=filepath.Join(*out,tc.Name,engine);check(os.MkdirAll(dir,0755))
   var get func(string,int,int)[]byte;var memread func(int64,int)[]byte;var memwrite func(int64,byte);var returned uint16
-  var actualText,actualState []byte;positions:=[3]int{};sourceReads,sinkWrites,cycles,stack:=0,0,0,0
+  var actualText,actualState []byte;positions:=[3]int{};sourceReads,sinkWrites,stateRows,cycles,stack:=0,0,0,0,0
   transfer:=func(fn byte,lane byte,at uint16)byte{
    if fn==8{
     if lane>=3{panic("invalid source lane")};sourceReads++
-    if positions[int(lane)]==len(tc.Channels[lane]){return 0}
+    position:=positions[int(lane)]
+    if position==len(tc.Channels[lane]){return 0}
     b:=tc.Channels[lane][positions[lane]];positions[lane]++
-    if len(b)!=16{panic("invalid source record width")};for j,v:=range b{memwrite(int64(at)+int64(j),v)};return 1
+    if len(b)!=16{panic("invalid source record width")};for j,v:=range b{memwrite(int64(at)+int64(j),v)}
+    status:=1;if len(tc.FeedStatus)>int(lane)&&len(tc.FeedStatus[lane])>position{status=tc.FeedStatus[lane][position]}
+    return byte(status)
    }
    if fn!=16{panic("invalid fixture trap")};if lane>=2{panic("invalid sink")};sinkWrites++
    if lane==0{
     b:=memread(int64(at),52);if b[0]>51{panic("line length")};actualText=append(actualText,b[1:1+int(b[0])]...);return 0
    }
-   b:=memread(int64(at),82);if b[0]!=77{panic("state length")};actualState=append(actualState,b[1:78]...);return 0
+   b:=memread(int64(at),82);if b[0]!=77&&b[0]!=79{panic("state length")};stateRows++;actualState=append(actualState,b[1:1+int(b[0])]...);return 0
   }
   config:=map[string][]byte{"render_rows":tc.Rows}
   if index<2{
@@ -48,7 +52,7 @@ func main(){
    mem[initialSP]=byte(returnPC&255);mem[initialSP+1]=byte(returnPC>>8);z.SetRegisters(emulator.Registers{PC:uint16(a.Symbols["render_run"]),SP:initialSP})
    p:=emulator.NewProfiler();z.SetProfiler(p);minSP:=uint16(initialSP)
    for count:=0;z.GetPC()!=returnPC;count++{
-    if count>=250000000{panic("instruction limit")};if z.GetIFF1()||z.GetIFF2(){panic("IRQ enabled")};pc:=z.GetPC()
+    if count>=1000000000{panic("instruction limit")};if z.GetIFF1()||z.GetIFF2(){panic("IRQ enabled")};pc:=z.GetPC()
     if pc!=8&&pc!=16&&(int(pc)<origin||int(pc)>=origin+len(a.Binary)){panic("PC outside image/traps")}
     if pc==8||pc==16{r:=z.GetRegisters();r.A=transfer(byte(pc),byte(r.BC),r.DE);r.HL=0;r.PC=binary.LittleEndian.Uint16(mem[r.SP:r.SP+2]);r.SP+=2;z.SetRegisters(r)}else{z.Step()}
     if z.GetSP()<minSP{minSP=z.GetSP()};if z.GetSP()<floor{panic("stack floor")}
@@ -67,8 +71,8 @@ func main(){
   if !bytes.Equal(actualText,tc.ExpectedText){panic(fmt.Sprintf("%s/%s text mismatch got%d want%d",tc.Name,engine,len(actualText),len(tc.ExpectedText)))}
   if !bytes.Equal(actualState,tc.ExpectedState){panic(fmt.Sprintf("%s/%s state mismatch got%d want%d",tc.Name,engine,len(actualState),len(tc.ExpectedState)))}
   check(os.WriteFile(filepath.Join(dir,"output.txt"),actualText,0644));check(os.WriteFile(filepath.Join(dir,"states.bin"),actualState,0644))
-  rows=append(rows,map[string]any{"case":tc.Name,"engine":engine,"rows":len(actualState)/77,"text_bytes":len(actualText),"text_sha256":hash(actualText),"state_sha256":hash(actualState),"source_reads":sourceReads,"sink_writes":sinkWrites,"t_states":cycles,"stack_bytes":stack})
-  fmt.Printf("PASS %s/%s rows%d\n",tc.Name,engine,len(actualState)/77)
+   rows=append(rows,map[string]any{"case":tc.Name,"engine":engine,"rows":stateRows,"text_bytes":len(actualText),"text_sha256":hash(actualText),"state_sha256":hash(actualState),"source_reads":sourceReads,"sink_writes":sinkWrites,"t_states":cycles,"stack_bytes":stack})
+  fmt.Printf("PASS %s/%s rows%d\n",tc.Name,engine,stateRows)
  }}
  globals,spills:=0,0;for _,g:=range steps.MIR2Module.Globals{globals+=mir2.ByteWidth(g.Ty)};for _,s:=range backendSpills(steps.Assembly,a.Symbols,a.Binary){spills+=s.Bytes}
  proof:=map[string]any{"protocol":"autosiril-render-target-kernel/v1","scope":"actual Ruby row renderer on raw/final MIR2 and assembled Z80 with explicit fixture traps; not independently linked file IO","source_sha256":hash(read(*source)),"matrix_sha256":hash(read(*input)),"binary_sha256":hash(a.Binary),"image_bytes":len(a.Binary),"globals_bytes":globals,"spill_bytes":spills,"code_bytes":len(a.Binary)-globals-spills,"cases":rows}

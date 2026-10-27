@@ -227,6 +227,12 @@ fun packet_word(at:u8,value:u16) {
 fun packet_signed(at:u8,value:i16) {
     packet_word(at,u16(value))
 }
+fun packet_dword(at:u8,value:u32) {
+    state_packet[at] = u8(value)
+    state_packet[u16(at)+1] = u8(value >> 8)
+    state_packet[u16(at)+2] = u8(value >> 16)
+    state_packet[u16(at)+3] = u8(value >> 24)
+}
 fun signed_note(value:u8)->i16 {
     if value == 255 { return -1 }
     return i16(value)
@@ -309,20 +315,37 @@ fun emit_row(row:u32) {
     put_line(10)
     if write_packet(0,u16(&line_packet[0])) != 0 { if fault == 0 { fault = 902 } return }
 
-    state_packet[0] = 77
-    packet_word(1,u16(row))
-    state_packet[3] = current_forms[0]
-    state_packet[4] = current_forms[1]
-    state_packet[5] = current_forms[2]
-    if envelope_real(selected) == 1 {
-        copy_note(4,selected)
-        prior_have = 1
+    if row <= 65535 {
+        state_packet[0] = 77
+        packet_word(1,u16(row))
+        state_packet[3] = current_forms[0]
+        state_packet[4] = current_forms[1]
+        state_packet[5] = current_forms[2]
+        if envelope_real(selected) == 1 {
+            copy_note(4,selected)
+            prior_have = 1
+        }
+        if prior_have == 0 { clear_note(4) }
+        put_snapshot(6,4)
+        put_snapshot(24,0)
+        put_snapshot(42,1)
+        put_snapshot(60,2)
+    } else {
+        state_packet[0] = 79
+        packet_dword(1,row)
+        state_packet[5] = current_forms[0]
+        state_packet[6] = current_forms[1]
+        state_packet[7] = current_forms[2]
+        if envelope_real(selected) == 1 {
+            copy_note(4,selected)
+            prior_have = 1
+        }
+        if prior_have == 0 { clear_note(4) }
+        put_snapshot(8,4)
+        put_snapshot(26,0)
+        put_snapshot(44,1)
+        put_snapshot(62,2)
     }
-    if prior_have == 0 { clear_note(4) }
-    put_snapshot(6,4)
-    put_snapshot(24,0)
-    put_snapshot(42,1)
-    put_snapshot(60,2)
     if write_packet(1,u16(&state_packet[0])) != 0 { if fault == 0 { fault = 902 } return }
     index = 0
     while index < 3 {
