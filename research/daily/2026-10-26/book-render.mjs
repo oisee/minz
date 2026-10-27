@@ -23,22 +23,23 @@ for(const ch of cfg.chapters){
    const img=fig.querySelector('img');const xml=new DOMParser().parseFromString(atob(img.src.split(',')[1]),'image/svg+xml');const svg=xml.documentElement;
    const [x,y,w,h]=svg.getAttribute('viewBox').split(/\s+/).map(Number);
    fig.classList.add('book-figure');img.style.width='';
-   if(w>780&&h>500){
+   if((w>780&&h>500)||(h>1050&&h>w*1.6)){
     // Choose a cut near the centre that does not bisect a text box.
     const probe=document.importNode(svg,true);probe.style.position='absolute';probe.style.opacity='0';probe.style.width=w+'px';probe.style.height=h+'px';document.body.append(probe);
-    const inv=probe.getScreenCTM().inverse();const spans=[...probe.querySelectorAll('text')].map(e=>{const b=e.getBBox(),m=inv.multiply(e.getScreenCTM());const p=new DOMPoint(b.x,b.y).matrixTransform(m),q=new DOMPoint(b.x+b.width,b.y+b.height).matrixTransform(m);return [Math.min(p.y,q.y)-4,Math.max(p.y,q.y)+4]});
+    const inv=probe.getScreenCTM().inverse();const spans=[...probe.querySelectorAll('g.node, text')].map(e=>{const b=e.getBBox(),m=inv.multiply(e.getScreenCTM());const p=new DOMPoint(b.x,b.y).matrixTransform(m),q=new DOMPoint(b.x+b.width,b.y+b.height).matrixTransform(m);return [Math.min(p.y,q.y)-4,Math.max(p.y,q.y)+4]});
     let cut=y+h/2;
     for(let d=0;d<h*.16;d++){let found=false;for(const sign of [1,-1]){const c=y+h/2+sign*d;if(!spans.some(([a,b])=>a<c&&c<b)){cut=c;found=true;break}}if(found)break}
     probe.remove();
     const caption=fig.querySelector('figcaption').textContent.split(' · ')[0];
     for(const [i,start,end] of [[1,y,cut],[2,cut,y+h]]){
      const clone=fig.cloneNode(true),copy=svg.cloneNode(true);copy.setAttribute('viewBox',[x,start,w,end-start].join(' '));copy.setAttribute('width',w);copy.setAttribute('height',end-start);copy.style.maxWidth='none';
-     clone.querySelector('img').src='data:image/svg+xml;base64,'+btoa(new XMLSerializer().serializeToString(copy));clone.classList.add('book-wide');clone.querySelector('figcaption').textContent=caption+' / часть '+i+' из 2';fig.before(clone);
+     clone.querySelector('img').src='data:image/svg+xml;base64,'+btoa(new XMLSerializer().serializeToString(copy));if(w/(end-start)>1.35)clone.classList.add('book-wide');clone.querySelector('figcaption').textContent=caption+' / часть '+i+' из 2';fig.before(clone);
     }
     fig.remove();
    }else if(w/h>1.35){fig.classList.add('book-wide')}
   });
   document.querySelectorAll('article>p>img').forEach(img=>{const p=img.parentElement,fig=document.createElement('figure');fig.className='book-figure book-wide illustration';p.before(fig);fig.append(img);p.remove()});
+  document.querySelectorAll('article table').forEach(t=>{if(t.rows.length<=6)t.classList.add('book-keep-table')});
   const walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);let n;while(n=walker.nextNode()){if(n.parentElement?.tagName!=='SCRIPT')n.nodeValue=n.nodeValue.replace(/[\u2011\u2013\u2014]/g,'-')}
  });
  await page.addStyleTag({content:cfg.css});

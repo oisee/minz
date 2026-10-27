@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Render the three Markdown longreads as offline illustrated HTML."""
+"""Render the edition chapter list as offline illustrated HTML."""
 from pathlib import Path
 from html import escape
 from html.parser import HTMLParser
@@ -16,12 +16,12 @@ from urllib.parse import unquote, urlsplit
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[2]
-SNAPSHOT = 'a716ff184a50c9e17eea4d6679cbcd1ed1f9b379'
-SLUGS = ['01-languages-and-ideas', '02-melody-between-two-files', '03-borrowing-without-a-runtime']
-TITLES = ['Ruby рассказывает, Z80 считает', 'Мелодия между двумя файлами', 'Чемодан без виртуальной машины']
-DECKS = ['Crystal и Nanz, macro и meta, битовые схемы и идеи Erlang/OTP.',
-         'Ленивость, генераторы, fusion, 64 байта RLE и нативный MIDI pipeline.',
-         'Что взять у LLVM, Cranelift, Grace, C#/.NET, JVM/Kotlin, Rust и BEAM.']
+EDITION = json.loads((HERE / 'edition.json').read_text())
+SNAPSHOT = EDITION['snapshot']
+CURRENT_SNAPSHOT = SNAPSHOT
+SLUGS = [c['slug'] for c in EDITION['chapters']]
+TITLES = [c['title'] for c in EDITION['chapters']]
+DECKS = [c['deck'] for c in EDITION['chapters']]
 MERMAID = re.compile(r'^```mermaid\s*\n(.*?)^```\s*$', re.M | re.S)
 LINK = re.compile(r'(!?)\[([^\]]*)\]\(([^)]+)\)')
 
@@ -54,7 +54,7 @@ def html_links(match):
     elif path.removesuffix('.md') in SLUGS:
         target = path.removesuffix('.md') + '.html'
     else:
-        target = 'https://github.com/oisee/minz/blob/' + SNAPSHOT + '/' + str(resolved.relative_to(ROOT))
+        target = 'https://github.com/oisee/minz/blob/' + CURRENT_SNAPSHOT + '/' + str(resolved.relative_to(ROOT))
     if sep:
         target += '#' + anchor
     return '[' + label + '](' + target + ')'
@@ -87,8 +87,9 @@ def shell_page(title, body, css, js):
             '<header class="sitebar"><a class="brand" href="index.html">MinZ / Дневник</a>'
             '<nav><a href="01-languages-and-ideas.html">Языки</a><a href="02-melody-between-two-files.html">Музыка</a>'
             '<a href="03-borrowing-without-a-runtime.html">Экосистемы</a>'
+            '<a href="04-four-rows-for-a-melody.html">Downmix</a>'
             '<a href="https://github.com/oisee/minz">GitHub</a></nav></header>' + body +
-            '<footer>26 октября 2026 · MinZ · Две главы подготовлены совместно с Astra. '
+            '<footer>26–27 октября 2026 · MinZ · Две главы подготовлены совместно с Astra. '
             'Работающие возможности, эксперименты и предложения различаются в тексте. '
             '<a href="README.md">Markdown и воспроизведение</a></footer><script>' + js + '</script></body></html>')
 
@@ -105,6 +106,7 @@ DEMO = '''<section class="playground" id="playground" aria-labelledby="demo-titl
 
 
 def main():
+    global CURRENT_SNAPSHOT
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--mmdc', default=shutil.which('mmdc'))
     p.add_argument('--chrome', required=True)
@@ -128,6 +130,7 @@ def main():
                                 lineColor='#607f78', secondaryColor='#f6ecd8', tertiaryColor='#e5ebf7'),
             flowchart=dict(htmlLabels=False, curve='basis'), sequence=dict(wrap=True, width=130))))
         for number, slug in enumerate(SLUGS, 1):
+            CURRENT_SNAPSHOT = EDITION['chapters'][number - 1]['snapshot']
             source = HERE / (slug + '.md')
             text = source.read_text()
             diagrams = MERMAID.findall(text)
@@ -185,7 +188,7 @@ def main():
                     '<h1>' + escape(title) + '</h1><p>' + escape(DECKS[number - 1]) + '</p><div class="meta">'
                     '<span class="pill">≈ ' + str(minutes) + ' мин</span><span class="pill cream">' + str(len(diagrams)) +
                     ' Mermaid-схем</span><span class="pill">Ruby · Crystal · Nanz · Z80</span></div></div>')
-            next_number = number % 3
+            next_number = number % len(SLUGS)
             next_link = '<div class="next"><a href="' + SLUGS[next_number] + '.html">Дальше: ' + escape(TITLES[next_number]) + ' →</a></div>'
             html = shell_page(title, hero + '<main class="layout">' + toc + '<article>' + fragment + next_link + '</article></main>', css, js)
             target = HERE / (slug + '.html')
@@ -196,35 +199,34 @@ def main():
         cards = ''.join('<a class="card" href="' + slug + '.html"><span class="num">0' + str(i + 1) + '</span><h2>' +
                         escape(TITLES[i]) + '</h2><p>' + escape(DECKS[i]) + '</p><span class="read">Открыть главу →</span></a>'
                         for i, slug in enumerate(SLUGS))
-        body = ('<div class="hero"><div class="eyebrow">26 октября 2026 · Три лонгрида на русском</div>'
-                '<h1>Один день из жизни<br>компилятора MinZ</h1><p>Как Ruby, Crystal и Nanz встретились с битовыми потоками, '
+        body = ('<div class="hero"><div class="eyebrow">26–27 октября 2026 · Четыре главы на русском</div>'
+                '<h1>Дни из жизни<br>компилятора MinZ</h1><p>Как Ruby, Crystal и Nanz встретились с битовыми потоками, '
                 'ленивыми мелодиями и Z80 — и что мы хотим привезти из больших экосистем.</p>'
                 '<p><a href="output/epub/minz-compiler-day-2026-10-26.epub">Скачать EPUB</a> · '
-                '<a href="output/pdf/minz-compiler-day-2026-10-26-A5.pdf">PDF A5, 74 страницы</a></p>'
-                '<div class="meta"><span class="pill">18 Mermaid-схем</span><span class="pill cream">2 иллюстрации</span>'
+                '<a href="output/pdf/minz-compiler-day-2026-10-26-A5.pdf">PDF A5</a></p>'
+                '<div class="meta"><span class="pill">23 Mermaid-схем</span><span class="pill cream">2 иллюстрации</span>'
                 '<span class="pill">Реальный код и измерения</span></div></div><main class="index-content">'
                 '<img class="index-cover" src="' + cover + '" alt="Мастерская: MIDI, Crystal/Nanz и два файла"><div class="cards">' + cards + '</div>'
-                '<div class="status"><div><strong>Уже в main</strong>CP/M: MIDI → 1485 нот → 2153 события, двумя отдельными .COM.'
-                '<br><small>PR #262 и #263 смержены после CI.</small></div>'
-                '<div><strong>Локальный эксперимент</strong>Spectrum/Scorpion: первый MIDI → TRD этап, 180 исполнений.'
-                '<br><small>Отдельная ветка; не physical ROM/hardware proof.</small></div>'
-                '<div><strong>Следующий участок пути</strong>Arrangement/echo/mix и финальный VT2/VTX; общий lifetime и более широкий fusion.'
+                '<div class="status"><div><strong>Уже в main</strong>Пять нативных стадий: pairing, flatten, arrangement, echo и downmix.'
+                '<br><small>Последняя интегрированная веха: PR #270, b58fba0c6.</small></div>'
+                '<div><strong>Downmix проверен</strong>12 зелёных CI-checks; fresh/frozen по 1923 исполнения и 6 защитных мутантов.'
+                '<br><small>CP/M и частный TRD API; не physical ROM/hardware proof.</small></div>'
+                '<div><strong>Следующий участок пути</strong>Рендер строк, паттерны и финальный VT2/VTX; общий lifetime и более широкий fusion.'
                 '<br><small>Предложения в статьях обозначены явно.</small></div></div></main>')
         target = HERE / 'index.html'
-        target.write_text(shell_page('Один день из жизни компилятора MinZ', body, css, js))
+        target.write_text(shell_page(EDITION['title'], body, css, js))
         outputs.append(target)
-    if sum(c['diagrams'] for c in counts) != 18:
-        raise ValueError('Unexpected diagram inventory')
+    diagram_count = sum(c['diagrams'] for c in counts)
     sha = lambda path: hashlib.sha256(path.read_bytes()).hexdigest()
-    sources = [HERE / (s + '.md') for s in SLUGS] + [HERE / p for p in ['README.md', 'build.py', 'style.css', 'reader.js']]
-    manifest = dict(protocol='minz-compiler-day-articles/v1', date='2026-10-26', described_main=SNAPSHOT,
-                    chapters=counts, diagrams=18, illustrations=2,
+    sources = [HERE / (s + '.md') for s in SLUGS] + [HERE / p for p in ['README.md', 'edition.json', 'build.py', 'style.css', 'reader.js']]
+    manifest = dict(protocol='minz-compiler-day-articles/v1', date=EDITION['date'], described_snapshot=SNAPSHOT,
+                    chapters=counts, diagrams=diagram_count, illustrations=2,
                     tools=dict(mermaid_cli=mermaid_version,
                                pandoc=subprocess.check_output(['pandoc', '--version'], text=True).splitlines()[0]),
                     source_sha256={str(p.relative_to(HERE)): sha(p) for p in sources},
                     output_sha256={p.name: sha(p) for p in outputs})
     (HERE / 'manifest.json').write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + '\n')
-    print('PASS: three HTML chapters + index; 18 rendered Mermaid; all local Markdown links resolve')
+    print(f'PASS: {len(SLUGS)} HTML chapters + index; {diagram_count} rendered Mermaid; local Markdown links resolve')
 
 
 if __name__ == '__main__':
