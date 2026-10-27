@@ -1,0 +1,78 @@
+type echoConfig struct {
+ First uint16 `json:"first"`
+ Second uint16 `json:"second"`
+ Wide [3]bool `json:"wide"`
+ Unvoiced [3]bool `json:"unvoiced"`
+ Modes [3]byte `json:"modes"`
+}
+func(c echoConfig) bytes()map[string][]byte{
+ first,second:=make([]byte,2),make([]byte,2);binary.LittleEndian.PutUint16(first,c.First);binary.LittleEndian.PutUint16(second,c.Second)
+ wide,u:=make([]byte,3),make([]byte,3);for i:=range wide{if c.Wide[i]{wide[i]=1};if c.Unvoiced[i]{u[i]=1}}
+ return map[string][]byte{"delay_one":first,"delay_two":second,"config_wide":wide,"config_unvoiced":u,"source_modes":c.Modes[:]}
+}
+type echoCase struct {
+ Name string `json:"name"`
+ Config echoConfig `json:"config"`
+ Wire,Notes,Expected []byte
+ Fault uint16 `json:"fault"`
+ Counts [3]uint16 `json:"counts"`
+ Extents [3]uint32 `json:"extents"`
+ Disk string `json:"disk"`
+}
+func linearData(d *formats.TRDFile,pos int)[]byte {t:=pos/16;return d.ReadSector(t%80,t/80,pos%16)}
+func putLinearData(d *formats.TRDFile,pos int,b []byte){t:=pos/16;d.WriteSector(t%80,t/80,pos%16,b)}
+func seedEchoDisk(notes,wire []byte)*formats.TRDFile {
+ d:=&formats.TRDFile{};pos:=16
+ for index,data:=range [][]byte{notes,wire}{
+  if len(data)>65280{panic("fixture input exceeds TRD capacity")}
+  slot:=index*16;name:="NOTES   N";if index==1{name="ARRANGE A"};copy(d.Data[slot:slot+9],name)
+  sectors:=(len(data)+255)/256;binary.LittleEndian.PutUint16(d.Data[slot+11:slot+13],uint16(len(data)))
+  d.Data[slot+13]=byte(sectors);d.Data[slot+14]=byte(pos%16);d.Data[slot+15]=byte(pos/16)
+  for i:=0;i<sectors;i++{b:=make([]byte,256);end:=(i+1)*256;if end>len(data){end=len(data)};copy(b,data[i*256:end]);putLinearData(d,pos+i,b)};pos+=sectors
+ }
+ sys:=linearData(d,8);sys[225]=byte(pos%16);sys[226]=byte(pos/16);sys[227]=22;sys[228]=2;binary.LittleEndian.PutUint16(sys[229:231],uint16(2560-pos));putLinearData(d,8,sys);return d
+}
+func main(){
+ root:=flag.String("root","..","repository root");source:=flag.String("source","","composed echo source");input:=flag.String("input","","actual Ruby cases");out:=flag.String("out","","output directory")
+ music:=flag.String("music","","actual Crystal export");manifest:=flag.String("manifest","","actual Crystal manifest");flag.Parse();check(os.MkdirAll(*out,0755))
+ buildOne:=func()*hir.Module{h,e:=build(read(*source),read(*music),read(*manifest),filepath.Join(*root,"stdlib"));check(e);return h}
+ raw:=hir.LowerModule(buildOne());check(mir2.Verify(raw));opts:=pipeline.DefaultOptions();opts.AssertMode="none";opts.DisableVariantSearch=true
+ steps,e:=pipeline.CompileHIRSteps(buildOne(),opts);check(e)
+ for name,b:=range map[string][]byte{"raw.mir":[]byte(raw.Dump()),"final.mir":[]byte(steps.MIR2Module.Dump()),"unlinked.a80":[]byte(steps.Assembly)}{check(os.WriteFile(filepath.Join(*out,name),b,0644))}
+ var matrix struct{Cases []echoCase `json:"cases"`};check(json.Unmarshal(read(*input),&matrix));if len(matrix.Cases)==0{panic("empty matrix")};rows:=[]map[string]any{}
+ for _,tc:=range matrix.Cases{
+  base:=seedEchoDisk(tc.Notes,tc.Wire)
+  if tc.Disk!=""{base,e=formats.LoadTRD(tc.Disk);check(e);for _,item:=range []struct{name string;ext byte;data []byte}{{"NOTES",'N',tc.Notes},{"ARRANGE",'A',tc.Wire}}{entry:=base.FindFile(item.name,item.ext);if entry==nil||!bytes.Equal(base.ReadFile(entry),item.data){panic("saved native file differs")}}}
+  cfg:=tc.Config.bytes()
+  for i,engine:=range []string{"raw-mir2","final-mir2","scorpion-z80"}{
+   dir:=filepath.Join(*out,tc.Name,engine);check(os.MkdirAll(dir,0755));d:=*base;d.Path=filepath.Join(dir,"disk.trd");d.Writeback=false
+   var get func(string,int)[]byte;var returned int64;calls,cycles,stack:=0,0,0;operations:=[]sectorOperation{};var native map[string]any
+   if i<2{
+    module:=raw;if i==1{module=steps.MIR2Module};v:=mir2.NewVM(module);v.MaxMemory=65536;v.MaxSteps=1000000000
+    for name,data:=range cfg{for j,b:=range data{v.WriteHeap(v.GlobalAddr(name)+int64(j),b)}}
+    v.ObserveDataAccess=func(a mir2.VMDataAccess){if a.Op!=mir2.OpStore{return};for name,data:=range cfg{at:=v.GlobalAddr(name);if a.Addr>=at&&a.Addr<at+int64(len(data)){panic("VM mutated echo configuration")}}}
+    host:=func(args []mir2.Value)([]mir2.Value,error){calls++;op,address,track,sector:=byte(args[0].I),args[1].I,int(args[2].I),int(args[3].I);if (op!=5&&op!=6)||address!=v.GlobalAddr("input_chunk")||track<0||track>=160||sector<1||sector>16{panic("invalid sector request")};pos:=track*16+sector-1;operations=append(operations,sectorOperation{Call:calls,Op:op,Position:pos,Success:true});if op==5{for j,b:=range linearData(&d,pos){v.WriteHeap(address+int64(j),b)}}else{putLinearData(&d,pos,v.ReadHeap(address,256))};return []mir2.Value{{I:1}},nil}
+    v.Hosts["trd_sector"]=host;v.Hosts["@trd_sector"]=host;r,e:=v.Call("disk_main",nil);check(e);if len(r)!=1{panic("invalid VM return")};returned=r[0].I;get=func(name string,n int)[]byte{return v.ReadHeap(v.GlobalAddr(name),n)}
+   }else{
+    n:=nativeStage(steps.Assembly,steps.MIR2Module,read(filepath.Join(*root,"research/autosiril-native/transports/trd-stub.a80")),&d,dir,0,cfg);returned=int64(n.Returned);calls=n.Calls;cycles=n.Cycles;stack=n.Stack;operations=n.Operations;get=func(name string,count int)[]byte{return n.Get(name,0,count)}
+    if n.InputOpens!=2||n.InputCloses!=2{panic("dual input lifetimes differ")};native=map[string]any{"image_bytes":n.ImageBytes,"code_and_stub_bytes":n.CodeBytes,"loaded_globals_bytes":n.GlobalsBytes,"static_spill_bytes":n.SpillBytes,"external_fixed_reserved_bytes":2048,"bounce_bank_reserved_bytes":16384}
+   }
+   word:=func(name string)uint16{return binary.LittleEndian.Uint16(get(name,2))};fault:=word("fault")
+   if returned!=int64(tc.Fault)||fault!=tc.Fault{panic(fmt.Sprintf("%s/%s fault%d return%d want%d",tc.Name,engine,fault,returned,tc.Fault))}
+   if word("ring_count")!=0||get("input_open",1)[0]!=0||get("output_open",1)[0]!=0{panic("echo cleanup differs")};for _,b:=range get("ring_live",65){if b!=0{panic("live ring after return")}}
+   entry:=d.FindFile("DELAYED",'D');var actual []byte
+   if fault==0{
+    if entry==nil{panic("missing delayed output")};actual=d.ReadFile(entry);if !bytes.Equal(actual,tc.Expected){panic(fmt.Sprintf("%s/%s differs got%dB want%dB",tc.Name,engine,len(actual),len(tc.Expected)))}
+    for ch:=0;ch<3;ch++{if binary.LittleEndian.Uint16(get("output_lnotes",6)[ch*2:])!=tc.Counts[ch]||binary.LittleEndian.Uint32(get("channel_extents",12)[ch*4:])!=tc.Extents[ch]{panic("count/extent mismatch")}}
+   }else if entry!=nil{panic("failed echo unexpectedly published")}
+   start:=int(base.Data[2048+226])*16+int(base.Data[2048+225]);written:=[]int{};for _,op:=range operations{if op.Op==6{written=append(written,op.Position)}}
+   dataWrites:=len(written);if fault==0{dataWrites-=2;if dataWrites!=(len(actual)+255)/256||written[dataWrites]!=int(base.Data[2048+228])/16||written[dataWrites+1]!=8{panic("publication sequence differs")}}
+   for j:=0;j<dataWrites;j++{if written[j]!=start+j{panic("nonconsecutive data write")};want:=make([]byte,256);at:=j*256;end:=at+256;if end>len(tc.Expected){end=len(tc.Expected)};if at>=end{panic("excess output data")};copy(want,tc.Expected[at:end]);if !bytes.Equal(linearData(&d,start+j),want){panic("partial output prefix or zero padding differs")}}
+   allowed:=make([]bool,len(d.Data));for pos:=start;pos<start+dataWrites;pos++{t:=pos/16;at:=((t%80*2+t/80)*16+pos%16)*256;for j:=0;j<256;j++{allowed[at+j]=true}}
+   if fault==0{slot:=int(base.Data[2048+228])*16;for j:=0;j<16;j++{allowed[slot+j]=true};for _,j:=range []int{225,226,228,229,230}{allowed[2048+j]=true};if binary.LittleEndian.Uint16(d.Data[2048+229:2048+231])!=binary.LittleEndian.Uint16(base.Data[2048+229:2048+231])-uint16(dataWrites)||int(d.Data[2048+226])*16+int(d.Data[2048+225])!=start+dataWrites||d.Data[2048+228]!=base.Data[2048+228]+1{panic("free space accounting differs")}}
+   for at,b:=range d.Data{if b!=base.Data[at]&&!allowed[at]{panic("disk mutation outside admitted output")}}
+   check(d.Flush());check(os.WriteFile(filepath.Join(dir,"delayed.bin"),actual,0644));row:=map[string]any{"case":tc.Name,"engine":engine,"fault":fault,"ring_peak":word("ring_peak"),"wire_sha256":hash(actual),"disk_sha256":hash(d.Data[:]),"operations":operations,"sector_calls":calls,"data_writes":dataWrites,"stack_below_entry":stack,"t_states":cycles};if native!=nil{row["native"]=native};rows=append(rows,row);fmt.Printf("PASS %s/%s fault%d peak%d data%d\n",tc.Name,engine,fault,word("ring_peak"),dataWrites)
+  }
+ }
+ b,e:=json.MarshalIndent(map[string]any{"protocol":"autosiril-echo-trd-musical/v1","cases":rows,"scope":"initial actual Ruby musical matrix; full malformed/IO/CPM/CI pending"},"","  ");check(e);check(os.WriteFile(filepath.Join(*out,"receipt.json"),append(b,'\n'),0644))
+}

@@ -1,11 +1,11 @@
 # Next native milestone: bounded echo with explicit timeline extent
 
-Selected after PR #268 merged as4db828c61 with9 green checks; downloaded CI arrangement artifacts matched fresh evidence. Work branch:spike/autosiril-native-echo. Native echo is not implemented yet; the following simulation is planning evidence only.
+Selected after PR #268 merged as4db828c61 with9 green checks; downloaded CI arrangement artifacts matched fresh evidence. Work branch:spike/autosiril-native-echo. The native TRD echo kernel now passes its first full-song and musical-boundary proofs; the complete CP/M/error/CI milestone remains open. The simulation below is historical planning evidence.
 
 Read actual Ruby autooisee.rb apply_delays780+ and VM engine.nanz apply_echo.
 A host planning simulation over a fixed65-slot array matched actual Ruby in10
-cases, including the actual native Chronos ARRANGE stream. This does not prove
-native execution. The source-bound planning receipt is saved alongside this plan; the temporary scripts remain at /tmp/minz-echo-planning until the reproducible native oracle is built.
+cases, including the actual native Chronos ARRANGE stream. This planning result alone did not prove
+native execution; the independent native measurements are listed below. The source-bound planning receipt is saved alongside this plan; the temporary scripts remain at /tmp/minz-echo-planning until the reproducible native oracle is built.
 
 Observed Chronos:2097 input LNotes →3215 delayed cells (1189/1013/1013),
 all3 channel lengths1353; live pending maximum13. A dense wide-delay fixture
@@ -43,8 +43,8 @@ pass kind3 LNote/definition roles0/1 and add role2 channel extent:u32LE metadata
 Emit all3 final channel extents, including empty/unvoiced trailing silence.
 Validate framing/count/END/EOF and definition fragments. The full Chronos
 candidate would be54880 logical bytes (3215 LNotes +9 definition fragments +3
-extent records); this fits the existing TRD file limit. This is a sizing
-calculation, not a native measurement. Row data remain u16 unless explicitly
+extent records); this fits the existing TRD file limit. That was the planning sizing
+calculation; the first native proof now measures exactly the same54880 bytes. Row data remain u16 unless explicitly
 versioned wider; check overflow, never wrap. CP/M can stream larger files than
 TRD; preserve transport-specific capacity failures rather than shrinking music
 inputs just to make both transports succeed.
@@ -83,3 +83,63 @@ Implementation requirements to settle early:
   mapping guards and restoring-write mutants. Measure code/data/spills/external
   RAM/stack/I/O/T-states. Preserve every integrated gate and user file, and merge
   only through a PR with required CI. API traps are not ROM/hardware/boot proof.
+
+
+## First native checkpoint
+
+The separately linked fourth TRD stage reads and closes the real saved NOTES.N
+companion, reopens ARRANGE.A produced by the third native stage, then writes
+DELAYED.D. Target code computes all extents and echo scheduling. The host only
+transports sectors, executes the original Ruby oracle and verifies bytes/state.
+Fresh typed Crystal export is byte-checked against the admitted scalar fixture
+and actually linked through the closed ABI/effects checks.
+
+Full Chronos agrees byte-for-byte in raw MIR2, final MIR2 and guarded native
+Scorpion Z80:3215 cells (1189/1013/1013),8 definitions/42 expanded bytes,
+3 extents1353,54880 logical bytes/215 sectors. Output wire SHA256:
+`2b115c050b50dfa0b3cececdc84dfb4144eaae6daa37c67600b2df9058093b25`.
+
+| Native measurement | Bytes/count |
+|---|---:|
+|Code plus sector stub|15631B|
+|Loaded globals|905B|
+|Static spills|383B|
+|Linked image|16919B|
+|External fixed workspace reservation|2048B (2035 used)|
+|Bank8 disk bounce reservation|16384B (256 used)|
+|Stack below entry, excluding caller's return word|48B|
+|Sector API calls|404 (187 reads/217 writes)|
+|CPU T-states|407076575|
+
+Image+external reservations total35351B, before stack/runtime reservations.
+The ring uses no bank0 memory. All16 physical banks are profiled: only the
+bank8 first256 bytes may be written through the paged window. Code/stack/fixed
+workspace/configuration/PC/port/mapping/IRQ checks remain enabled. Two input
+open/close lifetimes are observed independently.
+
+The initial17-case/51-execution musical matrix includes maximum65-slot use,
+zero/equal/reversed delays, starts/releases and collision priority, u/w,
+envelopes, sparse gaps, empty notes, unselected late sources, extent>65536,
+last representable data row, and1024 input cells producing3072 output cells.
+A104537B expected output is deliberately retained: TRD rejects after255 data
+sectors, leaves an exact unpublished data prefix, and preserves free-space/
+catalog state. CP/M acceptance of that larger file is still pending.
+
+Reproduce this checkpoint with an existing **complete fresh arrangement gate**
+(the reuse is explicit and its source/Ruby/native artifacts are checked):
+
+```sh
+python3 research/autosiril-native/echo/prove_positive.py \
+  --upstream /tmp/minz-arrange-complete-fresh-v1 \
+  --autosiril /path/to/autosiril --out /tmp/echo-positive
+python3 research/autosiril-native/echo/prove_musical.py \
+  --upstream /tmp/minz-arrange-complete-fresh-v1 \
+  --autosiril /path/to/autosiril --positive /tmp/echo-positive \
+  --out /tmp/echo-musical
+```
+
+Remaining acceptance work: all saved native input chains; malformed input,
+capacity/row overflow, transport and publication failure matrix; CP/M fourth
+image and standalone chain; restoring-write mutants; default full fresh/frozen
+required CI, downloaded-artifact audit and PR merge. This checkpoint is not a
+claim that the full native echo milestone is complete.
