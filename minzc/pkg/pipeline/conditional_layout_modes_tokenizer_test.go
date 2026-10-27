@@ -13,11 +13,15 @@ import (
 )
 
 func TestConditionalLayoutModesTokenizerHeldout(t *testing.T) {
+	// Measured layout enumeration compiles the exact requested configuration
+	// (A1 forces DisableVariantSearch inside MeasureConditionalLayoutModes and
+	// MeasureConditionalLayoutWorkload). The ordinary-baseline recompile below
+	// must request that same configuration or it drifts from the evidence.
 	modes := []Options{}
 	for _, strategy := range []string{"greedy", "pbqp"} {
 		for _, mirGrace := range []bool{false, true} {
 			for _, hirGrace := range []bool{false, true} {
-				modes = append(modes, Options{OptSize: true, ContractOpt: true, ContractStrategy: strategy, AssertMode: "none", UseGrace: mirGrace, UseHIRGrace: hirGrace})
+				modes = append(modes, Options{OptSize: true, ContractOpt: true, ContractStrategy: strategy, AssertMode: "none", UseGrace: mirGrace, UseHIRGrace: hirGrace, DisableVariantSearch: true})
 			}
 		}
 	}
