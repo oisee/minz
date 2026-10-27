@@ -1,0 +1,46 @@
+// Unit-level storage guard, distinct from complete musical stream cases.
+func main(){
+ root:=flag.String("root","..","repository root")
+ source:=flag.String("source","","storage probe source")
+ out:=flag.String("out","","output directory")
+ used:=flag.Int("used",0,"expected final used bytes")
+ fault:=flag.Int("fault",0,"expected capacity status")
+ flag.Parse();check(os.MkdirAll(*out,0755))
+ fixtures:=filepath.Join(*root,"research/autosiril-native/midi/fixtures")
+ buildOne:=func()*hir.Module{h,e:=build(read(*source),read(filepath.Join(fixtures,"music.lanz")),read(filepath.Join(fixtures,"music-manifest.json")),filepath.Join(*root,"stdlib"));check(e);return h}
+ raw:=hir.LowerModule(buildOne());check(mir2.Verify(raw))
+ opts:=pipeline.DefaultOptions();opts.AssertMode="none";opts.DisableVariantSearch=true
+ steps,e:=pipeline.CompileHIRSteps(buildOne(),opts);check(e)
+ rows:=[]map[string]any{}
+ for i,engine:=range []string{"raw-mir2","final-mir2","scorpion-z80"}{
+  dir:=filepath.Join(*out,engine);check(os.MkdirAll(dir,0755))
+  d:=seedEventDisk([]byte{0});d.Path=filepath.Join(dir,"disk.trd");d.Writeback=false
+  var get func(string,int,int)[]byte;var returned int64
+  if i<2{
+   m:=raw;if i==1{m=steps.MIR2Module}
+   v:=mir2.NewVM(m);v.MaxMemory=65536;v.MaxSteps=1000000000
+   v.WriteHeap(v.GlobalAddr("orn_repeat"),1);v.WriteHeap(v.GlobalAddr("orn_repeat")+1,0)
+   pool:=v.GlobalAddr("orn_bytes");v.WriteHeap(pool+4096,0xa5)
+   v.ObserveDataAccess=func(a mir2.VMDataAccess){if a.Op==mir2.OpStore&&a.Addr==pool+4096{panic("storage probe wrote outside pool")}}
+   host:=func(args []mir2.Value)([]mir2.Value,error){
+    if args[0].I!=5||args[1].I!=v.GlobalAddr("input_chunk"){panic("storage unit attempted output/invalid IO")}
+    pos:=int(args[2].I)*16+int(args[3].I)-1
+    for j,b:=range linearData(d,pos){v.WriteHeap(args[1].I+int64(j),b)}
+    return []mir2.Value{{I:1}},nil
+   }
+   v.Hosts["trd_sector"]=host;v.Hosts["@trd_sector"]=host
+   r,e:=v.Call("disk_main",nil);check(e);returned=r[0].I
+   get=func(name string,at,n int)[]byte{return v.ReadHeap(v.GlobalAddr(name)+int64(at),n)}
+  }else{
+   n:=nativeStage(steps.Assembly,steps.MIR2Module,read(filepath.Join(*root,"research/autosiril-native/transports/trd-stub.a80")),d,dir,0,map[string][]byte{"orn_repeat":{1,0}})
+   returned=int64(n.Returned);get=n.Get
+   if n.Calls!=2||len(n.Writes)!=0||n.ArenaWrites!=0{panic("storage unit IO/lease differs")}
+  }
+  if returned!=int64(*fault)||int(binary.LittleEndian.Uint16(get("fault",0,2)))!=*fault||int(binary.LittleEndian.Uint16(get("orn_used",0,2)))!=*used{panic("storage boundary result differs")}
+  if get("orn_bytes",4096,1)[0]!=0xa5{panic("pool trailing canary changed")}
+  if *fault==0{if !bytes.Equal(get("orn_bytes",4094,2),[]byte{0,1}){panic("last two pool bytes differ")}}else if get("orn_bytes",4095,1)[0]!=0{panic("rejected storage append wrote a byte")}
+  rows=append(rows,map[string]any{"engine":engine,"fault":*fault,"used":*used,"trailing_canary":165})
+  fmt.Printf("PASS storage/%s fault%d used%d\n",engine,*fault,*used)
+ }
+ b,e:=json.MarshalIndent(map[string]any{"protocol":"autosiril-arrange-storage-unit/v1","cases":rows,"source_sha256":hash(read(*source)),"scope":"direct actual ornament_find boundary with seeded storage state; not a full musical pipeline fixture"},"","  ");check(e);check(os.WriteFile(filepath.Join(*out,"receipt.json"),append(b,'\n'),0644))
+}

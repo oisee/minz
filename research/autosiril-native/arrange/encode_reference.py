@@ -22,13 +22,16 @@ def encode(ruby):
             records.append(bytes(b))
     definition(0)
     defined = 1
+    cell_index = 0
     for channel, cells in enumerate(ruby['lnotes']):
         for cell in cells:
             n = cell['note']
             # In the canonical m/p/m producer, only p cells can discover
             # nonzero definitions; configured mono ornaments are literal presets.
-            if n['kind'] == 'p' and n['ornament'] >= defined:
-                assert n['ornament'] == defined
+            ident = ruby['discovery_ids'][cell_index] if 'discovery_ids' in ruby else (n['ornament'] if n['kind'] == 'p' else 0)
+            cell_index += 1
+            if ident >= defined:
+                assert ident == defined
                 definition(defined)
                 defined += 1
             b = bytearray(16)

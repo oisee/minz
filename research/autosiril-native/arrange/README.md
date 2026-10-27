@@ -1,10 +1,11 @@
 # Next native milestone: streaming EVENTS.E → LNote/ornaments
 
-Status: **one complete Chronos positive case passes raw/final MIR2 and guarded
-native Scorpion Z80** in `spike/autosiril-native-arrange`. No full
-malformed/resource/IO matrix, native mutation suite, CP/M adaptation or required
-CI integration is claimed yet. PR #267 supplied the preceding TRD stage on main
-cbd7cb220. Its saved native output disk is this program's actual input.
+Status: **TRD matrix passes114 cases ×3 engines**, plus6 exact storage-unit
+boundary executions and4 actual native guard mutants. CP/M adaptation, a default
+full fresh upstream run and required CI/PR integration remain pending. The full
+Chronos mapping and20 independently saved native second-stage disks are covered
+in `spike/autosiril-native-arrange`; this is not yet merged implementation.
+PR #267 supplied the preceding TRD stage on main cbd7cb220.
 
 Source facts checked locally:
 - Original Ruby autooisee.rb: rmod2pmod705+, pmod2lmod728+, apply_delays781+, downmix877+.
@@ -100,7 +101,7 @@ Fresh current Chronos oracle measurements:
 
 Current fresh oracle invocation uses defaults from research/autosiril-vm/oracle.rb: per_beat8, mapping2me,1p,1m, orn_repeat2, max_offset24, delay6/12. Preserve these values when comparing full Chronos (the older explicit verify_chronos script used a different max_offset argument, irrelevant to flatten but relevant to LNotes).
 
-Implemented guards in the initial profile (full N/N+1 validation still pending): at most512 incoming members in one cell (matching the upstream active-handle bound),128 pitch-set entries, orn_repeat1..32,64 interned definitions including ornament0, and4096 pooled ornament bytes. Resource exhaustion must be explicit and tested at N/N+1. The existing2046-note/512-active/1024-events-per-channel producer capacities remain unchanged.
+Validated initial profile: at most512 incoming members in one cell (matching the upstream active-handle bound),128 pitch-set entries, orn_repeat1..32,64 interned definitions including ornament0, and4096 pooled ornament bytes. Resource exhaustion must be explicit and tested at N/N+1. The existing2046-note/512-active/1024-events-per-channel producer capacities remain unchanged.
 
 Acceptance: full current Chronos m/p/m mapping, including envelope channel0 and all poly notes, matches2097 LNote records and8 definitions from original Ruby pmod2lmod on raw/final MIR2 and guarded assembled Z80. A lossless, versioned output schema and bounded chunk sink must preserve every LNote field and ornament definition; no full-song grids or native pointers in serialized data. Exercise malformed stream/order/count/EOF and resource boundaries, measure all RAM/stack/code/I/O separately, retain the upstream gates, and deliver implementation through its own PR and required CI. Echo/mix and final VT2/VTX are subsequent stages.
 
@@ -149,3 +150,51 @@ The reference encoder serializes Ruby snapshots; it supplies no musical policy
 to the target. Target tables and the source Nanz VM algorithm are also hashed.
 The script honestly records upstream reuse; fresh/frozen full arrangement gates
 remain to be built before this implementation's PR.
+
+## TRD matrix and exact storage bounds
+
+`oracle.rb` calls the actual Ruby `pmod2lmod`; a wrapper only observes return
+values of the original `squize_ornament` to record discovery order. The encoder
+therefore handles poly+envelope cells whose final kind is `e`, and definitions
+which a mono/drum cell discovers but does not select. No reference function
+replaces target musical computation.
+
+114 cases × raw/final MIR2/Scorpion Z80 =342 executions. Twenty cases consume
+real saved native second-stage disks. Cases cover duplicate/unsorted chord
+members, upper-median and exact/over clipping, low/high octave-shift boundaries,
+all128 drum pitches with/without envelope, literal samples/ornaments,
+row65535,512/513 group members,1024/1025 channel events,repeat1/32 and invalid0/33,
+64/65 definitions, framing/order/type/count/END/EOF errors, disk geometry/catalog
+boundaries, exhaustion during append and data/catalog/system sector failures.
+All engines must agree on complete wires/disks, counters and I/O traces.
+
+At repeat32, a legitimate127-member chord fills the pool to exactly4096 bytes;
+128 members request4128 and fail before touching the pool. Storage watermarks
+are multiples of repeat, and repeat1 cannot fill4096 under the3072-event stream
+bound. To exercise the exact4096/4097 byte comparison as well, six separately
+labelled storage-unit executions seed `orn_used`4094/4095 and call the actual
+`ornament_find(2)` with normalized candidate[0,1]. They verify status, final
+watermark, last valid bytes and the trailing canary. These seeded states are
+explicit unit probes, not invented full-song fixtures or reduced capacities.
+
+Four native-only mutants must fail with specific guard messages: broken paging
+restore,257-byte bounce copy, pool write followed by restoration after input
+close, and config write followed by restoration. Configuration is installed
+before profiling and must remain immutable during target execution.
+
+```sh
+# Fresh actual Ruby arrangement; explicitly reuses a completed fresh upstream:
+python3 research/autosiril-native/arrange/verify_trd.py \
+  --upstream /tmp/arrange-input --autosiril /path/to/autosiril \
+  --out /tmp/arrange-trd-fresh
+
+# Frozen replay on output of the preceding TRD stage; no Ruby/Crystal needed:
+python3 research/autosiril-native/arrange/replay_trd.py \
+  --upstream /tmp/autosiril-trd-flatten --out /tmp/arrange-trd-frozen
+```
+
+`verify_trd.py --refresh-evidence` saves the source-bound receipt and frozen
+case matrix. It validates/replays the positive full Chronos proof first, calls
+actual Ruby afresh for every arrangement fixture, and preserves full results.
+The upstream MIDI/Crystal run is checked and honestly recorded as reused;
+`verify_trd.py` does not yet replace the future full default fresh gate.

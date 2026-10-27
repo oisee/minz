@@ -43,8 +43,13 @@ def main():
     (out/'arrange-trd.nanz').write_text(source)
     runner = (out/'matrix.go').read_text().split('type trdFlatCase struct')[0]
     runner = once(runner, 'if t==mir2.TyU32{return "u32"};', 'if t==mir2.TyU32{return "u32"};if t==mir2.TyU16{return "u16"};if t==mir2.TyBool{return "bool"};')
-    runner += (HERE/'vm-driver.go.txt').read_text()+native_code()
-    (out/'arrange-vm.go').write_text(runner)
+    (out/'arrange-vm.go').write_text(runner+(HERE/'vm-driver.go.txt').read_text()+native_code())
+    helpers=(HERE.parent/'trd-flatten/matrix-driver.go.txt').read_text()
+    helpers=helpers[helpers.index('func linearData('):helpers.index('func expectedEvents(')]
+    helpers=helpers.replace('"EVENTS  E"','"ARRANGE A"').replace('"NOTES   N"','"EVENTS  E"').replace('seedNoteDisk','seedEventDisk')
+    helpers=helpers.replace('slot+13],27)', 'slot+13],26)')
+    helpers=helpers.replace('free:=51;', 'free:=140;').replace('free=50}', 'free=139}')
+    (out/'arrange-matrix.go').write_text(runner+helpers+(HERE/'matrix-driver.go.txt').read_text()+native_code())
 
 
 if __name__ == '__main__':

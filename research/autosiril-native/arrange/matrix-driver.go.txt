@@ -1,0 +1,134 @@
+type arrangeConfig struct {
+ Repeat uint16 `json:"repeat"`
+ Offset byte `json:"offset"`
+ Modes [3]byte `json:"modes"`
+ Samples [3]byte `json:"samples"`
+ Ornaments [3]uint16 `json:"ornaments"`
+ Envelopes [3]byte `json:"envelopes"`
+}
+func(c arrangeConfig) bytes()map[string][]byte{
+ repeat:=make([]byte,2);binary.LittleEndian.PutUint16(repeat,c.Repeat)
+ ornaments:=make([]byte,6);for i,v:=range c.Ornaments{binary.LittleEndian.PutUint16(ornaments[2*i:],v)}
+ return map[string][]byte{"orn_repeat":repeat,"max_offset":{c.Offset},"channel_modes":c.Modes[:],"config_samples":c.Samples[:],"config_ornaments":ornaments,"config_envelopes":c.Envelopes[:]}
+}
+type arrangeCase struct {
+ Name string `json:"name"`
+ Config arrangeConfig `json:"config"`
+ Wire []byte `json:"wire"`
+ Expected []byte `json:"expected"`
+ Fault uint16 `json:"fault"`
+ LNotes *uint16 `json:"lnote_count,omitempty"`
+ Ornaments *uint16 `json:"ornament_count,omitempty"`
+ OrnBytes *uint16 `json:"ornament_bytes,omitempty"`
+ Disk string `json:"disk,omitempty"`
+ Control string `json:"disk_control,omitempty"`
+ FailCall int `json:"fail_call,omitempty"`
+ Published bool `json:"published,omitempty"`
+ DiskError *uint16 `json:"disk_error,omitempty"`
+ DataWrites *int `json:"data_writes,omitempty"`
+}
+func main(){
+ root:=flag.String("root","..","repository root")
+ source:=flag.String("source","","composed target source")
+ input:=flag.String("input","","independent arrangement cases")
+ upstream:=flag.String("upstream","","saved native second-stage disk root")
+ out:=flag.String("out","","output directory")
+ stub:=flag.String("stub","","fixed paging/sector stub")
+ engineChoice:=flag.String("engine","","optional engine selection for native mutants")
+ flag.Parse()
+ if *stub==""{*stub=filepath.Join(*root,"research/autosiril-native/transports/trd-stub.a80")}
+ check(os.MkdirAll(*out,0755))
+ fixtures:=filepath.Join(*root,"research/autosiril-native/midi/fixtures")
+ buildOne:=func()*hir.Module{h,e:=build(read(*source),read(filepath.Join(fixtures,"music.lanz")),read(filepath.Join(fixtures,"music-manifest.json")),filepath.Join(*root,"stdlib"));check(e);return h}
+ raw:=hir.LowerModule(buildOne());check(mir2.Verify(raw))
+ opts:=pipeline.DefaultOptions();opts.AssertMode="none";opts.DisableVariantSearch=true
+ steps,e:=pipeline.CompileHIRSteps(buildOne(),opts);check(e)
+ for name,b:=range map[string][]byte{"raw.mir":[]byte(raw.Dump()),"final.mir":[]byte(steps.MIR2Module.Dump()),"unlinked.a80":[]byte(steps.Assembly)}{check(os.WriteFile(filepath.Join(*out,name),b,0644))}
+ var matrix struct{Cases []arrangeCase `json:"cases"`};check(json.Unmarshal(read(*input),&matrix));if len(matrix.Cases)==0{panic("empty matrix")}
+ rows:=[]map[string]any{}
+ for _,tc:=range matrix.Cases{
+  var base *formats.TRDFile
+  if tc.Disk!=""{base,e=formats.LoadTRD(filepath.Join(*upstream,tc.Disk));check(e);entry:=base.FindFile("EVENTS",'E');if entry==nil||!bytes.Equal(base.ReadFile(entry),tc.Wire){panic("saved native input differs from reference wire")}}else{base=seedEventDisk(tc.Wire)}
+  configureFlatDisk(base,tc.Control)
+  cfg:=tc.Config.bytes()
+  for i,engine:=range []string{"raw-mir2","final-mir2","scorpion-z80"}{
+   if *engineChoice!=""&&*engineChoice!=engine{continue}
+   dir:=filepath.Join(*out,tc.Name,engine);check(os.MkdirAll(dir,0755))
+   d:=*base;d.Path=filepath.Join(dir,"disk.trd");d.Writeback=false
+   var get func(string,int)[]byte
+   var returned int64
+   calls,cycles,stack,poolWrites:=0,0,0,0
+   operations:=[]sectorOperation{}
+   var native map[string]any
+   if i<2{
+    m:=raw;if i==1{m=steps.MIR2Module}
+    v:=mir2.NewVM(m);v.MaxMemory=65536;v.MaxSteps=1000000000
+    for name,b:=range cfg{for j,value:=range b{v.WriteHeap(v.GlobalAddr(name)+int64(j),value)}}
+    get=func(name string,n int)[]byte{return v.ReadHeap(v.GlobalAddr(name),n)}
+    pool,inputOpen:=v.GlobalAddr("orn_bytes"),v.GlobalAddr("input_open")
+    opened,closed:=false,false
+    v.ObserveDataAccess=func(a mir2.VMDataAccess){
+     if a.Op!=mir2.OpStore{return}
+     if a.Addr==inputOpen{if a.Value==1{opened=true};if opened&&a.Value==0{closed=true}}
+     if closed&&a.Addr>=pool&&a.Addr<pool+4096{poolWrites++}
+     for name,b:=range cfg{start:=v.GlobalAddr(name);if a.Addr>=start&&a.Addr<start+int64(len(b)){panic("VM mutated arrangement configuration")}}
+    }
+    host:=func(args []mir2.Value)([]mir2.Value,error){
+     calls++;op,address,track,sector:=byte(args[0].I),args[1].I,int(args[2].I),int(args[3].I)
+     if (op!=5&&op!=6)||address!=v.GlobalAddr("input_chunk")||track<0||track>=160||sector<1||sector>16{panic("invalid sector request")}
+     success:=calls!=tc.FailCall;pos:=track*16+sector-1
+     operations=append(operations,sectorOperation{Call:calls,Op:op,Position:pos,Success:success})
+     if !success{return []mir2.Value{{I:0}},nil}
+     if op==5{for j,b:=range linearData(&d,pos){v.WriteHeap(address+int64(j),b)}}else{putLinearData(&d,pos,v.ReadHeap(address,256))}
+     return []mir2.Value{{I:1}},nil
+    }
+    v.Hosts["trd_sector"]=host;v.Hosts["@trd_sector"]=host
+    r,e:=v.Call("disk_main",nil);check(e);if len(r)!=1{panic("invalid VM return")};returned=r[0].I
+   }else{
+    n:=nativeStage(steps.Assembly,steps.MIR2Module,read(*stub),&d,dir,tc.FailCall,cfg)
+    get=func(name string,count int)[]byte{return n.Get(name,0,count)}
+    returned=int64(n.Returned);calls=n.Calls;cycles=n.Cycles;stack=n.Stack;poolWrites=n.ArenaWrites;operations=n.Operations
+    native=map[string]any{"image_bytes":n.ImageBytes,"code_and_stub_bytes":n.CodeBytes,"loaded_globals_bytes":n.GlobalsBytes,"static_spill_bytes":n.SpillBytes,"external_fixed_workspace_reserved_bytes":1536,"external_ornament_pool_bytes":4096,"bounce_bank_reserved_bytes":16384}
+   }
+   word:=func(name string)uint16{return binary.LittleEndian.Uint16(get(name,2))}
+   if returned!=int64(tc.Fault)||word("fault")!=tc.Fault{panic(fmt.Sprintf("%s/%s fault%d return%d want%d",tc.Name,engine,word("fault"),returned,tc.Fault))}
+   if tc.DiskError!=nil&&word("disk_error")!=*tc.DiskError{panic(fmt.Sprintf("%s/%s disk error%d want%d",tc.Name,engine,word("disk_error"),*tc.DiskError))}
+   if word("orn_count")>64||word("orn_used")>4096||word("group_members")>512||binary.LittleEndian.Uint32(get("input_events",4))>3072{panic("arrangement capacity escaped")}
+   if get("group_open",1)[0]!=0||get("input_open",1)[0]!=0||get("output_open",1)[0]!=0||poolWrites!=0{panic("arrangement stream/pool lease not closed")}
+   for name,b:=range cfg{if !bytes.Equal(get(name,len(b)),b){panic("configuration changed")}}
+   for _,item:=range []struct{Name string;Want *uint16}{{"lnote_count",tc.LNotes},{"orn_count",tc.Ornaments},{"orn_used",tc.OrnBytes}}{if item.Want!=nil&&word(item.Name)!=*item.Want{panic(fmt.Sprintf("%s/%s %s=%d want%d",tc.Name,engine,item.Name,word(item.Name),*item.Want))}}
+   failed:=0;written:=[]int{};data:=[]int{};metadata:=[]int{}
+   for _,op:=range operations{if !op.Success{failed++;if op.Call!=tc.FailCall{panic("unexpected sector failure")}}else if op.Op==6{written=append(written,op.Position);if op.Position<16{metadata=append(metadata,op.Position)}else{data=append(data,op.Position)}}}
+   if (tc.FailCall==0&&failed!=0)||(tc.FailCall!=0&&failed!=1){panic("sector failure not reached exactly once")}
+   entry:=d.FindFile("ARRANGE",'A');published:=entry!=nil
+   if published!=(tc.Fault==0||tc.Published){panic(fmt.Sprintf("%s/%s publication differs",tc.Name,engine))}
+   actual:=[]byte{}
+   start:=int(base.Data[2048+226])*16+int(base.Data[2048+225])
+   if published&&tc.Control!="existing_output"{
+    actual=d.ReadFile(entry)
+    if !bytes.Equal(actual,tc.Expected){at:=0;for at<len(actual)&&at<len(tc.Expected)&&actual[at]==tc.Expected[at]{at++};panic(fmt.Sprintf("%s/%s output differs at%d got%dB want%dB",tc.Name,engine,at,len(actual),len(tc.Expected)))}
+    if int(entry.StartTrack)*16+int(entry.StartSec)!=start||int(entry.Sectors)!=(len(actual)+255)/256{panic("published extent differs")}
+    if tail:=len(actual)%256;tail!=0{for _,b:=range linearData(&d,start+int(entry.Sectors)-1)[tail:]{if b!=0{panic("output padding differs")}}}
+   }
+   if tc.DataWrites!=nil&&len(data)!=*tc.DataWrites{panic(fmt.Sprintf("%s/%s writes%d want%d",tc.Name,engine,len(data),*tc.DataWrites))}
+   for j,pos:=range data{if pos!=start+j||pos>=2560||j>=int(binary.LittleEndian.Uint16(base.Data[2048+229:2048+231])){panic("append escaped free tail")}}
+   if tc.Fault==0{
+    if len(data)!=(len(actual)+255)/256||len(metadata)!=2||metadata[0]!=int(base.Data[2048+228])/16||metadata[1]!=8{panic("publication write sequence differs")}
+    if int(d.Data[2048+226])*16+int(d.Data[2048+225])!=start+len(data)||binary.LittleEndian.Uint16(d.Data[2048+229:2048+231])!=binary.LittleEndian.Uint16(base.Data[2048+229:2048+231])-uint16(len(data))||d.Data[2048+228]!=base.Data[2048+228]+1{panic("free-space accounting differs")}
+   }else if tc.FailCall==0&&len(metadata)!=0{panic("failed stage published metadata")}
+   if (!bytes.Equal(d.Data[2048:2304],base.Data[2048:2304]))!=(tc.Fault==0){panic("system metadata changed despite failure")}
+   allowed:=make([]bool,len(d.Data))
+   for _,pos:=range data{at:=linearOffset(pos);for j:=0;j<256;j++{allowed[at+j]=true}}
+   if published&&tc.Control!="existing_output"{slot:=int(base.Data[2048+228])*16;for j:=0;j<16;j++{allowed[slot+j]=true}}
+   if tc.Fault==0{for _,j:=range []int{225,226,228,229,230}{allowed[2048+j]=true}}
+   for j,b:=range d.Data{if b!=base.Data[j]&&!allowed[j]{panic("disk changed outside output extent/metadata")}}
+   check(d.Flush());reloaded,e:=formats.LoadTRD(d.Path);check(e);if reloaded.Data!=d.Data{panic("disk flush/reload differs")}
+   check(os.WriteFile(filepath.Join(dir,"arrange.bin"),actual,0644))
+   row:=map[string]any{"case":tc.Name,"engine":engine,"fault":word("fault"),"disk_error":word("disk_error"),"lnote_count":word("lnote_count"),"ornament_count":word("orn_count"),"ornament_bytes":word("orn_used"),"pool_writes_after_input_close":poolWrites,"published":published,"wire_bytes":len(actual),"wire_sha256":hash(actual),"input_disk_sha256":hash(base.Data[:]),"disk_sha256":hash(d.Data[:]),"operations":operations,"sector_calls":calls,"data_writes":len(data),"t_states":cycles,"stack_below_entry":stack}
+   if native!=nil{row["native"]=native};rows=append(rows,row)
+   fmt.Printf("PASS %s/%s fault%d LNotes%d ornaments%d/%dB data%d calls%d\n",tc.Name,engine,word("fault"),word("lnote_count"),word("orn_count"),word("orn_used"),len(data),calls)
+  }
+ }
+ b,e:=json.MarshalIndent(map[string]any{"protocol":"autosiril-arrange-matrix/v1","source_sha256":hash(read(*source)),"matrix_sha256":hash(read(*input)),"target_executions":len(rows),"cases":rows,"scope":"bounded target arrangement through Scorpion API traps; not physical ROM/hardware"},"","  ");check(e)
+ check(os.WriteFile(filepath.Join(*out,"receipt.json"),append(b,'\n'),0644))
+}

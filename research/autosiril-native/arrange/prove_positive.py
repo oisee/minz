@@ -17,9 +17,9 @@ def sha(p):
 
 
 def sources():
-    paths=list(HERE.glob('*.py'))+list(HERE.glob('*.nanz'))+list(HERE.glob('*.go.txt'))+[HERE/'format.md']
+    paths=list(HERE.glob('*.py'))+list(HERE.glob('*.nanz'))+list(HERE.glob('*.rb'))+list(HERE.glob('*.go.txt'))+[HERE/'format.md']
     for directory,names in {
-        'trd-flatten':['compose.py','native.py','append.nanz'],
+        'trd-flatten':['compose.py','native.py','append.nanz','matrix-driver.go.txt'],
         'stream-flatten':['compose.py','common.nanz'],
         'file-flatten':['compose.py','cpm.nanz','driver.go.txt'],
         'transports':['trd.nanz','trd-driver.go.txt','trd-stub.a80','cpm.nanz','pair-file.nanz','directory_codes.py'],
