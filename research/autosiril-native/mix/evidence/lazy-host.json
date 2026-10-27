@@ -1,0 +1,1059 @@
+{
+  "protocol": "autosiril-mix-lazy-host/v1",
+  "scope": "actual Ruby results versus composed host fold iterators, no target/memory-layout proof",
+  "cases": [
+    {
+      "name": "native_chronos",
+      "fold_units": 0,
+      "fold_peaks": [],
+      "pending_slot_bound": 0,
+      "earlier_head_bound": 0
+    },
+    {
+      "name": "chain_empty",
+      "fold_units": 0,
+      "fold_peaks": [],
+      "pending_slot_bound": 0,
+      "earlier_head_bound": 0
+    },
+    {
+      "name": "chain_single",
+      "fold_units": 0,
+      "fold_peaks": [],
+      "pending_slot_bound": 0,
+      "earlier_head_bound": 0
+    },
+    {
+      "name": "chain_duplicate_fifo",
+      "fold_units": 0,
+      "fold_peaks": [],
+      "pending_slot_bound": 0,
+      "earlier_head_bound": 0
+    },
+    {
+      "name": "chain_channel_isolation",
+      "fold_units": 0,
+      "fold_peaks": [],
+      "pending_slot_bound": 0,
+      "earlier_head_bound": 0
+    },
+    {
+      "name": "chain_compaction_preserves_fifo",
+      "fold_units": 0,
+      "fold_peaks": [],
+      "pending_slot_bound": 0,
+      "earlier_head_bound": 0
+    },
+    {
+      "name": "chain_velocity_zero_and_unknown_off",
+      "fold_units": 0,
+      "fold_peaks": [],
+      "pending_slot_bound": 0,
+      "earlier_head_bound": 0
+    },
+    {
+      "name": "chain_running_status",
+      "fold_units": 0,
+      "fold_peaks": [],
+      "pending_slot_bound": 0,
+      "earlier_head_bound": 0
+    },
+    {
+      "name": "chain_source_ids_skip_empty_tracks",
+      "fold_units": 0,
+      "fold_peaks": [],
+      "pending_slot_bound": 0,
+      "earlier_head_bound": 0
+    },
+    {
+      "name": "chain_unmatched_eot_inherited_delta",
+      "fold_units": 0,
+      "fold_peaks": [],
+      "pending_slot_bound": 0,
+      "earlier_head_bound": 0
+    },
+    {
+      "name": "chain_round_half",
+      "fold_units": 0,
+      "fold_peaks": [],
+      "pending_slot_bound": 0,
+      "earlier_head_bound": 0
+    },
+    {
+      "name": "chain_one_row_per_beat",
+      "fold_units": 0,
+      "fold_peaks": [],
+      "pending_slot_bound": 0,
+      "earlier_head_bound": 0
+    },
+    {
+      "name": "chain_header_extra_and_short_messages",
+      "fold_units": 0,
+      "fold_peaks": [],
+      "pending_slot_bound": 0,
+      "earlier_head_bound": 0
+    },
+    {
+      "name": "chain_payload_exact_512",
+      "fold_units": 0,
+      "fold_peaks": [],
+      "pending_slot_bound": 0,
+      "earlier_head_bound": 0
+    },
+    {
+      "name": "chain_active_exact_512",
+      "fold_units": 0,
+      "fold_peaks": [],
+      "pending_slot_bound": 0,
+      "earlier_head_bound": 0
+    },
+    {
+      "name": "chain_source_ids_exact_64",
+      "fold_units": 0,
+      "fold_peaks": [],
+      "pending_slot_bound": 0,
+      "earlier_head_bound": 0
+    },
+    {
+      "name": "chain_smf_exact_physical_record",
+      "fold_units": 0,
+      "fold_peaks": [],
+      "pending_slot_bound": 0,
+      "earlier_head_bound": 0
+    },
+    {
+      "name": "chain_wire_end_exact_physical_record",
+      "fold_units": 0,
+      "fold_peaks": [],
+      "pending_slot_bound": 0,
+      "earlier_head_bound": 0
+    },
+    {
+      "name": "chain_padding_value_inside_midi",
+      "fold_units": 0,
+      "fold_peaks": [],
+      "pending_slot_bound": 0,
+      "earlier_head_bound": 0
+    },
+    {
+      "name": "chronos_201---",
+      "fold_units": 1,
+      "fold_peaks": [
+        4
+      ],
+      "pending_slot_bound": 4,
+      "earlier_head_bound": 1
+    },
+    {
+      "name": "chronos_201+++",
+      "fold_units": 1,
+      "fold_peaks": [
+        4
+      ],
+      "pending_slot_bound": 4,
+      "earlier_head_bound": 1
+    },
+    {
+      "name": "chronos_300---",
+      "fold_units": 2,
+      "fold_peaks": [
+        4,
+        4
+      ],
+      "pending_slot_bound": 8,
+      "earlier_head_bound": 2
+    },
+    {
+      "name": "chronos_300+++",
+      "fold_units": 2,
+      "fold_peaks": [
+        4,
+        4
+      ],
+      "pending_slot_bound": 8,
+      "earlier_head_bound": 2
+    },
+    {
+      "name": "chronos_030---",
+      "fold_units": 2,
+      "fold_peaks": [
+        4,
+        4
+      ],
+      "pending_slot_bound": 8,
+      "earlier_head_bound": 2
+    },
+    {
+      "name": "chronos_030+++",
+      "fold_units": 2,
+      "fold_peaks": [
+        4,
+        4
+      ],
+      "pending_slot_bound": 8,
+      "earlier_head_bound": 2
+    },
+    {
+      "name": "drop_four_occupied",
+      "fold_units": 1,
+      "fold_peaks": [
+        4
+      ],
+      "pending_slot_bound": 4,
+      "earlier_head_bound": 1
+    },
+    {
+      "name": "spill_ignores_destination_lower_volume",
+      "fold_units": 1,
+      "fold_peaks": [
+        4
+      ],
+      "pending_slot_bound": 4,
+      "earlier_head_bound": 1
+    },
+    {
+      "name": "future_incoming_start_has_no_echo_priority",
+      "fold_units": 1,
+      "fold_peaks": [
+        2
+      ],
+      "pending_slot_bound": 4,
+      "earlier_head_bound": 1
+    },
+    {
+      "name": "release_destination_0",
+      "fold_units": 1,
+      "fold_peaks": [
+        4
+      ],
+      "pending_slot_bound": 4,
+      "earlier_head_bound": 1
+    },
+    {
+      "name": "release_destination_1",
+      "fold_units": 1,
+      "fold_peaks": [
+        4
+      ],
+      "pending_slot_bound": 4,
+      "earlier_head_bound": 1
+    },
+    {
+      "name": "release_destination_2",
+      "fold_units": 1,
+      "fold_peaks": [
+        4
+      ],
+      "pending_slot_bound": 4,
+      "earlier_head_bound": 1
+    },
+    {
+      "name": "release_destination_3",
+      "fold_units": 1,
+      "fold_peaks": [
+        4
+      ],
+      "pending_slot_bound": 4,
+      "earlier_head_bound": 1
+    },
+    {
+      "name": "equal_volume_keeps_earlier",
+      "fold_units": 1,
+      "fold_peaks": [
+        1
+      ],
+      "pending_slot_bound": 4,
+      "earlier_head_bound": 1
+    },
+    {
+      "name": "higher_volume_replaces",
+      "fold_units": 1,
+      "fold_peaks": [
+        1
+      ],
+      "pending_slot_bound": 4,
+      "earlier_head_bound": 1
+    },
+    {
+      "name": "release_clone_retains_fields",
+      "fold_units": 1,
+      "fold_peaks": [
+        2
+      ],
+      "pending_slot_bound": 4,
+      "earlier_head_bound": 1
+    },
+    {
+      "name": "sparse_long_gaps",
+      "fold_units": 1,
+      "fold_peaks": [
+        2
+      ],
+      "pending_slot_bound": 4,
+      "earlier_head_bound": 1
+    },
+    {
+      "name": "last_row_spill_overflow",
+      "fold_units": 1,
+      "fold_peaks": [
+        2
+      ],
+      "pending_slot_bound": 4,
+      "earlier_head_bound": 1
+    },
+    {
+      "name": "trailing_silence_is_trimmed",
+      "fold_units": 1,
+      "fold_peaks": [
+        0
+      ],
+      "pending_slot_bound": 4,
+      "earlier_head_bound": 1
+    },
+    {
+      "name": "empty_is_zero_extent",
+      "fold_units": 0,
+      "fold_peaks": [],
+      "pending_slot_bound": 0,
+      "earlier_head_bound": 0
+    },
+    {
+      "name": "groups_003+++",
+      "fold_units": 2,
+      "fold_peaks": [
+        2,
+        3
+      ],
+      "pending_slot_bound": 8,
+      "earlier_head_bound": 2
+    },
+    {
+      "name": "groups_003++-",
+      "fold_units": 2,
+      "fold_peaks": [
+        2,
+        4
+      ],
+      "pending_slot_bound": 8,
+      "earlier_head_bound": 2
+    },
+    {
+      "name": "groups_003+-+",
+      "fold_units": 2,
+      "fold_peaks": [
+        3,
+        3
+      ],
+      "pending_slot_bound": 8,
+      "earlier_head_bound": 2
+    },
+    {
+      "name": "groups_003+--",
+      "fold_units": 2,
+      "fold_peaks": [
+        3,
+        4
+      ],
+      "pending_slot_bound": 8,
+      "earlier_head_bound": 2
+    },
+    {
+      "name": "groups_003-++",
+      "fold_units": 2,
+      "fold_peaks": [
+        2,
+        3
+      ],
+      "pending_slot_bound": 8,
+      "earlier_head_bound": 2
+    },
+    {
+      "name": "groups_003-+-",
+      "fold_units": 2,
+      "fold_peaks": [
+        2,
+        4
+      ],
+      "pending_slot_bound": 8,
+      "earlier_head_bound": 2
+    },
+    {
+      "name": "groups_003--+",
+      "fold_units": 2,
+      "fold_peaks": [
+        3,
+        3
+      ],
+      "pending_slot_bound": 8,
+      "earlier_head_bound": 2
+    },
+    {
+      "name": "groups_003---",
+      "fold_units": 2,
+      "fold_peaks": [
+        3,
+        4
+      ],
+      "pending_slot_bound": 8,
+      "earlier_head_bound": 2
+    },
+    {
+      "name": "groups_012+++",
+      "fold_units": 1,
+      "fold_peaks": [
+        3
+      ],
+      "pending_slot_bound": 4,
+      "earlier_head_bound": 1
+    },
+    {
+      "name": "groups_012++-",
+      "fold_units": 1,
+      "fold_peaks": [
+        3
+      ],
+      "pending_slot_bound": 4,
+      "earlier_head_bound": 1
+    },
+    {
+      "name": "groups_012+-+",
+      "fold_units": 1,
+      "fold_peaks": [
+        3
+      ],
+      "pending_slot_bound": 4,
+      "earlier_head_bound": 1
+    },
+    {
+      "name": "groups_012+--",
+      "fold_units": 1,
+      "fold_peaks": [
+        3
+      ],
+      "pending_slot_bound": 4,
+      "earlier_head_bound": 1
+    },
+    {
+      "name": "groups_012-++",
+      "fold_units": 1,
+      "fold_peaks": [
+        3
+      ],
+      "pending_slot_bound": 4,
+      "earlier_head_bound": 1
+    },
+    {
+      "name": "groups_012-+-",
+      "fold_units": 1,
+      "fold_peaks": [
+        3
+      ],
+      "pending_slot_bound": 4,
+      "earlier_head_bound": 1
+    },
+    {
+      "name": "groups_012--+",
+      "fold_units": 1,
+      "fold_peaks": [
+        3
+      ],
+      "pending_slot_bound": 4,
+      "earlier_head_bound": 1
+    },
+    {
+      "name": "groups_012---",
+      "fold_units": 1,
+      "fold_peaks": [
+        3
+      ],
+      "pending_slot_bound": 4,
+      "earlier_head_bound": 1
+    },
+    {
+      "name": "groups_021+++",
+      "fold_units": 1,
+      "fold_peaks": [
+        2
+      ],
+      "pending_slot_bound": 4,
+      "earlier_head_bound": 1
+    },
+    {
+      "name": "groups_021++-",
+      "fold_units": 1,
+      "fold_peaks": [
+        2
+      ],
+      "pending_slot_bound": 4,
+      "earlier_head_bound": 1
+    },
+    {
+      "name": "groups_021+-+",
+      "fold_units": 1,
+      "fold_peaks": [
+        3
+      ],
+      "pending_slot_bound": 4,
+      "earlier_head_bound": 1
+    },
+    {
+      "name": "groups_021+--",
+      "fold_units": 1,
+      "fold_peaks": [
+        3
+      ],
+      "pending_slot_bound": 4,
+      "earlier_head_bound": 1
+    },
+    {
+      "name": "groups_021-++",
+      "fold_units": 1,
+      "fold_peaks": [
+        2
+      ],
+      "pending_slot_bound": 4,
+      "earlier_head_bound": 1
+    },
+    {
+      "name": "groups_021-+-",
+      "fold_units": 1,
+      "fold_peaks": [
+        2
+      ],
+      "pending_slot_bound": 4,
+      "earlier_head_bound": 1
+    },
+    {
+      "name": "groups_021--+",
+      "fold_units": 1,
+      "fold_peaks": [
+        3
+      ],
+      "pending_slot_bound": 4,
+      "earlier_head_bound": 1
+    },
+    {
+      "name": "groups_021---",
+      "fold_units": 1,
+      "fold_peaks": [
+        3
+      ],
+      "pending_slot_bound": 4,
+      "earlier_head_bound": 1
+    },
+    {
+      "name": "groups_030+++",
+      "fold_units": 2,
+      "fold_peaks": [
+        2,
+        3
+      ],
+      "pending_slot_bound": 8,
+      "earlier_head_bound": 2
+    },
+    {
+      "name": "groups_030++-",
+      "fold_units": 2,
+      "fold_peaks": [
+        2,
+        4
+      ],
+      "pending_slot_bound": 8,
+      "earlier_head_bound": 2
+    },
+    {
+      "name": "groups_030+-+",
+      "fold_units": 2,
+      "fold_peaks": [
+        3,
+        3
+      ],
+      "pending_slot_bound": 8,
+      "earlier_head_bound": 2
+    },
+    {
+      "name": "groups_030+--",
+      "fold_units": 2,
+      "fold_peaks": [
+        3,
+        4
+      ],
+      "pending_slot_bound": 8,
+      "earlier_head_bound": 2
+    },
+    {
+      "name": "groups_030-++",
+      "fold_units": 2,
+      "fold_peaks": [
+        2,
+        3
+      ],
+      "pending_slot_bound": 8,
+      "earlier_head_bound": 2
+    },
+    {
+      "name": "groups_030-+-",
+      "fold_units": 2,
+      "fold_peaks": [
+        2,
+        4
+      ],
+      "pending_slot_bound": 8,
+      "earlier_head_bound": 2
+    },
+    {
+      "name": "groups_030--+",
+      "fold_units": 2,
+      "fold_peaks": [
+        3,
+        3
+      ],
+      "pending_slot_bound": 8,
+      "earlier_head_bound": 2
+    },
+    {
+      "name": "groups_030---",
+      "fold_units": 2,
+      "fold_peaks": [
+        3,
+        4
+      ],
+      "pending_slot_bound": 8,
+      "earlier_head_bound": 2
+    },
+    {
+      "name": "groups_102+++",
+      "fold_units": 1,
+      "fold_peaks": [
+        3
+      ],
+      "pending_slot_bound": 4,
+      "earlier_head_bound": 1
+    },
+    {
+      "name": "groups_102++-",
+      "fold_units": 1,
+      "fold_peaks": [
+        3
+      ],
+      "pending_slot_bound": 4,
+      "earlier_head_bound": 1
+    },
+    {
+      "name": "groups_102+-+",
+      "fold_units": 1,
+      "fold_peaks": [
+        3
+      ],
+      "pending_slot_bound": 4,
+      "earlier_head_bound": 1
+    },
+    {
+      "name": "groups_102+--",
+      "fold_units": 1,
+      "fold_peaks": [
+        3
+      ],
+      "pending_slot_bound": 4,
+      "earlier_head_bound": 1
+    },
+    {
+      "name": "groups_102-++",
+      "fold_units": 1,
+      "fold_peaks": [
+        3
+      ],
+      "pending_slot_bound": 4,
+      "earlier_head_bound": 1
+    },
+    {
+      "name": "groups_102-+-",
+      "fold_units": 1,
+      "fold_peaks": [
+        3
+      ],
+      "pending_slot_bound": 4,
+      "earlier_head_bound": 1
+    },
+    {
+      "name": "groups_102--+",
+      "fold_units": 1,
+      "fold_peaks": [
+        3
+      ],
+      "pending_slot_bound": 4,
+      "earlier_head_bound": 1
+    },
+    {
+      "name": "groups_102---",
+      "fold_units": 1,
+      "fold_peaks": [
+        3
+      ],
+      "pending_slot_bound": 4,
+      "earlier_head_bound": 1
+    },
+    {
+      "name": "groups_111+++",
+      "fold_units": 0,
+      "fold_peaks": [],
+      "pending_slot_bound": 0,
+      "earlier_head_bound": 0
+    },
+    {
+      "name": "groups_111++-",
+      "fold_units": 0,
+      "fold_peaks": [],
+      "pending_slot_bound": 0,
+      "earlier_head_bound": 0
+    },
+    {
+      "name": "groups_111+-+",
+      "fold_units": 0,
+      "fold_peaks": [],
+      "pending_slot_bound": 0,
+      "earlier_head_bound": 0
+    },
+    {
+      "name": "groups_111+--",
+      "fold_units": 0,
+      "fold_peaks": [],
+      "pending_slot_bound": 0,
+      "earlier_head_bound": 0
+    },
+    {
+      "name": "groups_111-++",
+      "fold_units": 0,
+      "fold_peaks": [],
+      "pending_slot_bound": 0,
+      "earlier_head_bound": 0
+    },
+    {
+      "name": "groups_111-+-",
+      "fold_units": 0,
+      "fold_peaks": [],
+      "pending_slot_bound": 0,
+      "earlier_head_bound": 0
+    },
+    {
+      "name": "groups_111--+",
+      "fold_units": 0,
+      "fold_peaks": [],
+      "pending_slot_bound": 0,
+      "earlier_head_bound": 0
+    },
+    {
+      "name": "groups_111---",
+      "fold_units": 0,
+      "fold_peaks": [],
+      "pending_slot_bound": 0,
+      "earlier_head_bound": 0
+    },
+    {
+      "name": "groups_120+++",
+      "fold_units": 1,
+      "fold_peaks": [
+        3
+      ],
+      "pending_slot_bound": 4,
+      "earlier_head_bound": 1
+    },
+    {
+      "name": "groups_120++-",
+      "fold_units": 1,
+      "fold_peaks": [
+        3
+      ],
+      "pending_slot_bound": 4,
+      "earlier_head_bound": 1
+    },
+    {
+      "name": "groups_120+-+",
+      "fold_units": 1,
+      "fold_peaks": [
+        3
+      ],
+      "pending_slot_bound": 4,
+      "earlier_head_bound": 1
+    },
+    {
+      "name": "groups_120+--",
+      "fold_units": 1,
+      "fold_peaks": [
+        3
+      ],
+      "pending_slot_bound": 4,
+      "earlier_head_bound": 1
+    },
+    {
+      "name": "groups_120-++",
+      "fold_units": 1,
+      "fold_peaks": [
+        3
+      ],
+      "pending_slot_bound": 4,
+      "earlier_head_bound": 1
+    },
+    {
+      "name": "groups_120-+-",
+      "fold_units": 1,
+      "fold_peaks": [
+        3
+      ],
+      "pending_slot_bound": 4,
+      "earlier_head_bound": 1
+    },
+    {
+      "name": "groups_120--+",
+      "fold_units": 1,
+      "fold_peaks": [
+        3
+      ],
+      "pending_slot_bound": 4,
+      "earlier_head_bound": 1
+    },
+    {
+      "name": "groups_120---",
+      "fold_units": 1,
+      "fold_peaks": [
+        3
+      ],
+      "pending_slot_bound": 4,
+      "earlier_head_bound": 1
+    },
+    {
+      "name": "groups_201+++",
+      "fold_units": 1,
+      "fold_peaks": [
+        2
+      ],
+      "pending_slot_bound": 4,
+      "earlier_head_bound": 1
+    },
+    {
+      "name": "groups_201++-",
+      "fold_units": 1,
+      "fold_peaks": [
+        2
+      ],
+      "pending_slot_bound": 4,
+      "earlier_head_bound": 1
+    },
+    {
+      "name": "groups_201+-+",
+      "fold_units": 1,
+      "fold_peaks": [
+        3
+      ],
+      "pending_slot_bound": 4,
+      "earlier_head_bound": 1
+    },
+    {
+      "name": "groups_201+--",
+      "fold_units": 1,
+      "fold_peaks": [
+        3
+      ],
+      "pending_slot_bound": 4,
+      "earlier_head_bound": 1
+    },
+    {
+      "name": "groups_201-++",
+      "fold_units": 1,
+      "fold_peaks": [
+        2
+      ],
+      "pending_slot_bound": 4,
+      "earlier_head_bound": 1
+    },
+    {
+      "name": "groups_201-+-",
+      "fold_units": 1,
+      "fold_peaks": [
+        2
+      ],
+      "pending_slot_bound": 4,
+      "earlier_head_bound": 1
+    },
+    {
+      "name": "groups_201--+",
+      "fold_units": 1,
+      "fold_peaks": [
+        3
+      ],
+      "pending_slot_bound": 4,
+      "earlier_head_bound": 1
+    },
+    {
+      "name": "groups_201---",
+      "fold_units": 1,
+      "fold_peaks": [
+        3
+      ],
+      "pending_slot_bound": 4,
+      "earlier_head_bound": 1
+    },
+    {
+      "name": "groups_210+++",
+      "fold_units": 1,
+      "fold_peaks": [
+        2
+      ],
+      "pending_slot_bound": 4,
+      "earlier_head_bound": 1
+    },
+    {
+      "name": "groups_210++-",
+      "fold_units": 1,
+      "fold_peaks": [
+        2
+      ],
+      "pending_slot_bound": 4,
+      "earlier_head_bound": 1
+    },
+    {
+      "name": "groups_210+-+",
+      "fold_units": 1,
+      "fold_peaks": [
+        3
+      ],
+      "pending_slot_bound": 4,
+      "earlier_head_bound": 1
+    },
+    {
+      "name": "groups_210+--",
+      "fold_units": 1,
+      "fold_peaks": [
+        3
+      ],
+      "pending_slot_bound": 4,
+      "earlier_head_bound": 1
+    },
+    {
+      "name": "groups_210-++",
+      "fold_units": 1,
+      "fold_peaks": [
+        2
+      ],
+      "pending_slot_bound": 4,
+      "earlier_head_bound": 1
+    },
+    {
+      "name": "groups_210-+-",
+      "fold_units": 1,
+      "fold_peaks": [
+        2
+      ],
+      "pending_slot_bound": 4,
+      "earlier_head_bound": 1
+    },
+    {
+      "name": "groups_210--+",
+      "fold_units": 1,
+      "fold_peaks": [
+        3
+      ],
+      "pending_slot_bound": 4,
+      "earlier_head_bound": 1
+    },
+    {
+      "name": "groups_210---",
+      "fold_units": 1,
+      "fold_peaks": [
+        3
+      ],
+      "pending_slot_bound": 4,
+      "earlier_head_bound": 1
+    },
+    {
+      "name": "groups_300+++",
+      "fold_units": 2,
+      "fold_peaks": [
+        2,
+        3
+      ],
+      "pending_slot_bound": 8,
+      "earlier_head_bound": 2
+    },
+    {
+      "name": "groups_300++-",
+      "fold_units": 2,
+      "fold_peaks": [
+        2,
+        4
+      ],
+      "pending_slot_bound": 8,
+      "earlier_head_bound": 2
+    },
+    {
+      "name": "groups_300+-+",
+      "fold_units": 2,
+      "fold_peaks": [
+        3,
+        3
+      ],
+      "pending_slot_bound": 8,
+      "earlier_head_bound": 2
+    },
+    {
+      "name": "groups_300+--",
+      "fold_units": 2,
+      "fold_peaks": [
+        3,
+        4
+      ],
+      "pending_slot_bound": 8,
+      "earlier_head_bound": 2
+    },
+    {
+      "name": "groups_300-++",
+      "fold_units": 2,
+      "fold_peaks": [
+        2,
+        3
+      ],
+      "pending_slot_bound": 8,
+      "earlier_head_bound": 2
+    },
+    {
+      "name": "groups_300-+-",
+      "fold_units": 2,
+      "fold_peaks": [
+        2,
+        4
+      ],
+      "pending_slot_bound": 8,
+      "earlier_head_bound": 2
+    },
+    {
+      "name": "groups_300--+",
+      "fold_units": 2,
+      "fold_peaks": [
+        3,
+        3
+      ],
+      "pending_slot_bound": 8,
+      "earlier_head_bound": 2
+    },
+    {
+      "name": "groups_300---",
+      "fold_units": 2,
+      "fold_peaks": [
+        3,
+        4
+      ],
+      "pending_slot_bound": 8,
+      "earlier_head_bound": 2
+    }
+  ],
+  "source_sha256": {
+    "research/autosiril-native/mix/prove_lazy.py": "b352554e263be372552766343d150ae34cf1d96e6cc35f527ad5fbc798436865",
+    "research/autosiril-native/mix/model.py": "7e9542fdf81d007bc252635dbf481bcd549b74dc631bfef6706e940270513946",
+    "planning/inputs.json": "e4948f2364ff9323cf91eec7acf3eab15de6c36711fbbac75b1b416e877ed193",
+    "planning/ruby.json": "5a3796032394b6898e814975d03f417faf7cc4210495d83cf4076be2f99a7cde",
+    "planning/receipt.json": "2f519af876ca6bb20c4c188dd754dce02e8c395728afac8cda330394ad7e082a"
+  },
+  "max_fold_units": 2,
+  "pending_slots_bound": 8,
+  "earlier_heads_bound": 2
+}

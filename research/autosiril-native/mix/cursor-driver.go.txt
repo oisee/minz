@@ -1,0 +1,73 @@
+// Cursor transport proof only. No Crystal imports or musical policy.
+func main() {
+ root:=flag.String("root","","repository root")
+ source:=flag.String("source","","Nanz source")
+ input:=flag.String("input","","physical input file")
+ out:=flag.String("out","","new output directory")
+ flag.Parse();check(os.MkdirAll(*out,0755))
+ buildOne:=func()*hir.Module{h,e:=nanz.ParseWithOpts(string(read(*source)),"owned-cursors",nanz.ParseOpts{StdlibDir:filepath.Join(*root,"stdlib")});check(e);return h}
+ raw:=hir.LowerModule(buildOne());check(mir2.Verify(raw))
+ opts:=pipeline.DefaultOptions();opts.AssertMode="none";opts.DisableVariantSearch=true
+ steps,e:=pipeline.CompileHIRSteps(buildOne(),opts);check(e)
+ assembly:="ORG 0x100\nLD SP,0xeffe\nCALL disk_main\nHALT\n"+steps.Assembly
+ a,e:=z80asm.NewAssembler().AssembleString(assembly);check(e);if len(a.Errors)!=0{panic(a.Errors)}
+ if origin+len(a.Binary)+64>=floor{panic("image overlaps stack")}
+ for name,b:=range map[string][]byte{"program.a80":[]byte(assembly),"program.com":a.Binary,"raw.mir":[]byte(raw.Dump()),"final.mir":[]byte(steps.MIR2Module.Dump())}{check(os.WriteFile(filepath.Join(*out,name),b,0644))}
+ data:=read(*input);if len(data)%128!=0{panic("physical input must be record aligned")}
+ expected:=make([]byte,0,len(data)*3);positions:=[3]int{};for len(expected)<len(data)*3{for h,burst:=range []int{1,7,31}{end:=positions[h]+burst;if end>len(data){end=len(data)};expected=append(expected,data[positions[h]:end]...);positions[h]=end}}
+ rows:=[]map[string]any{}
+ type trial struct{name string;function byte;occurrence int;fault uint16;directory uint;existing bool}
+ trials:=[]trial{{name:"success"},{name:"directory1",directory:1},{name:"directory2",directory:2},{name:"directory3",directory:3},{name:"existing",fault:901,existing:true}}
+ for _,f:=range []struct{function byte;occurrences []int;fault uint16}{{15,[]int{1,2,3},900},{22,[]int{1},901},{20,[]int{1,2,3,4,100},904},{21,[]int{1,2,33},902},{16,[]int{1,2,3},906},{16,[]int{4},903}}{for _,n:=range f.occurrences{trials=append(trials,trial{name:fmt.Sprintf("fault%d-%d",f.function,n),function:f.function,occurrence:n,fault:f.fault})}}
+ for _,tc:=range trials{
+ *directoryCode=tc.directory
+ for index,engine:=range []string{"raw-mir2","final-mir2","z80"}{
+  dir:=filepath.Join(*out,tc.name,engine);check(os.MkdirAll(dir,0755));check(os.WriteFile(filepath.Join(dir,"DELAYED.BIN"),data,0644))
+  if tc.existing{check(os.WriteFile(filepath.Join(dir,"CURSORS.BIN"),[]byte("preserved-existing-file"),0644))}
+  d:=&diskOS{dir:dir,handles:map[uint16]*os.File{},calls:map[byte]int{},failFunction:tc.function,failOccurrence:tc.occurrence}
+  var get func(string,int,int)[]byte;var returned uint16;cycles,stack:=0,0
+  if index<2{
+   m:=raw;if index==1{m=steps.MIR2Module};v:=mir2.NewVM(m);v.MaxMemory=65536;v.MaxSteps=1000000000
+   get=func(name string,at,n int)[]byte{return v.ReadHeap(v.GlobalAddr(name)+int64(at),n)}
+   d.read=v.ReadHeap;d.write=v.WriteHeap
+   host:=func(args []mir2.Value)([]mir2.Value,error){return []mir2.Value{{I:int64(d.invoke(byte(args[0].I),uint16(args[1].I)))}},nil}
+   v.Hosts["bdos8"]=host;v.Hosts["@bdos8"]=host
+   r,e:=v.Call("disk_main",nil);check(e);if len(r)!=1{panic("bad return")};returned=uint16(r[0].I)
+  }else{
+   z:=emulator.NewRemogattoZ80WithScreen();z.SetROMEnd(0);mem:=z.Memory();for i:=range mem{mem[i]=0xa5};copy(mem[origin:],a.Binary)
+   d.read=func(at int64,n int)[]byte{return mem[int(at):int(at)+n]};d.write=func(at int64,b byte){z.WriteMemory(uint16(at),b)}
+   get=func(name string,off,n int)[]byte{at:=a.Symbols[name]+off;return mem[at:at+n]}
+   mem[initialSP]=byte(returnPC&255);mem[initialSP+1]=byte(returnPC>>8);z.SetRegisters(emulator.Registers{PC:uint16(a.Symbols["disk_main"]),SP:initialSP})
+   p:=emulator.NewProfiler();z.SetProfiler(p);minSP:=uint16(initialSP)
+   for count:=0;z.GetPC()!=returnPC;count++{
+    if count>=250000000{panic("instruction limit")};if z.GetIFF1()||z.GetIFF2(){panic("IRQ enabled")}
+    pc:=z.GetPC();if pc!=5&&(int(pc)<origin||int(pc)>=origin+len(a.Binary)){panic("PC outside image/BDOS")}
+    if pc==5{r:=z.GetRegisters();r.A=d.invoke(byte(r.BC),r.DE);r.HL=0;r.PC=binary.LittleEndian.Uint16(mem[r.SP:r.SP+2]);r.SP+=2;z.SetRegisters(r)}else{z.Step()}
+    if z.GetSP()<minSP{minSP=z.GetSP()};if z.GetSP()<floor{panic("stack floor")}
+   }
+   if z.GetSP()!=initialSP+2||z.GetIFF1()||z.GetIFF2(){panic("return contract")};returned=z.GetRegisters().HL;cycles=z.GetCycles();stack=int(initialSP-minSP)
+   allowed:=make([]bool,65536)
+   for _,g:=range steps.MIR2Module.Globals{at,ok:=a.Symbols[g.Name];if !ok||g.At!=nil||at<origin||at+mir2.ByteWidth(g.Ty)>origin+len(a.Binary){panic("invalid global")};for j:=0;j<mir2.ByteWidth(g.Ty);j++{allowed[at+j]=true}}
+   for _,s:=range backendSpills(steps.Assembly,a.Symbols,a.Binary){for j:=0;j<s.Bytes;j++{allowed[s.Address+j]=true}}
+   for at:=floor;at<initialSP;at++{allowed[at]=true}
+   for at,w:=range p.WriteCount{if w!=0&&!allowed[at]{panic(fmt.Sprintf("write outside storage %04x",at))};if allowed[at]&&at<floor&&p.ExecCount[at]!=0{panic("executed data")}}
+   if len(p.IORead)!=0||len(p.IOWrite)!=0{panic("unexpected ports")}
+   for _,span:=range [][2]int{{origin-64,origin},{origin+len(a.Binary),origin+len(a.Binary)+64},{floor-64,floor}}{for at:=span[0];at<span[1];at++{if mem[at]!=0xa5{panic("canary")}}}
+  }
+  if returned!=tc.fault||binary.LittleEndian.Uint16(get("fault",0,2))!=tc.fault{panic(fmt.Sprintf("%s fault %d",engine,returned))}
+  if len(d.handles)!=0{d.close();panic("FCB leak")};for _,b:=range get("input_live",0,3){if b!=0{panic("live input")}};if get("output_live",0,1)[0]!=0{panic("live output")}
+  if tc.fault==0{for h:=0;h<3;h++{if binary.LittleEndian.Uint32(get("input_counts",h*4,4))!=uint32(len(data)){panic("cursor count")}}}
+  if tc.function!=0&&!d.injected{panic("injection not reached")}
+  actual,readErr:=os.ReadFile(filepath.Join(dir,"CURSORS.BIN"));if readErr!=nil&&!os.IsNotExist(readErr){check(readErr)}
+  if tc.existing{if !bytes.Equal(actual,[]byte("preserved-existing-file")){panic("existing file changed")}}else{
+   if tc.fault==0||tc.function==16{if !bytes.Equal(actual,expected){panic(engine+" byte interleave mismatch")}}else{if len(actual)>len(expected)||!bytes.Equal(actual,expected[:len(actual)]){panic("partial prefix differs")}}
+   if (tc.function==15||tc.function==22)&&readErr==nil{panic("unexpected published output")}
+  }
+  if !bytes.Equal(read(filepath.Join(dir,"DELAYED.BIN")),data){panic("input changed")}
+  rows=append(rows,map[string]any{"case":tc.name,"fault":returned,"injected_failure":d.injected,"engine":engine,"output_bytes":len(actual),"output_sha256":hash(actual),"bdos_calls":d.calls,"t_states":cycles,"stack_bytes":stack});fmt.Printf("PASS %s/%s fault%d %d -> %d bytes\n",tc.name,engine,returned,len(data),len(actual))
+ }
+ }
+ globals,spills:=0,0;for _,g:=range steps.MIR2Module.Globals{globals+=mir2.ByteWidth(g.Ty)};for _,s:=range backendSpills(steps.Assembly,a.Symbols,a.Binary){spills+=s.Bytes}
+ receipt:=map[string]any{"protocol":"autosiril-owned-cursors/v1","scope":"three owned CP/M cursors, shared DMA, byte interleave only; no native downmix or physical OS bootstrap claim","source_sha256":hash(read(*source)),"input_sha256":hash(data),"binary_sha256":hash(a.Binary),"image_bytes":len(a.Binary),"globals_bytes":globals,"spill_bytes":spills,"code_bytes":len(a.Binary)-globals-spills,"cases":rows}
+ b,e:=json.MarshalIndent(receipt,"","  ");check(e);check(os.WriteFile(filepath.Join(*out,"receipt.json"),append(b,'\n'),0644))
+}

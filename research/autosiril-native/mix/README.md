@@ -98,5 +98,62 @@ python3 research/autosiril-native/mix/prove_planning.py \
 ```
 
 [Planning receipt](planning-receipt.json). This is still host-only planning
-evidence; no target lowering, native mix image, multi-reader transport, kind5
-serializer or fifth COM program has been implemented or claimed.
+evidence for the mixing algorithm. The subsequent transport and lazy-composition
+steps below are separate; native mix, kind5 serialization and the fifth musical
+COM program remain pending.
+
+
+## Owned CP/M cursor groundwork
+
+`cursors-cpm.nanz` gives each of three readers its own36-byte FCB,128 unread
+bytes, cursor/length andu32 accepted-byte count. The shared DMA record is copied
+into the selected owned buffer before returning. The output has a separate FCB
+and buffer. Old single-reader transports and the four musical stages are unchanged.
+
+`cursor-probe.nanz` is a transport-only COM experiment: it drains the same saved
+DELAYED file through three independent readers in unequal1/7/31-byte bursts and
+writes that exact interleaving. This forces the file offsets and unread buffers
+apart while output writes overwrite shared DMA. No musical logic is hosted, and
+no Crystal import is necessary for this transport test.
+
+```sh
+python3 research/autosiril-native/mix/prove_cursors.py \
+  --input /path/to/fresh-echo/cpm/measured/native_chronos/z80/DELAYED.BIN \
+  --out /tmp/mix-cursors
+```
+
+The Chronos54912-byte and large104576-byte saved native inputs each pass21
+scenarios on raw MIR2, final MIR2 and native Z80:126 executions total. Scenarios
+cover directory success codes0..3, preexisting output, each input-open failure,
+make, early/late read and write failures, and all four close failures. All target
+handles are released, existing output is unchanged and failed output is an exact
+record-aligned prefix. Successful outputs are164736 and313728 bytes, preserving
+large CP/M extents. This probe requires a record-aligned physical input; general
+stream framing, short reads and stalled I/O belong to the later musical stage.
+
+The image is3843 bytes:2906 code/bootstrap,848 globals,89 static spill bytes.
+Maximum observed native stack is28 bytes. The harness checks every profiled write
+against globals/spills/stack, PC/image bounds, data execution, return SP, canaries,
+IRQ state and absence of port I/O. This is CALL5 API-trap evidence, not hardware
+or a physical CP/M bootstrap proof. It does not yet cover TRD readers, format
+validation, cursor reopen contracts or restoring-write mutants.
+
+[Chronos evidence](evidence/cursor-chronos.json),
+[large-file evidence](evidence/cursor-large.json).
+
+## Composed lazy folds
+
+```sh
+python3 research/autosiril-native/mix/prove_lazy.py \
+  --planning /tmp/mix-planning --out /tmp/mix-lazy
+```
+
+All119 original Ruby cases also match a composed iterator graph with no
+intermediate fold-output lists. The first source is an identity stream; merging
+three sources into one group needs two four-slot folds. Therefore the safe
+pending-slot bound is8, plus two earlier-stream lookahead cells, input-reader
+heads and final sink storage. Four slots is a per-fold bound, not the whole
+program's RAM budget. Inputs/final results remain host fixtures; target lowering
+and measured composed target memory are still required.
+
+[Lazy composition evidence](evidence/lazy-host.json).
