@@ -208,3 +208,57 @@ source hashes, next fresh command and explicit scope are recorded in
 before retaining this WIP; no execution success is inferred from that edit.
 Next worker must define state/metadata companion framing precisely and prove
 real-file execution against fresh actual Ruby without relaxing old contracts.
+
+## Fifth checkpoint — actual CP/M tri-engine proof for all saved kind5 files
+
+The retained WIP now passes the standard proof and the full legacy saved-input matrix:
+
+```sh
+PYTHONDONTWRITEBYTECODE=1 python3 research/autosiril-native/render/prove_cpm.py \
+  --artifacts /tmp/minz-ci270-artifacts/autosiril-mix-fresh \
+  --autosiril /Users/alice/dev/autosiril \
+  --planning /tmp/minz-render-planning-v4 \
+  --out /tmp/minz-z-workers/render-results/checkpoint5-cpm-n
+```
+
+Result: `PASS 114 actual-kind5 CP/M executions`. This comprises all25 positive
+saved native kind5 inputs on raw MIR2, final MIR2, and assembled Z80 (75
+executions) plus 13 wire/BDOS guards on each engine (39 executions). Chronos
+remains exact at67,600 ASCII bytes and105,456 state bytes; the empty input
+produces zero logical text and state bytes.
+
+The proof decodes each saved MIXED file, reruns the pinned original Ruby for all
+25 cases in a fresh output tree, compares those fresh outputs with admitted
+planning evidence, and only then compiles/executes the target. Every expected
+state row is independently decoded by row index, length, forms, previous note,
+and three post-row notes. After execution, all75 positive engine outputs are
+decoded again from disk, including physical zero padding and logical lengths.
+
+The explicit observational contracts are:
+
+- `STATE.BIN v1`: each row is length-prefixed—a77-byte payload withu16 row
+  through65,535, or79-byte payload withu32 row from65,536 upward. Empty input
+  writes zero logical bytes.
+- `META.BIN v1`: an`ARMD` companion, not kind5. Its14-byte header carries
+  version, source kind, definition count, fixed role-record count4, and reserved
+  zero space; exact definition fragments and four role records follow. No cells
+  are implied.
+- `REND.INF v1`: exact21 logical bytes (`RINF`, version, text/state logical
+  lengths, original render rows), padded to one128-byte CP/M record with zeros.
+
+Guard coverage now rejects wrong header kind, malformed definition data,
+cell-order regression, metadata-before-cells, role2 extent corruption, END count
+and magic corruption, nonzero physical padding, and injected BDOS input-open,
+input-read, output-create, output-write, and output-close failures. Guards run
+on all three engines, retain exact fault codes, verify unchanged input, and
+check live-handle cleanup. Non-partial failures must create no output; write and
+output-close failures must retain record-aligned partial output.
+
+The final image is28,474 bytes (21,589 code,6,432 globals,453 backend spills).
+The fresh rerun also preserved the203-case/10,320-row kernel baseline and the
+262,174-row high-row edge proof. Exact hashes, contracts, coverage, paths, and
+remaining limitations are in `evidence/cpm-checkpoint5.json`.
+
+This is not a full renderer milestone claim. TRD16-bank/IO/publication,
+canonical six conversion, six-COM integration, inherited fresh/frozen CI audits,
+VT2/VTX, and main/PR review remain open.

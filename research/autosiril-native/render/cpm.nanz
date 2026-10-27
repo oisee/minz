@@ -29,6 +29,8 @@ global meta_name:[u8;11] = [77,69,84,65,32,32,32,32,66,73,78]
 global info_name:[u8;11] = [82,69,78,68,32,32,32,32,73,78,70]
 global wire_magic:[u8;4] = [65,83,73,82]
 global wire_header:[u8;8] = [1,5,16,0,3,0,0,0]
+global meta_magic:[u8;4] = [65,82,77,68]
+global meta_header:[u8;10]
 global wire_end_magic:[u8;4] = [69,78,68,33]
 global record_buffer:[u8;16]
 global definition_payloads:[u8;4096]
@@ -100,11 +102,15 @@ fun cursor_payload(handle:u8) {
 }
 fun cursor_header(handle:u8) {
     var index:u16 = 0
-    while index < 4 { if cursor_get(handle) != wire_magic[index] { fault = 950 return }
+    while index < 4 {
+        let byte:u8 = cursor_get(handle)
+        if fault != 0 { return }
+        if byte != wire_magic[index] { fault = 950 return }
         index = index + 1 }
     index = 0
     while index < 8 {
         let byte:u8 = cursor_get(handle)
+        if fault != 0 { return }
         if index == 0 && byte != wire_header[0] { fault = 952 return }
         if index > 0 && byte != wire_header[index] { fault = 953 return }
         index = index + 1
@@ -518,10 +524,15 @@ fun write_companions() {
     if output_open(2) != 0 { fault = 901 return }
     meta_live = 1
     var index:u16 = 0
-    while index < 4 { meta_put(wire_magic[index])
+    while index < 4 { meta_put(meta_magic[index])
         index = index+1 }
     index = 0
-    while index < 8 { meta_put(wire_header[index])
+    meta_header[0] = 1
+    meta_header[1] = 5
+    meta_header[2] = u8(definition_records)
+    meta_header[3] = u8(definition_records >> 8)
+    meta_header[4] = 4
+    while index < 10 { meta_put(meta_header[index])
         index = index+1 }
     index = 0
     while index < u16(definition_records) {
@@ -570,6 +581,10 @@ fun disk_main()->u16 {
     validated_cells = 0
     text_logical_bytes = 0
     state_logical_bytes = 0
+    text_position = 0
+    state_position = 0
+    meta_position = 0
+    info_position = 0
     text_live = 0
     state_live = 0
     meta_live = 0

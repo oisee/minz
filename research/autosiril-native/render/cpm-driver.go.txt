@@ -6,6 +6,10 @@ type fileCase struct {
 	ExpectedMeta []byte `json:"expected_meta"`
 	RenderRows uint32 `json:"render_rows"`
 	Fault uint16 `json:"fault"`
+	Guard string `json:"guard,omitempty"`
+	BdosFailFunction byte `json:"bdos_fail_function,omitempty"`
+	BdosFailOccurrence int `json:"bdos_fail_occurrence,omitempty"`
+	PartialOutputs bool `json:"partial_outputs,omitempty"`
 }
 func main(){
  root:=flag.String("root","","repository root")
@@ -26,7 +30,7 @@ func main(){
  for _,tc:=range matrix.Cases{
   for index,engine:=range []string{"raw-mir2","final-mir2","z80"}{
    dir:=filepath.Join(*out,tc.Name,engine);check(os.MkdirAll(dir,0755));check(os.WriteFile(filepath.Join(dir,"MIXED.BIN"),tc.Wire,0644))
-   d:=&diskOS{dir:dir,handles:map[uint16]*os.File{},calls:map[byte]int{}}
+   d:=&diskOS{dir:dir,handles:map[uint16]*os.File{},calls:map[byte]int{},failFunction:tc.BdosFailFunction,failOccurrence:tc.BdosFailOccurrence}
    var get func(string,int,int)[]byte;var returned uint16;cycles,stack:=0,0
    if index<2{
     m:=raw;if index==1{m=steps.MIR2Module};v:=mir2.NewVM(m);v.MaxMemory=65536;v.MaxSteps=1000000000
@@ -61,15 +65,23 @@ func main(){
    for _,name:=range []string{"text_live","state_live","meta_live","info_live"}{if get(name,0,1)[0]!=0{panic("live output")}}
    if tc.Fault==0{if binary.LittleEndian.Uint32(get("render_rows",0,4))!=tc.RenderRows{panic("render rows")}}
    if !bytes.Equal(read(filepath.Join(dir,"MIXED.BIN")),tc.Wire){panic("input changed")}
-   for name,logical:=range map[string][]byte{"OUTPUT.TXT":tc.ExpectedText,"STATE.BIN":tc.ExpectedState,"META.BIN":tc.ExpectedMeta}{
-    physical:=read(filepath.Join(dir,name))
-    if len(physical)!=((len(logical)+127)/128)*128{panic(name+" physical length")}
-    if !bytes.Equal(physical[:len(logical)],logical){panic(engine+" "+name+" mismatch")};for _,b:=range physical[len(logical):]{if b!=0{panic(name+" padding")}}
-   }
-   info:=read(filepath.Join(dir,"REND.INF"));if len(info)!=128{panic("info physical length")}
-   expectedInfo:=append([]byte("RINF\x01"),append(binary.LittleEndian.AppendUint32(nil,uint32(len(tc.ExpectedText))),append(binary.LittleEndian.AppendUint32(nil,uint32(len(tc.ExpectedState))),binary.LittleEndian.AppendUint32(nil,tc.RenderRows)...)...)...)
-   if !bytes.Equal(info[:len(expectedInfo)],expectedInfo){panic("info mismatch")};for _,b:=range info[len(expectedInfo):]{if b!=0{panic("info padding")}}
-   rows=append(rows,map[string]any{"case":tc.Name,"engine":engine,"fault":returned,"text_logical_bytes":len(tc.ExpectedText),"state_logical_bytes":len(tc.ExpectedState),"bdos_calls":d.calls,"t_states":cycles,"stack_bytes":stack});fmt.Printf("PASS %s/%s fault%d text%d state%d\n",tc.Name,engine,returned,len(tc.ExpectedText),len(tc.ExpectedState))
+	   if tc.Fault==0{
+	    for name,logical:=range map[string][]byte{"OUTPUT.TXT":tc.ExpectedText,"STATE.BIN":tc.ExpectedState,"META.BIN":tc.ExpectedMeta}{
+	     physical:=read(filepath.Join(dir,name))
+	     if len(physical)!=((len(logical)+127)/128)*128{panic(name+" physical length")}
+	     if !bytes.Equal(physical[:len(logical)],logical){panic(engine+" "+name+" mismatch")};for _,b:=range physical[len(logical):]{if b!=0{panic(name+" padding")}}
+	    }
+	    info:=read(filepath.Join(dir,"REND.INF"));if len(info)!=128{panic("info physical length")}
+	    expectedInfo:=append([]byte("RINF\x01"),append(binary.LittleEndian.AppendUint32(nil,uint32(len(tc.ExpectedText))),append(binary.LittleEndian.AppendUint32(nil,uint32(len(tc.ExpectedState))),binary.LittleEndian.AppendUint32(nil,tc.RenderRows)...)...)...)
+	    if !bytes.Equal(info[:len(expectedInfo)],expectedInfo){panic("info mismatch")};for _,b:=range info[len(expectedInfo):]{if b!=0{panic("info padding")}}
+	   }else{
+	    if tc.PartialOutputs{if _,e:=os.Stat(filepath.Join(dir,"OUTPUT.TXT"));e!=nil{panic("missing partial output")}}
+	    if !tc.PartialOutputs{for _,name:=range []string{"OUTPUT.TXT","STATE.BIN","META.BIN","REND.INF"}{if _,e:=os.Stat(filepath.Join(dir,name));e==nil{panic("unexpected output "+name)}}}
+	    for _,name:=range []string{"OUTPUT.TXT","STATE.BIN","META.BIN","REND.INF"}{
+	     path:=filepath.Join(dir,name);if _,e:=os.Stat(path);e==nil&&len(read(path))%128!=0{panic(name+" partial physical length")}
+	    }
+	   }
+   rows=append(rows,map[string]any{"case":tc.Name,"engine":engine,"guard":tc.Guard,"fault":returned,"text_logical_bytes":len(tc.ExpectedText),"state_logical_bytes":len(tc.ExpectedState),"bdos_calls":d.calls,"t_states":cycles,"stack_bytes":stack});fmt.Printf("PASS %s/%s fault%d text%d state%d\n",tc.Name,engine,returned,len(tc.ExpectedText),len(tc.ExpectedState))
   }
  }
  globals,spills:=0,0;for _,g:=range steps.MIR2Module.Globals{globals+=mir2.ByteWidth(g.Ty)};for _,s:=range backendSpills(steps.Assembly,a.Symbols,a.Binary){spills+=s.Bytes}
