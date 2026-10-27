@@ -1,0 +1,159 @@
+// Bounded composed downmix. Readers/sinks are injected byte transports.
+// Pool: three lane heads, two earlier heads, two outputs, eight pending cells.
+global fault:u16
+global mix_pool:[u8;240]
+global mix_counts_config:[u8;3] = [1,1,1]
+global mix_policies:[u8;3] = [45,45,45]
+global mix_first:u8
+global mix_sources:[u8;2]
+global mix_initialized:[u8;2]
+global mix_have_earlier:[u8;2]
+global mix_have_incoming:[u8;2]
+global mix_live:[u8;8]
+global mix_rows:[u16;8]
+global mix_pending:[u8;2]
+global mix_peaks:[u8;2]
+global lane_ended:[u8;3]
+global lane_seen:[u8;3]
+global lane_previous:[u16;3]
+global lane_counts:[u16;3]
+global mix_counts:[u16;3]
+global mix_extents:[u32;3]
+global mix_total:u16
+
+fun mix_word(at:u16)->u16 {
+    return u16(mix_pool[at]) | (u16(mix_pool[at+1]) << 8)
+}
+fun mix_copy(destination:u16,source:u16) {
+    var index:u16 = 0
+    while index < 16 {
+        mix_pool[destination+index] = mix_pool[source+index]
+        index = index + 1
+    }
+}
+fun lane_next(lane:u8)->u8 {
+    if fault != 0 || lane_ended[lane] != 0 { return 0 }
+    let at:u16 = u16(lane)*16
+    let status:u8 = read_cell(lane,u16(&mix_pool[at]))
+    if status == 0 { lane_ended[lane] = 1
+        return 0 }
+    if status != 1 { fault = 904
+        return 0 }
+    if lane_counts[lane] >= 3072 { fault = 959
+        return 0 }
+    let row:u16 = mix_word(at+2)
+    if lane_seen[lane] != 0 && row <= lane_previous[lane] { fault = 958
+        return 0 }
+    lane_seen[lane] = 1
+    lane_previous[lane] = row
+    lane_counts[lane] = lane_counts[lane] + 1
+    return 1
+}
+fun mix_place(unit:u8,row:u32,source:u16) {
+    if fault != 0 { return }
+    if row > 65535 { fault = 980
+        return }
+    let slot:u16 = u16(unit)*4 + u16(row)%4
+    if mix_live[slot] != 0 && mix_rows[slot] != u16(row) { fault = 981
+        return }
+    if mix_live[slot] == 0 {
+        mix_live[slot] = 1
+        mix_pending[unit] = mix_pending[unit] + 1
+        if mix_pending[unit] > mix_peaks[unit] { mix_peaks[unit] = mix_pending[unit] }
+    }
+    mix_rows[slot] = u16(row)
+    let at:u16 = 112+slot*16
+    mix_copy(at,source)
+    mix_pool[at+2] = u8(row)
+    mix_pool[at+3] = u8(row >> 8)
+}
+fun mix_accept(unit:u8,row:u32,source:u16) {
+    let slot:u16 = u16(unit)*4 + u16(row)%4
+    let at:u16 = 112+slot*16
+    if mix_live[slot] == 0 || mix_pool[at+11] == 114 || mix_word(at+9) < mix_word(source+9) {
+        mix_place(unit,row,source)
+        return
+    }
+    if mix_policies[mix_sources[unit]] == 45 {
+        var offset:u32 = 1
+        while offset <= 3 {
+            let target:u32 = row + offset
+            let chosen:u16 = u16(unit)*4 + u16(target)%4
+            // Historical Ruby compares the current-row volume again. It cannot
+            // succeed after the first branch failed; spill checks nil/release.
+            if mix_live[chosen] == 0 || mix_pool[112+chosen*16+11] == 114 {
+                mix_place(unit,target,source)
+                return
+            }
+            offset = offset + 1
+        }
+    }
+}
+fun mix_reset_units() {
+    var index:u8 = 0
+    while index < 2 {
+        mix_initialized[index] = 0
+        mix_have_earlier[index] = 0
+        mix_have_incoming[index] = 0
+        mix_pending[index] = 0
+        index = index + 1
+    }
+    index = 0
+    while index < 8 { mix_live[index] = 0
+        index = index + 1 }
+}
+fun mix_emit(destination:u8,source:u16) {
+    if fault != 0 { return }
+    if mix_total >= 9216 { fault = 983
+        return }
+    mix_pool[source+1] = destination
+    if write_cell(destination,u16(&mix_pool[source])) != 0 { fault = 902
+        return }
+    mix_counts[destination] = mix_counts[destination] + 1
+    mix_total = mix_total + 1
+    mix_extents[destination] = u32(mix_word(source+2)) + 1
+}
+fun mix_run()->u16 {
+    fault = 0
+    mix_total = 0
+    mix_reset_units()
+    var sum:u16 = 0
+    var index:u8 = 0
+    while index < 3 {
+        if mix_counts_config[index] > 3 || (mix_policies[index] != 43 && mix_policies[index] != 45) { fault = 976
+            return fault }
+        sum = sum + u16(mix_counts_config[index])
+        lane_ended[index] = 0
+        lane_seen[index] = 0
+        lane_counts[index] = 0
+        mix_counts[index] = 0
+        mix_extents[index] = 0
+        index = index + 1
+    }
+    if sum != 3 { fault = 976
+        return fault }
+    mix_peaks[0] = 0
+    mix_peaks[1] = 0
+    var source:u8 = 0
+    var destination:u8 = 0
+    while destination < 3 && fault == 0 {
+        let count:u8 = mix_counts_config[destination]
+        mix_reset_units()
+        mix_first = source
+        mix_sources[0] = source + 1
+        mix_sources[1] = source + 2
+        if count == 1 {
+            while lane_next(source) != 0 && fault == 0 { mix_emit(destination,u16(source)*16) }
+        }
+        if count == 2 {
+            while fold_a_next() != 0 && fault == 0 { mix_emit(destination,80) }
+        }
+        if count == 3 {
+            while fold_b_next() != 0 && fault == 0 { mix_emit(destination,96) }
+        }
+        source = source + count
+        destination = destination + 1
+    }
+    mix_reset_units()
+    return fault
+}

@@ -2,7 +2,7 @@
 
 Selected after echo PR #269 merged as `4b82cd7f5`, with11 green checks and
 independent audits of downloaded fresh/frozen artifacts. Work branch:
-`spike/autosiril-native-mix`. No native mix implementation is claimed yet.
+`spike/autosiril-native-mix`. No fifth native musical file stage is claimed yet.
 
 Original reference: `autooisee.rb` downmix877..919. The existing VM implements
 later stages, but the independently linked native file chain currently ends at
@@ -157,3 +157,43 @@ program's RAM budget. Inputs/final results remain host fixtures; target lowering
 and measured composed target memory are still required.
 
 [Lazy composition evidence](evidence/lazy-host.json).
+
+## Target downmix kernel
+
+`kernel.nanz` and generated `folds.nanz` now implement the musical merge in
+Nanz/HIR. Two distinct pull state machines compose without recursive function
+frames or intermediate song arrays. The first lane is an identity stream;
+subsequent lanes use the exact nil/release/strict-volume/spill policy above.
+All16 payload bytes are cloned, with only destination channel and spill row
+changed. The kernel clears pending leases on both success and failure.
+
+```sh
+python3 research/autosiril-native/mix/prove_kernel.py \
+  --planning /tmp/mix-planning --autosiril /path/to/autosiril \
+  --out /tmp/mix-target-kernel
+```
+
+The runner invokes actual original Ruby again for123 musical fixtures, including
+19 decoded native echo streams and the prior complete policy/group matrix. It
+adds9216-cell tests, including all9216 cells in one destination, the3072/3073
+input-lane boundary and row65535. Separate negative cases cover malformed group
+configuration, duplicate/decreasing source rows and read/write failures.
+
+All136 scenarios pass on raw MIR2, final MIR2 and native Z80:408 executions.
+The whole kernel probe image is7053 bytes:6582 code/bootstrap,323 globals and148
+static spills. Maximum observed native stack is46 bytes. On three-lane Chronos
+both fold units reach four live pending slots. These budgets exclude the later
+file parser, physical bindings, kind5 serializer and NOTES companion pass.
+
+Byte-only fixture traps provide/copy one16-byte input/output record; they make
+no musical choices. The native harness disables the default screen RST hooks so
+these are real intercepted calls, verifies profiled write/PC/stack/config/IRQ/IO
+bounds, and compares every accepted field, count, extent and failure prefix.
+Original Ruby references and all per-engine cell files/MIR/assembly/COM remain
+in the requested output directory.
+
+[Target kernel evidence](evidence/kernel-target.json). This proves target musical
+lowering, not a fifth independently linked file-stage or five-COM chain. Actual
+kind4 parsing, lossless definitions, NOTES render timing, kind5 output, multi-FCB
+or TRD orchestration, full malformed/physical-IO matrix, fixed bank placement,
+restoring-write mutants, required fresh/frozen CI and PR integration still remain.
