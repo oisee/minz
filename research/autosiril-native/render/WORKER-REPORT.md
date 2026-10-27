@@ -129,6 +129,63 @@ states per engine. Independently linked CP/M/TRD file stages, physical128-byte-r
 full file failure/cleanup matrices, all16 banks, six-COM integration, inherited CI/audits,
 PR/main integration, and VT2 remain unfinished.
 
+## Third checkpoint — CP/M adapter work retained, execution not yet proven
+
+A separate target adapter (not a fixture transfer trap) was started by composing the proven
+row kernel with `cpm.nanz`, replacing `RST8/RST16` with BDOS CALL5. It uses a full
+validation pass, three owned input FCB/cursor/buffer contexts, streaming text and state
+writers, and writes `META.BIN` plus `REND.INF`. `META.BIN` preserves the lossless kind5
+definition fragments and role2/role3 metadata for a later VT2/container stage. `REND.INF`
+records text/state logical lengths and original render rows so zero-padded physical
+CP/M128-byte records are not mistaken for exact logical bytes. No target whole-song array
+is introduced; definitions remain bounded to the admitted4,096-byte companion store.
+
+The composed source parses through Nanz/HIR:
+
+```sh
+python3 - <<'PY'
+from pathlib import Path
+r=Path('research/autosiril-native/render')
+k=(r/'kernel.nanz').read_text().split('@extern(0x0008)',1)[0]
+Path('/tmp/render-cpm-parse.nanz').write_text(k+'\n'+(r/'cpm.nanz').read_text())
+PY
+cd minzc
+go run /tmp/minz-z-workers/tmp/render/parse-check.go /tmp/render-cpm-parse.nanz
+```
+
+The focused real-file proof command is:
+
+```sh
+PYTHONDONTWRITEBYTECODE=1 python3 research/autosiril-native/render/prove_cpm.py \
+  --artifacts /tmp/minz-ci270-artifacts/autosiril-mix-fresh \
+  --autosiril /Users/alice/dev/autosiril \
+  --planning /tmp/minz-render-planning-v4 \
+  --out /tmp/minz-z-workers/render-results/checkpoint3-cpm-z
+```
+
+It selects the actual native Chronos kind5 file and an actual empty kind5 file and compiles
+raw MIR2, final MIR2 and an independently assembled Z80 COM image. It does **not** pass:
+`raw-mir2 fault 956` (`/tmp/minz-z-workers/render-results/checkpoint3-cpm-z/prove-cpm.log`).
+The failure is in END/count/magic cursor decoding. A temporary diagnostic that skipped the
+magic tail then hit the MIR2 VM's1,000,000,000-step gas ceiling
+(`checkpoint3-cpm-ac/prove-cpm.log`); that diagnostic was removed and strict checks restored.
+Therefore no CP/M file-stage success, output equivalence, budget, cleanup, >64K, malformed
+file, or six-COM claim is made. The smallest next command is the proof command above after
+instrumenting `cursor_word`/`cursor_end`; investigate evaluation order and trace bytes around
+the END record, then profile the scan/render loop before raising any execution budget.
+
+Current adapter hashes:
+
+- `cpm.nanz`: `02d378231622f4ecb9bc6e1a3ef4ce6fbc498c65bf487356bd530d825b0f2784`
+- `cpm-driver.go.txt`: `d00c96087a45015d15b82f270260e7c0b62c07fc800b8cc90fddfb9175b398b5`
+- `prove_cpm.py`: `9c90593a04139fe3909d53f9ae555356068f7f17703860cce49507f9c277ad4f`
+
+The full obligations remain: finish all actual saved kind5 chains, deliberate upstream
+failures, malformed framing/order/padding/EOF, BDOS failure/cleanup/reopen, >64K streamed
+output, all16 physical banks, TRD255-sector behavior, six-COM integration, VT2, fresh/frozen
+inherited CI/audits, and PR/main review. No shared compiler/MIR/pipeline/default-codegen
+files, root user files, legacy STOP marker, SSH credentials, push, PR, or merge were touched.
+
 Parent audit clarification: the independent edge rerun also passed all12
 positive engine executions (262174 row states per engine). Current negative
 and mutant harness exits at the first raw-MIR2 runtime failure; these four
@@ -137,3 +194,17 @@ mutant executions. Logs were checked to contain runtime mismatches rather
 than compiler syntax errors. `evidence/parent-edges-audit.json` records the
 independent command, receipt/source hashes and scope. Full file/native guard
 coverage remains an acceptance requirement.
+
+## Fourth checkpoint WIP (parent checkpoint after runner timeout)
+
+The adapter remains UNPROVEN: no successful standard tri-engine CP/M receipt.
+The actual kind5 ordering is definitions, cells, four trailing metadata records,
+END/count/magic. An independent GLM review copy reached raw-MIR2 fault0 after
+fixing ordering, then failed STATE.BIN physical-length validation. Latest edits
+also adjust state/REND.INF framing; the30min runner ended before a completed
+proof/report. Earlier adapter hashes/commands above are historical. Current
+source hashes, next fresh command and explicit scope are recorded in
+`evidence/cpm-wip-checkpoint4.json`. Parent only removed trailing whitespace
+before retaining this WIP; no execution success is inferred from that edit.
+Next worker must define state/metadata companion framing precisely and prove
+real-file execution against fresh actual Ruby without relaxing old contracts.

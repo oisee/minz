@@ -1,0 +1,78 @@
+type fileCase struct {
+	Name string `json:"name"`
+	Wire []byte `json:"wire"`
+	ExpectedText []byte `json:"expected_text"`
+	ExpectedState []byte `json:"expected_state"`
+	ExpectedMeta []byte `json:"expected_meta"`
+	RenderRows uint32 `json:"render_rows"`
+	Fault uint16 `json:"fault"`
+}
+func main(){
+ root:=flag.String("root","","repository root")
+ source:=flag.String("source","","Nanz source")
+ input:=flag.String("input","","case matrix")
+ out:=flag.String("out","","new output directory")
+ flag.Parse();check(os.MkdirAll(*out,0755))
+ buildOne:=func()*hir.Module{h,e:=nanz.ParseWithOpts(string(read(*source)),"render-cpm",nanz.ParseOpts{StdlibDir:filepath.Join(*root,"stdlib")});check(e);return h}
+ raw:=hir.LowerModule(buildOne());check(mir2.Verify(raw))
+ opts:=pipeline.DefaultOptions();opts.AssertMode="none";opts.DisableVariantSearch=true
+ steps,e:=pipeline.CompileHIRSteps(buildOne(),opts);check(e)
+ assembly:="ORG 0x100\nLD SP,0xeffe\nCALL disk_main\nHALT\n"+steps.Assembly
+ a,e:=z80asm.NewAssembler().AssembleString(assembly);check(e);if len(a.Errors)!=0{panic(a.Errors)}
+ if origin+len(a.Binary)+64>=floor{panic("image overlaps stack")}
+ for name,b:=range map[string][]byte{"program.a80":[]byte(assembly),"program.com":a.Binary,"raw.mir":[]byte(raw.Dump()),"final.mir":[]byte(steps.MIR2Module.Dump())}{check(os.WriteFile(filepath.Join(*out,name),b,0644))}
+ var matrix struct{Cases []fileCase `json:"cases"`};check(json.Unmarshal(read(*input),&matrix));if len(matrix.Cases)==0{panic("empty matrix")}
+ rows:=[]map[string]any{}
+ for _,tc:=range matrix.Cases{
+  for index,engine:=range []string{"raw-mir2","final-mir2","z80"}{
+   dir:=filepath.Join(*out,tc.Name,engine);check(os.MkdirAll(dir,0755));check(os.WriteFile(filepath.Join(dir,"MIXED.BIN"),tc.Wire,0644))
+   d:=&diskOS{dir:dir,handles:map[uint16]*os.File{},calls:map[byte]int{}}
+   var get func(string,int,int)[]byte;var returned uint16;cycles,stack:=0,0
+   if index<2{
+    m:=raw;if index==1{m=steps.MIR2Module};v:=mir2.NewVM(m);v.MaxMemory=65536;v.MaxSteps=1000000000
+    get=func(name string,at,n int)[]byte{return v.ReadHeap(v.GlobalAddr(name)+int64(at),n)}
+    d.read=v.ReadHeap;d.write=v.WriteHeap
+    host:=func(args []mir2.Value)([]mir2.Value,error){return []mir2.Value{{I:int64(d.invoke(byte(args[0].I),uint16(args[1].I)))}},nil}
+    v.Hosts["bdos8"]=host;v.Hosts["@bdos8"]=host
+    r,e:=v.Call("disk_main",nil);check(e);if len(r)!=1{panic("bad return")};returned=uint16(r[0].I)
+   }else{
+    z:=emulator.NewRemogattoZ80WithScreen();z.SetROMEnd(0);mem:=z.Memory();for i:=range mem{mem[i]=0xa5};copy(mem[origin:],a.Binary)
+    d.read=func(at int64,n int)[]byte{return mem[int(at):int(at)+n]};d.write=func(at int64,b byte){z.WriteMemory(uint16(at),b)}
+    get=func(name string,off,n int)[]byte{at:=a.Symbols[name]+off;return mem[at:at+n]}
+    mem[initialSP]=byte(returnPC&255);mem[initialSP+1]=byte(returnPC>>8);z.SetRegisters(emulator.Registers{PC:uint16(a.Symbols["disk_main"]),SP:initialSP})
+    p:=emulator.NewProfiler();z.SetProfiler(p);minSP:=uint16(initialSP)
+    for count:=0;z.GetPC()!=returnPC;count++{
+     if count>=1000000000{panic("instruction limit")};if z.GetIFF1()||z.GetIFF2(){panic("IRQ enabled")};pc:=z.GetPC()
+     if pc!=5&&(int(pc)<origin||int(pc)>=origin+len(a.Binary)){panic("PC outside image/BDOS")}
+     if pc==5{r:=z.GetRegisters();r.A=d.invoke(byte(r.BC),r.DE);r.HL=0;r.PC=binary.LittleEndian.Uint16(mem[r.SP:r.SP+2]);r.SP+=2;z.SetRegisters(r)}else{z.Step()}
+     if z.GetSP()<minSP{minSP=z.GetSP()};if z.GetSP()<floor{panic("stack floor")}
+    }
+    if z.GetSP()!=initialSP+2||z.GetIFF1()||z.GetIFF2(){panic("return contract")};returned=z.GetRegisters().HL;cycles=z.GetCycles();stack=int(initialSP-minSP)
+    allowed:=make([]bool,65536);for _,g:=range steps.MIR2Module.Globals{at,ok:=a.Symbols[g.Name];if !ok||g.At!=nil||at<origin||at+mir2.ByteWidth(g.Ty)>origin+len(a.Binary){panic("invalid global")};for j:=0;j<mir2.ByteWidth(g.Ty);j++{allowed[at+j]=true}}
+    for _,s:=range backendSpills(steps.Assembly,a.Symbols,a.Binary){for j:=0;j<s.Bytes;j++{allowed[s.Address+j]=true}}
+    for at:=floor;at<initialSP;at++{allowed[at]=true}
+    for at,w:=range p.WriteCount{if w!=0&&!allowed[at]{panic(fmt.Sprintf("write outside storage %04x",at))};if allowed[at]&&at<floor&&p.ExecCount[at]!=0{panic("executed data")}}
+    if len(p.IORead)!=0||len(p.IOWrite)!=0{panic("unexpected ports")}
+    for _,span:=range [][2]int{{origin-64,origin},{origin+len(a.Binary),origin+len(a.Binary)+64},{floor-64,floor}}{for at:=span[0];at<span[1];at++{if mem[at]!=0xa5{panic("canary")}}}
+   }
+   if returned!=tc.Fault||binary.LittleEndian.Uint16(get("fault",0,2))!=tc.Fault{panic(fmt.Sprintf("%s fault %d",engine,returned))}
+   if len(d.handles)!=0{d.close();panic("FCB leak")}
+   for h:=0;h<3;h++{if get("input_live",h,1)[0]!=0{panic("live input")}}
+   for _,name:=range []string{"text_live","state_live","meta_live","info_live"}{if get(name,0,1)[0]!=0{panic("live output")}}
+   if tc.Fault==0{if binary.LittleEndian.Uint32(get("render_rows",0,4))!=tc.RenderRows{panic("render rows")}}
+   if !bytes.Equal(read(filepath.Join(dir,"MIXED.BIN")),tc.Wire){panic("input changed")}
+   for name,logical:=range map[string][]byte{"OUTPUT.TXT":tc.ExpectedText,"STATE.BIN":tc.ExpectedState,"META.BIN":tc.ExpectedMeta}{
+    physical:=read(filepath.Join(dir,name))
+    if len(physical)!=((len(logical)+127)/128)*128{panic(name+" physical length")}
+    if !bytes.Equal(physical[:len(logical)],logical){panic(engine+" "+name+" mismatch")};for _,b:=range physical[len(logical):]{if b!=0{panic(name+" padding")}}
+   }
+   info:=read(filepath.Join(dir,"REND.INF"));if len(info)!=128{panic("info physical length")}
+   expectedInfo:=append([]byte("RINF\x01"),append(binary.LittleEndian.AppendUint32(nil,uint32(len(tc.ExpectedText))),append(binary.LittleEndian.AppendUint32(nil,uint32(len(tc.ExpectedState))),binary.LittleEndian.AppendUint32(nil,tc.RenderRows)...)...)...)
+   if !bytes.Equal(info[:len(expectedInfo)],expectedInfo){panic("info mismatch")};for _,b:=range info[len(expectedInfo):]{if b!=0{panic("info padding")}}
+   rows=append(rows,map[string]any{"case":tc.Name,"engine":engine,"fault":returned,"text_logical_bytes":len(tc.ExpectedText),"state_logical_bytes":len(tc.ExpectedState),"bdos_calls":d.calls,"t_states":cycles,"stack_bytes":stack});fmt.Printf("PASS %s/%s fault%d text%d state%d\n",tc.Name,engine,returned,len(tc.ExpectedText),len(tc.ExpectedState))
+  }
+ }
+ globals,spills:=0,0;for _,g:=range steps.MIR2Module.Globals{globals+=mir2.ByteWidth(g.Ty)};for _,s:=range backendSpills(steps.Assembly,a.Symbols,a.Binary){spills+=s.Bytes}
+ receipt:=map[string]any{"protocol":"autosiril-render-cpm/v1","scope":"independently assembled target kind5 to exact Ruby text/state streams through CP/M CALL5; not physical OS bootstrap","source_sha256":hash(read(*source)),"matrix_sha256":hash(read(*input)),"binary_sha256":hash(a.Binary),"image_bytes":len(a.Binary),"globals_bytes":globals,"spill_bytes":spills,"code_bytes":len(a.Binary)-globals-spills,"cases":rows}
+ b,e:=json.MarshalIndent(receipt,"","  ");check(e);check(os.WriteFile(filepath.Join(*out,"receipt.json"),append(b,'\n'),0644))
+}
