@@ -239,8 +239,9 @@ def main():
     for name in ['DELAYED.BIN', 'NOTES.BIN']:
         (mixdir / name).write_bytes((standalone / name).read_bytes())
     (mixdir / 'MIX.COM').write_bytes(a.mix_com.resolve().read_bytes())
+    # canonical6 MIX measured at 1323934662 T-states (CI inputs, run 40540793356); 700M was too low
     run(out, [a.mze, mixdir / 'MIX.COM', '-t', 'cpm',
-              '--timeout', '700000000', '--cycles'], cwd=mixdir)
+              '--timeout', '2000000000', '--cycles'], cwd=mixdir)
     mixed_wire = (mixdir / 'MIXED.BIN').read_bytes()
     kind5 = decode_kind5(mixed_wire)
     delayed_defs = [r for r in wire_records((standalone / 'DELAYED.BIN').read_bytes(), 4)
