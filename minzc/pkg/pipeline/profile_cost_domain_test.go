@@ -93,10 +93,16 @@ func TestSumProfileCostFullU8Domain(t *testing.T) {
 			if path == "last-fast" {
 				expectedFast += 7
 			}
+			// The guard-fallback trip was 258+178n through P28. O4+ (2b70eaa74)
+			// dropped the per-element cost to 94 T while raising the entry to
+			// 363 T (+21 T at n=1), and S1 (3e25f1cfa) lowered it further to a
+			// 326-T entry with 78 T per element, which is cheaper than the old
+			// model for every n ≥ 1. N1a (2520ce6c3) leaves it unchanged.
+			expectedFallback := 326 + 78*n
 			if (path == "fast" || path == "last-fast") && measured[1] != expectedFast {
 				t.Fatalf("fast model n=%d got=%d", n, measured[1])
 			}
-			if (path == "fallback" || path == "wrap") && measured[1] != 258+178*n {
+			if (path == "fallback" || path == "wrap") && measured[1] != expectedFallback {
 				t.Fatalf("fallback model n=%d got=%d", n, measured[1])
 			}
 			rows = append(rows, row{N: n, Base: base, Path: path, Original: measured[0], Pointer: measured[1], Result: want})

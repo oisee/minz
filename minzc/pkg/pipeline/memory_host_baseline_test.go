@@ -136,9 +136,16 @@ fun same_two()->u16{return 7}`
 // state/event oracle are unchanged.
 // Refreshed against clean origin/main 76e8070d4: -782 T / -20 bytes.
 // Direct, factory and instrumented routes retain the independent parser oracle.
+// Refreshed 2026-10-27 against clean origin/main 2520ce6c3: -4947 T / -43 bytes
+// versus the previous pin. The binary left the pinned state at P28 (a7c98cee4,
+// -347 T / -11 B), changed bytes only at O4+ (2b70eaa74, same T/size), and
+// moved again at O9 (fe3f327fb, -600 T / -32 B); N1a leaves it unchanged. The
+// previous pin recorded the O7 state, so main measured 1255941 T / 2258 B with
+// a different SHA already at P28. All three routes still pass the independent
+// parser state/event oracle; only the executable reference moved.
 func assertCurrentMemoryHostParserReference(t *testing.T, target *MemoryHostTargetEvidence) {
 	t.Helper()
-	if target.TotalTStates != 1260288 || len(target.Binary) != 2269 || target.BinarySHA256 != "9209f1d325bd81d808a5dcd28c20ef5de73189a4180c88397de49029be3b052b" {
+	if target.TotalTStates != 1255341 || len(target.Binary) != 2226 || target.BinarySHA256 != "0da41545c3af393eaed0f59a6e81b1b07750c3fd9597f07a21bdaf50876484e9" {
 		t.Fatal("current parser target drift", target.TotalTStates, len(target.Binary), target.BinarySHA256)
 	}
 	if fmt.Sprintf("%x", sha256.Sum256(target.Binary)) != target.BinarySHA256 {
