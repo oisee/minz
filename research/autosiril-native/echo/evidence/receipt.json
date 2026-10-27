@@ -1,7 +1,7 @@
 {
   "protocol": "autosiril-native-echo/v1",
   "source_sha256": {
-    ".github/workflows/ci.yml": "b29d3fd86f3c910b6b0a14d2bddef9cc42f229fb64de9f1c451296d7aa1dae63",
+    ".github/workflows/ci.yml": "5883141ae4b77214ff206ce18a2e09c20aeb6f373b594767b7d17da6e5c89414",
     "minzc/pkg/spectrum/formats/trd.go": "574b26fdd37d2e6e7291547f9c26e635e002bfb47c9a0136dd4b568d35819681",
     "research/autosiril-native/arrange/build_matrix.py": "4675d33950d9e428656169e7eaaba4f1b03b4d5eae73c84c90e409df1297cc91",
     "research/autosiril-native/arrange/compose.py": "ae0343c1ef273c9d493a49765f978318b9b9b0acd5108cc1ee74d53cb688bfce",
@@ -98,7 +98,7 @@
   "positive": {
     "protocol": "autosiril-echo-positive/v1",
     "source_sha256": {
-      ".github/workflows/ci.yml": "b29d3fd86f3c910b6b0a14d2bddef9cc42f229fb64de9f1c451296d7aa1dae63",
+      ".github/workflows/ci.yml": "5883141ae4b77214ff206ce18a2e09c20aeb6f373b594767b7d17da6e5c89414",
       "minzc/pkg/spectrum/formats/trd.go": "574b26fdd37d2e6e7291547f9c26e635e002bfb47c9a0136dd4b568d35819681",
       "research/autosiril-native/arrange/build_matrix.py": "4675d33950d9e428656169e7eaaba4f1b03b4d5eae73c84c90e409df1297cc91",
       "research/autosiril-native/arrange/compose.py": "ae0343c1ef273c9d493a49765f978318b9b9b0acd5108cc1ee74d53cb688bfce",
@@ -7567,7 +7567,7 @@
   "trd": {
     "protocol": "autosiril-echo-trd/v1",
     "source_sha256": {
-      ".github/workflows/ci.yml": "b29d3fd86f3c910b6b0a14d2bddef9cc42f229fb64de9f1c451296d7aa1dae63",
+      ".github/workflows/ci.yml": "5883141ae4b77214ff206ce18a2e09c20aeb6f373b594767b7d17da6e5c89414",
       "minzc/pkg/spectrum/formats/trd.go": "574b26fdd37d2e6e7291547f9c26e635e002bfb47c9a0136dd4b568d35819681",
       "research/autosiril-native/arrange/build_matrix.py": "4675d33950d9e428656169e7eaaba4f1b03b4d5eae73c84c90e409df1297cc91",
       "research/autosiril-native/arrange/compose.py": "ae0343c1ef273c9d493a49765f978318b9b9b0acd5108cc1ee74d53cb688bfce",
@@ -37350,14 +37350,14 @@
       }
     ],
     "scope": "108 three-engine executions/20 saved native TRD chains; traps, not physical ROM/FDC/hardware/boot/full converter",
-    "positive_proof_sha256": "741b28c922dc5a8e9869a498534980f9dcd540d1883a74cc325795f45b3e2801",
+    "positive_proof_sha256": "27dbff3ed44f986d9f40dbe748b476099c19f7449a2d7a0e116391411d50ea80",
     "ruby_result_sha256": "a8ac91599be9f1335d670d228ff07841637363cda16b111e4ff2cf03abd7ea53",
     "actual_ruby_sha256": "41f621b555fc089effd711319e723494576eb47ea0282847082ec91c1cdd4c01"
   },
   "cpm": {
     "protocol": "autosiril-echo-cpm/v1",
     "source_sha256": {
-      ".github/workflows/ci.yml": "b29d3fd86f3c910b6b0a14d2bddef9cc42f229fb64de9f1c451296d7aa1dae63",
+      ".github/workflows/ci.yml": "5883141ae4b77214ff206ce18a2e09c20aeb6f373b594767b7d17da6e5c89414",
       "minzc/pkg/spectrum/formats/trd.go": "574b26fdd37d2e6e7291547f9c26e635e002bfb47c9a0136dd4b568d35819681",
       "research/autosiril-native/arrange/build_matrix.py": "4675d33950d9e428656169e7eaaba4f1b03b4d5eae73c84c90e409df1297cc91",
       "research/autosiril-native/arrange/compose.py": "ae0343c1ef273c9d493a49765f978318b9b9b0acd5108cc1ee74d53cb688bfce",
@@ -40575,13 +40575,13 @@
     },
     "standalone_emulator_sha256": "8a18e30e0940a1fdc78909316d0eccbd2c07e90d7a9c505d74a1abae62fec7e6",
     "scope": "108 executions/20 native file pairs and four separate COM processes; CALL5 traps and SP/HALT contract, not physical TPA/CCP/boot/full converter",
-    "positive_receipt_sha256": "741b28c922dc5a8e9869a498534980f9dcd540d1883a74cc325795f45b3e2801",
-    "musical_receipt_sha256": "c4eaa61f3e267e66d5d42086a36d689612d03165394ba5ba0dec97ed9f9562cd"
+    "positive_receipt_sha256": "27dbff3ed44f986d9f40dbe748b476099c19f7449a2d7a0e116391411d50ea80",
+    "musical_receipt_sha256": "dac1a557fcca0299877f297cb61a000c91ec28c7b9e41e68d262537b216a2da4"
   },
   "robustness": {
     "protocol": "autosiril-echo-robustness/v1",
     "source_sha256": {
-      ".github/workflows/ci.yml": "b29d3fd86f3c910b6b0a14d2bddef9cc42f229fb64de9f1c451296d7aa1dae63",
+      ".github/workflows/ci.yml": "5883141ae4b77214ff206ce18a2e09c20aeb6f373b594767b7d17da6e5c89414",
       "minzc/pkg/spectrum/formats/trd.go": "574b26fdd37d2e6e7291547f9c26e635e002bfb47c9a0136dd4b568d35819681",
       "research/autosiril-native/arrange/build_matrix.py": "4675d33950d9e428656169e7eaaba4f1b03b4d5eae73c84c90e409df1297cc91",
       "research/autosiril-native/arrange/compose.py": "ae0343c1ef273c9d493a49765f978318b9b9b0acd5108cc1ee74d53cb688bfce",
@@ -40674,14 +40674,14 @@
       "research/crystal-hir/export.cr": "a96d3c756cb0798120aad69427b13259f761908ea95c9cf8f6b58317249cc663",
       "research/crystal-hir/typed_export.cr": "d06f1a8e22dec408b7ada5b5482023cb69fbf32d49183bf8d344683b44b3655c"
     },
-    "reused_positive_sha256": "741b28c922dc5a8e9869a498534980f9dcd540d1883a74cc325795f45b3e2801",
-    "reused_musical_sha256": "c4eaa61f3e267e66d5d42086a36d689612d03165394ba5ba0dec97ed9f9562cd",
+    "reused_positive_sha256": "27dbff3ed44f986d9f40dbe748b476099c19f7449a2d7a0e116391411d50ea80",
+    "reused_musical_sha256": "dac1a557fcca0299877f297cb61a000c91ec28c7b9e41e68d262537b216a2da4",
     "reused_arrangement_sha256": "5691d8852c21af31c2e2e356ef02a2790fe3a013bb64323972cdd49439ad8ed0",
     "proofs": {
       "invalid": {
         "protocol": "autosiril-echo-invalid/v1",
         "source_sha256": {
-          ".github/workflows/ci.yml": "b29d3fd86f3c910b6b0a14d2bddef9cc42f229fb64de9f1c451296d7aa1dae63",
+          ".github/workflows/ci.yml": "5883141ae4b77214ff206ce18a2e09c20aeb6f373b594767b7d17da6e5c89414",
           "minzc/pkg/spectrum/formats/trd.go": "574b26fdd37d2e6e7291547f9c26e635e002bfb47c9a0136dd4b568d35819681",
           "research/autosiril-native/arrange/build_matrix.py": "4675d33950d9e428656169e7eaaba4f1b03b4d5eae73c84c90e409df1297cc91",
           "research/autosiril-native/arrange/compose.py": "ae0343c1ef273c9d493a49765f978318b9b9b0acd5108cc1ee74d53cb688bfce",
@@ -67892,7 +67892,7 @@
       "io": {
         "protocol": "autosiril-echo-io/v1",
         "source_sha256": {
-          ".github/workflows/ci.yml": "b29d3fd86f3c910b6b0a14d2bddef9cc42f229fb64de9f1c451296d7aa1dae63",
+          ".github/workflows/ci.yml": "5883141ae4b77214ff206ce18a2e09c20aeb6f373b594767b7d17da6e5c89414",
           "minzc/pkg/spectrum/formats/trd.go": "574b26fdd37d2e6e7291547f9c26e635e002bfb47c9a0136dd4b568d35819681",
           "research/autosiril-native/arrange/build_matrix.py": "4675d33950d9e428656169e7eaaba4f1b03b4d5eae73c84c90e409df1297cc91",
           "research/autosiril-native/arrange/compose.py": "ae0343c1ef273c9d493a49765f978318b9b9b0acd5108cc1ee74d53cb688bfce",
@@ -131305,7 +131305,7 @@
       "mutants": {
         "protocol": "autosiril-echo-native-mutants/v1",
         "source_sha256": {
-          ".github/workflows/ci.yml": "b29d3fd86f3c910b6b0a14d2bddef9cc42f229fb64de9f1c451296d7aa1dae63",
+          ".github/workflows/ci.yml": "5883141ae4b77214ff206ce18a2e09c20aeb6f373b594767b7d17da6e5c89414",
           "minzc/pkg/spectrum/formats/trd.go": "574b26fdd37d2e6e7291547f9c26e635e002bfb47c9a0136dd4b568d35819681",
           "research/autosiril-native/arrange/build_matrix.py": "4675d33950d9e428656169e7eaaba4f1b03b4d5eae73c84c90e409df1297cc91",
           "research/autosiril-native/arrange/compose.py": "ae0343c1ef273c9d493a49765f978318b9b9b0acd5108cc1ee74d53cb688bfce",
@@ -131446,7 +131446,7 @@
       "contracts": {
         "protocol": "autosiril-echo-chunk-contracts/v1",
         "source_sha256": {
-          ".github/workflows/ci.yml": "b29d3fd86f3c910b6b0a14d2bddef9cc42f229fb64de9f1c451296d7aa1dae63",
+          ".github/workflows/ci.yml": "5883141ae4b77214ff206ce18a2e09c20aeb6f373b594767b7d17da6e5c89414",
           "minzc/pkg/spectrum/formats/trd.go": "574b26fdd37d2e6e7291547f9c26e635e002bfb47c9a0136dd4b568d35819681",
           "research/autosiril-native/arrange/build_matrix.py": "4675d33950d9e428656169e7eaaba4f1b03b4d5eae73c84c90e409df1297cc91",
           "research/autosiril-native/arrange/compose.py": "ae0343c1ef273c9d493a49765f978318b9b9b0acd5108cc1ee74d53cb688bfce",

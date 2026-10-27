@@ -1,7 +1,7 @@
 {
   "protocol": "autosiril-echo-cpm/v1",
   "source_sha256": {
-    ".github/workflows/ci.yml": "b29d3fd86f3c910b6b0a14d2bddef9cc42f229fb64de9f1c451296d7aa1dae63",
+    ".github/workflows/ci.yml": "5883141ae4b77214ff206ce18a2e09c20aeb6f373b594767b7d17da6e5c89414",
     "minzc/pkg/spectrum/formats/trd.go": "574b26fdd37d2e6e7291547f9c26e635e002bfb47c9a0136dd4b568d35819681",
     "research/autosiril-native/arrange/build_matrix.py": "4675d33950d9e428656169e7eaaba4f1b03b4d5eae73c84c90e409df1297cc91",
     "research/autosiril-native/arrange/compose.py": "ae0343c1ef273c9d493a49765f978318b9b9b0acd5108cc1ee74d53cb688bfce",
@@ -3219,6 +3219,6 @@
   },
   "standalone_emulator_sha256": "8a18e30e0940a1fdc78909316d0eccbd2c07e90d7a9c505d74a1abae62fec7e6",
   "scope": "108 executions/20 native file pairs and four separate COM processes; CALL5 traps and SP/HALT contract, not physical TPA/CCP/boot/full converter",
-  "positive_receipt_sha256": "741b28c922dc5a8e9869a498534980f9dcd540d1883a74cc325795f45b3e2801",
-  "musical_receipt_sha256": "c4eaa61f3e267e66d5d42086a36d689612d03165394ba5ba0dec97ed9f9562cd"
+  "positive_receipt_sha256": "27dbff3ed44f986d9f40dbe748b476099c19f7449a2d7a0e116391411d50ea80",
+  "musical_receipt_sha256": "dac1a557fcca0299877f297cb61a000c91ec28c7b9e41e68d262537b216a2da4"
 }

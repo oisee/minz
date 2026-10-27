@@ -1,7 +1,7 @@
 {
   "protocol": "autosiril-echo-positive/v1",
   "source_sha256": {
-    ".github/workflows/ci.yml": "b29d3fd86f3c910b6b0a14d2bddef9cc42f229fb64de9f1c451296d7aa1dae63",
+    ".github/workflows/ci.yml": "5883141ae4b77214ff206ce18a2e09c20aeb6f373b594767b7d17da6e5c89414",
     "minzc/pkg/spectrum/formats/trd.go": "574b26fdd37d2e6e7291547f9c26e635e002bfb47c9a0136dd4b568d35819681",
     "research/autosiril-native/arrange/build_matrix.py": "4675d33950d9e428656169e7eaaba4f1b03b4d5eae73c84c90e409df1297cc91",
     "research/autosiril-native/arrange/compose.py": "ae0343c1ef273c9d493a49765f978318b9b9b0acd5108cc1ee74d53cb688bfce",

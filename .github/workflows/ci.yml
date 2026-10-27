@@ -154,9 +154,6 @@ jobs:
     name: Fresh Ruby Crystal native pipeline
     runs-on: ubuntu-latest
     timeout-minutes: 90
-    env:
-      GEM_HOME: ${{ runner.temp }}/autosiril-gems
-      CRYSTAL_CACHE_DIR: ${{ runner.temp }}/crystal-cache
     steps:
       - uses: actions/checkout@v4
       - uses: actions/checkout@v4
@@ -174,11 +171,16 @@ jobs:
           crystal: 1.20.1
           shards: false
       - name: Install original Ruby oracle and compiler-library dependencies
+        env:
+          GEM_HOME: ${{ runner.temp }}/autosiril-gems
         run: |
           sudo apt-get update
           sudo apt-get install -y ruby llvm-dev libgc-dev libgmp-dev libevent-dev libpcre2-dev zlib1g-dev
           gem install midilib --version 4.0.2 --no-document
       - name: Rebuild actual Ruby Crystal and all four native stages
+        env:
+          GEM_HOME: ${{ runner.temp }}/autosiril-gems
+          CRYSTAL_CACHE_DIR: ${{ runner.temp }}/crystal-cache
         run: python3 research/autosiril-native/echo/verify.py --autosiril .ci-reference/autosiril --out "$RUNNER_TEMP/autosiril-echo-fresh"
       - name: Preserve complete fresh native evidence
         if: always()
