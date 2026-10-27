@@ -1,7 +1,7 @@
 {
   "protocol": "minz-compiler-day-articles/v1",
-  "date": "2026-10-26",
-  "described_main": "a716ff184a50c9e17eea4d6679cbcd1ed1f9b379",
+  "date": "2026-10-27",
+  "described_snapshot": "b58fba0c626fd0c82f42dbd6356d56887b4849b0",
   "chapters": [
     {
       "slug": "01-languages-and-ideas",
@@ -20,9 +20,15 @@
       "words_approx": 2770,
       "diagrams": 6,
       "reading_minutes_approx": 14
+    },
+    {
+      "slug": "04-four-rows-for-a-melody",
+      "words_approx": 2101,
+      "diagrams": 5,
+      "reading_minutes_approx": 11
     }
   ],
-  "diagrams": 18,
+  "diagrams": 23,
   "illustrations": 2,
   "tools": {
     "mermaid_cli": "12.0.0",
@@ -32,15 +38,18 @@
     "01-languages-and-ideas.md": "337b72e5d9f733b3d3eca195aaf40bf4a8dc2cd455170e2db4af91707180fd5f",
     "02-melody-between-two-files.md": "ebeeafda71071527ed472d3dd1817a0b1ce7a0ebe67c7c660cc106a3af50eb8a",
     "03-borrowing-without-a-runtime.md": "25b3080b7ff092ad2f8351aab08504b1383902005b18a243e8b060ab8566be06",
-    "README.md": "988b92c47de23c461da326b55218a4344b2ec35edb02870fd511fe5dc69cd16c",
-    "build.py": "d93fbeb4fb700fa0e6f9be9ae4f0222df882925245a15fbbf0a6612f5509d90f",
+    "04-four-rows-for-a-melody.md": "f54763af00e51df7d6a23127c057103ca938e660538dc427c4f44b25ebf7622e",
+    "README.md": "f30487dbbf39e5dd37c531d137b6b86b0c5f1b7971cff5e16665e4ae155185a2",
+    "edition.json": "6fe8bdec4f38a9f124cc41502802cd78ff84baf2132a9ee653ba3d9b27d9bc4c",
+    "build.py": "3f0474963b5a10c192bdde854cdc4369f7446a13e445caa2dae79994b3d4085a",
     "style.css": "e3c21c5286cf6ff84d7b2abbae1dbcf386925d4fe59944d8a54e8cd4ab1f5488",
     "reader.js": "b3f8b196f4581578cf523bf6489fad4d796ce3d80aeb658ee9a88f2490d627a5"
   },
   "output_sha256": {
-    "01-languages-and-ideas.html": "b47f75faaa416bc773cf47cc0e86faa7a98d5d903d5fb31e553d9382679b8bfa",
-    "02-melody-between-two-files.html": "9d853411c7cbe0b0d4cf5fb769e1737ca0329b74c66ce5d16940b92689ac49de",
-    "03-borrowing-without-a-runtime.html": "5d3e2b48479c3c55a7454362a1c27764b5ea23b2e57b834989c3a58705939765",
-    "index.html": "d7d64e213b96ab8c87f6c20e6b0028b404500da0474d3a924c5974a9dc6dff8b"
+    "01-languages-and-ideas.html": "6fd294fb9386a4de433222ecb81b226ce4839b8332496aeafeb4e09f206c0aec",
+    "02-melody-between-two-files.html": "043a9d743cdc9383ccd085c5695a0261cfd1d50f4554bd4bd85b0725745d36ca",
+    "03-borrowing-without-a-runtime.html": "e9b5396285d2e45a6240db2742f53d899d39104360bff7320839d5ab6e8e5bd8",
+    "04-four-rows-for-a-melody.html": "78fb5c6530e962ee88cb95b7de7dabb1f3ee5502c3e997440aea65c51dcfbb9c",
+    "index.html": "b390dda81f19098e43f6308b315f61402d130efda8d467e8cf870e02b60e5bd3"
   }
 }

@@ -8,17 +8,18 @@
 
 SAVE files live outside the download in your user configuration directory, so upgrades preserve them. Zork I resumes the session after a clean exit; Zork II uses disk SAVE/RESTORE. [Release verification](reports/zmachine-spectrum128/release/verified.md) · [Full Z-machine status](reports/zmachine-spectrum128/current-status.md).
 
-## Featured: один день из жизни MinZ — три новых лонгрида
+## Featured: дни из жизни MinZ — четыре главы
 
-[**Читать иллюстрированную трилогию на русском →**](research/daily/2026-10-26/README.md) · [HTML с готовыми схемами](research/daily/2026-10-26/index.html)
+[**Читать иллюстрированную книгу на русском →**](research/daily/2026-10-26/README.md) · [HTML с готовыми схемами](research/daily/2026-10-26/index.html)
 
 - [**Ruby рассказывает, Z80 считает:**](research/daily/2026-10-26/01-languages-and-ideas.md) Crystal frontend, macro ↔ meta, битовые DSL и идеи Erlang/OTP.
 - [**Мелодия между двумя файлами:**](research/daily/2026-10-26/02-melody-between-two-files.md) MIDI/Autosiril, генераторы, ленивость, fusion и 64 байта RLE; две нативные CP/M-утилиты уже в main.
 - [**Чемодан без виртуальной машины:**](research/daily/2026-10-26/03-borrowing-without-a-runtime.md) что взять у LLVM, Cranelift, Grace, C#/.NET, JVM/Kotlin, Rust и BEAM.
+- [**Четыре строки для мелодии:**](research/daily/2026-10-26/04-four-rows-for-a-melody.md) пятая native стадия Autosiril, четыре pending slots на fold, CP/M/TRD и проверка по Ruby. Downmix уже в main после PR #270.
 
-18 Mermaid-схем, реальные Crystal/Nanz/Ruby-примеры, иллюстрации и интерактивная модель RLE в HTML. Работающие возможности, локальные эксперименты и будущие идеи отмечены отдельно.
+23 Mermaid-схемы, реальные Crystal/Nanz/Ruby-примеры, иллюстрации и интерактивная модель RLE в HTML. Работающие возможности, локальные эксперименты и будущие идеи отмечены отдельно.
 
-**Скачать книгу:** [EPUB](research/daily/2026-10-26/output/epub/minz-compiler-day-2026-10-26.epub) · [PDF A5, 74 страницы](research/daily/2026-10-26/output/pdf/minz-compiler-day-2026-10-26-A5.pdf)
+**Скачать книгу:** [EPUB](research/daily/2026-10-26/output/epub/minz-compiler-day-2026-10-26.epub) · [PDF A5, 93 страницы](research/daily/2026-10-26/output/pdf/minz-compiler-day-2026-10-26-A5.pdf)
 
 ## Featured article: My ABAP Escaped from the Server
 

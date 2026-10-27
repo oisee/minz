@@ -1,0 +1,168 @@
+{
+  "protocol": "autosiril-mix-completion-audit/v1",
+  "complete": true,
+  "pr": 270,
+  "run_id": 40488033663,
+  "head": "bfb8ff5166f3752d66f4564ffcac68f03c6a9e75",
+  "tested_merge": "603d2173df278659a32a5eb6f0eb129d405789ab",
+  "tree": "5c6c623d6279a31c351bad2a7ade88da954f44b2",
+  "checks": [
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-27T11:17:26Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/oisee/minz/actions/runs/40488033663/job/122134652970",
+      "name": "Compiler and frozen gates",
+      "startedAt": "2026-10-27T10:23:11Z",
+      "status": "COMPLETED",
+      "workflowName": "CI"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-27T11:19:36Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/oisee/minz/actions/runs/40488033663/job/122134652846",
+      "name": "Fresh Ruby Crystal native pipeline",
+      "startedAt": "2026-10-27T10:23:12Z",
+      "status": "COMPLETED",
+      "workflowName": "CI"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-27T10:25:33Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/oisee/minz/actions/runs/40488033663/job/122134652911",
+      "name": "Compiler checks / Build judge compilers",
+      "startedAt": "2026-10-27T10:23:12Z",
+      "status": "COMPLETED",
+      "workflowName": "CI"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-27T10:26:10Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/oisee/minz/actions/runs/40488033663/job/122135753130",
+      "name": "Compiler checks / Assert matrix",
+      "startedAt": "2026-10-27T10:25:35Z",
+      "status": "COMPLETED",
+      "workflowName": "CI"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-27T10:28:58Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/oisee/minz/actions/runs/40488033663/job/122135752965",
+      "name": "Compiler checks / Judge self-tests",
+      "startedAt": "2026-10-27T10:25:35Z",
+      "status": "COMPLETED",
+      "workflowName": "CI"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-27T10:28:01Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/oisee/minz/actions/runs/40488033663/job/122135753533",
+      "name": "Compiler checks / Default output sweep",
+      "startedAt": "2026-10-27T10:25:36Z",
+      "status": "COMPLETED",
+      "workflowName": "CI"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-27T10:26:40Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/oisee/minz/actions/runs/40488033663/job/122135753144",
+      "name": "Compiler checks / Short fuzz",
+      "startedAt": "2026-10-27T10:25:35Z",
+      "status": "COMPLETED",
+      "workflowName": "CI"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-27T10:26:29Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/oisee/minz/actions/runs/40488033663/job/122135753016",
+      "name": "Compiler checks / Direct-call fuzz findings",
+      "startedAt": "2026-10-27T10:25:35Z",
+      "status": "COMPLETED",
+      "workflowName": "CI"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-27T10:25:54Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/oisee/minz/actions/runs/40488033663/job/122134652586",
+      "name": "Advisory Go lint",
+      "startedAt": "2026-10-27T10:23:12Z",
+      "status": "COMPLETED",
+      "workflowName": "CI"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-27T11:41:54Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/oisee/minz/actions/runs/40488033663/job/122158174215",
+      "name": "Frozen fifth native stage",
+      "startedAt": "2026-10-27T11:17:28Z",
+      "status": "COMPLETED",
+      "workflowName": "CI"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-27T11:42:01Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/oisee/minz/actions/runs/40488033663/job/122168535048",
+      "name": "PR gate",
+      "startedAt": "2026-10-27T11:41:57Z",
+      "status": "COMPLETED",
+      "workflowName": "CI"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-27T11:42:08Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/oisee/minz/actions/runs/40488033663/job/122168582763",
+      "name": "PR test report",
+      "startedAt": "2026-10-27T11:42:03Z",
+      "status": "COMPLETED",
+      "workflowName": "CI"
+    }
+  ],
+  "user_file_sha256": {
+    "reports/crystal-day-2026-10-25.html": "e57cc471a5aa373c7ea409e8eeeb9134486b5c4bccf763b0fde0fec83e49c5e5",
+    "reports/crystal-ecosystems-2026-10-25.html": "f9425de0bbba4f922672ee3d5c7a1d390f1ce3c4122f185e815741577f9750fe",
+    "reports/crystal-language-2026-10-25.html": "2efe4dac92a95868a1c3d59825159569caa8c97080c208b719dae2f65d1c0186",
+    "minzc/cmd/mze/cpm_tick_input.go": "0277441152a12c17a0ea76ef53783cb1cc747f30c9ec578b2d28291bb570c4f1"
+  },
+  "criteria": {
+    "ruby_semantics_group_priority": "actual Ruby41f621b5; planning119 + lazy119; kernel408; oracle/model/kernel reviewed",
+    "bounded_owned_state": "two4-slot folds +2 heads +3 owned inputs; cursor63+63, cleanup/error matrices",
+    "wire_global_timing": "WIRE.md,wire.nanz: definitions/cells/extents/role3u32 original NOTES time; clone16; metadata/empty/wide cases",
+    "capacities": "CPM561/TRD384 incl3072/9216,64/4096,DATA65535/u32 timing,CPM>64KB/TRD255sectors; old producers unchanged",
+    "upstream_native_chains": "19 valid + explicit failed twentieth;6 Chronos variants; actual saved disks/files",
+    "engine_scope": "raw/final/native in every phase; signature equality across downloaded1923 each",
+    "io_contracts": "72 IO+102catalog+210malformed+48common+12snapshot; independent audits; exact prefix/publication/cleanup; TRD unrepresentable inventory",
+    "cpu_safety": "16bank writes/PC/SP/dataexecution/ports/paging/IRQ;6 restoring mutants each; budgets/IO/Tstates/artifacts retained",
+    "inherited_gates": "Echo216+771+6/40links/4COM fresh+frozen audits; arrange342TRD+282CPM+40links+42contracts+9directory+6storage+6mutants both audits; all old source unchanged; all CI success",
+    "retained_and_five_com": "exact40626B bc440efa hash;9pipelines36phases;5COM file/program links audited",
+    "ci_tree": "12 greenchecks; strict PR gate; CI603d217 tree5c6c623d equals headbfb8ff516 with main4b82cd7f5",
+    "preservation": "four user SHA256 preserved; no i7 or Herdr control",
+    "artifacts": "ZIP SHA256 match GitHub; independent pair audit complete without development reuse",
+    "claim_boundaries": "API traps; not physicalROM/FDC/hardware/boot/TPA/fullVT2VTX/MOS/eZ80",
+    "merge": "verified remote/main and root HEAD b58fba0c; tree equals tested5c6c623d; parents exact; user files SHA256 unchanged",
+    "next_bounded_step": "render_into_text selected, committed and pushed0ff425b3c; plan explicitly preserves full profile and verifies native sixth stage through PR; finish book chapter first"
+  },
+  "artifact_audit_sha256": "3823450aebd9d7a84bf96f2996fc7cf0e48897f9d434bc64cf2b930ca66fbbc1",
+  "merge": {
+    "mergeCommit": {
+      "oid": "b58fba0c626fd0c82f42dbd6356d56887b4849b0"
+    },
+    "mergedAt": "2026-10-27T11:46:15Z",
+    "state": "MERGED"
+  },
+  "next_plan": {
+    "branch": "spike/autosiril-native-render",
+    "commit": "0ff425b3c773d31d1e8144c794137e81a4da4b5e",
+    "sha256": "0b8645a0385231559af1cac12a9edd5cd477cfe546e596f017384d87050a7ddf"
+  }
+}
