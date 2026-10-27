@@ -1,0 +1,19 @@
+{
+  "scope": "Parent independent canonical6 replay: actualRuby vs standaloneCPM arrange+echo and raw/final/native mixkernel; not standaloneMIX.COM proof, not wholeconverter",
+  "command": "python3 research/autosiril-native/p-channel-fix/prove_canonical6.py --autosiril /Users/alice/dev/autosiril --upstream /tmp/minz-ci270-artifacts/autosiril-mix-fresh/upstream/cpm/standalone --mze /Users/alice/.local/bin/mze --out /tmp/minz-z-workers/p-channel-results/parent-p2-a",
+  "receipt_sha256": "12262621f2666518012ffa33e550ffcd085559a2581301289b7c00d649a0404f",
+  "mze_sha256": "4242d1f1d17eee8d7ceb5afd36316a38212c7406d810d91a3f278fa5b54be7d4",
+  "all_boundary_diffs_zero": true,
+  "counts": {
+    "stage2_groups": 2097,
+    "stage3_cells": 2097,
+    "stage4_cells": 3215,
+    "stage5_cells": 3215
+  },
+  "source_commit": "b169e701b",
+  "source_sha256": {
+    "prove_canonical6.py": "adf1a9fa88424b504127eef31d21624da081e4c2b4097f9c2fe4295f4fd130d2",
+    "trace_stage_divergence.py": "f8b3ed793cb19934813a2ebf48c38ea86b69a16085dc04f67fda14d3c62a0a40",
+    "oracle_stages.rb": "c02afb77ca1ee33c76b7178bf3150c301cb142138ab25ee9c2f5a8cf4a6dfd3b"
+  }
+}
