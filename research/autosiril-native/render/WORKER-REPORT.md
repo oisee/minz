@@ -320,3 +320,23 @@ CP/M proof still passes 162/162 after the refactor.
 Not yet covered on TRD: profile-edge and canonical6 cases (no native TRD mix
 disk exists for them), sector failures, disk-full and malformed inputs,
 renderer guard mutants, CI. See `evidence/trd-checkpoint1.json`.
+
+## TRD checkpoint 2: failures and disk-full (2026-10-27)
+
+297/297 executions pass (99 cases × 3 engines):
+
+- The 25 native TRD mix disks, plus the profile-edge and canonical6 cases on
+  seeded disks that hold only the actual `MIXED M` bytes (labelled as such).
+- A failure injected at each of the 58 sector calls of `chain_single`, and at
+  six points inside Chronos, including during the second text segment.
+- Disk full: 12 free sectors succeed, 11 fail on creating `META`, 1 fails on
+  the first text write; Chronos with room for exactly one text segment fails
+  creating the second.
+
+Failure cases are checked by invariants rather than one expected code. Every
+published segment must be an exact prefix in stream order, and free-space
+accounting must match the published files. The one admitted exception is the
+inherited binding's non-atomic `finish()`: a fault 903 between the catalog
+write and the system-sector write leaves the last file visible but uncounted.
+Fixing that ordering is a separate change to the shared binding. See
+`evidence/trd-checkpoint2.json`.

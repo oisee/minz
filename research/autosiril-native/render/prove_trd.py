@@ -22,6 +22,33 @@ def logical_kind5(wire):
     return wire[:12 + 17 * len(records) + 9]
 
 
+SINGLE_CALLS = 58      # sector calls of a successful chain_single render
+
+
+def failure_cases(rows):
+    """Single sector failures and disk-full boundaries; checked by invariants."""
+    result = []
+    single = rows['chain_single']
+    for call in range(1, SINGLE_CALLS + 1):
+        case = dict(single, name=f'trd_fail_single_call{call:02d}', fail_call=call, fail_any=True)
+        result.append(case)
+    chronos = rows['native_chronos']
+    # Text segment 0 ends at write 255, segment 1 starts after its catalog
+    # publication; state follows. Calls are spread over both passes.
+    for call in [300, 600, 700, 1100, 1300, 1500]:
+        result.append(dict(chronos, name=f'trd_fail_chronos_call{call}', fail_call=call, fail_any=True))
+    need = sum((len(base64.b64decode(single[k])) + 255) // 256
+               for k in ['expected_text', 'expected_state', 'expected_meta']) + 1
+    for free, ok in [(need, True), (need - 1, False), (1, False)]:
+        case = dict(single, name=f'trd_disk_free{free}', disk='', free=free)
+        if not ok:
+            case.update(fail_any=True)
+        result.append(case)
+    # Chronos text needs two segments; room for exactly the first one.
+    result.append(dict(chronos, name='trd_disk_chronos_free255', disk='', free=255, fail_any=True))
+    return result
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--cpm-run', type=Path, required=True,
@@ -44,17 +71,20 @@ def main():
         if c['fault'] != 0 or (args.case and name != args.case):
             continue
         disk = args.mix_trd / name / 'scorpion-z80/disk.trd'
-        if not disk.exists():
-            skipped.append(dict(name=name, reason='no native TRD mix disk for this case'))
-            continue
         wire = base64.b64decode(c['wire'])
-        matrix.append(dict(
-            name=name, disk=str(disk.resolve()),
+        row = dict(
+            name=name, disk=str(disk.resolve()) if disk.exists() else '',
             mixed=base64.b64encode(logical_kind5(wire)).decode(),
             expected_text=c['expected_text'], expected_state=c['expected_state'],
             expected_meta=base64.b64encode(companion_meta(wire)).decode(),
-            render_rows=c['render_rows'], fault=0))
+            render_rows=c['render_rows'], fault=0)
+        if not disk.exists():
+            # Seeded disk: actual MIXED bytes, but not a native TRD mix output.
+            skipped.append(dict(name=name, reason='no native TRD mix disk; ran on a seeded disk'))
+        matrix.append(row)
     assert matrix
+    if not args.case:
+        matrix.extend(failure_cases({row['name']: row for row in matrix}))
     (out / 'cases.json').write_text(json.dumps(dict(cases=matrix, skipped=skipped), indent=2) + '\n')
     driver = compose(out)
     sources = [HERE / n for n in ['kernel.nanz', 'common.nanz', 'trd.nanz', 'trd-driver.go.txt',
