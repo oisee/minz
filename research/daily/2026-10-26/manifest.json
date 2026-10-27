@@ -44,9 +44,15 @@
       "words_approx": 1299,
       "diagrams": 2,
       "reading_minutes_approx": 7
+    },
+    {
+      "slug": "08-last-mile-of-fusion",
+      "words_approx": 2363,
+      "diagrams": 1,
+      "reading_minutes_approx": 12
     }
   ],
-  "diagrams": 30,
+  "diagrams": 31,
   "illustrations": 2,
   "tools": {
     "mermaid_cli": "12.0.0",
@@ -60,8 +66,9 @@
     "05-two-pages-for-one-song.md": "9cfd8cb145cd5e227f39c589e0fbd64205161c4b87a3483c675e1c2991f539bd",
     "06-two-compilers-one-repository.md": "3ec1ea150cd6fcfd38fb3e5062593d2e71a2b5ef6532916c451c7582e1164be9",
     "07-failure-at-sector-27.md": "e403761a5bf09ee7907b49822c0083a438b4d0742aa7bca70d119a2bf48fee7f",
+    "08-last-mile-of-fusion.md": "5c67d62212bb829840b10655c6e9ae9c3dbc297c00b819f7b9d183f3fd95b09d",
     "README.md": "d76008798fb0412011d7f25537df8666c4dacc06b0ed8a9f44491ab950c61419",
-    "edition.json": "5f4524ad92a9af9aaa1ab671a4a79c6e2fde90ec159bea9b74d7d169cd248856",
+    "edition.json": "984307fc10cea162b3fc3fcf612758962a99e3af6743705365c870f528d6b630",
     "build.py": "3f0474963b5a10c192bdde854cdc4369f7446a13e445caa2dae79994b3d4085a",
     "style.css": "e3c21c5286cf6ff84d7b2abbae1dbcf386925d4fe59944d8a54e8cd4ab1f5488",
     "reader.js": "b3f8b196f4581578cf523bf6489fad4d796ce3d80aeb658ee9a88f2490d627a5"
@@ -73,7 +80,8 @@
     "04-four-rows-for-a-melody.html": "4bb77cbd5d14a73dbaffe7379e16ce84fb0a07e195f378a70cf8f6291d9418b4",
     "05-two-pages-for-one-song.html": "03437ee651ce573cf04b1ad047d532b93f9ab738d2c67ce49a4b42526bcc50bc",
     "06-two-compilers-one-repository.html": "d4798faf3d0958f28e7cf1c5c88cf7210cf5a43b9b91ea20320d355cc798300d",
-    "07-failure-at-sector-27.html": "37ac5761efe8478796d6cdd2924f26067848551cd91e1a539b793f62789dc937",
-    "index.html": "ebdad19e8d4f800df26532867169369bbe96624821359d218468d1ca8fdb2052"
+    "07-failure-at-sector-27.html": "fb17a6cfc8f72163082d60af4a9b295212c939e461d329ab6bfb6b42f3e985a5",
+    "08-last-mile-of-fusion.html": "9818c35b327de3ba81f739f3a3aaeaa0b2848954a942399411338cd6dde710a6",
+    "index.html": "8e638c0dce35cf6e939ad569992a8f55db1c0727b7ffec4579a05c0d11680dac"
   }
 }
