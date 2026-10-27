@@ -183,3 +183,69 @@ Checkpoint receipts: [full Chronos](evidence/positive-receipt.json),
 [TRD musical boundaries](evidence/musical-receipt.json),
 [CP/M musical boundaries and four standalone programs](evidence/cpm-receipt.json).
 These receipts explicitly record upstream reuse and pending full acceptance work.
+
+## Robustness checkpoint
+
+The expanded drivers check explicit failure contracts in addition to final byte
+comparison. Both observe each input open/close independently, require ring
+cleanup, and reject configuration writes even when a later write restores the
+old value. The TRD driver preserves successful/failed sector-call traces,
+publication state, exact data prefixes, sector padding, catalog/system changes,
+and free-space accounting. CP/M preserves immediate-make visibility, exact
+physical prefixes, independent closes and preexisting output contents.
+
+| Suite | Current cases / executions |
+|---|---:|
+|Malformed NOTES/ARRANGE and resource boundaries|60 cases ×3 engines ×2 transports =360|
+|Sector / BDOS / directory / space / publication failures|45 TRD +15 CP/M cases, ×3 =180|
+|Chunk behavior and CP/M success codes|141 executions|
+|Actual native guard mutants|4 TRD +2 CP/M rejections|
+
+These include2046/2047 companion notes;64/65 definitions;4096/4097 expanded
+ornament bytes;1024/1025 incoming LNotes; scheduled-row overflow before a u16
+cast; malformed magic/version/kind/width/flags/reserved/tag/count/END/EOF;
+source ordering and LNote/definition invariants. Capacity checks keep input and
+delayed-output limits separate.
+
+Sector failures cover both independent input opens/reads, first/middle/last
+Chronos data writes and every catalog/system publication operation. Exact215
+free sectors succeed for Chronos;214 leave an unpublished exact partial prefix.
+If catalog publication succeeded before the system-sector failure, the file is
+already visible while free-space accounting remains unchanged. This is checked
+explicitly and is not crash-atomic publication. CP/M tests include each input
+close, output close, failed make, preexisting output and partial physical files.
+
+Chunk controls independently target the companion and arrangement reader:
+zero progress, repeated stalls, EOF with bytes, oversize/unknown status, invalid
+capacity/padding quantum, and a short write. Read splitting to1 and7 bytes is
+checked on both transports, including the dense65-slot case. Successful CP/M
+directory results1,2,3 remain accepted and normalized.
+
+The six real native mutants include a bad bank restore, a257-byte bounce copy,
+a bank0 write which restores its old byte, and restoring scalar/mode config
+writes. Each must fail for its named profiler rejection, not merely for a final
+output mismatch. No blanket prohibition is imposed on normal writes to the
+owned ring workspace.
+
+```sh
+python3 research/autosiril-native/echo/prove_robustness.py \
+  --upstream /tmp/minz-arrange-complete-fresh-v1 \
+  --positive /tmp/echo-positive --musical /tmp/echo-musical \
+  --out /tmp/echo-robustness
+```
+
+The wrapper explicitly checks the reused fresh Ruby/Crystal checkpoint and the
+unchanged target kernels, then records current sources and all child proofs.
+This still leaves all20 native input chains, default full fresh/frozen replay,
+required CI, artifact audit and PR merge for the complete echo milestone.
+
+Before final acceptance, extend this checkpoint with the20 saved arrangement
+chains (including the last-u16-row chain, whose delayed DATA overflow must be
+reported rather than hidden). Make fixture paths relative for frozen CI replay.
+The final verifier audit should also compare all16 bytes of a newly published
+TRD descriptor and observe CP/M IFF1/IFF2, in addition to the existing per-step
+Scorpion IRQ/mapping guards. Retain every older CI gate; the current PR gate's
+60-minute timeout may need adjustment based on the measured complete replay.
+
+[Robustness checkpoint receipt](evidence/robustness-receipt.json) records681
+ordinary executions and6 actual native mutant rejections on one source snapshot.

@@ -18,9 +18,23 @@ type echoCase struct {
  Counts [3]uint16 `json:"counts"`
  Extents [3]uint32 `json:"extents"`
  Disk string `json:"disk"`
+ FailCall int `json:"fail_call,omitempty"`
+ Control string `json:"disk_control,omitempty"`
+ Published bool `json:"published,omitempty"`
+ DiskError *uint16 `json:"disk_error,omitempty"`
+ DataWrites *int `json:"data_writes,omitempty"`
+ OSFault struct{Function byte `json:"function"`;Occurrence int `json:"occurrence"`} `json:"os_fault"`
+ ExistingOutput []byte `json:"existing_output,omitempty"`
+ CompleteOutput bool `json:"complete_output,omitempty"`
+ InputOpens *int `json:"input_opens,omitempty"`
+ CPMFault *uint16 `json:"cpm_fault,omitempty"`
+ CPMWire,CPMNotes []byte
+ OutputExists *bool `json:"output_exists,omitempty"`
+ WrittenRecords *int `json:"written_records,omitempty"`
 }
 func linearData(d *formats.TRDFile,pos int)[]byte {t:=pos/16;return d.ReadSector(t%80,t/80,pos%16)}
 func putLinearData(d *formats.TRDFile,pos int,b []byte){t:=pos/16;d.WriteSector(t%80,t/80,pos%16,b)}
+func linearOffset(pos int)int {t:=pos/16;return ((t%80*2+t/80)*16+pos%16)*256}
 func seedEchoDisk(notes,wire []byte)*formats.TRDFile {
  d:=&formats.TRDFile{};pos:=16
  for index,data:=range [][]byte{notes,wire}{
@@ -34,7 +48,9 @@ func seedEchoDisk(notes,wire []byte)*formats.TRDFile {
 }
 func main(){
  root:=flag.String("root","..","repository root");source:=flag.String("source","","composed echo source");input:=flag.String("input","","actual Ruby cases");out:=flag.String("out","","output directory")
- music:=flag.String("music","","actual Crystal export");manifest:=flag.String("manifest","","actual Crystal manifest");flag.Parse();check(os.MkdirAll(*out,0755))
+ stub:=flag.String("stub","","optional native sector stub")
+ engineChoice:=flag.String("engine","","optional engine selector")
+ music:=flag.String("music","","actual Crystal export");manifest:=flag.String("manifest","","actual Crystal manifest");flag.Parse();if *stub==""{*stub=filepath.Join(*root,"research/autosiril-native/transports/trd-stub.a80")};check(os.MkdirAll(*out,0755))
  buildOne:=func()*hir.Module{h,e:=build(read(*source),read(*music),read(*manifest),filepath.Join(*root,"stdlib"));check(e);return h}
  raw:=hir.LowerModule(buildOne());check(mir2.Verify(raw));opts:=pipeline.DefaultOptions();opts.AssertMode="none";opts.DisableVariantSearch=true
  steps,e:=pipeline.CompileHIRSteps(buildOne(),opts);check(e)
@@ -43,36 +59,83 @@ func main(){
  for _,tc:=range matrix.Cases{
   base:=seedEchoDisk(tc.Notes,tc.Wire)
   if tc.Disk!=""{base,e=formats.LoadTRD(tc.Disk);check(e);for _,item:=range []struct{name string;ext byte;data []byte}{{"NOTES",'N',tc.Notes},{"ARRANGE",'A',tc.Wire}}{entry:=base.FindFile(item.name,item.ext);if entry==nil||!bytes.Equal(base.ReadFile(entry),item.data){panic("saved native file differs")}}}
+  configureEchoDisk(base,tc.Control)
   cfg:=tc.Config.bytes()
   for i,engine:=range []string{"raw-mir2","final-mir2","scorpion-z80"}{
+   if *engineChoice!=""&&*engineChoice!=engine{continue}
    dir:=filepath.Join(*out,tc.Name,engine);check(os.MkdirAll(dir,0755));d:=*base;d.Path=filepath.Join(dir,"disk.trd");d.Writeback=false
-   var get func(string,int)[]byte;var returned int64;calls,cycles,stack:=0,0,0;operations:=[]sectorOperation{};var native map[string]any
+   var get func(string,int)[]byte;var returned int64;calls,cycles,stack,opens,closes:=0,0,0,0,0;operations:=[]sectorOperation{};var native map[string]any
    if i<2{
     module:=raw;if i==1{module=steps.MIR2Module};v:=mir2.NewVM(module);v.MaxMemory=65536;v.MaxSteps=1000000000
     for name,data:=range cfg{for j,b:=range data{v.WriteHeap(v.GlobalAddr(name)+int64(j),b)}}
-    v.ObserveDataAccess=func(a mir2.VMDataAccess){if a.Op!=mir2.OpStore{return};for name,data:=range cfg{at:=v.GlobalAddr(name);if a.Addr>=at&&a.Addr<at+int64(len(data)){panic("VM mutated echo configuration")}}}
-    host:=func(args []mir2.Value)([]mir2.Value,error){calls++;op,address,track,sector:=byte(args[0].I),args[1].I,int(args[2].I),int(args[3].I);if (op!=5&&op!=6)||address!=v.GlobalAddr("input_chunk")||track<0||track>=160||sector<1||sector>16{panic("invalid sector request")};pos:=track*16+sector-1;operations=append(operations,sectorOperation{Call:calls,Op:op,Position:pos,Success:true});if op==5{for j,b:=range linearData(&d,pos){v.WriteHeap(address+int64(j),b)}}else{putLinearData(&d,pos,v.ReadHeap(address,256))};return []mir2.Value{{I:1}},nil}
+    opened,closed:=false,false;inputOpen:=v.GlobalAddr("input_open")
+    v.ObserveDataAccess=func(a mir2.VMDataAccess){if a.Op!=mir2.OpStore{return};if a.Addr==inputOpen{if a.Value==1{opened=true;closed=false;opens++};if opened&&a.Value==0&&!closed{closed=true;closes++}};for name,data:=range cfg{at:=v.GlobalAddr(name);if a.Addr>=at&&a.Addr<at+int64(len(data)){panic("VM mutated echo configuration")}}}
+    host:=func(args []mir2.Value)([]mir2.Value,error){calls++;op,address,track,sector:=byte(args[0].I),args[1].I,int(args[2].I),int(args[3].I);if (op!=5&&op!=6)||address!=v.GlobalAddr("input_chunk")||track<0||track>=160||sector<1||sector>16{panic("invalid sector request")};pos:=track*16+sector-1;operations=append(operations,sectorOperation{Call:calls,Op:op,Position:pos,Success:calls!=tc.FailCall});if calls==tc.FailCall{return []mir2.Value{{I:0}},nil};if op==5{for j,b:=range linearData(&d,pos){v.WriteHeap(address+int64(j),b)}}else{putLinearData(&d,pos,v.ReadHeap(address,256))};return []mir2.Value{{I:1}},nil}
     v.Hosts["trd_sector"]=host;v.Hosts["@trd_sector"]=host;r,e:=v.Call("disk_main",nil);check(e);if len(r)!=1{panic("invalid VM return")};returned=r[0].I;get=func(name string,n int)[]byte{return v.ReadHeap(v.GlobalAddr(name),n)}
    }else{
-    n:=nativeStage(steps.Assembly,steps.MIR2Module,read(filepath.Join(*root,"research/autosiril-native/transports/trd-stub.a80")),&d,dir,0,cfg);returned=int64(n.Returned);calls=n.Calls;cycles=n.Cycles;stack=n.Stack;operations=n.Operations;get=func(name string,count int)[]byte{return n.Get(name,0,count)}
-    if n.InputOpens!=2||n.InputCloses!=2{panic("dual input lifetimes differ")};native=map[string]any{"image_bytes":n.ImageBytes,"code_and_stub_bytes":n.CodeBytes,"loaded_globals_bytes":n.GlobalsBytes,"static_spill_bytes":n.SpillBytes,"external_fixed_reserved_bytes":2048,"bounce_bank_reserved_bytes":16384}
+    n:=nativeStage(steps.Assembly,steps.MIR2Module,read(*stub),&d,dir,tc.FailCall,cfg);returned=int64(n.Returned);calls=n.Calls;cycles=n.Cycles;stack=n.Stack;operations=n.Operations;get=func(name string,count int)[]byte{return n.Get(name,0,count)}
+    opens=n.InputOpens;closes=n.InputCloses;native=map[string]any{"image_bytes":n.ImageBytes,"code_and_stub_bytes":n.CodeBytes,"loaded_globals_bytes":n.GlobalsBytes,"static_spill_bytes":n.SpillBytes,"external_fixed_reserved_bytes":2048,"bounce_bank_reserved_bytes":16384}
    }
+   wantOpens:=2;if tc.InputOpens!=nil{wantOpens=*tc.InputOpens};if opens!=wantOpens||closes!=opens{panic("dual input lifetimes differ")}
    word:=func(name string)uint16{return binary.LittleEndian.Uint16(get(name,2))};fault:=word("fault")
    if returned!=int64(tc.Fault)||fault!=tc.Fault{panic(fmt.Sprintf("%s/%s fault%d return%d want%d",tc.Name,engine,fault,returned,tc.Fault))}
+   if tc.DiskError!=nil&&word("disk_error")!=*tc.DiskError{panic("disk error differs")}
    if word("ring_count")!=0||get("input_open",1)[0]!=0||get("output_open",1)[0]!=0{panic("echo cleanup differs")};for _,b:=range get("ring_live",65){if b!=0{panic("live ring after return")}}
-   entry:=d.FindFile("DELAYED",'D');var actual []byte
-   if fault==0{
-    if entry==nil{panic("missing delayed output")};actual=d.ReadFile(entry);if !bytes.Equal(actual,tc.Expected){panic(fmt.Sprintf("%s/%s differs got%dB want%dB",tc.Name,engine,len(actual),len(tc.Expected)))}
-    for ch:=0;ch<3;ch++{if binary.LittleEndian.Uint16(get("output_lnotes",6)[ch*2:])!=tc.Counts[ch]||binary.LittleEndian.Uint32(get("channel_extents",12)[ch*4:])!=tc.Extents[ch]{panic("count/extent mismatch")}}
-   }else if entry!=nil{panic("failed echo unexpectedly published")}
-   start:=int(base.Data[2048+226])*16+int(base.Data[2048+225]);written:=[]int{};for _,op:=range operations{if op.Op==6{written=append(written,op.Position)}}
-   dataWrites:=len(written);if fault==0{dataWrites-=2;if dataWrites!=(len(actual)+255)/256||written[dataWrites]!=int(base.Data[2048+228])/16||written[dataWrites+1]!=8{panic("publication sequence differs")}}
-   for j:=0;j<dataWrites;j++{if written[j]!=start+j{panic("nonconsecutive data write")};want:=make([]byte,256);at:=j*256;end:=at+256;if end>len(tc.Expected){end=len(tc.Expected)};if at>=end{panic("excess output data")};copy(want,tc.Expected[at:end]);if !bytes.Equal(linearData(&d,start+j),want){panic("partial output prefix or zero padding differs")}}
-   allowed:=make([]bool,len(d.Data));for pos:=start;pos<start+dataWrites;pos++{t:=pos/16;at:=((t%80*2+t/80)*16+pos%16)*256;for j:=0;j<256;j++{allowed[at+j]=true}}
-   if fault==0{slot:=int(base.Data[2048+228])*16;for j:=0;j<16;j++{allowed[slot+j]=true};for _,j:=range []int{225,226,228,229,230}{allowed[2048+j]=true};if binary.LittleEndian.Uint16(d.Data[2048+229:2048+231])!=binary.LittleEndian.Uint16(base.Data[2048+229:2048+231])-uint16(dataWrites)||int(d.Data[2048+226])*16+int(d.Data[2048+225])!=start+dataWrites||d.Data[2048+228]!=base.Data[2048+228]+1{panic("free space accounting differs")}}
-   for at,b:=range d.Data{if b!=base.Data[at]&&!allowed[at]{panic("disk mutation outside admitted output")}}
-   check(d.Flush());check(os.WriteFile(filepath.Join(dir,"delayed.bin"),actual,0644));row:=map[string]any{"case":tc.Name,"engine":engine,"fault":fault,"ring_peak":word("ring_peak"),"wire_sha256":hash(actual),"disk_sha256":hash(d.Data[:]),"operations":operations,"sector_calls":calls,"data_writes":dataWrites,"stack_below_entry":stack,"t_states":cycles};if native!=nil{row["native"]=native};rows=append(rows,row);fmt.Printf("PASS %s/%s fault%d peak%d data%d\n",tc.Name,engine,fault,word("ring_peak"),dataWrites)
+   failed:=0;written:=[]int{};data:=[]int{};metadata:=[]int{}
+   for _,op:=range operations{if !op.Success{failed++;if op.Call!=tc.FailCall{panic("unexpected sector failure")}}else if op.Op==6{written=append(written,op.Position);if op.Position<16{metadata=append(metadata,op.Position)}else{data=append(data,op.Position)}}}
+   if (tc.FailCall==0&&failed!=0)||(tc.FailCall!=0&&failed!=1){panic("sector failure not reached exactly once")}
+   entry:=d.FindFile("DELAYED",'D');published:=entry!=nil
+   if published!=(tc.Fault==0||tc.Published){panic(fmt.Sprintf("%s/%s publication differs",tc.Name,engine))}
+   actual:=[]byte{}
+   start:=int(base.Data[2048+226])*16+int(base.Data[2048+225])
+   if published&&tc.Control!="existing_output"{
+    actual=d.ReadFile(entry)
+    if !bytes.Equal(actual,tc.Expected){at:=0;for at<len(actual)&&at<len(tc.Expected)&&actual[at]==tc.Expected[at]{at++};panic(fmt.Sprintf("%s/%s output differs at%d got%dB want%dB",tc.Name,engine,at,len(actual),len(tc.Expected)))}
+    if int(entry.StartTrack)*16+int(entry.StartSec)!=start||int(entry.Sectors)!=(len(actual)+255)/256{panic("published extent differs")}
+    if tail:=len(actual)%256;tail!=0{for _,b:=range linearData(&d,start+int(entry.Sectors)-1)[tail:]{if b!=0{panic("output padding differs")}}}
+   }
+   if tc.DataWrites!=nil&&len(data)!=*tc.DataWrites{panic(fmt.Sprintf("%s/%s writes%d want%d",tc.Name,engine,len(data),*tc.DataWrites))}
+   for j,pos:=range data{if pos!=start+j||pos>=2560||j>=int(binary.LittleEndian.Uint16(base.Data[2048+229:2048+231])){panic("append escaped free tail")}}
+   if tc.Fault==0{
+    for ch:=0;ch<3;ch++{if binary.LittleEndian.Uint16(get("output_lnotes",6)[ch*2:])!=tc.Counts[ch]||binary.LittleEndian.Uint32(get("channel_extents",12)[ch*4:])!=tc.Extents[ch]{panic("count/extent differs")}}
+    if len(data)!=(len(actual)+255)/256||len(metadata)!=2||metadata[0]!=int(base.Data[2048+228])/16||metadata[1]!=8{panic("publication write sequence differs")}
+    if int(d.Data[2048+226])*16+int(d.Data[2048+225])!=start+len(data)||binary.LittleEndian.Uint16(d.Data[2048+229:2048+231])!=binary.LittleEndian.Uint16(base.Data[2048+229:2048+231])-uint16(len(data))||d.Data[2048+228]!=base.Data[2048+228]+1{panic("free-space accounting differs")}
+   }else if tc.FailCall==0&&len(metadata)!=0{panic("failed stage published metadata")}
+   if (!bytes.Equal(d.Data[2048:2304],base.Data[2048:2304]))!=(tc.Fault==0){panic("system metadata changed despite failure")}
+   for j,pos:=range data{want:=make([]byte,256);at:=j*256;end:=at+256;if end>len(tc.Expected){end=len(tc.Expected)};if at>=end{panic("excess output data")};copy(want,tc.Expected[at:end]);if !bytes.Equal(linearData(&d,pos),want){panic("partial output prefix or zero padding differs")}}
+   allowed:=make([]bool,len(d.Data))
+   for _,pos:=range data{at:=linearOffset(pos);for j:=0;j<256;j++{allowed[at+j]=true}}
+   if published&&tc.Control!="existing_output"{slot:=int(base.Data[2048+228])*16;for j:=0;j<16;j++{allowed[slot+j]=true}}
+   if tc.Fault==0{for _,j:=range []int{225,226,228,229,230}{allowed[2048+j]=true}}
+   for j,b:=range d.Data{if b!=base.Data[j]&&!allowed[j]{panic("disk changed outside output extent/metadata")}}
+   check(d.Flush());check(os.WriteFile(filepath.Join(dir,"delayed.bin"),actual,0644));row:=map[string]any{"case":tc.Name,"engine":engine,"fault":fault,"ring_peak":word("ring_peak"),"input_opens":opens,"input_closes":closes,"wire_sha256":hash(actual),"disk_sha256":hash(d.Data[:]),"operations":operations,"sector_calls":calls,"disk_error":word("disk_error"),"published":published,"data_writes":len(data),"stack_below_entry":stack,"t_states":cycles};if native!=nil{row["native"]=native};rows=append(rows,row);fmt.Printf("PASS %s/%s fault%d peak%d data%d\n",tc.Name,engine,fault,word("ring_peak"),len(data))
   }
  }
  b,e:=json.MarshalIndent(map[string]any{"protocol":"autosiril-echo-trd-musical/v1","cases":rows,"scope":"initial actual Ruby musical matrix; full malformed/IO/CPM/CI pending"},"","  ");check(e);check(os.WriteFile(filepath.Join(*out,"receipt.json"),append(b,'\n'),0644))
+}
+func configureEchoDisk(d *formats.TRDFile,control string){
+ if control==""{return};sys:=linearData(d,8);count:=int(sys[228]);slot:=0
+ if strings.HasPrefix(control,"arrange:"){slot=16;control=strings.TrimPrefix(control,"arrange:")}else{control=strings.TrimPrefix(control,"notes:")}
+ switch control{
+ case "missing_input":copy(d.Data[slot:slot+8],"OTHER   ")
+ case "existing_output":copy(d.Data[count*16:count*16+9],"DELAYED D");sys[228]++
+ case "duplicate_input":copy(d.Data[count*16:count*16+16],d.Data[slot:slot+16]);sys[228]++
+ case "bad_geometry":sys[225]=16
+ case "bad_directory_count":sys[228]=129
+ case "directory_count_mismatch":sys[228]++
+ case "bad_source_extent":d.Data[slot+13]=0
+ case "source_length_under":binary.LittleEndian.PutUint16(d.Data[slot+11:slot+13],13)
+ case "source_length_over":binary.LittleEndian.PutUint16(d.Data[slot+11:slot+13],256)
+ case "source_length_exceeds_extent":binary.LittleEndian.PutUint16(d.Data[slot+11:slot+13],257)
+ case "free_overlap":sys[225]=0;sys[226]=1
+ case "no_space":sys[229]=0;sys[230]=0
+ case "directory_full":for i:=count;i<128;i++{copy(d.Data[i*16:i*16+9],fmt.Sprintf("F%07dD",i))};sys[228]=128
+ case "directory_slot_15","directory_slot_16","directory_slot_127":end:=15;if control=="directory_slot_16"{end=16};if control=="directory_slot_127"{end=127};for i:=count;i<end;i++{copy(d.Data[i*16:i*16+9],fmt.Sprintf("F%07dD",i))};sys[228]=byte(end)
+ case "last_sector":sys[225]=15;sys[226]=159;sys[229]=1;sys[230]=0
+ case "full_disk":sys[225]=0;sys[226]=160;sys[229]=0;sys[230]=0
+ case "bad_full_sentinel":sys[225]=1;sys[226]=160;sys[229]=0;sys[230]=0
+ case "space_exact","space_one_short":free:=215;if control=="space_one_short"{free=214};pos:=2560-free;sys[225]=byte(pos%16);sys[226]=byte(pos/16);binary.LittleEndian.PutUint16(sys[229:231],uint16(free))
+ default:panic("unknown echo disk control")
+ }
+ putLinearData(d,8,sys)
 }

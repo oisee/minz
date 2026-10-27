@@ -19,19 +19,20 @@ func main(){
  var matrix struct{Cases []echoCase `json:"cases"`};check(json.Unmarshal(read(*input),&matrix));if len(matrix.Cases)==0{panic("empty matrix")}
  rows:=[]map[string]any{}
  for _,tc:=range matrix.Cases{
-  if tc.Name=="output_larger_than_trd"{tc.Fault=0}
+  if tc.Name=="output_larger_than_trd"{tc.Fault=0};if tc.CPMFault!=nil{tc.Fault=*tc.CPMFault}
   cfg:=tc.Config.bytes()
   for index,engine:=range []string{"raw-mir2","final-mir2","z80"}{
    if *engineChoice!=""&&*engineChoice!=engine{continue}
    dir:=filepath.Join(*out,tc.Name,engine);check(os.MkdirAll(dir,0755))
    pad:=func(data []byte)[]byte{b:=append([]byte(nil),data...);return append(b,make([]byte,(-len(b))&127)...)}
-   inputWire,notesWire:=pad(tc.Wire),pad(tc.Notes)
+   inputWire,notesWire:=pad(tc.Wire),pad(tc.Notes);if tc.CPMWire!=nil{inputWire=pad(tc.CPMWire)};if tc.CPMNotes!=nil{notesWire=pad(tc.CPMNotes)}
    if tc.Name=="native_chronos"{
     for name,want:=range map[string][]byte{"NOTES.BIN":notesWire,"ARRANGE.BIN":inputWire}{actual:=read(filepath.Join(*upstream,"cpm/standalone",name));if !bytes.Equal(actual,want){panic("saved native CP/M input differs")}}
    }
    check(os.WriteFile(filepath.Join(dir,"NOTES.BIN"),notesWire,0644))
    check(os.WriteFile(filepath.Join(dir,"ARRANGE.BIN"),inputWire,0644))
-   d:=&diskOS{dir:dir,handles:map[uint16]*os.File{},calls:map[byte]int{},}
+   if tc.ExistingOutput!=nil{check(os.WriteFile(filepath.Join(dir,"DELAYED.BIN"),tc.ExistingOutput,0644))}
+   d:=&diskOS{dir:dir,handles:map[uint16]*os.File{},calls:map[byte]int{},failFunction:tc.OSFault.Function,failOccurrence:tc.OSFault.Occurrence}
    var get func(string,int,int)[]byte;var returned uint16
    cycles,stack,opens,closes:=0,0,0,0
    if index<2{
@@ -75,23 +76,28 @@ func main(){
     if len(p.IORead)!=0||len(p.IOWrite)!=0{panic("native CP/M unexpected port IO")}
     for _,span:=range [][2]int{{origin-64,origin},{origin+len(a.Binary),origin+len(a.Binary)+64},{floor-64,floor}}{for at:=span[0];at<span[1];at++{if mem[at]!=0xa5{panic("native CP/M canary")}}}
    }
+   if tc.OSFault.Function!=0&&!d.injected{panic("CP/M failure injection not reached")}
    if len(d.handles)!=0{d.close();panic("CP/M target leaked FCB")}
    word:=func(name string)uint16{return binary.LittleEndian.Uint16(get(name,0,2))}
    if returned!=tc.Fault||word("fault")!=tc.Fault{panic(fmt.Sprintf("%s/%s fault%d return%d want%d",tc.Name,engine,word("fault"),returned,tc.Fault))}
-   if word("ring_count")!=0||get("input_open",0,1)[0]!=0||get("output_open",0,1)[0]!=0||opens!=2||closes!=2{panic("CP/M echo lifetimes differ")}
+   if word("ring_count")!=0||get("input_open",0,1)[0]!=0||get("output_open",0,1)[0]!=0||closes!=opens{panic("CP/M echo lifetimes differ")}
+   wantOpens:=2;if tc.InputOpens!=nil{wantOpens=*tc.InputOpens};if opens!=wantOpens{panic("CP/M input-open count differs")}
    for _,b:=range get("ring_live",0,65){if b!=0{panic("CP/M ring remains live")}}
    for name,b:=range cfg{if !bytes.Equal(get(name,0,len(b)),b){panic("CP/M configuration changed")}}
-   for ch:=0;ch<3;ch++{if binary.LittleEndian.Uint16(get("output_lnotes",0,6)[ch*2:])!=tc.Counts[ch]||binary.LittleEndian.Uint32(get("channel_extents",0,12)[ch*4:])!=tc.Extents[ch]{panic("CP/M count/extent differs")}}
+   if tc.Fault==0{for ch:=0;ch<3;ch++{if binary.LittleEndian.Uint16(get("output_lnotes",0,6)[ch*2:])!=tc.Counts[ch]||binary.LittleEndian.Uint32(get("channel_extents",0,12)[ch*4:])!=tc.Extents[ch]{panic("CP/M count/extent differs")}}}
    actual,e:=os.ReadFile(filepath.Join(dir,"DELAYED.BIN"));exists:=e==nil
    if e!=nil&&!os.IsNotExist(e){check(e)}
-   if tc.Fault==0{
+   if tc.Fault==0||tc.CompleteOutput{
     if !exists||len(actual)!=(len(tc.Expected)+127)/128*128||!bytes.Equal(actual[:len(tc.Expected)],tc.Expected){panic("CP/M logical output differs")}
     for _,b:=range actual[len(tc.Expected):]{if b!=0{panic("CP/M output padding differs")}}
    }
-   if len(actual)!=0&&len(tc.Expected)!=0{
+   if len(actual)!=0&&len(tc.Expected)!=0&&tc.ExistingOutput==nil{
     prefix:=append([]byte(nil),tc.Expected...);prefix=append(prefix,make([]byte,(-len(prefix))&127)...)
     if len(actual)>len(prefix)||!bytes.Equal(actual,prefix[:len(actual)]){panic("CP/M partial output prefix differs")}
    }
+   if tc.ExistingOutput!=nil&&!bytes.Equal(actual,tc.ExistingOutput){panic("existing CP/M output changed")}
+   if tc.OutputExists!=nil&&exists!=*tc.OutputExists{panic("CP/M output visibility differs")}
+   if tc.WrittenRecords!=nil&&len(actual)!=*tc.WrittenRecords*128{panic("CP/M partial record count differs")}
    for name,want:=range map[string][]byte{"NOTES.BIN":notesWire,"ARRANGE.BIN":inputWire}{if !bytes.Equal(read(filepath.Join(dir,name)),want){panic("CP/M input changed")}}
    row:=map[string]any{"case":tc.Name,"engine":engine,"fault":word("fault"),"delayed_cells":binary.LittleEndian.Uint32(get("output_cells",0,4)),"ring_peak":word("ring_peak"),"ornament_count":word("definition_count"),"ornament_bytes":word("definition_bytes"),"input_opens":opens,"input_closes":closes,"output_exists":exists,"physical_bytes":len(actual),"physical_sha256":hash(actual),"input_file_sha256":hash(inputWire),"companion_sha256":hash(notesWire),"bdos_calls":d.calls,"injected_failure":d.injected,"t_states":cycles,"stack_below_entry":stack}
    rows=append(rows,row);fmt.Printf("PASS %s/%s fault%d LNotes%d ornaments%d/%dB output%v/%dB\n",tc.Name,engine,word("fault"),binary.LittleEndian.Uint32(get("output_cells",0,4)),word("definition_count"),word("definition_bytes"),exists,len(actual))
