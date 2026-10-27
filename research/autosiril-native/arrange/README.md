@@ -1,11 +1,12 @@
 # Next native milestone: streaming EVENTS.E → LNote/ornaments
 
-Status: **TRD matrix passes114 cases ×3 engines**, plus6 exact storage-unit
-boundary executions and4 actual native guard mutants. CP/M adaptation, a default
-full fresh upstream run and required CI/PR integration remain pending. The full
-Chronos mapping and20 independently saved native second-stage disks are covered
-in `spike/autosiril-native-arrange`; this is not yet merged implementation.
-PR #267 supplied the preceding TRD stage on main cbd7cb220.
+Status: both local transport suites pass: **342 TRD executions +6 exact storage
+units +4 native mutants;282 CP/M executions +42 chunk contracts +9 directory
+success executions +2 native mutants**. Three separate COM programs run via
+saved files. The full default fresh run and combined frozen replay pass locally.
+Required CI/PR integration is pending. This implementation is on
+`spike/autosiril-native-arrange`; it is not yet merged. PR #267 supplied the
+preceding TRD stage on main cbd7cb220.
 
 Source facts checked locally:
 - Original Ruby autooisee.rb: rmod2pmod705+, pmod2lmod728+, apply_delays781+, downmix877+.
@@ -197,4 +198,65 @@ python3 research/autosiril-native/arrange/replay_trd.py \
 case matrix. It validates/replays the positive full Chronos proof first, calls
 actual Ruby afresh for every arrangement fixture, and preserves full results.
 The upstream MIDI/Crystal run is checked and honestly recorded as reused;
-`verify_trd.py` does not yet replace the future full default fresh gate.
+`verify.py` below is the full default fresh gate.
+
+## CP/M and the complete gate
+
+The same core, reader staging and serializer use the unchanged common CP/M
+binding with small lifetime wrappers. `EVENTS.BIN` is the input and
+`ARRANGE.BIN` the output; both physical padding and short progress refills are
+checked. The host OS shim performs file operations only. Make uses exclusive
+create, preserving a preexisting output rather than relying on truncation.
+All documented directory success codes0..3 are accepted by the common binding.
+
+CP/M make publishes a filename immediately: malformed input after the header,
+resource exhaustion, write failure or a failed close can leave an empty,
+partial or complete visible file. The matrix checks existence, physical record
+count and exact independently expected byte prefixes. Every injected failure
+must actually be reached; all FCBs and target lifetime flags must close even
+when an earlier error is already set. No rollback/atomic publication is claimed.
+
+94 cases ×3 engines =282 executions, including20 actual saved second-stage
+CP/M files, matching all TRD musical fixtures and CP/M-specific framing/OS
+contracts.42 additional chunk executions include1/7-byte reads on a multi-record
+drum stream (writes interleave while the physical input record is saved),
+empty progress, stalled readers, invalid statuses/counts/capacities/padding
+metadata and a short write acknowledgment.9 more executions use directory
+codes1/2/3. Native-only restoring pool/config writes must be rejected.
+
+The native CP/M image is13646B =7054 code/bootstrap +6416 loaded globals +176
+static spills; no external data reservation. Stack56B below entry, excluding
+the incoming return; Chronos136737911 kernel T-states,103 physical record reads
+(including EOF),280 writes, one open/make/DMA call and two closes. Standalone
+runs additionally execute the bootstrap; their logs are retained. SP EFFE,
+stack floor E000 and HALT/HL status are the verifier contract, not proven
+physical CP/M TPA/CCP bootstrap compatibility. Outputs must initially be absent.
+
+`PAIR.COM`, `FLATTEN.COM` and `ARRANGE.COM` also execute as three independent
+mze processes in one directory. Only the first input MIDI and the native images
+are installed by the host; subsequent programs consume actual saved files.
+Their NOTES/EVENTS/ARRANGE files are compared with the separately checked native
+matrix outputs. This third stage still stops at LNotes/ornaments; echo, mix,
+tracker patterns and final VT2/VTX output are later stages.
+
+```sh
+# Default: regenerate original Ruby/Crystal and ALL preceding native file gates.
+python3 research/autosiril-native/arrange/verify.py \
+  --autosiril /path/to/autosiril --out /tmp/arrange-fresh
+
+# Frozen required CI: producers have already run in earlier CI steps.
+python3 research/autosiril-native/arrange/replay.py \
+  --trd-upstream /tmp/autosiril-trd-flatten \
+  --cpm-upstream /tmp/autosiril-common-flatten \
+  --producer /tmp/autosiril-transports --mze /tmp/mze \
+  --out /tmp/arrange-frozen
+```
+
+`verify.py --refresh-evidence` saves all source-bound receipts and the frozen
+actual-Ruby matrix. Optional `--reuse-upstream` explicitly reuses a completed
+fresh TRD flatten proof after source/Ruby/MIDI checks and records that reuse;
+the default regenerates it. `--go-overlay` is forwarded when building preceding
+standalone tools. `replay.py` needs neither Ruby nor Crystal and compares all
+measured outputs/counters/I/O/disk hashes with fresh evidence. CI uploads the
+`autosiril-arrange` artifact with source, MIR, placed assembly, binaries, saved
+disks/files, failure/mutant logs and standalone receipts.

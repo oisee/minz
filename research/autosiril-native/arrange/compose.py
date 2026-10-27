@@ -41,6 +41,27 @@ def main():
     constants = '\n'.join(line for line in tables if line.startswith(('global env_offsets:', 'global env_forms:', 'global drum_samples:', 'global drum_notes:')))
     source = constants+'\n'+(HERE/'core.nanz').read_text()+'\n'+(HERE/'stream.nanz').read_text()+'\n'+reader+'\n'+binding
     (out/'arrange-trd.nanz').write_text(source)
+    cpm=(HERE.parent/'transports/cpm.nanz').read_text()
+    cpm=once(cpm,'global input_name:[u8;11] = [73,78,80,85,84,32,32,32,77,73,68]',
+             'global input_name:[u8;11] = [69,86,69,78,84,83,32,32,66,73,78]')
+    cpm=once(cpm,'global output_name:[u8;11] = [78,79,84,69,83,32,32,32,66,73,78]',
+             'global output_name:[u8;11] = [65,82,82,65,78,71,69,32,66,73,78]')
+    cpm=once(cpm,'fun open_input()', 'fun cpm_open_input()')
+    cpm=once(cpm,'fun create_output()', 'fun cpm_create_output()')
+    cpm=once(cpm,'fun finish(direction:', 'fun cpm_finish(direction:')
+    common=constants+'\nglobal input_open:u8\nglobal output_open:u8\n'+(HERE/'core.nanz').read_text()+'\n'+(HERE/'stream.nanz').read_text()+'\n'+reader
+    (out/'arrange-cpm.nanz').write_text(common+'\n'+cpm+'\n'+(HERE/'cpm-state.nanz').read_text())
+    cpm_runner=(out/'probe.go').read_text()
+    cpm_runner=once(cpm_runner,'func main() {','func original_main() {')
+    cpm_runner=once(cpm_runner,'if t==mir2.TyU32{return "u32"};', 'if t==mir2.TyU32{return "u32"};if t==mir2.TyU16{return "u16"};if t==mir2.TyBool{return "bool"};')
+    cpm_runner=once(cpm_runner,'name != "NOTES.BIN" && name != "EVENTS.BIN"','name != "EVENTS.BIN" && name != "ARRANGE.BIN"')
+    cpm_runner=once(cpm_runner,'f, e = os.Create(filepath.Join(d.dir, name))','f, e = os.OpenFile(filepath.Join(d.dir, name),os.O_WRONLY|os.O_CREATE|os.O_EXCL,0644)')
+    cpm_runner=once(cpm_runner,'failOccurrence int','failOccurrence int\n injected bool')
+    cpm_runner=once(cpm_runner,'if fn == d.failFunction && d.calls[fn] == d.failOccurrence {','if fn == d.failFunction && d.calls[fn] == d.failOccurrence {\n d.injected=true')
+
+    types=(HERE/'matrix-driver.go.txt').read_text().split('func main(){')[0]
+    (out/'arrange-cpm.go').write_text(cpm_runner+types+(HERE/'cpm-driver.go.txt').read_text())
+
     runner = (out/'matrix.go').read_text().split('type trdFlatCase struct')[0]
     runner = once(runner, 'if t==mir2.TyU32{return "u32"};', 'if t==mir2.TyU32{return "u32"};if t==mir2.TyU16{return "u16"};if t==mir2.TyBool{return "bool"};')
     (out/'arrange-vm.go').write_text(runner+(HERE/'vm-driver.go.txt').read_text()+native_code())

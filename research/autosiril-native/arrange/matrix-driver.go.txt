@@ -20,6 +20,12 @@ type arrangeCase struct {
  LNotes *uint16 `json:"lnote_count,omitempty"`
  Ornaments *uint16 `json:"ornament_count,omitempty"`
  OrnBytes *uint16 `json:"ornament_bytes,omitempty"`
+ OSFault struct{Function byte `json:"function"`;Occurrence int `json:"occurrence"`} `json:"os_fault"`
+ OutputExists *bool `json:"output_exists,omitempty"`
+ WrittenRecords *int `json:"written_records,omitempty"`
+ ExistingOutput []byte `json:"existing_output,omitempty"`
+ CompleteOutput bool `json:"complete_output,omitempty"`
+ CPMFile string `json:"cpm_file,omitempty"`
  Disk string `json:"disk,omitempty"`
  Control string `json:"disk_control,omitempty"`
  FailCall int `json:"fail_call,omitempty"`
