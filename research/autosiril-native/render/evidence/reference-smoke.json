@@ -1,0 +1,46 @@
+{
+  "protocol": "autosiril-native-render-reference-smoke/v1",
+  "scope": "actual Ruby only; no independent model or target renderer proof",
+  "observed": {
+    "scope": "actual Ruby render on saved native MIXED, no target rendering proof",
+    "rows": 1352,
+    "line_widths": [
+      49
+    ],
+    "bytes": 67600,
+    "sha256": "cce454680b5275bc5daa7943638dbec482a518d405e3984df164ec97ee5e7b47",
+    "input_sha256": "cceabdcefe49b395725c54922f8907a5139524dc3963e8913942e90a12d8d3cf",
+    "first": [
+      "....|..|--- .... ....|--- .... ....|--- .... ....",
+      "....|..|--- .... ....|--- .... ....|--- .... ....",
+      "....|..|--- .... ....|--- .... ....|--- .... ...."
+    ],
+    "float_param_checks": [
+      [
+        7.35,
+        "7"
+      ],
+      [
+        10.5,
+        "A"
+      ],
+      [
+        15.0,
+        "F"
+      ]
+    ]
+  },
+  "input_bytes": 54912,
+  "input_cells": [
+    1189,
+    1013,
+    1013
+  ],
+  "original_ruby_sha256": "41f621b555fc089effd711319e723494576eb47ea0282847082ec91c1cdd4c01",
+  "ruby_version": "ruby 2.6.10p210 (2022-04-12 revision 67958) [universal.arm64e-darwin26]",
+  "source_sha256": {
+    "research/autosiril-native/render/reference_smoke.py": "c414f96dacc793614096a564288b52b4641aa646cc55b64e4c2a0dcd93cf6193",
+    "research/autosiril-native/render/oracle_smoke.rb": "cf9fb57360fc89c846463b25dee22c4ec501a77edcdf10bdeb80a6a008dd7c48",
+    "research/autosiril-native/mix/audit_file.py": "e90bc92c6434faeb3f713553cd349366677c90171fd1497f56806086467fc6e2"
+  }
+}

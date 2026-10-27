@@ -104,3 +104,33 @@ book chapter about the now-integrated downmix: update status, build and visually
 verify EPUB/PDF A5, integrate via a separate PR and publish a new release. The
 first edition remains an historical snapshot. i7 remains read-only; do not
 control Herdr without HERDR_ENV. Honor user stop/pause.
+
+## First actual reference smoke (not native rendering)
+
+A short reference experiment ran while the separate book PR #271 was in CI.
+It calls the original Ruby renderer on an actual saved native Chronos MIXED file;
+there is no independent row model and no sixth-stage target execution yet.
+
+```sh
+python3 research/autosiril-native/render/reference_smoke.py \
+  --input /path/to/actual-native-mix/cpm/measured/native_chronos/z80/MIXED.BIN \
+  --autosiril /path/to/autosiril --out /tmp/render-reference
+```
+
+The kind5 input is decoded and every represented LNote field is checked after
+the original Ruby constructor. The actual canonical input has54912 physical
+bytes,3215 cells and three extents1353. Original render_rows1352 produces
+exactly1352 text lines of49 bytes each,67600 bytes including LF separators.
+Output SHA256:
+`cce454680b5275bc5daa7943638dbec482a518d405e3984df164ec97ee5e7b47`.
+
+Actual Ruby PARAMS indexing coerces7.35 to index7 and10.5 to10: it emits `7` and
+`A`, not rounded volumes. The recorded Ruby version is part of this evidence.
+This is not yet a proof for other inputs or another language implementation.
+
+Crucially,67600 bytes already exceed a single255-sector TRD file (65280B).
+The next design must specify explicit output segmentation or a truthful size
+failure; silently truncating Chronos or shrinking the admitted input profile
+would not implement the selected stage. The smoke does not establish that all
+future valid inputs have49-byte rows; wider sample/parameter edge cases still
+need actual-Ruby tests before fixing an output wire.
