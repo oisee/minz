@@ -75,3 +75,28 @@ frozen required CI, downloaded-artifact audits and a separate PR/main merge.
 Preserve every echo/inherited gate, the40626B in-process path and the four root
 user files. i7 is read-only; no Herdr control outside HERDR_ENV. API traps are
 not physical ROM/FDC/hardware/boot/TPA-CCP/fullVT2VTX/MOS/eZ80 proof.
+
+## First planning result
+
+The original Ruby downmix/seq2vmod adapter and fixed-four-slot host model agree
+in119 cases:19 real saved native echo streams, six nontrivial Chronos group/
+policy variants, explicit collision/release/spill/gap/overflow/trailing-silence
+cases, and every3-lane group composition/policy combination. The failed twentieth
+upstream echo chain is checked explicitly: no published TRD output and an empty
+CP/M made file. It is not passed off as valid mix input.
+
+The canonical result also equals the existing full original Ruby mixed snapshot.
+All serialized note fields and true array lengths agree, input objects stay
+unchanged, and the model reaches all four live slots. Empty output extents are0;
+original render_rows remain separate. A last-u16-row spill demonstrates why the
+future target needs an explicit overflow fault.
+
+```sh
+python3 research/autosiril-native/mix/prove_planning.py \
+  --upstream /path/to/complete-fresh-native-echo \
+  --autosiril /path/to/autosiril --out /tmp/mix-planning
+```
+
+[Planning receipt](planning-receipt.json). This is still host-only planning
+evidence; no target lowering, native mix image, multi-reader transport, kind5
+serializer or fifth COM program has been implemented or claimed.
