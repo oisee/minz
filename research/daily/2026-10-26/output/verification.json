@@ -1,31 +1,107 @@
 {
+  "protocol": "minz-compiler-days-verification/v2",
+  "status": "verified build; book PR integration/release pending",
   "html": {
-    "viewports": [
-      1440,
-      390
+    "checks": [
+      {
+        "width": 1440,
+        "page": "index",
+        "overflow": false,
+        "images": true,
+        "chapters": 4
+      },
+      {
+        "width": 1440,
+        "page": "01-languages-and-ideas",
+        "overflow": false,
+        "images": true,
+        "chapters": 0
+      },
+      {
+        "width": 1440,
+        "page": "02-melody-between-two-files",
+        "overflow": false,
+        "images": true,
+        "chapters": 0
+      },
+      {
+        "width": 1440,
+        "page": "03-borrowing-without-a-runtime",
+        "overflow": false,
+        "images": true,
+        "chapters": 0
+      },
+      {
+        "width": 1440,
+        "page": "04-four-rows-for-a-melody",
+        "overflow": false,
+        "images": true,
+        "chapters": 0
+      },
+      {
+        "width": 390,
+        "page": "index",
+        "overflow": false,
+        "images": true,
+        "chapters": 4
+      },
+      {
+        "width": 390,
+        "page": "01-languages-and-ideas",
+        "overflow": false,
+        "images": true,
+        "chapters": 0
+      },
+      {
+        "width": 390,
+        "page": "02-melody-between-two-files",
+        "overflow": false,
+        "images": true,
+        "chapters": 0
+      },
+      {
+        "width": 390,
+        "page": "03-borrowing-without-a-runtime",
+        "overflow": false,
+        "images": true,
+        "chapters": 0
+      },
+      {
+        "width": 390,
+        "page": "04-four-rows-for-a-melody",
+        "overflow": false,
+        "images": true,
+        "chapters": 0
+      }
     ],
-    "pages_checked": 4,
-    "images_loaded": true,
-    "page_overflow": false,
-    "browser_errors": [],
-    "rle_demands_checked": [
-      0,
-      2,
-      4
-    ]
+    "errors": []
   },
   "pdf": {
-    "rendered_pages": 74,
-    "out_of_page_text": []
+    "rendered_pages": 93,
+    "out_of_page_text": [],
+    "visual_review": "cover, TOC, all19 new-chapter pages; representative historic code/diagrams; latest split diagrams and unbroken tables inspected"
   },
+  "epub": {
+    "chapters": 4,
+    "png_images": 26,
+    "mimetype_valid": true
+  },
+  "described_main": "b58fba0c626fd0c82f42dbd6356d56887b4849b0",
   "release_files": {
     "output/pdf/minz-compiler-day-2026-10-26-A5.pdf": {
-      "bytes": 6887164,
-      "sha256": "22eb32a1436b7d3dc406fe7bd67661604d75bdf25b7e517c71eb436e52c48ccb"
+      "bytes": 8753394,
+      "sha256": "a1558d7aca5762252995d60d3c83e906f1d8ad97dbdf25ec1e37b32699016120"
     },
     "output/epub/minz-compiler-day-2026-10-26.epub": {
-      "bytes": 2974297,
-      "sha256": "86018ef311cde61a3f91ae282e6928995e7bd73992b674a31c5a46a1ddd2d590"
+      "bytes": 3511559,
+      "sha256": "f480f7b68815c555fbea8415acf86cbe8ec192bfb4c4dd82fcd86a35f0262e81"
     }
+  },
+  "source_sha256": {
+    "edition.json": "6fe8bdec4f38a9f124cc41502802cd78ff84baf2132a9ee653ba3d9b27d9bc4c",
+    "build.py": "3f0474963b5a10c192bdde854cdc4369f7446a13e445caa2dae79994b3d4085a",
+    "build_books.py": "4a2845d57a42fc86da7e6eb2a72a9c68dacb29aacd43c01a763db4c94742ac53",
+    "book-render.mjs": "c2baee3fcd9e4059e6975a697a13555034c61245c32a3c63b2c8043325b9961b",
+    "book.css": "5786dc21ca0f657f2518952c1107d3a21c0d2e4bb404f590e4f5137df1a41f3a"
   }
 }

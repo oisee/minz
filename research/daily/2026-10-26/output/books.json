@@ -1,6 +1,6 @@
 {
   "protocol": "minz-compiler-day-books/v1",
-  "pdf_pages": 74,
+  "pdf_pages": 93,
   "page_sizes_points": [
     [
       419.5,
@@ -18,12 +18,13 @@
   "chapter_pages": [
     26,
     24,
-    22
+    22,
+    19
   ],
-  "epub_png_images": 21,
+  "epub_png_images": 26,
   "pdf": "output/pdf/minz-compiler-day-2026-10-26-A5.pdf",
   "epub": "output/epub/minz-compiler-day-2026-10-26.epub",
-  "diagrams": 18,
+  "diagrams": 23,
   "illustrations": 2,
   "vector_pdf": true
 }
