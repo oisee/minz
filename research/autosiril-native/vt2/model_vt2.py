@@ -6,12 +6,32 @@ first-duplicate index, play-order string, Hash#invert later-wins, puts
 framing) are derived from the original source text, and every output byte is
 compared against the actual original Ruby functions by prove_vt2.py.
 
-Bounded by construction: pattern bytes are never held as a set of strings in
-an unbounded Hash. Each pattern's bytes stream into a spill file; a fixed-size
-record (index, offset, length, digest) per pattern goes to an index file that
-is scanned record-by-record; digest equality only ever *candidates* a match,
-which is then verified by byte-wise chunked re-reading of the two file
-ranges. Peak memory is one row line, one digest record and one chunk.
+Bounded core (checked, HOST proof only — target plan lives in
+DESIGN-TARGET.md): the intended-bounded core below never materializes a
+slice list, a whole pattern, a payload copy or the final output in RAM.
+
+- Slice edges are computed as NUMERIC spans (slice_span) exactly matching
+  Ruby Array#slice(start, length); rows are then read one at a time.
+- Pattern bytes stream row-by-row into a spool file while an incremental
+  digest is updated; no ps*50 accumulator exists.
+- Dedup scans the file-backed index record-by-record; a digest hit only
+  CANDIDATES a match, decided by byte-wise comparison of two spool ranges
+  streamed in <=CHUNK pieces. A forced-constant digest therefore cannot
+  change the result (proved by prove_vt2.py's collision suite).
+- Order (u32 per pattern, indices can exceed 65535) and use flags (bit per
+  pattern) are file-backed records, not RAM arrays.
+- Truncated index/spool files raise instead of being treated as EOF.
+- The final VT2 output is STREAMED to a file: header text, then each used
+  non-empty pattern copied from the spool in <=CHUNK pieces.
+
+Proof-side observations (explicitly OUTSIDE the bounded core): run_case
+additionally reads the finished record/order/use files back to build the
+comparison statistics, and the caller may keep the corpus lines list.
+Nothing in the core depends on those arrays.
+
+Index/order/flag widths: profile permits render_rows up to 65567 and
+pattern_size 1, i.e. 65568 pattern slots and order indices up to 65567;
+both are u32 here (u16 would wrap). Offsets/lengths are u64.
 """
 from pathlib import Path
 import hashlib
@@ -19,16 +39,51 @@ import re
 import struct
 
 CHUNK = 256
-RECORD = struct.Struct('<IQQ32s')  # index, offset, length, sha256 digest
+RECORD = struct.Struct('<IIQ32s')  # u32 index, u32 length, u64 offset, digest
+ORDER = struct.Struct('<I')
 
 
-def ruby_slice(lines, start, length):
-    """Original Array#slice(start, length) edges, ps/skip can be negative."""
-    size = len(lines)
+class IndexTruncated(Exception):
+    """Index file ended mid-record: corruption, not EOF."""
+
+
+class SpoolTruncated(Exception):
+    """Spool file ended inside a declared pattern range."""
+
+
+class ConstDigest:
+    """Forced-collision digest: every payload gets the same candidate value.
+
+    Proof instrument only (prove_vt2.py collision suite); byte comparison
+    must remain the sole authority for equality."""
+
+    def __init__(self, value=b'\0' * 32):
+        self._value = value
+
+    def update(self, data):
+        pass
+
+    def digest(self):
+        return self._value
+
+
+def sha256_digest():
+    return hashlib.sha256()
+
+
+def slice_span(size, start, length):
+    """Ruby Array#slice(start, length) edges as numbers only.
+
+    Returns None for Ruby nil, else (real_start, row_count). start == size
+    gives (size, 0) = Ruby []; a start past the end inside range keeps a
+    partial count exactly like Ruby."""
     if start > size or start < -size or length < 0:
         return None
     real = start if start >= 0 else size + start
-    return lines[real:real + length]
+    if real >= size:
+        return (size, 0)
+    count = min(length, size - real)
+    return (real, count if count > 0 else 0)
 
 
 def pattern_count(max_row, pattern_size):
@@ -39,104 +94,226 @@ def pattern_count(max_row, pattern_size):
 
 
 class PatternStore:
-    """File-backed pattern bytes plus a file-backed digest index."""
+    """File-backed spool + index + order + use-flag records (bounded core)."""
 
-    def __init__(self, directory):
-        self.store_path = Path(directory) / 'patterns.bin'
-        self.index_path = Path(directory) / 'index.bin'
+    def __init__(self, directory, digest_factory=sha256_digest):
+        d = Path(directory)
+        self.spool_path = d / 'patterns.bin'
+        self.index_path = d / 'index.bin'
+        self.order_path = d / 'order.bin'
+        self.use_path = d / 'use.bin'
         self.count = 0
-        self._store = open(self.store_path, 'wb')
+        self._spool = open(self.spool_path, 'wb')
         self._index = open(self.index_path, 'wb')
+        self._order = open(self.order_path, 'wb')
+        self._use = open(self.use_path, 'w+b')
         self._offset = 0
+        self._digest_factory = digest_factory
+        # current pattern under construction
+        self._begin_offset = 0
+        self._length = 0
+        self._digest = None
+        # use flags are appended strictly in pattern order, so exactly ONE
+        # partially-filled flag byte is live in RAM (fixed-size state)
+        self._use_byte = 0
+        self._use_bits = 0
 
-    def append(self, payload, digest):
-        self._store.write(payload)
-        self._index.write(RECORD.pack(self.count, self._offset, len(payload), digest))
-        # Both files are reopened read-only by find_duplicate; the freshly
-        # appended bytes must be visible to those readers.
-        self._store.flush()
-        self._index.flush()
-        self._offset += len(payload)
-        self.count += 1
+    # -- pattern under construction -------------------------------------
+    def begin_pattern(self):
+        self._begin_offset = self._offset
+        self._length = 0
+        self._digest = self._digest_factory()
 
-    def close(self):
-        self._store.close()
-        self._index.close()
+    def emit_row(self, line):
+        data = (line + '\n').encode('ascii')
+        assert len(data) <= CHUNK, 'single row exceeds compare chunk'
+        self._spool.write(data)
+        self._digest.update(data)
+        self._length += len(data)
+        self._offset += len(data)
 
-    def _read_at(self, fd, offset, length):
-        fd.seek(offset)
-        data = b''
-        while len(data) < length:
-            piece = fd.read(min(CHUNK, length - len(data)))
-            if not piece:
-                raise EOFError('pattern store truncated')
-            data += piece
-        return data
+    # -- record-by-record index scan ------------------------------------
+    def _read_record(self, fd):
+        raw = fd.read(RECORD.size)
+        if len(raw) == 0:
+            return None
+        if len(raw) < RECORD.size:
+            raise IndexTruncated('index ended mid-record')
+        return RECORD.unpack(raw)
 
-    def verify_equal(self, first, payload):
-        """Byte-wise collision-safe comparison of a stored range against an
-        incoming payload. Length mismatch already rules out equality."""
-        if first[2] != len(payload):
-            return False
-        with open(self.store_path, 'rb') as fd:
-            offset = first[1]
-            remaining = first[2]
-            pos = 0
+    def _range_equal(self, a_offset, b_offset, length):
+        """Byte-wise equality of two spool ranges, streamed in <=CHUNK
+        pieces; neither range is ever fully held in RAM."""
+        if length == 0:
+            return True
+        with open(self.spool_path, 'rb') as fa, open(self.spool_path, 'rb') as fb:
+            fa.seek(a_offset)
+            fb.seek(b_offset)
+            remaining = length
             while remaining:
                 take = min(CHUNK, remaining)
-                if self._read_at(fd, offset, take) != payload[pos:pos + take]:
+                a = fa.read(take)
+                b = fb.read(take)
+                if len(a) < take or len(b) < take:
+                    raise SpoolTruncated('spool ended inside a pattern range')
+                if a != b:
                     return False
-                offset += take
-                pos += take
                 remaining -= take
             return True
 
-    def find_duplicate(self, digest, payload):
-        """Scan the index file record by record; verify bytes on digest match.
-        A digest hit only candidates a match; equality is decided by the
-        actual bytes, so a hash collision is never musical equality."""
+    def _read_range(self, fd, offset, length):
+        """Stream one spool range to a caller callback in <=CHUNK pieces."""
+        if length == 0:
+            return
+        fd.seek(offset)
+        remaining = length
+        while remaining:
+            take = min(CHUNK, remaining)
+            piece = fd.read(take)
+            if len(piece) < take:
+                raise SpoolTruncated('spool ended inside a pattern range')
+            yield piece
+            remaining -= take
+
+    def find_duplicate(self, offset, length):
+        """Scan the index record by record. A digest hit only candidates a
+        match; equality is decided by the actual bytes, so a forced or
+        accidental digest collision is never musical equality."""
+        digest = self._digest.digest()
+        # the freshly streamed rows must be visible to the re-opened readers
+        self._spool.flush()
         with open(self.index_path, 'rb') as fd:
             while True:
-                raw = fd.read(RECORD.size)
-                if len(raw) < RECORD.size:
+                rec = self._read_record(fd)
+                if rec is None:
                     return None
-                index, offset, rec_len, rec_digest = RECORD.unpack(raw)
-                if rec_digest == digest and rec_len == len(payload):
-                    if self.verify_equal((index, offset, rec_len), payload):
+                index, rec_len, rec_off, rec_digest = rec
+                if rec_digest == digest and rec_len == length:
+                    if self._range_equal(rec_off, offset, length):
                         return index
 
-    def payload(self, index, offset, length):
-        with open(self.store_path, 'rb') as fd:
-            return self._read_at(fd, offset, length)
+    def finish_pattern(self, first=None):
+        """Commit the built pattern: index record, u32 order entry (first
+        duplicate's index, or own index when first is None — pattern 0 is a
+        valid first index and must not be treated as falsy), use flag bit."""
+        own = self.count
+        order = own if first is None else first
+        self._index.write(RECORD.pack(own, self._length,
+                                      self._begin_offset, self._digest.digest()))
+        self._index.flush()
+        self._order.write(ORDER.pack(order))
+        self._order.flush()
+        if self._use_bits == 8:
+            self._use.write(bytes([self._use_byte]))
+            self._use.flush()
+            self._use_byte = 0
+            self._use_bits = 0
+        if first is None:
+            self._use_byte |= 1 << self._use_bits
+        self._use_bits += 1
+        self.count += 1
+
+    # -- post-computation readers (proof observations) ------------------
+    def use_flag(self, index):
+        with open(self.use_path, 'rb') as fd:
+            fd.seek(index // 8)
+            raw = fd.read(1)
+            if len(raw) < 1:
+                raise IndexTruncated('use-flag file too short')
+            return bool(raw[0] >> (index % 8) & 1)
+
+    def order_entry(self, index):
+        with open(self.order_path, 'rb') as fd:
+            fd.seek(index * ORDER.size)
+            raw = fd.read(ORDER.size)
+            if len(raw) < ORDER.size:
+                raise IndexTruncated('order file too short')
+            return ORDER.unpack(raw)[0]
+
+    def record(self, index):
+        with open(self.index_path, 'rb') as fd:
+            fd.seek(index * RECORD.size)
+            raw = fd.read(RECORD.size)
+            if len(raw) < RECORD.size:
+                raise IndexTruncated('index file too short')
+            return RECORD.unpack(raw)
+
+    def close(self):
+        if getattr(self, '_use_bits', 0):
+            self._use.write(bytes([self._use_byte]))
+            self._use.flush()
+            self._use_bits = 0
+        for f in (self._spool, self._index, self._order, self._use):
+            f.close()
+
+    @classmethod
+    def open_existing(cls, directory):
+        """Read-only reopen of finished files (proof/truncation checks)."""
+        self = cls.__new__(cls)
+        d = Path(directory)
+        self.spool_path = d / 'patterns.bin'
+        self.index_path = d / 'index.bin'
+        self.order_path = d / 'order.bin'
+        self.use_path = d / 'use.bin'
+        self._digest_factory = sha256_digest
+        self._digest = None
+        size = self.index_path.stat().st_size
+        if size % RECORD.size:
+            raise IndexTruncated('index size %d not a record multiple' % size)
+        self.count = size // RECORD.size
+        return self
+
+    def verify_index(self):
+        """Stream every record; a partial final record is corruption."""
+        with open(self.index_path, 'rb') as fd:
+            seen = 0
+            while True:
+                rec = self._read_record(fd)
+                if rec is None:
+                    return seen
+                seen += 1
 
 
-def split_into_patterns(lines, max_row, pattern_size, skip_lines, store, sink):
-    """Bounded equivalent of the original Step9. Returns play order pieces."""
-    use_flags, play_order, kinds = [], [], []
+def split_into_patterns(row_at, row_count, max_row, pattern_size, skip_lines,
+                        store):
+    """Bounded equivalent of the original Step9.
+
+    row_at(i) returns row line i (one at a time; the core never sees the
+    whole list). Returns (patterns, order_txt, kind_counts); order/use
+    records live in the store's files."""
+    kinds = {'nil': 0, 'empty': 0, 'partial': 0, 'full': 0}
     patterns = pattern_count(max_row, pattern_size)
     for i in range(patterns) if patterns > 0 else []:
-        txt = ruby_slice(lines, skip_lines + i * pattern_size, pattern_size)
-        if txt is None:
-            payload, kind = b'', 'nil'
-        elif txt:
-            payload = ''.join(line + '\n' for line in txt).encode('ascii')
-            kind = 'full' if len(txt) == pattern_size else 'partial'
+        span = slice_span(row_count, skip_lines + i * pattern_size, pattern_size)
+        if span is None:
+            kind = 'nil'
+        elif span[1] == 0:
+            kind = 'empty'
+        elif span[1] == pattern_size:
+            kind = 'full'
         else:
-            payload, kind = b'', 'empty'
-        digest = hashlib.sha256(payload).digest()
-        first = store.find_duplicate(digest, payload)
-        if first is None:
-            use_flags.append(True)
-            play_order.append(i)
-        else:
-            use_flags.append(False)
-            play_order.append(first)
-        store.append(payload, digest)
-        kinds.append(kind)
-        sink.write(payload)
-    order_txt = 'L' + ''.join(str(n) + ',' for n in play_order)
-    order_txt = order_txt[:-1]  # original wet_play_order_txt[-1] = ''
-    return patterns, use_flags, play_order, order_txt, kinds
+            kind = 'partial'
+        kinds[kind] += 1
+        store.begin_pattern()
+        if span is not None:
+            for r in range(span[0], span[0] + span[1]):
+                store.emit_row(row_at(r))
+        first = store.find_duplicate(store._begin_offset, store._length)
+        store.finish_pattern(first)
+    return patterns, kinds
+
+
+def order_text_from_store(store, patterns):
+    """Proof observation: rebuild the original wet_play_order_txt string from
+    the order file. Ruby builds 'L' + 'n,' * P then drops the last character
+    (empty for patterns == 0). The target streams this instead."""
+    if patterns == 0:
+        return ''
+    parts = ['L']
+    for k in range(patterns):
+        parts.append(str(store.order_entry(k)))
+        parts.append(',' if k < patterns - 1 else '')
+    return ''.join(parts)
 
 
 def render_ornaments(ornaments):
@@ -144,11 +321,11 @@ def render_ornaments(ornaments):
     inverted = {}
     for key, value in ornaments.items():
         inverted[value] = key
-    out = ''
+    out = []
     for ident, text in sorted(inverted.items()):
         if ident != 0:
-            out += '\n[Ornament%d]\n%s\n' % (ident, text)
-    return out
+            out.append('\n[Ornament%d]\n%s\n' % (ident, text))
+    return ''.join(out)
 
 
 def module_header(template_literal, title, play_order, ornaments_txt, argv):
@@ -195,44 +372,41 @@ def template_literal(source):
     raise AssertionError('template literal end not found')
 
 
-def write_vt_output(store, records, use_flags, header):
-    """Original Step11 emission: puts header, then used non-empty patterns."""
-    out = bytearray(header.encode('ascii') + b'\n')
-    for i, (offset, length) in enumerate(records):
-        if use_flags[i] and length != 0:
-            out += ('\n[Pattern%d]\n' % i).encode('ascii')
-            out += store.payload(i, offset, length)
-    return bytes(out)
+def write_vt_output(store, header, out_path):
+    """Original Step11 emission, STREAMED to out_path: puts header, then each
+    used non-empty pattern block copied from the spool in <=CHUNK pieces."""
+    with open(out_path, 'wb') as out, open(store.spool_path, 'rb') as spool:
+        out.write(header.encode('ascii') + b'\n')
+        for i in range(store.count):
+            index, length, offset, _ = store.record(i)
+            if store.use_flag(i) and length != 0:
+                out.write(('\n[Pattern%d]\n' % index).encode('ascii'))
+                for piece in store._read_range(spool, offset, length):
+                    out.write(piece)
 
 
-def run_case(case, spill, template):
+def run_case(case, spill, out_path, digest_factory=sha256_digest):
+    """Full model pass. The corpus lines list and the returned statistics are
+    proof-side observations; the core consumes one row at a time."""
     lines = case['lines']
-    store = PatternStore(spill)
-    sink_path = Path(spill) / 'wet.bin'
-    sink = open(sink_path, 'wb')
+    store = PatternStore(spill, digest_factory)
     try:
-        patterns, use_flags, play_order, order_txt, kinds = split_into_patterns(
-            lines, case['max_row'], case['pattern_size'], case['skip_lines'], store, sink)
+        patterns, kinds = split_into_patterns(
+            lambda i: lines[i], len(lines), case['max_row'],
+            case['pattern_size'], case['skip_lines'], store)
+        order_txt = order_text_from_store(store, patterns)
     finally:
-        sink.close()
         store.close()
     ornaments_txt = render_ornaments(case['ornaments'])
-    header = module_header(template, case['argv'][1] if len(case['argv']) > 1 else None,
-                           order_txt, ornaments_txt, case['argv'])
-    # records: (offset, length) per pattern, recovered from the index file
-    records = []
-    with open(store.index_path, 'rb') as fd:
-        while True:
-            raw = fd.read(RECORD.size)
-            if len(raw) < RECORD.size:
-                break
-            index, offset, length, _ = RECORD.unpack(raw)
-            assert index == len(records)
-            records.append((offset, length))
-    assert len(records) == patterns
-    file_bytes = write_vt_output(store, records, use_flags, header)
-    stats = dict(patterns=patterns, use_patterns=use_flags, play_order=order_txt,
-                 wet_sizes=[length for _, length in records],
-                 slice_kinds=dict((k, kinds.count(k)) for k in ['nil', 'empty', 'partial', 'full']),
-                 unique_patterns=sum(use_flags), file_bytes=len(file_bytes))
-    return file_bytes, ornaments_txt.encode('ascii'), stats
+    header = module_header(
+        case.get('_template'), case['argv'][1] if len(case['argv']) > 1 else None,
+        order_txt, ornaments_txt, case['argv'])
+    write_vt_output(store, header, out_path)
+    # statistics read back from the finished record/order/use files
+    use_flags = [store.use_flag(i) for i in range(patterns)]
+    wet_sizes = [store.record(i)[1] for i in range(patterns)]
+    file_bytes = Path(out_path).stat().st_size
+    stats = dict(patterns=patterns, use_patterns=use_flags,
+                 play_order=order_txt, wet_sizes=wet_sizes, slice_kinds=kinds,
+                 unique_patterns=sum(use_flags), file_bytes=file_bytes)
+    return stats, ornaments_txt.encode('ascii')

@@ -68,4 +68,74 @@ result = JSON.parse(File.read(script_input)).fetch('cases').map do |c|
    file_bytes: File.size(out_path),
    file_sha256: Digest::SHA256.hexdigest(File.binread(out_path))}
 end
+
+# --- canonical Chronos pass (checkpoint 2) -------------------------------
+# The case corpus above exercises actual Step9/10/11 on caller-supplied rows
+# with SYNTHETIC ornaments/ARGV. This second pass renders the REAL rows and
+# derives the REAL ornament text->id map by running the unchanged original
+# Steps 1..8 (seq2vmod .. render_into_text) on the real test/chronos.mid
+# with the canonical invocation from test/test_chronos.sh (ARGV:
+# chronos.mid 2me,1p,1m 8 6 12 0 64 2 6), then runs the actual Step9/10/11
+# on those rows for the canonical and transport-variant pattern_size/skip
+# settings with the pinned clock. The original tree is only read.
+input = JSON.parse(File.read(script_input))
+canonical = input['canonical']
+if canonical
+  Dir.chdir(File.join(root, 'test')) do
+    ARGV.replace(canonical.fetch('argv').map(&:to_s))
+    saved = $stdout
+    $stdout = StringIO.new  # the original steps print progress chatter
+    begin
+      $set = Setup.new
+      $set.load_sequence
+      seq = $set.sequence
+      vmod = seq2vmod(seq)
+      rmod = vmod2rmod(vmod)
+      good_key = detect_key(rmod)
+      rmod = apply_diatonic_transpose(rmod, good_key)
+      pmod = rmod2pmod(rmod)
+      lmod, real_ornaments = pmod2lmod(pmod)
+      # complete original VT path: delays, downmix, render (all in memory,
+      # nothing written to the read-only original tree)
+      lmod = apply_delays(lmod)
+      mmod = downmix(lmod)
+      rendered_lines = render_into_text(mmod)
+      raise 'canonical max_row mismatch' unless $set.max_row == canonical.fetch('max_row')
+      raise 'canonical pattern_size mismatch' unless $set.pattern_size == canonical.fetch('pattern_size')
+      raise 'canonical skip_lines mismatch' unless $set.skip_lines == canonical.fetch('skip_lines')
+      ornaments_txt = render_ornaments(real_ornaments)
+      canonical.fetch('variants').each {|variant|
+        $set.instance_variable_set(:@pattern_size, variant.fetch('pattern_size'))
+        $set.instance_variable_set(:@skip_lines, variant.fetch('skip_lines'))
+        out_path = File.join(script_out, variant.fetch('name') + '.vt2')
+        # Setup exposes out_file only through attr_reader; write the ivar
+        $set.instance_variable_set(:@out_file, out_path)
+        lines = rendered_lines
+        wet_patterns, use_patterns, wet_play_order_txt = split_into_patterns(lines)
+        write_vt_output(wet_patterns, use_patterns, wet_play_order_txt, ornaments_txt)
+        GC.start
+        result << {name: variant.fetch('name'), patterns: wet_patterns.size,
+                   use_patterns: (0...wet_patterns.size).map {|i| use_patterns[i]},
+                   play_order: wet_play_order_txt,
+                   wet_sizes: wet_patterns.map(&:bytesize),
+                   rendered_lines: rendered_lines,
+                   rendered_lines_count: rendered_lines.size,
+                   planning_lines_count: canonical.fetch('lines').size,
+                   planning_lines_differing: canonical.fetch('lines').each_index.count {|i| canonical.fetch('lines')[i] != rendered_lines[i]},
+                   ornaments_txt_sha256: Digest::SHA256.hexdigest(ornaments_txt),
+                   ornaments_txt_bytes: ornaments_txt.bytesize,
+                   ornaments: real_ornaments,
+                   derived_max_row: $set.max_row,
+                   derived_pattern_size: $set.pattern_size,
+                   derived_skip_lines: $set.skip_lines,
+                   derived_orn_repeat: $set.orn_repeat,
+                   derived_max_offset: $set.max_offset,
+                   file_bytes: File.size(out_path),
+                   file_sha256: Digest::SHA256.hexdigest(File.binread(out_path))}
+      }
+    ensure
+      $stdout = saved
+    end
+  end
+end
 puts JSON.generate(cases: result)
