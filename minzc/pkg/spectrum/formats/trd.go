@@ -182,12 +182,8 @@ func (t *TRDFile) ReadFile(entry *TRDEntry) []byte {
 	remaining := totalSize
 
 	for remaining > 0 {
-		side := 0
-		if track >= TRDTracksPerSide {
-			side = 1
-			track -= TRDTracksPerSide
-		}
-		secData := t.ReadSector(track, side, sector)
+		// Keep the logical track intact across sectors on the second side.
+		secData := t.ReadSector(track%TRDTracksPerSide, track/TRDTracksPerSide, sector)
 		n := TRDSectorSize
 		if n > remaining {
 			n = remaining

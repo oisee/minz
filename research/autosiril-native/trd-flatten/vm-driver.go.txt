@@ -1,0 +1,106 @@
+
+// One positive Chronos proof on raw/final MIR2 and guarded native Scorpion.
+// Resource and disk-error matrices remain a separate acceptance gate.
+func main() {
+ root:=flag.String("root","..","repository root")
+ source:=flag.String("source","","composed target source")
+ disk:=flag.String("disk","","native first-stage TRD image")
+ expected:=flag.String("expected","","independently verified CP/M event file")
+ out:=flag.String("out","","output directory")
+ stub:=flag.String("stub","","fixed disk stub")
+ engineChoice:=flag.String("engine","","optional engine filter for native guard mutations")
+ flag.Parse()
+ if *stub=="" {*stub=filepath.Join(*root,"research/autosiril-native/transports/trd-stub.a80")}
+ check(os.MkdirAll(*out,0755))
+ fixtures:=filepath.Join(*root,"research/autosiril-native/midi/fixtures")
+ buildOne:=func()*hir.Module {
+  h,e:=build(read(*source),read(filepath.Join(fixtures,"music.lanz")),read(filepath.Join(fixtures,"music-manifest.json")),filepath.Join(*root,"stdlib"));check(e);return h
+ }
+ raw:=hir.LowerModule(buildOne());check(mir2.Verify(raw))
+ opts:=pipeline.DefaultOptions();opts.AssertMode="none";opts.DisableVariantSearch=true
+ steps,e:=pipeline.CompileHIRSteps(buildOne(),opts);check(e)
+ for name,b:=range map[string][]byte{"raw.mir":[]byte(raw.Dump()),"final.mir":[]byte(steps.MIR2Module.Dump()),"unlinked.a80":[]byte(steps.Assembly)} {check(os.WriteFile(filepath.Join(*out,name),b,0644))}
+ base,e:=formats.LoadTRD(*disk);check(e)
+ want:=read(*expected)
+ eventCount:=2153
+ logicalLength:=21+eventCount*6
+ if len(want)<logicalLength || !bytes.Equal(want[logicalLength-4:logicalLength],[]byte("END!")) {panic("invalid independent event reference")}
+ want=want[:logicalLength]
+ notes:=base.FindFile("NOTES",'N');if notes==nil {panic("missing native first-stage notes")}
+ noteWire:=base.ReadFile(notes)
+ noteCount:=int(binary.LittleEndian.Uint32(noteWire[len(noteWire)-8:len(noteWire)-4]))
+ if noteCount!=1485 || len(noteWire)!=21+7*noteCount {panic("unexpected input notes")}
+ start:=int(base.Data[2048+226])*16+int(base.Data[2048+225])
+ sectors:=(logicalLength+255)/256
+ rows:=[]map[string]any{}
+ for i,engine:=range []string{"raw-mir2","final-mir2","scorpion-z80"} {
+  if *engineChoice!=""&&*engineChoice!=engine {continue}
+  d:=*base;d.Path=filepath.Join(*out,engine+".trd");d.Writeback=false
+  var get func(string,int,int)[]byte
+  var returned int64
+  opened,closed:=false,false
+  arenaWrites,paddingWrites,calls:=0,0,0
+  writes:=[]int{}
+  var nativeProof map[string]any
+  if i<2 {
+  m:=raw;if i==1 {m=steps.MIR2Module}
+  v:=mir2.NewVM(m);v.MaxMemory=65536;v.MaxSteps=1000000000
+  get=func(name string,off,n int)[]byte{return v.ReadHeap(v.GlobalAddr(name)+int64(off),n)}
+  arena:=v.GlobalAddr("note_bytes");inputOpen:=v.GlobalAddr("input_open")
+  for bank:=0;bank<3;bank++ {for j:=4092;j<4096;j++ {v.WriteHeap(arena+int64(bank*4096+j),0xda)}}
+  v.ObserveDataAccess=func(a mir2.VMDataAccess) {
+   if a.Op!=mir2.OpStore {return}
+   if a.Addr==inputOpen {if a.Value==1 {opened=true};if opened&&a.Value==0 {closed=true}}
+   if a.Addr>=arena&&a.Addr<arena+12288 {if closed {arenaWrites++};if (a.Addr-arena)%4096>=4092 {paddingWrites++}}
+  }
+  host:=func(args []mir2.Value)([]mir2.Value,error) {
+   calls++
+   op,address,track,sector:=int(args[0].I),args[1].I,int(args[2].I),int(args[3].I)
+   if (op!=5&&op!=6)||address!=v.GlobalAddr("input_chunk")||track<0||track>=160||sector<1||sector>16 {panic("invalid sector request")}
+   if op==5 {for j,b:=range d.ReadSector(track%80,track/80,sector-1) {v.WriteHeap(address+int64(j),b)}} else {
+    writes=append(writes,track*16+sector-1)
+    d.WriteSector(track%80,track/80,sector-1,v.ReadHeap(address,256))
+   }
+   return []mir2.Value{{I:1}},nil
+  }
+  v.Hosts["trd_sector"]=host;v.Hosts["@trd_sector"]=host
+  r,e:=v.Call("disk_main",nil);check(e)
+  if len(r)!=1 {panic("invalid VM return")}
+  returned=r[0].I
+  } else {
+   n:=nativeStage(steps.Assembly,steps.MIR2Module,read(*stub),&d,*out,0)
+   get=n.Get;returned=int64(n.Returned);opened=n.Opened;closed=n.Closed;arenaWrites=n.ArenaWrites;calls=n.Calls;writes=n.Writes
+   nativeProof=map[string]any{"image_bytes":n.ImageBytes,"code_and_stub_bytes":n.CodeBytes,"loaded_globals_bytes":n.GlobalsBytes,"static_spill_bytes":n.SpillBytes,"external_fixed_workspace_bytes":2048,"external_arena_bytes":12288,"bounce_bank_reserved_bytes":16384,"t_states":n.Cycles,"stack_below_entry":n.Stack,"paging_and_physical_guards":true}
+  }
+  word:=func(name string)uint16{return binary.LittleEndian.Uint16(get(name,0,2))}
+  dword:=func(name string)uint32{return binary.LittleEndian.Uint32(get(name,0,4))}
+  if returned!=0||word("fault")!=0 {panic(fmt.Sprintf("target fault %d disk %d",word("fault"),word("disk_error")))}
+  entry:=d.FindFile("EVENTS",'E');if entry==nil {panic("missing target-created event file")}
+  actual:=d.ReadFile(entry)
+  if !bytes.Equal(actual,want)||int(entry.Length)!=logicalLength||int(entry.Sectors)!=sectors {panic("streamed events differ")}
+  last:=start+sectors-1;t:=last/16
+  for _,b:=range d.ReadSector(t%80,t/80,last%16)[logicalLength%256:] {if b!=0 {panic("physical event padding differs")}}
+  if word("note_count")!=uint16(noteCount)||word("source_count")!=2||dword("total_count")!=uint32(eventCount)||dword("yielded")!=uint32(eventCount)||word("active_count")!=0||get("stream_busy",0,1)[0]!=0 {panic("target input or one-pass generator lifecycle differs")}
+  for n:=0;n<noteCount;n++ {at:=(n/682)*4096+(n%682)*6;if !bytes.Equal(get("note_bytes",at,6),noteWire[13+n*7:19+n*7]) {panic("loaded note differs")}}
+  if !opened||!closed||arenaWrites!=0||paddingWrites!=0 {panic("arena write/lease violation")}
+  expectedWrites:=[]int{};for j:=0;j<sectors;j++ {expectedWrites=append(expectedWrites,start+j)};expectedWrites=append(expectedWrites,0,8)
+  a,_:=json.Marshal(writes);b,_:=json.Marshal(expectedWrites);if !bytes.Equal(a,b) {panic("append sector sequence differs")}
+  pos:=int(d.Data[2048+226])*16+int(d.Data[2048+225])
+  oldFree:=binary.LittleEndian.Uint16(base.Data[2048+229:2048+231])
+  if pos!=start+sectors||binary.LittleEndian.Uint16(d.Data[2048+229:2048+231])!=oldFree-uint16(sectors)||d.Data[2048+228]!=base.Data[2048+228]+1 {panic("append accounting differs")}
+  allowed:=make([]bool,len(d.Data))
+  for j:=0;j<sectors;j++ {p:=start+j;t:=p/16;at:=((t%80*2+t/80)*16+p%16)*256;for k:=0;k<256;k++ {allowed[at+k]=true}}
+  slot:=int(base.Data[2048+228])*16;for j:=0;j<16;j++ {allowed[slot+j]=true}
+  for _,j:=range []int{225,226,228,229,230} {allowed[2048+j]=true}
+  for j,b:=range d.Data {if b!=base.Data[j]&&!allowed[j] {panic("disk changed outside appended extent/metadata")}}
+  check(d.Flush())
+  check(os.WriteFile(filepath.Join(*out,engine+"-events.bin"),actual,0644))
+  row:=map[string]any{"engine":engine,"events":eventCount,"logical_bytes":len(actual),"sectors":sectors,"sector_calls":calls,"arena_writes_after_input_close":arenaWrites,"yielded":dword("yielded"),"wire_sha256":hash(actual)}
+  if nativeProof!=nil {row["native"]=nativeProof}
+  rows=append(rows,row)
+  fmt.Printf("PASS %s: %d events, %d logical bytes, %d append sectors, %d I/O calls; one pass\n",engine,eventCount,len(actual),sectors,calls)
+ }
+ if len(rows)==0 {panic("unknown prototype engine")}
+ receipt:=map[string]any{"protocol":"autosiril-trd-flatten-first-native/v1","scope":"one positive Chronos case on raw/final MIR2/Scorpion Z80; disk-error/resource matrix and ROM/hardware remain pending","source_sha256":hash(read(*source)),"input_disk_sha256":hash(read(*disk)),"expected_sha256":hash(want),"cases":rows}
+ b,e:=json.MarshalIndent(receipt,"","  ");check(e);check(os.WriteFile(filepath.Join(*out,"receipt.json"),append(b,'\n'),0644))
+}

@@ -134,14 +134,20 @@ dispatcher/stack regions from every load.
   same chunk API, CP/M binding and writer, including short progress chunks that
   split physical record padding across refills. Input padding quantum is
   explicit metadata, separate from output capacity.
+- `research/autosiril-native/trd-flatten/`: the second TRD image uses the same
+  reader, writer and lazy generator. A bounded append binding publishes the
+  actual length after exhaustion, without a counting prepass. Its 92-case
+  matrix covers framing/resources, catalog and free-tail boundaries, sector
+  failures and the non-atomic catalog/system publication window. Twenty-one
+  native producer disks are read by separately linked second-stage images.
 - `research/autosiril-native/linked/`: the separate 40626-byte in-process path
   remains available. Its all-RAM layout is not the disk-service layout.
 
 The original CP/M flatten utility remains as a separate reference; the common
-API version now supplies the same sequential CP/M chain. Adding a TRD flatten
-variant still needs a checked output allocation/length policy for a generator
-whose final count is not known before exhaustion. The first TRD writer is
-append-only; metadata publication is not crash-atomic. Its fixed workspace uses
+API version now supplies the same sequential CP/M chain. Both TRD stages are
+append-only; metadata publication is not crash-atomic. A failure after catalog
+publication can leave a visible file and stale free-space accounting; the
+second-stage matrix checks that state explicitly. Their fixed workspace uses
 screen RAM and its DI disk stub does not establish compatibility with a physical
 ROM's workspace/interrupt ABI.
 MOS remains an additional future transport, independent of full eZ80 readiness.
