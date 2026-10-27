@@ -99,11 +99,13 @@ generator/pull semantics and books. Notify Alice/Claude before changes to shared
 MIR/pipeline/iterator fusion or default assembly behavior; one merge at a time,
 green required CI. No default codegen change is selected by this plan.
 
-Before a new long implementation run, finish the independently drafted fourth
-book chapter about the now-integrated downmix: update status, build and visually
-verify EPUB/PDF A5, integrate via a separate PR and publish a new release. The
-first edition remains an historical snapshot. i7 remains read-only; do not
-control Herdr without HERDR_ENV. Honor user stop/pause.
+The fourth book chapter is now integrated through PR #271/main9cf3a71d5;
+the checked93-page EPUB/PDF edition is published as
+[book-compiler-days-2026-10-27](https://github.com/oisee/minz/releases/tag/book-compiler-days-2026-10-27).
+The first edition remains an historical snapshot. Alice requested a break after
+this release: do not start the native renderer without her next command.
+See [full handover](HANDOVER-2026-10-27.md). i7 remains read-only; do not control
+Herdr without HERDR_ENV. Honor user stop/pause.
 
 ## First actual reference smoke (not native rendering)
 
