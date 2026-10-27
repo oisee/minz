@@ -1,0 +1,223 @@
+// Target-side ASIR reader and event serializer, independent of OS binding.
+// The shared lazy_flatten algorithm and transport writer are composed unchanged.
+global input_chunk:[u8;256]
+global chunk_capacity:u16
+global input_padding:u8
+global input_padding_quantum:u16
+global wire_read_position:u16
+global file_length:u16
+global file_cursor:u16
+global file_header:[u8;12] = [65,83,73,82,1,2,5,0,3,0,0,0]
+global wire_magic:[u8;4] = [65,83,73,82]
+global wire_end_magic:[u8;4] = [69,78,68,33]
+global source_count:u16
+global record_buffer:[u8;6]
+global output_channel:u8
+global channel_count:u16
+global total_count:u32
+global channel_sources:[u8;3] = [1,0,0]
+global channel_modes:[u8;3] = [109,112,109]
+
+
+fun file_refill()->u8 {
+    var stalled:u16 = 0
+    while fault == 0 {
+        let result:u32 = read_chunk()
+        let status:u16 = u16(result >> 16)
+        let count:u16 = u16(result)
+        if status == 1 {
+            if count != 0 { fault = 911 }
+            return 0
+        }
+        if status != 0 { fault = 904
+            return 0 }
+        if count > 256 { fault = 210
+            return 0 }
+        if count == 0 {
+            stalled = stalled + 1
+            if stalled >= 1024 { fault = 912 }
+        } else {
+            file_cursor = 0
+            file_length = count
+            return 1
+        }
+    }
+    return 0
+}
+fun file_get()->u8 {
+    if fault != 0 { return 0 }
+    if file_cursor == file_length {
+        if file_refill() == 0 {
+            if fault == 0 { fault = 951 }
+            return 0
+        }
+    }
+    let byte:u8 = input_chunk[file_cursor]
+    file_cursor = file_cursor + 1
+    wire_read_position = wire_read_position + 1
+    return byte
+}
+fun file_get_word()->u16 {
+    let low:u16 = u16(file_get())
+    return low | (u16(file_get()) << 8)
+}
+fun file_input_end() {
+    if fault != 0 { return }
+    if input_padding_quantum != 0 {
+        // The transport may split a physical record into arbitrarily small
+        // progress chunks. Padding ends at the physical boundary, not refill.
+        while wire_read_position % input_padding_quantum != 0 {
+            let byte:u8 = file_get()
+            if fault != 0 { return }
+            if byte != 0 { fault = 957
+                return }
+        }
+    }
+    if file_cursor < file_length { fault = 957
+        return }
+    if file_refill() != 0 { fault = 957 }
+}
+fun file_read_notes() {
+    file_cursor = 0
+    file_length = 0
+    wire_read_position = 0
+    var index:u16 = 0
+    while index < 4 {
+        let byte:u8 = file_get()
+        if fault != 0 { return }
+        if byte != wire_magic[index] { fault = 950
+            return }
+        index = index + 1
+    }
+    let version:u8 = file_get()
+    if fault != 0 { return }
+    if version != 1 { fault = 952
+        return }
+    let kind:u8 = file_get()
+    let width:u8 = file_get()
+    let flags:u8 = file_get()
+    source_count = file_get_word()
+    let reserved:u16 = file_get_word()
+    if fault != 0 { return }
+    if kind != 1 || width != 6 || flags != 0 || reserved != 0 { fault = 953
+        return }
+    if source_count > 64 { fault = 954
+        return }
+    var done:u8 = 0
+    while done == 0 && fault == 0 {
+        let tag:u8 = file_get()
+        if fault != 0 { return }
+        if tag == 255 {
+            let low:u16 = file_get_word()
+            let high:u16 = file_get_word()
+            if fault != 0 { return }
+            if low != note_count || high != 0 { fault = 956
+                return }
+            index = 0
+            while index < 4 {
+                let byte:u8 = file_get()
+                if fault != 0 { return }
+                if byte != wire_end_magic[index] { fault = 956
+                    return }
+                index = index + 1
+            }
+            file_input_end()
+            done = 1
+        } else {
+            if tag != 1 { fault = 955
+                return }
+            if note_count >= 2046 { fault = 959
+                return }
+            index = 0
+            while index < 6 {
+                record_buffer[index] = file_get()
+                index = index + 1
+            }
+            if fault != 0 { return }
+            if record_buffer[4] > 127 || u16(record_buffer[5]) >= source_count {
+                fault = 958
+                return
+            }
+            let at:u16 = (note_count / 682) * 4096 + (note_count % 682) * 6
+            index = 0
+            while index < 6 {
+                note_bytes[at+index] = record_buffer[index]
+                index = index + 1
+            }
+            note_count = note_count + 1
+        }
+    }
+}
+fun emit_flat(row:u16,value:u16) {
+    if fault != 0 { return }
+    if channel_count >= 1024 { fault = 200
+        return }
+    file_put(1)
+    file_put(output_channel)
+    file_put_word(row)
+    file_put_word(value)
+    if fault == 0 {
+        channel_count = channel_count + 1
+        total_count = total_count + 1
+    }
+}
+fun file_save_events() {
+    if create_output() != 0 { fault = 901
+        return }
+    file_cursor = 0
+    var index:u16 = 0
+    while index < 12 {
+        file_put(file_header[index])
+        index = index + 1
+    }
+    output_channel = 0
+    while output_channel < 3 && fault == 0 {
+        channel_count = 0
+        peak_active = 0
+        // One extra pull distinguishes exact capacity from silent truncation.
+        consume(channel_sources[output_channel],channel_modes[output_channel],1025)
+        output_channel = output_channel + 1
+    }
+    if fault == 0 {
+        file_put(255)
+        file_put_word(u16(total_count))
+        file_put_word(u16(total_count >> 16))
+        file_put(69)
+        file_put(78)
+        file_put(68)
+        file_put(33)
+    }
+    if file_cursor != 0 && fault == 0 { file_write_record() }
+    if finish(1) != 0 && fault == 0 { fault = 903 }
+}
+fun disk_main()->u16 {
+    fault = 0
+    note_count = 0
+    source_count = 0
+    total_count = 0
+    channel_count = 0
+    output_channel = 0
+    banked = 0
+    churn = 0
+    stream_busy = 0
+    active_count = 0
+    peak_active = 0
+    rows_visited = 0
+    yielded = 0
+    payload_reads = 0
+    bank_switches = 0
+    mapping_epoch = 0
+    mapped_bank = 65535
+    yield_row = 0
+    if open_input() != 0 { fault = 900
+        return fault }
+    if chunk_capacity == 0 || chunk_capacity > 256 || input_padding_quantum > 256 ||
+        (input_padding != 0 && input_padding_quantum == 0) { fault = 910
+        finish(0)
+        return fault }
+    file_read_notes()
+    if finish(0) != 0 && fault == 0 { fault = 906 }
+    if fault == 0 { validate_input() }
+    if fault == 0 { file_save_events() }
+    return fault
+}
