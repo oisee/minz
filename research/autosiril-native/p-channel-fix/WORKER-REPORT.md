@@ -1,9 +1,9 @@
 # WORKER-REPORT: canonical profile (max_offset 6) executed through the native chain
 
 Worker: claude-z, worktree `/tmp/minz-autosiril-p-channel-z`, branch
-`fix/autosiril-p-channel`. Fresh evidence in
-`/tmp/minz-z-workers/p-channel-results/checkpoint-p2/` (interactive run) and
-`.../checkpoint-p2-script/` (single-script replay). Everything here is
+`fix/autosiril-p-channel`. Checkpoint-p3 evidence in
+`/tmp/minz-z-workers/p-channel-results/checkpoint-p3/` (`fresh/` with Ruby,
+`frozen/` without Ruby, plus `fresh.log`/`frozen.log`). Everything here is
 read-only against the original Ruby tree (pinned `autooisee.rb` SHA256
 `41f621b555fc089effd711319e723494576eb47ea0282847082ec91c1cdd4c01`), the CI
 artifacts and the planning fixtures.
@@ -15,7 +15,47 @@ cause **fixture configuration** — the chain and its references were generated
 with `max_offset` 24 instead of the canonical argv's 6 (`chronos.mid 2me,1p,1m
 8 6 12 0 64 2 6`). Not an arrange algorithm, echo, mix, or compiler bug.
 
-## What checkpoint-p2 adds: execution instead of prediction
+## What checkpoint-p3 adds: the complete FILE fifth stage, frozen replay and CI
+
+Checkpoint-p2 proved stages 3/4 by CP/M file execution but stage 5 only through
+the mix **kernel** fixture trap. Checkpoint-p3 completes the FILE chain and makes
+the proof portable:
+
+| boundary | native execution | vs actual Ruby | diffs |
+|---|---|---|---:|
+| stage3 `ARRANGE.BIN`@6 | recompiled `ARRANGE-CANONICAL6.COM` through mze | `lmod` | **0** (2,097 cells) |
+| stage4 `DELAYED.BIN`@6 | unchanged upstream `ECHO.COM` through mze | `dmod` | **0** (3,215 cells) |
+| stage5 `MIXED.BIN`@6 **file** | **actual unchanged upstream `MIX.COM`** (sha256 `8ad63e83…`, from the fresh `cpm/standalone` chain) through mze on `DELAYED.BIN`@6 + `NOTES.BIN` | `mmod` | **0** (3,215 cells, 8 definition payloads identical to `DELAYED.BIN`@6, lengths `[1353,1353,1353]`, render_rows 1352; logical 54,880 B / physical 54,912 B, sha256 `8aa9cfa2…`) |
+| stage5 kernel (additional layer) | mix kernel raw-mir2/final-mir2/z80 | `mmod` | **0** (3,215 cells) |
+
+Scope is recorded per stage in the receipt (`stage_scope`): stages 1–2 reuse the
+byte-identical verified upstream `NOTES.BIN`/`EVENTS.BIN` (PAIR.COM/FLATTEN.COM
+not re-executed — counts `[1,1,1]`/policies `---` match the existing default),
+stage 3 file, stage 4 file, stage 5 **file** plus kernel as an additional layer.
+The renderer input for the future Renderer6 worker is recorded in
+`receipt.json` → `renderer_input` (canonical6 `MIXED.BIN`, `DELAYED.BIN`,
+`NOTES.BIN` + lengths/render_rows).
+
+- **Frozen replay without Ruby**: `fixtures/canonical6-frozen.json.gz` (32 KB,
+  generated from this actual-Ruby fresh run) pins config, settings, source and
+  upstream-binary hashes (EVENTS/NOTES/ECHO.COM/MIX.COM/ARRANGE-CANONICAL6.COM),
+  the generated arrange and kernel sources, all three expected wire files and
+  every boundary. `replay_canonical6.py` regenerates the arrange source,
+  recompiles, executes ARRANGE/ECHO/MIX through mze and the mix kernel through
+  all three engines, and checks every boundary — Ruby never runs. The fresh
+  proof (`--fixture`) verifies the frozen expectations against a live Ruby run,
+  so the fixture can never decay into native self-agreement.
+- **CI**: `native_echo_fresh` now runs the canonical6 fresh proof (with fixture
+  verification) and uploads `autosiril-canonical6-fresh`; `native_mix_frozen`
+  builds mze and runs the canonical6 frozen replay off the downloaded
+  `autosiril-echo` artifact and the replay-produced `MIX.COM`, uploading
+  `autosiril-canonical6-frozen`. All inherited jobs, gates, artifacts and
+  required fail conditions are unchanged; every command is portable Linux/macOS.
+- **TRD canonical6**: explicitly **pending**, not blocking the CP/M proof — the
+  TRD chain (TRD flatten/arrange/echo/mix adapters) is a separate body of work
+  and was not attempted in this checkpoint.
+
+## What checkpoint-p2 added: execution instead of prediction
 
 Checkpoint-p1 stated "after the fixtures are regenerated at 6 the boundaries
 must be equal" as an **expectation** (only stage 3 was proven via the Ruby
@@ -52,37 +92,47 @@ No compiler default, gate, golden, workflow or shared fixture was modified.
 
 ## Reproduce (all paths are flags; no hardcoded temporary paths)
 
+Fresh (Ruby required; verifies the committed frozen fixture against actual Ruby):
+
 ```sh
 python3 research/autosiril-native/p-channel-fix/prove_canonical6.py \
   --autosiril /path/to/autosiril \
   --upstream /path/to/autosiril-mix-fresh/upstream/cpm/standalone \
-  --mze /path/to/mze --out /tmp/p2
+  --mix-com /path/to/autosiril-mix-fresh/cpm/standalone/MIX.COM \
+  --mze /path/to/mze \
+  --fixture research/autosiril-native/p-channel-fix/fixtures/canonical6-frozen.json.gz \
+  --out /tmp/p3-fresh
 ```
 
-Single-script replay verified end-to-end in `checkpoint-p2-script/` (receipt:
-`receipt.json`). Stage tracer, now portable (every path a flag or
-`AUTOSIRIL_*` env var, `--kind5-cells` for native kernel output):
+Frozen (no Ruby; regenerates + reexecutes the actual stages against the frozen
+actual-Ruby expectations — the exact command shape the CI frozen job runs):
 
 ```sh
-ruby research/autosiril-native/p-channel-fix/oracle_stages.rb \
-  --autosiril /path/to/autosiril > ruby_stages.json
-python3 research/autosiril-native/p-channel-fix/trace_stage_divergence.py \
-  --ruby ruby_stages.json --events … --arrange … --delayed … \
-  --kind5-cells … --out stage_diffs.json --assert-equal
+python3 research/autosiril-native/p-channel-fix/replay_canonical6.py \
+  --upstream /path/to/autosiril-echo/cpm/standalone \
+  --mix-com /path/to/autosiril-mix-frozen/cpm/standalone/MIX.COM \
+  --mze /path/to/mze --out /tmp/p3-frozen
 ```
+
+Both were executed end-to-end in `checkpoint-p3/` (`fresh/` and `frozen/`,
+receipts `receipt.json`). The stage tracer now also accepts `--kind5-file`
+(an actual `MIXED.BIN`) in addition to `--kind5-cells` (kernel output).
 
 ## Changed files (this worktree only)
 
-- `p-channel-fix/prove_canonical6.py` (new) — full canonical6 execution proof.
-- `p-channel-fix/trace_stage_divergence.py` — portable paths, `--kind5-cells`
-  parser for native mix kernel output, physical-padding strip.
-- `p-channel-fix/ERRATUM-CHRONOS-DIVERGENCE.md` (new) — corrected text for the
-  parent; the old VT2 `CHRONOS-DIVERGENCE.md` "identical config, not fixture"
-  framing was the reverse of the proven cause.
-- `p-channel-fix/WORKER-REPORT.md` — this report; supersedes the p1
-  expectation-only "after fix 0 all stages" statement.
-- `p-channel-fix/.gitignore` (new) + removal of the accidentally committed
-  `__pycache__/trace_stage_divergence.cpython-314.pyc`.
+- `p-channel-fix/prove_canonical6.py` — stage5 FILE execution of the actual
+  unchanged `MIX.COM` through mze with full kind5 comparison (cells, definition
+  payloads, role metadata), dual file/kernel boundary trace, frozen-fixture
+  verification/refresh, per-stage scope and renderer-input receipt.
+- `p-channel-fix/replay_canonical6.py` (new) — frozen no-Ruby replay.
+- `p-channel-fix/fixtures/canonical6-frozen.json.gz` (new) — frozen fixture
+  generated from the pinned actual Ruby run.
+- `p-channel-fix/trace_stage_divergence.py` — `--kind5-file` MIXED.BIN parser.
+- `p-channel-fix/WORKER-REPORT.md` — this report.
+- `.github/workflows/ci.yml` — canonical6 fresh step + upload in
+  `native_echo_fresh`, canonical6 frozen replay + upload in `native_mix_frozen`
+  (explicitly authorized for this scoped proof integration; no inherited gate,
+  artifact or fail condition changed).
 
 ## Hashes (checkpoint-p2-script receipt)
 
@@ -97,6 +147,8 @@ cells 51440 B. Stage1/2 binaries (`NOTES.BIN`/`EVENTS.BIN`) are unaffected by
   from the pinned reference at offset 6) or keep both profiles as explicit
   fixtures; the retained-gate conflict list from checkpoint-p1 still applies —
   no shared gate was touched here.
-- Native CP/M/TRD/VT2 tail (render onward) remains in progress; nothing here
-  claims the whole converter or VT2/VTX packing. STOP marker untouched; no
-  push, no PR, no messages.
+- TRD canonical6 profile execution: pending (see above), not blocking the
+  CP/M proof.
+- Native render/VT2 tail remains in progress; nothing here claims the whole
+  converter or VT2/VTX packing. The CP/M FILE chain through MIX is complete
+  at both profiles. STOP marker untouched; no push, no PR, no messages.

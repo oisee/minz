@@ -73,6 +73,32 @@ def parse_kind3(path, kind=3):
     return {i: bytes(b) for i, b in defs.items()}, cells
 
 
+def parse_kind5_file(path):
+    """Actual MIX.COM output MIXED.BIN: kind5 with definition/cell/role records.
+
+    Returns (definitions, cells); role-2 extent and role-3 render metadata are
+    checked by the caller that owns those boundaries."""
+    defs, cells = {}, []
+    for r in records(logical(path.read_bytes()), 5, 16):
+        if r[0] == 1:
+            ident, total, at = struct.unpack_from('<HHH', r, 1)
+            count = r[7]
+            d = defs.setdefault(ident, bytearray(total))
+            d[at:at + count] = r[8:8 + count]
+        elif r[0] in (2, 3):
+            continue  # channel extents / render rows metadata
+        else:
+            assert r[0] == 0
+            enote = struct.unpack_from('<H', r, 13)[0]
+            cells.append(dict(channel=r[1], row=struct.unpack_from('<H', r, 2)[0],
+                              note=r[4], sample=r[5], envelope=r[6],
+                              ornament=struct.unpack_from('<H', r, 7)[0],
+                              volume=struct.unpack_from('<H', r, 9)[0],
+                              type=chr(r[11]), kind=chr(r[12]),
+                              enote=-1 if enote == 65535 else enote))
+    return {i: bytes(b) for i, b in defs.items()}, cells
+
+
 def parse_cells_bin(path):
     """Native mix kernel z80 output: concatenated 16-byte cell payloads."""
     b = path.read_bytes()
@@ -153,6 +179,9 @@ def main():
     stage5.add_argument('--kind5-cells', type=Path,
                         default=env_path('kind5_cells', 'AUTOSIRIL_KIND5_CELLS'),
                         help='native mix kernel cells.bin for stage5 (default $AUTOSIRIL_KIND5_CELLS)')
+    stage5.add_argument('--kind5-file', type=Path,
+                        default=env_path('kind5_file', 'AUTOSIRIL_KIND5_FILE'),
+                        help='actual MIX.COM MIXED.BIN kind5 file for stage5 (default $AUTOSIRIL_KIND5_FILE)')
     stage5.add_argument('--kind5-planning', type=Path,
                         default=env_path('kind5_planning', 'AUTOSIRIL_KIND5_PLANNING'),
                         help='planning cases.json whose first case is the stage5 kind5 grid')
@@ -168,8 +197,9 @@ def main():
         p.error('--arrange or $AUTOSIRIL_ARRANGE is required')
     if a.delayed is None:
         p.error('--delayed or $AUTOSIRIL_DELAYED is required')
-    if a.kind5_cells is None and a.kind5_planning is None:
-        p.error('--kind5-cells or --kind5-planning (or the $AUTOSIRIL_KIND5_* defaults) is required')
+    if a.kind5_cells is None and a.kind5_planning is None and a.kind5_file is None:
+        p.error('--kind5-cells, --kind5-file or --kind5-planning '
+                '(or the $AUTOSIRIL_KIND5_* defaults) is required')
     ruby = json.loads(a.ruby.read_text())
     orn = ruby['ornaments']
 
@@ -203,11 +233,15 @@ def main():
     # stage5: actual native mix output cells vs Ruby mmod
     if a.kind5_cells is not None:
         cells5 = parse_cells_bin(a.kind5_cells)
+        d5 = cmp_cells('stage5 mix cells vs Ruby mmod', cells5, ruby['mmod'], orn, {})
+    elif a.kind5_file is not None:
+        defs5, cells5 = parse_kind5_file(a.kind5_file)
+        d5 = cmp_cells('stage5 MIXED file cells vs Ruby mmod', cells5, ruby['mmod'], orn, defs5)
     else:
         cells5 = parse_planning_kind5(a.kind5_planning, a.kind5_case)
         for n in cells5:
             n['ornament_bytes'] = None  # marker: compare ornament id, not bytes
-    d5 = cmp_cells('stage5 mix cells vs Ruby mmod', cells5, ruby['mmod'], orn, {})
+        d5 = cmp_cells('stage5 mix cells vs Ruby mmod', cells5, ruby['mmod'], orn, {})
 
     json.dump(dict(stage2=dict(diffs=pmod_diffs, missing=missing2),
                    stage3=dict(diffs=d3[0], extra=d3[1], missing=d3[2]),

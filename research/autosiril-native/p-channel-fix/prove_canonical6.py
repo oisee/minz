@@ -14,10 +14,20 @@ Stages:
                             through mze
   4. native echo            the unchanged upstream ECHO.COM through mze on the
                             canonical ARRANGE.BIN -> DELAYED.BIN
-  5. native mix             mix/oracle.rb (actual Ruby downmix) reference, then
-                            the existing mix kernel driver raw-mir2/final-mir2/
-                            z80 with a Ruby-expected fixture
-  6. trace_stage_divergence.py --assert-equal over all executed boundaries
+  5. native mix FILE        the unchanged upstream MIX.COM through mze on the
+                            canonical DELAYED.BIN + NOTES.BIN -> MIXED.BIN,
+                            decoded and compared cell-by-cell, definition
+                            payload and role metadata against actual Ruby
+                            (downmix reference == canonical mmod)
+  6. native mix kernel      the existing mix kernel driver raw-mir2/final-mir2/
+                            z80 with a Ruby-expected fixture (additional layer
+                            on top of the file-level fifth stage)
+  7. trace_stage_divergence.py --assert-equal over all executed boundaries,
+                            once with the file MIXED.BIN cells and once with
+                            the kernel cells.bin
+  8. frozen fixture         --fixture verifies every frozen expectation against
+                            this actual-Ruby fresh run; --refresh-fixture
+                            rewrites it from this run
 
 The legacy max_offset 24 chain and its gates are untouched: the canonical
 source is a generated variant; nothing committed is regenerated here.
@@ -31,6 +41,7 @@ Example:
 from pathlib import Path
 import argparse
 import base64
+import gzip
 import hashlib
 import json
 import struct
@@ -45,6 +56,10 @@ ROOT = NATIVE.parents[1]
 
 def sha(p):
     return hashlib.sha256(Path(p).read_bytes()).hexdigest()
+
+
+def sha_str(b):
+    return hashlib.sha256(b).hexdigest()
 
 
 def run(log, cmd, **kw):
@@ -109,9 +124,18 @@ def main():
     p.add_argument('--upstream', type=Path, required=True,
                    help='verified upstream standalone dir with EVENTS/NOTES/ECHO.COM')
     p.add_argument('--mze', type=Path, required=True, help='mze emulator binary')
+    p.add_argument('--mix-com', type=Path, required=True,
+                   help='actual unchanged upstream MIX.COM (read-only)')
+    p.add_argument('--fixture', type=Path,
+                   help='committed frozen fixture to verify against this '
+                        'actual-Ruby fresh run')
+    p.add_argument('--refresh-fixture', action='store_true',
+                   help='rewrite the frozen fixture from this fresh run')
     p.add_argument('--out', type=Path, required=True,
                    help='empty output directory outside the checkout')
     a = p.parse_args()
+    if a.refresh_fixture and a.fixture is None:
+        p.error('--refresh-fixture requires --fixture')
     out = a.out.resolve()
     if out == ROOT or ROOT in out.parents or (out.exists() and any(out.iterdir())):
         p.error('use an empty output directory outside the checkout')
@@ -205,6 +229,31 @@ def main():
         assert norm(ref['channels'][ci]) == norm(stages['mmod'][ci]), ci
     assert not any(c['row'] > 65535 for ch in ref['channels'] for c in ch)
     kernel_expected = b''.join(payload(x, ch) for ch, lane in enumerate(ref['channels']) for x in lane)
+
+    # stage5 FILE: the actual unchanged MIX.COM on DELAYED.BIN@6 + NOTES.BIN,
+    # decoded with the independent kind5 decoder from the committed mix audit.
+    sys.path.insert(0, str(NATIVE / 'mix'))
+    from audit_file import decode as decode_kind5, records as wire_records
+    mixdir = out / 'standalone6-mix'
+    mixdir.mkdir()
+    for name in ['DELAYED.BIN', 'NOTES.BIN']:
+        (mixdir / name).write_bytes((standalone / name).read_bytes())
+    (mixdir / 'MIX.COM').write_bytes(a.mix_com.resolve().read_bytes())
+    run(out, [a.mze, mixdir / 'MIX.COM', '-t', 'cpm',
+              '--timeout', '700000000', '--cycles'], cwd=mixdir)
+    mixed_wire = (mixdir / 'MIXED.BIN').read_bytes()
+    kind5 = decode_kind5(mixed_wire)
+    delayed_defs = [r for r in wire_records((standalone / 'DELAYED.BIN').read_bytes(), 4)
+                    if r[0] == 1]
+    assert kind5['definitions'] == delayed_defs, 'kind5 definition payloads differ'
+    for ci in range(3):
+        assert norm(kind5['channels'][ci]) == norm(ref['channels'][ci]), ci
+        assert norm(kind5['channels'][ci]) == norm(stages['mmod'][ci]), ci
+    assert kind5['lengths'] == ref['lengths']
+    assert kind5['render_rows'] == ref['render_rows']
+    role0 = b''.join(r for r in wire_records(mixed_wire, 5) if r[0] == 0)
+    assert role0 == kernel_expected, 'kind5 cell payloads differ from Ruby downmix'
+
     (out / 'mix_kernel_fixture.json').write_text(json.dumps(dict(cases=[
         dict(name=case,
              channels=[[b64(payload(x, ch)) for x in lane] for ch, lane in enumerate(channels)],
@@ -219,28 +268,107 @@ def main():
               '--input', out / 'mix_kernel_fixture.json', '--out', out / 'mix-measured'],
         cwd=ROOT / 'minzc')
 
-    # full boundary trace: every stage executed above vs canonical Ruby
-    run(out, [sys.executable, HERE / 'trace_stage_divergence.py', '--ruby', ruby,
-              '--events', standalone / 'EVENTS.BIN', '--arrange', standalone / 'ARRANGE.BIN',
-              '--delayed', standalone / 'DELAYED.BIN',
-              '--kind5-cells', out / f'mix-measured/{case}/z80/cells.bin',
-              '--out', out / 'stage_diffs_canonical6.json', '--assert-equal'])
+    # full boundary trace: every stage executed above vs canonical Ruby,
+    # once with the actual MIX.COM file cells and once with the kernel cells
+    for label, extra, dest in [
+            ('file', ['--kind5-file', mixdir / 'MIXED.BIN'], 'stage_diffs_canonical6_file.json'),
+            ('kernel', ['--kind5-cells', out / f'mix-measured/{case}/z80/cells.bin'],
+             'stage_diffs_canonical6.json')]:
+        run(out, [sys.executable, HERE / 'trace_stage_divergence.py', '--ruby', ruby,
+                  '--events', standalone / 'EVENTS.BIN', '--arrange', standalone / 'ARRANGE.BIN',
+                  '--delayed', standalone / 'DELAYED.BIN', *extra,
+                  '--out', out / dest, '--assert-equal'])
+
+    # frozen fixture: every expectation below is derived from the actual Ruby
+    # run above, never from native self agreement
+    fixture = dict(
+        protocol='autosiril-p-channel-canonical6-frozen/v1',
+        original_ruby_sha256=sha(autosiril / 'autooisee.rb'),
+        settings={k: stages['settings'][k] for k in
+                  ('max_row', 'pattern_size', 'per_delay', 'per_delay2',
+                   'orn_repeat', 'max_offset')},
+        config=config, counts=[1, 1, 1], policies=['-', '-', '-'],
+        source_sha256={str(p.relative_to(ROOT)): sha(p) for p in [
+            HERE / 'prove_canonical6.py', HERE / 'replay_canonical6.py',
+            HERE / 'trace_stage_divergence.py', HERE / 'oracle_stages.rb']},
+        upstream_sha256=dict(
+            events_bin=sha(upstream / 'EVENTS.BIN'),
+            notes_bin=sha(upstream / 'NOTES.BIN'),
+            echo_com=sha(upstream / 'ECHO.COM'),
+            mix_com=sha(a.mix_com.resolve()),
+            arrange_canonical6_com=sha(out / 'ARRANGE-CANONICAL6.COM')),
+        generated=dict(
+            arrange_cpm_sha256=sha(gen / 'arrange-cpm.nanz'),
+            kernel_nanz_sha256=sha(build / 'kernel.nanz')),
+        boundaries=dict(
+            arrange_cells=sum(len(l) for l in stages['lmod']),
+            delayed_cells=sum(len(l) for l in stages['dmod']),
+            mixed_cells=sum(len(l) for l in stages['mmod']),
+            mixed_definitions=len(delayed_defs),
+            lengths=ref['lengths'], render_rows=ref['render_rows'],
+            arrange_logical_sha256=sha_str(logical((standalone / 'ARRANGE.BIN').read_bytes())),
+            delayed_logical_sha256=sha_str(logical((standalone / 'DELAYED.BIN').read_bytes())),
+            mixed_logical_sha256=sha_str(logical(mixed_wire)),
+            mixed_physical_bytes=len(mixed_wire)),
+        files=dict(
+            ARRANGE=b64(logical((standalone / 'ARRANGE.BIN').read_bytes())),
+            DELAYED=b64(logical((standalone / 'DELAYED.BIN').read_bytes())),
+            MIXED=b64(logical(mixed_wire))),
+        kernel=dict(expected_cells_sha256=sha_str(role0)))
+    if a.refresh_fixture:
+        a.fixture.parent.mkdir(parents=True, exist_ok=True)
+        a.fixture.write_bytes(gzip.compress(
+            json.dumps(fixture, sort_keys=True, separators=(',', ':')).encode(),
+            compresslevel=9, mtime=0))
+        print('REFRESHED frozen fixture', a.fixture)
+    elif a.fixture:
+        frozen = json.loads(gzip.decompress(a.fixture.read_bytes()))
+        if frozen != fixture:
+            bad = [k for k in fixture if frozen.get(k) != fixture[k]]
+            raise SystemExit('frozen canonical6 fixture disagrees with the actual '
+                             'Ruby fresh run: ' + ', '.join(bad))
+        print('VERIFIED frozen fixture against the actual Ruby fresh run')
+
     receipt = dict(
         protocol='autosiril-p-channel-canonical6/v1',
         original_ruby_sha256=sha(autosiril / 'autooisee.rb'),
         upstream_events_sha256=sha(upstream / 'EVENTS.BIN'),
         upstream_notes_sha256=sha(upstream / 'NOTES.BIN'),
         upstream_echo_com_sha256=sha(upstream / 'ECHO.COM'),
+        mix_com_sha256=sha(a.mix_com.resolve()),
         arrange_canonical6_com_sha256=sha(out / 'ARRANGE-CANONICAL6.COM'),
         arrange_canonical6_bin_sha256=sha(standalone / 'ARRANGE.BIN'),
         delayed_canonical6_bin_sha256=sha(standalone / 'DELAYED.BIN'),
+        mixed_canonical6_bin_sha256=sha(mixdir / 'MIXED.BIN'),
+        mixed_canonical6=dict(
+            logical_bytes=len(logical(mixed_wire)), physical_bytes=len(mixed_wire),
+            cells=sum(len(l) for l in kind5['channels']),
+            definitions=len(kind5['definitions']),
+            lengths=kind5['lengths'], render_rows=kind5['render_rows']),
         mix_kernel_cells_sha256=sha(out / f'mix-measured/{case}/z80/cells.bin'),
-        stage_boundary_diffs=json.loads((out / 'stage_diffs_canonical6.json').read_text()),
-        scope='canonical max_offset 6 profile executed through native arrange/echo/mix '
-              'with stage-boundary parity to actual original Ruby; legacy 24 chain and '
+        stage_boundary_diffs=dict(
+            file=json.loads((out / 'stage_diffs_canonical6_file.json').read_text()),
+            kernel=json.loads((out / 'stage_diffs_canonical6.json').read_text())),
+        renderer_input=dict(
+            profile='canonical max_offset 6',
+            mixed_bin=str(mixdir / 'MIXED.BIN'),
+            delayed_bin=str(mixdir / 'DELAYED.BIN'),
+            notes_bin=str(mixdir / 'NOTES.BIN'),
+            lengths=kind5['lengths'], render_rows=kind5['render_rows']),
+        stage_scope=dict(
+            stage1='PAIR.COM not re-executed; NOTES.BIN reused byte-identical verified upstream output',
+            stage2='FLATTEN.COM not re-executed; EVENTS.BIN reused byte-identical verified upstream output',
+            stage3='ARRANGE-CANONICAL6.COM executed (probe raw-mir2/final-mir2/z80 + mze file run)',
+            stage4='unchanged upstream ECHO.COM executed through mze on ARRANGE.BIN@6',
+            stage5_file='unchanged upstream MIX.COM executed through mze on DELAYED.BIN@6 + NOTES.BIN',
+            stage5_kernel='mix kernel raw-mir2/final-mir2/z80, additional layer over the file stage'),
+        scope='canonical max_offset 6 profile executed through the native arrange/echo/mix '
+              'FILE chain (stages 1-2 reused byte-identical upstream outputs) with '
+              'stage-boundary parity to actual original Ruby; legacy 24 chain and '
               'gates untouched; not a whole-converter or VT2/VTX claim')
     (out / 'receipt.json').write_text(json.dumps(receipt, indent=2) + '\n')
-    print('PASS canonical6 profile: all stage boundaries equal canonical Ruby')
+    print('PASS canonical6 profile: complete FILE chain, all stage boundaries equal canonical Ruby')
+    print('renderer input (canonical6):', mixdir / 'MIXED.BIN')
 
 
 if __name__ == '__main__':

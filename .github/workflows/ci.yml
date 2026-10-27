@@ -200,6 +200,29 @@ jobs:
           retention-days: 7
           if-no-files-found: ignore
 
+      - name: Build the CP/M chain emulator for the canonical profile
+        working-directory: minzc
+        run: go build -o "$RUNNER_TEMP/mze-canonical6" ./cmd/mze
+      - name: Execute canonical max_offset 6 profile through the complete native file chain
+        env:
+          GEM_HOME: ${{ runner.temp }}/autosiril-gems
+        run: |
+          python3 research/autosiril-native/p-channel-fix/prove_canonical6.py \
+            --autosiril .ci-reference/autosiril \
+            --upstream "$RUNNER_TEMP/autosiril-mix-fresh/upstream/cpm/standalone" \
+            --mix-com "$RUNNER_TEMP/autosiril-mix-fresh/cpm/standalone/MIX.COM" \
+            --mze "$RUNNER_TEMP/mze-canonical6" \
+            --fixture research/autosiril-native/p-channel-fix/fixtures/canonical6-frozen.json.gz \
+            --out "$RUNNER_TEMP/autosiril-canonical6-fresh"
+      - name: Preserve complete canonical-profile fresh evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: autosiril-canonical6-fresh
+          path: ${{ runner.temp }}/autosiril-canonical6-fresh/
+          retention-days: 7
+          if-no-files-found: ignore
+
   native_mix_frozen:
     name: Frozen fifth native stage
     needs: pr_gate_work
@@ -217,12 +240,30 @@ jobs:
           path: ${{ runner.temp }}/autosiril-echo
       - name: Replay frozen fifth stage against actual frozen echo files
         run: python3 research/autosiril-native/mix/replay.py --upstream "$RUNNER_TEMP/autosiril-echo" --out "$RUNNER_TEMP/autosiril-mix-frozen"
+      - name: Build the CP/M chain emulator for the canonical profile
+        working-directory: minzc
+        run: go build -o "$RUNNER_TEMP/mze-canonical6" ./cmd/mze
+      - name: Replay frozen canonical max_offset 6 profile through the actual chain
+        run: |
+          python3 research/autosiril-native/p-channel-fix/replay_canonical6.py \
+            --upstream "$RUNNER_TEMP/autosiril-echo/cpm/standalone" \
+            --mix-com "$RUNNER_TEMP/autosiril-mix-frozen/cpm/standalone/MIX.COM" \
+            --mze "$RUNNER_TEMP/mze-canonical6" \
+            --out "$RUNNER_TEMP/autosiril-canonical6-frozen"
       - name: Preserve complete fifth-stage frozen evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: autosiril-mix-frozen
           path: ${{ runner.temp }}/autosiril-mix-frozen/
+          retention-days: 7
+          if-no-files-found: ignore
+      - name: Preserve complete canonical-profile frozen evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: autosiril-canonical6-frozen
+          path: ${{ runner.temp }}/autosiril-canonical6-frozen/
           retention-days: 7
           if-no-files-found: ignore
 
