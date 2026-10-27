@@ -1,0 +1,17 @@
+{
+  "scope": "Parent independent actual-Ruby vs streamed HOST VT2 proof; no native VT2 execution",
+  "source_commit": "2ba66d457",
+  "command": "python3 -I research/autosiril-native/vt2/prove_vt2.py --autosiril /Users/alice/dev/autosiril --planning /tmp/minz-render-planning-v4 --out /tmp/minz-z-workers/vt2-results/parent-checkpoint3-a",
+  "receipt_sha256": "d686541ae91ed0e5bdbc811dec50480126ab90412e1ca48b5150b17d6d96d2c8",
+  "cases": 558,
+  "patterns": 267511,
+  "forced_collision_cases": 548,
+  "canonical_variants": 3,
+  "all_worker_results_match": true,
+  "source_sha256": {
+    "model_vt2.py": "1555c75193e1951748571119c767481ff973655bd7f1ea6e425b5d7ec94c8b8e",
+    "prove_vt2.py": "2d3ed90da5c3d582810db607458593fcd5f940b466760b85c96966a1064113d0",
+    "oracle_vt2.rb": "b3c572d05acd201c4a217e2d527f856f96a133a7d82cc33197678c007e4d5d53"
+  },
+  "upstream_divergence": "62 native_chronos p-channel cells differ from original full Ruby; independently reproduced, not resolved"
+}
