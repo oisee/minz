@@ -6,6 +6,7 @@ import subprocess
 import sys
 
 sys.dont_write_bytecode = True
+from native import native_code
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[2]
 
@@ -39,8 +40,13 @@ def main():
     new = 'f.Name=="trd_sector" && f.ExternAddr==0x6000 && f.RetTy==mir2.TyU8 && len(f.Params)==4 && f.Params[0].Ty==mir2.TyU8 && f.Params[1].Ty==mir2.TyU16 && f.Params[2].Ty==mir2.TyU8 && f.Params[3].Ty==mir2.TyU8 && f.Params[0].RegClass==mir2.ClassAcc && f.Params[1].RegClass==mir2.ClassPointer && f.Params[2].RegClass==mir2.ClassRegD && f.Params[3].RegClass==mir2.ClassRegE && f.ExternClobbers==nil'
     runner = once(runner, old, new)
     runner = once(runner, 'func main() {', 'func original_main() {')
-    runner = once(runner, '"io"', '"io"\n"github.com/minz/minzc/pkg/spectrum/formats"')
-    (out / 'prototype.go').write_text(runner + (HERE / 'vm-driver.go.txt').read_text())
+    runner = once(runner, 'const origin = 0x0100', 'const origin = 0x6000')
+    runner = once(runner, 'const floor = 0xe000', 'const floor = 0xb800')
+    runner = once(runner, 'const initialSP = 0xeffe', 'const initialSP = 0xbffe')
+    runner = once(runner, 'const returnPC = 0xf100', 'const returnPC = 0x5f00')
+    runner = once(runner, '"io"', '"io"\n"github.com/minz/minzc/pkg/spectrum/formats"\n"github.com/minz/minzc/pkg/spectrum"')
+    guards = native_code((HERE.parent / 'transports/trd-driver.go.txt').read_text())
+    (out / 'prototype.go').write_text(runner + (HERE / 'vm-driver.go.txt').read_text() + guards)
 
 
 if __name__ == '__main__':

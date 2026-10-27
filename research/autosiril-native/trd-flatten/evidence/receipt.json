@@ -19,17 +19,39 @@
       "sectors": 51,
       "wire_sha256": "f089c3c9231dd4708c1e37291eb2bb7b99d8c4e18fefd24ff4869b1a5dea4709",
       "yielded": 2153
+    },
+    {
+      "arena_writes_after_input_close": 0,
+      "engine": "scorpion-z80",
+      "events": 2153,
+      "logical_bytes": 12939,
+      "native": {
+        "bounce_bank_reserved_bytes": 16384,
+        "code_and_stub_bytes": 12844,
+        "external_arena_bytes": 12288,
+        "external_fixed_workspace_bytes": 2048,
+        "image_bytes": 13248,
+        "loaded_globals_bytes": 126,
+        "paging_and_physical_guards": true,
+        "stack_below_entry": 65,
+        "static_spill_bytes": 278,
+        "t_states": 450683266
+      },
+      "sector_calls": 98,
+      "sectors": 51,
+      "wire_sha256": "f089c3c9231dd4708c1e37291eb2bb7b99d8c4e18fefd24ff4869b1a5dea4709",
+      "yielded": 2153
     }
   ],
   "expected_sha256": "f089c3c9231dd4708c1e37291eb2bb7b99d8c4e18fefd24ff4869b1a5dea4709",
   "input_disk_sha256": "934fd20473f9ea352379a33fe23271ecd0828f12f99a1abe66f2faa133907b24",
-  "protocol": "autosiril-trd-flatten-vm-prototype/v1",
-  "scope": "raw/final MIR2 only; native Scorpion paging/stack/disk-error proof pending",
+  "protocol": "autosiril-trd-flatten-first-native/v1",
+  "scope": "one Chronos case on raw/final MIR2/native Scorpion plus three native guard mutants; full malformed/resource/disk-error matrix and CI pending",
   "source_sha256": "4f1cbca5a0cc0884b18f7910b21ce0460abfbc5f4d50c871ba08ca9710a7e065",
   "source_sha256_inputs": {
-    "research/autosiril-native/trd-flatten/compose.py": "d060d11f2cb03502610a23d13daf8f8dc14fc245a37339b185f797ec0652c4b1",
+    "research/autosiril-native/trd-flatten/compose.py": "d97c6f7c785166dfeb664d583e49133f8af0e974f1bd29eb5603947dacdda2d2",
     "research/autosiril-native/trd-flatten/append.nanz": "b33edca4ef0928fff1a4a33d49c345dade1158571205f8bcd8bf25ed27c8fe27",
-    "research/autosiril-native/trd-flatten/vm-driver.go.txt": "2280e03af15458887ec17a5927e44b19313fe44292641b1a6b9519b7007ba6f5",
+    "research/autosiril-native/trd-flatten/vm-driver.go.txt": "92fbb6ca228531af28a4c63a407be8c1e95af7f3e75486901b6823b74f5d9cc9",
     "research/autosiril-native/stream-flatten/common.nanz": "cafe68bd9cc90a8bfb2f27cc188ecb4bfb7f2272cb24f72e45e87a3661754144",
     "research/autosiril-native/stream-flatten/compose.py": "a42432ae8fc7e6039b7b750f83b66dad781a12bf08821567b4862e98a2b4bfa6",
     "research/autosiril-native/transports/pair-file.nanz": "2529bd98e577d126bed822a48a2af44fb301ece879a82c4f0b8465c74b8f60e0",
@@ -41,8 +63,35 @@
     "research/autosiril-native/linked/compose.py": "76577d6aae0d6fab45577868cc060067ae48e3398a18c48a3d7973e80ab33a2a",
     "research/autosiril-vm/lazy_flatten.nanz": "b9059032e78d9945eb2468f58aaaa08d380c4a442e678e2362afa2e35aca9169",
     "research/autosiril-native/midi/fixtures/music.lanz": "9fb9f831651875e5b4b65b45a121d3f8d3b9ebce7ec6f7652a7abd909485ce9a",
-    "research/autosiril-native/midi/fixtures/music-manifest.json": "f2ba3f05a0700c79e9b6deff99461d1cc57d70f3c4a460ba69fcb5f82d80835d"
+    "research/autosiril-native/midi/fixtures/music-manifest.json": "f2ba3f05a0700c79e9b6deff99461d1cc57d70f3c4a460ba69fcb5f82d80835d",
+    "research/autosiril-native/trd-flatten/native.py": "e7fc239aab7ef6cb0b86ccb81a83c00c5b5620a767d1f853a0fa6f0856e4a73d",
+    "research/autosiril-native/trd-flatten/negative.py": "9985276d65162ac854d12ce5cce8b7ca3e430e13770362c28dc88b4f692d827f",
+    "research/autosiril-native/transports/trd-driver.go.txt": "2801ceff426404755eb1ff6ce8124c85f4ec7ce6527bab3d828f18d7bd742a8f",
+    "research/autosiril-native/transports/trd-stub.a80": "de7fd2b8f0a438135ea1bd920be64e7c2b657a8e776e4f9db730db5e3e8c97cd"
   },
-  "git_head": "c430a0fe0bcd6e1602d4f31fc3898155bb7040cd",
-  "native_verified": false
+  "git_head": "172b67afd9182c0813d8cbb22dd2f552c12ec05d",
+  "native_verified": true,
+  "native_negative": {
+    "protocol": "autosiril-trd-flatten-native-negative/v1",
+    "results": [
+      {
+        "name": "paging_restore",
+        "rejection": "paging not restored on sector return",
+        "source_sha256": "4f1cbca5a0cc0884b18f7910b21ce0460abfbc5f4d50c871ba08ca9710a7e065",
+        "stub_sha256": "e8598c0be1c4952c682aef113121213be4e20f53c7dc4358e1a9b7bad8b55dc0"
+      },
+      {
+        "name": "bounce_overrun",
+        "rejection": "native write outside admitted physical bank span",
+        "source_sha256": "4f1cbca5a0cc0884b18f7910b21ce0460abfbc5f4d50c871ba08ca9710a7e065",
+        "stub_sha256": "b3fbe740761138b0f9822740ddb49e83a7676c755ee3e19dd62dc2c84f8cc3e5"
+      },
+      {
+        "name": "restoring_arena_write",
+        "rejection": "native flatten wrote input arena after close",
+        "source_sha256": "4532b95323e38a1a2718e7591ed8dbbf415d5b2c537cb6ea89b042087cbc04eb",
+        "stub_sha256": "de7fd2b8f0a438135ea1bd920be64e7c2b657a8e776e4f9db730db5e3e8c97cd"
+      }
+    ]
+  }
 }
