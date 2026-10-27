@@ -1,0 +1,111 @@
+{
+  "scope": "host planning simulation only; not native echo implementation",
+  "slot_count": 65,
+  "cases": [
+    {
+      "name": "native_chronos",
+      "cells": 3215,
+      "lengths": [
+        1353,
+        1353,
+        1353
+      ],
+      "peak_live": 13
+    },
+    {
+      "name": "future_start_and_older_second_priority",
+      "cells": 4,
+      "lengths": [
+        32,
+        32,
+        32
+      ],
+      "peak_live": 3
+    },
+    {
+      "name": "future_release_replaced",
+      "cells": 4,
+      "lengths": [
+        32,
+        32,
+        32
+      ],
+      "peak_live": 3
+    },
+    {
+      "name": "release_clone_retained_before_source",
+      "cells": 4,
+      "lengths": [
+        32,
+        32,
+        32
+      ],
+      "peak_live": 3
+    },
+    {
+      "name": "zero_delay_release_and_envelope",
+      "cells": 2,
+      "lengths": [
+        32,
+        32,
+        32
+      ],
+      "peak_live": 1
+    },
+    {
+      "name": "equal_delays_second_is_first_inserted",
+      "cells": 2,
+      "lengths": [
+        32,
+        32,
+        32
+      ],
+      "peak_live": 2
+    },
+    {
+      "name": "reversed_delay_order",
+      "cells": 4,
+      "lengths": [
+        32,
+        32,
+        32
+      ],
+      "peak_live": 3
+    },
+    {
+      "name": "disabled_and_wide",
+      "cells": 10,
+      "lengths": [
+        32,
+        33,
+        32
+      ],
+      "peak_live": 5
+    },
+    {
+      "name": "sparse_large_gap",
+      "cells": 9,
+      "lengths": [
+        65013,
+        65013,
+        65013
+      ],
+      "peak_live": 3
+    },
+    {
+      "name": "maximum_window_dense",
+      "cells": 164,
+      "lengths": [
+        164,
+        132,
+        132
+      ],
+      "peak_live": 65
+    }
+  ],
+  "native_arrangement_sha256": "c323f9032b58e233894d2f9ba56a8d93d5f9362fe023d25d18d3c3da581df0d9",
+  "native_notes_sha256": "56e0b7266c9f4ba610f8d77d2475c6293d49af40e5778ad96a162f7daf50d76b",
+  "notes_max_off": 1340,
+  "canonical_extent": 1353,
+  "ruby_source_sha256": "41f621b555fc089effd711319e723494576eb47ea0282847082ec91c1cdd4c01"
+}

@@ -1,0 +1,189 @@
+// Bounded sparse delay. Only original input cells generate echoes.
+@extern fun crystal_echo_volume(bounce:u8)->u16
+global fault:u16
+global delay_one:u16 = 6
+global delay_two:u16 = 12
+global config_wide:[u8;3]
+global config_unvoiced:[u8;3]
+global source_modes:[u8;3] = [109,112,109]
+global ring_cells:[u8;1040]
+global ring_rows:[u16;65]
+global ring_live:[u8;65]
+global ring_count:u16
+global ring_peak:u16
+global source_payload:[u8;16]
+global record_payload:[u8;16]
+global current_channel:u8
+global have_lnote:u8
+global last_channel:u8
+global last_row:u16
+global input_lnotes:[u16;3]
+global output_lnotes:[u16;3]
+global output_cells:u32
+global output_records:u32
+global channel_extents:[u32;3]
+global base_extent:u32
+global max_off:u16
+global note_count:u16
+
+fun source_word(at:u16)->u16 {
+    return u16(source_payload[at]) | (u16(source_payload[at+1]) << 8)
+}
+fun payload_word(at:u16,value:u16) {
+    record_payload[at] = u8(value)
+    record_payload[at+1] = u8(value >> 8)
+}
+fun payload_clear() {
+    var index:u16 = 0
+    while index < 16 { record_payload[index] = 0
+        index = index + 1 }
+}
+fun emit_payload() {
+    if fault != 0 { return }
+    file_put(1)
+    var index:u16 = 0
+    while index < 16 { file_put(record_payload[index])
+        index = index + 1 }
+    if fault == 0 { output_records = output_records + 1 }
+}
+fun cell_word(at:u16,value:u16) {
+    ring_cells[at] = u8(value)
+    ring_cells[at+1] = u8(value >> 8)
+}
+fun place_cell(row:u32,bounce:u8) {
+    if fault != 0 { return }
+    if row > 65535 { fault = 980
+        return }
+    let slot:u16 = u16(row) % 65
+    let at:u16 = slot * 16
+    if ring_live[slot] != 0 && ring_rows[slot] != u16(row) { fault = 981
+        return }
+    if ring_live[slot] != 0 {
+        if bounce == 0 {
+            // An original release must not erase an earlier echo.
+            if source_payload[11] == 114 { return }
+        } else {
+            if ring_cells[at+11] != 114 { return }
+        }
+    } else {
+        if ring_count >= 65 { fault = 982
+            return }
+        ring_live[slot] = 1
+        ring_rows[slot] = u16(row)
+        ring_count = ring_count + 1
+        if ring_count > ring_peak { ring_peak = ring_count }
+    }
+    var index:u16 = 0
+    while index < 16 {
+        ring_cells[at+index] = source_payload[index]
+        index = index + 1
+    }
+    cell_word(at+2,u16(row))
+    if bounce != 0 {
+        cell_word(at+9,crystal_echo_volume(bounce))
+        if source_payload[12] == 101 {
+            ring_cells[at+5] = 2
+            ring_cells[at+6] = 15
+            let pitch:u8 = source_payload[4]
+            cell_word(at+13,u16(i16(pitch) + env_offsets[pitch]))
+        }
+    }
+    let channel:u8 = source_payload[1]
+    if row + 1 > channel_extents[channel] { channel_extents[channel] = row + 1 }
+}
+fun flush_before(before:u32) {
+    while ring_count != 0 && fault == 0 {
+        var have:u8 = 0
+        var chosen:u16 = 0
+        var row:u16 = 0
+        var slot:u16 = 0
+        while slot < 65 {
+            if ring_live[slot] != 0 && u32(ring_rows[slot]) < before {
+                if have == 0 || ring_rows[slot] < row {
+                    chosen = slot
+                    row = ring_rows[slot]
+                    have = 1
+                }
+            }
+            slot = slot + 1
+        }
+        if have == 0 { return }
+        if output_lnotes[current_channel] >= 3072 { fault = 983
+            return }
+        let at:u16 = chosen * 16
+        var index:u16 = 0
+        while index < 16 {
+            record_payload[index] = ring_cells[at+index]
+            index = index + 1
+        }
+        emit_payload()
+        if fault != 0 { return }
+        ring_live[chosen] = 0
+        ring_count = ring_count - 1
+        output_lnotes[current_channel] = output_lnotes[current_channel] + 1
+        output_cells = output_cells + 1
+    }
+}
+fun consume_lnote() {
+    let channel:u8 = source_payload[1]
+    let row:u16 = source_word(2)
+    let pitch:u8 = source_payload[4]
+    let kind:u8 = source_payload[12]
+    if channel >= 3 || pitch > 127 || source_payload[15] != 0 ||
+        (source_payload[11] != 115 && source_payload[11] != 114) { fault = 958
+        return }
+    if kind != 101 && kind != source_modes[channel] { fault = 958
+        return }
+    if source_word(9) != 1500 { fault = 984
+        return }
+    if kind == 101 {
+        if source_payload[5] != 2 || source_payload[6] != env_forms[pitch] ||
+            source_word(13) != u16(i16(pitch) + env_offsets[pitch]) { fault = 984
+            return }
+    } else {
+        if source_payload[6] != 0 || source_word(13) != 65535 { fault = 984
+            return }
+    }
+    if kind == 112 || (kind == 101 && source_modes[channel] == 112) {
+        if source_word(7) >= definition_count { fault = 985
+            return }
+    }
+    if note_count == 0 || row > max_off { fault = 986
+        return }
+    if input_lnotes[channel] >= 1024 { fault = 200
+        return }
+    if have_lnote != 0 && (channel < last_channel || (channel == last_channel && row <= last_row)) { fault = 970
+        return }
+    if channel != current_channel {
+        flush_before(u32(65536))
+        if fault != 0 { return }
+        current_channel = channel
+    }
+    flush_before(u32(row))
+    if fault != 0 { return }
+    place_cell(u32(row),0)
+    if fault != 0 { return }
+    if config_unvoiced[channel] == 0 {
+        var factor:u32 = 1
+        if config_wide[channel] != 0 { factor = 2 }
+        place_cell(u32(row) + u32(delay_two) * factor,2)
+        place_cell(u32(row) + u32(delay_one) * factor,1)
+    }
+    input_lnotes[channel] = input_lnotes[channel] + 1
+    last_channel = channel
+    last_row = row
+    have_lnote = 1
+}
+fun emit_extents() {
+    var channel:u8 = 0
+    while channel < 3 {
+        payload_clear()
+        record_payload[0] = 2
+        record_payload[1] = channel
+        let rows:u32 = channel_extents[channel]
+        payload_word(2,u16(rows))
+        payload_word(4,u16(rows >> 16))
+        emit_payload()
+        channel = channel + 1
+    }
+}

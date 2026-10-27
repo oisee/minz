@@ -1,0 +1,276 @@
+global definition_count:u16
+global definition_bytes:u16
+global definition_length:u16
+global definition_offset:u16
+global definition_previous:u8
+global definition_repeat:u16
+global definition_lengths:[u16;64]
+global input_metadata:u16
+global input_records:u32
+global source_seen:[u8;64]
+global source_last:[u16;64]
+
+fun reset_reader() {
+    file_cursor = 0
+    file_length = 0
+    wire_read_position = 0
+}
+fun read_header(kind:u8,width:u8) {
+    var index:u16 = 0
+    while index < 4 {
+        let byte:u8 = file_get()
+        if fault != 0 { return }
+        if byte != wire_magic[index] { fault = 950
+            return }
+        index = index + 1
+    }
+    let version:u8 = file_get()
+    if fault != 0 { return }
+    if version != 1 { fault = 952
+        return }
+    let actual_kind:u8 = file_get()
+    let actual_width:u8 = file_get()
+    let flags:u8 = file_get()
+    input_metadata = file_get_word()
+    let reserved:u16 = file_get_word()
+    if fault != 0 { return }
+    if actual_kind != kind || actual_width != width || flags != 0 || reserved != 0 { fault = 953 }
+}
+fun read_end(expected:u32) {
+    let low:u16 = file_get_word()
+    let high:u16 = file_get_word()
+    if fault != 0 { return }
+    let count:u32 = u32(low) | (u32(high) << 16)
+    if count != expected { fault = 956
+        return }
+    var index:u16 = 0
+    while index < 4 {
+        let byte:u8 = file_get()
+        if fault != 0 { return }
+        if byte != wire_end_magic[index] { fault = 956
+            return }
+        index = index + 1
+    }
+    file_input_end()
+}
+fun read_note_extent() {
+    read_header(1,6)
+    if fault != 0 { return }
+    if input_metadata > 64 { fault = 954
+        return }
+    var done:u8 = 0
+    while done == 0 && fault == 0 {
+        let tag:u8 = file_get()
+        if fault != 0 { return }
+        if tag == 255 {
+            read_end(u32(note_count))
+            done = 1
+        } else {
+            if tag != 1 { fault = 955
+                return }
+            if note_count >= 2046 { fault = 959
+                return }
+            let start:u16 = file_get_word()
+            let off:u16 = file_get_word()
+            let pitch:u8 = file_get()
+            let source:u8 = file_get()
+            if fault != 0 { return }
+            if pitch > 127 || u16(source) >= input_metadata { fault = 958
+                return }
+            if off < start { fault = 105
+                return }
+            if source_seen[source] != 0 && start < source_last[source] { fault = 106
+                return }
+            source_seen[source] = 1
+            source_last[source] = start
+            if off > max_off { max_off = off }
+            note_count = note_count + 1
+        }
+    }
+    if fault != 0 { return }
+    base_extent = 1
+    if note_count != 0 {
+        var delay:u16 = delay_one
+        if delay_two > delay { delay = delay_two }
+        base_extent = u32(max_off) + u32(delay) + 1
+    }
+}
+fun consume_definition() {
+    let id:u16 = source_word(1)
+    let length:u16 = source_word(3)
+    let offset:u16 = source_word(5)
+    let count:u16 = u16(source_payload[7])
+    if id != definition_count || id >= 64 || length == 0 || length > 4096 ||
+        offset != definition_offset { fault = 985
+        return }
+    if offset == 0 {
+        if definition_length != 0 || definition_bytes > 4096 - length { fault = 985
+            return }
+        if id == 0 {
+            if length > 32 { fault = 985
+                return }
+            definition_repeat = length
+        }
+        if definition_repeat == 0 || length % definition_repeat != 0 { fault = 985
+            return }
+        definition_length = length
+        definition_previous = 0
+    } else {
+        if length != definition_length { fault = 985
+            return }
+    }
+    var want:u16 = length - offset
+    if want > 8 { want = 8 }
+    if count != want || count == 0 { fault = 985
+        return }
+    var index:u16 = 0
+    while index < 8 {
+        let byte:u8 = source_payload[8+index]
+        if index < count {
+            let position:u16 = offset + index
+            if byte > 127 || (id == 0 && byte != 0) || (position == 0 && byte != 0) { fault = 985
+                return }
+            if position % definition_repeat != 0 {
+                if byte != definition_previous { fault = 985
+                    return }
+            } else {
+                if position != 0 && byte <= definition_previous { fault = 985
+                    return }
+            }
+            definition_previous = byte
+        } else {
+            if byte != 0 { fault = 985
+                return }
+        }
+        index = index + 1
+    }
+    definition_offset = definition_offset + count
+    if definition_offset == length {
+        definition_lengths[id] = length
+        definition_count = definition_count + 1
+        definition_bytes = definition_bytes + length
+        definition_offset = 0
+        definition_length = 0
+    }
+    index = 0
+    while index < 16 {
+        record_payload[index] = source_payload[index]
+        index = index + 1
+    }
+    emit_payload()
+}
+fun read_arrangement() {
+    var done:u8 = 0
+    while done == 0 && fault == 0 {
+        let tag:u8 = file_get()
+        if fault != 0 { return }
+        if tag == 255 {
+            read_end(input_records)
+            if fault != 0 { return }
+            if definition_count == 0 || definition_length != 0 { fault = 985
+                return }
+            flush_before(u32(65536))
+            if fault == 0 { emit_extents() }
+            done = 1
+        } else {
+            if tag != 1 { fault = 955
+                return }
+            var index:u16 = 0
+            while index < 16 {
+                source_payload[index] = file_get()
+                index = index + 1
+            }
+            if fault != 0 { return }
+            input_records = input_records + 1
+            if source_payload[0] == 1 { consume_definition() } else {
+                if source_payload[0] != 0 || definition_length != 0 || definition_count == 0 { fault = 985
+                    return }
+                consume_lnote()
+            }
+        }
+    }
+}
+fun file_save_events() {
+    read_header(3,16)
+    if fault != 0 { return }
+    if input_metadata != 3 { fault = 953
+        return }
+    if create_output() != 0 { fault = 901
+        return }
+    var index:u16 = 0
+    while index < 12 { file_put(file_header[index])
+        index = index + 1 }
+    read_arrangement()
+    if fault == 0 {
+        file_put(255)
+        file_put_word(u16(output_records))
+        file_put_word(u16(output_records >> 16))
+        file_put(69)
+        file_put(78)
+        file_put(68)
+        file_put(33)
+    }
+    if output_cursor != 0 && fault == 0 { file_write_record() }
+}
+fun disk_main()->u16 {
+    fault = 0
+    max_off = 0
+    note_count = 0
+    ring_count = 0
+    ring_peak = 0
+    current_channel = 0
+    have_lnote = 0
+    definition_count = 0
+    definition_bytes = 0
+    definition_length = 0
+    definition_offset = 0
+    definition_repeat = 0
+    input_records = 0
+    output_records = 0
+    output_cells = 0
+    output_cursor = 0
+    if delay_one > 32 || delay_two > 32 { fault = 976
+        return fault }
+    var index:u16 = 0
+    while index < 3 {
+        if config_wide[index] > 1 || config_unvoiced[index] > 1 ||
+            (source_modes[index] != 109 && source_modes[index] != 112 && source_modes[index] != 100) { fault = 976
+            return fault }
+        input_lnotes[index] = 0
+        output_lnotes[index] = 0
+        index = index + 1
+    }
+    index = 0
+    while index < 65 { ring_live[index] = 0
+        index = index + 1 }
+    index = 0
+    while index < 64 { source_seen[index] = 0
+        index = index + 1 }
+    if open_input() != 0 { fault = 900
+        return fault }
+    if chunk_capacity == 0 || chunk_capacity > 256 || input_padding_quantum > 256 ||
+        (input_padding != 0 && input_padding_quantum == 0) { fault = 910 }
+    reset_reader()
+    if fault == 0 { read_note_extent() }
+    if finish(0) != 0 && fault == 0 { fault = 906 }
+    if fault != 0 { return fault }
+    index = 0
+    while index < 3 { channel_extents[index] = base_extent
+        index = index + 1 }
+    select_arrangement()
+    if open_input() != 0 { fault = 900
+        return fault }
+    if chunk_capacity == 0 || chunk_capacity > 256 || input_padding_quantum > 256 ||
+        (input_padding != 0 && input_padding_quantum == 0) { fault = 910 }
+    reset_reader()
+    if fault == 0 { file_save_events() }
+    if finish(0) != 0 && fault == 0 { fault = 906 }
+    ring_count = 0
+    index = 0
+    while index < 65 { ring_live[index] = 0
+        index = index + 1 }
+    if output_open != 0 {
+        if finish(1) != 0 && fault == 0 { fault = 903 }
+    }
+    return fault
+}

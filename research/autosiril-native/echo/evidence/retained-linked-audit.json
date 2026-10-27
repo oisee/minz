@@ -1,0 +1,22 @@
+{
+  "protocol": "autosiril-echo-retained-linked-audit/v1",
+  "actual_fresh_ruby_sha256": "c90e723ff15f9b121f07ff4880dc4c5881cf09a4faac7bd568676f0919abd825",
+  "compared_fields": [
+    "per_beat",
+    "sources",
+    "notes",
+    "max_row",
+    "flattened"
+  ],
+  "image_bytes": 40626,
+  "image_sha256": "bc440efa0faa7d615216f18a6622271411b573014137b5312a9082e457377005",
+  "scope": "current compiler preserves in-process pairing/flatten image;9 whole pipelines/36 phase observations; VT text header not used by this consumer",
+  "source_sha256": {
+    "research/autosiril-native/linked/compose.py": "76577d6aae0d6fab45577868cc060067ae48e3398a18c48a3d7973e80ab33a2a",
+    "research/autosiril-native/midi/pair.nanz": "ff4421d521514c3a719505e4a36df7cfabd2d29978a44261762c1eb4d425ec88",
+    "research/autosiril-vm/lazy_flatten.nanz": "b9059032e78d9945eb2468f58aaaa08d380c4a442e678e2362afa2e35aca9169",
+    "minzc/cmd/autosiril-midi-native/main.go": "c9a730bf983428930d760a634675b92af42a402367960bebf01e569ee34c85ba",
+    "minzc/pkg/hir/verify.go": "238d9b7e7d713dc4fff0ab8672a80db0b914f92b213d3e39a319e601da7767a1"
+  },
+  "phase_observations_sha256": "7614ca1343629d5b2dcc4558fcd1074c7e7dff3e8d1f4e76c968516454a9b51b"
+}
