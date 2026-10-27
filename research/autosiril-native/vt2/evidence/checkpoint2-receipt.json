@@ -1,0 +1,162 @@
+{
+ "all_checks_passed": true,
+ "autooisee_sha256": "41f621b555fc089effd711319e723494576eb47ea0282847082ec91c1cdd4c01",
+ "autosiril": "/Users/alice/dev/autosiril",
+ "canonical_chronos": {
+  "argv": [
+   "chronos.mid",
+   "2me,1p,1m",
+   "8",
+   "6",
+   "12",
+   "0",
+   "64",
+   "2",
+   "6"
+  ],
+  "derived": {
+   "max_offset": 6,
+   "max_row": 1352,
+   "orn_repeat": 2,
+   "ornament_count": 7,
+   "ornaments": {
+    "L0,0": 0,
+    "L0,0,1,1": 4,
+    "L0,0,1,1,2,2,3,3,4,4,5,5": 6,
+    "L0,0,2,2": 2,
+    "L0,0,2,2,3,3,4,4": 5,
+    "L0,0,3,3": 1,
+    "L0,0,5,5": 3
+   },
+   "pattern_size": 64,
+   "rendered_lines_count": 1352,
+   "skip_lines": 64
+  },
+  "model_equals_oracle": [
+   {
+    "checks": {
+     "file_bytes": true,
+     "file_sha256": true,
+     "ornaments_real_ruby_derived": true,
+     "patterns": true,
+     "play_order": true,
+     "use_patterns": true,
+     "wet_sizes": true
+    },
+    "file_bytes": 62421,
+    "name": "canonical_chronos_ps64_skip64",
+    "oracle_file_sha256": "f73d979432cbbad962d529997886e2c7acc979eabb0d03d9994b9b1e81033c55",
+    "pattern_size": 64,
+    "patterns": 21,
+    "skip_lines": 64,
+    "unique": 19
+   },
+   {
+    "checks": {
+     "file_bytes": true,
+     "file_sha256": true,
+     "ornaments_real_ruby_derived": true,
+     "patterns": true,
+     "play_order": true,
+     "use_patterns": true,
+     "wet_sizes": true
+    },
+    "file_bytes": 65222,
+    "name": "canonical_chronos_ps64_skip0",
+    "oracle_file_sha256": "89a9d935131a9094ec1309b8ede504e42816dedf28d9582bbf44614c3b54a00d",
+    "pattern_size": 64,
+    "patterns": 21,
+    "skip_lines": 0,
+    "unique": 19
+   },
+   {
+    "checks": {
+     "file_bytes": true,
+     "file_sha256": true,
+     "ornaments_real_ruby_derived": true,
+     "patterns": true,
+     "play_order": true,
+     "use_patterns": true,
+     "wet_sizes": true
+    },
+    "file_bytes": 73387,
+    "name": "canonical_chronos_ps13_skip0",
+    "oracle_file_sha256": "07a61a628ad09a1ee7216c56c79e04af4e02f54b7fcf816c1f16a3e7281fa041",
+    "pattern_size": 13,
+    "patterns": 105,
+    "skip_lines": 0,
+    "unique": 105
+   }
+  ],
+  "name": "canonical_chronos_ps64_skip64",
+  "partial_real_note": "the 406 real_ planning cases and the 22 chronos_ variants in the main corpus use SYNTHETIC ornaments/ARGV (rows real); only this canonical case uses the real ornament map, ARGV and original-render rows",
+  "planning_rows": {
+   "count": 1352,
+   "differing_from_original_render": 62,
+   "note": "the planning native_chronos rows come from the native chain and are NOT byte-identical to the original pipeline render; the canonical variants use the original render instead"
+  },
+  "provenance": "rows rendered in-process by the unchanged original Ruby Steps 1..8 (seq2vmod, vmod2rmod, detect_key, apply_diatonic_transpose, rmod2pmod, pmod2lmod, apply_delays, downmix, render_into_text) on test/chronos.mid with the canonical test_chronos.sh ARGV chronos.mid 2me,1p,1m 8 6 12 0 64 2 6; ornaments = the REAL text->id map returned by actual Ruby pmod2lmod in the same run; date pinned 1970.01.01 (oracle and model)",
+  "reference_vt2": {
+   "compared_against": "canonical_chronos_ps64_skip64 (pinned date)",
+   "diagnostics": {
+    "author_date_differs": true,
+    "differing_lines": 1,
+    "equal_except_author_date": true,
+    "path": "test_outputs/original/chronos_original.txt",
+    "same_line_count": true,
+    "total_lines": 1477
+   },
+   "file_bytes": 62421,
+   "oracle_file_sha256": "f73d979432cbbad962d529997886e2c7acc979eabb0d03d9994b9b1e81033c55",
+   "path": "test_outputs/original/chronos_original.txt"
+  }
+ },
+ "cases": 558,
+ "chronos_mid_sha256": "0d4c0289fe42c81ea01c9715c9d382807e97549161c419c737e15f18d6abc02f",
+ "chronos_reference_sha256": "572bd11513489d99ece132614399f3cdc5cea964aeabab78dcb1e13b24b0e12f",
+ "command": "python3 -I research/autosiril-native/vt2/prove_vt2.py --autosiril /Users/alice/dev/autosiril --planning /tmp/minz-render-planning-v4 --out /tmp/minz-z-workers/vt2-results/checkpoint2-20261027-a",
+ "forced_collision": {
+  "all_identical_to_normal_dedup": true,
+  "cases": 548,
+  "cases_with_duplicates": 56,
+  "digest": "constant 32 zero bytes for every pattern",
+  "max_patterns_per_case": 256
+ },
+ "module_template_sha256": "8037f85a1c92cc32e494ba6b62a70be99fae5de041050addbf05844b7e254ad6",
+ "output_path": "/tmp/minz-z-workers/vt2-results/checkpoint2-20261027-a",
+ "per_case_results": "omitted here for size; full per-case rows in the run receipt (see output_path below)",
+ "pinned_header_date": "1970.01.01",
+ "planning_cases_sha256": "689b7dc1e1a74a9830366e430ccec6d7d0f824697dd5316412ed80061fe4b973",
+ "planning_root": "/private/tmp/minz-render-planning-v4",
+ "printed_summary": "OK 558 cases (+548 forced-collision, +3 canonical variants), 267511 pattern slots",
+ "ruby": "ruby 2.6.10p210 (2022-04-12 revision 67958) [universal.arm64e-darwin26]",
+ "scope": "HOST proof only: actual original Ruby Step9/10/11 vs bounded host model; no native execution, no target results, no finished MIDI->VT2 converter claimed",
+ "suites": {
+  "chronos": 22,
+  "forced_collision": 548,
+  "planning_real": 406,
+  "synthetic": 126,
+  "upper_bound": 4
+ },
+ "total_pattern_slots": 267511,
+ "truncation_detection": [
+  {
+   "cut": 1,
+   "detected": true,
+   "kind": "index",
+   "message": "index size 239 not a record multiple"
+  },
+  {
+   "cut": 47,
+   "detected": true,
+   "kind": "index",
+   "message": "index size 193 not a record multiple"
+  },
+  {
+   "cut": 1,
+   "detected": true,
+   "kind": "spool",
+   "message": "spool ended inside a pattern range"
+  }
+ ]
+}
