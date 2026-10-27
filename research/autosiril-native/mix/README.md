@@ -2,11 +2,12 @@
 
 Selected after echo PR #269 merged as `4b82cd7f5`, with11 green checks and
 independent audits of downloaded fresh/frozen artifacts. Work branch:
-`spike/autosiril-native-mix`. The fifth file stage is now measured on CP/M; TRD and full integration remain.
+`spike/autosiril-native-mix`. The fifth file stage is measured on CP/M and private Scorpion TRD API traps;
+full acceptance/CI/integration remain.
 
 Original reference: `autooisee.rb` downmix877..919. The existing VM implements
 later stages. Main ends at the independently linked native echo stage; this
-branch adds CP/M downmix on actual saved native DELAYED files, while preserving
+branch adds CP/M and TRD downmix on actual saved native DELAYED files, while preserving
 all preceding gates and user files.
 
 ## Exact semantics to prove before target code
@@ -258,8 +259,100 @@ five-command replay or a physical CP/M bootstrap claim.
 [independent artifact audit](evidence/cpm-file-audit.json),
 [five-COM bundle manifest](evidence/cpm-chain.json).
 
-The milestone remains active. Still required: corresponding native TRD binding
-and16-bank guards, the remaining full negative/IO/resource matrix and mutants,
+The milestone remains active. Still required: the remaining full malformed/catalog/free-space/common-IO matrix,
 default complete fresh upstream rebuild plus frozen replay in required CI,
 downloaded-artifact audits, separate PR and verified merge to main. No old echo
 or inherited gate, in-process path, compiler source or user file has been changed.
+
+
+## Owned TRD stage and16-bank guards
+
+`cursors-trd.nanz` adapts the existing append-only sector binding without editing
+any older stage. Three logical cursor positions/remaining lengths and three
+owned256-byte buffers survive catalog reads and output writes through one shared
+sector scratch. Input reopen validates metadata independently and restores the
+writer's captured free-position/free-count/directory snapshot. A changed snapshot
+is rejected rather than silently replacing the live writer's allocation state.
+
+The same target kernel and wire parser are used. Composition changes only the
+physical EOF padding rule: CP/M reads zero padding to a128-byte record boundary;
+TRD's catalog length is logical, so END must be followed immediately by EOF.
+All data/definition/order/extent/timing validation and musical choices remain
+in target code. Native sector calls use the real existing Scorpion API trap,
+not a host musical implementation.
+
+```sh
+python3 research/autosiril-native/mix/prove_trd.py \
+  --cpm /tmp/mix-cpm --upstream /path/to/complete-fresh-native-echo \
+  --autosiril /path/to/autosiril --out /tmp/mix-trd
+python3 research/autosiril-native/mix/audit_trd.py \
+  --run /tmp/mix-trd --cpm /tmp/mix-cpm --out /tmp/mix-trd-audit.json
+python3 research/autosiril-native/mix/prove_trd_io.py \
+  --run /tmp/mix-trd --out /tmp/mix-trd-io
+python3 research/autosiril-native/mix/audit_trd.py \
+  --run /tmp/mix-trd-io --cpm /tmp/mix-cpm --out /tmp/mix-trd-io-audit.json
+python3 research/autosiril-native/mix/prove_trd_guards.py \
+  --run /tmp/mix-trd --out /tmp/mix-trd-guards
+```
+
+The current128-case matrix passes384 raw/final MIR2/Scorpion executions, including
+all19 real saved native echo disks, six Chronos grouping variants, policy/spill/
+release/sparse cases and resource boundaries. The actual failed twentieth echo
+disk has no DELAYED entry and is explicitly rejected before output. The two
+valid156761-byte logical CP/M capacity inputs are explicitly inventoried as
+unrepresentable TRD inputs; they are not silently counted as TRD successes.
+
+Two additional actual-Ruby fixtures isolate the output-sector boundary. With
+3833 identity cells,65250 input bytes become65267 output bytes and255 sectors
+publish successfully. With3834 cells,65267 valid input bytes would become65284
+output bytes. Target stops after255 data sectors, leaves their exact prefix and
+publishes no MIXED descriptor/system metadata. No byte count is truncated.
+
+Another24 scenarios inject one failure at a measured actual sector API call,
+on all three engines:72 executions. They cover system/catalog/data reads for
+the initial passes and each of three owned reader opens, later reads, first/
+middle/last data writes and all four catalog/system publication operations.
+Every opened logical cursor is closed and the mapping returns to bank0. Failure
+after a successful catalog write can leave a visible descriptor with unchanged
+system counters; that partial publication is checked explicitly, not described
+as atomic success or absence.
+
+Independent disk/stream audits verify all456 outcomes, exact data-sector prefixes,
+unchanged disk bytes outside permitted spans, catalog descriptors, publication
+order/free-space counters, all Ruby note fields/trimmed lengths/original timing,
+unchanged definition bytes and identical operation order across engines.
+
+Six native instruction mutants also fail the intended guards. Four write and
+restore code/unreserved fixed RAM/bank0/bank8 outside its bounce range; one
+changes and restores paging but adds forbidden port traffic; one enables IRQs
+transiently. The first five preserve the real target return and complete output
+before profile rejection. Thus final RAM equality alone cannot hide the writes.
+Mutant source/native assembly/binaries/logs remain in the output artifact tree.
+
+Measured private image:28449 bytes =25216 code/stub +2504 resident globals +729
+static spill bytes. It occupies4000..AF20, with fixed stack reservationB800..BFFF
+(initialSP=BFFE); maximum measured stack is80 bytes. Earlier6000 and5000 origins
+were too small for this implementation. The lower canary is a snapshot of the
+unchanged ROM boundary; fixed storage writes are checked by profile, and all16
+physical RAM banks are checked, with only bank8's first256 bytes admitted for
+bounce writes. Its entire16KB bank is reserved. No near pointer into bank8 escapes
+the provider, and paging/IRQ/PC/stack/data-execution/configuration/port guards run
+throughout execution and failures.
+
+Canonical Chronos produces54897 logical bytes in215 data sectors, with1130 API
+calls and1325486470 measured T-states; measured stack is62 bytes. These are
+API-trap observations, not hardware timing. This private layout uses Spectrum
+screen/BASIC workspace and is not a normal TR-DOS ROM loader/boot claim. Physical
+ROM/FDC/hardware, real CP/M TPA/CCP, full VT2/VTX and MOS/eZ80 remain outside scope.
+
+[TRD musical/resource receipt](evidence/trd-file.json),
+[independent disk audit](evidence/trd-file-audit.json),
+[sector failure receipt](evidence/trd-io.json),
+[sector failure artifact audit](evidence/trd-io-audit.json),
+[six native guard mutants](evidence/trd-guards.json).
+
+The full milestone is still active. Remaining work includes further malformed
+framing/cursor-lifetime/catalog/free-space/common-IO cases, complete default fresh
+rebuild and frozen replay in required CI, downloaded artifact audits and a PR/
+main merge. Current experiments reuse a verified fresh upstream artifact and do
+not substitute for those required gates.

@@ -1,0 +1,22 @@
+{
+  "protocol": "autosiril-mix-trd-artifact-audit/v1",
+  "complete": true,
+  "scope": "current TRD artifact matrix only, not full milestone completion",
+  "executions": 384,
+  "complete_outputs": 366,
+  "absent_outputs": 18,
+  "unpublished_exact_prefixes": 9,
+  "native_binary_sha256": "eeb0eeea931a42765e744302ae94b28418a8bc3e3d7ac97a5556afdfc51afb47",
+  "unrepresentable_input_cases": [
+    {
+      "name": "capacity_9216_independent",
+      "reason": "TRD catalog/255-sector input cannot represent this valid CP/M file",
+      "wire_bytes": 156761
+    },
+    {
+      "name": "capacity_9216_one_destination",
+      "reason": "TRD catalog/255-sector input cannot represent this valid CP/M file",
+      "wire_bytes": 156761
+    }
+  ]
+}

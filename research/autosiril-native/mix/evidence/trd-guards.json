@@ -1,0 +1,74 @@
+{
+  "protocol": "autosiril-mix-trd-guard-mutants/v1",
+  "scope": "six native instruction mutants against current owned-TRD image; no hardware claim",
+  "baseline_receipt_sha256": "18ea2702cfd0eab0890f6478cdbc6283a71664a2a92af471e9a9baf221bc0b31",
+  "script_sha256": "84e9cc610b0b7ecb47aadd9ae2d3e1b366d859a94d4c479dcadefe796a238a63",
+  "mutants": [
+    {
+      "name": "restore_code",
+      "rejection": "native write outside fixed storage",
+      "exit_code": 1,
+      "binary_sha256": "d95c4d96987912f10d3a4b5d8b53da8859b13b8610b61dbeaa3d1d47681d3aec",
+      "assembly_sha256": "a69be980becd016136a1277f8edc1be7026947cde31f7e44cf2640c77e556298",
+      "driver_sha256": "17ef9455d8ffdf4342d5018a397a510ee78f474c56efafe1b0a2ad9b97f3cd34",
+      "stdout_sha256": "23cb3d2261604d5e0a9ac758886ef1acc059bccbe01e9f00d789df28ecd27d4c",
+      "stderr_sha256": "970e8c7c553d9e198811e04d1cec24d3b4dcbfc77570b50e3e07c1969685dc04",
+      "preserved_semantic_return_and_output": true
+    },
+    {
+      "name": "restore_unreserved_fixed",
+      "rejection": "native write outside fixed storage",
+      "exit_code": 1,
+      "binary_sha256": "6b9f07c68203e37e935a3dec97c6eaafe33552ec5c27db9bfa6f0eeebff5c159",
+      "assembly_sha256": "8da89c672b403353e628b79176fc33c83151662f284d9f6f1cde5816981bc0cd",
+      "driver_sha256": "398c85b253adc02b47810e4db75ab4a4fb9b3592aef3f8ac3be2fd49193ccff0",
+      "stdout_sha256": "23cb3d2261604d5e0a9ac758886ef1acc059bccbe01e9f00d789df28ecd27d4c",
+      "stderr_sha256": "33eaab2119bd83681bbfb81b7628941ce1069851901347e1c58f182d540fdb82",
+      "preserved_semantic_return_and_output": true
+    },
+    {
+      "name": "restore_bank0",
+      "rejection": "native write outside admitted physical bank span",
+      "exit_code": 1,
+      "binary_sha256": "5903a1ef77ab3614a5ce4d3f8991953a93cd14722394b775d30e4c1e093d1a61",
+      "assembly_sha256": "a91f0720756eaad53376f034201309f30b60ead2cf48e958a7003fc59443d727",
+      "driver_sha256": "376f08686fc64e465fb92fde483773eaafd30f8eee89273e85f7e2840eafe703",
+      "stdout_sha256": "23cb3d2261604d5e0a9ac758886ef1acc059bccbe01e9f00d789df28ecd27d4c",
+      "stderr_sha256": "c9fcb4e9aec2cb5e337c920b31a43adff75f176b48e46309a1fb6e359cae8d15",
+      "preserved_semantic_return_and_output": true
+    },
+    {
+      "name": "restore_bank8_tail",
+      "rejection": "native write outside admitted physical bank span",
+      "exit_code": 1,
+      "binary_sha256": "50a715d3f9818a6d06d1ce68c97143bb434bc7081ba3b15bc8f510f98bc330c7",
+      "assembly_sha256": "daff8425b62efc65df59d2aafbd101925232bd3b3397032040caa008efc4dfee",
+      "driver_sha256": "54e4ea1cec5c8682cf0738a24f2cfedc75d2f3c2b1f381db09090b6279f2895d",
+      "stdout_sha256": "23cb3d2261604d5e0a9ac758886ef1acc059bccbe01e9f00d789df28ecd27d4c",
+      "stderr_sha256": "7360ac682bcdb315dceaeb7e0139bd94fe107ef971f1a8b1a3897cd8dbd131e0",
+      "preserved_semantic_return_and_output": true
+    },
+    {
+      "name": "restore_paging",
+      "rejection": "unexpected paging port traffic",
+      "exit_code": 1,
+      "binary_sha256": "18ee9f5e917a03a811208698f33849f8de9e1b763f106966c7cce27a4f58587a",
+      "assembly_sha256": "e8e64e1ffdbbb9dfad3bfa29350bac65d97e9341a37151ba90b8bd4b5c929026",
+      "driver_sha256": "c55ac069bd628890c37e571a3673321c263452083d323604a31da1ce81127008",
+      "stdout_sha256": "23cb3d2261604d5e0a9ac758886ef1acc059bccbe01e9f00d789df28ecd27d4c",
+      "stderr_sha256": "297cdc73585b76ea3e78549ffa2d2bda254e24c50772862c3e34d71786193cc8",
+      "preserved_semantic_return_and_output": true
+    },
+    {
+      "name": "transient_irq",
+      "rejection": "interrupts enabled during paging",
+      "exit_code": 1,
+      "binary_sha256": "4579dc634ea433637e0929267f411a1b19686a8207fcd26ee1e867b374a31c7f",
+      "assembly_sha256": "4eb95b28f05db89347800bee247a2c4c39d2afbb996123209b314288925194ec",
+      "driver_sha256": "41b6d230d79c861ec790989d6fd237ad3738461e3c1329f043307804df734ee2",
+      "stdout_sha256": "23cb3d2261604d5e0a9ac758886ef1acc059bccbe01e9f00d789df28ecd27d4c",
+      "stderr_sha256": "ac5c18e3bc045869057e3ba7d9ec2280f570dd759c542b2d6eb69174f0861205",
+      "preserved_semantic_return_and_output": false
+    }
+  ]
+}
