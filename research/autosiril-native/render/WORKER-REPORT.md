@@ -240,10 +240,10 @@ The explicit observational contracts are:
   through65,535, or79-byte payload withu32 row from65,536 upward. Empty input
   writes zero logical bytes.
 - `META.BIN v1`: an`ARMD` companion, not kind5. Its14-byte header carries
-  version, source kind, definition count, fixed role-record count4, and reserved
+  version, source kind, raw definition-fragment count, fixed role-record count4, and reserved
   zero space; exact definition fragments and four role records follow. No cells
   are implied.
-- `REND.INF v1`: exact21 logical bytes (`RINF`, version, text/state logical
+- `REND.INF v1`: exact 17 logical bytes (`RINF`, version, text/state logical
   lengths, original render rows), padded to one128-byte CP/M record with zeros.
 
 Guard coverage now rejects wrong header kind, malformed definition data,
@@ -262,3 +262,40 @@ remaining limitations are in `evidence/cpm-checkpoint5.json`.
 This is not a full renderer milestone claim. TRD16-bank/IO/publication,
 canonical six conversion, six-COM integration, inherited fresh/frozen CI audits,
 VT2/VTX, and main/PR review remain open.
+
+## Checkpoint 6: admission profile holes closed (2026-10-27)
+
+All five open admission items from the pause handover are closed on CP/M;
+162 executions pass (54 cases × raw MIR2 / final MIR2 / Z80), up from 114.
+
+1. **Definition profile.** The adapter stores semantic payload (4096 bytes,
+   64 lengths) instead of 256 raw 16-byte fragments, and rebuilds canonical
+   fragments for `META.BIN`. Distinct-id count and raw fragment count (up to
+   568) are separate; cell references are checked against distinct ids; an
+   unfinished definition before the first cell is rejected.
+2. **Independent decoder.** `decode_definitions` validates ids, fragment
+   framing and the aggregate limit; `ruby_case` no longer caps raw fragments
+   at 64. The `ARMD` header count is the raw fragment count.
+3. **Cache coherence.** Cells whose cached fields differ from the original
+   `LNote` constructor (enote, and sample/envelope for kind `e`) fault 986;
+   a nonzero reserved byte or a kind-`e` note outside `ENV_OFFSETS` faults 987.
+   Previously these were normalized or, for the reserved byte, the cell was
+   silently skipped.
+4. **REND.INF** is 17 logical bytes; the audit checks padding from byte 17.
+5. **Canonical6.** The actual canonical6 `MIXED.BIN` (sha256 `8aa9cfa2…`) is a
+   fresh-Ruby case, and ARRANGE@6 → ECHO → MIX → RENDER run as four COM
+   programs under mze (136M / 403M / 1324M / 621M T-states) with every
+   intermediate equal to the verified chain. PAIR/NOTES outputs are reused
+   byte-identical, not re-executed.
+
+New edge cases: 9-byte definition, 64 distinct definitions, 4096-byte payload,
+568 fragments, reference to definition 63; rejected 65th id, 4097 bytes,
+incomplete and reordered fragments, undefined reference, four cache
+corruptions and the reserved byte. Run against the old adapter, the 4096-byte
+and 568-fragment inputs were rejected and the incomplete/undefined/cache/
+reserved inputs were accepted. Image 29,339 bytes. `kernel.nanz` is unchanged,
+so the kernel and high-row proofs were not rerun. Details:
+`evidence/cpm-checkpoint6.json`.
+
+Still open: TRD 16-bank renderer, native VT2/VTX writer, CI wiring for this
+proof.

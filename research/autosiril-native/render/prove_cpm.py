@@ -37,6 +37,52 @@ def kind5_records(wire):
     return records
 
 
+DEFINITION_IDS = 64
+DEFINITION_PAYLOAD = 4096
+
+
+def decode_definitions(fragments):
+    """Independent decoder: raw fragment records -> semantic definitions.
+
+    Admits <=64 distinct ids and <=4096 aggregate payload bytes; each fragment
+    carries at most 8 payload bytes in canonical order with zero padding."""
+    definitions = []
+    length = offset = 0
+    payload = bytearray()
+    for record in fragments:
+        assert record[0] == 1
+        ident, total, at, count = struct.unpack_from('<HHHB', record, 1)
+        if at == 0:
+            assert length == 0, 'incomplete definition'
+            assert ident == len(definitions) and ident < DEFINITION_IDS, 'definition id'
+            assert 0 < total <= DEFINITION_PAYLOAD
+            length, payload = total, bytearray()
+        else:
+            assert ident == len(definitions) and total == length, 'reordered fragment'
+        assert at == offset and count == min(8, length - offset), 'fragment framing'
+        body = record[8:16]
+        assert all(byte <= 127 for byte in body[:count]) and not any(body[count:])
+        assert ident != 0 or not any(body[:count])
+        payload.extend(body[:count])
+        offset += count
+        if offset == length:
+            definitions.append(bytes(payload))
+            length = offset = 0
+    assert length == 0, 'incomplete definition'
+    assert sum(map(len, definitions)) <= DEFINITION_PAYLOAD, 'aggregate payload'
+    return definitions
+
+
+def canonical_fragments(definitions):
+    result = []
+    for ident, payload in enumerate(definitions):
+        for at in range(0, len(payload), 8):
+            body = payload[at:at + 8]
+            result.append(struct.pack('<BHHHB', 1, ident, len(payload), at, len(body)) +
+                          body + bytes(8 - len(body)))
+    return result
+
+
 def ruby_case(wire):
     definitions = []
     channels = [[], [], []]
@@ -68,7 +114,14 @@ def ruby_case(wire):
             assert record[0] == 3 and record[1] == 0 and len(extents) == 3
             assert render_rows is None and not any(record[6:])
             render_rows = struct.unpack_from('<I', record, 2)[0]
-    assert len(definitions) <= 64 and render_rows is not None
+    # `definitions` holds raw fragment records; limits apply to semantic ids.
+    semantic = decode_definitions(definitions)
+    assert canonical_fragments(semantic) == definitions
+    for channel in channels:
+        for cell in channel:
+            if cell['note']['kind'] == 'p':
+                assert cell['note']['ornament'] < len(semantic), 'undefined ornament'
+    assert render_rows is not None
     assert extents == [len(channel) and channel[-1]['row'] + 1 for channel in channels]
     return dict(channels=channels, lengths=extents, render_rows=render_rows), definitions
 
@@ -216,6 +269,147 @@ def guard_cases(wire):
     return result
 
 
+def split_records(wire):
+    records = kind5_records(wire)
+    definitions = [r for r in records if r[0] == 1]
+    cells = [r for r in records if r[0] == 0]
+    metadata = [r for r in records if r[0] in (2, 3)]
+    assert records == definitions + cells + metadata and len(metadata) == 4
+    return definitions, cells, metadata
+
+
+def zero_definition(length):
+    return bytes(length)
+
+
+def text_definition(length, seed):
+    return bytes((seed + index) % 127 + 1 for index in range(length))
+
+
+def with_ornament(cells, ornament):
+    result = []
+    for cell in cells:
+        if cell[12] == 112:
+            cell = cell[:7] + struct.pack('<H', ornament) + cell[9:]
+        result.append(cell)
+    return result
+
+
+def profile_variants(wires):
+    """Definition-profile edges on actual cells (positive cases also run fresh Ruby)."""
+    _, cells, metadata = split_records(wires['chain_single'])
+    assert any(cell[12] == 112 for cell in cells)
+    sixty_four = [zero_definition(2)] + [text_definition(1, i) for i in range(1, 64)]
+    full = [zero_definition(2)] + [text_definition(65, i) for i in range(1, 63)] + [text_definition(64, 63)]
+    widest = [zero_definition(1)] + [text_definition(1, i) for i in range(1, 63)] + [text_definition(4033, 63)]
+    assert sum(map(len, full)) == sum(map(len, widest)) == DEFINITION_PAYLOAD
+    assert len(canonical_fragments(widest)) == 568
+    positive = [
+        ('profile_nine_byte_definition', [zero_definition(2), text_definition(9, 5)], cells),
+        ('profile_64_distinct_definitions', sixty_four, cells),
+        ('profile_payload_4096', full, cells),
+        ('profile_max_fragments_568', widest, cells),
+        ('profile_reference_last_definition', sixty_four, with_ornament(cells, 63)),
+    ]
+    result = {}
+    for name, definitions, body in positive:
+        result[name] = rebuild_records(canonical_fragments(definitions) + body + metadata)
+    return result
+
+
+def profile_guards(wires):
+    """Inputs the original contract rejects; the independent decoder must agree."""
+    _, cells, metadata = split_records(wires['chain_single'])
+    sixty_five = [zero_definition(2)] + [text_definition(1, i) for i in range(1, 65)]
+    over = [zero_definition(2)] + [text_definition(65, i) for i in range(1, 63)] + [text_definition(65, 63)]
+    split = canonical_fragments([zero_definition(2), text_definition(9, 5)])
+    assert len(split) == 3
+    cases = [
+        ('guard_definition_65th', canonical_fragments(sixty_five), cells, 985),
+        ('guard_definition_payload_4097', canonical_fragments(over), cells, 985),
+        ('guard_definition_incomplete', split[:2], cells, 985),
+        ('guard_definition_reordered', [split[0], split[2], split[1]], cells, 985),
+        # Two definitions in three fragments: id 2 is below the raw fragment
+        # count but undefined.
+        ('guard_reference_undefined', split, with_ornament(cells, 2), 985),
+    ]
+    result = []
+    for name, fragments, body, fault in cases:
+        try:
+            decoded = decode_definitions(fragments)
+            admitted = not any(c[12] == 112 and struct.unpack_from('<H', c, 7)[0] >= len(decoded) for c in body)
+        except AssertionError:
+            admitted = False
+        assert not admitted, f'independent decoder admitted {name}'
+        result.append((name, rebuild_records(fragments + body + metadata), fault))
+    return result
+
+
+def cache_guards(wires):
+    """Cached/derived cell fields that disagree with the LNote constructor."""
+    definitions, cells, metadata = split_records(wires['chain_source_ids_skip_empty_tracks'])
+    envelope = next(i for i, c in enumerate(cells) if c[12] == 101)
+    plain = next(i for i, c in enumerate(cells) if c[12] != 101)
+
+    def patched(index, at, value):
+        body = list(cells)
+        cell = bytearray(body[index])
+        cell[at] = value
+        body[index] = bytes(cell)
+        return rebuild_records(definitions + body + metadata)
+
+    return [
+        ('guard_cache_enote', patched(envelope, 13, cells[envelope][13] ^ 1), 986),
+        ('guard_cache_enote_plain', patched(plain, 13, 0), 986),
+        ('guard_cache_envelope', patched(envelope, 6, cells[envelope][6] ^ 1), 986),
+        ('guard_cache_sample', patched(envelope, 5, cells[envelope][5] ^ 1), 986),
+        ('guard_cell_reserved', patched(plain, 15, 1), 987),
+    ]
+
+
+CANONICAL6_MIXED_SHA256 = '8aa9cfa2b13e88817965857ea13358bfc13cab813727dbe89c000e125399abe3'
+
+
+def run_six_com(out, chain, mze, render_com, expected):
+    """ARRANGE@6 -> ECHO -> MIX -> RENDER as separate COM programs under mze.
+
+    Stages 1/2 (PAIR/NOTES) are not re-executed: their EVENTS.BIN/NOTES.BIN
+    are the byte-identical verified outputs from the canonical6 file chain."""
+    work = out / 'six-com'
+    work.mkdir()
+    standalone = chain / 'standalone6'
+    for name in ['EVENTS.BIN', 'NOTES.BIN', 'ARRANGE.COM', 'ECHO.COM']:
+        (work / name).write_bytes((standalone / name).read_bytes())
+    (work / 'MIX.COM').write_bytes((chain / 'standalone6-mix/MIX.COM').read_bytes())
+    (work / 'RENDER.COM').write_bytes(render_com)
+    stages = []
+    for program, produced, reference in [
+            ('ARRANGE.COM', 'ARRANGE.BIN', standalone / 'ARRANGE.BIN'),
+            ('ECHO.COM', 'DELAYED.BIN', standalone / 'DELAYED.BIN'),
+            ('MIX.COM', 'MIXED.BIN', chain / 'standalone6-mix/MIXED.BIN'),
+            ('RENDER.COM', 'OUTPUT.TXT', None)]:
+        result = subprocess.run([str(mze), program, '-t', 'cpm', '--timeout', '4000000000', '--cycles'],
+                                cwd=work, text=True, capture_output=True)
+        (work / (program + '.log')).write_text(result.stdout + result.stderr)
+        assert 'Execution error' not in result.stdout + result.stderr, program
+        tstates = int(re.search(r'Total execution: (\d+) T-states', result.stdout + result.stderr).group(1))
+        data = (work / produced).read_bytes()
+        if reference is not None:
+            assert data == reference.read_bytes(), produced
+        stages.append(dict(program=program, sha256=sha_bytes((work / program).read_bytes()),
+                           output=produced, output_sha256=sha_bytes(data), t_states=tstates))
+    assert (work / 'MIXED.BIN').read_bytes() == wire_pad(expected['wire'])
+    for name, logical in [('OUTPUT.TXT', expected['text']), ('STATE.BIN', expected['state']),
+                          ('META.BIN', expected['meta'])]:
+        physical = (work / name).read_bytes()
+        assert physical == wire_pad(logical), name
+    info = (work / 'REND.INF').read_bytes()
+    assert info == wire_pad(b'RINF\x01' + struct.pack('<III', len(expected['text']),
+                                                        len(expected['state']), expected['rows']))
+    return dict(stages=stages, reexecuted='ARRANGE@6, ECHO, MIX, RENDER',
+                reused_verified='PAIR/NOTES outputs EVENTS.BIN, NOTES.BIN')
+
+
 def audit_positive_artifacts(out, names, fresh):
     audited = 0
     for name in names:
@@ -223,9 +417,10 @@ def audit_positive_artifacts(out, names, fresh):
         for engine in ('raw-mir2', 'final-mir2', 'z80'):
             directory = out / 'measured' / name / engine
             info = (directory / 'REND.INF').read_bytes()
+            # REND.INF v1 is 17 logical bytes: RINF, version 1, three u32.
             assert len(info) == 128 and info[:5] == b'RINF\x01'
             text_length, state_length, rows = struct.unpack_from('<III', info, 5)
-            assert not any(info[21:])
+            assert not any(info[17:])
             assert rows == len(states)
             text = (directory / 'OUTPUT.TXT').read_bytes()
             assert len(text) == ((text_length + 127) // 128) * 128
@@ -269,7 +464,12 @@ def main():
     parser.add_argument('--autosiril', type=Path, required=True)
     parser.add_argument('--planning', type=Path, required=True)
     parser.add_argument('--out', type=Path, required=True)
+    parser.add_argument('--chain6', type=Path,
+                        help='canonical max_offset 6 file-chain output (standalone6, standalone6-mix)')
+    parser.add_argument('--mze', type=Path, help='mze used for the six-COM chain (requires --chain6)')
     args = parser.parse_args()
+    if bool(args.chain6) != bool(args.mze):
+        parser.error('--chain6 and --mze go together')
     out = args.out.resolve()
     if out == ROOT or ROOT in out.parents:
         parser.error('output must be outside checkout')
@@ -293,6 +493,15 @@ def main():
         fixture, _ = ruby_case(wire)
         fixture['name'] = name
         ruby_cases.append(fixture)
+    variants = profile_variants(wires)
+    if args.chain6:
+        canonical = (args.chain6 / 'standalone6-mix/MIXED.BIN').read_bytes()
+        assert sha_bytes(canonical) == CANONICAL6_MIXED_SHA256
+        variants['canonical6_chronos'] = canonical
+    for name, wire in variants.items():
+        fixture, _ = ruby_case(wire)
+        fixture['name'] = name
+        ruby_cases.append(fixture)
     fresh = out / 'ruby-fresh'
     fresh.mkdir()
     (out / 'ruby-input.json').write_text(json.dumps(dict(cases=ruby_cases), indent=2) + '\n')
@@ -303,12 +512,17 @@ def main():
     if ruby.returncode:
         raise SystemExit(ruby.stderr)
     references = {item['name']: item for item in json.loads(ruby.stdout)['cases']}
-    assert set(references) == set(names)
+    assert set(references) == set(names) | set(variants)
     for name in names:
         assert (fresh / name / 'output.txt').read_bytes() == (args.planning / name / 'output.txt').read_bytes()
         assert json.loads((fresh / name / 'states.json').read_text()) == json.loads((args.planning / name / 'states.json').read_text())
     matrix = [case(name, wires[name], fresh) for name in names]
+    matrix.extend(case(name, wire, fresh) for name, wire in variants.items())
     matrix.extend(guard_cases(wires['native_chronos']))
+    for name, wire, fault in profile_guards(wires) + cache_guards(wires):
+        matrix.append(dict(name=name, wire=base64.b64encode(wire).decode(),
+                           expected_text='', expected_state='', expected_meta='',
+                           render_rows=0, fault=fault, guard=name.split('_', 1)[1]))
     (out / 'cases.json').write_text(json.dumps(dict(cases=matrix), indent=2) + '\n')
     # Reuse the admitted host record-I/O adapter; musical/format decisions stay target-side.
     imports = Path('research/autosiril-native/files/driver.go.txt').read_text().split('// This host-side decoder', 1)[0]
@@ -328,14 +542,27 @@ def main():
     (out / 'prove-cpm.log').write_text(result.stdout + result.stderr)
     if result.returncode:
         raise SystemExit(result.stdout + result.stderr)
-    artifact_audits = audit_positive_artifacts(out, names, fresh)
+    artifact_audits = audit_positive_artifacts(out, names + list(variants), fresh)
+    six_com = None
+    if args.chain6:
+        row = next(item for item in matrix if item['name'] == 'canonical6_chronos')
+        expected = dict(wire=variants['canonical6_chronos'], rows=row['render_rows'],
+                        text=base64.b64decode(row['expected_text']),
+                        state=base64.b64decode(row['expected_state']),
+                        meta=companion_meta(variants['canonical6_chronos']))
+        six_com = run_six_com(out, args.chain6.resolve(), args.mze.resolve(),
+                              (out / 'measured/program.com').read_bytes(), expected)
+        six_com.update(mze_sha256=sha_bytes(args.mze.resolve().read_bytes()),
+                       mze_scope='local macOS mze built from source with the uncommitted syscall.Select overlay; Linux CI builds clean source')
     proof = json.loads((out / 'measured/receipt.json').read_text())
     proof.update(protocol='autosiril-render-cpm/v2', original_ruby_sha256=expected_ruby,
                  state_format='length-prefixed row observations v1; ordinary payload=77/high-row payload=79',
                  metadata_format='ARMD metadata companion v1; source definitions plus four role records, no cells',
                  fresh_ruby_cases=len(names),
                  fresh_ruby_sha256=sha_bytes(ruby.stdout.encode()),
-                 independent_artifact_audits=artifact_audits)
+                 independent_artifact_audits=artifact_audits,
+                 definition_profile='<=64 distinct ids, <=4096 payload bytes, canonical <=8-byte fragments (<=568)',
+                 rend_inf_logical_bytes=17, six_com_chain=six_com)
     (out / 'measured/receipt.json').write_text(json.dumps(proof, indent=2) + '\n')
     print('PASS', len(proof['cases']), 'actual-kind5 CP/M executions')
 

@@ -1,0 +1,85 @@
+{
+  "checkpoint": "cpm-checkpoint6",
+  "command": "PYTHONDONTWRITEBYTECODE=1 python3 research/autosiril-native/render/prove_cpm.py --artifacts /tmp/minz-ci270-artifacts/autosiril-mix-fresh --autosiril /Users/alice/dev/autosiril --planning /tmp/minz-render-planning-v4 --chain6 /tmp/minz-z-workers/p-channel-results/parent-p3-fresh --mze <source-built mze> --out <new dir>",
+  "original_ruby_sha256": "41f621b555fc089effd711319e723494576eb47ea0282847082ec91c1cdd4c01",
+  "source_sha256": {
+    "research/autosiril-native/render/cpm.nanz": "f978939645a0d8b8cd4151df52fcd74342ea36087e13cd04d61b48c9fe6f1427",
+    "research/autosiril-native/render/kernel.nanz": "daadbb8cee7a659da97bec8d0badbed893e74afc90137dfa8a948197325ab97c",
+    "research/autosiril-native/render/prove_cpm.py": "a70771cd5323052e1e9ff21886ee1bffdd44313b820a8d2e1e935b785615dc06",
+    "research/autosiril-native/render/cpm-driver.go.txt": "2d7a1cdbbe7ce2787d0174ea74725fdecb843981649c188d0c4cae7fbf412701"
+  },
+  "proof_sha256": {
+    "receipt": "d93ad8b4b2229402ce9eb042d3ab65ade3c4bb47a42b9816dd0a2ad4230ea670",
+    "cases": "629b2f5fa7bfa49ed8936ff352dfb1716995913ead8d45cd436034f4e1492bd4"
+  },
+  "executions": 162,
+  "cases": 54,
+  "previous_executions": 114,
+  "binary_sha256": "0b3ec642570823705936ffb6316d09e31930460803fec26ccf1a0172af5e96b2",
+  "image_bytes": 29339,
+  "globals_bytes": 6568,
+  "new_cases": [
+    "canonical6_chronos",
+    "guard_cache_enote",
+    "guard_cache_enote_plain",
+    "guard_cache_envelope",
+    "guard_cache_sample",
+    "guard_cell_reserved",
+    "guard_definition_65th",
+    "guard_definition_incomplete",
+    "guard_definition_payload_4097",
+    "guard_definition_reordered",
+    "guard_reference_undefined",
+    "profile_64_distinct_definitions",
+    "profile_max_fragments_568",
+    "profile_nine_byte_definition",
+    "profile_payload_4096",
+    "profile_reference_last_definition"
+  ],
+  "holes_closed": {
+    "1_definition_profile": "semantic payload store 4096B + 64 lengths; canonical fragments rebuilt for META.BIN; distinct-id count separate from raw fragment count (<=568); references checked against distinct ids; incomplete definition rejected",
+    "2_python_decoder": "decode_definitions validates ids/fragments/aggregate independently; ruby_case no longer caps raw fragments at 64; ARMD header count = raw fragment count",
+    "3_cached_enote": "validate_cache: kind e requires note<144, sample 2, envelope per volume, enote=note+ENV_OFFSETS[note]; other kinds enote=-1; reserved byte 15 must be 0 (987); faults 986/987 instead of silent normalization/skip",
+    "4_rend_inf": "17 logical bytes; Python audit checks zero padding from byte 17; driver already compared exact 17 bytes",
+    "5_canonical6": "actual canonical6 MIXED.BIN (sha 8aa9cfa2...) as fresh-Ruby case on 3 engines plus ARRANGE@6->ECHO->MIX->RENDER COMs re-executed under mze; PAIR/NOTES outputs reused byte-identical, not re-executed"
+  },
+  "old_code_regressions": "old cpm.nanz on the new matrix: rejects profile_payload_4096 and profile_max_fragments_568 (985); accepts guard_definition_incomplete, guard_reference_undefined, all guard_cache_*, guard_cell_reserved (fault 0)",
+  "six_com_chain": {
+    "stages": [
+      {
+        "program": "ARRANGE.COM",
+        "sha256": "dafbedca2ee2c7632bc051bcdb54f52d6085475f4f576de49985e7435bdad268",
+        "output": "ARRANGE.BIN",
+        "output_sha256": "60bfcc624ef427da830a5d416a9c06bd1df36bd807d60960b87f7af2d2ae0eec",
+        "t_states": 136152180
+      },
+      {
+        "program": "ECHO.COM",
+        "sha256": "0d364d0eb93307e6efdd1ca93fc74a0fae4fcdfb6f51c6773baf2ee0d1f26d33",
+        "output": "DELAYED.BIN",
+        "output_sha256": "18e08c8631e81a9d418e13aad0a01a088176a3905ffdfcb6e9ec376a216fbb96",
+        "t_states": 402847454
+      },
+      {
+        "program": "MIX.COM",
+        "sha256": "8ad63e8399432afaa2ede72d0b4e40de27cad89f82acd0158f4e60e0cd29685c",
+        "output": "MIXED.BIN",
+        "output_sha256": "8aa9cfa2b13e88817965857ea13358bfc13cab813727dbe89c000e125399abe3",
+        "t_states": 1323934662
+      },
+      {
+        "program": "RENDER.COM",
+        "sha256": "0b3ec642570823705936ffb6316d09e31930460803fec26ccf1a0172af5e96b2",
+        "output": "OUTPUT.TXT",
+        "output_sha256": "d49590b0b32017b0aa92c67957eda55af37db8238382456ccd1fc69f942b4e04",
+        "t_states": 620692108
+      }
+    ],
+    "reexecuted": "ARRANGE@6, ECHO, MIX, RENDER",
+    "reused_verified": "PAIR/NOTES outputs EVENTS.BIN, NOTES.BIN",
+    "mze_sha256": "2af84fe387f3821d6d44433cd30ecc95d560611295671291c63eeff2598c7f46",
+    "mze_scope": "local macOS mze built from source with the uncommitted syscall.Select overlay; Linux CI builds clean source"
+  },
+  "not_rerun": "kernel.nanz unchanged: 203-case kernel and high-row edge proofs not rerun in this checkpoint",
+  "scope": "CP/M API traps under mze/MIR2 VM; not TRD 16-bank, VT2/VTX, physical hardware"
+}
