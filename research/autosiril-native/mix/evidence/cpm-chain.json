@@ -1,0 +1,50 @@
+{
+  "protocol": "autosiril-mix-cpm-standalone/v1",
+  "scope": "five independently compiled COM artifacts with measured native file links; previous four collected from verified echo run, fifth executed in current run; not a fresh five-command replay or physical CP/M bootstrap",
+  "stages": [
+    {
+      "program": "PAIR.COM",
+      "source": "INPUT.MID",
+      "sink": "NOTES.BIN",
+      "program_sha256": "d8fa1666ff2bfce10900377f12364b30283f4048d9096af137ad4f4379c86c35",
+      "source_sha256": "0d4c0289fe42c81ea01c9715c9d382807e97549161c419c737e15f18d6abc02f",
+      "sink_sha256": "4ecfa8a78d0146fe2f7dbcdcab711fa1ca803332044b3e4d81f684c80a37039f"
+    },
+    {
+      "program": "FLATTEN.COM",
+      "source": "NOTES.BIN",
+      "sink": "EVENTS.BIN",
+      "program_sha256": "1b669072ec4abf1e1c122b08d87b7ab4284619c6caf7a6f117964904288f2403",
+      "source_sha256": "4ecfa8a78d0146fe2f7dbcdcab711fa1ca803332044b3e4d81f684c80a37039f",
+      "sink_sha256": "7a6a96d5a438bc27488295a580245baa14f3b6a4b6c1b896274538286891fff7"
+    },
+    {
+      "program": "ARRANGE.COM",
+      "source": "EVENTS.BIN",
+      "sink": "ARRANGE.BIN",
+      "program_sha256": "cb8dbf34c700df4aca92c504ac660506e026679c3f53e1228dc8ffe954e3b527",
+      "source_sha256": "7a6a96d5a438bc27488295a580245baa14f3b6a4b6c1b896274538286891fff7",
+      "sink_sha256": "d6b41caa2f26b4ecbc77c98a5df5914e8ce106cc3f3f03449218812edb2bbfb4"
+    },
+    {
+      "program": "ECHO.COM",
+      "source": "ARRANGE.BIN",
+      "sink": "DELAYED.BIN",
+      "program_sha256": "0d364d0eb93307e6efdd1ca93fc74a0fae4fcdfb6f51c6773baf2ee0d1f26d33",
+      "source_sha256": "d6b41caa2f26b4ecbc77c98a5df5914e8ce106cc3f3f03449218812edb2bbfb4",
+      "sink_sha256": "943c45a8b5f5d98c18c5fd2adbceb4597ce81eb29e30cbf140df0473d52b052b"
+    },
+    {
+      "program": "MIX.COM",
+      "source": "DELAYED.BIN",
+      "sink": "MIXED.BIN",
+      "program_sha256": "ca36d293fe9a12ab08668a5c92522e274cb5bd32a65e64d0a526b2d614aa793a",
+      "source_sha256": "943c45a8b5f5d98c18c5fd2adbceb4597ce81eb29e30cbf140df0473d52b052b",
+      "sink_sha256": "cceabdcefe49b395725c54922f8907a5139524dc3963e8913942e90a12d8d3cf"
+    }
+  ],
+  "mix_notes_companion_sha256": "4ecfa8a78d0146fe2f7dbcdcab711fa1ca803332044b3e4d81f684c80a37039f",
+  "upstream_receipt_sha256": "523a44e5ae76fcae40fbe349eb32e7aa6be38b4f7b8d22704b5d686a9ec54347",
+  "mix_receipt_sha256": "8e47f320e4444bc27c71ccbe745b56cd083918a26e89b6b0bb0c8eabdc67ec17",
+  "bundle_script_sha256": "e4490759379ec9a5126ec2095553116930c74edd81831c0e1b9bab18c5f9d32c"
+}

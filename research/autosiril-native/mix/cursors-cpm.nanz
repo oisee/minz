@@ -1,0 +1,140 @@
+// Owned byte cursors. Separate FCB, unread bytes and position for every input.
+@extern(0x0005) fun bdos8(@z80_c command:u8,@z80_de address:u16)->u8
+global fault:u16
+global input_fcbs:[u8;108]
+global output_fcb:[u8;36]
+global input_live:[u8;3]
+global input_done:[u8;3]
+global input_at:[u16;3]
+global input_length:[u16;3]
+global input_counts:[u32;3]
+global input_buffers:[u8;384]
+global scratch:[u8;128]
+global output_buffer:[u8;128]
+global output_at:u16
+global output_live:u8
+global written_records:u32
+global source_name:[u8;11] = [68,69,76,65,89,69,68,32,66,73,78]
+global sink_name:[u8;11] = [67,85,82,83,79,82,83,32,66,73,78]
+
+fun cursor_open(handle:u8)->u8 {
+    if handle >= 3 { return 1 }
+    if input_live[handle] != 0 { return 1 }
+    let base:u16 = u16(handle) * 36
+    var index:u16 = 0
+    while index < 36 {
+        input_fcbs[base+index] = 0
+        index = index + 1
+    }
+    index = 0
+    while index < 11 {
+        input_fcbs[base+index+1] = source_name[index]
+        index = index + 1
+    }
+    bdos8(26,u16(&scratch))
+    let status:u8 = bdos8(15,u16(&input_fcbs[base]))
+    if status > 3 { return 1 }
+    input_at[handle] = 0
+    input_length[handle] = 0
+    input_done[handle] = 0
+    input_counts[handle] = 0
+    input_live[handle] = 1
+    return 0
+}
+fun cursor_close(handle:u8)->u8 {
+    if handle >= 3 { return 1 }
+    if input_live[handle] == 0 { return 1 }
+    let base:u16 = u16(handle) * 36
+    let status:u8 = bdos8(16,u16(&input_fcbs[base]))
+    input_live[handle] = 0
+    if status > 3 { return 1 }
+    return 0
+}
+fun cursor_refill(handle:u8)->u32 {
+    if handle >= 3 { return u32(131072) }
+    if input_live[handle] == 0 { return u32(131072) }
+    let base:u16 = u16(handle) * 36
+    let status:u8 = bdos8(20,u16(&input_fcbs[base]))
+    if status == 1 { return u32(65536) }
+    if status != 0 { return u32(131072) }
+    let start:u16 = u16(handle) * 128
+    var index:u16 = 0
+    while index < 128 {
+        input_buffers[start+index] = scratch[index]
+        index = index + 1
+    }
+    input_at[handle] = 0
+    input_length[handle] = 128
+    return 128
+}
+// Byte result: high word0=byte,1=EOF,2=error; low word is byte or zero.
+fun cursor_get(handle:u8)->u32 {
+    if handle >= 3 { return u32(131072) }
+    if input_live[handle] == 0 { return u32(131072) }
+    if input_at[handle] == input_length[handle] {
+        let result:u32 = cursor_refill(handle)
+        if (result >> 16) != 0 { return result }
+    }
+    let start:u16 = u16(handle) * 128
+    let byte:u8 = input_buffers[start+input_at[handle]]
+    input_at[handle] = input_at[handle] + 1
+    input_counts[handle] = input_counts[handle] + 1
+    return u32(byte)
+}
+fun sink_open()->u8 {
+    if output_live != 0 { return 1 }
+    var index:u16 = 0
+    while index < 36 {
+        output_fcb[index] = 0
+        index = index + 1
+    }
+    index = 0
+    while index < 11 {
+        output_fcb[index+1] = sink_name[index]
+        index = index + 1
+    }
+    let status:u8 = bdos8(22,u16(&output_fcb))
+    if status > 3 { return 1 }
+    output_at = 0
+    written_records = 0
+    output_live = 1
+    return 0
+}
+fun sink_flush() {
+    if fault != 0 || output_at == 0 { return }
+    var index:u16 = 0
+    while index < output_at {
+        scratch[index] = output_buffer[index]
+        index = index + 1
+    }
+    while index < 128 {
+        scratch[index] = 0
+        index = index + 1
+    }
+    let status:u8 = bdos8(21,u16(&output_fcb))
+    output_at = 0
+    if status != 0 { fault = 902
+        return }
+    written_records = written_records + 1
+}
+fun sink_put(byte:u8) {
+    if fault != 0 { return }
+    output_buffer[output_at] = byte
+    output_at = output_at + 1
+    if output_at == 128 { sink_flush() }
+}
+fun cursors_cleanup() {
+    var handle:u8 = 0
+    while handle < 3 {
+        if input_live[handle] != 0 {
+            let status:u8 = cursor_close(handle)
+            if status != 0 && fault == 0 { fault = 906 }
+        }
+        handle = handle + 1
+    }
+    if output_live != 0 {
+        let status:u8 = bdos8(16,u16(&output_fcb))
+        output_live = 0
+        if status > 3 && fault == 0 { fault = 903 }
+    }
+}

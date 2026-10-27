@@ -1,0 +1,1105 @@
+{
+  "binary_sha256": "43cabe8a9d6d62d1909fb92e6d13147ffb1b7e59ebea950063c3d1631eaf2347",
+  "cases": [
+    {
+      "bdos_calls": {
+        "15": 3,
+        "16": 4,
+        "20": 1290,
+        "21": 1287,
+        "22": 1,
+        "26": 3
+      },
+      "case": "success",
+      "engine": "raw-mir2",
+      "fault": 0,
+      "injected_failure": false,
+      "output_bytes": 164736,
+      "output_sha256": "d63f93c7dcbdf7b03825a8399e331216e3b3e7a6180edbc3b62c1143d366b8e6",
+      "stack_bytes": 0,
+      "t_states": 0
+    },
+    {
+      "bdos_calls": {
+        "15": 3,
+        "16": 4,
+        "20": 1290,
+        "21": 1287,
+        "22": 1,
+        "26": 3
+      },
+      "case": "success",
+      "engine": "final-mir2",
+      "fault": 0,
+      "injected_failure": false,
+      "output_bytes": 164736,
+      "output_sha256": "d63f93c7dcbdf7b03825a8399e331216e3b3e7a6180edbc3b62c1143d366b8e6",
+      "stack_bytes": 0,
+      "t_states": 0
+    },
+    {
+      "bdos_calls": {
+        "15": 3,
+        "16": 4,
+        "20": 1290,
+        "21": 1287,
+        "22": 1,
+        "26": 3
+      },
+      "case": "success",
+      "engine": "z80",
+      "fault": 0,
+      "injected_failure": false,
+      "output_bytes": 164736,
+      "output_sha256": "d63f93c7dcbdf7b03825a8399e331216e3b3e7a6180edbc3b62c1143d366b8e6",
+      "stack_bytes": 28,
+      "t_states": 872600177
+    },
+    {
+      "bdos_calls": {
+        "15": 3,
+        "16": 4,
+        "20": 1290,
+        "21": 1287,
+        "22": 1,
+        "26": 3
+      },
+      "case": "directory1",
+      "engine": "raw-mir2",
+      "fault": 0,
+      "injected_failure": false,
+      "output_bytes": 164736,
+      "output_sha256": "d63f93c7dcbdf7b03825a8399e331216e3b3e7a6180edbc3b62c1143d366b8e6",
+      "stack_bytes": 0,
+      "t_states": 0
+    },
+    {
+      "bdos_calls": {
+        "15": 3,
+        "16": 4,
+        "20": 1290,
+        "21": 1287,
+        "22": 1,
+        "26": 3
+      },
+      "case": "directory1",
+      "engine": "final-mir2",
+      "fault": 0,
+      "injected_failure": false,
+      "output_bytes": 164736,
+      "output_sha256": "d63f93c7dcbdf7b03825a8399e331216e3b3e7a6180edbc3b62c1143d366b8e6",
+      "stack_bytes": 0,
+      "t_states": 0
+    },
+    {
+      "bdos_calls": {
+        "15": 3,
+        "16": 4,
+        "20": 1290,
+        "21": 1287,
+        "22": 1,
+        "26": 3
+      },
+      "case": "directory1",
+      "engine": "z80",
+      "fault": 0,
+      "injected_failure": false,
+      "output_bytes": 164736,
+      "output_sha256": "d63f93c7dcbdf7b03825a8399e331216e3b3e7a6180edbc3b62c1143d366b8e6",
+      "stack_bytes": 28,
+      "t_states": 872600177
+    },
+    {
+      "bdos_calls": {
+        "15": 3,
+        "16": 4,
+        "20": 1290,
+        "21": 1287,
+        "22": 1,
+        "26": 3
+      },
+      "case": "directory2",
+      "engine": "raw-mir2",
+      "fault": 0,
+      "injected_failure": false,
+      "output_bytes": 164736,
+      "output_sha256": "d63f93c7dcbdf7b03825a8399e331216e3b3e7a6180edbc3b62c1143d366b8e6",
+      "stack_bytes": 0,
+      "t_states": 0
+    },
+    {
+      "bdos_calls": {
+        "15": 3,
+        "16": 4,
+        "20": 1290,
+        "21": 1287,
+        "22": 1,
+        "26": 3
+      },
+      "case": "directory2",
+      "engine": "final-mir2",
+      "fault": 0,
+      "injected_failure": false,
+      "output_bytes": 164736,
+      "output_sha256": "d63f93c7dcbdf7b03825a8399e331216e3b3e7a6180edbc3b62c1143d366b8e6",
+      "stack_bytes": 0,
+      "t_states": 0
+    },
+    {
+      "bdos_calls": {
+        "15": 3,
+        "16": 4,
+        "20": 1290,
+        "21": 1287,
+        "22": 1,
+        "26": 3
+      },
+      "case": "directory2",
+      "engine": "z80",
+      "fault": 0,
+      "injected_failure": false,
+      "output_bytes": 164736,
+      "output_sha256": "d63f93c7dcbdf7b03825a8399e331216e3b3e7a6180edbc3b62c1143d366b8e6",
+      "stack_bytes": 28,
+      "t_states": 872600177
+    },
+    {
+      "bdos_calls": {
+        "15": 3,
+        "16": 4,
+        "20": 1290,
+        "21": 1287,
+        "22": 1,
+        "26": 3
+      },
+      "case": "directory3",
+      "engine": "raw-mir2",
+      "fault": 0,
+      "injected_failure": false,
+      "output_bytes": 164736,
+      "output_sha256": "d63f93c7dcbdf7b03825a8399e331216e3b3e7a6180edbc3b62c1143d366b8e6",
+      "stack_bytes": 0,
+      "t_states": 0
+    },
+    {
+      "bdos_calls": {
+        "15": 3,
+        "16": 4,
+        "20": 1290,
+        "21": 1287,
+        "22": 1,
+        "26": 3
+      },
+      "case": "directory3",
+      "engine": "final-mir2",
+      "fault": 0,
+      "injected_failure": false,
+      "output_bytes": 164736,
+      "output_sha256": "d63f93c7dcbdf7b03825a8399e331216e3b3e7a6180edbc3b62c1143d366b8e6",
+      "stack_bytes": 0,
+      "t_states": 0
+    },
+    {
+      "bdos_calls": {
+        "15": 3,
+        "16": 4,
+        "20": 1290,
+        "21": 1287,
+        "22": 1,
+        "26": 3
+      },
+      "case": "directory3",
+      "engine": "z80",
+      "fault": 0,
+      "injected_failure": false,
+      "output_bytes": 164736,
+      "output_sha256": "d63f93c7dcbdf7b03825a8399e331216e3b3e7a6180edbc3b62c1143d366b8e6",
+      "stack_bytes": 28,
+      "t_states": 872600163
+    },
+    {
+      "bdos_calls": {
+        "15": 3,
+        "16": 3,
+        "22": 1,
+        "26": 3
+      },
+      "case": "existing",
+      "engine": "raw-mir2",
+      "fault": 901,
+      "injected_failure": false,
+      "output_bytes": 23,
+      "output_sha256": "3cd4ebb1325c0bfd7b79d1bd12e651f33c0a0a0dbec3924addc6835b36682a2a",
+      "stack_bytes": 0,
+      "t_states": 0
+    },
+    {
+      "bdos_calls": {
+        "15": 3,
+        "16": 3,
+        "22": 1,
+        "26": 3
+      },
+      "case": "existing",
+      "engine": "final-mir2",
+      "fault": 901,
+      "injected_failure": false,
+      "output_bytes": 23,
+      "output_sha256": "3cd4ebb1325c0bfd7b79d1bd12e651f33c0a0a0dbec3924addc6835b36682a2a",
+      "stack_bytes": 0,
+      "t_states": 0
+    },
+    {
+      "bdos_calls": {
+        "15": 3,
+        "16": 3,
+        "22": 1,
+        "26": 3
+      },
+      "case": "existing",
+      "engine": "z80",
+      "fault": 901,
+      "injected_failure": false,
+      "output_bytes": 23,
+      "output_sha256": "3cd4ebb1325c0bfd7b79d1bd12e651f33c0a0a0dbec3924addc6835b36682a2a",
+      "stack_bytes": 10,
+      "t_states": 33184
+    },
+    {
+      "bdos_calls": {
+        "15": 1,
+        "26": 1
+      },
+      "case": "fault15-1",
+      "engine": "raw-mir2",
+      "fault": 900,
+      "injected_failure": true,
+      "output_bytes": 0,
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stack_bytes": 0,
+      "t_states": 0
+    },
+    {
+      "bdos_calls": {
+        "15": 1,
+        "26": 1
+      },
+      "case": "fault15-1",
+      "engine": "final-mir2",
+      "fault": 900,
+      "injected_failure": true,
+      "output_bytes": 0,
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stack_bytes": 0,
+      "t_states": 0
+    },
+    {
+      "bdos_calls": {
+        "15": 1,
+        "26": 1
+      },
+      "case": "fault15-1",
+      "engine": "z80",
+      "fault": 900,
+      "injected_failure": true,
+      "output_bytes": 0,
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stack_bytes": 10,
+      "t_states": 8405
+    },
+    {
+      "bdos_calls": {
+        "15": 2,
+        "16": 1,
+        "26": 2
+      },
+      "case": "fault15-2",
+      "engine": "raw-mir2",
+      "fault": 900,
+      "injected_failure": true,
+      "output_bytes": 0,
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stack_bytes": 0,
+      "t_states": 0
+    },
+    {
+      "bdos_calls": {
+        "15": 2,
+        "16": 1,
+        "26": 2
+      },
+      "case": "fault15-2",
+      "engine": "final-mir2",
+      "fault": 900,
+      "injected_failure": true,
+      "output_bytes": 0,
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stack_bytes": 0,
+      "t_states": 0
+    },
+    {
+      "bdos_calls": {
+        "15": 2,
+        "16": 1,
+        "26": 2
+      },
+      "case": "fault15-2",
+      "engine": "z80",
+      "fault": 900,
+      "injected_failure": true,
+      "output_bytes": 0,
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stack_bytes": 10,
+      "t_states": 18369
+    },
+    {
+      "bdos_calls": {
+        "15": 3,
+        "16": 2,
+        "26": 3
+      },
+      "case": "fault15-3",
+      "engine": "raw-mir2",
+      "fault": 900,
+      "injected_failure": true,
+      "output_bytes": 0,
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stack_bytes": 0,
+      "t_states": 0
+    },
+    {
+      "bdos_calls": {
+        "15": 3,
+        "16": 2,
+        "26": 3
+      },
+      "case": "fault15-3",
+      "engine": "final-mir2",
+      "fault": 900,
+      "injected_failure": true,
+      "output_bytes": 0,
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stack_bytes": 0,
+      "t_states": 0
+    },
+    {
+      "bdos_calls": {
+        "15": 3,
+        "16": 2,
+        "26": 3
+      },
+      "case": "fault15-3",
+      "engine": "z80",
+      "fault": 900,
+      "injected_failure": true,
+      "output_bytes": 0,
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stack_bytes": 10,
+      "t_states": 28292
+    },
+    {
+      "bdos_calls": {
+        "15": 3,
+        "16": 3,
+        "22": 1,
+        "26": 3
+      },
+      "case": "fault22-1",
+      "engine": "raw-mir2",
+      "fault": 901,
+      "injected_failure": true,
+      "output_bytes": 0,
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stack_bytes": 0,
+      "t_states": 0
+    },
+    {
+      "bdos_calls": {
+        "15": 3,
+        "16": 3,
+        "22": 1,
+        "26": 3
+      },
+      "case": "fault22-1",
+      "engine": "final-mir2",
+      "fault": 901,
+      "injected_failure": true,
+      "output_bytes": 0,
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stack_bytes": 0,
+      "t_states": 0
+    },
+    {
+      "bdos_calls": {
+        "15": 3,
+        "16": 3,
+        "22": 1,
+        "26": 3
+      },
+      "case": "fault22-1",
+      "engine": "z80",
+      "fault": 901,
+      "injected_failure": true,
+      "output_bytes": 0,
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stack_bytes": 10,
+      "t_states": 33184
+    },
+    {
+      "bdos_calls": {
+        "15": 3,
+        "16": 4,
+        "20": 1,
+        "22": 1,
+        "26": 3
+      },
+      "case": "fault20-1",
+      "engine": "raw-mir2",
+      "fault": 904,
+      "injected_failure": true,
+      "output_bytes": 0,
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stack_bytes": 0,
+      "t_states": 0
+    },
+    {
+      "bdos_calls": {
+        "15": 3,
+        "16": 4,
+        "20": 1,
+        "22": 1,
+        "26": 3
+      },
+      "case": "fault20-1",
+      "engine": "final-mir2",
+      "fault": 904,
+      "injected_failure": true,
+      "output_bytes": 0,
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stack_bytes": 0,
+      "t_states": 0
+    },
+    {
+      "bdos_calls": {
+        "15": 3,
+        "16": 4,
+        "20": 1,
+        "22": 1,
+        "26": 3
+      },
+      "case": "fault20-1",
+      "engine": "z80",
+      "fault": 904,
+      "injected_failure": true,
+      "output_bytes": 0,
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stack_bytes": 28,
+      "t_states": 39801
+    },
+    {
+      "bdos_calls": {
+        "15": 3,
+        "16": 4,
+        "20": 2,
+        "22": 1,
+        "26": 3
+      },
+      "case": "fault20-2",
+      "engine": "raw-mir2",
+      "fault": 904,
+      "injected_failure": true,
+      "output_bytes": 0,
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stack_bytes": 0,
+      "t_states": 0
+    },
+    {
+      "bdos_calls": {
+        "15": 3,
+        "16": 4,
+        "20": 2,
+        "22": 1,
+        "26": 3
+      },
+      "case": "fault20-2",
+      "engine": "final-mir2",
+      "fault": 904,
+      "injected_failure": true,
+      "output_bytes": 0,
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stack_bytes": 0,
+      "t_states": 0
+    },
+    {
+      "bdos_calls": {
+        "15": 3,
+        "16": 4,
+        "20": 2,
+        "22": 1,
+        "26": 3
+      },
+      "case": "fault20-2",
+      "engine": "z80",
+      "fault": 904,
+      "injected_failure": true,
+      "output_bytes": 0,
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stack_bytes": 28,
+      "t_states": 51430
+    },
+    {
+      "bdos_calls": {
+        "15": 3,
+        "16": 4,
+        "20": 3,
+        "22": 1,
+        "26": 3
+      },
+      "case": "fault20-3",
+      "engine": "raw-mir2",
+      "fault": 904,
+      "injected_failure": true,
+      "output_bytes": 0,
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stack_bytes": 0,
+      "t_states": 0
+    },
+    {
+      "bdos_calls": {
+        "15": 3,
+        "16": 4,
+        "20": 3,
+        "22": 1,
+        "26": 3
+      },
+      "case": "fault20-3",
+      "engine": "final-mir2",
+      "fault": 904,
+      "injected_failure": true,
+      "output_bytes": 0,
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stack_bytes": 0,
+      "t_states": 0
+    },
+    {
+      "bdos_calls": {
+        "15": 3,
+        "16": 4,
+        "20": 3,
+        "22": 1,
+        "26": 3
+      },
+      "case": "fault20-3",
+      "engine": "z80",
+      "fault": 904,
+      "injected_failure": true,
+      "output_bytes": 0,
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stack_bytes": 28,
+      "t_states": 91358
+    },
+    {
+      "bdos_calls": {
+        "15": 3,
+        "16": 4,
+        "20": 4,
+        "21": 1,
+        "22": 1,
+        "26": 3
+      },
+      "case": "fault20-4",
+      "engine": "raw-mir2",
+      "fault": 904,
+      "injected_failure": true,
+      "output_bytes": 128,
+      "output_sha256": "f39b11e8142efeab0a462c12f1ac4bb855b5402d70b1730d795b4a12e94ae9c0",
+      "stack_bytes": 0,
+      "t_states": 0
+    },
+    {
+      "bdos_calls": {
+        "15": 3,
+        "16": 4,
+        "20": 4,
+        "21": 1,
+        "22": 1,
+        "26": 3
+      },
+      "case": "fault20-4",
+      "engine": "final-mir2",
+      "fault": 904,
+      "injected_failure": true,
+      "output_bytes": 128,
+      "output_sha256": "f39b11e8142efeab0a462c12f1ac4bb855b5402d70b1730d795b4a12e94ae9c0",
+      "stack_bytes": 0,
+      "t_states": 0
+    },
+    {
+      "bdos_calls": {
+        "15": 3,
+        "16": 4,
+        "20": 4,
+        "21": 1,
+        "22": 1,
+        "26": 3
+      },
+      "case": "fault20-4",
+      "engine": "z80",
+      "fault": 904,
+      "injected_failure": true,
+      "output_bytes": 128,
+      "output_sha256": "f39b11e8142efeab0a462c12f1ac4bb855b5402d70b1730d795b4a12e94ae9c0",
+      "stack_bytes": 28,
+      "t_states": 880044
+    },
+    {
+      "bdos_calls": {
+        "15": 3,
+        "16": 4,
+        "20": 100,
+        "21": 98,
+        "22": 1,
+        "26": 3
+      },
+      "case": "fault20-100",
+      "engine": "raw-mir2",
+      "fault": 904,
+      "injected_failure": true,
+      "output_bytes": 12544,
+      "output_sha256": "0c080063fbb63511700793d2bd7c2c0fe3b1fd046dda7ef92bece524803bb7ad",
+      "stack_bytes": 0,
+      "t_states": 0
+    },
+    {
+      "bdos_calls": {
+        "15": 3,
+        "16": 4,
+        "20": 100,
+        "21": 98,
+        "22": 1,
+        "26": 3
+      },
+      "case": "fault20-100",
+      "engine": "final-mir2",
+      "fault": 904,
+      "injected_failure": true,
+      "output_bytes": 12544,
+      "output_sha256": "0c080063fbb63511700793d2bd7c2c0fe3b1fd046dda7ef92bece524803bb7ad",
+      "stack_bytes": 0,
+      "t_states": 0
+    },
+    {
+      "bdos_calls": {
+        "15": 3,
+        "16": 4,
+        "20": 100,
+        "21": 98,
+        "22": 1,
+        "26": 3
+      },
+      "case": "fault20-100",
+      "engine": "z80",
+      "fault": 904,
+      "injected_failure": true,
+      "output_bytes": 12544,
+      "output_sha256": "0c080063fbb63511700793d2bd7c2c0fe3b1fd046dda7ef92bece524803bb7ad",
+      "stack_bytes": 28,
+      "t_states": 62527474
+    },
+    {
+      "bdos_calls": {
+        "15": 3,
+        "16": 4,
+        "20": 3,
+        "21": 1,
+        "22": 1,
+        "26": 3
+      },
+      "case": "fault21-1",
+      "engine": "raw-mir2",
+      "fault": 902,
+      "injected_failure": true,
+      "output_bytes": 0,
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stack_bytes": 0,
+      "t_states": 0
+    },
+    {
+      "bdos_calls": {
+        "15": 3,
+        "16": 4,
+        "20": 3,
+        "21": 1,
+        "22": 1,
+        "26": 3
+      },
+      "case": "fault21-1",
+      "engine": "final-mir2",
+      "fault": 902,
+      "injected_failure": true,
+      "output_bytes": 0,
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stack_bytes": 0,
+      "t_states": 0
+    },
+    {
+      "bdos_calls": {
+        "15": 3,
+        "16": 4,
+        "20": 3,
+        "21": 1,
+        "22": 1,
+        "26": 3
+      },
+      "case": "fault21-1",
+      "engine": "z80",
+      "fault": 902,
+      "injected_failure": true,
+      "output_bytes": 0,
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stack_bytes": 28,
+      "t_states": 682998
+    },
+    {
+      "bdos_calls": {
+        "15": 3,
+        "16": 4,
+        "20": 4,
+        "21": 2,
+        "22": 1,
+        "26": 3
+      },
+      "case": "fault21-2",
+      "engine": "raw-mir2",
+      "fault": 902,
+      "injected_failure": true,
+      "output_bytes": 128,
+      "output_sha256": "f39b11e8142efeab0a462c12f1ac4bb855b5402d70b1730d795b4a12e94ae9c0",
+      "stack_bytes": 0,
+      "t_states": 0
+    },
+    {
+      "bdos_calls": {
+        "15": 3,
+        "16": 4,
+        "20": 4,
+        "21": 2,
+        "22": 1,
+        "26": 3
+      },
+      "case": "fault21-2",
+      "engine": "final-mir2",
+      "fault": 902,
+      "injected_failure": true,
+      "output_bytes": 128,
+      "output_sha256": "f39b11e8142efeab0a462c12f1ac4bb855b5402d70b1730d795b4a12e94ae9c0",
+      "stack_bytes": 0,
+      "t_states": 0
+    },
+    {
+      "bdos_calls": {
+        "15": 3,
+        "16": 4,
+        "20": 4,
+        "21": 2,
+        "22": 1,
+        "26": 3
+      },
+      "case": "fault21-2",
+      "engine": "z80",
+      "fault": 902,
+      "injected_failure": true,
+      "output_bytes": 128,
+      "output_sha256": "f39b11e8142efeab0a462c12f1ac4bb855b5402d70b1730d795b4a12e94ae9c0",
+      "stack_bytes": 28,
+      "t_states": 1319125
+    },
+    {
+      "bdos_calls": {
+        "15": 3,
+        "16": 4,
+        "20": 34,
+        "21": 33,
+        "22": 1,
+        "26": 3
+      },
+      "case": "fault21-33",
+      "engine": "raw-mir2",
+      "fault": 902,
+      "injected_failure": true,
+      "output_bytes": 4096,
+      "output_sha256": "74c71dc11c6442b3b849922fe4079f023f726d5ca4b74a4a9e8f1fb2d95d25e1",
+      "stack_bytes": 0,
+      "t_states": 0
+    },
+    {
+      "bdos_calls": {
+        "15": 3,
+        "16": 4,
+        "20": 34,
+        "21": 33,
+        "22": 1,
+        "26": 3
+      },
+      "case": "fault21-33",
+      "engine": "final-mir2",
+      "fault": 902,
+      "injected_failure": true,
+      "output_bytes": 4096,
+      "output_sha256": "74c71dc11c6442b3b849922fe4079f023f726d5ca4b74a4a9e8f1fb2d95d25e1",
+      "stack_bytes": 0,
+      "t_states": 0
+    },
+    {
+      "bdos_calls": {
+        "15": 3,
+        "16": 4,
+        "20": 34,
+        "21": 33,
+        "22": 1,
+        "26": 3
+      },
+      "case": "fault21-33",
+      "engine": "z80",
+      "fault": 902,
+      "injected_failure": true,
+      "output_bytes": 4096,
+      "output_sha256": "74c71dc11c6442b3b849922fe4079f023f726d5ca4b74a4a9e8f1fb2d95d25e1",
+      "stack_bytes": 28,
+      "t_states": 21041007
+    },
+    {
+      "bdos_calls": {
+        "15": 3,
+        "16": 4,
+        "20": 1290,
+        "21": 1287,
+        "22": 1,
+        "26": 3
+      },
+      "case": "fault16-1",
+      "engine": "raw-mir2",
+      "fault": 906,
+      "injected_failure": true,
+      "output_bytes": 164736,
+      "output_sha256": "d63f93c7dcbdf7b03825a8399e331216e3b3e7a6180edbc3b62c1143d366b8e6",
+      "stack_bytes": 0,
+      "t_states": 0
+    },
+    {
+      "bdos_calls": {
+        "15": 3,
+        "16": 4,
+        "20": 1290,
+        "21": 1287,
+        "22": 1,
+        "26": 3
+      },
+      "case": "fault16-1",
+      "engine": "final-mir2",
+      "fault": 906,
+      "injected_failure": true,
+      "output_bytes": 164736,
+      "output_sha256": "d63f93c7dcbdf7b03825a8399e331216e3b3e7a6180edbc3b62c1143d366b8e6",
+      "stack_bytes": 0,
+      "t_states": 0
+    },
+    {
+      "bdos_calls": {
+        "15": 3,
+        "16": 4,
+        "20": 1290,
+        "21": 1287,
+        "22": 1,
+        "26": 3
+      },
+      "case": "fault16-1",
+      "engine": "z80",
+      "fault": 906,
+      "injected_failure": true,
+      "output_bytes": 164736,
+      "output_sha256": "d63f93c7dcbdf7b03825a8399e331216e3b3e7a6180edbc3b62c1143d366b8e6",
+      "stack_bytes": 28,
+      "t_states": 872600240
+    },
+    {
+      "bdos_calls": {
+        "15": 3,
+        "16": 4,
+        "20": 1290,
+        "21": 1287,
+        "22": 1,
+        "26": 3
+      },
+      "case": "fault16-2",
+      "engine": "raw-mir2",
+      "fault": 906,
+      "injected_failure": true,
+      "output_bytes": 164736,
+      "output_sha256": "d63f93c7dcbdf7b03825a8399e331216e3b3e7a6180edbc3b62c1143d366b8e6",
+      "stack_bytes": 0,
+      "t_states": 0
+    },
+    {
+      "bdos_calls": {
+        "15": 3,
+        "16": 4,
+        "20": 1290,
+        "21": 1287,
+        "22": 1,
+        "26": 3
+      },
+      "case": "fault16-2",
+      "engine": "final-mir2",
+      "fault": 906,
+      "injected_failure": true,
+      "output_bytes": 164736,
+      "output_sha256": "d63f93c7dcbdf7b03825a8399e331216e3b3e7a6180edbc3b62c1143d366b8e6",
+      "stack_bytes": 0,
+      "t_states": 0
+    },
+    {
+      "bdos_calls": {
+        "15": 3,
+        "16": 4,
+        "20": 1290,
+        "21": 1287,
+        "22": 1,
+        "26": 3
+      },
+      "case": "fault16-2",
+      "engine": "z80",
+      "fault": 906,
+      "injected_failure": true,
+      "output_bytes": 164736,
+      "output_sha256": "d63f93c7dcbdf7b03825a8399e331216e3b3e7a6180edbc3b62c1143d366b8e6",
+      "stack_bytes": 28,
+      "t_states": 872600240
+    },
+    {
+      "bdos_calls": {
+        "15": 3,
+        "16": 4,
+        "20": 1290,
+        "21": 1287,
+        "22": 1,
+        "26": 3
+      },
+      "case": "fault16-3",
+      "engine": "raw-mir2",
+      "fault": 906,
+      "injected_failure": true,
+      "output_bytes": 164736,
+      "output_sha256": "d63f93c7dcbdf7b03825a8399e331216e3b3e7a6180edbc3b62c1143d366b8e6",
+      "stack_bytes": 0,
+      "t_states": 0
+    },
+    {
+      "bdos_calls": {
+        "15": 3,
+        "16": 4,
+        "20": 1290,
+        "21": 1287,
+        "22": 1,
+        "26": 3
+      },
+      "case": "fault16-3",
+      "engine": "final-mir2",
+      "fault": 906,
+      "injected_failure": true,
+      "output_bytes": 164736,
+      "output_sha256": "d63f93c7dcbdf7b03825a8399e331216e3b3e7a6180edbc3b62c1143d366b8e6",
+      "stack_bytes": 0,
+      "t_states": 0
+    },
+    {
+      "bdos_calls": {
+        "15": 3,
+        "16": 4,
+        "20": 1290,
+        "21": 1287,
+        "22": 1,
+        "26": 3
+      },
+      "case": "fault16-3",
+      "engine": "z80",
+      "fault": 906,
+      "injected_failure": true,
+      "output_bytes": 164736,
+      "output_sha256": "d63f93c7dcbdf7b03825a8399e331216e3b3e7a6180edbc3b62c1143d366b8e6",
+      "stack_bytes": 28,
+      "t_states": 872600240
+    },
+    {
+      "bdos_calls": {
+        "15": 3,
+        "16": 4,
+        "20": 1290,
+        "21": 1287,
+        "22": 1,
+        "26": 3
+      },
+      "case": "fault16-4",
+      "engine": "raw-mir2",
+      "fault": 903,
+      "injected_failure": true,
+      "output_bytes": 164736,
+      "output_sha256": "d63f93c7dcbdf7b03825a8399e331216e3b3e7a6180edbc3b62c1143d366b8e6",
+      "stack_bytes": 0,
+      "t_states": 0
+    },
+    {
+      "bdos_calls": {
+        "15": 3,
+        "16": 4,
+        "20": 1290,
+        "21": 1287,
+        "22": 1,
+        "26": 3
+      },
+      "case": "fault16-4",
+      "engine": "final-mir2",
+      "fault": 903,
+      "injected_failure": true,
+      "output_bytes": 164736,
+      "output_sha256": "d63f93c7dcbdf7b03825a8399e331216e3b3e7a6180edbc3b62c1143d366b8e6",
+      "stack_bytes": 0,
+      "t_states": 0
+    },
+    {
+      "bdos_calls": {
+        "15": 3,
+        "16": 4,
+        "20": 1290,
+        "21": 1287,
+        "22": 1,
+        "26": 3
+      },
+      "case": "fault16-4",
+      "engine": "z80",
+      "fault": 903,
+      "injected_failure": true,
+      "output_bytes": 164736,
+      "output_sha256": "d63f93c7dcbdf7b03825a8399e331216e3b3e7a6180edbc3b62c1143d366b8e6",
+      "stack_bytes": 28,
+      "t_states": 872600232
+    }
+  ],
+  "code_bytes": 2906,
+  "globals_bytes": 848,
+  "image_bytes": 3843,
+  "input_sha256": "943c45a8b5f5d98c18c5fd2adbceb4597ce81eb29e30cbf140df0473d52b052b",
+  "protocol": "autosiril-owned-cursors/v1",
+  "scope": "three owned CP/M cursors, shared DMA, byte interleave only; no native downmix or physical OS bootstrap claim",
+  "source_sha256": "1d6ad3460975bb14349b41c529325af12e32c59646de18b499c193e1cfc74d5a",
+  "spill_bytes": 89,
+  "runner_source_sha256": {
+    "research/autosiril-native/mix/cursors-cpm.nanz": "08645dd5fe361f3aa24d3cefa2bffcb9d55ad15f6ab04344a302695291c12011",
+    "research/autosiril-native/mix/cursor-probe.nanz": "1f3a8dd14c6d99bb7002d8234c51200c50adcf35c3f18c7ac9bd7a47d892ee7c",
+    "research/autosiril-native/mix/cursor-driver.go.txt": "ab7459edece23ca8080970cd7bfb981279fa37bb56ddfc294bbc075117772043",
+    "research/autosiril-native/mix/prove_cursors.py": "3941191eb069c5389a8d07e7334068e018adbfc34b93c6d3442ec1a27be29986"
+  },
+  "generated_driver_sha256": "1e240bd4482de9d962e4efbc21e88c2b42c271b4320af24d56178b98e7411d41",
+  "shared_adapter_composition_sha256": "7043364562d75c255f9ddcb65b689a5bf4947d8acdc9db6fe075483c9fda8e81",
+  "compiler_base_commit": "b00faa93a1d3ec5e9fb909420b979d44b58f0e53"
+}

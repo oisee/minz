@@ -1,0 +1,39 @@
+// Transport proof only: byte-interleave three inputs into one CURSORS.BIN.
+// Unequal bursts force the three file positions and unread buffers apart.
+// No mix/format parser is provided by this entry point.
+global probe_bursts:[u8;3] = [1,7,31]
+fun disk_main()->u16 {
+    fault = 0
+    var handle:u8 = 0
+    while handle < 3 && fault == 0 {
+        if cursor_open(handle) != 0 { fault = 900 }
+        handle = handle + 1
+    }
+    if fault == 0 {
+        if sink_open() != 0 { fault = 901 }
+    }
+    var done:u8 = 0
+    while done < 3 && fault == 0 {
+        handle = 0
+        while handle < 3 && fault == 0 {
+            var burst:u8 = 0
+            while burst < probe_bursts[handle] && input_done[handle] == 0 && fault == 0 {
+                let result:u32 = cursor_get(handle)
+                let status:u16 = u16(result >> 16)
+                if status == 1 {
+                    input_done[handle] = 1
+                    done = done + 1
+                } else {
+                    if status != 0 { fault = 904 } else {
+                        sink_put(u8(result))
+                    }
+                }
+                burst = burst + 1
+            }
+            handle = handle + 1
+        }
+    }
+    if fault == 0 { sink_flush() }
+    cursors_cleanup()
+    return fault
+}
