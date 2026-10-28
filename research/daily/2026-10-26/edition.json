@@ -3,7 +3,7 @@
   "date": "2026-10-27",
   "date_label": "26–27 октября 2026",
   "snapshot": "b58fba0c626fd0c82f42dbd6356d56887b4849b0",
-  "status": "Пять native стадий Autosiril в main после PR #270: pairing, flatten, arrangement, echo, downmix. Fresh/frozen CI и скачанные артефакты проверены. Полного MIDI → VT2/VTX пока нет.",
+  "status": "Пять native стадий Autosiril в main (PR #270) и каноничный профиль max_offset 6 через настоящую цепочку CP/M (PR #272). Рендер в строки трекера — draft PR #275 на CP/M и TRD. Полного MIDI → VT2/VTX пока нет.",
   "chapters": [
     {
       "slug": "01-languages-and-ideas",
@@ -28,6 +28,30 @@
       "title": "Четыре строки для мелодии",
       "deck": "Пятая стадия Autosiril: downmix, bounded fold, owned cursors и два разных конца песни.",
       "snapshot": "b58fba0c626fd0c82f42dbd6356d56887b4849b0"
+    },
+    {
+      "slug": "05-two-pages-for-one-song",
+      "title": "Две страницы для одной песни",
+      "deck": "Шестая стадия: рендер в строки трекера, пять дыр приёмки, четыре COM подряд и песня длиннее файла TR-DOS.",
+      "snapshot": "8ebc0de2eed818c03e702cf81e2e3b455caf3f9e"
+    },
+    {
+      "slug": "06-two-compilers-one-repository",
+      "title": "Два компилятора в одном репозитории",
+      "deck": "Две сессии Claude, воркеры и человек делят один main: зоны, очередь, свежесть доказательств и «падающий тест ≠ баг».",
+      "snapshot": "8ebc0de2eed818c03e702cf81e2e3b455caf3f9e"
+    },
+    {
+      "slug": "07-failure-at-sector-27",
+      "title": "Сбой на 27-м секторе",
+      "deck": "Отказ на каждом обращении к диску, неатомарная публикация TR-DOS, схема в три записи и что взять у журналирующих ФС и Erlang.",
+      "snapshot": "8ebc0de2eed818c03e702cf81e2e3b455caf3f9e"
+    },
+    {
+      "slug": "08-last-mile-of-fusion",
+      "title": "Последняя миля fusion",
+      "deck": "Глава сессии minz: почему слитый цикл вдвое медленнее SDCC, анатомия одной итерации, F4 и отрицательный контроль.",
+      "snapshot": "8ebc0de2eed818c03e702cf81e2e3b455caf3f9e"
     }
   ]
 }

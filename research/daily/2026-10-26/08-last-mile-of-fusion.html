@@ -1,0 +1,489 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"><title>Последняя миля fusion · MinZ</title><style>:root{--ink:#233b40;--muted:#617575;--paper:#fffdf8;--line:#dce5dc;--green:#245e48;--mint:#dcefe2;--sand:#f6ecd9;--blue:#e5ebf8}*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:85px}body{margin:0;background:#f2f0e8;color:var(--ink);font:18px/1.75 Georgia,"Times New Roman",serif}a{color:var(--green);text-underline-offset:4px;text-decoration-thickness:1px}a:hover{color:#a35e38}button,input{font:inherit}button{cursor:pointer}header.sitebar{position:sticky;top:0;z-index:5;background:#fffdf8ed;backdrop-filter:blur(12px);border-bottom:1px solid var(--line);padding:12px 5vw;display:flex;align-items:center;justify-content:space-between;gap:18px;font:14px/1.4 system-ui,sans-serif}.brand{font-weight:800;letter-spacing:.07em;text-decoration:none}.sitebar nav{display:flex;gap:18px;flex-wrap:wrap}.sitebar nav a{text-decoration:none}.progress{height:3px;position:fixed;left:0;top:0;background:#3f9a6e;z-index:8;width:0}.hero{max-width:1280px;margin:0 auto;padding:64px 40px 42px}.eyebrow{font:700 13px/1.4 system-ui,sans-serif;text-transform:uppercase;letter-spacing:.18em;color:#537a67}.hero h1{font:750 clamp(35px,4.4vw,65px)/1.11 system-ui,sans-serif;letter-spacing:-.045em;max-width:1100px;margin:18px 0 26px}.hero p{max-width:840px;font-size:22px;color:#536c6c}.meta{display:flex;gap:12px;flex-wrap:wrap;margin-top:24px;font:13px/1.5 system-ui,sans-serif}.pill{background:var(--mint);border:1px solid #bbd6c1;border-radius:30px;padding:6px 13px}.pill.cream{background:var(--sand);border-color:#e4d1b2}.layout{max-width:1280px;margin:auto;display:grid;grid-template-columns:245px minmax(0,1fr);gap:38px;padding:0 40px 70px}.toc{align-self:start;position:sticky;top:90px;max-height:calc(100vh - 110px);overflow:auto;font:13px/1.5 system-ui,sans-serif;padding:20px 16px 20px 0}.toc strong{display:block;margin-bottom:14px;font-size:12px;letter-spacing:.12em;text-transform:uppercase}.toc a{display:block;text-decoration:none;margin:0 0 12px;color:#60736d}.toc a:hover{color:#123a28}.toc .sub{padding-left:14px;font-size:12px}article{min-width:0;background:var(--paper);border:1px solid var(--line);border-radius:20px;padding:38px clamp(24px,4vw,58px);box-shadow:0 9px 35px #233b4005}article p{margin:0 0 1.2em}article h2{font:730 28px/1.28 system-ui,sans-serif;letter-spacing:-.025em;margin:2em 0 .85em}article h3{font:720 21px/1.35 system-ui,sans-serif;margin:1.7em 0 .8em}article h2:first-child{margin-top:0}article ul,article ol{padding-left:1.3em}article li{margin:.55em 0}article img{display:block;max-width:100%;height:auto;border-radius:12px;margin:1.7em auto}article blockquote{margin:1.5em 0;padding:16px 24px;border-left:4px solid #78aa8b;background:#edf4ec;font-style:italic}code{font:14px/1.6 ui-monospace,SFMono-Regular,Consolas,monospace;background:#eaf0e9;border-radius:4px;padding:2px 5px;overflow-wrap:anywhere}pre{background:#163139;color:#e2f0e7;padding:23px;border-radius:12px;overflow:auto;line-height:1.6;font-size:14px;margin:1.7em 0}pre code{background:none;padding:0;color:inherit;white-space:pre;overflow-wrap:normal}pre.sourceCode{background:#163139}code span.kw,code span.cf{color:#a4d9c0}code span.st,code span.ch{color:#edcb92}code span.dv,code span.bn{color:#eaa18c}code span.co{color:#98b2b2}table{border-collapse:collapse;width:100%;font:14px/1.55 system-ui,sans-serif;margin:1.8em 0;display:block;overflow:auto}th,td{text-align:left;padding:13px 14px;border-bottom:1px solid var(--line);vertical-align:top}thead{background:#e5efe3}tbody tr:nth-child(even){background:#f5f5ed}.diagram{margin:28px -12px;border:1px solid var(--line);border-radius:14px;background:#f8faf5;padding:15px}.diagram-viewport{overflow-x:auto;padding:12px 6px}.diagram-viewport img{max-width:none;margin:0 auto;border-radius:0}.diagram figcaption{font:12px/1.5 system-ui,sans-serif;color:var(--muted);margin-top:12px}.diagram details{font:12px/1.5 system-ui,sans-serif;margin-top:12px}.diagram summary{cursor:pointer;color:var(--green)}.diagram pre{font-size:12px;margin-bottom:0}footer{max-width:1280px;margin:auto;padding:0 40px 45px;color:var(--muted);font:13px/1.65 system-ui,sans-serif}.next{border-top:1px solid var(--line);padding-top:24px;margin-top:35px;font:16px/1.6 system-ui,sans-serif}.cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px;margin:30px 0}.card{display:flex;flex-direction:column;align-items:flex-start;gap:16px;padding:30px;border-radius:18px;border:1px solid #cbded0;background:#e2efe2;text-decoration:none;color:var(--ink)}.card:nth-child(2){background:#f4e9d5;border-color:#e5d7bd}.card:nth-child(3){background:#e6ebf6;border-color:#ccd5e8}.card .num{font:700 14px/1.3 system-ui,sans-serif;letter-spacing:.12em}.card h2{font:750 26px/1.25 system-ui,sans-serif;margin:0;letter-spacing:-.025em}.card p{font-size:17px;line-height:1.6;margin:0}.card .read{margin-top:auto;font:700 14px/1.5 system-ui,sans-serif}.index-content{max-width:1280px;padding:0 40px 65px;margin:auto}.index-cover{width:100%;height:auto;border-radius:20px}.status{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;font:15px/1.6 system-ui,sans-serif;margin-top:25px}.status>div{padding:24px;background:var(--paper);border:1px solid var(--line);border-radius:14px}.status strong{display:block;margin-bottom:10px}.status small{color:var(--muted)}.playground{margin:35px 0;padding:24px;background:#edf4e9;border:1px solid #b8d0b7;border-radius:16px;font:15px/1.6 system-ui,sans-serif}.playground h3{margin:0 0 10px}.controls{display:grid;grid-template-columns:1fr 110px;gap:14px;margin:18px 0}.controls label{display:flex;flex-direction:column;gap:6px;font-size:13px}.controls input{min-width:0;width:100%;padding:10px;border:1px solid #a9bfa8;border-radius:8px;background:#fffdf8;font:14px/1.5 ui-monospace,monospace}.playground button{padding:9px 17px;border:0;border-radius:8px;color:white;background:#2c654b;font:700 14px/1.5 system-ui,sans-serif}.runs{display:flex;gap:8px;flex-wrap:wrap;margin:20px 0}.run{padding:9px 14px;border:1px dashed #94a59d;border-radius:8px;background:#eef0ec;color:#7e8d87}.run.read{background:#c7e5ce;border-style:solid;color:#244d33}.output{font:16px/1.65 ui-monospace,monospace;overflow-wrap:anywhere;min-height:32px}.notice{font:12px/1.6 system-ui,sans-serif;color:var(--muted)}.error{color:#a23c2e}.model-stats{display:flex;gap:12px;flex-wrap:wrap;margin:15px 0}.model-stats span{background:white;border:1px solid #c6d5c3;border-radius:20px;padding:5px 10px}
+@media(max-width:1000px){.layout{grid-template-columns:minmax(0,1fr);max-width:900px}.toc{position:static;max-height:none;display:none}.hero{max-width:900px;padding-top:42px}.hero h1{font-size:43px}.cards{grid-template-columns:1fr}.card{padding:26px}.status{grid-template-columns:1fr}.card h2{font-size:27px}}
+@media(max-width:600px){body{font-size:17px;line-height:1.75}.sitebar{padding:12px 20px}.sitebar nav{gap:12px;font-size:12px}.hero{padding:32px 20px 27px}.hero h1{font-size:33px;letter-spacing:-.035em}.hero p{font-size:19px}.layout{padding:0 12px 45px}.layout article{padding:23px 20px;border-radius:15px}article h2{font-size:25px}pre{margin:22px -8px;padding:17px;font-size:12px}.diagram{margin:25px -10px;padding:10px}.diagram-viewport{padding:10px 0}footer{padding:0 24px 32px}.index-content{padding:0 20px 40px}.controls{grid-template-columns:1fr}.cards{gap:15px}.playground{padding:18px}}
+@media print{body{background:white;font-size:11pt}.sitebar,.toc,.progress,.playground,.next{display:none}.layout{display:block;padding:0}.hero{padding:0 0 20px}.hero h1{font-size:28pt}article{border:0;box-shadow:none;padding:0}.diagram{break-inside:avoid}.diagram-viewport{overflow:visible}.diagram-viewport img{max-width:100%!important;width:100%!important}.diagram details{display:none}a{color:inherit}pre{white-space:pre-wrap;color:#17313b;background:#f1f4ee}footer{padding:20px 0}}
+</style></head><body><div class="progress" aria-hidden="true"></div><header class="sitebar"><a class="brand" href="index.html">MinZ / Дневник</a><nav><a href="01-languages-and-ideas.html">Языки</a><a href="02-melody-between-two-files.html">Музыка</a><a href="03-borrowing-without-a-runtime.html">Экосистемы</a><a href="04-four-rows-for-a-melody.html">Downmix</a><a href="https://github.com/oisee/minz">GitHub</a></nav></header><div class="hero"><div class="eyebrow">День компилятора · Глава 08</div><h1>Последняя миля fusion</h1><p>Глава сессии minz: почему слитый цикл вдвое медленнее SDCC, анатомия одной итерации, F4 и отрицательный контроль.</p><div class="meta"><span class="pill">≈ 12 мин</span><span class="pill cream">1 Mermaid-схем</span><span class="pill">Ruby · Crystal · Nanz · Z80</span></div></div><main class="layout"><aside class="toc" aria-label="Содержание"><strong>В этой главе</strong><a class="" href="#как-мы-считаем">Как мы считаем</a><a class="" href="#анатомия-одной-итерации">Анатомия одной итерации</a><a class="" href="#откуда-берутся-потери">Откуда берутся потери</a><a class="sub" href="#f1-лямбду-встроили-но-не-везде">F1. Лямбду встроили, но не
+везде</a><a class="sub" href="#f3-цикл-не-знает-что-k-не-меняется">F3. Цикл не знает, что k не
+меняется</a><a class="sub" href="#f5-callback-из-нескольких-блоков">F5. Callback из нескольких
+блоков</a><a class="sub" href="#f6-регистры-занятые-константами">F6. Регистры, занятые
+константами</a><a class="" href="#f4-первый-закрытый-шаг">F4: первый закрытый шаг</a><a class="" href="#тест-который-проверяет-что-оптимизация-не-сработала">Тест,
+который проверяет, что оптимизация не сработала</a><a class="" href="#дальше-таблица-вместо-цикла">Дальше: таблица вместо цикла</a><a class="" href="#хватит-ли-этого">Хватит ли этого</a><a class="" href="#почему-последняя-миля">Почему «последняя миля»</a></aside><article><p><em>Слияние цепочки итераторов в один цикл у MinZ работает. Почему
+тогда цикл вдвое медленнее, чем у SDCC, который сливать цепочки не
+умеет, и как это лечится по одному такту.</em></p>
+<blockquote>
+<p><strong>Статус на вечер 27 октября 2026.</strong> <strong>В
+main:</strong> анализ F0 (отчёт воркера, не PR). Ни одна правка цели F
+ещё не слита. <strong>Позже слит:</strong> F4, <a
+href="https://github.com/oisee/minz/pull/277">#277</a>, умножение за 8
+итераций, как <code>ae1047f12</code>. Цифры ниже измерены на его ветке
+против origin/main одинаковыми прогонами. <strong>У воркера:</strong>
+F1. <strong>Запланировано:</strong> F4b, F3, F5, F6. «Прогноз» в этой
+главе означает расчёт F0 по уже измеренным циклам, а не результат.</p>
+</blockquote>
+<p>В главе 02, «Мелодия между двумя файлами», речь шла о fusion
+генераторов: производитель встраивается прямо в цикл потребителя.
+Цепочки итераторов вида
+<code>source.filter(...).map(...).fold(...)</code> Nanz сливает в один
+цикл без промежуточных массивов уже давно. На fusion-наборе Nanz идёт
+вровень с MinZ C, где тот же цикл написан руками. Цепочка исчезает.</p>
+<p>Но 22 октября мы впервые поставили рядом SDCC 4.6 и ручной ассемблер
+(<a href="https://github.com/oisee/minz/pull/246">PR #246</a>, отчёт <a
+href="https://github.com/oisee/minz/blob/8ebc0de2eed818c03e702cf81e2e3b455caf3f9e/reports/2026-10-22-f1-fusion-suite.md"><code>reports/2026-10-22-f1-fusion-suite.md</code></a>),
+и картина вышла неприятной. SDCC, который ничего не сливает, а просто
+честно компилирует цикл на C, оказался вдвое быстрее. Ручной код быстрее
+почти вчетверо.</p>
+<h2 id="как-мы-считаем">Как мы считаем</h2>
+<p>Набор — восемь программ из
+<code>research/c89-benchmark/fusion</code>. Каждая есть в трёх видах:
+идиоматичный Nanz с цепочками, C для SDCC и MinZ C, и ручной Z80. Каждая
+гоняется в эмуляторе на одних и тех же замороженных входах. Считаются
+суммарные такты всей работы, а не одного вызова. Для SDCC берётся лучший
+из его профилей отдельно по каждому кейсу. Цель F формулируется так:
+Nanz не медленнее лучшего SDCC и не больше чем вдвое медленнее ручного
+кода.</p>
+<table>
+<thead>
+<tr>
+<th>Кейс</th>
+<th style="text-align: right;">Nanz, T</th>
+<th style="text-align: right;">SDCC, T</th>
+<th style="text-align: right;">ручной, T</th>
+<th style="text-align: right;">Nanz / SDCC</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>dot_product</td>
+<td style="text-align: right;">8 028 801</td>
+<td style="text-align: right;">2 834 057</td>
+<td style="text-align: right;">2 695 436</td>
+<td style="text-align: right;">2.83</td>
+</tr>
+<tr>
+<td>filter_count</td>
+<td style="text-align: right;">4 088 375</td>
+<td style="text-align: right;">1 818 220</td>
+<td style="text-align: right;">682 705</td>
+<td style="text-align: right;">2.25</td>
+</tr>
+<tr>
+<td>fold_min</td>
+<td style="text-align: right;">1 121 667</td>
+<td style="text-align: right;">558 391</td>
+<td style="text-align: right;">225 706</td>
+<td style="text-align: right;">2.01</td>
+</tr>
+<tr>
+<td>filter_map_sum</td>
+<td style="text-align: right;">1 237 724</td>
+<td style="text-align: right;">626 142</td>
+<td style="text-align: right;">280 890</td>
+<td style="text-align: right;">1.98</td>
+</tr>
+<tr>
+<td>map_filter_sum</td>
+<td style="text-align: right;">1 979 597</td>
+<td style="text-align: right;">1 014 504</td>
+<td style="text-align: right;">349 042</td>
+<td style="text-align: right;">1.95</td>
+</tr>
+<tr>
+<td>fold_max</td>
+<td style="text-align: right;">1 120 286</td>
+<td style="text-align: right;">578 293</td>
+<td style="text-align: right;">221 379</td>
+<td style="text-align: right;">1.94</td>
+</tr>
+<tr>
+<td>map_store</td>
+<td style="text-align: right;">438 350</td>
+<td style="text-align: right;">662 995</td>
+<td style="text-align: right;">230 310</td>
+<td style="text-align: right;">0.66</td>
+</tr>
+<tr>
+<td>window_sum</td>
+<td style="text-align: right;">430 573</td>
+<td style="text-align: right;">1 142 715</td>
+<td style="text-align: right;">269 353</td>
+<td style="text-align: right;">0.38</td>
+</tr>
+<tr>
+<td><strong>Итого</strong></td>
+<td style="text-align: right;"><strong>18 445 373</strong></td>
+<td style="text-align: right;"><strong>9 235 317</strong></td>
+<td style="text-align: right;"><strong>4 954 821</strong></td>
+<td style="text-align: right;"><strong>2.00</strong></td>
+</tr>
+</tbody>
+</table>
+<p><em>main до цели F. Ручной код быстрее Nanz в 3.72 раза.</em></p>
+<p>Два кейса Nanz уже выигрывает. Это важная подсказка: скелет цикла,
+который строит fusion, хороший. Шесть других проигрывают примерно
+одинаково, около 2×. Значит, дело не в одной случайной ошибке, а в
+нескольких систематических.</p>
+<h2 id="анатомия-одной-итерации">Анатомия одной итерации</h2>
+<p>Первым делом мы не стали ничего чинить. Воркер F0 получил задачу
+только смотреть: положить рядом горячий цикл Nanz, SDCC и ручного кода,
+посчитать такты каждой инструкции и разложить разницу по причинам. Вот
+одна итерация <code>fold_max</code>, поиска максимума через
+<code>.fold(0, larger)</code>, у Nanz:</p>
+<pre class="z80"><code>.execute_fe_head1:
+    LD IYH, A            ; 8  сохранить аккумулятор
+    LD A, D / OR E       ; 8  счётчик кончился?
+    LD A, IYH            ; 8  вернуть аккумулятор
+    JRS Z, .exit         ; 7
+    EX AF, AF&#39;           ; 4
+    LD A, (HL)           ; 7  элемент
+    LD IYH, A            ; 8
+    EX AF, AF&#39;           ; 4
+    PUSH BC              ; 11  здесь лежит мёртвый const 0
+    PUSH DE              ; 11
+    PUSH HL              ; 11
+    PUSH IX              ; 15  здесь лежит мёртвый const 1
+    LD B, IYH            ; 8
+    CALL larger          ; 17  внутри: CP B / RET NC ...
+    POP IX / POP HL / POP DE / POP BC   ; 44
+    INC HL / DEC DE      ; 12
+    JRS .execute_fe_head1 ; 12</code></pre>
+<p><em>fusion_fold_max, Nanz: 210–218 T на элемент. Ручной код делает то
+же за 41 T:</em></p>
+<pre class="z80"><code>loop: LD A,(HL) / INC HL / CP E / JR C,next / LD E,A
+next: DJNZ loop</code></pre>
+<p>Полезная работа здесь одна инструкция, <code>CP</code>. Всё остальное
+— расходы на то, что callback <code>larger</code> остался настоящей
+функцией. Вокруг <code>CALL</code> нужно сохранить четыре пары
+регистров, и две из них хранят константы, которые цикл давно мог бы
+подставлять прямо в инструкции. F0 сделал такой разбор для всех шести
+проигрывающих кейсов и сложил потери по причинам.</p>
+<table>
+<thead>
+<tr>
+<th>Причина (категория F0)</th>
+<th style="text-align: right;">Лишние такты на наборе</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>F3 · инвариант в цикле</td>
+<td style="text-align: right;">3.11M</td>
+</tr>
+<tr>
+<td>F4 · умножение ×16</td>
+<td style="text-align: right;">2.52M</td>
+</tr>
+<tr>
+<td>F1 · bool через память</td>
+<td style="text-align: right;">2.34M</td>
+</tr>
+<tr>
+<td>F5 · CALL в fold</td>
+<td style="text-align: right;">1.57M</td>
+</tr>
+</tbody>
+</table>
+<p><em>Для сравнения: весь разрыв Nanz − SDCC равен 9.21M T.</em></p>
+<p>Ещё одна находка оказалась отрицательной и от этого не менее
+полезной. Мы ожидали, что главная потеря в счётчике цикла: Nanz не
+ставит <code>DJNZ</code> на циклах с переменной границей. Но управление
+циклом у Nanz стоит 39 тактов, а у SDCC 45–61. Против SDCC здесь мы уже
+выигрываем. <code>DJNZ</code> нужен только для второй половины цели,
+против ручного кода. Без измерения мы начали бы не с того.</p>
+<h2 id="откуда-берутся-потери">Откуда берутся потери</h2>
+<p>Каждая категория прослежена до места в компиляторе. Вместе они
+образуют карту: на какой стадии конвейера теряется скорость.</p>
+<figure class="diagram"><div class="diagram-viewport"><img style="width:956px" src="data:image/svg+xml;base64,PHN2ZyBpZD0ibXktc3ZnIiB3aWR0aD0iMTAwJSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgY2xhc3M9ImZsb3djaGFydCIgc3R5bGU9Im1heC13aWR0aDogOTU2cHg7IGJhY2tncm91bmQtY29sb3I6IHRyYW5zcGFyZW50OyIgdmlld0JveD0iNCAzLjk5OTk5ODA5MjY1MTM2NyA5NTYgNDEyLjA1MDAxODMxMDU0NjkiIHJvbGU9ImdyYXBoaWNzLWRvY3VtZW50IGRvY3VtZW50IiBhcmlhLXJvbGVkZXNjcmlwdGlvbj0iZmxvd2NoYXJ0LXYyIj48c3R5bGU+I215LXN2Z3tmb250LWZhbWlseTpBcmlhbDtmb250LXNpemU6MTdweDtmaWxsOiMyMzNiNDA7fUBrZXlmcmFtZXMgZWRnZS1hbmltYXRpb24tZnJhbWV7ZnJvbXtzdHJva2UtZGFzaG9mZnNldDowO319QGtleWZyYW1lcyBkYXNoe3Rve3N0cm9rZS1kYXNob2Zmc2V0OjA7fX0jbXktc3ZnIC5lZGdlLWFuaW1hdGlvbi1zbG93e3N0cm9rZS1kYXNoYXJyYXk6OSw1IWltcG9ydGFudDtzdHJva2UtZGFzaG9mZnNldDo5MDA7YW5pbWF0aW9uOmRhc2ggNTBzIGxpbmVhciBpbmZpbml0ZTtzdHJva2UtbGluZWNhcDpyb3VuZDt9I215LXN2ZyAuZWRnZS1hbmltYXRpb24tZmFzdHtzdHJva2UtZGFzaGFycmF5OjksNSFpbXBvcnRhbnQ7c3Ryb2tlLWRhc2hvZmZzZXQ6OTAwO2FuaW1hdGlvbjpkYXNoIDIwcyBsaW5lYXIgaW5maW5pdGU7c3Ryb2tlLWxpbmVjYXA6cm91bmQ7fSNteS1zdmcgLmVycm9yLWljb257ZmlsbDojZTVlYmY3O30jbXktc3ZnIC5lcnJvci10ZXh0e2ZpbGw6IzFhMTQwODtzdHJva2U6IzFhMTQwODt9I215LXN2ZyAuZWRnZS10aGlja25lc3Mtbm9ybWFse3N0cm9rZS13aWR0aDoxcHg7fSNteS1zdmcgLmVkZ2UtdGhpY2tuZXNzLXRoaWNre3N0cm9rZS13aWR0aDozLjVweDt9I215LXN2ZyAuZWRnZS1wYXR0ZXJuLXNvbGlke3N0cm9rZS1kYXNoYXJyYXk6MDt9I215LXN2ZyAuZWRnZS10aGlja25lc3MtaW52aXNpYmxle3N0cm9rZS13aWR0aDowO2ZpbGw6bm9uZTt9I215LXN2ZyAuZWRnZS1wYXR0ZXJuLWRhc2hlZHtzdHJva2UtZGFzaGFycmF5OjM7fSNteS1zdmcgLmVkZ2UtcGF0dGVybi1kb3R0ZWR7c3Ryb2tlLWRhc2hhcnJheToyO30jbXktc3ZnIC5tYXJrZXJ7ZmlsbDojNjA3Zjc4O3N0cm9rZTojNjA3Zjc4O30jbXktc3ZnIC5tYXJrZXIuY3Jvc3N7c3Ryb2tlOiM2MDdmNzg7fSNteS1zdmcgc3Zne2ZvbnQtZmFtaWx5OkFyaWFsO2ZvbnQtc2l6ZToxN3B4O30jbXktc3ZnIHB7bWFyZ2luOjA7fSNteS1zdmcgLmxhYmVse2ZvbnQtZmFtaWx5OkFyaWFsO2NvbG9yOiMyMzNiNDA7fSNteS1zdmcgLmNsdXN0ZXItbGFiZWwgdGV4dHtmaWxsOiMxYTE0MDg7fSNteS1zdmcgLmNsdXN0ZXItbGFiZWwgc3Bhbntjb2xvcjojMWExNDA4O30jbXktc3ZnIC5jbHVzdGVyLWxhYmVsIHNwYW4gcHtiYWNrZ3JvdW5kLWNvbG9yOnRyYW5zcGFyZW50O30jbXktc3ZnIC5sYWJlbCB0ZXh0LCNteS1zdmcgc3BhbntmaWxsOiMyMzNiNDA7Y29sb3I6IzIzM2I0MDt9I215LXN2ZyAubm9kZSByZWN0LCNteS1zdmcgLm5vZGUgY2lyY2xlLCNteS1zdmcgLm5vZGUgZWxsaXBzZSwjbXktc3ZnIC5ub2RlIHBvbHlnb24sI215LXN2ZyAubm9kZSBwYXRoe2ZpbGw6I2UwZWZlMztzdHJva2U6IzVjODY3MjtzdHJva2Utd2lkdGg6MXB4O30jbXktc3ZnIC5yb3VnaC1ub2RlIC5sYWJlbCB0ZXh0LCNteS1zdmcgLm5vZGUgLmxhYmVsIHRleHQsI215LXN2ZyAuaW1hZ2Utc2hhcGUgLmxhYmVsLCNteS1zdmcgLmljb24tc2hhcGUgLmxhYmVse3RleHQtYW5jaG9yOm1pZGRsZTt9I215LXN2ZyAubm9kZSAua2F0ZXggcGF0aHtmaWxsOiMwMDA7c3Ryb2tlOiMwMDA7c3Ryb2tlLXdpZHRoOjFweDt9I215LXN2ZyAucm91Z2gtbm9kZSAubGFiZWwsI215LXN2ZyAubm9kZSAubGFiZWwsI215LXN2ZyAuaW1hZ2Utc2hhcGUgLmxhYmVsLCNteS1zdmcgLmljb24tc2hhcGUgLmxhYmVse3RleHQtYWxpZ246Y2VudGVyO30jbXktc3ZnIC5ub2RlLmNsaWNrYWJsZXtjdXJzb3I6cG9pbnRlcjt9I215LXN2ZyAucm9vdCAuYW5jaG9yIHBhdGh7ZmlsbDojNjA3Zjc4IWltcG9ydGFudDtzdHJva2Utd2lkdGg6MDtzdHJva2U6IzYwN2Y3ODt9I215LXN2ZyAuYXJyb3doZWFkUGF0aHtmaWxsOiMwYjBiMGI7fSNteS1zdmcgLmVkZ2VQYXRocyAucGF0aHtzdHJva2U6IzYwN2Y3ODtzdHJva2Utd2lkdGg6MXB4O30jbXktc3ZnIC5mbG93Y2hhcnQtbGlua3tzdHJva2U6IzYwN2Y3ODtmaWxsOm5vbmU7fSNteS1zdmcgLmVkZ2VMYWJlbHtiYWNrZ3JvdW5kLWNvbG9yOiNmNmVjZDg7dGV4dC1hbGlnbjpjZW50ZXI7fSNteS1zdmcgLmVkZ2VMYWJlbCBwe2JhY2tncm91bmQtY29sb3I6I2Y2ZWNkODt9I215LXN2ZyAuZWRnZUxhYmVsIHJlY3R7b3BhY2l0eTowLjU7YmFja2dyb3VuZC1jb2xvcjojZjZlY2Q4O2ZpbGw6I2Y2ZWNkODt9I215LXN2ZyAubGFiZWxCa2d7YmFja2dyb3VuZC1jb2xvcjpyZ2JhKDI0NiwgMjM2LCAyMTYsIDAuNSk7fSNteS1zdmcgLmNsdXN0ZXIgcmVjdHtmaWxsOiNlNWViZjc7c3Ryb2tlOmhzbCgyMjAsIDEyLjk0MTE3NjQ3MDYlLCA4My4zMzMzMzMzMzMzJSk7c3Ryb2tlLXdpZHRoOjFweDt9I215LXN2ZyAuY2x1c3RlciB0ZXh0e2ZpbGw6IzFhMTQwODt9I215LXN2ZyAuY2x1c3RlciBzcGFue2NvbG9yOiMxYTE0MDg7fSNteS1zdmcgLm5vZGUgLmNvbGxhcHNlZC1pbmRpY2F0b3J7ZmlsbDpoc2woMjIwLCAxMi45NDExNzY0NzA2JSwgODMuMzMzMzMzMzMzMyUpO3N0cm9rZTpub25lO29wYWNpdHk6MC42O30jbXktc3ZnIC5ub2RlIC5jb2xsYXBzZWQtc2VwYXJhdG9ye3N0cm9rZTpoc2woMjIwLCAxMi45NDExNzY0NzA2JSwgODMuMzMzMzMzMzMzMyUpO3N0cm9rZS13aWR0aDowLjc1cHg7fSNteS1zdmcgZGl2Lm1lcm1haWRUb29sdGlwe3Bvc2l0aW9uOmFic29sdXRlO3RleHQtYWxpZ246Y2VudGVyO21heC13aWR0aDoyMDBweDtwYWRkaW5nOjJweDtmb250LWZhbWlseTpBcmlhbDtmb250LXNpemU6MTJweDtiYWNrZ3JvdW5kOiNlNWViZjc7Ym9yZGVyOjFweCBzb2xpZCBoc2woMjIwLCAxMi45NDExNzY0NzA2JSwgODMuMzMzMzMzMzMzMyUpO2JvcmRlci1yYWRpdXM6MnB4O3BvaW50ZXItZXZlbnRzOm5vbmU7ei1pbmRleDoxMDA7fSNteS1zdmcgLmZsb3djaGFydFRpdGxlVGV4dHt0ZXh0LWFuY2hvcjptaWRkbGU7Zm9udC1zaXplOjE4cHg7ZmlsbDojMjMzYjQwO30jbXktc3ZnIHJlY3QudGV4dHtmaWxsOm5vbmU7c3Ryb2tlLXdpZHRoOjA7fSNteS1zdmcgLmljb24tc2hhcGUsI215LXN2ZyAuaW1hZ2Utc2hhcGV7YmFja2dyb3VuZC1jb2xvcjojZjZlY2Q4O3RleHQtYWxpZ246Y2VudGVyO30jbXktc3ZnIC5pY29uLXNoYXBlIHAsI215LXN2ZyAuaW1hZ2Utc2hhcGUgcHtiYWNrZ3JvdW5kLWNvbG9yOiNmNmVjZDg7cGFkZGluZzoycHg7fSNteS1zdmcgLmljb24tc2hhcGUgLmxhYmVsIHJlY3QsI215LXN2ZyAuaW1hZ2Utc2hhcGUgLmxhYmVsIHJlY3R7b3BhY2l0eTowLjU7YmFja2dyb3VuZC1jb2xvcjojZjZlY2Q4O2ZpbGw6I2Y2ZWNkODt9I215LXN2ZyAubGFiZWwtaWNvbntkaXNwbGF5OmlubGluZS1ibG9jaztoZWlnaHQ6MWVtO292ZXJmbG93OnZpc2libGU7dmVydGljYWwtYWxpZ246LTAuMTI1ZW07fSNteS1zdmcgLm5vZGUgLmxhYmVsLWljb24gcGF0aHtmaWxsOmN1cnJlbnRDb2xvcjtzdHJva2U6cmV2ZXJ0O3N0cm9rZS13aWR0aDpyZXZlcnQ7fSNteS1zdmcgLm5vZGUgLm5lby1ub2Rle3N0cm9rZTojNWM4NjcyO30jbXktc3ZnIFtkYXRhLWxvb2s9Im5lbyJdLm5vZGUgcmVjdCwjbXktc3ZnIFtkYXRhLWxvb2s9Im5lbyJdLmNsdXN0ZXIgcmVjdCwjbXktc3ZnIFtkYXRhLWxvb2s9Im5lbyJdLm5vZGUgcG9seWdvbntzdHJva2U6dXJsKCNteS1zdmctZ3JhZGllbnQpO2ZpbHRlcjpkcm9wLXNoYWRvdyggMXB4IDJweCAycHggcmdiYSgxODUsMTg1LDE4NSwxKSk7fSNteS1zdmcgW2RhdGEtbG9vaz0ibmVvIl0uc3dpbWxhbmUuY2x1c3RlciByZWN0e2ZpbHRlcjpub25lO30jbXktc3ZnIFtkYXRhLWxvb2s9Im5lbyJdLm5vZGUgcGF0aHtzdHJva2U6dXJsKCNteS1zdmctZ3JhZGllbnQpO3N0cm9rZS13aWR0aDoxcHg7fSNteS1zdmcgW2RhdGEtbG9vaz0ibmVvIl0ubm9kZSAub3V0ZXItcGF0aHtmaWx0ZXI6ZHJvcC1zaGFkb3coIDFweCAycHggMnB4IHJnYmEoMTg1LDE4NSwxODUsMSkpO30jbXktc3ZnIFtkYXRhLWxvb2s9Im5lbyJdLm5vZGUgLm5lby1saW5lIHBhdGh7c3Ryb2tlOiM1Yzg2NzI7ZmlsdGVyOm5vbmU7fSNteS1zdmcgW2RhdGEtbG9vaz0ibmVvIl0ubm9kZSBjaXJjbGV7c3Ryb2tlOnVybCgjbXktc3ZnLWdyYWRpZW50KTtmaWx0ZXI6ZHJvcC1zaGFkb3coIDFweCAycHggMnB4IHJnYmEoMTg1LDE4NSwxODUsMSkpO30jbXktc3ZnIFtkYXRhLWxvb2s9Im5lbyJdLm5vZGUgY2lyY2xlIC5zdGF0ZS1zdGFydHtmaWxsOiMwMDAwMDA7fSNteS1zdmcgW2RhdGEtbG9vaz0ibmVvIl0uaWNvbi1zaGFwZSAuaWNvbntmaWxsOnVybCgjbXktc3ZnLWdyYWRpZW50KTtmaWx0ZXI6ZHJvcC1zaGFkb3coIDFweCAycHggMnB4IHJnYmEoMTg1LDE4NSwxODUsMSkpO30jbXktc3ZnIFtkYXRhLWxvb2s9Im5lbyJdLmljb24tc2hhcGUgLmljb24tbmVvIHBhdGh7c3Ryb2tlOnVybCgjbXktc3ZnLWdyYWRpZW50KTtmaWx0ZXI6ZHJvcC1zaGFkb3coIDFweCAycHggMnB4IHJnYmEoMTg1LDE4NSwxODUsMSkpO30jbXktc3ZnIDpyb290ey0tbWVybWFpZC1mb250LWZhbWlseToidHJlYnVjaGV0IG1zIix2ZXJkYW5hLGFyaWFsLHNhbnMtc2VyaWY7fTwvc3R5bGU+PGc+PG1hcmtlciBpZD0ibXktc3ZnX2Zsb3djaGFydC12Mi1wb2ludEVuZCIgY2xhc3M9Im1hcmtlciBmbG93Y2hhcnQtdjIiIHZpZXdCb3g9IjAgMCAxMCAxMCIgcmVmWD0iNSIgcmVmWT0iNSIgbWFya2VyVW5pdHM9InVzZXJTcGFjZU9uVXNlIiBtYXJrZXJXaWR0aD0iOCIgbWFya2VySGVpZ2h0PSI4IiBvcmllbnQ9ImF1dG8iPjxwYXRoIGQ9Ik0gMCAwIEwgMTAgNSBMIDAgMTAgeiIgY2xhc3M9ImFycm93TWFya2VyUGF0aCIgc3R5bGU9InN0cm9rZS13aWR0aDogMTsgc3Ryb2tlLWRhc2hhcnJheTogMSwgMDsiLz48L21hcmtlcj48bWFya2VyIGlkPSJteS1zdmdfZmxvd2NoYXJ0LXYyLXBvaW50U3RhcnQiIGNsYXNzPSJtYXJrZXIgZmxvd2NoYXJ0LXYyIiB2aWV3Qm94PSIwIDAgMTAgMTAiIHJlZlg9IjQuNSIgcmVmWT0iNSIgbWFya2VyVW5pdHM9InVzZXJTcGFjZU9uVXNlIiBtYXJrZXJXaWR0aD0iOCIgbWFya2VySGVpZ2h0PSI4IiBvcmllbnQ9ImF1dG8iPjxwYXRoIGQ9Ik0gMCA1IEwgMTAgMTAgTCAxMCAwIHoiIGNsYXNzPSJhcnJvd01hcmtlclBhdGgiIHN0eWxlPSJzdHJva2Utd2lkdGg6IDE7IHN0cm9rZS1kYXNoYXJyYXk6IDEsIDA7Ii8+PC9tYXJrZXI+PG1hcmtlciBpZD0ibXktc3ZnX2Zsb3djaGFydC12Mi1wb2ludEVuZC1tYXJnaW4iIGNsYXNzPSJtYXJrZXIgZmxvd2NoYXJ0LXYyIiB2aWV3Qm94PSIwIDAgMTEuNSAxNCIgcmVmWD0iMTEuNSIgcmVmWT0iNyIgbWFya2VyVW5pdHM9InVzZXJTcGFjZU9uVXNlIiBtYXJrZXJXaWR0aD0iMTAuNSIgbWFya2VySGVpZ2h0PSIxNCIgb3JpZW50PSJhdXRvIj48cGF0aCBkPSJNIDAgMCBMIDExLjUgNyBMIDAgMTQgeiIgY2xhc3M9ImFycm93TWFya2VyUGF0aCIgc3R5bGU9InN0cm9rZS13aWR0aDogMDsgc3Ryb2tlLWRhc2hhcnJheTogMSwgMDsiLz48L21hcmtlcj48bWFya2VyIGlkPSJteS1zdmdfZmxvd2NoYXJ0LXYyLXBvaW50U3RhcnQtbWFyZ2luIiBjbGFzcz0ibWFya2VyIGZsb3djaGFydC12MiIgdmlld0JveD0iMCAwIDExLjUgMTQiIHJlZlg9IjEiIHJlZlk9IjciIG1hcmtlclVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgbWFya2VyV2lkdGg9IjExLjUiIG1hcmtlckhlaWdodD0iMTQiIG9yaWVudD0iYXV0byI+PHBvbHlnb24gcG9pbnRzPSIwLDcgMTEuNSwxNCAxMS41LDAiIGNsYXNzPSJhcnJvd01hcmtlclBhdGgiIHN0eWxlPSJzdHJva2Utd2lkdGg6IDA7IHN0cm9rZS1kYXNoYXJyYXk6IDEsIDA7Ii8+PC9tYXJrZXI+PG1hcmtlciBpZD0ibXktc3ZnX2Zsb3djaGFydC12Mi1jaXJjbGVFbmQiIGNsYXNzPSJtYXJrZXIgZmxvd2NoYXJ0LXYyIiB2aWV3Qm94PSIwIDAgMTAgMTAiIHJlZlg9IjExIiByZWZZPSI1IiBtYXJrZXJVbml0cz0idXNlclNwYWNlT25Vc2UiIG1hcmtlcldpZHRoPSIxMSIgbWFya2VySGVpZ2h0PSIxMSIgb3JpZW50PSJhdXRvIj48Y2lyY2xlIGN4PSI1IiBjeT0iNSIgcj0iNSIgY2xhc3M9ImFycm93TWFya2VyUGF0aCIgc3R5bGU9InN0cm9rZS13aWR0aDogMTsgc3Ryb2tlLWRhc2hhcnJheTogMSwgMDsiLz48L21hcmtlcj48bWFya2VyIGlkPSJteS1zdmdfZmxvd2NoYXJ0LXYyLWNpcmNsZVN0YXJ0IiBjbGFzcz0ibWFya2VyIGZsb3djaGFydC12MiIgdmlld0JveD0iMCAwIDEwIDEwIiByZWZYPSItMSIgcmVmWT0iNSIgbWFya2VyVW5pdHM9InVzZXJTcGFjZU9uVXNlIiBtYXJrZXJXaWR0aD0iMTEiIG1hcmtlckhlaWdodD0iMTEiIG9yaWVudD0iYXV0byI+PGNpcmNsZSBjeD0iNSIgY3k9IjUiIHI9IjUiIGNsYXNzPSJhcnJvd01hcmtlclBhdGgiIHN0eWxlPSJzdHJva2Utd2lkdGg6IDE7IHN0cm9rZS1kYXNoYXJyYXk6IDEsIDA7Ii8+PC9tYXJrZXI+PG1hcmtlciBpZD0ibXktc3ZnX2Zsb3djaGFydC12Mi1jaXJjbGVFbmQtbWFyZ2luIiBjbGFzcz0ibWFya2VyIGZsb3djaGFydC12MiIgdmlld0JveD0iMCAwIDEwIDEwIiByZWZZPSI1IiByZWZYPSIxMi4yNSIgbWFya2VyVW5pdHM9InVzZXJTcGFjZU9uVXNlIiBtYXJrZXJXaWR0aD0iMTQiIG1hcmtlckhlaWdodD0iMTQiIG9yaWVudD0iYXV0byI+PGNpcmNsZSBjeD0iNSIgY3k9IjUiIHI9IjUiIGNsYXNzPSJhcnJvd01hcmtlclBhdGgiIHN0eWxlPSJzdHJva2Utd2lkdGg6IDA7IHN0cm9rZS1kYXNoYXJyYXk6IDEsIDA7Ii8+PC9tYXJrZXI+PG1hcmtlciBpZD0ibXktc3ZnX2Zsb3djaGFydC12Mi1jaXJjbGVTdGFydC1tYXJnaW4iIGNsYXNzPSJtYXJrZXIgZmxvd2NoYXJ0LXYyIiB2aWV3Qm94PSIwIDAgMTAgMTAiIHJlZlg9Ii0yIiByZWZZPSI1IiBtYXJrZXJVbml0cz0idXNlclNwYWNlT25Vc2UiIG1hcmtlcldpZHRoPSIxNCIgbWFya2VySGVpZ2h0PSIxNCIgb3JpZW50PSJhdXRvIj48Y2lyY2xlIGN4PSI1IiBjeT0iNSIgcj0iNSIgY2xhc3M9ImFycm93TWFya2VyUGF0aCIgc3R5bGU9InN0cm9rZS13aWR0aDogMDsgc3Ryb2tlLWRhc2hhcnJheTogMSwgMDsiLz48L21hcmtlcj48bWFya2VyIGlkPSJteS1zdmdfZmxvd2NoYXJ0LXYyLWNyb3NzRW5kIiBjbGFzcz0ibWFya2VyIGNyb3NzIGZsb3djaGFydC12MiIgdmlld0JveD0iMCAwIDExIDExIiByZWZYPSIxMiIgcmVmWT0iNS4yIiBtYXJrZXJVbml0cz0idXNlclNwYWNlT25Vc2UiIG1hcmtlcldpZHRoPSIxMSIgbWFya2VySGVpZ2h0PSIxMSIgb3JpZW50PSJhdXRvIj48cGF0aCBkPSJNIDEsMSBsIDksOSBNIDEwLDEgbCAtOSw5IiBjbGFzcz0iYXJyb3dNYXJrZXJQYXRoIiBzdHlsZT0ic3Ryb2tlLXdpZHRoOiAyOyBzdHJva2UtZGFzaGFycmF5OiAxLCAwOyIvPjwvbWFya2VyPjxtYXJrZXIgaWQ9Im15LXN2Z19mbG93Y2hhcnQtdjItY3Jvc3NTdGFydCIgY2xhc3M9Im1hcmtlciBjcm9zcyBmbG93Y2hhcnQtdjIiIHZpZXdCb3g9IjAgMCAxMSAxMSIgcmVmWD0iLTEiIHJlZlk9IjUuMiIgbWFya2VyVW5pdHM9InVzZXJTcGFjZU9uVXNlIiBtYXJrZXJXaWR0aD0iMTEiIG1hcmtlckhlaWdodD0iMTEiIG9yaWVudD0iYXV0byI+PHBhdGggZD0iTSAxLDEgbCA5LDkgTSAxMCwxIGwgLTksOSIgY2xhc3M9ImFycm93TWFya2VyUGF0aCIgc3R5bGU9InN0cm9rZS13aWR0aDogMjsgc3Ryb2tlLWRhc2hhcnJheTogMSwgMDsiLz48L21hcmtlcj48bWFya2VyIGlkPSJteS1zdmdfZmxvd2NoYXJ0LXYyLWNyb3NzRW5kLW1hcmdpbiIgY2xhc3M9Im1hcmtlciBjcm9zcyBmbG93Y2hhcnQtdjIiIHZpZXdCb3g9IjAgMCAxNSAxNSIgcmVmWD0iMTcuNyIgcmVmWT0iNy41IiBtYXJrZXJVbml0cz0idXNlclNwYWNlT25Vc2UiIG1hcmtlcldpZHRoPSIxMiIgbWFya2VySGVpZ2h0PSIxMiIgb3JpZW50PSJhdXRvIj48cGF0aCBkPSJNIDEsMSBMIDE0LDE0IE0gMSwxNCBMIDE0LDEiIGNsYXNzPSJhcnJvd01hcmtlclBhdGgiIHN0eWxlPSJzdHJva2Utd2lkdGg6IDIuNTsiLz48L21hcmtlcj48bWFya2VyIGlkPSJteS1zdmdfZmxvd2NoYXJ0LXYyLWNyb3NzU3RhcnQtbWFyZ2luIiBjbGFzcz0ibWFya2VyIGNyb3NzIGZsb3djaGFydC12MiIgdmlld0JveD0iMCAwIDE1IDE1IiByZWZYPSItMy41IiByZWZZPSI3LjUiIG1hcmtlclVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgbWFya2VyV2lkdGg9IjEyIiBtYXJrZXJIZWlnaHQ9IjEyIiBvcmllbnQ9ImF1dG8iPjxwYXRoIGQ9Ik0gMSwxIEwgMTQsMTQgTSAxLDE0IEwgMTQsMSIgY2xhc3M9ImFycm93TWFya2VyUGF0aCIgc3R5bGU9InN0cm9rZS13aWR0aDogMi41OyBzdHJva2UtZGFzaGFycmF5OiAxLCAwOyIvPjwvbWFya2VyPjxnIGNsYXNzPSJyb290Ij48ZyBjbGFzcz0iY2x1c3RlcnMiLz48ZyBjbGFzcz0iZWRnZXMgZWRnZVBhdGhzIj48cGF0aCBkPSJNMTY0LDQyLjg1MDAwMDM4MTQ2OTczTDE3Ni45Mjg5MzIxODgxMzQ1Miw0Mi44NTAwMDAzODE0Njk3M1ExODQsNDIuODUwMDAwMzgxNDY5NzMgMTg0LDQ5LjkyMTA2ODE5MzMzNTJMMTg0LDg0LjM1MzkzMTEwNzMwMzYxUTE4NCw5MS40MjQ5OTg5MTkxNjkwOCAxOTEuMDcxMDY3ODExODY1NDgsOTEuNDI0OTk4OTE5MTY5MDhMMjAwLDkxLjQyNDk5ODkxOTE2OTA4IiBpZD0ibXktc3ZnLUxfU1JDX0hJUl8wIiBjbGFzcz0iZWRnZS10aGlja25lc3Mtbm9ybWFsIGVkZ2UtcGF0dGVybi1zb2xpZCBlZGdlLXRoaWNrbmVzcy1ub3JtYWwgZWRnZS1wYXR0ZXJuLXNvbGlkIGZsb3djaGFydC1saW5rIiBzdHlsZT0ic3Ryb2tlLWRhc2hhcnJheTogMCAwIDc1LjI0NjY1MDY5NTgwMDc4IDQ7IHN0cm9rZS1kYXNob2Zmc2V0OiAwOzsiIGRhdGEtZWRnZT0idHJ1ZSIgZGF0YS1ldD0iZWRnZSIgZGF0YS1pZD0iTF9TUkNfSElSXzAiIGRhdGEtcG9pbnRzPSJXM3NpZUNJNk1UWTBMQ0o1SWpvME1pNDROVEF3TURBek9ERTBOamszTTMwc2V5SjRJam94T0RRc0lua2lPalF5TGpnMU1EQXdNRE00TVRRMk9UY3pmU3g3SW5naU9qRTROQ3dpZVNJNk9URXVOREkwT1RrNE9URTVNVFk1TURoOUxIc2llQ0k2TWpBMExDSjVJam81TVM0ME1qUTVPVGc1TVRreE5qa3dPSDFkIiBkYXRhLWxvb2s9Im5lbyIgbWFya2VyLWVuZD0idXJsKCNteS1zdmdfZmxvd2NoYXJ0LXYyLXBvaW50RW5kLW1hcmdpbikiLz48cGF0aCBkPSJNMzU2LDk4LjM3NDk5OTA0NjMyNTY2TDM2OC45Mjg5MzIxODgxMzQ1LDk4LjM3NDk5OTA0NjMyNTY2UTM3Niw5OC4zNzQ5OTkwNDYzMjU2NiAzNzYsMTA1LjQ0NjA2Njg1ODE5MTEzTDM3NiwxMzQuNjAzOTMyMzc4ODY5MzZRMzc2LDE0MS42NzUwMDAxOTA3MzQ4MyAzODMuMDcxMDY3ODExODY1NSwxNDEuNjc1MDAwMTkwNzM0ODNMNDEyLDE0MS42NzUwMDAxOTA3MzQ4MyIgaWQ9Im15LXN2Zy1MX0hJUl9NSVJfMCIgY2xhc3M9ImVkZ2UtdGhpY2tuZXNzLW5vcm1hbCBlZGdlLXBhdHRlcm4tc29saWQgZWRnZS10aGlja25lc3Mtbm9ybWFsIGVkZ2UtcGF0dGVybi1zb2xpZCBmbG93Y2hhcnQtbGluayIgc3R5bGU9InN0cm9rZS1kYXNoYXJyYXk6IDAgMCA4OS45NzE3MzMwOTMyNjE3MiA0OyBzdHJva2UtZGFzaG9mZnNldDogMDs7IiBkYXRhLWVkZ2U9InRydWUiIGRhdGEtZXQ9ImVkZ2UiIGRhdGEtaWQ9IkxfSElSX01JUl8wIiBkYXRhLXBvaW50cz0iVzNzaWVDSTZNelUyTENKNUlqbzVPQzR6TnpRNU9Ua3dORFl6TWpVMk5uMHNleUo0SWpvek56WXNJbmtpT2prNExqTTNORGs1T1RBME5qTXlOVFkyZlN4N0luZ2lPak0zTml3aWVTSTZNVFF4TGpZM05UQXdNREU1TURjek5EZ3pmU3g3SW5naU9qUXhOaXdpZVNJNk1UUXhMalkzTlRBd01ERTVNRGN6TkRnemZWMD0iIGRhdGEtbG9vaz0ibmVvIiBtYXJrZXItZW5kPSJ1cmwoI215LXN2Z19mbG93Y2hhcnQtdjItcG9pbnRFbmQtbWFyZ2luKSIvPjxwYXRoIGQ9Ik01NjgsMTU2Ljc3NDk5ODY2NDg1NTkzTDU4MC45Mjg5MzIxODgxMzQ1LDE1Ni43NzQ5OTg2NjQ4NTU5M1E1ODgsMTU2Ljc3NDk5ODY2NDg1NTkzIDU4OCwxNjMuODQ2MDY2NDc2NzIxNEw1ODgsMjQyLjc3ODkyODc1NDkwNjkzUTU4OCwyNDkuODQ5OTk2NTY2NzcyNCA1OTUuMDcxMDY3ODExODY1NSwyNDkuODQ5OTk2NTY2NzcyNEw2MDQsMjQ5Ljg0OTk5NjU2Njc3MjQiIGlkPSJteS1zdmctTF9NSVJfUkFfMCIgY2xhc3M9ImVkZ2UtdGhpY2tuZXNzLW5vcm1hbCBlZGdlLXBhdHRlcm4tc29saWQgZWRnZS10aGlja25lc3Mtbm9ybWFsIGVkZ2UtcGF0dGVybi1zb2xpZCBmbG93Y2hhcnQtbGluayIgc3R5bGU9InN0cm9rZS1kYXNoYXJyYXk6IDAgMCAxMTkuNzQ2NzM0NjE5MTQwNjIgNDsgc3Ryb2tlLWRhc2hvZmZzZXQ6IDA7OyIgZGF0YS1lZGdlPSJ0cnVlIiBkYXRhLWV0PSJlZGdlIiBkYXRhLWlkPSJMX01JUl9SQV8wIiBkYXRhLXBvaW50cz0iVzNzaWVDSTZOVFk0TENKNUlqb3hOVFl1TnpjME9UazROalkwT0RVMU9UTjlMSHNpZUNJNk5UZzRMQ0o1SWpveE5UWXVOemMwT1RrNE5qWTBPRFUxT1ROOUxIc2llQ0k2TlRnNExDSjVJam95TkRrdU9EUTVPVGsyTlRZMk56Y3lOSDBzZXlKNElqbzJNRGdzSW5raU9qSTBPUzQ0TkRrNU9UWTFOalkzTnpJMGZWMD0iIGRhdGEtbG9vaz0ibmVvIiBtYXJrZXItZW5kPSJ1cmwoI215LXN2Z19mbG93Y2hhcnQtdjItcG9pbnRFbmQtbWFyZ2luKSIvPjxwYXRoIGQ9Ik03NjAsMjU2Ljc5OTk5NjY5MzkyOUw3NzIuOTI4OTMyMTg4MTM0NSwyNTYuNzk5OTk2NjkzOTI5UTc4MCwyNTYuNzk5OTk2NjkzOTI5IDc4MCwyNjMuODcxMDY0NTA1Nzk0NUw3ODAsMzA0Ljg5NTU5NDI3NzE2NDQzUTc4MCwzMTEuOTY2NjYyMDg5MDI5OSA3ODcuMDcxMDY3ODExODY1NSwzMTEuOTY2NjYyMDg5MDI5OUw3OTYsMzExLjk2NjY2MjA4OTAyOTkiIGlkPSJteS1zdmctTF9SQV9aODBfMCIgY2xhc3M9ImVkZ2UtdGhpY2tuZXNzLW5vcm1hbCBlZGdlLXBhdHRlcm4tc29saWQgZWRnZS10aGlja25lc3Mtbm9ybWFsIGVkZ2UtcGF0dGVybi1zb2xpZCBmbG93Y2hhcnQtbGluayIgc3R5bGU9InN0cm9rZS1kYXNoYXJyYXk6IDAgMCA4MS44MzgzODY1MzU2NDQ1MyA0OyBzdHJva2UtZGFzaG9mZnNldDogMDs7IiBkYXRhLWVkZ2U9InRydWUiIGRhdGEtZXQ9ImVkZ2UiIGRhdGEtaWQ9IkxfUkFfWjgwXzAiIGRhdGEtcG9pbnRzPSJXM3NpZUNJNk56WXdMQ0o1SWpveU5UWXVOems1T1RrMk5qa3pPVEk1ZlN4N0luZ2lPamM0TUN3aWVTSTZNalUyTGpjNU9UazVOalk1TXpreU9YMHNleUo0SWpvM09EQXNJbmtpT2pNeE1TNDVOalkyTmpJd09Ea3dNams1ZlN4N0luZ2lPamd3TUN3aWVTSTZNekV4TGprMk5qWTJNakE0T1RBeU9UbDlYUT09IiBkYXRhLWxvb2s9Im5lbyIgbWFya2VyLWVuZD0idXJsKCNteS1zdmdfZmxvd2NoYXJ0LXYyLXBvaW50RW5kLW1hcmdpbikiLz48cGF0aCBkPSJNMTY0LDE1My44OTk5OTc3MTExODE2NEwxNzYuOTI4OTMyMTg4MTM0NTIsMTUzLjg5OTk5NzcxMTE4MTY0UTE4NCwxNTMuODk5OTk3NzExMTgxNjQgMTg0LDE0Ni44Mjg5Mjk4OTkzMTYxN0wxODQsMTEyLjM5NjA2Njk4NTM0NzcyUTE4NCwxMDUuMzI0OTk5MTczNDgyMjQgMTkxLjA3MTA2NzgxMTg2NTQ4LDEwNS4zMjQ5OTkxNzM0ODIyNEwyMDAsMTA1LjMyNDk5OTE3MzQ4MjI0IiBpZD0ibXktc3ZnLUxfRjFfSElSXzAiIGNsYXNzPSJlZGdlLXRoaWNrbmVzcy1ub3JtYWwgZWRnZS1wYXR0ZXJuLWRvdHRlZCBlZGdlLXRoaWNrbmVzcy1ub3JtYWwgZWRnZS1wYXR0ZXJuLXNvbGlkIGZsb3djaGFydC1saW5rIiBzdHlsZT0ic3Ryb2tlLWRhc2hhcnJheTogMCAwIDIgMiAyIDIgMiAyIDIgMiAyIDIgMiAyIDIgMiAyIDIgMiAyIDIgMiAyIDIgMiAyIDIgMiAyIDIgMiAyIDIgMiAyIDIgMiAyIDQ7IHN0cm9rZS1kYXNob2Zmc2V0OiAwOzsiIGRhdGEtZWRnZT0idHJ1ZSIgZGF0YS1ldD0iZWRnZSIgZGF0YS1pZD0iTF9GMV9ISVJfMCIgZGF0YS1wb2ludHM9Ilczc2llQ0k2TVRZMExDSjVJam94TlRNdU9EazVPVGszTnpFeE1UZ3hOalI5TEhzaWVDSTZNVGcwTENKNUlqb3hOVE11T0RrNU9UazNOekV4TVRneE5qUjlMSHNpZUNJNk1UZzBMQ0o1SWpveE1EVXVNekkwT1RrNU1UY3pORGd5TWpSOUxIc2llQ0k2TWpBMExDSjVJam94TURVdU16STBPVGs1TVRjek5EZ3lNalI5WFE9PSIgZGF0YS1sb29rPSJuZW8iIG1hcmtlci1lbmQ9InVybCgjbXktc3ZnX2Zsb3djaGFydC12Mi1wb2ludEVuZC1tYXJnaW4pIi8+PHBhdGggZD0iTTM1NiwyMDAuMDc0OTk5ODA5MjY1MTRMMzY4LjkyODkzMjE4ODEzNDUsMjAwLjA3NDk5OTgwOTI2NTE0UTM3NiwyMDAuMDc0OTk5ODA5MjY1MTQgMzc2LDE5My4wMDM5MzE5OTczOTk2NkwzNzYsMTYzLjg0NjA2NjQ3NjcyMTRRMzc2LDE1Ni43NzQ5OTg2NjQ4NTU5MyAzODMuMDcxMDY3ODExODY1NSwxNTYuNzc0OTk4NjY0ODU1OTNMNDEyLDE1Ni43NzQ5OTg2NjQ4NTU5MyIgaWQ9Im15LXN2Zy1MX0YzX01JUl8wIiBjbGFzcz0iZWRnZS10aGlja25lc3Mtbm9ybWFsIGVkZ2UtcGF0dGVybi1kb3R0ZWQgZWRnZS10aGlja25lc3Mtbm9ybWFsIGVkZ2UtcGF0dGVybi1zb2xpZCBmbG93Y2hhcnQtbGluayIgc3R5bGU9InN0cm9rZS1kYXNoYXJyYXk6IDAgMCAyIDIgMiAyIDIgMiAyIDIgMiAyIDIgMiAyIDIgMiAyIDIgMiAyIDIgMiAyIDIgMiAyIDIgMiAyIDIgMiAyIDIgMiAyIDIgMiAyIDIgMiAyIDIgMiAyIDIgNDsgc3Ryb2tlLWRhc2hvZmZzZXQ6IDA7OyIgZGF0YS1lZGdlPSJ0cnVlIiBkYXRhLWV0PSJlZGdlIiBkYXRhLWlkPSJMX0YzX01JUl8wIiBkYXRhLXBvaW50cz0iVzNzaWVDSTZNelUyTENKNUlqb3lNREF1TURjME9UazVPREE1TWpZMU1UUjlMSHNpZUNJNk16YzJMQ0o1SWpveU1EQXVNRGMwT1RrNU9EQTVNalkxTVRSOUxIc2llQ0k2TXpjMkxDSjVJam94TlRZdU56YzBPVGs0TmpZME9EVTFPVE45TEhzaWVDSTZOREUyTENKNUlqb3hOVFl1TnpjME9UazROalkwT0RVMU9UTjlYUT09IiBkYXRhLWxvb2s9Im5lbyIgbWFya2VyLWVuZD0idXJsKCNteS1zdmdfZmxvd2NoYXJ0LXYyLXBvaW50RW5kLW1hcmdpbikiLz48cGF0aCBkPSJNMzU2LDMxMS4xMjQ5OTcxMzg5NzcwNUwzODguOTI4OTMyMTg4MTM0NSwzMTEuMTI0OTk3MTM4OTc3MDVRMzk2LDMxMS4xMjQ5OTcxMzg5NzcwNSAzOTYsMzA0LjA1MzkyOTMyNzExMTZMMzk2LDE3OC45NDYwNjQ5NTA4NDI1UTM5NiwxNzEuODc0OTk3MTM4OTc3MDIgNDAzLjA3MTA2NzgxMTg2NTUsMTcxLjg3NDk5NzEzODk3NzAyTDQxMiwxNzEuODc0OTk3MTM4OTc3MDIiIGlkPSJteS1zdmctTF9GNV9NSVJfMCIgY2xhc3M9ImVkZ2UtdGhpY2tuZXNzLW5vcm1hbCBlZGdlLXBhdHRlcm4tZG90dGVkIGVkZ2UtdGhpY2tuZXNzLW5vcm1hbCBlZGdlLXBhdHRlcm4tc29saWQgZmxvd2NoYXJ0LWxpbmsiIHN0eWxlPSJzdHJva2UtZGFzaGFycmF5OiAwIDAgMiAyIDIgMiAyIDIgMiAyIDIgMiAyIDIgMiAyIDIgMiAyIDIgMiAyIDIgMiAyIDIgMiAyIDIgMiAyIDIgMiAyIDIgMiAyIDIgMiAyIDIgMiAyIDIgMiAyIDIgMiAyIDIgMiAyIDIgMiAyIDIgMiAyIDIgMiAyIDIgMiAyIDIgMiAyIDIgMiAyIDIgMiAyIDIgMiAyIDIgMiAyIDIgMiAyIDIgMiAyIDIgMiAyIDIgMiAyIDIgMiAyIDQ7IHN0cm9rZS1kYXNob2Zmc2V0OiAwOzsiIGRhdGEtZWRnZT0idHJ1ZSIgZGF0YS1ldD0iZWRnZSIgZGF0YS1pZD0iTF9GNV9NSVJfMCIgZGF0YS1wb2ludHM9Ilczc2llQ0k2TXpVMkxDSjVJam96TVRFdU1USTBPVGszTVRNNE9UYzNNRFY5TEhzaWVDSTZNemsyTENKNUlqb3pNVEV1TVRJME9UazNNVE00T1RjM01EVjlMSHNpZUNJNk16azJMQ0o1SWpveE56RXVPRGMwT1RrM01UTTRPVGMzTURKOUxIc2llQ0k2TkRFMkxDSjVJam94TnpFdU9EYzBPVGszTVRNNE9UYzNNREo5WFE9PSIgZGF0YS1sb29rPSJuZW8iIG1hcmtlci1lbmQ9InVybCgjbXktc3ZnX2Zsb3djaGFydC12Mi1wb2ludEVuZC1tYXJnaW4pIi8+PHBhdGggZD0iTTU2OCwyNzcuMTc0OTkyNTYxMzQwMzNMNTgxLjI4NzUwMjEyOTg3MjYsMjc3LjE3NDk5MjU2MTM0MDMzUTU4OCwyNzcuMTc0OTkyNTYxMzQwMzMgNTg4LDI3MC40NjI0OTQ2OTEyMTI5NUw1ODgsMjcwLjQ2MjQ5NDY5MTIxMjk1UTU4OCwyNjMuNzQ5OTk2ODIxMDg1NiA1OTQuNzEyNDk3ODcwMTI3NCwyNjMuNzQ5OTk2ODIxMDg1Nkw2MDQsMjYzLjc0OTk5NjgyMTA4NTYiIGlkPSJteS1zdmctTF9GNl9SQV8wIiBjbGFzcz0iZWRnZS10aGlja25lc3Mtbm9ybWFsIGVkZ2UtcGF0dGVybi1kb3R0ZWQgZWRnZS10aGlja25lc3Mtbm9ybWFsIGVkZ2UtcGF0dGVybi1zb2xpZCBmbG93Y2hhcnQtbGluayIgc3R5bGU9InN0cm9rZS1kYXNoYXJyYXk6IDAgMCAyIDIgMiAyIDIgMiAyIDIgMiAyIDIgMiAyIDIgMiAyIDIgMiAyIDIgNDsgc3Ryb2tlLWRhc2hvZmZzZXQ6IDA7OyIgZGF0YS1lZGdlPSJ0cnVlIiBkYXRhLWV0PSJlZGdlIiBkYXRhLWlkPSJMX0Y2X1JBXzAiIGRhdGEtcG9pbnRzPSJXM3NpZUNJNk5UWTRMQ0o1SWpveU56Y3VNVGMwT1RreU5UWXhNelF3TXpOOUxIc2llQ0k2TlRnNExDSjVJam95TnpjdU1UYzBPVGt5TlRZeE16UXdNek45TEhzaWVDSTZOVGc0TENKNUlqb3lOak11TnpRNU9UazJPREl4TURnMU5uMHNleUo0SWpvMk1EZ3NJbmtpT2pJMk15NDNORGs1T1RZNE1qRXdPRFUyZlYwPSIgZGF0YS1sb29rPSJuZW8iIG1hcmtlci1lbmQ9InVybCgjbXktc3ZnX2Zsb3djaGFydC12Mi1wb2ludEVuZC1tYXJnaW4pIi8+PHBhdGggZD0iTTc2MCwzNjcuODQ5OTk0MDIzNjQwOTNMNzcyLjkyODkzMjE4ODEzNDUsMzY3Ljg0OTk5NDAyMzY0MDkzUTc4MCwzNjcuODQ5OTk0MDIzNjQwOTMgNzgwLDM2MC43Nzg5MjYyMTE3NzU0Nkw3ODAsMzI2LjcwNDM5NjU2NzU2MjA3UTc4MCwzMTkuNjMzMzI4NzU1Njk2NiA3ODcuMDcxMDY3ODExODY1NSwzMTkuNjMzMzI4NzU1Njk2Nkw3OTYsMzE5LjYzMzMyODc1NTY5NjYiIGlkPSJteS1zdmctTF9GNF9aODBfMCIgY2xhc3M9ImVkZ2UtdGhpY2tuZXNzLW5vcm1hbCBlZGdlLXBhdHRlcm4tZG90dGVkIGVkZ2UtdGhpY2tuZXNzLW5vcm1hbCBlZGdlLXBhdHRlcm4tc29saWQgZmxvd2NoYXJ0LWxpbmsiIHN0eWxlPSJzdHJva2UtZGFzaGFycmF5OiAwIDAgMiAyIDIgMiAyIDIgMiAyIDIgMiAyIDIgMiAyIDIgMiAyIDIgMiAyIDIgMiAyIDIgMiAyIDIgMiAyIDIgMiAyIDIgMiAyIDIgNDsgc3Ryb2tlLWRhc2hvZmZzZXQ6IDA7OyIgZGF0YS1lZGdlPSJ0cnVlIiBkYXRhLWV0PSJlZGdlIiBkYXRhLWlkPSJMX0Y0X1o4MF8wIiBkYXRhLXBvaW50cz0iVzNzaWVDSTZOell3TENKNUlqb3pOamN1T0RRNU9UazBNREl6TmpRd09UTjlMSHNpZUNJNk56Z3dMQ0o1SWpvek5qY3VPRFE1T1RrME1ESXpOalF3T1ROOUxIc2llQ0k2Tnpnd0xDSjVJam96TVRrdU5qTXpNekk0TnpVMU5qazJObjBzZXlKNElqbzRNREFzSW5raU9qTXhPUzQyTXpNek1qZzNOVFUyT1RZMmZWMD0iIGRhdGEtbG9vaz0ibmVvIiBtYXJrZXItZW5kPSJ1cmwoI215LXN2Z19mbG93Y2hhcnQtdjItcG9pbnRFbmQtbWFyZ2luKSIvPjwvZz48ZyBjbGFzcz0iZWRnZUxhYmVscyIvPjxnIGNsYXNzPSJub2RlcyI+PGcgY2xhc3M9Im5vZGUgZGVmYXVsdCIgaWQ9Im15LXN2Zy1mbG93Y2hhcnQtU1JDLTAiIGRhdGEtbG9vaz0ibmVvIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg4OCwgNDIuODUwMDAwMzgxNDY5NzMpIj48cmVjdCBjbGFzcz0iYmFzaWMgbGFiZWwtY29udGFpbmVyIiBzdHlsZT0iIiB4PSItNzYiIHk9Ii0zMC44NTAwMDAzODE0Njk3MjciIHdpZHRoPSIxNTIiIGhlaWdodD0iNjEuNzAwMDAwNzYyOTM5NDUiLz48ZyBjbGFzcz0ibGFiZWwiIHN0eWxlPSIiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDAsIC0xOC44NTAwMDAzODE0Njk3MjcpIj48cmVjdC8+PGc+PHJlY3QgY2xhc3M9ImJhY2tncm91bmQiIHN0eWxlPSJzdHJva2U6IG5vbmUiLz48dGV4dCB5PSItMTAuMSIgc3R5bGU9IiI+PHRzcGFuIGNsYXNzPSJ0ZXh0LW91dGVyLXRzcGFuIHJvdyIgeD0iMCIgeT0iLTAuMWVtIiBkeT0iMS4xZW0iPjx0c3BhbiBmb250LXN0eWxlPSJub3JtYWwiIGNsYXNzPSJ0ZXh0LWlubmVyLXRzcGFuIiBmb250LXdlaWdodD0ibm9ybWFsIj5OYW56OjwvdHNwYW4+PHRzcGFuIGZvbnQtc3R5bGU9Im5vcm1hbCIgY2xhc3M9InRleHQtaW5uZXItdHNwYW4iIGZvbnQtd2VpZ2h0PSJub3JtYWwiPiBmaWx0ZXI8L3RzcGFuPjx0c3BhbiBmb250LXN0eWxlPSJub3JtYWwiIGNsYXNzPSJ0ZXh0LWlubmVyLXRzcGFuIiBmb250LXdlaWdodD0ibm9ybWFsIj4gLzwvdHNwYW4+PC90c3Bhbj48dHNwYW4gY2xhc3M9InRleHQtb3V0ZXItdHNwYW4gcm93IiB4PSIwIiB5PSIxZW0iIGR5PSIxLjFlbSI+PHRzcGFuIGZvbnQtc3R5bGU9Im5vcm1hbCIgY2xhc3M9InRleHQtaW5uZXItdHNwYW4iIGZvbnQtd2VpZ2h0PSJub3JtYWwiPm1hcDwvdHNwYW4+PHRzcGFuIGZvbnQtc3R5bGU9Im5vcm1hbCIgY2xhc3M9InRleHQtaW5uZXItdHNwYW4iIGZvbnQtd2VpZ2h0PSJub3JtYWwiPiAvPC90c3Bhbj48dHNwYW4gZm9udC1zdHlsZT0ibm9ybWFsIiBjbGFzcz0idGV4dC1pbm5lci10c3BhbiIgZm9udC13ZWlnaHQ9Im5vcm1hbCI+IGZvbGQ8L3RzcGFuPjwvdHNwYW4+PC90ZXh0PjwvZz48L2c+PC9nPjxnIGNsYXNzPSJub2RlIGRlZmF1bHQiIGlkPSJteS1zdmctZmxvd2NoYXJ0LUhJUi0xIiBkYXRhLWxvb2s9Im5lbyIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMjgwLCA5OC4zNzQ5OTkwNDYzMjU2NikiPjxyZWN0IGNsYXNzPSJiYXNpYyBsYWJlbC1jb250YWluZXIiIHN0eWxlPSIiIHg9Ii03NiIgeT0iLTMwLjg1MDAwMDM4MTQ2OTcyNyIgd2lkdGg9IjE1MiIgaGVpZ2h0PSI2MS43MDAwMDA3NjI5Mzk0NSIvPjxnIGNsYXNzPSJsYWJlbCIgc3R5bGU9IiIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMCwgLTE4Ljg1MDAwMDM4MTQ2OTcyNykiPjxyZWN0Lz48Zz48cmVjdCBjbGFzcz0iYmFja2dyb3VuZCIgc3R5bGU9InN0cm9rZTogbm9uZSIvPjx0ZXh0IHk9Ii0xMC4xIiBzdHlsZT0iIj48dHNwYW4gY2xhc3M9InRleHQtb3V0ZXItdHNwYW4gcm93IiB4PSIwIiB5PSItMC4xZW0iIGR5PSIxLjFlbSI+PHRzcGFuIGZvbnQtc3R5bGU9Im5vcm1hbCIgY2xhc3M9InRleHQtaW5uZXItdHNwYW4iIGZvbnQtd2VpZ2h0PSJub3JtYWwiPkhJUjo8L3RzcGFuPjx0c3BhbiBmb250LXN0eWxlPSJub3JtYWwiIGNsYXNzPSJ0ZXh0LWlubmVyLXRzcGFuIiBmb250LXdlaWdodD0ibm9ybWFsIj4gZnVzaW9uPC90c3Bhbj48dHNwYW4gZm9udC1zdHlsZT0ibm9ybWFsIiBjbGFzcz0idGV4dC1pbm5lci10c3BhbiIgZm9udC13ZWlnaHQ9Im5vcm1hbCI+INCyPC90c3Bhbj48L3RzcGFuPjx0c3BhbiBjbGFzcz0idGV4dC1vdXRlci10c3BhbiByb3ciIHg9IjAiIHk9IjFlbSIgZHk9IjEuMWVtIj48dHNwYW4gZm9udC1zdHlsZT0ibm9ybWFsIiBjbGFzcz0idGV4dC1pbm5lci10c3BhbiIgZm9udC13ZWlnaHQ9Im5vcm1hbCI+0L7QtNC40L08L3RzcGFuPjx0c3BhbiBmb250LXN0eWxlPSJub3JtYWwiIGNsYXNzPSJ0ZXh0LWlubmVyLXRzcGFuIiBmb250LXdlaWdodD0ibm9ybWFsIj4g0YbQuNC60Ls8L3RzcGFuPjwvdHNwYW4+PC90ZXh0PjwvZz48L2c+PC9nPjxnIGNsYXNzPSJub2RlIGRlZmF1bHQiIGlkPSJteS1zdmctZmxvd2NoYXJ0LU1JUi0zIiBkYXRhLWxvb2s9Im5lbyIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNDkyLCAxNTYuNzc0OTk4NjY0ODU1OTYpIj48cmVjdCBjbGFzcz0iYmFzaWMgbGFiZWwtY29udGFpbmVyIiBzdHlsZT0iIiB4PSItNzYiIHk9Ii00MC4xOTk5OTg4NTU1OTA4MiIgd2lkdGg9IjE1MiIgaGVpZ2h0PSI4MC4zOTk5OTc3MTExODE2NCIvPjxnIGNsYXNzPSJsYWJlbCIgc3R5bGU9IiIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMCwgLTI4LjE5OTk5ODg1NTU5MDgyKSI+PHJlY3QvPjxnPjxyZWN0IGNsYXNzPSJiYWNrZ3JvdW5kIiBzdHlsZT0ic3Ryb2tlOiBub25lIi8+PHRleHQgeT0iLTEwLjEiIHN0eWxlPSIiPjx0c3BhbiBjbGFzcz0idGV4dC1vdXRlci10c3BhbiByb3ciIHg9IjAiIHk9Ii0wLjFlbSIgZHk9IjEuMWVtIj48dHNwYW4gZm9udC1zdHlsZT0ibm9ybWFsIiBjbGFzcz0idGV4dC1pbm5lci10c3BhbiIgZm9udC13ZWlnaHQ9Im5vcm1hbCI+TUlSMjo8L3RzcGFuPjwvdHNwYW4+PHRzcGFuIGNsYXNzPSJ0ZXh0LW91dGVyLXRzcGFuIHJvdyIgeD0iMCIgeT0iMWVtIiBkeT0iMS4xZW0iPjx0c3BhbiBmb250LXN0eWxlPSJub3JtYWwiIGNsYXNzPSJ0ZXh0LWlubmVyLXRzcGFuIiBmb250LXdlaWdodD0ibm9ybWFsIj7Rg9C/0YDQvtGJ0LXQvdC40LUsPC90c3Bhbj48L3RzcGFuPjx0c3BhbiBjbGFzcz0idGV4dC1vdXRlci10c3BhbiByb3ciIHg9IjAiIHk9IjIuMWVtIiBkeT0iMS4xZW0iPjx0c3BhbiBmb250LXN0eWxlPSJub3JtYWwiIGNsYXNzPSJ0ZXh0LWlubmVyLXRzcGFuIiBmb250LXdlaWdodD0ibm9ybWFsIj7QuNC90LvQsNC50L08L3RzcGFuPjwvdHNwYW4+PC90ZXh0PjwvZz48L2c+PC9nPjxnIGNsYXNzPSJub2RlIGRlZmF1bHQiIGlkPSJteS1zdmctZmxvd2NoYXJ0LVJBLTUiIGRhdGEtbG9vaz0ibmVvIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg2ODQsIDI1Ni43OTk5OTY2OTM5MjkpIj48cmVjdCBjbGFzcz0iYmFzaWMgbGFiZWwtY29udGFpbmVyIiBzdHlsZT0iIiB4PSItNzYiIHk9Ii0zMC44NTAwMDAzODE0Njk3MjciIHdpZHRoPSIxNTIiIGhlaWdodD0iNjEuNzAwMDAwNzYyOTM5NDUiLz48ZyBjbGFzcz0ibGFiZWwiIHN0eWxlPSIiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDAsIC0xOC44NTAwMDAzODE0Njk3MjcpIj48cmVjdC8+PGc+PHJlY3QgY2xhc3M9ImJhY2tncm91bmQiIHN0eWxlPSJzdHJva2U6IG5vbmUiLz48dGV4dCB5PSItMTAuMSIgc3R5bGU9IiI+PHRzcGFuIGNsYXNzPSJ0ZXh0LW91dGVyLXRzcGFuIHJvdyIgeD0iMCIgeT0iLTAuMWVtIiBkeT0iMS4xZW0iPjx0c3BhbiBmb250LXN0eWxlPSJub3JtYWwiIGNsYXNzPSJ0ZXh0LWlubmVyLXRzcGFuIiBmb250LXdlaWdodD0ibm9ybWFsIj5QQlFQOjwvdHNwYW4+PC90c3Bhbj48dHNwYW4gY2xhc3M9InRleHQtb3V0ZXItdHNwYW4gcm93IiB4PSIwIiB5PSIxZW0iIGR5PSIxLjFlbSI+PHRzcGFuIGZvbnQtc3R5bGU9Im5vcm1hbCIgY2xhc3M9InRleHQtaW5uZXItdHNwYW4iIGZvbnQtd2VpZ2h0PSJub3JtYWwiPtGA0LXQs9C40YHRgtGA0Ys8L3RzcGFuPjwvdHNwYW4+PC90ZXh0PjwvZz48L2c+PC9nPjxnIGNsYXNzPSJub2RlIGRlZmF1bHQiIGlkPSJteS1zdmctZmxvd2NoYXJ0LVo4MC03IiBkYXRhLWxvb2s9Im5lbyIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoODc2LCAzMTUuNzk5OTk1NDIyMzYzMykiPjxyZWN0IGNsYXNzPSJiYXNpYyBsYWJlbC1jb250YWluZXIiIHN0eWxlPSIiIHg9Ii03NiIgeT0iLTIxLjUiIHdpZHRoPSIxNTIiIGhlaWdodD0iNDMiLz48ZyBjbGFzcz0ibGFiZWwiIHN0eWxlPSIiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDAsIC05LjUpIj48cmVjdC8+PGc+PHJlY3QgY2xhc3M9ImJhY2tncm91bmQiIHN0eWxlPSJzdHJva2U6IG5vbmUiLz48dGV4dCB5PSItMTAuMSIgc3R5bGU9IiI+PHRzcGFuIGNsYXNzPSJ0ZXh0LW91dGVyLXRzcGFuIHJvdyIgeD0iMCIgeT0iLTAuMWVtIiBkeT0iMS4xZW0iPjx0c3BhbiBmb250LXN0eWxlPSJub3JtYWwiIGNsYXNzPSJ0ZXh0LWlubmVyLXRzcGFuIiBmb250LXdlaWdodD0ibm9ybWFsIj5aODA8L3RzcGFuPjx0c3BhbiBmb250LXN0eWxlPSJub3JtYWwiIGNsYXNzPSJ0ZXh0LWlubmVyLXRzcGFuIiBmb250LXdlaWdodD0ibm9ybWFsIj4gY29kZWdlbjwvdHNwYW4+PC90c3Bhbj48L3RleHQ+PC9nPjwvZz48L2c+PGcgY2xhc3M9Im5vZGUgZGVmYXVsdCIgaWQ9Im15LXN2Zy1mbG93Y2hhcnQtRjEtOCIgZGF0YS1sb29rPSJuZW8iIHRyYW5zZm9ybT0idHJhbnNsYXRlKDg4LCAxNTMuODk5OTk3NzExMTgxNjQpIj48cmVjdCBjbGFzcz0iYmFzaWMgbGFiZWwtY29udGFpbmVyIiBzdHlsZT0iIiB4PSItNzYiIHk9Ii00MC4xOTk5OTg4NTU1OTA4MiIgd2lkdGg9IjE1MiIgaGVpZ2h0PSI4MC4zOTk5OTc3MTExODE2NCIvPjxnIGNsYXNzPSJsYWJlbCIgc3R5bGU9IiIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMCwgLTI4LjE5OTk5ODg1NTU5MDgyKSI+PHJlY3QvPjxnPjxyZWN0IGNsYXNzPSJiYWNrZ3JvdW5kIiBzdHlsZT0ic3Ryb2tlOiBub25lIi8+PHRleHQgeT0iLTEwLjEiIHN0eWxlPSIiPjx0c3BhbiBjbGFzcz0idGV4dC1vdXRlci10c3BhbiByb3ciIHg9IjAiIHk9Ii0wLjFlbSIgZHk9IjEuMWVtIj48dHNwYW4gZm9udC1zdHlsZT0ibm9ybWFsIiBjbGFzcz0idGV4dC1pbm5lci10c3BhbiIgZm9udC13ZWlnaHQ9Im5vcm1hbCI+RjE6PC90c3Bhbj48dHNwYW4gZm9udC1zdHlsZT0ibm9ybWFsIiBjbGFzcz0idGV4dC1pbm5lci10c3BhbiIgZm9udC13ZWlnaHQ9Im5vcm1hbCI+INC70Y/QvNCx0LTQsDwvdHNwYW4+PC90c3Bhbj48dHNwYW4gY2xhc3M9InRleHQtb3V0ZXItdHNwYW4gcm93IiB4PSIwIiB5PSIxZW0iIGR5PSIxLjFlbSI+PHRzcGFuIGZvbnQtc3R5bGU9Im5vcm1hbCIgY2xhc3M9InRleHQtaW5uZXItdHNwYW4iIGZvbnQtd2VpZ2h0PSJub3JtYWwiPmZvbGQ8L3RzcGFuPjx0c3BhbiBmb250LXN0eWxlPSJub3JtYWwiIGNsYXNzPSJ0ZXh0LWlubmVyLXRzcGFuIiBmb250LXdlaWdodD0ibm9ybWFsIj4g0L3QtTwvdHNwYW4+PC90c3Bhbj48dHNwYW4gY2xhc3M9InRleHQtb3V0ZXItdHNwYW4gcm93IiB4PSIwIiB5PSIyLjFlbSIgZHk9IjEuMWVtIj48dHNwYW4gZm9udC1zdHlsZT0ibm9ybWFsIiBjbGFzcz0idGV4dC1pbm5lci10c3BhbiIgZm9udC13ZWlnaHQ9Im5vcm1hbCI+0LLRgdGC0YDQvtC10L3QsDwvdHNwYW4+PC90c3Bhbj48L3RleHQ+PC9nPjwvZz48L2c+PGcgY2xhc3M9Im5vZGUgZGVmYXVsdCIgaWQ9Im15LXN2Zy1mbG93Y2hhcnQtRjMtMTAiIGRhdGEtbG9vaz0ibmVvIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgyODAsIDIwMC4wNzQ5OTk4MDkyNjUxKSI+PHJlY3QgY2xhc3M9ImJhc2ljIGxhYmVsLWNvbnRhaW5lciIgc3R5bGU9IiIgeD0iLTc2IiB5PSItMzAuODUwMDAwMzgxNDY5NzI3IiB3aWR0aD0iMTUyIiBoZWlnaHQ9IjYxLjcwMDAwMDc2MjkzOTQ1Ii8+PGcgY2xhc3M9ImxhYmVsIiBzdHlsZT0iIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwLCAtMTguODUwMDAwMzgxNDY5NzI3KSI+PHJlY3QvPjxnPjxyZWN0IGNsYXNzPSJiYWNrZ3JvdW5kIiBzdHlsZT0ic3Ryb2tlOiBub25lIi8+PHRleHQgeT0iLTEwLjEiIHN0eWxlPSIiPjx0c3BhbiBjbGFzcz0idGV4dC1vdXRlci10c3BhbiByb3ciIHg9IjAiIHk9Ii0wLjFlbSIgZHk9IjEuMWVtIj48dHNwYW4gZm9udC1zdHlsZT0ibm9ybWFsIiBjbGFzcz0idGV4dC1pbm5lci10c3BhbiIgZm9udC13ZWlnaHQ9Im5vcm1hbCI+RjM6PC90c3Bhbj48dHNwYW4gZm9udC1zdHlsZT0ibm9ybWFsIiBjbGFzcz0idGV4dC1pbm5lci10c3BhbiIgZm9udC13ZWlnaHQ9Im5vcm1hbCI+INC30LDQs9GA0YPQt9C60LA8L3RzcGFuPjx0c3BhbiBmb250LXN0eWxlPSJub3JtYWwiIGNsYXNzPSJ0ZXh0LWlubmVyLXRzcGFuIiBmb250LXdlaWdodD0ibm9ybWFsIj4gazwvdHNwYW4+PC90c3Bhbj48dHNwYW4gY2xhc3M9InRleHQtb3V0ZXItdHNwYW4gcm93IiB4PSIwIiB5PSIxZW0iIGR5PSIxLjFlbSI+PHRzcGFuIGZvbnQtc3R5bGU9Im5vcm1hbCIgY2xhc3M9InRleHQtaW5uZXItdHNwYW4iIGZvbnQtd2VpZ2h0PSJub3JtYWwiPtC90LU8L3RzcGFuPjx0c3BhbiBmb250LXN0eWxlPSJub3JtYWwiIGNsYXNzPSJ0ZXh0LWlubmVyLXRzcGFuIiBmb250LXdlaWdodD0ibm9ybWFsIj4g0LLRi9C90LXRgdC10L3QsDwvdHNwYW4+PC90c3Bhbj48L3RleHQ+PC9nPjwvZz48L2c+PGcgY2xhc3M9Im5vZGUgZGVmYXVsdCIgaWQ9Im15LXN2Zy1mbG93Y2hhcnQtRjUtMTIiIGRhdGEtbG9vaz0ibmVvIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgyODAsIDMxMS4xMjQ5OTcxMzg5NzcwNSkiPjxyZWN0IGNsYXNzPSJiYXNpYyBsYWJlbC1jb250YWluZXIiIHN0eWxlPSIiIHg9Ii03NiIgeT0iLTQwLjE5OTk5ODg1NTU5MDgyIiB3aWR0aD0iMTUyIiBoZWlnaHQ9IjgwLjM5OTk5NzcxMTE4MTY0Ii8+PGcgY2xhc3M9ImxhYmVsIiBzdHlsZT0iIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwLCAtMjguMTk5OTk4ODU1NTkwODIpIj48cmVjdC8+PGc+PHJlY3QgY2xhc3M9ImJhY2tncm91bmQiIHN0eWxlPSJzdHJva2U6IG5vbmUiLz48dGV4dCB5PSItMTAuMSIgc3R5bGU9IiI+PHRzcGFuIGNsYXNzPSJ0ZXh0LW91dGVyLXRzcGFuIHJvdyIgeD0iMCIgeT0iLTAuMWVtIiBkeT0iMS4xZW0iPjx0c3BhbiBmb250LXN0eWxlPSJub3JtYWwiIGNsYXNzPSJ0ZXh0LWlubmVyLXRzcGFuIiBmb250LXdlaWdodD0ibm9ybWFsIj5GNTo8L3RzcGFuPjx0c3BhbiBmb250LXN0eWxlPSJub3JtYWwiIGNsYXNzPSJ0ZXh0LWlubmVyLXRzcGFuIiBmb250LXdlaWdodD0ibm9ybWFsIj4gY2FsbGJhY2s8L3RzcGFuPjx0c3BhbiBmb250LXN0eWxlPSJub3JtYWwiIGNsYXNzPSJ0ZXh0LWlubmVyLXRzcGFuIiBmb250LXdlaWdodD0ibm9ybWFsIj4g0LjQtzwvdHNwYW4+PC90c3Bhbj48dHNwYW4gY2xhc3M9InRleHQtb3V0ZXItdHNwYW4gcm93IiB4PSIwIiB5PSIxZW0iIGR5PSIxLjFlbSI+PHRzcGFuIGZvbnQtc3R5bGU9Im5vcm1hbCIgY2xhc3M9InRleHQtaW5uZXItdHNwYW4iIGZvbnQtd2VpZ2h0PSJub3JtYWwiPtC90LXRgdC60L7Qu9GM0LrQuNGFPC90c3Bhbj48L3RzcGFuPjx0c3BhbiBjbGFzcz0idGV4dC1vdXRlci10c3BhbiByb3ciIHg9IjAiIHk9IjIuMWVtIiBkeT0iMS4xZW0iPjx0c3BhbiBmb250LXN0eWxlPSJub3JtYWwiIGNsYXNzPSJ0ZXh0LWlubmVyLXRzcGFuIiBmb250LXdlaWdodD0ibm9ybWFsIj7QsdC70L7QutC+0LI8L3RzcGFuPjwvdHNwYW4+PC90ZXh0PjwvZz48L2c+PC9nPjxnIGNsYXNzPSJub2RlIGRlZmF1bHQiIGlkPSJteS1zdmctZmxvd2NoYXJ0LUY2LTE0IiBkYXRhLWxvb2s9Im5lbyIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNDkyLCAyNzcuMTc0OTkyNTYxMzQwMzMpIj48cmVjdCBjbGFzcz0iYmFzaWMgbGFiZWwtY29udGFpbmVyIiBzdHlsZT0iIiB4PSItNzYiIHk9Ii00MC4xOTk5OTg4NTU1OTA4MiIgd2lkdGg9IjE1MiIgaGVpZ2h0PSI4MC4zOTk5OTc3MTExODE2NCIvPjxnIGNsYXNzPSJsYWJlbCIgc3R5bGU9IiIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMCwgLTI4LjE5OTk5ODg1NTU5MDgyKSI+PHJlY3QvPjxnPjxyZWN0IGNsYXNzPSJiYWNrZ3JvdW5kIiBzdHlsZT0ic3Ryb2tlOiBub25lIi8+PHRleHQgeT0iLTEwLjEiIHN0eWxlPSIiPjx0c3BhbiBjbGFzcz0idGV4dC1vdXRlci10c3BhbiByb3ciIHg9IjAiIHk9Ii0wLjFlbSIgZHk9IjEuMWVtIj48dHNwYW4gZm9udC1zdHlsZT0ibm9ybWFsIiBjbGFzcz0idGV4dC1pbm5lci10c3BhbiIgZm9udC13ZWlnaHQ9Im5vcm1hbCI+RjY6PC90c3Bhbj48dHNwYW4gZm9udC1zdHlsZT0ibm9ybWFsIiBjbGFzcz0idGV4dC1pbm5lci10c3BhbiIgZm9udC13ZWlnaHQ9Im5vcm1hbCI+INC60L7QvdGB0YLQsNC90YLRizwvdHNwYW4+PC90c3Bhbj48dHNwYW4gY2xhc3M9InRleHQtb3V0ZXItdHNwYW4gcm93IiB4PSIwIiB5PSIxZW0iIGR5PSIxLjFlbSI+PHRzcGFuIGZvbnQtc3R5bGU9Im5vcm1hbCIgY2xhc3M9InRleHQtaW5uZXItdHNwYW4iIGZvbnQtd2VpZ2h0PSJub3JtYWwiPtC30LDQvdC40LzQsNGO0YI8L3RzcGFuPjx0c3BhbiBmb250LXN0eWxlPSJub3JtYWwiIGNsYXNzPSJ0ZXh0LWlubmVyLXRzcGFuIiBmb250LXdlaWdodD0ibm9ybWFsIj4gQkMsPC90c3Bhbj48L3RzcGFuPjx0c3BhbiBjbGFzcz0idGV4dC1vdXRlci10c3BhbiByb3ciIHg9IjAiIHk9IjIuMWVtIiBkeT0iMS4xZW0iPjx0c3BhbiBmb250LXN0eWxlPSJub3JtYWwiIGNsYXNzPSJ0ZXh0LWlubmVyLXRzcGFuIiBmb250LXdlaWdodD0ibm9ybWFsIj5JWDwvdHNwYW4+PC90c3Bhbj48L3RleHQ+PC9nPjwvZz48L2c+PGcgY2xhc3M9Im5vZGUgZGVmYXVsdCIgaWQ9Im15LXN2Zy1mbG93Y2hhcnQtRjQtMTYiIGRhdGEtbG9vaz0ibmVvIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg2ODQsIDM2Ny44NDk5OTQwMjM2NDA5MykiPjxyZWN0IGNsYXNzPSJiYXNpYyBsYWJlbC1jb250YWluZXIiIHN0eWxlPSIiIHg9Ii03NiIgeT0iLTQwLjE5OTk5ODg1NTU5MDgyIiB3aWR0aD0iMTUyIiBoZWlnaHQ9IjgwLjM5OTk5NzcxMTE4MTY0Ii8+PGcgY2xhc3M9ImxhYmVsIiBzdHlsZT0iIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwLCAtMjguMTk5OTk4ODU1NTkwODIpIj48cmVjdC8+PGc+PHJlY3QgY2xhc3M9ImJhY2tncm91bmQiIHN0eWxlPSJzdHJva2U6IG5vbmUiLz48dGV4dCB5PSItMTAuMSIgc3R5bGU9IiI+PHRzcGFuIGNsYXNzPSJ0ZXh0LW91dGVyLXRzcGFuIHJvdyIgeD0iMCIgeT0iLTAuMWVtIiBkeT0iMS4xZW0iPjx0c3BhbiBmb250LXN0eWxlPSJub3JtYWwiIGNsYXNzPSJ0ZXh0LWlubmVyLXRzcGFuIiBmb250LXdlaWdodD0ibm9ybWFsIj5GNDo8L3RzcGFuPjx0c3BhbiBmb250LXN0eWxlPSJub3JtYWwiIGNsYXNzPSJ0ZXh0LWlubmVyLXRzcGFuIiBmb250LXdlaWdodD0ibm9ybWFsIj4gMTY8L3RzcGFuPjwvdHNwYW4+PHRzcGFuIGNsYXNzPSJ0ZXh0LW91dGVyLXRzcGFuIHJvdyIgeD0iMCIgeT0iMWVtIiBkeT0iMS4xZW0iPjx0c3BhbiBmb250LXN0eWxlPSJub3JtYWwiIGNsYXNzPSJ0ZXh0LWlubmVyLXRzcGFuIiBmb250LXdlaWdodD0ibm9ybWFsIj7QuNGC0LXRgNCw0YbQuNC5PC90c3Bhbj48L3RzcGFuPjx0c3BhbiBjbGFzcz0idGV4dC1vdXRlci10c3BhbiByb3ciIHg9IjAiIHk9IjIuMWVtIiBkeT0iMS4xZW0iPjx0c3BhbiBmb250LXN0eWxlPSJub3JtYWwiIGNsYXNzPSJ0ZXh0LWlubmVyLXRzcGFuIiBmb250LXdlaWdodD0ibm9ybWFsIj7Rg9C80L3QvtC20LXQvdC40Y88L3RzcGFuPjwvdHNwYW4+PC90ZXh0PjwvZz48L2c+PC9nPjwvZz48L2c+PC9nPjxkZWZzPjxmaWx0ZXIgaWQ9Im15LXN2Zy1kcm9wLXNoYWRvdyIgaGVpZ2h0PSIxMzAlIiB3aWR0aD0iMTMwJSI+PGZlRHJvcFNoYWRvdyBkeD0iNCIgZHk9IjQiIHN0ZERldmlhdGlvbj0iMCIgZmxvb2Qtb3BhY2l0eT0iMC4wNiIgZmxvb2QtY29sb3I9IiMwMDAwMDAiLz48L2ZpbHRlcj48L2RlZnM+PGRlZnM+PGZpbHRlciBpZD0ibXktc3ZnLWRyb3Atc2hhZG93LXNtYWxsIiBoZWlnaHQ9IjE1MCUiIHdpZHRoPSIxNTAlIj48ZmVEcm9wU2hhZG93IGR4PSIyIiBkeT0iMiIgc3RkRGV2aWF0aW9uPSIwIiBmbG9vZC1vcGFjaXR5PSIwLjA2IiBmbG9vZC1jb2xvcj0iIzAwMDAwMCIvPjwvZmlsdGVyPjwvZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9Im15LXN2Zy1ncmFkaWVudCIgZ3JhZGllbnRVbml0cz0ib2JqZWN0Qm91bmRpbmdCb3giIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjNWM4NjcyIiBzdG9wLW9wYWNpdHk9IjEiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9ImhzbCg0MCwgMjIuNSUsIDgwLjU4ODIzNTI5NDElKSIgc3RvcC1vcGFjaXR5PSIxIi8+PC9saW5lYXJHcmFkaWVudD48L3N2Zz4=" alt="Схема 8.1"></div><figcaption>Схема 8.1 · На узком экране схему можно прокрутить горизонтально.</figcaption><details><summary>Посмотреть Mermaid</summary><pre><code>flowchart LR
+  SRC[&quot;Nanz: filter / map / fold&quot;] --&gt; HIR[&quot;HIR: fusion в один цикл&quot;]
+  HIR --&gt; MIR[&quot;MIR2: упрощение, инлайн&quot;]
+  MIR --&gt; RA[&quot;PBQP: регистры&quot;]
+  RA --&gt; Z80[&quot;Z80 codegen&quot;]
+  F1[&quot;F1: лямбда fold не встроена&quot;] -.-&gt; HIR
+  F3[&quot;F3: загрузка k не вынесена&quot;] -.-&gt; MIR
+  F5[&quot;F5: callback из нескольких блоков&quot;] -.-&gt; MIR
+  F6[&quot;F6: константы занимают BC, IX&quot;] -.-&gt; RA
+  F4[&quot;F4: 16 итераций умножения&quot;] -.-&gt; Z80</code></pre></details></figure>
+
+<h3 id="f1-лямбду-встроили-но-не-везде">F1. Лямбду встроили, но не
+везде</h3>
+<p>Когда HIR сливает цепочку, тело однострочной лямбды подставляется
+прямо как выражение. Этим занимается <code>prependStageStmts</code>. В
+соседней функции <code>foldStageBody</code>, которая обслуживает цепочки
+с <code>.fold</code>, такой подстановки нет. Там вместо выражения
+<code>x &gt;= 128</code> остаётся вызов функции-лямбды. MIR2 позже его
+встраивает, но поздно: результат уже стал значением типа
+<code>bool</code>. Его превращают в 0 или 1, кладут в память, читают
+обратно и проверяют <code>AND A</code>.</p>
+<pre class="z80"><code>    LD A, (DE)         ; 7  элемент
+    CP 128             ; 7  сам предикат
+    PUSH AF / LD A,0 / LD (_spill_r18),A / POP AF    ; мёртвая запись
+    PUSH AF / JP NC,.bool_true
+    LD A,0 / JP .bool_done
+.bool_true: LD A,1
+.bool_done: LD (_spill_r17),A / POP AF             ; bool в память
+    PUSH BC / PUSH AF / LD A,(_spill_r17) / AND A  ; bool из памяти
+    POP BC / LD A,B / POP BC
+    JRS Z, .skip</code></pre>
+<p><em>fusion_filter_map_sum, Nanz: около 170 T из 230 уходят на путь
+флаг → bool → память → флаг. У SDCC предикат стоит две инструкции:
+<code>cp a,#0x80 / jr c</code>.</em></p>
+<p>Ошибка здесь не в оптимизаторе, а в рассинхроне двух функций. Одну
+научили, другую забыли. Исправление — один общий помощник для обеих,
+около двадцати строк. Ожидаемый эффект −2.3M T.</p>
+<h3 id="f3-цикл-не-знает-что-k-не-меняется">F3. Цикл не знает, что k не
+меняется</h3>
+<p>В <code>filter_count</code> элементы сравниваются с глобальной
+переменной <code>k</code>. Проход <code>HoistInvariantAddresses</code>
+уже выносит из цикла вычисление её <em>адреса</em>. Но <em>чтение
+значения</em> он сознательно оставляет внутри. Вынести его можно, только
+если доказано, что в цикле никто не пишет в <code>k</code>: нет записи в
+память, вызова, ассемблерной вставки или порта. Регистров при этом не
+хватает, указатель на <code>k</code> уходит в спилл, и каждая итерация
+читает сначала указатель, потом само значение. Это 196 тактов из
+253.</p>
+<p>Это самая большая потеря на наборе, −3.1M T, и единственная правка из
+списка, где можно получить неверный код. Поэтому её тест будет не только
+«загрузка вынесена», но и «два вызова подряд с изменённым между ними
+<code>k</code> видят новое значение». То есть вынести из цикла можно, а
+из функции нельзя.</p>
+<h3 id="f5-callback-из-нескольких-блоков">F5. Callback из нескольких
+блоков</h3>
+<p><code>larger(a, b)</code> — это «сравни и верни одно из двух». В MIR2
+это несколько базовых блоков с условным возвратом. Встраиватель
+<code>InlineTrivial</code> умеет только функции из одного блока, поэтому
+остаётся <code>CALL</code> с четырьмя <code>PUSH</code> и
+<code>POP</code>, как в листинге выше. Узкое исправление — шаблон
+«сравни и выбери» примерно на 60 строк. Общее — встраивание любых
+многоблочных функций, около 250 строк и заметно больше риска. Ожидаемо
+−1.6M T.</p>
+<h3 id="f6-регистры-занятые-константами">F6. Регистры, занятые
+константами</h3>
+<p>PBQP держит константы цикла, например <code>0</code> для сравнения и
+<code>1</code> для декремента, в физических регистрах BC и IX.
+Кодогенератор всё равно подставил бы их как непосредственные значения.
+Сама по себе эта потеря невелика, 0.5–0.8M T. Но она отнимает регистры у
+настоящих значений: из-за неё в <code>dot_product</code> указатель на
+второй массив и второй множитель живут в памяти.</p>
+<h2 id="f4-первый-закрытый-шаг">F4: первый закрытый шаг</h2>
+<p><code>dot_product</code> считает сумму
+<code>u16(a[i]) * u16(b[i])</code>. Оба множителя — байты, расширенные
+до 16 бит. Кодогенератор умножал их универсальным циклом сдвига и
+сложения на 16 итераций. Но у множителя старший байт равен нулю, поэтому
+итерации с 9-й по 16-ю всегда проходят ветку «бит нулевой, ничего не
+прибавлять». Это 480 мёртвых тактов на каждый элемент.</p>
+<p>Исправление начинается с доказательства, а не с догадки. Новая
+функция <code>provablyBelow256</code> принимает значение, только если по
+его происхождению видно, что биты 8–15 равны нулю:</p>
+<ul>
+<li>беззнаковое расширение из 8 бит;</li>
+<li>беззнаковый узкий параметр контракта;</li>
+<li>константа меньше 256;</li>
+<li>копия уже доказанного значения;</li>
+<li>знаковое расширение, но только если источник отдельно доказан
+неотрицательным.</li>
+</ul>
+<p>Всё остальное остаётся на 16 итерациях.</p>
+<p>Воркер пошёл дальше, чем просили. Для доказанных 8-итерационных
+умножений он поставил тело, которое используют ручной код и SDCC:</p>
+<pre class="z80"><code>    LD B, 8
+.loop:  SRL A          ; бит множителя в перенос
+        JR NC, .skip
+        ADD HL, DE     ; результат += множимое
+.skip:  SLA E / RL D   ; множимое ×2
+        DJNZ .loop</code></pre>
+<p><em>49 T на итерацию с нулевым битом против 60 у прежнего
+тела.</em></p>
+<table>
+<thead>
+<tr>
+<th>dot_product</th>
+<th style="text-align: right;">T</th>
+<th style="text-align: right;">байты</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>main</td>
+<td style="text-align: right;">8 028 801</td>
+<td style="text-align: right;">668</td>
+</tr>
+<tr>
+<td>8 итераций</td>
+<td style="text-align: right;">5 506 401</td>
+<td style="text-align: right;">—</td>
+</tr>
+<tr>
+<td>8 итераций + тело на DJNZ</td>
+<td style="text-align: right;">5 007 176</td>
+<td style="text-align: right;">664</td>
+</tr>
+</tbody>
+</table>
+<p>Остальные семь кейсов fusion-набора и все программы основного и
+отложенного наборов совпали с main до байта. Весь набор: <strong>2.00× →
+1.67×</strong> от SDCC.</p>
+<h2 id="тест-который-проверяет-что-оптимизация-не-сработала">Тест,
+который проверяет, что оптимизация не сработала</h2>
+<p>Самый важный тест в F4 проверяет не ускорение. Он берёт знаковый байт
+<code>i8</code>, расширенный до 16 бит, и требует, чтобы умножение
+осталось на 16 итерациях. У отрицательного байта после расширения
+старший байт <code>0xFF</code>, и укороченный цикл дал бы неверный
+результат. На неисправленном компиляторе этот тест проходил: там всё
+было на 16 итерациях. Пройти он обязан и после исправления. Если однажды
+кто-то ослабит доказательство, упадёт именно он.</p>
+<p>Положительные тесты отвечают на вопрос «сработала ли оптимизация там,
+где должна». Отрицательный контроль отвечает на вопрос, который легко
+забыть: «не сработала ли она там, где не должна». В главе о
+заимствованиях у больших экосистем об этом говорилось абстрактно: стенд
+должен уметь заметить ошибку. Здесь это одна строка с ожиданием
+<code>16</code>.</p>
+<p>Корректность при этом проверена полностью: все 65 536 пар значений
+для <code>u8</code> и для <code>i8</code>, 268 тысяч запусков на Z80 и
+134 тысячи на VM MIR2. Сохраняются все прежние проверки, включая
+сохранность регистров и соседних ячеек спилла.</p>
+<h2 id="дальше-таблица-вместо-цикла">Дальше: таблица вместо цикла</h2>
+<p>Даже после F4 <code>dot_product</code> остаётся в 1.77 раза медленнее
+SDCC. У z80-optimizer есть таблицы оптимального умножения, найденные
+перебором на GPU, но они для умножения на константу. Здесь оба множителя
+переменные. Alice предложила другой путь, классический для Z80:</p>
+<blockquote>
+<p><strong>a × b = sq[a + b] − sq[|a − b|], sq[n] = ⌊n² /
+4⌋</strong></p>
+</blockquote>
+<p>Для байтов <code>a + b</code> не больше 510, значит таблица
+<code>sq</code> — 511 значений по 16 бит, около килобайта. Умножение
+превращается в сложение, вычитание, модуль и две выборки из таблицы. По
+оценке это 60–80 тактов против нынешних примерно 400 у
+восьмиитерационного цикла. Формула точная: <code>(a+b)²</code> и
+<code>(a−b)²</code> имеют одинаковую чётность, поэтому округление вниз в
+обоих членах сокращается.</p>
+<p>Килобайт таблицы — цена, которую имеет смысл платить только в
+speed-режиме и только для умножения в горячем цикле. В
+<code>--Osize</code> остаётся цикл. Проверка опять полная, по всем 65
+536 парам: на CPU это секунды, GPU не нужен. Это шаг F4b, он идёт сразу
+после слияния F4, потому что обе правки трогают один файл.</p>
+<h2 id="хватит-ли-этого">Хватит ли этого</h2>
+<p>F0 посчитал прогноз: каждую категорию потерь заменил остаточной ценой
+цикла, которую уже показывают выигрывающие кейсы на том же скелете.</p>
+<table>
+<thead>
+<tr>
+<th>Кейс</th>
+<th style="text-align: right;">сейчас, T</th>
+<th style="text-align: right;">прогноз F1+F3+F4+F5</th>
+<th style="text-align: right;">к SDCC</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>fold_max</td>
+<td style="text-align: right;">1 120 286</td>
+<td style="text-align: right;">333 087</td>
+<td style="text-align: right;">0.58</td>
+</tr>
+<tr>
+<td>fold_min</td>
+<td style="text-align: right;">1 121 667</td>
+<td style="text-align: right;">336 898</td>
+<td style="text-align: right;">0.60</td>
+</tr>
+<tr>
+<td>filter_map_sum</td>
+<td style="text-align: right;">1 237 724</td>
+<td style="text-align: right;">407 253</td>
+<td style="text-align: right;">0.65</td>
+</tr>
+<tr>
+<td>map_filter_sum</td>
+<td style="text-align: right;">1 979 597</td>
+<td style="text-align: right;">467 898</td>
+<td style="text-align: right;">0.46</td>
+</tr>
+<tr>
+<td>filter_count</td>
+<td style="text-align: right;">4 088 375</td>
+<td style="text-align: right;">977 571</td>
+<td style="text-align: right;">0.54</td>
+</tr>
+<tr>
+<td>dot_product</td>
+<td style="text-align: right;">8 028 801</td>
+<td style="text-align: right;">5 506 401</td>
+<td style="text-align: right;">1.94</td>
+</tr>
+<tr>
+<td>map_store</td>
+<td style="text-align: right;">438 350</td>
+<td style="text-align: right;">438 350</td>
+<td style="text-align: right;">0.66</td>
+</tr>
+<tr>
+<td>window_sum</td>
+<td style="text-align: right;">430 573</td>
+<td style="text-align: right;">430 573</td>
+<td style="text-align: right;">0.38</td>
+</tr>
+<tr>
+<td><strong>Итого</strong></td>
+<td style="text-align: right;"><strong>18 445 373</strong></td>
+<td style="text-align: right;"><strong>8 898 031</strong></td>
+<td style="text-align: right;"><strong>0.963</strong></td>
+</tr>
+</tbody>
+</table>
+<p><em>Прогноз F0, а не измерение. Для dot_product в прогнозе только
+первая половина F4; реальный F4 уже дал 5 007 176 T.</em></p>
+<p>Цель по SDCC достижима, но с запасом всего 3.7%, и для неё нужны все
+три главные правки. Без F1 выходит 1.16×, без F3 — 1.13×, без F4 —
+1.23×. Без F5 получается 0.96×, то есть F5 даёт запас, а не саму цель.
+Против ручного кода прогноз 1.80×, вторая половина цели тоже
+закрывается.</p>
+<p>Отстающим остаётся <code>dot_product</code>. Его вытянут F6, который
+освободит регистры от констант и уберёт спиллы, и таблица квадратов из
+F4b.</p>
+<h2 id="почему-последняя-миля">Почему «последняя миля»</h2>
+<p>Ни одна из этих потерь не означает, что fusion устроен неправильно.
+Цепочка исчезла, цикл один, элементы читаются один раз. Это самая
+трудная часть, и она сделана. Потери появляются позже, на стыках: между
+HIR и MIR2, между MIR2 и аллокатором, между аллокатором и
+кодогенератором. Каждая стадия по отдельности поступает разумно.
+Компилятор, который проходит 99% пути, всё равно может быть вдвое
+медленнее, если последний процент — это <code>PUSH</code> и
+<code>POP</code> внутри горячего цикла.</p>
+<blockquote>
+<p>Измерить до того, как чинить, оказалось дешевле всего. Один отчёт без
+единой строки кода показал, что DJNZ не главное, что больше всего тактов
+съедает чтение одной глобальной переменной и что dot_product отстаёт по
+причине, которую можно доказать формально.</p>
+</blockquote>
+<p><em>Глава написана сессией minz (u7) 27 октября 2026 и
+отрецензирована сессией minz-m2. Источники: отчёт воркера F0
+(<code>~/minz-workers/F0-REPORT.md</code> на i5), отчёт F4 и PR <a
+href="https://github.com/oisee/minz/pull/277">#277</a>, бенч
+<code>research/c89-benchmark/fusion</code> против SDCC 4.6. Код цели F
+пишут воркеры claude-z (GLM-5.3); менеджер проверяет, гоняет гейты и
+сливает. Цифры будут обновлены, когда F1 и F3 попадут в main.</em></p>
+<div class="next"><a href="01-languages-and-ideas.html">Дальше: Ruby рассказывает, Z80 считает →</a></div></article></main><footer>26–27 октября 2026 · MinZ · Две главы подготовлены совместно с Astra. Работающие возможности, эксперименты и предложения различаются в тексте. <a href="README.md">Markdown и воспроизведение</a></footer><script>const progress=document.querySelector('.progress');
+function readingProgress(){const d=document.documentElement;const max=d.scrollHeight-d.clientHeight;if(progress)progress.style.width=(max>0?100*d.scrollTop/max:0)+'%'}
+addEventListener('scroll',readingProgress,{passive:true});readingProgress();
+const demo=document.querySelector('#playground');
+if(demo){
+ const runs=demo.querySelector('[name=runs]'), demand=demo.querySelector('[name=demand]');
+ function simulate(){
+  const output=demo.querySelector('.output'), stats=demo.querySelector('.model-stats'), boxes=demo.querySelector('.runs');
+  try{
+   const pairs=runs.value.split(',').map(s=>{const m=s.trim().match(/^(\d+)\s*:\s*(\d+)$/);if(!m)throw Error('Пары записываются как count:value, например 3:65.');const p=m.slice(1).map(Number);if(p.some(x=>x<0||x>255))throw Error('В этом примере count и value — байты от 0 до 255.');return p});
+   if(pairs.length>16)throw Error('Для наглядности — не более 16 пар.');
+   const need=Number(demand.value);if(!Number.isInteger(need)||need<0||need>64)throw Error('Спрос — целое число от 0 до 64.');
+   const emitted=[];let at=0,left=0,value=0,loaded=0;
+   while(emitted.length<need){
+    if(left===0){if(at===pairs.length)break;[left,value]=pairs[at++];loaded++;if(left===0)continue;}
+    emitted.push(value);left--;
+   }
+   boxes.replaceChildren();pairs.forEach((p,i)=>{const b=document.createElement('span');b.className='run'+(i<loaded?' read':'');b.textContent=p[0]+' × '+p[1]+(i<loaded?' · прочитано':' · не трогали');boxes.append(b)});
+   stats.replaceChildren();[['Прочитано входных байтов',loaded*2],['Выдано',emitted.length],['Осталось в текущем run',left]].forEach(([label,n])=>{const s=document.createElement('span');s.textContent=label+': '+n;stats.append(s)});
+   output.className='output';output.textContent=emitted.length?emitted.map(x=>x.toString(16).toUpperCase().padStart(2,'0')).join(' '):'Пока не потребовали ни одного байта.';
+  }catch(e){output.className='output error';output.textContent=e.message;stats.replaceChildren();boxes.replaceChildren();}
+ }
+ demo.querySelector('button').addEventListener('click',simulate);simulate();
+}
+</script></body></html>
