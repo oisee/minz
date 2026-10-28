@@ -269,6 +269,8 @@ func (g *z80cg) scanBitStorePatterns(b *Block) {
 			}
 		}
 
+		var pat bitStorePat
+		matched := false
 		switch width {
 		case 8:
 			switch valInst.Op {
@@ -277,17 +279,17 @@ func (g *z80cg) scanBitStorePatterns(b *Block) {
 					continue
 				}
 				bit := bits.TrailingZeros8(mask)
-				g.bitStorePat[valReg] = bitStorePat{bit: bit, byteOffset: 0, op: "SET"}
+				pat, matched = bitStorePat{bit: bit, byteOffset: 0, op: "SET"}, true
 			case OpAnd:
 				if bits.OnesCount8(^mask) != 1 {
 					continue
 				}
 				bit := bits.TrailingZeros8(^mask)
-				g.bitStorePat[valReg] = bitStorePat{bit: bit, byteOffset: 0, op: "RES"}
+				pat, matched = bitStorePat{bit: bit, byteOffset: 0, op: "RES"}, true
 			case OpBitSet:
-				g.bitStorePat[valReg] = bitStorePat{bit: int(valInst.Imm), byteOffset: 0, op: "SET"}
+				pat, matched = bitStorePat{bit: int(valInst.Imm), byteOffset: 0, op: "SET"}, true
 			case OpBitReset:
-				g.bitStorePat[valReg] = bitStorePat{bit: int(valInst.Imm), byteOffset: 0, op: "RES"}
+				pat, matched = bitStorePat{bit: int(valInst.Imm), byteOffset: 0, op: "RES"}, true
 			}
 		case 16:
 			mask16 := uint16(0)
@@ -302,25 +304,31 @@ func (g *z80cg) scanBitStorePatterns(b *Block) {
 					continue
 				}
 				totalBit := bits.TrailingZeros16(mask16)
-				g.bitStorePat[valReg] = bitStorePat{bit: totalBit % 8, byteOffset: totalBit / 8, op: "SET"}
+				pat, matched = bitStorePat{bit: totalBit % 8, byteOffset: totalBit / 8, op: "SET"}, true
 			case OpAnd:
 				if bits.OnesCount16(^mask16) != 1 {
 					continue
 				}
 				totalBit := bits.TrailingZeros16(^mask16)
-				g.bitStorePat[valReg] = bitStorePat{bit: totalBit % 8, byteOffset: totalBit / 8, op: "RES"}
+				pat, matched = bitStorePat{bit: totalBit % 8, byteOffset: totalBit / 8, op: "RES"}, true
 			case OpBitSet:
 				totalBit := int(valInst.Imm)
-				g.bitStorePat[valReg] = bitStorePat{bit: totalBit % 8, byteOffset: totalBit / 8, op: "SET"}
+				pat, matched = bitStorePat{bit: totalBit % 8, byteOffset: totalBit / 8, op: "SET"}, true
 			case OpBitReset:
 				totalBit := int(valInst.Imm)
-				g.bitStorePat[valReg] = bitStorePat{bit: totalBit % 8, byteOffset: totalBit / 8, op: "RES"}
+				pat, matched = bitStorePat{bit: totalBit % 8, byteOffset: totalBit / 8, op: "RES"}, true
 			}
 		}
-		if _, ok := g.bitStorePat[valReg]; ok {
-			g.bitStoreSkip[loadReg] = true
-			g.bitStoreSkip[valReg] = true
+		// Admit the fusion only when the pointer home can encode the memory
+		// operand. Recording the pattern suppresses the load and the Or|And
+		// producer; if emitBitMemOp then refused the pointer, the ordinary
+		// store below it would write a register that was never computed.
+		if !matched || !bitMemOpAddressable(bitMemOpHome(g.loc(inst.Src[0])), pat.byteOffset) {
+			continue
 		}
+		g.bitStorePat[valReg] = pat
+		g.bitStoreSkip[loadReg] = true
+		g.bitStoreSkip[valReg] = true
 	}
 }
 
@@ -529,36 +537,50 @@ func (g *z80cg) isGlobalPageAligned(sym string) bool {
 // encoded. genCmp's ordinary fallback requires those AND/shift/zero values.
 func (g *z80cg) canEmitBitCmpPattern(pat bitCmpPat) bool {
 	if pat.useMem {
-		ptr := g.loc(pat.ptrReg)
-		if isSpill(ptr) {
-			ptr = "HL"
-		}
-		return ptr == "HL" && (pat.byteOffset == 0 || pat.byteOffset == 1) || isIXY(ptr) && pat.byteOffset >= 0 && pat.byteOffset <= 127
+		return bitMemOpAddressable(bitMemOpHome(g.loc(pat.ptrReg)), pat.byteOffset)
 	}
 	src := selectBitReg(g.loc(pat.srcReg), pat.byteOffset)
 	return isSimpleReg(src) && !isSpill(src) && !isIXYReg(src)
 }
 
-func (g *z80cg) emitBitMemOp(op string, bit int, ptr string, byteOffset int) bool {
+// bitMemOpHome names the physical home a memory BIT/SET/RES would use. A
+// spilled pointer is reloaded into HL by the load and store paths before the
+// indirect operand is formed, so its effective home is HL.
+func bitMemOpHome(ptr string) string {
+	if isSpill(ptr) {
+		return "HL"
+	}
+	return ptr
+}
+
+// bitMemOpAddressable reports whether that home can encode BIT/SET/RES on
+// memory at byteOffset. Only (HL) at displacement 0/1 and (IX+d)/(IY+d) with
+// d in 0..127 exist; BC and DE have no indirect bit operand at all. Every
+// admission decision must use this predicate so a recorded pattern can never
+// outlive the emitter's ability to encode it.
+func bitMemOpAddressable(ptr string, byteOffset int) bool {
 	if ptr == "HL" {
-		switch byteOffset {
-		case 0:
-			g.emitf("    %s %d, (HL)", op, bit)
-			return true
-		case 1:
+		return byteOffset == 0 || byteOffset == 1
+	}
+	return isIXY(ptr) && byteOffset >= 0 && byteOffset <= 127
+}
+
+func (g *z80cg) emitBitMemOp(op string, bit int, ptr string, byteOffset int) bool {
+	if !bitMemOpAddressable(ptr, byteOffset) {
+		return false
+	}
+	if ptr == "HL" {
+		if byteOffset == 1 {
 			g.emit("    INC HL")
 			g.emitf("    %s %d, (HL)", op, bit)
 			g.emit("    DEC HL")
 			return true
-		default:
-			return false
 		}
-	}
-	if isIXY(ptr) && byteOffset >= 0 && byteOffset <= 127 {
-		g.emitf("    %s %d, %s", op, bit, ptrIndirect(ptr, byteOffset))
+		g.emitf("    %s %d, (HL)", op, bit)
 		return true
 	}
-	return false
+	g.emitf("    %s %d, %s", op, bit, ptrIndirect(ptr, byteOffset))
+	return true
 }
 
 func selectBitReg(src string, byteOffset int) string {
@@ -783,8 +805,15 @@ func (g *z80cg) scanGlobalFieldPatterns(b *Block) {
 	}
 
 	// Scan Store instructions (Dst==NoReg, Src[0]=addr, Src[1]=val).
+	// A store whose value the bit-store fusion already claimed writes its
+	// memory cell with SET/RES and has no computed value register; a direct
+	// address path here would store a register that was never written.
+	fusedBitStore := func(st *Inst) bool {
+		_, ok := g.bitStorePat[st.Src[1]]
+		return ok
+	}
 	for _, inst := range b.Insts {
-		if inst.Op != OpStore || inst.Ty.Width() != 8 {
+		if inst.Op != OpStore || inst.Ty.Width() != 8 || fusedBitStore(inst) {
 			continue
 		}
 		addrReg := inst.Src[0]
@@ -931,7 +960,7 @@ func (g *z80cg) scanGlobalFieldPatterns(b *Block) {
 	// Enables LD (sym),HL (16T) or adjacent single-use LD (sym),DE/BC
 	// (20T). The latter suppresses AddrOf without changing any register or flags.
 	for i, inst := range b.Insts {
-		if inst.Op != OpStore || inst.Ty.Width() != 16 {
+		if inst.Op != OpStore || inst.Ty.Width() != 16 || fusedBitStore(inst) {
 			continue
 		}
 		addrReg := inst.Src[0]
