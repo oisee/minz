@@ -29649,7 +29649,7 @@
     }
   ],
   "scope": "Scorpion sector API traps with saved native producer disks; not ROM/FDC/hardware or bootable disks",
-  "fresh_prior_sha256": "f162cd03f84fb404c160657555d46fa73a4f9e5b7bd19a14a9ad14117ca64293",
+  "fresh_prior_sha256": "749b19c2402b97a86c3ae6c3089e88a2e65e5298ebcdfc089b65702d55f2115a",
   "fresh_prior": {
     "protocol": "autosiril-common-flatten/v1",
     "source_sha256": {
@@ -33270,8 +33270,8 @@
     "directory_success_executions": 9,
     "standalone_notes_sha256": "4ecfa8a78d0146fe2f7dbcdcab711fa1ca803332044b3e4d81f684c80a37039f",
     "standalone_events_sha256": "7a6a96d5a438bc27488295a580245baa14f3b6a4b6c1b896274538286891fff7",
-    "fresh_reference_sha256": "17b194bf4a8155879d793034d8a8520f64aca7e89eb435c51138e6a27a7bc4b0",
-    "fresh_producer_sha256": "d301d5334202c469b5aae08b58179d31ed90b286fe31ff8639d5e6c5c8bf1832",
+    "fresh_reference_sha256": "940bebe19885f73942e2979523da5580174966b0363c8b143f7cdf3c6929aebd",
+    "fresh_producer_sha256": "9daadace1c449f09f8db348456e72fac5766972b6e9d971745d31d6aaf7db780",
     "fresh_reference": {
       "protocol": "autosiril-cpm-file-chain-fresh/v1",
       "source_sha256": {
@@ -33281,12 +33281,12 @@
         "research/autosiril-native/file-flatten/cpm.nanz": "ea5affe2477bd1133059efde61b21414dfa45b53ff93ab217ab8b41fa2f5c503",
         "research/autosiril-native/file-flatten/driver.go.txt": "ef255a6adcb0feabe0c5781b20f370de6ffba98ef94b10d2e898cd59f68ca777"
       },
-      "pair_receipt_sha256": "6c28f3a6755bc52e01638cc3d6d98065db5d8e811aaa7917fceebe93be5ff5f2",
+      "pair_receipt_sha256": "ccd11b6ee6d731d9486fc78e66ad571223c23d205f1eefd4c0a8acbc8db54b7f",
       "matrix_sha256": "b9d48e6ac84de63c5d095b3e3217196a8fc6ee9ec1024bd500ae5418e6628425",
       "oracle_source_sha256": "5575b3ac8e8a7bc5fd051ee48745726d09a205a25be0847efdc3bdf7e5a01942",
       "oracle_input_sha256": "70d0a0387564341561d7fa2247587f77904cd1780c81d503a4b0230784be5971",
       "oracle_output_sha256": "4b13163dcb83522615a04c33005415413da2e84391709da7355803850c82d585",
-      "ruby_full_sha256": "97db7bbd3b8960394a5ed79bb667dde733f1354d839ad16ae29c81c22c20ad30",
+      "ruby_full_sha256": "f32d5c9e60acf25d95ac700f941ff391ffb9875d7911be24eabbc10373b37bcf",
       "generated_source_sha256": "fb07ee19839e2aebbdfc8c07f8b12ed25064c57c9c3d20f57fc692b7576a0a43",
       "generated_driver_sha256": "7f3622dfa1e32f871326ef45da44e570fe94e78ba5e768d73e761651f49c64a4",
       "flatten": {
@@ -42485,11 +42485,11 @@
       "rejected_native_mutants": 3,
       "directory_success_executions": 9,
       "standalone_wire_sha256": "4ecfa8a78d0146fe2f7dbcdcab711fa1ca803332044b3e4d81f684c80a37039f",
-      "standalone_mze_sha256": "89ade8c12b36c6cf3e05ba38c30e1c9faaa8c331b063f8f1334cc7d584b17da9",
+      "standalone_mze_sha256": "f7a01758fe4513c5bb1f5316acbc3dd8b7ee4f886b836257a8b33e50072e9770",
       "chronos_logical_sha256": "56e0b7266c9f4ba610f8d77d2475c6293d49af40e5778ad96a162f7daf50d76b",
       "scope": "CP/M and Scorpion API traps; not physical ROM/hardware",
-      "fresh_file_reference_sha256": "6c28f3a6755bc52e01638cc3d6d98065db5d8e811aaa7917fceebe93be5ff5f2",
-      "fresh_midi_reference_sha256": "0b6faca051727c6b50892809c540037cefb6d5e64fc0960e02cadb4e3032a921",
+      "fresh_file_reference_sha256": "ccd11b6ee6d731d9486fc78e66ad571223c23d205f1eefd4c0a8acbc8db54b7f",
+      "fresh_midi_reference_sha256": "f738427302b5648957132e07295dfcdd124df1753397c17991248b4f6ccf54c4",
       "fresh_midi_executions": 342,
       "fresh_file_reference": {
         "protocol": "autosiril-file-pair-fresh/v1",
@@ -42502,7 +42502,7 @@
           "minzc/cmd/mze/cpm_record.go": "2959ad5fbd05889fdc0d1bdf991429ae163b948a424c369bd3f311f5d2a667c7",
           "minzc/cmd/mze/cpm_record_test.go": "ed65e0346a0773ddcb167ac3222a6fd434221c333bd6f995a57e1b7a889ed8d5"
         },
-        "reference_sha256": "0b6faca051727c6b50892809c540037cefb6d5e64fc0960e02cadb4e3032a921",
+        "reference_sha256": "f738427302b5648957132e07295dfcdd124df1753397c17991248b4f6ccf54c4",
         "matrix_sha256": "29d8568e2178f72c60c2005e520a7ecfceb6056f5627bb21a53a796fb64a3dd8",
         "generated_source_sha256": "d214edcd4ef504308e4e1aa1ef34f4d7842cc34ea39741342c043e872ba0a875",
         "generated_driver_sha256": "2988674e20602b0f3f4e99df1b718666a918ef2a86e3e3e19f1202ccf278b47c",
@@ -45419,7 +45419,7 @@
           "target_executions": 147
         },
         "standalone_wire_sha256": "4ecfa8a78d0146fe2f7dbcdcab711fa1ca803332044b3e4d81f684c80a37039f",
-        "standalone_mze_sha256": "89ade8c12b36c6cf3e05ba38c30e1c9faaa8c331b063f8f1334cc7d584b17da9",
+        "standalone_mze_sha256": "f7a01758fe4513c5bb1f5316acbc3dd8b7ee4f886b836257a8b33e50072e9770",
         "local_go_overlay_sha256": null,
         "local_go_overlay_sources": {},
         "scope": "first file stage only; target note-file reader and flatten-file stage pending"
@@ -45444,7 +45444,7 @@
           "minzc/pkg/hir/verify_test.go": "a8fde55f0b5126d693c3f5a58c2f51fa9d5656e566b54962b20677213cc04c83",
           "minzc/cmd/autosiril-midi-native/main.go": "c9a730bf983428930d760a634675b92af42a402367960bebf01e569ee34c85ba",
           "minzc/cmd/autosiril-midi-native/main_test.go": "fb440984faa165c93a22fd2a8a46f7fc98827c064554045385cc5b82f07b966c",
-          ".github/workflows/ci.yml": "1d807cd636b04e50eac3d104242a5b915183af65ef788fbb752f121d096659cf",
+          ".github/workflows/ci.yml": "c6d79c1cfb16b919316d59067e91e67db355ad345f625e7e6cf3a4447b855515",
           "stdlib/midi/smf.nanz": "0c400f637e7f5a26d03186edd90a5fed490b4a4e20efb7dabc49349b057e941b",
           "stdlib/mem/bytes.nanz": "ff993d0018bacb114766b830d76c3c62f7742928e978eff04875ac88f7299d24",
           "research/autosiril-vm/music.cr": "9ea520bfb7334ba2322a5d195f4343a678f9f535a1725a4e91d1b3d936d0d15c",
@@ -45457,7 +45457,7 @@
         "music_sha256": "9fb9f831651875e5b4b65b45a121d3f8d3b9ebce7ec6f7652a7abd909485ce9a",
         "manifest_sha256": "f2ba3f05a0700c79e9b6deff99461d1cc57d70f3c4a460ba69fcb5f82d80835d",
         "exporter_sha256": "a750f0a95d2ab2bce3bddc1c15548007febd46d94d043317e381ddfdbf71506f",
-        "consumer_sha256": "ae0a052b865dbf9fa43b997c17965ca9eff47d55cb3e1446b9205ac4231dfd55",
+        "consumer_sha256": "531ead01a0253332c6bd13f5e001d0db2076f4188ec1225ba68e5fac0ad69743",
         "input_sha256": "8b5f831c93d6dd251fdb4f3c6986b59ccb6ace4208f4c39c12dc0d5a4db7f9db",
         "native": {
           "assembly_sha256": "219f42a8b88975f11f7b311e670803009039a58ed85e61e4c6a8dbec2362c1cb",
@@ -51395,7 +51395,7 @@
         "go_version": "go version go1.24.3 linux/amd64",
         "ruby_version": "ruby 3.3.8 (2025-04-09 revision b200bad6cd) [x86_64-linux-gnu]",
         "crystal_version": "Crystal 1.20.1 [e60210eb9] (2026-04-29)\n\nLLVM: 20.1.8\nDefault target: x86_64-unknown-linux-gnu",
-        "git_head": "c7eb9956d8ba85ef82e02ca6ba6bb54bf5f1ad11",
+        "git_head": "3369c349d0c8f432aeb562ab9a33567652d78d02",
         "git_dirty": true,
         "scope": "complete Chronos streamed MIDI parsing/pairing/quantization on target; separate image from flatten; fresh Ruby/target boundary corpus; no combined converter or physical banking"
       },
