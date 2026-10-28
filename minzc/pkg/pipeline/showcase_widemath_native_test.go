@@ -144,16 +144,21 @@ func TestOriginalWidemathNativeModel(t *testing.T) {
 				if len(v) != len(wants) {
 					t.Fatal("return shape", c, v)
 				}
+				// N1a (#251) scalarizes the 1-byte W8 return to a by-value A
+				// return in the optimized module; the unoptimized raw module still
+				// returns the address of a public result buffer. The two models
+				// differ in shape, never in the verified value.
+				scalarReturn := label == "final"
 				for j, w := range wants {
 					got := v[j].I
-					if c.Entry == "op_add" || c.Entry == "op_sub" {
+					if (c.Entry == "op_add" || c.Entry == "op_sub") && !scalarReturn {
 						got = int64(vm.ReadHeap(got, 1)[0])
 					}
 					if got != w {
 						t.Fatalf("%s %s call%d %+v got%v want%v", mode, label, i, c, v, wants)
 					}
 				}
-				if err := widemathCheckMemory(c, events); err != nil {
+				if err := widemathCheckMemory(c, label, events); err != nil {
 					t.Fatalf("%s %s %s: %v", mode, label, c.Entry, err)
 				}
 
@@ -164,11 +169,12 @@ func TestOriginalWidemathNativeModel(t *testing.T) {
 			regs := emulator.Registers{PC: uint16(assembled.Symbols["oracle_"+c.Entry]), SP: 0xeff0, BC: 0x5555, DE: 0x6666, HL: 0x7777, IX: 0x8888, IY: 0x9999, A: 0x42}
 			f := steps.MIR2Module.FuncByName(c.Entry)
 			nativeArgs := append([]int64(nil), c.Args...)
-			for _, slot := range f.Contract.StructReturnBuffers {
-				if slot.ParamIndex != len(nativeArgs) || mir2.ByteWidth(slot.Ty) != 1 {
-					t.Fatal("unexpected W8 result ABI", slot)
-				}
-				nativeArgs = append(nativeArgs, 0x6200)
+			// N1a (#251) returns the 1-byte W8 result by value in A, so there is no
+			// public result-buffer argument any more. The seeded bytes below stay:
+			// a stray store into the old result window would fail the full-image
+			// comparison at the end of the call.
+			if len(f.Contract.StructReturnBuffers) != 0 {
+				t.Fatalf("W8 result is no longer by-value: %+v", f.Contract.StructReturnBuffers)
 			}
 			mem[0x61ff], mem[0x6200], mem[0x6201] = 0x9b, 0xa5, 0xad
 			for j, arg := range nativeArgs {
@@ -238,7 +244,15 @@ func TestOriginalWidemathNativeModel(t *testing.T) {
 					t.Fatal("stack bounds", c)
 				}
 				pc := z.GetPC()
-				nativeEvents = append(nativeEvents, widemathNativeByteAccess(mem, pc, z.GetRegisters())...)
+				for _, ev := range widemathNativeByteAccess(mem, pc, z.GetRegisters()) {
+					// Compiler spill homes are not source object traffic. N1a's
+					// by-value W8 return keeps the byte in an allocated home that
+					// the PBQP allocator spills for this function, and the mir2 VM
+					// has no spill equivalent to observe.
+					if !allowedSpill[int(ev.Addr)] {
+						nativeEvents = append(nativeEvents, ev)
+					}
+				}
 
 				z.Step()
 				if z.GetSP() < minSP {
@@ -248,7 +262,7 @@ func TestOriginalWidemathNativeModel(t *testing.T) {
 			if !done {
 				t.Fatal("native did not return", c)
 			}
-			if err := widemathCheckMemory(c, nativeEvents); err != nil {
+			if err := widemathCheckMemory(c, "final", nativeEvents); err != nil {
 				t.Fatalf("%s native %s: %v", mode, c.Entry, err)
 			}
 
@@ -256,29 +270,20 @@ func TestOriginalWidemathNativeModel(t *testing.T) {
 				t.Fatal("native input addresses", nativeEvents)
 			}
 
-			if c.Entry == "op_add" || c.Entry == "op_sub" {
-				regs := z.GetRegisters()
-				pointer := regs.HL
-				switch mir2.ReturnLocation(f.Contract.Returns[0].Class, f.Contract.Returns[0].Ty) {
-				case "A":
-					pointer = uint16(regs.A)
-				case "DE":
-					pointer = regs.DE
-				case "BC":
-					pointer = regs.BC
-				}
-				if pointer != 0x6200 || int64(mem[pointer]) != c.Expected {
-					t.Fatalf("%s native struct %s %v returnedptr%x byte%d want%d", mode, c.Entry, c.Args, pointer, mem[pointer], c.Expected)
-				}
-			} else if e = checkAssertZ80Result(z, hir.Assert{FuncName: c.Entry, Args: c.Args, Expected: c.Expected, ExpectedMulti: c.ExpectedMulti}, f, map[string]*hir.Func{c.Entry: h.FuncByName(c.Entry)}); e != nil {
+			// op_add/op_sub now return the byte itself, so they are checked through
+			// the same return-ABI path as every other scalar entry. The A register is
+			// seeded with 0x42 before the call, so a stale pointer-style return would
+			// not accidentally match (a+b)&0xFF.
+			if e = checkAssertZ80Result(z, hir.Assert{FuncName: c.Entry, Args: c.Args, Expected: c.Expected, ExpectedMulti: c.ExpectedMulti}, f, map[string]*hir.Func{c.Entry: h.FuncByName(c.Entry)}); e != nil {
 				t.Fatalf("%s native call%d %+v %v", mode, i, c, e)
 			}
-
 			if c.Entry == "op_add" || c.Entry == "op_sub" {
-				if nativeEvents[len(nativeEvents)-1].Addr != 0x6200 {
-					t.Fatal("public output address", nativeEvents)
+				if f.Contract.Returns[0].Ty != mir2.TyU8 || mir2.ReturnLocation(f.Contract.Returns[0].Class, f.Contract.Returns[0].Ty) != "A" {
+					t.Fatalf("W8 result is not a by-value A return: %+v", f.Contract.Returns[0])
 				}
-				before[0x6200] = byte(c.Expected)
+				if len(nativeEvents) != 2 {
+					t.Fatalf("by-value W8 result still publishes an output store: %v", nativeEvents)
+				}
 			}
 			// Mask only the exact observed stack extent and declared spill
 			// homes; compare every other byte of the full 64KiB image.
@@ -456,15 +461,24 @@ func widemathCalls(exhaustive bool) []widemathCall {
 }
 
 // Source W8 field operations: input reads retain order; newtype construction
-// writes two distinct local bytes before the two operator reads. Owning return
-// copying adds one private write/read followed by a public result-buffer write.
-func widemathMemoryValues(c widemathCall) []mir2.VMDataAccess {
+// writes two distinct local bytes before the two operator reads.
+//
+// kind distinguishes the two modules under test. "raw" is the unoptimized
+// lowering, whose op_add/op_sub still materialize the W8 result through an
+// owning temporary and a public result-buffer store (5 events, pointer return).
+// "final" is the optimized module, where N1a (#251) scalarizes the 1-byte W8
+// return to a by-value A return, leaving exactly the two ordered field reads
+// (2 events, value return) — which is also what the native binary performs.
+func widemathMemoryValues(c widemathCall, kind string) []mir2.VMDataAccess {
 	ev := func(op mir2.Op, v int64) mir2.VMDataAccess { return mir2.VMDataAccess{Op: op, Value: byte(v)} }
 	switch c.Entry {
 	case "op_mul":
 		return []mir2.VMDataAccess{ev(mir2.OpLoad, c.Args[0]), ev(mir2.OpLoad, c.Args[1])}
 	case "op_add", "op_sub":
-		return []mir2.VMDataAccess{ev(mir2.OpLoad, c.Args[0]), ev(mir2.OpLoad, c.Args[1]), ev(mir2.OpStore, c.Expected), ev(mir2.OpLoad, c.Expected), ev(mir2.OpStore, c.Expected)}
+		if kind == "raw" {
+			return []mir2.VMDataAccess{ev(mir2.OpLoad, c.Args[0]), ev(mir2.OpLoad, c.Args[1]), ev(mir2.OpStore, c.Expected), ev(mir2.OpLoad, c.Expected), ev(mir2.OpStore, c.Expected)}
+		}
+		return []mir2.VMDataAccess{ev(mir2.OpLoad, c.Args[0]), ev(mir2.OpLoad, c.Args[1])}
 	case "newtype_area":
 		return []mir2.VMDataAccess{ev(mir2.OpStore, c.Args[0]), ev(mir2.OpStore, c.Args[1]), ev(mir2.OpLoad, c.Args[0]), ev(mir2.OpLoad, c.Args[1])}
 	}
@@ -473,8 +487,8 @@ func widemathMemoryValues(c widemathCall) []mir2.VMDataAccess {
 
 // Constructor stores are private and may be scheduled independently. The two
 // ordered operator reads must still read distinct objects initialized correctly.
-func widemathCheckMemory(c widemathCall, got []mir2.VMDataAccess) error {
-	want := widemathMemoryValues(c)
+func widemathCheckMemory(c widemathCall, kind string, got []mir2.VMDataAccess) error {
+	want := widemathMemoryValues(c, kind)
 	if len(got) != len(want) {
 		return fmt.Errorf("memory traffic got%v want%v", got, want)
 	}
@@ -508,8 +522,13 @@ func widemathCheckMemory(c widemathCall, got []mir2.VMDataAccess) error {
 		}
 	}
 	if c.Entry == "op_add" || c.Entry == "op_sub" {
-		if got[2].Addr != got[3].Addr || got[4].Addr == got[2].Addr || got[2].Addr == got[0].Addr || got[2].Addr == got[1].Addr || got[4].Addr == got[0].Addr || got[4].Addr == got[1].Addr {
-			return fmt.Errorf("private snapshot/public output alias: %v", got)
+		if got[0].Addr == got[1].Addr {
+			return fmt.Errorf("aliased W8 inputs: %v", got)
+		}
+		if kind == "raw" {
+			if got[2].Addr != got[3].Addr || got[4].Addr == got[2].Addr || got[2].Addr == got[0].Addr || got[2].Addr == got[1].Addr || got[4].Addr == got[0].Addr || got[4].Addr == got[1].Addr {
+				return fmt.Errorf("private snapshot/public output alias: %v", got)
+			}
 		}
 	}
 	return nil
@@ -558,7 +577,7 @@ func widemathNativeByteAccess(mem []byte, pc uint16, r emulator.Registers) []mir
 func TestWidemathMemoryObserverContracts(t *testing.T) {
 	c := widemathCall{Entry: "newtype_area", Args: []int64{7, 19}}
 	events := []mir2.VMDataAccess{{Op: mir2.OpStore, Addr: 20, Value: 19}, {Op: mir2.OpStore, Addr: 21, Value: 7}, {Op: mir2.OpLoad, Addr: 21, Value: 7}, {Op: mir2.OpLoad, Addr: 20, Value: 19}}
-	if err := widemathCheckMemory(c, events); err != nil {
+	if err := widemathCheckMemory(c, "final", events); err != nil {
 		t.Fatal("independent private store schedule", err)
 	}
 	for _, name := range []string{"missing-store", "swapped-reads", "wrong-constructor", "aliased-inputs"} {
@@ -573,17 +592,19 @@ func TestWidemathMemoryObserverContracts(t *testing.T) {
 		case "aliased-inputs":
 			bad[3].Addr = bad[2].Addr
 		}
-		if err := widemathCheckMemory(c, bad); err == nil {
+		if err := widemathCheckMemory(c, "final", bad); err == nil {
 			t.Fatal("accepted", name, bad)
 		}
 	}
+	// The unoptimized raw module still materializes the W8 result through an
+	// owning temporary and a public result-buffer store.
 	c = widemathCall{Entry: "op_add", Args: []int64{250, 19}, Expected: 13}
-	events = []mir2.VMDataAccess{{Op: mir2.OpLoad, Addr: 0x6000, Value: 250}, {Op: mir2.OpLoad, Addr: 0x6010, Value: 19}, {Op: mir2.OpStore, Addr: 20, Value: 13}, {Op: mir2.OpLoad, Addr: 20, Value: 13}, {Op: mir2.OpStore, Addr: 0x6200, Value: 13}}
-	if err := widemathCheckMemory(c, events); err != nil {
+	raw := []mir2.VMDataAccess{{Op: mir2.OpLoad, Addr: 0x6000, Value: 250}, {Op: mir2.OpLoad, Addr: 0x6010, Value: 19}, {Op: mir2.OpStore, Addr: 20, Value: 13}, {Op: mir2.OpLoad, Addr: 20, Value: 13}, {Op: mir2.OpStore, Addr: 0x6200, Value: 13}}
+	if err := widemathCheckMemory(c, "raw", raw); err != nil {
 		t.Fatal(err)
 	}
 	for _, name := range []string{"no-snapshot", "wrong-snapshot", "public-output-alias", "snapshot-input-alias"} {
-		bad := append([]mir2.VMDataAccess(nil), events...)
+		bad := append([]mir2.VMDataAccess(nil), raw...)
 		switch name {
 		case "no-snapshot":
 			bad = append(bad[:3], bad[4:]...)
@@ -595,9 +616,38 @@ func TestWidemathMemoryObserverContracts(t *testing.T) {
 			bad[2].Addr = 0x6000
 			bad[3].Addr = 0x6000
 		}
-		if err := widemathCheckMemory(c, bad); err == nil {
+		if err := widemathCheckMemory(c, "raw", bad); err == nil {
 			t.Fatal("accepted", name, bad)
 		}
+	}
+	// The optimized module scalarizes the 1-byte W8 return: only the two ordered
+	// field reads remain, and that is exactly what the native binary performs.
+	byValue := []mir2.VMDataAccess{{Op: mir2.OpLoad, Addr: 0x6000, Value: 250}, {Op: mir2.OpLoad, Addr: 0x6010, Value: 19}}
+	if err := widemathCheckMemory(c, "final", byValue); err != nil {
+		t.Fatal(err)
+	}
+	for _, name := range []string{"extra-output-store", "reordered-reads", "wrong-value", "aliased-inputs"} {
+		bad := append([]mir2.VMDataAccess(nil), byValue...)
+		switch name {
+		case "extra-output-store":
+			bad = append(bad, mir2.VMDataAccess{Op: mir2.OpStore, Addr: 0x6200, Value: 13})
+		case "reordered-reads":
+			bad[0], bad[1] = bad[1], bad[0]
+		case "wrong-value":
+			bad[1].Value = 18
+		case "aliased-inputs":
+			bad[1].Addr = bad[0].Addr
+		}
+		if err := widemathCheckMemory(c, "final", bad); err == nil {
+			t.Fatal("accepted", name, bad)
+		}
+	}
+	// The raw model must not be accepted for the optimized module and vice versa.
+	if err := widemathCheckMemory(c, "final", raw); err == nil {
+		t.Fatal("raw traffic accepted for the scalarized module")
+	}
+	if err := widemathCheckMemory(c, "raw", byValue); err == nil {
+		t.Fatal("scalarized traffic accepted for the raw module")
 	}
 	mem := make([]byte, 65536)
 	r := emulator.Registers{A: 77, BC: 0x6100, DE: 0x6200, HL: 0x6300, IX: 0x6400, IY: 0x6500}

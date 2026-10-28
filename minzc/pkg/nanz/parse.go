@@ -576,12 +576,21 @@ type parser struct {
 	enums           map[string]map[string]int64 // enumName → {variantName → value}
 	enumBaseTy      map[string]mir2.Ty          // enumName → base type (default TyU8)
 	importedModules map[string]string           // modPath → mangled prefix (for qualified access)
-	globalAliases   map[string]string           // imported global local name → mangled symbol
-	funcAliases     map[string]string           // local name → mangled name (for unqualified imports)
-	pipes           map[string][]pipeStep       // pipe/trans name → stages
-	lambdaHintTy    mir2.Ty                     // type hint for untyped lambda params (set by chain context)
-	metaFuncs       map[string]string           // @name → full Nanz source of metafunction
-	metaExpandDepth int                         // guard recursive statement-position expansion
+	// Forward-referenced globals: parseModule's single pass reads a function
+	// body before a `global` declared further down exists. A lexical pre-pass
+	// over the already-tokenized source records every top-level global name
+	// and where its declared type starts, so parsePrimary can type such a
+	// reference instead of falling back to u8 (a silent miscompile: u16
+	// arithmetic on a truncated byte). Mirrors how funcSigs/fixForwardCallTypes
+	// cover forward *calls*, but resolved before the body is parsed.
+	fwdGlobals      map[string]*fwdGlobal // top-level global/const name → declaration
+	fwdFuncNames    map[string]bool       // top-level fun/gen names (function references)
+	globalAliases   map[string]string     // imported global local name → mangled symbol
+	funcAliases     map[string]string     // local name → mangled name (for unqualified imports)
+	pipes           map[string][]pipeStep // pipe/trans name → stages
+	lambdaHintTy    mir2.Ty               // type hint for untyped lambda params (set by chain context)
+	metaFuncs       map[string]string     // @name → full Nanz source of metafunction
+	metaExpandDepth int                   // guard recursive statement-position expansion
 	// ADT (algebraic data types) — enums with payload variants
 	adts         map[string]*nanzADT     // type name → ADT definition
 	adtCtors     map[string]*nanzADTCtor // constructor name → ctor (for match + expr)
@@ -589,11 +598,12 @@ type parser struct {
 	localArrayID int                     // counter for mangled local array globals
 	// Generators (gen/yield, ADR 0048/0049). Declarations are module-local and
 	// must precede their uses; frames are per-consuming-scope.
-	gens       map[string]*nanzGen // gen name → declaration (frame layout + element type)
-	genFrames  map[string]string   // current function scope: frame var name → gen name
-	inGenBody  bool                // parsing a gen body (admits `yield`)
-	curGen     *nanzGen            // the gen whose body is being parsed
-	inPullArgs int                 // parsing pull_next(...) arguments (admits &frame)
+	gens        map[string]*nanzGen // gen name → declaration (frame layout + element type)
+	genFrames   map[string]string   // current function scope: frame var name → gen name
+	inGenBody   bool                // parsing a gen body (admits `yield`)
+	curGen      *nanzGen            // the gen whose body is being parsed
+	inPullArgs  int                 // parsing pull_next(...) arguments (admits &frame)
+	addrOfDepth int                 // parsing the operand of `&name` (see mayBeUnresolvedName)
 }
 
 // nanzGen records one `gen name(params) -> ElemTy` declaration.
@@ -662,6 +672,45 @@ func (p *parser) makeBitExpr(base hir.Expr, bitTok token) (*hir.BitExpr, error) 
 	return &hir.BitExpr{X: base, Bit: bit}, nil
 }
 
+// callbackReturnTy returns the return type of an iterator callback argument:
+// a named function (bare or `&fn`) or a lambda literal. parseLambda lifts a
+// lambda to a `lambda_N` function and registers its signature in funcSigs as
+// soon as it is parsed, so both spellings resolve here at the same time.
+// Nil when the callback is not a function the parser knows a signature for.
+func (p *parser) callbackReturnTy(cb hir.Expr) mir2.Ty {
+	switch cb := cb.(type) {
+	case *hir.VarRefExpr:
+		return p.funcSigs[cb.Name]
+	case *hir.AddrOfExpr:
+		return p.funcSigs[cb.Sym]
+	}
+	return nil
+}
+
+// foldAccumulatorTy returns the accumulator type a fold/reduce call produces:
+// the callback's return type — a named function's signature, or a lambda
+// literal's body type — and, when that is unknown (a callback with no
+// inferable return), the type of the init expression (`u16(0)` → u16).
+// Nil when neither is known; callers must diagnose rather than silently
+// narrowing the accumulator to u8.
+func (p *parser) foldAccumulatorTy(call *hir.CallExpr) mir2.Ty {
+	if len(call.Args) < 3 {
+		return nil
+	}
+	if ty := p.callbackReturnTy(call.Args[2]); ty != nil && ty != mir2.TyVoid {
+		return ty
+	}
+	// An untyped literal init (`0`) carries the language-wide literal default,
+	// not a type the source committed to, so it does not name the accumulator.
+	if lit, ok := call.Args[1].(*hir.IntLitExpr); ok && lit.Untyped {
+		return nil
+	}
+	if ty := call.Args[1].ExprTy(); ty != nil && ty != mir2.TyVoid {
+		return ty
+	}
+	return nil
+}
+
 // inferChainElemTy infers the element type flowing through an iterator chain.
 // For map/filter calls, the element type is the return type of the previous
 // stage's callback. For range sources and raw expressions, it's the expression type.
@@ -672,10 +721,8 @@ func (p *parser) inferChainElemTy(base hir.Expr) mir2.Ty {
 		case "map":
 			// map(source, cb) — element type is cb's return type
 			if len(call.Args) >= 2 {
-				if ref, ok2 := call.Args[1].(*hir.VarRefExpr); ok2 {
-					if sig, hasSig := p.funcSigs[ref.Name]; hasSig {
-						return sig
-					}
+				if ty := p.callbackReturnTy(call.Args[1]); ty != nil && ty != mir2.TyVoid {
+					return ty
 				}
 				return call.Args[1].ExprTy()
 			}
@@ -772,6 +819,8 @@ func (p *parser) parseModule() (*hir.Module, error) {
 	p.adtCtors = make(map[string]*nanzADTCtor)
 	p.gens = make(map[string]*nanzGen)
 	p.genFrames = make(map[string]string)
+	p.fwdGlobals = make(map[string]*fwdGlobal)
+	p.fwdFuncNames = make(map[string]bool)
 	// Borrow visible types, with independent map storage. Generated declarations
 	// retain their own namespace and cannot mutate the caller's method registry.
 	if context := p.typeContext; context != nil {
@@ -789,6 +838,10 @@ func (p *parser) parseModule() (*hir.Module, error) {
 			p.methodTable[name] = copied
 		}
 	}
+
+	// Make globals declared later in this file visible to the function bodies
+	// parsed below (see fwdGlobals).
+	p.scanForwardDeclarations()
 
 	for !p.l.is(tokEOF) {
 		t := p.l.peek()
@@ -1339,17 +1392,13 @@ func (p *parser) fixExprCallTypes(e hir.Expr) {
 		// Fold lowering produces the callback's accumulator type, even when the
 		// chain occurs directly in a return rather than in a let binding.
 		if ex.Ty == mir2.TyVoid && (ex.Fn == "fold" || ex.Fn == "reduce") && len(ex.Args) >= 3 {
-			name := ""
-			switch cb := ex.Args[2].(type) {
-			case *hir.VarRefExpr:
-				name = cb.Name
-			case *hir.AddrOfExpr:
-				name = cb.Sym
-			}
-			if sig := p.funcSigs[name]; sig != nil && sig != mir2.TyVoid {
-				ex.Ty = sig
-			} else {
-				ex.Ty = mir2.TyU8
+			if ty := p.foldAccumulatorTy(ex); ty != nil {
+				ex.Ty = ty
+			} else if p.literalTypeErr == nil {
+				// Same refusal as the let binding: guessing u8 here would
+				// truncate a wider accumulator where the value is used.
+				p.literalTypeErr = fmt.Errorf("cannot infer the accumulator type of %s(...); give the callback a value-returning body or a typed init value, e.g. %s(u16(0), ...)",
+					ex.Fn, ex.Fn)
 			}
 		}
 	case *hir.CallIndirectExpr:
@@ -2665,6 +2714,104 @@ func (p *parser) parseConstDecl() (mir2.Global, error) {
 	}
 	g.Init = init
 	return g, nil
+}
+
+// ── Forward-referenced globals ────────────────────────────────────────────────
+
+// fwdGlobal is one top-level `global`/`const` declaration recorded by the
+// pre-pass, before the single-pass parser has reached it.
+type fwdGlobal struct {
+	name    string
+	kind    string  // "global" or "const", for diagnostics
+	line    int     // declaration line, for diagnostics
+	typeTok int     // lexer token index of the declared type's first token
+	ty      mir2.Ty // resolved type (memoized on first use)
+	err     error   // resolution failure (memoized so it is reported once)
+}
+
+// scanForwardDeclarations records every top-level `global`/`const` name with the
+// token index of its declared type, and every top-level `fun`/`gen` name.
+//
+// The lexer tokenizes the whole file up front, so this is a single walk over
+// p.l.tokens that does not disturb p.l.cur. Only brace depth 0 counts: every
+// other top-level declaration (functions, impl and struct bodies, asm blocks,
+// struct-literal initializers) is inside braces, so a `global`/`fun` seen at
+// depth 0 is a declaration head and not a token from some body.
+//
+// The declared type is *not* resolved here: named types resolve against
+// structs/enums/type aliases, which are only registered as the main pass
+// reaches them. Resolution happens on first reference (resolveForwardGlobal),
+// which keeps the existing rule that a type must be declared before its first
+// use while still typing globals declared anywhere in the file.
+func (p *parser) scanForwardDeclarations() {
+	depth := 0
+	toks := p.l.tokens
+	for i := 0; i < len(toks); i++ {
+		t := toks[i]
+		switch t.kind {
+		case tokLBrace:
+			depth++
+			continue
+		case tokRBrace:
+			if depth > 0 {
+				depth--
+			}
+			continue
+		case tokIdent:
+		default:
+			continue
+		}
+		if depth != 0 {
+			continue
+		}
+		switch t.val {
+		case "global", "const":
+			// global NAME : TYPE  — record where the declared type starts.
+			if i+2 < len(toks) && toks[i+1].kind == tokIdent && toks[i+2].kind == tokColon {
+				name := toks[i+1].val
+				if _, seen := p.fwdGlobals[name]; !seen {
+					p.fwdGlobals[name] = &fwdGlobal{name: name, kind: t.val, line: toks[i+1].line, typeTok: i + 3}
+				}
+			}
+		case "fun", "gen":
+			// A bare function name is a function reference, not a variable.
+			if i+1 < len(toks) && toks[i+1].kind == tokIdent {
+				p.fwdFuncNames[toks[i+1].val] = true
+			}
+		}
+	}
+}
+
+// resolveForwardGlobal returns the declared type of a global that the main pass
+// has not reached yet, parsing just that declaration's type with the ordinary
+// type parser and memoizing the result in p.globalTypes — from the reference's
+// point of view the global is now declared.
+func (p *parser) resolveForwardGlobal(f *fwdGlobal, useLine int) (mir2.Ty, error) {
+	if f.ty != nil {
+		return f.ty, nil
+	}
+	if f.err != nil {
+		return nil, f.err
+	}
+	// Reposition the lexer at the recorded type, parse it, then put everything
+	// back: the enclosing expression continues exactly where it left off.
+	savedCur := p.l.save()
+	savedCallable := p.lastCallable
+	p.l.restore(f.typeTok)
+	ty, ifaceName, err := p.parseTypeWithIface()
+	p.l.restore(savedCur)
+	p.lastCallable = savedCallable
+	if err != nil {
+		f.err = fmt.Errorf("line %d: %s %q is declared later (line %d) and its type is not visible here: %w",
+			useLine, f.kind, f.name, f.line, err)
+		return nil, f.err
+	}
+	f.ty = ty
+	p.globalTypes[f.name] = ty
+	if ifaceName != "" {
+		p.globalInterfaceTypes[f.name] = ifaceName
+	}
+	return ty, nil
 }
 
 func (p *parser) parseInitializer(ty mir2.Ty) ([]byte, error) {
@@ -4357,17 +4504,13 @@ func (p *parser) parseLetDecl() (hir.Stmt, error) {
 	// fold/reduce returns the accumulator type (inferred from callback return).
 	if ty == nil || ty == mir2.TyVoid {
 		if call, ok := init.(*hir.CallExpr); ok && (call.Fn == "fold" || call.Fn == "reduce") && len(call.Args) >= 3 {
-			if cbRef, ok2 := call.Args[2].(*hir.AddrOfExpr); ok2 {
-				if cbSig, hasSig := p.funcSigs[cbRef.Sym]; hasSig {
-					ty = cbSig
-				}
-			} else if cbRef, ok2 := call.Args[2].(*hir.VarRefExpr); ok2 {
-				if cbSig, hasSig := p.funcSigs[cbRef.Name]; hasSig {
-					ty = cbSig
-				}
-			}
-			if ty == nil || ty == mir2.TyVoid {
-				ty = mir2.TyU8 // default fold accumulator type
+			ty = p.foldAccumulatorTy(call)
+			if ty == nil {
+				// A silent u8 here truncates a wider accumulator at the
+				// binding, so refuse to guess: the callback has no inferable
+				// return type and the init value is untyped.
+				return nil, fmt.Errorf("line %d: let %q: cannot infer the accumulator type of %s(...); give the callback a value-returning body or a typed init value, e.g. %s(u16(0), ...)",
+					nameTok.line, nameTok.val, call.Fn, call.Fn)
 			}
 		}
 	}
@@ -5555,8 +5698,26 @@ func (p *parser) parseMatchExpr() (hir.Expr, error) {
 			return nil, fmt.Errorf("line %d: match: expected '=>'", p.l.line)
 		}
 
-		// Parse body expression
+		// Parse body expression. The payload binding is in scope for this arm
+		// only: the body is moved into __mpay_N below, whose parameter carries
+		// the same u8 type __payload extracts (the ADT encoding keeps the
+		// payload in the low byte). Binding it types the body's references as
+		// u8 instead of relying on the unknown-name fallback.
+		bindName := a.payloadBind
+		bindWasBound := false
+		var bindPrevTy mir2.Ty
+		if a.hasPayloadBind && bindName != "" {
+			bindPrevTy, bindWasBound = p.varTypes[bindName]
+			p.varTypes[bindName] = mir2.TyU8
+		}
 		body, err := p.parseExpr()
+		if a.hasPayloadBind && bindName != "" {
+			if bindWasBound {
+				p.varTypes[bindName] = bindPrevTy
+			} else {
+				delete(p.varTypes, bindName)
+			}
+		}
 		if err != nil {
 			return nil, err
 		}
@@ -5691,6 +5852,14 @@ func (p *parser) parseExprStmt() (hir.Stmt, error) {
 			}
 			if lit, ok := rhs.(*hir.StructLitExpr); ok {
 				p.varTypes[vr.Name] = lit.St
+			} else if p.varTypes[vr.Name] == nil && p.globalTypes[vr.Name] == nil {
+				// Nanz permits implicit local declaration by assignment
+				// (pkg/hir/verify.go binds the name with the reference's own
+				// type, which is u8). Record it here so later reads in this
+				// scope resolve instead of reaching the unknown-variable
+				// diagnostic; a name that resolved to a global keeps referring
+				// to that global.
+				p.varTypes[vr.Name] = mir2.TyU8
 			}
 		}
 		// Warn for any uninit var used in the rhs.
@@ -5910,7 +6079,9 @@ func (p *parser) parseUnary() (hir.Expr, error) {
 	case tokAmp:
 		// &lvalue — address-of
 		p.l.next()
+		p.addrOfDepth++
 		target, err := p.parsePostfixFull()
+		p.addrOfDepth--
 		if err != nil {
 			return nil, err
 		}
@@ -6299,6 +6470,60 @@ func (p *parser) parseStructLit(st *mir2.StructTy) (*hir.StructLitExpr, error) {
 	return &hir.StructLitExpr{St: st, Fields: fields}, nil
 }
 
+// mayBeUnresolvedName reports whether name is allowed to reach parsePrimary's
+// variable-reference fallback without a known type. Each case is a name whose
+// meaning is established somewhere other than this expression:
+//
+//   - a call target: `f(...)` where fun f is declared later in the file —
+//     resolveCall records it and fixForwardCallTypes patches the return type
+//     once every signature is known;
+//   - a bare function reference: passed as a callback or taken with &, it is
+//     resolved by name at the call site (HIR lowering returns NoReg for it);
+//   - the root of a module-qualified path such as `mod.const`;
+//   - `_`, the partial-application placeholder;
+//   - the target of `name = expr`, which Nanz accepts as an implicit local
+//     declaration (pkg/hir/verify.go binds it with the reference's own type);
+//   - the operand of `&name`, where pull_next and HIR verification report a
+//     precise diagnostic for names that are not addressable;
+//   - a known type name in `Type.field` (e.g. offsetOf(Point.x)), which is a
+//     field selector on the type, not a variable.
+//
+// Anything else names nothing in the program and used to compile silently as a
+// u8 reference — truncated arithmetic, wrong field offsets — instead of the
+// diagnostic below.
+func (p *parser) mayBeUnresolvedName(name string) bool {
+	if name == "_" {
+		return true
+	}
+	if p.l.is(tokLParen) {
+		return true
+	}
+	if p.l.is(tokEq) {
+		return true
+	}
+	if p.fwdFuncNames[name] {
+		return true
+	}
+	if p.importedModuleRoot(name) {
+		return true
+	}
+	if p.addrOfDepth > 0 {
+		return true
+	}
+	if p.l.is(tokDot) {
+		if _, ok := p.structs[name]; ok {
+			return true
+		}
+		if _, ok := p.enums[name]; ok {
+			return true
+		}
+		if _, ok := p.typeAliases[name]; ok {
+			return true
+		}
+	}
+	return false
+}
+
 func (p *parser) parsePrimary() (hir.Expr, error) {
 	t := p.l.peek()
 
@@ -6481,11 +6706,26 @@ func (p *parser) parsePrimary() (hir.Expr, error) {
 		if !localValue && !globalValue && p.isKnownFunc(t.val) && !p.l.is(tokLParen) {
 			return &hir.AddrOfExpr{Sym: t.val}, nil
 		}
-		ty := mir2.Ty(mir2.TyU8)
+		var ty mir2.Ty
 		if t2, ok := p.varTypes[t.val]; ok {
 			ty = t2
 		} else if t2, ok := p.globalTypes[t.val]; ok {
 			ty = t2
+		} else if fwd, ok := p.fwdGlobals[t.val]; ok {
+			// Declared later in this file: resolve its declared type now.
+			var err error
+			ty, err = p.resolveForwardGlobal(fwd, t.line)
+			if err != nil {
+				return nil, err
+			}
+		} else if !p.mayBeUnresolvedName(t.val) {
+			// Nothing else can give this name a type. A u8 placeholder here used
+			// to compile on silently (truncated arithmetic, wrong field offsets).
+			// Same wording as pkg/hir's verifier, which used to be the only
+			// place an unknown reference was rejected.
+			return nil, fmt.Errorf("line %d: unknown variable %q", t.line, t.val)
+		} else {
+			ty = mir2.Ty(mir2.TyU8)
 		}
 		name := t.val
 		if _, local := p.varTypes[name]; !local {
@@ -6789,6 +7029,7 @@ func (p *parser) resolveCall(base hir.Expr, args []hir.Expr) (hir.Expr, error) {
 			lambdaName := fmt.Sprintf("lambda_%d", p.lambdaCount)
 			p.lambdaCount++
 			f := &hir.Func{Name: lambdaName, Params: lambdaParams, RetTy: retTy, Body: hir.Blk(&hir.ReturnStmt{Val: &hir.CallExpr{Fn: name, Args: args, Ty: retTy}})}
+			p.funcSigs[lambdaName] = retTy
 			p.lambdas = append(p.lambdas, f)
 			if p.lambdaScopes == nil {
 				p.lambdaScopes = map[*hir.Func]map[string]mir2.Ty{}
@@ -6909,6 +7150,19 @@ func paramTysFromFunc(f *hir.Func) []mir2.Ty {
 	return tys
 }
 
+// valueReturn returns the block's last `return expr` statement, or nil when the
+// block returns no value. A lambda has nowhere to declare its return type, so
+// this is how a block body names it.
+func valueReturn(b *hir.Block) *hir.ReturnStmt {
+	var found *hir.ReturnStmt
+	for _, s := range b.Body {
+		if rs, ok := s.(*hir.ReturnStmt); ok && rs.Val != nil {
+			found = rs
+		}
+	}
+	return found
+}
+
 // The lambda is desugared into an anonymous top-level function "lambda_N" and the
 // expression returns a VarRefExpr naming that function. Zero-cost: no closure, no
 // heap allocation. Params default to u8 if the type annotation is omitted.
@@ -6980,18 +7234,22 @@ func (p *parser) parseLambda() (hir.Expr, error) {
 		body = &hir.Block{Body: []hir.Stmt{&hir.ReturnStmt{Val: expr}}}
 	}
 
-	// Infer return type from single-expression body.
+	// Infer return type from the body: a single-expression body is an implicit
+	// return; a block still names it with its `return expr` statement.
 	retTy := mir2.Ty(mir2.TyVoid)
-	if len(body.Body) == 1 {
-		if rs, ok := body.Body[0].(*hir.ReturnStmt); ok && rs.Val != nil {
-			retTy = rs.Val.ExprTy()
-		}
+	if rs := valueReturn(body); rs != nil {
+		retTy = rs.Val.ExprTy()
 	}
 
-	// Generate a unique name and register the anonymous function.
+	// Generate a unique name and register the anonymous function. The signature
+	// goes into funcSigs immediately: a lambda used as an iterator callback is
+	// the only place its return type can be learned from, and the surrounding
+	// expression (e.g. a fold's accumulator type) is typed before the module is
+	// assembled.
 	name := fmt.Sprintf("lambda_%d", p.lambdaCount)
 	p.lambdaCount++
 	f := &hir.Func{Name: name, Params: params, RetTy: retTy, Body: body}
+	p.funcSigs[name] = retTy
 	p.lambdas = append(p.lambdas, f)
 	if p.lambdaScopes == nil {
 		p.lambdaScopes = map[*hir.Func]map[string]mir2.Ty{}

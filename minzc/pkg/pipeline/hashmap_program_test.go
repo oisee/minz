@@ -34,6 +34,19 @@ func (h *hashmapHost) write(name string, p int, v byte) {
 	h.access.Globals[name] = a
 	h.memory[name][p] = v
 }
+
+// fill models the compiled map_clear, whose native lowering is fill_bytes16:
+// n byte stores followed, for n >= 2, by the n-1 overlapping-LDIR reloads of the
+// bytes just stored (see minzc/pkg/mir2/byte_loop.go). The read-back values are
+// the stored bytes, so only the traffic model differs from a plain store loop.
+func (h *hashmapHost) fill(name string, n int, v byte) {
+	for i := 0; i < n; i++ {
+		h.write(name, i, v)
+		if i+1 < n {
+			h.read(name, i)
+		}
+	}
+}
 func (h *hashmapHost) rd(name string, p int) uint16 {
 	return uint16(h.read(name, 2*p)) + uint16(h.read(name, 2*p+1))*256
 }
@@ -70,9 +83,7 @@ func (h *hashmapHost) run(call hir.ProfileInvocation) ([]mir2.Value, hir.Profile
 	switch call.Function {
 	case "map_clear":
 		h.wr("map_count", 0, 0)
-		for i := 0; i < 16; i++ {
-			h.write("map_used", i, 0)
-		}
+		h.fill("map_used", 16, 0)
 	case "map_put":
 		slot := int((key ^ (key + 37)) & 15)
 		value := int64(0)

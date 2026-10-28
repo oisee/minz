@@ -14,6 +14,17 @@ type ByteLoopExtra struct {
 // scan_zero16(p) reads until the first zero, returning the matching pointer or
 // its distance from p. A complete address-space miss continues, never returns.
 // fill_bytes16(dst,n,v) makes exactly n byte stores, including none for n=0.
+// Its native Z80 lowering is a store followed by an overlapping LDIR, so for
+// n ≥ 2 it also performs n−1 reads of dst[0..n-2] — bytes it has itself just
+// written, whose values it therefore already knows. The final memory contents
+// and every scalar result are identical to a plain store loop; only the traffic
+// differs. Consequently fill_bytes16 must never be selected for a destination
+// that may be volatile, memory-mapped I/O, or otherwise read-sensitive: a read
+// of such an object is observable even when the byte was just stored. The
+// recognition below refuses every destination the IR can prove to be
+// absolute-addressed, volatile or read-only (fillDestinationReadable); a
+// destination of unknown provenance stays admissible and inherits the contract
+// above. The mir2 VM mirrors the reads so exact-traffic models agree.
 // copy_forward16(dst,n,src) reads then writes each byte in ascending order;
 // overlapping ranges intentionally propagate, unlike memcpy/memmove hosts.
 const scanZeroIntrinsic = "@mir.mem.scan_zero16"
@@ -281,6 +292,43 @@ func (c *byteLoopContext) disjointLoad(r, base Reg, boundTy Ty) (*Inst, string) 
 }
 func (c *byteLoopContext) fillBytes() bool { return c.countedBytes(false) }
 func (c *byteLoopContext) copyBytes() bool { return c.countedBytes(true) }
+
+// fillDestinationReadable reports whether a fill destination is provably
+// ordinary read/write storage. The native lowering reloads each destination
+// byte it has already stored (overlapping LDIR), so a destination that denotes
+// an absolute-addressed object (EQU/AT, typically memory-mapped I/O or a port
+// window), a volatile object, read-only storage, or a compile-time numeric
+// pointer must keep the plain store loop. Unknown provenance — parameters,
+// computed pointers — is admitted and carries the documented read contract.
+// Volatile or SequentialBytes stores never reach this test: they make the loop
+// opaque long before idiom recognition runs.
+func fillDestinationReadable(m *Module, defs map[Reg]*Inst, r Reg) bool {
+	for r != NoReg {
+		x := defs[r]
+		if x == nil || x.ClsHard {
+			return true
+		}
+		switch x.Op {
+		case OpAddrOf:
+			if m == nil {
+				return true
+			}
+			for i := range m.Globals {
+				if g := &m.Globals[i]; g.Name == x.Sym {
+					return g.At == nil && !g.Volatile && !g.IsConst && g.Storage == StorageNormal
+				}
+			}
+			return true
+		case OpConst:
+			return x.Ty != TyPtr
+		case OpMove, OpExt, OpField, OpPtrAdd:
+			r = x.Src[0]
+		default:
+			return true
+		}
+	}
+	return true
+}
 func (c *byteLoopContext) initialAddress(r Reg, iv LoopInduction) Reg {
 	base := c.address(r, iv)
 	if base == NoReg {
@@ -342,6 +390,9 @@ func (c *byteLoopContext) countedBytes(copying bool) bool {
 		}
 		base := c.initialAddress(store.Src[0], iv)
 		if base == NoReg || c.types[base] != TyPtr {
+			continue
+		}
+		if !copying && !fillDestinationReadable(c.f.mod, c.defs, base) {
 			continue
 		}
 		extra := &ByteLoopExtra{Store: store, CountTy: countTy}
@@ -424,18 +475,20 @@ func validByteLoop(f *Func, x *Inst, info map[Reg]RegInfo) bool {
 		return false
 	}
 	e := x.ByteLoop
+	definitions := map[Reg]*Inst{}
+	if x.Sym == fillBytesIntrinsic || e.CountSymbol != "" || e.ValueSymbol != "" {
+		for _, b := range f.Blocks {
+			for _, i := range b.Insts {
+				definitions[i.Dst] = i
+			}
+		}
+	}
 	if e.CountSymbol != "" || e.ValueSymbol != "" {
 		// A symbolic reload is part of this operation's scalar semantics. Recheck
 		// the disjoint-object proof so a manually constructed intrinsic cannot
 		// claim an invariant load through an arbitrary/aliasing destination.
 		if x.Sym != fillBytesIntrinsic || e.CountTy != TyU8 || len(x.Args) != 3 {
 			return false
-		}
-		definitions := map[Reg]*Inst{}
-		for _, b := range f.Blocks {
-			for _, i := range b.Insts {
-				definitions[i.Dst] = i
-			}
 		}
 		address := definitions[x.Args[0]]
 		if address == nil || address.Op != OpAddrOf || f.mod == nil {
@@ -479,6 +532,11 @@ func validByteLoop(f *Func, x *Inst, info map[Reg]RegInfo) bool {
 			return false
 		}
 		if x.Sym == fillBytesIntrinsic && e.Load != nil {
+			return false
+		}
+		// The native fill reloads its own destination bytes, so a destination the
+		// IR can prove read-sensitive invalidates the intrinsic here too.
+		if x.Sym == fillBytesIntrinsic && !fillDestinationReadable(f.mod, definitions, x.Args[0]) {
 			return false
 		}
 		if e.CountSymbol == "" && e.CountLoad != nil || e.ValueSymbol == "" && e.ValueLoad != nil {
