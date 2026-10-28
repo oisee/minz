@@ -219,6 +219,14 @@ func (g *z80cg) scanBitStorePatterns(b *Block) {
 				useCount[arg]++
 			}
 		}
+		// Inline-asm inputs are register reads the Src/Args walk above skips.
+		if inst.Asm != nil {
+			for _, r := range inst.Asm.Ins {
+				if r != NoReg {
+					useCount[r]++
+				}
+			}
+		}
 	}
 	if b.Term != nil {
 		for _, src := range b.Term.termUses() {
@@ -687,6 +695,14 @@ func (g *z80cg) scanGlobalFieldPatterns(b *Block) {
 				useCount[s]++
 			}
 		}
+		// Inline-asm inputs are register reads the Src/Args walk above skips.
+		if inst.Asm != nil {
+			for _, r := range inst.Asm.Ins {
+				if r != NoReg {
+					useCount[r]++
+				}
+			}
+		}
 	}
 	if b.Term != nil {
 		for _, s := range b.Term.termUses() {
@@ -1024,6 +1040,15 @@ func (g *z80cg) scanPtrAddBase(b *Block) {
 				if a == baseReg {
 					liveAfter = true
 					break
+				}
+			}
+			// Inline-asm inputs read their register directly.
+			if later.Asm != nil {
+				for _, r := range later.Asm.Ins {
+					if r == baseReg {
+						liveAfter = true
+						break
+					}
 				}
 			}
 			if liveAfter {

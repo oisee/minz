@@ -969,6 +969,17 @@ func computeDeadConsts(f *Func, ar *AllocResult) map[Reg]bool {
 					// call args are never peephole-foldable
 				}
 			}
+			// Inline-asm inputs live in inst.Asm.Ins, which Inst.Uses() reads but
+			// the Src/Args walk above does not. The template reads the allocated
+			// physical register directly, so such a use is never immediate-served
+			// and its LD must not be suppressed.
+			if inst.Asm != nil {
+				for _, src := range inst.Asm.Ins {
+					if _, isConst := constVal[src]; isConst {
+						totalUses[src]++
+					}
+				}
+			}
 			for operand, src := range inst.Src {
 				cv, isConst := constVal[src]
 				if !isConst {

@@ -15,6 +15,7 @@
     "TestAlignedLUTNoLiveNeighbourRetainsFastPath",
     "TestAlignedLUTRetainsLiveHighByteNative",
     "TestArithmeticProspectiveHeldout",
+    "TestAsmInputConstE2E",
     "TestAssertBootstrapInitializesAllocatedSpill",
     "TestAssertMissingReturnContracts",
     "TestAssertRejectsMalformedRawResults",
