@@ -1,0 +1,79 @@
+{
+  "protocol": "autosiril-render-cpm-checkpoint/v5",
+  "status": "PASS",
+  "scope": "actual saved kind5 files through independently linked CP/M CALL5 renderer; not physical OS bootstrap, TRD, six-COM publication, or full milestone",
+  "command": "PYTHONDONTWRITEBYTECODE=1 python3 research/autosiril-native/render/prove_cpm.py --artifacts /tmp/minz-ci270-artifacts/autosiril-mix-fresh --autosiril /Users/alice/dev/autosiril --planning /tmp/minz-render-planning-v4 --out /tmp/minz-z-workers/render-results/checkpoint5-cpm-n",
+  "output_directory": "/tmp/minz-z-workers/render-results/checkpoint5-cpm-n",
+  "original_ruby_sha256": "41f621b555fc089effd711319e723494576eb47ea0282847082ec91c1cdd4c01",
+  "source_sha256": {
+    "research/autosiril-native/render/cpm.nanz": "875ba03b4411c98797ee45b289d0fe4a181e1a3b9979abf45cb34f9810e9a61f",
+    "research/autosiril-native/render/cpm-driver.go.txt": "2d7a1cdbbe7ce2787d0174ea74725fdecb843981649c188d0c4cae7fbf412701",
+    "research/autosiril-native/render/prove_cpm.py": "c77372125a0f8d2c3ddd6ec024ba610f18c8d80ee598f515acc1745048ca7e7a"
+  },
+  "proof_sha256": {
+    "receipt": "505882d6eeb8fd230fbf7507e29145fe13b52de8664b3ab3fe245926cb3a866b",
+    "cases": "8bb7b5c77087c4443c2bd972462995df4249cc7396c431d754d0c315b9864b32",
+    "composed_source": "1737037f6be51509989761198f5a95180cce16da09497acfceb26b23bf499ad7",
+    "binary": "da02f1825bcdfeb7cb4a8847caea00b7d70c9502b74d69372ce8add2594fa19e",
+    "fresh_ruby_json": "5e2ffab77b927ff9e28efbbadbb098f0d7b193fe02cacdce739c7d5c1795a808"
+  },
+  "coverage": {
+    "positive_cases": 25,
+    "positive_engines": [
+      "raw-mir2",
+      "final-mir2",
+      "z80"
+    ],
+    "positive_executions": 75,
+    "fresh_actual_ruby_cases": 25,
+    "independent_positive_artifact_audits": 75,
+    "guard_cases": 13,
+    "guard_executions": 39,
+    "total_executions": 114,
+    "guard_faults_z80": {
+      "guard_header_kind": 953,
+      "guard_definition_fragment": 985,
+      "guard_cell_channel_order": 991,
+      "guard_metadata_before_cells": 958,
+      "guard_metadata_extent": 994,
+      "guard_end_count": 956,
+      "guard_end_magic": 960,
+      "guard_nonzero_padding": 957,
+      "guard_bdos_input_open": 900,
+      "guard_bdos_input_read": 904,
+      "guard_bdos_output_create": 901,
+      "guard_bdos_output_write": 902,
+      "guard_bdos_output_close": 903
+    }
+  },
+  "contracts": {
+    "STATE.BIN": "Versioned observational row stream. Each row is length-prefixed: 77-byte payload with u16 row through65535, then 79-byte payload with u32 row from65536. Empty input has zero logical bytes. CP/M physical records are zero-padded to128 bytes.",
+    "META.BIN": "ARMD metadata companion v1, never a complete kind5 MIXED file. Logical header is14 bytes: ARMD, u8 version1, u8 source kind5, u16 definition count, u16 role-record count4, u32 zero reserved; followed by exact source definition fragments and four role records, END u32 count, END!; no cells.",
+    "REND.INF": "Logical schema is21 bytes: RINF, u8 version1, u32 text logical bytes, u32 state logical bytes, u32 original render rows; physically padded to128 bytes with zeros."
+  },
+  "budgets": {
+    "image_bytes": 28474,
+    "globals_bytes": 6432,
+    "spill_bytes": 453,
+    "code_bytes": 21589
+  },
+  "preserved_regressions": {
+    "kernel": {
+      "output": "/tmp/minz-z-workers/render-results/checkpoint5-kernel-a",
+      "log": "/tmp/minz-z-workers/render-results/checkpoint5-kernel-a.log",
+      "result": "PASS 203 actual Ruby cases; 10320 rows on each engine",
+      "receipt_sha256": "842b76c6cd198b3c23b9fb65265cc4685d365ea8d69bac12cd3ec8431d97d74e"
+    },
+    "high_row_edges": {
+      "output": "/tmp/minz-z-workers/render-results/checkpoint5-edges-a",
+      "log": "/tmp/minz-z-workers/render-results/checkpoint5-edges-a.log",
+      "result": "PASS 4 actual-Ruby high-row cases; 262174 rows on each engine; 4 feed checks; 4 mutants",
+      "receipt_sha256": "be1ff6a6d31d5e3509487a7530ce7e5a4f8bfe98e901628ef9bb6520147ad996"
+    }
+  },
+  "limitations": [
+    "The 25 positive inputs are the legacy profile24 native chain, valid for this render proof but not a claim of full canonical six-input conversion.",
+    "No compiler, shared MIR, pipeline, default codegen, workflow, root user files, global config, keys, SSH, Herdr, extra agents, push, PR, or merge files were changed.",
+    "TRD, all16 physical banks, publication, six-COM integration, inherited fresh/frozen CI audits, VT2/VTX, canonical six conversion, and main/PR review remain required."
+  ]
+}

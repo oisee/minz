@@ -1,0 +1,13 @@
+{
+  "scope": "Parent independent rerun: actual Ruby high rows/raw-final MIR2/native Z80, fixture feed only; not file IO",
+  "command": "python3 research/autosiril-native/render/prove_edges.py --baseline /tmp/minz-z-workers/render-results/checkpoint2-baseline-d --autosiril /Users/alice/dev/autosiril --out /tmp/minz-z-workers/render-results/parent-edges-checkpoint2",
+  "receipt_sha256": "fb588d0585b1a85842165e643c62d0b51dd1f97519d1f12fe9d8e3e95ab57da0",
+  "matches_worker_edge_cases": true,
+  "mutant_logs_contain_runtime_panic_not_compile_error": true,
+  "engine_runs": 12,
+  "row_states_each_engine": 262174,
+  "source_sha256": {
+    "kernel.nanz": "daadbb8cee7a659da97bec8d0badbed893e74afc90137dfa8a948197325ab97c",
+    "prove_edges.py": "a959bc73539dab84526fed16d950d2ddd82fc656fb6ab004691b128336238f67"
+  }
+}

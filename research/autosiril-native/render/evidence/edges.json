@@ -1,0 +1,179 @@
+{
+  "authoritative_log": "/tmp/minz-z-workers/render-results/checkpoint2-edges-l.log",
+  "authoritative_receipt": "/tmp/minz-z-workers/render-results/checkpoint2-edges-l/receipt.json",
+  "authoritative_receipt_sha256": "fb588d0585b1a85842165e643c62d0b51dd1f97519d1f12fe9d8e3e95ab57da0",
+  "baseline_cases": 203,
+  "baseline_post_rows_per_engine": 10320,
+  "baseline_receipt_sha256": "abbb9611895dedcc10dc21f9337847bcf1cc9eeea7af680fe2fb743bbd95cb7b",
+  "edge_cases": {
+    "high_continue_65567": {
+      "engines": {
+        "final-mir2": {
+          "rows": 65567,
+          "sink_writes": 131134,
+          "source_reads": 131170,
+          "state_sha256": "b6d126b034d13539404f83dc400ba4a393823f45b69534e5d65e275a63291c92",
+          "text_sha256": "f347efbc532a8f524496bd22acddd127411f3bf1ca61ebf150ede2277f304f84"
+        },
+        "raw-mir2": {
+          "rows": 65567,
+          "sink_writes": 131134,
+          "source_reads": 131170,
+          "state_sha256": "b6d126b034d13539404f83dc400ba4a393823f45b69534e5d65e275a63291c92",
+          "text_sha256": "f347efbc532a8f524496bd22acddd127411f3bf1ca61ebf150ede2277f304f84"
+        },
+        "z80": {
+          "rows": 65567,
+          "sink_writes": 131134,
+          "source_reads": 131170,
+          "state_sha256": "b6d126b034d13539404f83dc400ba4a393823f45b69534e5d65e275a63291c92",
+          "text_sha256": "f347efbc532a8f524496bd22acddd127411f3bf1ca61ebf150ede2277f304f84"
+        }
+      },
+      "oracle": {
+        "line_widths": [
+          49
+        ],
+        "state_bytes": 5048721,
+        "state_sha256": "b6d126b034d13539404f83dc400ba4a393823f45b69534e5d65e275a63291c92",
+        "text_bytes": 3278350,
+        "text_sha256": "f347efbc532a8f524496bd22acddd127411f3bf1ca61ebf150ede2277f304f84"
+      },
+      "render_rows": 65567,
+      "source_cells": 2
+    },
+    "high_empty_65536": {
+      "engines": {
+        "final-mir2": {
+          "rows": 65536,
+          "sink_writes": 131072,
+          "source_reads": 196611,
+          "state_sha256": "35ea185ce61a48baeb16101df49bf324eb08a7dcdb715affd6e9e16421320f8a",
+          "text_sha256": "f635b9b04a29784cb552180e97de55af6ba6425bf981affdff4aa5c7762df155"
+        },
+        "raw-mir2": {
+          "rows": 65536,
+          "sink_writes": 131072,
+          "source_reads": 196611,
+          "state_sha256": "35ea185ce61a48baeb16101df49bf324eb08a7dcdb715affd6e9e16421320f8a",
+          "text_sha256": "f635b9b04a29784cb552180e97de55af6ba6425bf981affdff4aa5c7762df155"
+        },
+        "z80": {
+          "rows": 65536,
+          "sink_writes": 131072,
+          "source_reads": 196611,
+          "state_sha256": "35ea185ce61a48baeb16101df49bf324eb08a7dcdb715affd6e9e16421320f8a",
+          "text_sha256": "f635b9b04a29784cb552180e97de55af6ba6425bf981affdff4aa5c7762df155"
+        }
+      },
+      "oracle": {
+        "line_widths": [
+          49
+        ],
+        "state_bytes": 5046272,
+        "state_sha256": "35ea185ce61a48baeb16101df49bf324eb08a7dcdb715affd6e9e16421320f8a",
+        "text_bytes": 3276800,
+        "text_sha256": "f635b9b04a29784cb552180e97de55af6ba6425bf981affdff4aa5c7762df155"
+      },
+      "render_rows": 65536,
+      "source_cells": 0
+    },
+    "high_event_65536": {
+      "engines": {
+        "final-mir2": {
+          "rows": 65536,
+          "sink_writes": 131072,
+          "source_reads": 131077,
+          "state_sha256": "aa6505030a5e13f5d6f7fd1344a38a1f3a3975f9bad88d611692bb110959ae44",
+          "text_sha256": "750bafccacc2bc64b19ed8d74ff475ac91ddafd759c27e75949ed2089265597d"
+        },
+        "raw-mir2": {
+          "rows": 65536,
+          "sink_writes": 131072,
+          "source_reads": 131077,
+          "state_sha256": "aa6505030a5e13f5d6f7fd1344a38a1f3a3975f9bad88d611692bb110959ae44",
+          "text_sha256": "750bafccacc2bc64b19ed8d74ff475ac91ddafd759c27e75949ed2089265597d"
+        },
+        "z80": {
+          "rows": 65536,
+          "sink_writes": 131072,
+          "source_reads": 131077,
+          "state_sha256": "aa6505030a5e13f5d6f7fd1344a38a1f3a3975f9bad88d611692bb110959ae44",
+          "text_sha256": "750bafccacc2bc64b19ed8d74ff475ac91ddafd759c27e75949ed2089265597d"
+        }
+      },
+      "oracle": {
+        "line_widths": [
+          49
+        ],
+        "state_bytes": 5046272,
+        "state_sha256": "aa6505030a5e13f5d6f7fd1344a38a1f3a3975f9bad88d611692bb110959ae44",
+        "text_bytes": 3276800,
+        "text_sha256": "750bafccacc2bc64b19ed8d74ff475ac91ddafd759c27e75949ed2089265597d"
+      },
+      "render_rows": 65536,
+      "source_cells": 3
+    },
+    "high_tail_65535": {
+      "engines": {
+        "final-mir2": {
+          "rows": 65535,
+          "sink_writes": 131070,
+          "source_reads": 131074,
+          "state_sha256": "5e761954780f726b7f0b2af798e4dcc7a1f46079c90828bc0be0623721b2fae2",
+          "text_sha256": "ce218fedccda7f822be1c5c9043ca2548b502578315a3e0574a83f680b61b130"
+        },
+        "raw-mir2": {
+          "rows": 65535,
+          "sink_writes": 131070,
+          "source_reads": 131074,
+          "state_sha256": "5e761954780f726b7f0b2af798e4dcc7a1f46079c90828bc0be0623721b2fae2",
+          "text_sha256": "ce218fedccda7f822be1c5c9043ca2548b502578315a3e0574a83f680b61b130"
+        },
+        "z80": {
+          "rows": 65535,
+          "sink_writes": 131070,
+          "source_reads": 131074,
+          "state_sha256": "5e761954780f726b7f0b2af798e4dcc7a1f46079c90828bc0be0623721b2fae2",
+          "text_sha256": "ce218fedccda7f822be1c5c9043ca2548b502578315a3e0574a83f680b61b130"
+        }
+      },
+      "oracle": {
+        "line_widths": [
+          49
+        ],
+        "state_bytes": 5046195,
+        "state_sha256": "5e761954780f726b7f0b2af798e4dcc7a1f46079c90828bc0be0623721b2fae2",
+        "text_bytes": 3276750,
+        "text_sha256": "ce218fedccda7f822be1c5c9043ca2548b502578315a3e0574a83f680b61b130"
+      },
+      "render_rows": 65535,
+      "source_cells": 2
+    }
+  },
+  "executions": 12,
+  "limitations": [
+    "Fixture source and sink traps only; no independently linked sixth-stage image or CP/M BDOS file API.",
+    "Malformed cases test kernel-feed preconditions, not a full kind5 file adapter or file-system failure matrix.",
+    "Cached enote is intentionally dropped on feed and recomputed; future lossless kind5 validation must check source/enote coherence or preserve original behavior precisely.",
+    "TRD, 16 physical banks, full malformed-file/failure-injection matrix, six-COM chain, inherited CI/audits/PR/main, and VT2 obligations remain incomplete."
+  ],
+  "malformed_feed_checks": {
+    "duplicate_row": true,
+    "invalid_feed_status": true,
+    "source_capacity_9217": true,
+    "unsorted_row": true
+  },
+  "original_ruby_sha256": "41f621b555fc089effd711319e723494576eb47ea0282847082ec91c1cdd4c01",
+  "post_rows_each_engine": 262174,
+  "protective_mutants": {
+    "accept_capacity_overflow": true,
+    "accept_duplicate": true,
+    "skip_demotion_refresh": true,
+    "truncate_high_row_trace": true
+  },
+  "protocol": "autosiril-render-target-kernel-edges/v1",
+  "scope": "actual-Ruby high-row edge cases and fixture-feed guards; explicit RST traps, not CP/M file IO",
+  "source_row_limitation": "Kind5 source rows remain u16, so no source event after row65535 can exist. The proof covers the last possible event at65535 and unchanged-state traces at65536..65567 without inventing impossible source indices.",
+  "state_packet_layout": "77-byte legacy rows through65535 (u16 row); 79-byte rows at65536 and above (u32 row); snapshots shift two bytes"
+}

@@ -1,0 +1,88 @@
+{
+  "checkpoint": "trd-checkpoint1",
+  "commands": [
+    "prove_cpm.py --artifacts /tmp/minz-ci270-artifacts/autosiril-mix-fresh --autosiril ~/dev/autosiril --planning /tmp/minz-render-planning-v4 --chain6 /tmp/minz-z-workers/p-channel-results/parent-p3-fresh --mze <source-built mze> --out CPM",
+    "prove_trd.py --cpm-run CPM --mix-trd /tmp/minz-ci270-artifacts/autosiril-mix-fresh/trd/measured --out TRD"
+  ],
+  "source_sha256": {
+    "research/autosiril-native/render/kernel.nanz": "daadbb8cee7a659da97bec8d0badbed893e74afc90137dfa8a948197325ab97c",
+    "research/autosiril-native/render/common.nanz": "002aaa15ba382215ecd209f6e7f1382415672727ac5d890ba4a6a097334eacc0",
+    "research/autosiril-native/render/cpm.nanz": "ab7e6b38bbfef14ce891192b2df55e3ec58721d2934f0cdb9a461bda6052f65b",
+    "research/autosiril-native/render/trd.nanz": "19421e7db7bcb6200097950b765e179034f4636369af6c0e93dd289773cb6b0d",
+    "research/autosiril-native/render/prove_cpm.py": "d681cf79929af4bede3bdb2e6050c6faf041eab94fe7a02bb9d3fbe24f137c4e",
+    "research/autosiril-native/render/prove_trd.py": "84363d6f4bfd1ced90d98b44c52902335047e629142ccea47edd8966edb8078b",
+    "research/autosiril-native/render/compose_trd.py": "a2505b5cd930dbcac2511100aa64a4e4d40f575a7f8d7f8f9663b4746cb7799f",
+    "research/autosiril-native/render/trd-driver.go.txt": "9e9983c1ea35838974858dc78d4299f37e9984b3d4132e474884f384367ac537",
+    "research/autosiril-native/render/cpm-driver.go.txt": "2d7a1cdbbe7ce2787d0174ea74725fdecb843981649c188d0c4cae7fbf412701"
+  },
+  "cpm": {
+    "executions": 162,
+    "image_bytes": 25798,
+    "binary_sha256": "e22ff1c955ffc90d1bbac1c0be6a73d139003a43e7c509fdfb6c37006b03f07a",
+    "receipt_sha256": "97c7a9aad6dc815f0979d4f21b98cc98264236ba44e5a888aa1f5aef249071c1"
+  },
+  "trd": {
+    "executions": 75,
+    "cases": 25,
+    "native": {
+      "bounce_bank_reserved_bytes": 16384,
+      "code_and_stub_bytes": 24981,
+      "globals_bytes": 6659,
+      "image_bytes": 32235,
+      "origin": 16384,
+      "spill_bytes": 595,
+      "stack_floor": 48896
+    },
+    "receipt_sha256": "b15604a438f23d5fe8b0111e16825223f657d3357b7450108b8f385c2567456c",
+    "multi_segment_cases": [
+      "chronos_030+++",
+      "chronos_030---",
+      "chronos_201+++",
+      "chronos_201---",
+      "chronos_300+++",
+      "chronos_300---",
+      "native_chronos"
+    ],
+    "max_t_states": 2287773999,
+    "max_stack_bytes": 60,
+    "skipped": [
+      {
+        "name": "canonical6_chronos",
+        "reason": "no native TRD mix disk for this case"
+      },
+      {
+        "name": "profile_64_distinct_definitions",
+        "reason": "no native TRD mix disk for this case"
+      },
+      {
+        "name": "profile_max_fragments_568",
+        "reason": "no native TRD mix disk for this case"
+      },
+      {
+        "name": "profile_nine_byte_definition",
+        "reason": "no native TRD mix disk for this case"
+      },
+      {
+        "name": "profile_payload_4096",
+        "reason": "no native TRD mix disk for this case"
+      },
+      {
+        "name": "profile_reference_last_definition",
+        "reason": "no native TRD mix disk for this case"
+      }
+    ]
+  },
+  "design": [
+    "common.nanz: transport-neutral kind5 reader/validation/META/REND encoders shared by CP/M and TRD",
+    "TRD inputs are the actual native TRD mix disks (MIXED M); expected streams come from the CP/M proof checked against fresh Ruby",
+    "one live TRD output: text and state come from two identical render passes (9 owned input opens)",
+    "OUTPUTn T / STATEn S segments of 65280 bytes; concatenation equals the CP/M logical stream; META A, REND I",
+    "stack floor 0xbf00 (254-byte budget; measured max 60) to fit the 32 KB image; all fixed/paged RAM, PC, IRQ and port guards from the mix specialization retained"
+  ],
+  "open": [
+    "seeded TRD disks for profile/canonical6 cases",
+    "sector-failure, disk-full and malformed-input TRD guards",
+    "16-bank guard mutants for the renderer",
+    "CI wiring"
+  ]
+}

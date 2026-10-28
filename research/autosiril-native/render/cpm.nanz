@@ -1,0 +1,244 @@
+// Independently linked CP/M adapter for actual kind5 files.
+@extern(0x0005) fun bdos8(@z80_c command:u8,@z80_de address:u16)->u8
+
+global input_fcbs:[u8;108]
+global input_buffers:[u8;384]
+global input_positions:[u8;3]
+global input_live:[u8;3]
+global text_fcb:[u8;36]
+global state_fcb:[u8;36]
+global meta_fcb:[u8;36]
+global info_fcb:[u8;36]
+global text_buffer:[u8;128]
+global state_buffer:[u8;128]
+global meta_buffer:[u8;128]
+global info_buffer:[u8;128]
+global text_position:u8
+global state_position:u8
+global meta_position:u8
+global info_position:u8
+global text_live:u8
+global state_live:u8
+global meta_live:u8
+global info_live:u8
+global file_dma:[u8;128]
+global mixed_name:[u8;11] = [77,73,88,69,68,32,32,32,66,73,78]
+global text_name:[u8;11] = [79,85,84,80,85,84,32,32,84,88,84]
+global state_name:[u8;11] = [83,84,65,84,69,32,32,32,66,73,78]
+global meta_name:[u8;11] = [77,69,84,65,32,32,32,32,66,73,78]
+global info_name:[u8;11] = [82,69,78,68,32,32,32,32,73,78,70]
+
+fun fcb_input_name(handle:u8) {
+    var index:u16 = 0
+    while index < 36 { input_fcbs[u16(handle)*36+index] = 0
+        index = index + 1 }
+    index = 0
+    while index < 11 { input_fcbs[u16(handle)*36+index+1] = mixed_name[index]
+        index = index + 1 }
+}
+fun cursor_get(handle:u8)->u8 {
+    if fault != 0 { return 0 }
+    if input_positions[handle] == 128 {
+        let status:u8 = bdos8(20,u16(&input_fcbs[u16(handle)*36]))
+        if status != 0 { if status == 1 { fault = 951 } else { fault = 904 } return 0 }
+        var index:u16 = 0
+        let base:u16 = u16(handle)*128
+        while index < 128 {
+            input_buffers[base+index] = file_dma[index]
+            index = index + 1
+        }
+        input_positions[handle] = 0
+    }
+    let at:u16 = u16(handle)*128+u16(input_positions[handle])
+    input_positions[handle] = input_positions[handle] + 1
+    return input_buffers[at]
+}
+fun cursor_finish(handle:u8) {
+    while input_positions[handle] < 128 {
+        if cursor_get(handle) != 0 { fault = 957 return }
+    }
+    let status:u8 = bdos8(20,u16(&input_fcbs[u16(handle)*36]))
+    if status == 0 { fault = 957 } else { if status != 1 { fault = 904 } }
+}
+fun cursor_open(handle:u8) {
+    if input_live[handle] != 0 { fault = 900 return }
+    input_positions[handle] = 128
+    if bdos8(15,u16(&input_fcbs[u16(handle)*36])) == 255 { fault = 900 return }
+    input_live[handle] = 1
+    cursor_header(handle)
+    cursor_reset(handle)
+}
+fun cursor_close(handle:u8) {
+    if input_live[handle] == 0 { return }
+    input_live[handle] = 0
+    if bdos8(16,u16(&input_fcbs[u16(handle)*36])) == 255 && fault == 0 { fault = 906 }
+}
+fun text_flush()->u8 {
+    if text_position == 0 { return 0 }
+    var index:u16 = 0
+    while index < 128 {
+        file_dma[index] = text_buffer[index]
+        index = index + 1
+    }
+    return bdos8(21,u16(&text_fcb[0]))
+}
+fun state_flush()->u8 {
+    if state_position == 0 { return 0 }
+    var index:u16 = 0
+    while index < 128 {
+        file_dma[index] = state_buffer[index]
+        index = index + 1
+    }
+    return bdos8(21,u16(&state_fcb[0]))
+}
+fun text_put(byte:u8) {
+    if fault != 0 { return }
+    text_buffer[u16(text_position)] = byte
+    text_position = text_position+1
+    text_logical_bytes = text_logical_bytes+1
+    if text_position == 128 {
+        if text_flush() != 0 { fault = 902 return }
+        text_position = 0
+    }
+}
+fun state_put(byte:u8) {
+    if fault != 0 { return }
+    state_buffer[u16(state_position)] = byte
+    state_position = state_position+1
+    state_logical_bytes = state_logical_bytes+1
+    if state_position == 128 {
+        if state_flush() != 0 { fault = 902 return }
+        state_position = 0
+    }
+}
+fun meta_put(byte:u8) {
+    if fault != 0 { return }
+    meta_buffer[u16(meta_position)] = byte
+    meta_position = meta_position+1
+    if meta_position == 128 {
+        var index:u16 = 0
+        while index < 128 { file_dma[index] = meta_buffer[index]
+            index = index + 1 }
+        if bdos8(21,u16(&meta_fcb[0])) != 0 { fault = 902 return }
+        meta_position = 0
+    }
+}
+fun info_put(byte:u8) {
+    if fault != 0 { return }
+    info_buffer[u16(info_position)] = byte
+    info_position = info_position+1
+    if info_position == 128 {
+        var index:u16 = 0
+        while index < 128 { file_dma[index] = info_buffer[index]
+            index = index + 1 }
+        if bdos8(21,u16(&info_fcb[0])) != 0 { fault = 902 return }
+        info_position = 0
+    }
+}
+fun prepare_output(which:u8) {
+    var index:u16 = 0
+    var fcb:u16 = u16(&text_fcb[0])
+    if which == 1 { fcb = u16(&state_fcb[0]) }
+    if which == 2 { fcb = u16(&meta_fcb[0]) }
+    if which == 3 { fcb = u16(&info_fcb[0]) }
+    while index < 36 {
+        if which == 0 { text_fcb[index] = 0 }
+        if which == 1 { state_fcb[index] = 0 }
+        if which == 2 { meta_fcb[index] = 0 }
+        if which == 3 { info_fcb[index] = 0 }
+        index = index + 1
+    }
+    index = 0
+    while index < 11 {
+        if which == 0 { text_fcb[index+1] = text_name[index] }
+        if which == 1 { state_fcb[index+1] = state_name[index] }
+        if which == 2 { meta_fcb[index+1] = meta_name[index] }
+        if which == 3 { info_fcb[index+1] = info_name[index] }
+        index = index + 1
+    }
+}
+fun output_open(which:u8)->u8 {
+    prepare_output(which)
+    let fcb:u16 = u16(&text_fcb[0])
+    if which == 1 { fcb = u16(&state_fcb[0]) }
+    if which == 2 { fcb = u16(&meta_fcb[0]) }
+    if which == 3 { fcb = u16(&info_fcb[0]) }
+    if bdos8(22,fcb) == 255 { return 1 }
+    return 0
+}
+fun output_close(fcb:u16,live:u8,buffer:u8,position:u8) {
+    if live == 0 { return }
+    if fcb == u16(&text_fcb[0]) { text_live = 0 }
+    if fcb == u16(&state_fcb[0]) { state_live = 0 }
+    if fcb == u16(&meta_fcb[0]) { meta_live = 0 }
+    if fcb == u16(&info_fcb[0]) { info_live = 0 }
+    if position != 0 {
+        var index:u16 = 0
+        while index < 128 {
+            var byte:u8 = 0
+            if index < u16(position) {
+                if fcb == u16(&text_fcb[0]) { byte = text_buffer[index] }
+                if fcb == u16(&state_fcb[0]) { byte = state_buffer[index] }
+                if fcb == u16(&meta_fcb[0]) { byte = meta_buffer[index] }
+                if fcb == u16(&info_fcb[0]) { byte = info_buffer[index] }
+            }
+            file_dma[index] = byte
+            index = index + 1 }
+        if bdos8(21,fcb) != 0 && fault == 0 { fault = 903 }
+    }
+    if bdos8(16,fcb) == 255 && fault == 0 { fault = 903 }
+}
+fun cleanup() {
+    var handle:u8 = 0
+    while handle < 3 { cursor_close(handle)
+        handle = handle+1 }
+    output_close(u16(&text_fcb[0]),text_live,u16(&text_buffer[0]),text_position)
+    output_close(u16(&state_fcb[0]),state_live,u16(&state_buffer[0]),state_position)
+    output_close(u16(&meta_fcb[0]),meta_live,u16(&meta_buffer[0]),meta_position)
+    output_close(u16(&info_fcb[0]),info_live,u16(&info_buffer[0]),info_position)
+}
+fun write_companions() {
+    if output_open(2) != 0 { fault = 901 return }
+    meta_live = 1
+    write_meta()
+    if output_open(3) != 0 { fault = 901 return }
+    info_live = 1
+    write_info()
+}
+fun disk_main()->u16 {
+    fault = 0
+    text_position = 0
+    state_position = 0
+    meta_position = 0
+    info_position = 0
+    text_live = 0
+    state_live = 0
+    meta_live = 0
+    info_live = 0
+    reset_render_state()
+    var index:u16 = 0
+    index = 0
+    while index < 3 { input_live[index] = 0
+        index = index+1 }
+    bdos8(26,u16(&file_dma[0]))
+    var handle:u8 = 0
+    while handle < 3 { fcb_input_name(handle)
+        handle = handle+1 }
+    if fault == 0 { validate_definitions() }
+    if fault == 0 { validate_cells() }
+    if fault == 0 { validate_metadata() }
+    cursor_close(0)
+    if fault == 0 {
+        if output_open(0) != 0 { fault = 901 } else { text_live = 1 }
+    }
+    if fault == 0 {
+        if output_open(1) != 0 { fault = 901 } else { state_live = 1 }
+    }
+    handle = 0
+    while handle < 3 && fault == 0 { cursor_open(handle)
+        handle = handle+1 }
+    if fault == 0 { render_run() }
+    if fault == 0 { write_companions() }
+    cleanup()
+    return fault
+}

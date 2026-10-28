@@ -1,0 +1,18 @@
+{
+  "scope": "Parent independent repeat of 25 legacy saved-file positives plus13guards on each of3engines; not full admitted-profile/renderer milestone",
+  "command": "PYTHONDONTWRITEBYTECODE=1 python3 research/autosiril-native/render/prove_cpm.py --artifacts /tmp/minz-ci270-artifacts/autosiril-mix-fresh --autosiril /Users/alice/dev/autosiril --planning /tmp/minz-render-planning-v4 --out /tmp/minz-z-workers/render-results/parent-checkpoint5-cpm",
+  "receipt_sha256": "505882d6eeb8fd230fbf7507e29145fe13b52de8664b3ab3fe245926cb3a866b",
+  "all_114_engine_results_match_worker": true,
+  "source_sha256": {
+    "cpm.nanz": "875ba03b4411c98797ee45b289d0fe4a181e1a3b9979abf45cb34f9810e9a61f",
+    "cpm-driver.go.txt": "2d7a1cdbbe7ce2787d0174ea74725fdecb843981649c188d0c4cae7fbf412701",
+    "prove_cpm.py": "c77372125a0f8d2c3ddd6ec024ba610f18c8d80ee598f515acc1745048ca7e7a"
+  },
+  "open_review_findings": [
+    "definition fragment record count is confused with distinct definition count: full64defs/4096payload profile not proved; rawcache256records can be too small",
+    "Python ruby_case asserts rawdefinitionrecordcount<=64, excluding legal multi-fragment definitions",
+    "cached enote coherence/undefined ornament reference must be validated before feeding renderer",
+    "REND.INF writer/driver use17logicalbytes, docs say21; fix schema and padding decoder",
+    "canonical6 file input and native six-COM chain remain pending"
+  ]
+}
