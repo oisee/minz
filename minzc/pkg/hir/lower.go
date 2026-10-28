@@ -4056,7 +4056,7 @@ func (l *lowerer) lowerFusedFold(chain iterChain) mir2.Reg {
 		},
 	}
 
-	bodyStmts = foldStageBody(chain.stages, elemVar, elemTy, bodyStmts)
+	bodyStmts = l.foldStageBody(chain.stages, elemVar, elemTy, bodyStmts)
 
 	// 3. Run the ForEachStmt — lowerForEach threads __fold_acc__ via block params.
 	forEach := &ForEachStmt{
@@ -4114,24 +4114,31 @@ func (l *lowerer) lowerRangeForEach(chain iterChain) {
 	l.lowerRangeLoop(chain, elemVar, elemTy, bodyStmts)
 }
 
+// stageValueExpr builds the value one map/filter stage produces for a single
+// element: the callback's return expression renamed onto the loop's element
+// variable when the body is exactly that return (extractReturnExpr refuses
+// multi-statement bodies, so no prefix effect is dropped), and a CallExpr
+// otherwise. Shared by the forEach and fold stage builders so both terminals
+// inline the same callbacks.
+func (l *lowerer) stageValueExpr(stage iterStage, elemVar string, elemTy mir2.Ty) Expr {
+	if fn := l.hirFuncs[stage.fn]; fn != nil && len(fn.Params) == 1 {
+		if ret := extractReturnExpr(fn.Body); ret != nil {
+			return renameExpr(ret, fn.Params[0].Name, elemVar)
+		}
+	}
+	ty := elemTy
+	if stage.kind == "filter" {
+		ty = mir2.TyBool
+	}
+	return &CallExpr{Fn: stage.fn, Args: []Expr{&VarRefExpr{Name: elemVar, Ty: elemTy}}, Ty: ty}
+}
+
 // prependStageStmts preserves stage order and filter short-circuiting without
 // ContinueStmt: continue would jump over a range loop's implicit DJNZ decrement.
 func (l *lowerer) prependStageStmts(stages []iterStage, elemVar string, elemTy mir2.Ty, body []Stmt) []Stmt {
 	for i := len(stages) - 1; i >= 0; i-- {
 		stage := stages[i]
-		ty := elemTy
-		if stage.kind == "filter" {
-			ty = mir2.TyBool
-		}
-		var value Expr
-		if fn := l.hirFuncs[stage.fn]; fn != nil && len(fn.Params) == 1 {
-			if ret := extractReturnExpr(fn.Body); ret != nil {
-				value = renameExpr(ret, fn.Params[0].Name, elemVar)
-			}
-		}
-		if value == nil {
-			value = &CallExpr{Fn: stage.fn, Args: []Expr{&VarRefExpr{Name: elemVar, Ty: elemTy}}, Ty: ty}
-		}
+		value := l.stageValueExpr(stage, elemVar, elemTy)
 		switch stage.kind {
 		case "map":
 			assign := &AssignStmt{Target: &VarRefExpr{Name: elemVar, Ty: elemTy}, Val: value}
@@ -4179,7 +4186,7 @@ func (l *lowerer) lowerRangeFold(chain iterChain) mir2.Reg {
 	// prefixes; predicates guard the remaining pipeline without continue,
 	// which would bypass the range loop's implicit DJNZ decrement.
 	foldAssign := &AssignStmt{Target: &VarRefExpr{Name: accVar, Ty: accTy}, Val: bodyExpr}
-	bodyStmts := foldStageBody(chain.stages, elemVar, elemTy, []Stmt{foldAssign})
+	bodyStmts := l.foldStageBody(chain.stages, elemVar, elemTy, []Stmt{foldAssign})
 
 	l.lowerRangeLoop(chain, elemVar, elemTy, bodyStmts)
 	return l.env[accVar]
@@ -4187,17 +4194,21 @@ func (l *lowerer) lowerRangeFold(chain iterChain) mir2.Reg {
 
 // foldStageBody preserves map/filter order and skips the remaining stages and
 // terminal fold when a filter fails. Build from the end to nest the suffix.
-func foldStageBody(stages []iterStage, elemVar string, elemTy mir2.Ty, body []Stmt) []Stmt {
+// Stage callbacks with a single-return-expression body are inlined, exactly as
+// prependStageStmts does for forEach — a filter left as a CallExpr makes the
+// codegen materialise the predicate's flag into a bool memory home.
+func (l *lowerer) foldStageBody(stages []iterStage, elemVar string, elemTy mir2.Ty, body []Stmt) []Stmt {
 	for i := len(stages) - 1; i >= 0; i-- {
 		stage := stages[i]
-		value := &VarRefExpr{Name: elemVar, Ty: elemTy}
 		switch stage.kind {
 		case "map":
-			assign := &AssignStmt{Target: value, Val: &CallExpr{Fn: stage.fn, Args: []Expr{value}, Ty: elemTy}}
+			assign := &AssignStmt{
+				Target: &VarRefExpr{Name: elemVar, Ty: elemTy},
+				Val:    l.stageValueExpr(stage, elemVar, elemTy),
+			}
 			body = append([]Stmt{assign}, body...)
 		case "filter":
-			pred := &CallExpr{Fn: stage.fn, Args: []Expr{value}, Ty: mir2.TyBool}
-			body = []Stmt{&IfStmt{Cond: pred, Then: &Block{Body: body}}}
+			body = []Stmt{&IfStmt{Cond: l.stageValueExpr(stage, elemVar, elemTy), Then: &Block{Body: body}}}
 		}
 	}
 	return body
