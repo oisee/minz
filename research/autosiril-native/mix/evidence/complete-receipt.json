@@ -1,7 +1,7 @@
 {
   "protocol": "autosiril-native-mix/v1",
   "source_sha256": {
-    ".github/workflows/ci.yml": "c6d79c1cfb16b919316d59067e91e67db355ad345f625e7e6cf3a4447b855515",
+    ".github/workflows/ci.yml": "1d807cd636b04e50eac3d104242a5b915183af65ef788fbb752f121d096659cf",
     "minzc/pkg/spectrum/formats/trd.go": "574b26fdd37d2e6e7291547f9c26e635e002bfb47c9a0136dd4b568d35819681",
     "research/autosiril-native/arrange/build_matrix.py": "4675d33950d9e428656169e7eaaba4f1b03b4d5eae73c84c90e409df1297cc91",
     "research/autosiril-native/arrange/compose.py": "ae0343c1ef273c9d493a49765f978318b9b9b0acd5108cc1ee74d53cb688bfce",
@@ -444,7 +444,7 @@
     "minzc/pkg/mir2/z80codegen_leaf_writes.go": "9c5a7c9370094bfafc9127bea702492abdc2b4801d2940be9eb1917b08770c52",
     "minzc/pkg/mir2/z80codegen_load_step.go": "c5b03e920954af28d4088547e5d25b87b3f5a971a341205c8b37bd237a487ec6",
     "minzc/pkg/mir2/z80codegen_move.go": "cf123c706b2fe22020d0acbdbfbe768d51b7b5705196f01450153f4c53c6e334",
-    "minzc/pkg/mir2/z80codegen_muldiv.go": "ee89cd78fe9079808517716238e2277f590edc406ad249622f93735ab69e84a0",
+    "minzc/pkg/mir2/z80codegen_muldiv.go": "03d3649bb0798981e482024684539ba815a6807ab68b771ca0f062c3a25f56ee",
     "minzc/pkg/mir2/z80codegen_not.go": "d5e483d3701a50ade58d44275d02680c70ee42cfa99362dd7f8a46b4f7105dd6",
     "minzc/pkg/mir2/z80codegen_patterns.go": "868ed9b0e80a9f116705c6164b8836c4dd6b0915c4aeaeaf2c2c53205a424a82",
     "minzc/pkg/mir2/z80codegen_peephole.go": "f86f47494500526dcbb5bc07358075e2d4e89b418218c9c245ce5331469cb014",
@@ -737,17 +737,17 @@
     "cursor-large": 63
   },
   "guard_mutants": 6,
-  "upstream_echo_receipt_sha256": "c5ae71a6cf379aebf1ed695694659238c4ae23d4a586fef12e71bcdc183d2113",
+  "upstream_echo_receipt_sha256": "df5d30ec366519cae1934911d42b83969f2782bc5ce1ee479445db61d503ef90",
   "reused_upstream": null,
   "scope": "fifth independently linked native file stage, target downmix and NOTES timing, original Ruby oracle; private CP/M/TRD API traps, not physical ROM/FDC/hardware/boot/TPA-CCP/fullVT2VTX/MOS/eZ80",
-  "frozen_fixture_sha256": "6bdda8d30225a8736e1b7bd24969acdea88f57b75208e4c7fa86626e56945c68",
-  "fresh_receipt_sha256": "e0cd6eca71129a79874e3b3998c871ac928b66cf4979e6fd86b7f83a898ed878",
+  "frozen_fixture_sha256": "5925e6d1227fbf3dabc471e4fbbf3fef91e44fb25c895b9505c7183fdba88d64",
+  "fresh_receipt_sha256": "9fdc2d96cc8ca88078882e5eee63bdcb24489eeaf6efb36d4105767b58f21d09",
   "native_images": {
     "kernel": {
       "program.com": "26912a991657b8122a12d5130bcae817ec4a6f1fb2d1110a6cfb68c570aff4bc"
     },
     "cpm": {
-      "program.com": "8ad63e8399432afaa2ede72d0b4e40de27cad89f82acd0158f4e60e0cd29685c"
+      "program.com": "fbdeee740b7762c881f8463904d7d5a4905a08bcf5026932973c6ca8fc8b9898"
     },
     "trd": {
       "capacity_lane_3073/scorpion-z80/program.bin": "76bc0e4328505a9a650739a988ac421e53c6265b3508befca3613b4e28093594",
@@ -1038,10 +1038,10 @@
       "snapshot_267_1/scorpion-z80/program.bin": "76bc0e4328505a9a650739a988ac421e53c6265b3508befca3613b4e28093594"
     },
     "cursor-chronos": {
-      "program.com": "43cabe8a9d6d62d1909fb92e6d13147ffb1b7e59ebea950063c3d1631eaf2347"
+      "program.com": "ff317c439be511e33b68ec70eaf93b1e80765ee414a733e8cd15b2636b6948e7"
     },
     "cursor-large": {
-      "program.com": "43cabe8a9d6d62d1909fb92e6d13147ffb1b7e59ebea950063c3d1631eaf2347"
+      "program.com": "ff317c439be511e33b68ec70eaf93b1e80765ee414a733e8cd15b2636b6948e7"
     }
   }
 }
