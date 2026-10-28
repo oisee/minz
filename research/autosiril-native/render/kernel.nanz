@@ -1,0 +1,395 @@
+// Bounded native Autosiril row renderer. Source/sink byte transports are
+// explicit fixture traps reserved for the later independently linked file stage.
+global fault:u16
+global render_rows:[u8;4]
+global env_forms:[u8;144] = [10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,12,12,10,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12]
+global env_offsets:[i16;144] = [24,24,24,24,24,24,24,24,24,24,24,24,24,24,24,24,24,24,24,24,24,24,24,24,24,24,24,24,24,24,24,24,24,24,24,24,24,24,24,24,24,24,24,24,24,12,12,24,0,12,12,12,12,12,12,12,12,0,0,12,-12,0,0,0,0,0,-12,0,0,-12,-12,0,-24,-12,-12,-12,-12,-12,-24,-12,-12,-24,-24,-12,-36,-24,-24,-24,-24,-24,-36,-24,-24,-24,-48,-24,-48,-36,-36,-36,-36,-36,-48,-36,-36,-36,-52,-36,-52,-48,-48,-48,-48,-48,-52,-48,-48,-48,-60,-48,-60,-52,-52,-52,-52,-52,-60,-52,-52,-52,-72,-52,-72,-60,-60,-60,-60,-60,-72,-60,-60,-60,-84,-60]
+global pitch_names:[u8;24] = [67,45,67,35,68,45,68,35,69,45,70,45,70,35,71,45,71,35,65,45,65,35,66,45]
+global param_names:[u8;32] = [46,49,50,51,52,53,54,55,56,57,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86]
+global source_record:[u8;48]
+global lane_have:[u8;3]
+global lane_row:[u16;3]
+global lane_seen:[u8;3]
+global lane_previous:[u16;3]
+global lane_cells:[u16;3]
+global source_total:u16
+global note_note:[u8;5]
+global note_sample:[u8;5]
+global note_envelope:[u8;5]
+global note_ornament:[u16;5]
+global note_volume:[u16;5]
+global note_type:[u8;5]
+global note_kind:[u8;5]
+global note_enote:[i16;5]
+global note_pitch:[u8;5]
+global note_octave:[i8;5]
+global note_epitch:[u8;5]
+global note_eoctave:[i8;5]
+global note_pnote:[u8;5]
+global prior_forms:[u8;3]
+global prior_envelope:u8
+global prior_have:u8
+global current_forms:[u8;3]
+global line_packet:[u8;52]
+global state_packet:[u8;82]
+
+fun source_word(at:u8)->u16 {
+    return u16(source_record[at]) | (u16(source_record[at+1]) << 8)
+}
+fun source_signed(at:u8)->i16 {
+    if source_record[at+1] >= 128 {
+        let positive:u16 = u16(source_record[at]) |
+            ((u16(source_record[at+1]) - 128) << 8)
+        return i16(positive) - 32767 - 1
+    }
+    return i16(u16(source_record[at]) | (u16(source_record[at+1]) << 8))
+}
+fun octave_value(note:i16)->i8 {
+    if note < 0 { return -1 }
+    let divided:i16 = note / 12
+    if divided - 1 < 1 { return i8(divided) }
+    let result:i16 = divided - 1
+    if result > 8 { return 8 }
+    return i8(result)
+}
+fun pitch_value(note:i16)->u8 {
+    if note < 0 { return u8(11) }
+    let value:i16 = note % 12
+    return u8(value)
+}
+fun refresh(index:u8) {
+    note_pitch[index] = pitch_value(signed_note(note_note[index]))
+    note_octave[index] = octave_value(signed_note(note_note[index]))
+    if note_kind[index] == 101 {
+        if note_volume[index] >= 1500 {
+            note_envelope[index] = env_forms[note_note[index]]
+            note_sample[index] = 2
+        } else {
+            note_envelope[index] = 15
+            note_sample[index] = 2
+            note_pnote[index] = note_note[index]
+        }
+        note_enote[index] = i16(note_note[index]) + env_offsets[note_note[index]]
+    } else {
+        note_enote[index] = -1
+    }
+    note_epitch[index] = pitch_value(note_enote[index])
+    note_eoctave[index] = octave_value(note_enote[index])
+}
+fun clear_note(index:u8) {
+    note_note[index] = 255
+    note_sample[index] = 0
+    note_envelope[index] = 0
+    note_ornament[index] = 0
+    note_volume[index] = 0
+    note_type[index] = 46
+    note_kind[index] = 0
+    note_pnote[index] = 255
+    refresh(index)
+}
+fun load_head(index:u8) {
+    clear_note(index)
+    let at:u8 = index*16
+    note_note[index] = source_record[at+4]
+    note_sample[index] = source_record[at+5]
+    note_envelope[index] = source_record[at+6]
+    note_ornament[index] = source_word(at+7)
+    note_volume[index] = source_word(at+9)
+    note_type[index] = source_record[at+11]
+    note_kind[index] = source_record[at+12]
+    note_pnote[index] = source_record[at+4]
+    refresh(index)
+}
+fun copy_note(destination:u8,source:u8) {
+    note_note[destination] = note_note[source]
+    note_sample[destination] = note_sample[source]
+    note_envelope[destination] = note_envelope[source]
+    note_ornament[destination] = note_ornament[source]
+    note_volume[destination] = note_volume[source]
+    note_type[destination] = note_type[source]
+    note_kind[destination] = note_kind[source]
+    note_enote[destination] = note_enote[source]
+    note_pitch[destination] = note_pitch[source]
+    note_octave[destination] = note_octave[source]
+    note_epitch[destination] = note_epitch[source]
+    note_eoctave[destination] = note_eoctave[source]
+    note_pnote[destination] = note_pnote[source]
+}
+fun lane_pull(index:u8) {
+    if fault != 0 || lane_have[index] != 0 { return }
+    let status:u8 = read_record(index,u16(&source_record[u16(index)*16]))
+    if status == 0 { return }
+    if status != 1 { if fault == 0 { fault = 904 } return }
+    let row:u16 = source_word(u8(index*16+2))
+    if lane_seen[index] != 0 && row <= lane_previous[index] { fault = 958 return }
+    if source_total >= 9216 { fault = 983 return }
+    lane_seen[index] = 1
+    lane_previous[index] = row
+    lane_cells[index] = lane_cells[index] + 1
+    source_total = source_total + 1
+    lane_have[index] = 1
+    lane_row[index] = row
+}
+fun note_real(index:u8)->u8 {
+    return note_type[index] != 114 && note_type[index] != 46
+}
+fun envelope_real(index:u8)->u8 {
+    return note_kind[index] == 101 && note_real(index) == 1 &&
+        note_envelope[index] >= 1 && note_envelope[index] <= 14
+}
+fun put_line(byte:u8) {
+    line_packet[0] = line_packet[0] + 1
+    line_packet[u16(line_packet[0])] = byte
+}
+fun put_pitch(note:u8) {
+    let pitch:u8 = note_pitch[note]*2
+    put_line(pitch_names[pitch])
+    put_line(pitch_names[u16(pitch)+1])
+    if note_octave[note] < 0 { put_line(45) return }
+    let text:u8 = u8(note_octave[note]) + 48
+    if text > 57 { text = 57 }
+    put_line(text)
+}
+fun put_envelope_pitch(note:u8) {
+    let pitch:u8 = note_epitch[note]*2
+    put_line(pitch_names[pitch])
+    put_line(pitch_names[u16(pitch)+1])
+    if note_eoctave[note] < 0 { put_line(45) return }
+    let text:u8 = u8(note_eoctave[note]) + 48
+    if text > 57 { text = 57 }
+    put_line(text)
+}
+fun append_note(index:u8) {
+    if note_type[index] == 46 {
+        put_line(45)
+        put_line(45)
+        put_line(45)
+        put_line(32)
+        put_line(46)
+        put_line(param_names[note_envelope[index]%16])
+        put_line(46)
+        put_line(46)
+        put_line(32)
+        put_line(46)
+        put_line(46)
+        put_line(46)
+        put_line(46)
+        return
+    }
+    if note_type[index] == 114 {
+        put_line(82)
+        put_line(45)
+        put_line(45)
+        put_line(32)
+        put_line(46)
+        put_line(46)
+        put_line(46)
+        put_line(46)
+        put_line(32)
+        put_line(46)
+        put_line(46)
+        put_line(46)
+        put_line(46)
+        return
+    }
+    let volume:u16 = note_volume[index]
+    var normalized:u8 = 0
+    if volume < 100 || volume > 1500 {
+        volume = 1500
+        normalized = 1
+    }
+    let envelope:u8 = note_envelope[index]
+    let sample:u8 = note_sample[index]
+    if note_kind[index] == 101 {
+        if normalized == 1 {
+            envelope = env_forms[note_note[index]]
+            sample = 2
+        }
+    } else if note_kind[index] == 112 || note_kind[index] == 100 || note_kind[index] == 109 {
+        envelope = 15
+    }
+    put_pitch(index)
+    put_line(32)
+    if sample < 32 { put_line(param_names[sample]) }
+    put_line(param_names[envelope%16])
+    put_line(param_names[note_ornament[index]%16])
+    put_line(param_names[u8(volume/100)])
+    put_line(32)
+    put_line(46)
+    put_line(46)
+    put_line(46)
+    put_line(46)
+}
+fun packet_word(at:u8,value:u16) {
+    state_packet[at] = u8(value)
+    state_packet[u16(at)+1] = u8(value >> 8)
+}
+fun packet_signed(at:u8,value:i16) {
+    packet_word(at,u16(value))
+}
+fun packet_dword(at:u8,value:u32) {
+    state_packet[at] = u8(value)
+    state_packet[u16(at)+1] = u8(value >> 8)
+    state_packet[u16(at)+2] = u8(value >> 16)
+    state_packet[u16(at)+3] = u8(value >> 24)
+}
+fun signed_note(value:u8)->i16 {
+    if value == 255 { return -1 }
+    return i16(value)
+}
+fun put_snapshot(at:u8,index:u8) {
+    packet_signed(at,signed_note(note_note[index]))
+    state_packet[u16(at)+2] = note_sample[index]
+    state_packet[u16(at)+3] = note_envelope[index]
+    packet_word(u8(at+4),note_ornament[index])
+    packet_word(u8(at+6),note_volume[index])
+    state_packet[u16(at)+8] = note_type[index]
+    state_packet[u16(at)+9] = note_kind[index]
+    packet_signed(u8(at+10),note_enote[index])
+    state_packet[u16(at)+12] = note_pitch[index]
+    state_packet[u16(at)+13] = u8(note_octave[index])
+    state_packet[u16(at)+14] = note_epitch[index]
+    state_packet[u16(at)+15] = u8(note_eoctave[index])
+    packet_signed(u8(at+16),signed_note(note_pnote[index]))
+}
+fun emit_row(row:u32) {
+    line_packet[0] = 0
+    var index:u8 = 0
+    while index < 3 {
+        if lane_have[index] != 0 && u32(lane_row[index]) == row {
+            load_head(index)
+            lane_have[index] = 0
+        } else { clear_note(index) }
+        index = index + 1
+    }
+    var selected:u8 = 3
+    index = 0
+    while index < 3 {
+        current_forms[index] = prior_forms[index]
+        if note_real(index) == 1 { current_forms[index] = note_envelope[index] }
+        if envelope_real(index) == 1 && (selected == 3 ||
+                note_note[index] > note_note[selected]) { selected = index }
+        index = index + 1
+    }
+    index = 0
+    while index < 3 {
+        if envelope_real(index) == 1 && envelope_real(selected) == 1 {
+            if note_epitch[index] != note_epitch[selected] {
+                note_kind[index] = 109
+                refresh(index)
+            } else if note_octave[selected] - note_octave[index] >= 1 {
+                note_note[index] = note_note[index] + 12
+                refresh(index)
+            }
+        }
+        var prior_different:u8 = 1
+        if prior_have != 0 && note_epitch[4] == note_epitch[selected] {
+            prior_different = 0
+        }
+        if envelope_real(selected) == 1 && note_volume[selected] == 1500 &&
+                note_type[index] == 46 && prior_forms[index] >= 1 &&
+                prior_forms[index] <= 14 && prior_different == 1 {
+            note_envelope[index] = 15
+            refresh(index)
+        }
+        index = index + 1
+    }
+    if envelope_real(selected) == 1 {
+        put_line(32)
+        put_envelope_pitch(selected)
+    } else {
+        put_line(46)
+        put_line(46)
+        put_line(46)
+        put_line(46)
+    }
+    put_line(124)
+    put_line(46)
+    put_line(46)
+    put_line(124)
+    append_note(0)
+    put_line(124)
+    append_note(1)
+    put_line(124)
+    append_note(2)
+    put_line(10)
+    if write_packet(0,u16(&line_packet[0])) != 0 { if fault == 0 { fault = 902 } return }
+
+    if row <= 65535 {
+        state_packet[0] = 77
+        packet_word(1,u16(row))
+        state_packet[3] = current_forms[0]
+        state_packet[4] = current_forms[1]
+        state_packet[5] = current_forms[2]
+        if envelope_real(selected) == 1 {
+            copy_note(4,selected)
+            prior_have = 1
+        }
+        if prior_have == 0 { clear_note(4) }
+        put_snapshot(6,4)
+        put_snapshot(24,0)
+        put_snapshot(42,1)
+        put_snapshot(60,2)
+    } else {
+        state_packet[0] = 79
+        packet_dword(1,row)
+        state_packet[5] = current_forms[0]
+        state_packet[6] = current_forms[1]
+        state_packet[7] = current_forms[2]
+        if envelope_real(selected) == 1 {
+            copy_note(4,selected)
+            prior_have = 1
+        }
+        if prior_have == 0 { clear_note(4) }
+        put_snapshot(8,4)
+        put_snapshot(26,0)
+        put_snapshot(44,1)
+        put_snapshot(62,2)
+    }
+    if write_packet(1,u16(&state_packet[0])) != 0 { if fault == 0 { fault = 902 } return }
+    index = 0
+    while index < 3 {
+        prior_forms[index] = current_forms[index]
+        index = index + 1
+    }
+}
+fun render_run()->u16 {
+    fault = 0
+    source_total = 0
+    prior_envelope = 0
+    prior_have = 0
+    var index:u8 = 0
+    while index < 3 {
+        lane_have[index] = 0
+        lane_seen[index] = 0
+        lane_previous[index] = 0
+        lane_cells[index] = 0
+        prior_forms[index] = 15
+        clear_note(index)
+        index = index + 1
+    }
+    clear_note(3)
+    clear_note(4)
+    index = 0
+    while index < 3 {
+        lane_pull(index)
+        index = index + 1
+    }
+    let rows:u32 = u32(render_rows[0]) | (u32(render_rows[1]) << 8) |
+        (u32(render_rows[2]) << 16) | (u32(render_rows[3]) << 24)
+    var row:u32 = 0
+    while row < rows {
+        emit_row(row)
+        if fault != 0 { return fault }
+        row = row + 1
+        index = 0
+        while index < 3 {
+            lane_pull(index)
+            index = index + 1
+        }
+    }
+    return fault
+}
+
+@extern(0x0008) fun read_record(@z80_c lane:u8,@z80_de destination:u16)->u8
+@extern(0x0010) fun write_packet(@z80_c sink:u8,@z80_de source:u16)->u8

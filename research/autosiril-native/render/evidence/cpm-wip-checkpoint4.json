@@ -1,0 +1,13 @@
+{
+  "scope": "UNPROVEN CP/M adapter WIP; no successful standard tri-engine proof yet",
+  "worker_terminal": "30minute timeout",
+  "observed_debug": "independent second-opinion copy reached raw-MIR2 fault0; STATE.BIN physical framing assertion still failed; latest adapter edits not fully replayed",
+  "source_sha256": {
+    "cpm.nanz": "59016df443e18a0bd9a23490d18aa5418b93ddfc1dde32c39a4acb80a660b82a",
+    "cpm-driver.go.txt": "4c0c1f410125b8c8118b16aa5939b3748f0b451c1b01d0170a56a3766a6e1d31",
+    "prove_cpm.py": "9c90593a04139fe3909d53f9ae555356068f7f17703860cce49507f9c277ad4f"
+  },
+  "next_command": "PYTHONDONTWRITEBYTECODE=1 python3 research/autosiril-native/render/prove_cpm.py --artifacts /tmp/minz-ci270-artifacts/autosiril-mix-fresh --autosiril /Users/alice/dev/autosiril --planning /tmp/minz-render-planning-v4 --out /tmp/minz-z-workers/render-results/checkpoint5-cpm-a",
+  "framing_fact": "actualkind5 definitions then cells then fourmetadatarecords thenEND; emptyinput hasnocells",
+  "remaining": "allfilepositive proof/IO/negativeguards/TRD/sixCOM/inheritedfreshfrozen/audits/PRmain/nativeVT2"
+}

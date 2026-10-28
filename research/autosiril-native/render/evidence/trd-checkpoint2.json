@@ -1,0 +1,79 @@
+{
+  "checkpoint": "trd-checkpoint2",
+  "command": "prove_trd.py --cpm-run <CP/M checkpoint6 run> --mix-trd /tmp/minz-ci270-artifacts/autosiril-mix-fresh/trd/measured --out TRD",
+  "source_sha256": {
+    "research/autosiril-native/render/common.nanz": "002aaa15ba382215ecd209f6e7f1382415672727ac5d890ba4a6a097334eacc0",
+    "research/autosiril-native/render/trd.nanz": "19421e7db7bcb6200097950b765e179034f4636369af6c0e93dd289773cb6b0d",
+    "research/autosiril-native/render/prove_trd.py": "8f7e3de8afcfb17383c08a4a617c707ddefb4fd5871150ca7016caf54c1f91e0",
+    "research/autosiril-native/render/compose_trd.py": "a2505b5cd930dbcac2511100aa64a4e4d40f575a7f8d7f8f9663b4746cb7799f",
+    "research/autosiril-native/render/trd-driver.go.txt": "7fe26d291c66bde5e3c966151ee8719609e7faf502768531c10a8c2648d7870f"
+  },
+  "receipt_sha256": "e063b329faa9e2ca5b9ec9dbcd1cb8cadca0a9fab3c92abe2eb4724071d03a89",
+  "executions": 297,
+  "cases": 99,
+  "native": {
+    "bounce_bank_reserved_bytes": 16384,
+    "code_and_stub_bytes": 24981,
+    "globals_bytes": 6659,
+    "image_bytes": 32235,
+    "origin": 16384,
+    "spill_bytes": 595,
+    "stack_floor": 48896
+  },
+  "positive_native_disk_cases": 25,
+  "seeded_disk_cases": [
+    "canonical6_chronos",
+    "profile_64_distinct_definitions",
+    "profile_max_fragments_568",
+    "profile_nine_byte_definition",
+    "profile_payload_4096",
+    "profile_reference_last_definition"
+  ],
+  "single_failure_calls": "chain_single: every sector call 1..58, three engines",
+  "chronos_failure_calls": [
+    300,
+    600,
+    700,
+    1100,
+    1300,
+    1500
+  ],
+  "failure_fault_counts": {
+    "900": 54,
+    "904": 48,
+    "902": 42,
+    "903": 48
+  },
+  "disk_full": {
+    "trd_disk_free12": {
+      "fault": 0,
+      "text_segments": 1,
+      "state_segments": 1,
+      "data_sectors": 12
+    },
+    "trd_disk_free11": {
+      "fault": 901,
+      "text_segments": 1,
+      "state_segments": 1,
+      "data_sectors": 11
+    },
+    "trd_disk_free1": {
+      "fault": 902,
+      "text_segments": 0,
+      "state_segments": 0,
+      "data_sectors": 1
+    },
+    "trd_disk_chronos_free255": {
+      "fault": 901,
+      "text_segments": 1,
+      "state_segments": 0,
+      "data_sectors": 255
+    }
+  },
+  "failure_invariants": [
+    "nonzero I/O fault (900/901/902/903/904/906), no live handles",
+    "every published OUTPUTn/STATEn segment is an exact prefix of the expected stream, state only after full text, META/REND only after full state",
+    "system sector equals the published files exactly, or (fault 903 only) every file but the last: the inherited binding writes the catalog entry before the system sector"
+  ],
+  "known_limitation": "non-atomic publication in the shared TRD binding (catalog before system sector); planned fix in a separate PR, including the TR-DOS ROM end-of-catalog check"
+}
