@@ -180,18 +180,27 @@ func TestByteFillVMZeroWrapAndFault(t *testing.T) {
 			}
 			for _, denied := range []bool{false, true} {
 				m, f := fillLoopFixture(wide)
-				type observation struct {
+				// state is the semantic result; reads/writes are the traffic model.
+				// Recognition must never change the former, and must add exactly the
+				// documented n-1 destination reads to the latter.
+				type state struct {
 					values []Value
-					events []VMDataAccess
 					ram    []byte
 					failed bool
 				}
-				run := func() observation {
+				run := func() (state, []VMDataAccess, []VMDataAccess) {
 					vm := NewVM(m)
 					vm.MaxSteps = 2000000
 					vm.heap = bytes.Repeat([]byte{0x5a}, 65536)
-					var o observation
-					vm.ObserveDataAccess = func(a VMDataAccess) { o.events = append(o.events, a) }
+					var s state
+					var reads, writes []VMDataAccess
+					vm.ObserveDataAccess = func(a VMDataAccess) {
+						if a.Op == OpLoad {
+							reads = append(reads, a)
+							return
+						}
+						writes = append(writes, a)
+					}
 					vm.CheckDataAccess = func(x *Inst, a int64) error {
 						if x.Op != OpStore || x.Ty != TyU8 {
 							t.Fatal("unexpected byte operation")
@@ -202,23 +211,48 @@ func TestByteFillVMZeroWrapAndFault(t *testing.T) {
 						return nil
 					}
 					v, e := vm.Call("paint", []Value{{I: 65535}, {I: int64(count)}, {I: 0xd3}})
-					o.values = v
-					o.failed = e != nil
-					o.ram = bytes.Clone(vm.heap)
-					return o
+					s.values, s.failed, s.ram = v, e != nil, bytes.Clone(vm.heap)
+					return s, reads, writes
 				}
-				before := run()
+				before, beforeReads, beforeWrites := run()
 				if RecognizeByteLoops(f) != 1 {
 					t.Fatal("fill not recognized", wide, count)
 				}
 				if e := Verify(m); e != nil {
 					t.Fatal(e)
 				}
-				after := run()
+				after, afterReads, afterWrites := run()
 				if !reflect.DeepEqual(before, after) {
 					t.Fatalf("fill changed wide=%v count=%d denied=%v", wide, count, denied)
 				}
-				if count == 0 && len(after.events) != 0 {
+				if len(beforeReads) != 0 {
+					t.Fatal("scalar fill loop read the destination", wide, count)
+				}
+				if !denied {
+					same := func(a, b []VMDataAccess) bool {
+						if len(a) != len(b) {
+							return false
+						}
+						for i := range a {
+							if a[i] != b[i] {
+								return false
+							}
+						}
+						return true
+					}
+					wantWrites := []VMDataAccess{}
+					for i := 0; i < count; i++ {
+						wantWrites = append(wantWrites, VMDataAccess{Op: OpStore, Addr: int64((65535 + i) & 65535), Value: 0xd3})
+					}
+					wantReads := []VMDataAccess{}
+					for i := 0; i+1 < count; i++ {
+						wantReads = append(wantReads, VMDataAccess{Op: OpLoad, Addr: int64((65535 + i) & 65535), Value: 0xd3})
+					}
+					if !same(beforeWrites, wantWrites) || !same(afterWrites, wantWrites) || !same(afterReads, wantReads) {
+						t.Fatalf("fill traffic wide=%v count=%d writes=%v/%v want=%v reads=%v want=%v", wide, count, beforeWrites, afterWrites, wantWrites, afterReads, wantReads)
+					}
+				}
+				if count == 0 && (len(afterReads) != 0 || len(afterWrites) != 0) {
 					t.Fatal("zero count accessed memory")
 				}
 			}
@@ -437,9 +471,8 @@ func TestByteFillGlobalDisjointProof(t *testing.T) {
 			}
 			before := m.Dump()
 			var memory []byte
-			var events []VMDataAccess
 			if mode == "ordinary" {
-				memory, events = run()
+				memory, _ = run()
 			}
 			n := RecognizeByteLoops(f)
 			if mode != "ordinary" {
@@ -455,28 +488,50 @@ func TestByteFillGlobalDisjointProof(t *testing.T) {
 				t.Fatal(err)
 			}
 			afterMemory, afterEvents := run()
-			if !bytes.Equal(memory, afterMemory) || !reflect.DeepEqual(events, afterEvents) {
+			if !bytes.Equal(memory, afterMemory) {
 				t.Fatal("global reload observations changed")
+			}
+			// Recognition keeps every scalar reload and store, and adds exactly the
+			// documented n-1 destination read-backs interleaved after their store.
+			probe := NewVM(m)
+			base, cell := probe.GlobalAddr("bytes"), probe.GlobalAddr("cell")
+			var want []VMDataAccess
+			for i := 0; i < 5; i++ {
+				want = append(want, VMDataAccess{Op: OpLoad, Addr: cell, Value: 0xd3})
+				want = append(want, VMDataAccess{Op: OpStore, Addr: base + int64(i), Value: 0xd3})
+				if i+1 < 5 {
+					want = append(want, VMDataAccess{Op: OpLoad, Addr: base + int64(i), Value: 0xd3})
+				}
+			}
+			if len(afterEvents) != len(want) {
+				t.Fatal("destination read-backs changed the event count", len(afterEvents), len(want))
+			}
+			for i := range want {
+				if afterEvents[i] != want[i] {
+					t.Fatalf("event %d got %+v want %+v", i, afterEvents[i], want[i])
+				}
 			}
 		})
 	}
 }
 
 func TestByteLoopVerifierRejectsMalformedIntrinsics(t *testing.T) {
-	for _, mode := range []string{"missing-metadata", "scan-count", "fill-pointer-value", "copy-scalar-source", "copy-symbol", "forged-global-fill"} {
+	for _, mode := range []string{"missing-metadata", "scan-count", "fill-pointer-value", "copy-scalar-source", "copy-symbol", "forged-global-fill", "forged-fixed-destination-fill"} {
 		t.Run(mode, func(t *testing.T) {
 			var m *Module
 			var f *Func
 			switch mode {
 			case "scan-count":
 				m, f = scanLoopFixture()
-			case "fill-pointer-value", "forged-global-fill":
+			case "fill-pointer-value", "forged-global-fill", "forged-fixed-destination-fill":
 				m, f = fillLoopFixture(false)
 			default:
 				m, f = countedPointerFixture()
 			}
-			if RecognizeByteLoops(f) != 1 {
-				t.Fatal("fixture not recognized")
+			if mode != "forged-fixed-destination-fill" {
+				if RecognizeByteLoops(f) != 1 {
+					t.Fatal("fixture not recognized")
+				}
 			}
 			var call *Inst
 			for _, b := range f.Blocks {
@@ -485,6 +540,26 @@ func TestByteLoopVerifierRejectsMalformedIntrinsics(t *testing.T) {
 						call = x
 					}
 				}
+			}
+			switch mode {
+			case "forged-fixed-destination-fill":
+				// Hand-built intrinsic claiming a memory-mapped destination: the
+				// verifier must reject it even though recognition never formed it.
+				at := uint16(0x4000)
+				m.Globals = []Global{{Name: "mmio", Ty: NewArray(TyU8, 64), At: &at}}
+				dst := f.AllocReg()
+				body := f.BlockByLabel("body")
+				body.Insts = append([]*Inst{{Op: OpAddrOf, Dst: dst, Sym: "mmio", Ty: TyPtr, Cls: ClassPointer}}, body.Insts...)
+				store := storeInst(f)
+				store.Src[0] = dst
+				if RecognizeByteLoops(f) != 0 {
+					t.Fatal("memory-mapped destination admitted at recognition")
+				}
+				head := f.BlockByLabel("head")
+				head.Insts = []*Inst{{Op: OpCall, Sym: fillBytesIntrinsic, Args: []Reg{dst, f.Contract.Params[1].Reg, f.Contract.Params[2].Reg}, Ty: TyVoid, ByteLoop: &ByteLoopExtra{Store: store, CountTy: TyU8}}}
+				head.Term = &TermRet{Vals: []Reg{f.Contract.Params[1].Reg}}
+				call = head.Insts[0]
+			default:
 			}
 			if call == nil {
 				t.Fatal("missing operation")
@@ -508,6 +583,124 @@ func TestByteLoopVerifierRejectsMalformedIntrinsics(t *testing.T) {
 				t.Fatal("malformed operation accepted")
 			}
 		})
+	}
+}
+
+func storeInst(f *Func) *Inst {
+	for _, b := range f.Blocks {
+		for _, x := range b.Insts {
+			if x.Op == OpStore {
+				return x
+			}
+		}
+	}
+	return nil
+}
+
+// The native fill lowering reloads destination bytes it has just stored, so any
+// destination the IR can prove absolute-addressed, volatile or read-only must
+// keep the plain store loop instead of becoming fill_bytes16.
+func TestByteFillRefusesReadSensitiveDestination(t *testing.T) {
+	for _, mode := range []string{"ordinary", "fixed-address", "volatile-global", "const-global", "smc-storage", "constant-pointer"} {
+		t.Run(mode, func(t *testing.T) {
+			m, f := fillLoopFixture(false)
+			m.Globals = []Global{{Name: "bytes", Ty: NewArray(TyU8, 256)}}
+			at := uint16(0x4000)
+			body := f.BlockByLabel("body")
+			dst := f.AllocReg()
+			prefix := []*Inst{{Op: OpAddrOf, Dst: dst, Sym: "bytes", Ty: TyPtr, Cls: ClassPointer}}
+			switch mode {
+			case "fixed-address":
+				m.Globals[0].At = &at
+			case "volatile-global":
+				m.Globals[0].Volatile = true
+			case "const-global":
+				m.Globals[0].IsConst = true
+			case "smc-storage":
+				m.Globals[0].Storage = StorageSMCGetter
+			case "constant-pointer":
+				prefix = []*Inst{{Op: OpConst, Dst: dst, Imm: 0x4000, Ty: TyPtr, Cls: ClassPointer}}
+			}
+			body.Insts[0].Src[0] = dst
+			body.Insts = append(prefix, body.Insts...)
+			before := m.Dump()
+			want := 0
+			if mode == "ordinary" {
+				want = 1
+			}
+			scalar := NewVM(m)
+			scalar.EnsureHeap(65536)
+			var reads int
+			scalar.ObserveDataAccess = func(a VMDataAccess) {
+				if a.Op == OpLoad {
+					reads++
+				}
+			}
+			if _, e := scalar.Call("paint", []Value{{I: 0}, {I: 3}, {I: 0x11}}); e != nil {
+				t.Fatal(e)
+			}
+			if reads != 0 {
+				t.Fatal("scalar loop read the destination", mode)
+			}
+			if n := RecognizeByteLoops(f); n != want || (want == 0 && before != m.Dump()) {
+				t.Fatalf("mode %s recognized %d want %d", mode, n, want)
+			}
+			if want == 0 {
+				return
+			}
+			if err := Verify(m); err != nil {
+				t.Fatal(err)
+			}
+			recognized := NewVM(m)
+			recognized.EnsureHeap(65536)
+			reads = 0
+			recognized.ObserveDataAccess = func(a VMDataAccess) {
+				if a.Op == OpLoad {
+					reads++
+				}
+			}
+			if _, e := recognized.Call("paint", []Value{{I: 0}, {I: 3}, {I: 0x11}}); e != nil {
+				t.Fatal(e)
+			}
+			if reads != 2 {
+				t.Fatal("recognized fill did not model its destination reads", mode, reads)
+			}
+		})
+	}
+}
+
+// copy_forward16 reads its source and writes its destination, so an absolute
+// destination address does not make a copy loop read-sensitive.
+func TestByteCopyAdmitsAbsoluteDestination(t *testing.T) {
+	m, f := countedPointerFixture()
+	at := uint16(0x4000)
+	m.Globals = []Global{{Name: "mmio", Ty: NewArray(TyU8, 256), At: &at}}
+	body := f.BlockByLabel("body")
+	dst := f.AllocReg()
+	body.Insts = append([]*Inst{{Op: OpAddrOf, Dst: dst, Sym: "mmio", Ty: TyPtr, Cls: ClassPointer}}, body.Insts...)
+	for _, x := range body.Insts {
+		if x.Op == OpPtrAdd && x.Src[0] == f.Contract.Params[0].Reg {
+			x.Src[0] = dst
+			break
+		}
+	}
+	if RecognizeByteLoops(f) != 1 {
+		t.Fatal("absolute copy destination refused")
+	}
+	if err := Verify(m); err != nil {
+		t.Fatal(err)
+	}
+	vm := NewVM(m)
+	vm.EnsureHeap(65536)
+	events := []VMDataAccess{}
+	vm.ObserveDataAccess = func(a VMDataAccess) { events = append(events, a) }
+	if _, e := vm.Call("walk", []Value{{I: 0}, {I: 0x5000}, {I: 3}}); e != nil {
+		t.Fatal(e)
+	}
+	for _, a := range events {
+		if a.Op == OpLoad && a.Addr < 0x5000 {
+			t.Fatal("copy read its destination", events)
+		}
 	}
 }
 

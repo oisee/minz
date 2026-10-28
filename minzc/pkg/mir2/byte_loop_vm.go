@@ -67,6 +67,27 @@ func (vm *VM) byteLoopAccess(x *Inst, addr int64, value byte) (byte, error) {
 	}
 	return value, nil
 }
+
+// byteLoopDestinationRead models the native fill's overlapping-LDIR reload of a
+// destination byte the store has just committed. The value read back is by
+// construction the stored byte, so it cannot change any semantic result; the
+// observation exists so exact-traffic models agree with the emitted code. The
+// authorization and the observation both describe the fill's own store, which
+// is the only source-level memory operation the intrinsic stands for.
+func (vm *VM) byteLoopDestinationRead(x *Inst, addr int64) error {
+	if !vm.wrappedHeapRangeValid(addr, 1, 65535) {
+		return fmt.Errorf("byte loop: out-of-bounds address %d", addr)
+	}
+	if vm.CheckDataAccess != nil {
+		if e := vm.CheckDataAccess(x, addr); e != nil {
+			return e
+		}
+	}
+	if vm.ObserveDataAccess != nil {
+		vm.ObserveDataAccess(VMDataAccess{Op: OpLoad, Addr: addr, Value: vm.heap[int(addr)]})
+	}
+	return nil
+}
 func (vm *VM) execFillBytes(fr *frame, x *Inst) error {
 	e := x.ByteLoop
 	dst := fr.get(x.Args[0]).I
@@ -92,6 +113,11 @@ func (vm *VM) execFillBytes(fr *frame, x *Inst) error {
 		}
 		if _, err := vm.byteLoopAccess(e.Store, (dst+i)&65535, value); err != nil {
 			return err
+		}
+		if i+1 < count {
+			if err := vm.byteLoopDestinationRead(e.Store, (dst+i)&65535); err != nil {
+				return err
+			}
 		}
 	}
 }
