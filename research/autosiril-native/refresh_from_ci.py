@@ -20,20 +20,29 @@ def main():
     p.add_argument('--checkout', type=Path, required=True)
     p.add_argument('--mix-fresh', type=Path, required=True)
     p.add_argument('--canonical6-fresh', type=Path, required=True)
+    p.add_argument('--early-stages', action='store_true',
+                   help='also refresh transports and stream-flatten (needed when the TRD binding or those '
+                        'stages change; otherwise their receipts differ only in run provenance and are kept)')
     p.add_argument('--ci-upstream', default='/home/runner/work/_temp/autosiril-mix-fresh/upstream',
                    help='absolute upstream path as recorded by the CI run (freeze.py relativizes disks)')
     a = p.parse_args()
     root, mix = a.checkout.resolve(), a.mix_fresh.resolve()
     native = root / 'research/autosiril-native'
     echo, arrange, trd = mix / 'upstream', mix / 'upstream/upstream', mix / 'upstream/upstream/upstream'
+    # trd-flatten's fresh run nests the common (stream) flatten as previous/ and
+    # the TRD transports producer as previous/producer/.
+    stream, transports = trd / 'previous', trd / 'previous/producer'
     protocols = {mix: 'autosiril-native-mix/v1', echo: 'autosiril-native-echo/v1',
-                 arrange: 'autosiril-native-arrange/v1', trd: 'autosiril-trd-flatten/v1'}
+                 arrange: 'autosiril-native-arrange/v1', trd: 'autosiril-trd-flatten/v1',
+                 stream: 'autosiril-common-flatten/v1', transports: 'autosiril-interchangeable-transports/v1'}
     for d, protocol in protocols.items():
         receipt = json.loads((d / 'receipt.json').read_text())
         assert receipt['protocol'] == protocol, d
         for rel, h in receipt.get('source_sha256', {}).items():
             assert sha(root / rel) == h, f'checkout differs from fresh run: {rel}'
-    copies = [
+    copies = ([(transports / 'receipt.json', native / 'transports/evidence/receipt.json'),
+               (stream / 'receipt.json', native / 'stream-flatten/evidence/receipt.json')]
+              if a.early_stages else []) + [
         (trd / 'receipt.json', native / 'trd-flatten/evidence/receipt.json'),
         (arrange / 'reference/cases.json', native / 'arrange/fixtures/trd-cases.json'),
         (arrange / 'receipt.json', native / 'arrange/evidence/receipt.json'),
