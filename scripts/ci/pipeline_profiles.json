@@ -139,6 +139,7 @@
     "TestFlagWriterRetainsComparisonValue",
     "TestFoldEffectsAndStageOrderVMZ80",
     "TestFoldFilterStageInlinesPredicateVMZ80",
+    "TestFoldLambdaAccumulatorTypeVMZ80",
     "TestForEachDJNZCallsVMZ80",
     "TestForEachDJNZLoweringAndControlFallback",
     "TestForEachPreheaderConstantsAndContinue",
