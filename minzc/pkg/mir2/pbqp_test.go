@@ -342,9 +342,13 @@ func TestPBQP_R1_AllNeighborsChecked(t *testing.T) {
 	}
 
 	// Verify: no two interfering regs share a physical location or alias.
+	// Rematerialised constants (F6) hold no location, so they cannot conflict.
 	ig := mir2.BuildInterferenceGraph(f, lr)
 	for i, ri := range regs {
 		locI := ar.Locs[ri]
+		if locI.Kind == mir2.LocRemat {
+			continue
+		}
 		neighbors := mir2.IGAdjForTest(ig)[ri]
 		if neighbors == nil {
 			continue
@@ -354,6 +358,9 @@ func TestPBQP_R1_AllNeighborsChecked(t *testing.T) {
 				continue
 			}
 			locJ := ar.Locs[rj]
+			if locJ.Kind == mir2.LocRemat {
+				continue
+			}
 			if !neighbors.Has(rj) {
 				continue
 			}

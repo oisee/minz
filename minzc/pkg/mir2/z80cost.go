@@ -75,6 +75,11 @@ var _ CostTable = (*Z80CostTable)(nil)
 // Locs returns all Z80 physical locations.
 func (Z80CostTable) Locs() []PhysLoc { return Z80PhysLocs }
 
+// ConstantRemat reports that this table feeds the Z80 code generator, whose
+// computeDeadConsts analysis inventories the constant uses served from
+// immediates.  That is what makes LocRemat sound here.
+func (Z80CostTable) ConstantRemat() bool { return true }
+
 // Cost returns the assignment cost for a virtual register with preferred class cls
 // to physical location loc.
 func (ct Z80CostTable) Cost(cls RegClass, loc PhysLoc) int {

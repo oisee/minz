@@ -405,6 +405,20 @@ func z80CodegenWithLeafWrites(m *Module, ar *AllocResult, leafWrites map[string]
 		if errs := z80validate.Validate(funcAsm); len(errs) > 0 {
 			z80validate.LogErrors(f.Name, errs)
 		}
+		// A rematerialised constant must never reach an operand slot: its uses
+		// are all served from immediates, so seeing the sentinel in an emitted
+		// instruction means a folding pattern did not fire and the home would
+		// have been read.  Comments may name the allocation (mul16 … → HL), so
+		// only instruction lines are checked.
+		for _, line := range strings.Split(funcAsm, "\n") {
+			trimmed := strings.TrimSpace(line)
+			if strings.HasPrefix(trimmed, ";") {
+				continue
+			}
+			if strings.Contains(trimmed, RematLocName) {
+				return "", fmt.Errorf("z80 codegen: %s uses rematerialised constant as a register operand: %s", f.Name, trimmed)
+			}
+		}
 	}
 
 	// Emit global variable data sections.
@@ -955,6 +969,9 @@ func computeDeadConsts(f *Func, ar *AllocResult) map[Reg]bool {
 		}
 		return ""
 	}
+	// Operand widths decide which cmp paths can fold; genCmp derives them from
+	// SrcTy when present and from the operand types otherwise.
+	regInfo := collectRegInfo(f)
 
 	totalUses := make(map[Reg]int)
 	foldedUses := make(map[Reg]int)
@@ -979,8 +996,11 @@ func computeDeadConsts(f *Func, ar *AllocResult) map[Reg]bool {
 				case OpCmp:
 					// Word zero tests do not read the RHS allocation. Require the
 					// same pair/consumer shape as genCmp16 before eliding LD.
+					// SrcTy is only set for signed compares, so an unsigned
+					// eq/ne against 0 is recognised through the operand's own
+					// type — exactly what genCmp derives wordOperand from.
 					lhs := physName(inst.Src[0])
-					if operand == 1 && cv == 0 && inst.SrcTy != nil && inst.SrcTy.Width() == 16 &&
+					if operand == 1 && cv == 0 && cmpOperandIsWord(regInfo, inst) &&
 						(isPairReg(lhs) || isIXY(lhs)) &&
 						(inst.Cond == CmpEq || inst.Cond == CmpNe ||
 							isSignedOrdering(inst) && comparisonBranchOnly(f, b, inst)) {
@@ -1060,6 +1080,21 @@ func computeDeadConsts(f *Func, ar *AllocResult) map[Reg]bool {
 		}
 	}
 	return dead
+}
+
+// cmpOperandIsWord reports whether an OpCmp's operands are 16-bit, mirroring
+// the wordOperand derivation in genCmp: an explicit SrcTy wins, otherwise the
+// operand vregs' own types decide (constants are skipped there and here).
+func cmpOperandIsWord(info map[Reg]RegInfo, inst *Inst) bool {
+	if inst.SrcTy != nil {
+		return inst.SrcTy.Width() == 16
+	}
+	for _, r := range inst.Src {
+		if ri, ok := info[r]; ok && ri.Ty != nil && ri.Ty.Width() > 8 {
+			return true
+		}
+	}
+	return false
 }
 
 func (g *z80cg) genFunc(f *Func) {

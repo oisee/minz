@@ -1,9 +1,11 @@
 package pipeline
 
 import (
-	"github.com/minz/minzc/pkg/vir"
 	"os"
+	"strings"
 	"testing"
+
+	"github.com/minz/minzc/pkg/vir"
 )
 
 func TestCheckedCompositionOrdinaryNative(t *testing.T) {
@@ -188,7 +190,12 @@ func checkedCompositionWeightedNativeCallerMode(t *testing.T, moves, automatic b
 	if err != nil {
 		t.Fatal(err)
 	}
-	text := string(source) + "\nfun weighted_caller(x:u8)->u8 { return weighted(x)+x }\n"
+	// The showcase source returns heavy + light, whose constant RHS is
+	// rematerialised (F6) and no longer reserves a register, which makes the
+	// ordinary allocation optimal for this function.  Swapping the final
+	// operand keeps a register-needing constant use, so the composed table
+	// still has something to beat.
+	text := strings.Replace(string(source), "return heavy + light", "return light + heavy", 1) + "\nfun weighted_caller(x:u8)->u8 { return weighted(x)+x }\n"
 	for _, strategy := range []string{"greedy", "pbqp"} {
 		for _, grace := range []bool{false, true} {
 			opts := Options{OptSize: true, AssertMode: "none", ContractOpt: true, ContractStrategy: strategy, UseGrace: grace, UseHIRGrace: grace}

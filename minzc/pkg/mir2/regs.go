@@ -227,7 +227,19 @@ const (
 	LocMem                   // absolute memory address ($F0xx)
 	LocFlag                  // CPU flag register
 	LocDWord                 // 32-bit shadow pair: main rr + shadow rr' (via EXX)
+
+	// LocRemat marks a vreg that holds no physical location at all: every use
+	// re-derives the value from the instruction that defines it.  It is only
+	// assigned to OpConst dsts whose every use the codegen serves from an
+	// immediate, so nothing ever reads or writes a home for them.
+	LocRemat
 )
+
+// RematLocName is the PhysLoc.Name of a rematerialised vreg.  It is not a Z80
+// operand, so if a codegen path ever does use one as a register the assembler
+// input is obviously invalid instead of silently wrong; Z80Codegen turns any
+// occurrence into a compile error.
+const RematLocName = "%remat%"
 
 // CostTable maps (RegClass, PhysLoc) → cost.
 // Backends provide a concrete CostTable; the allocator uses it for PBQP.

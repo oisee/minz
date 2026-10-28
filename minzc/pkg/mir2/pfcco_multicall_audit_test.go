@@ -19,8 +19,11 @@ func multiCallAuditModule(original RegClass, conditional, hardFirst, doubleOffse
 		if name == "twice" {
 			r = b.Add(x, x, TyU8, ClassAcc)
 		} else {
+			// k stays the LHS: as an RHS of a byte add it is served from an
+			// immediate and rematerialised (F6), which removes exactly the
+			// register pressure this audit needs to tell conventions apart.
 			if doubleOffset {
-				r = b.Add(b.Add(x, x, TyU8, ClassAcc), k, TyU8, ClassAcc)
+				r = b.Add(k, b.Add(x, x, TyU8, ClassAcc), TyU8, ClassAcc)
 			} else {
 				r = b.Add(k, x, TyU8, ClassAcc)
 			}

@@ -91,6 +91,7 @@
     "TestConditionalLayoutWorkloadNativeAndArtifact",
     "TestConditionalLayoutWorkloadRechecksTablePin",
     "TestConditionalLayoutWorkloadRejectsDriftAndPartialResults",
+    "TestConstRematFusionFoldMaxHoldsNoConstantPair",
     "TestConstantByteMulOrdinaryLiveWordsNative",
     "TestConstantCallPreservesPointerMemorySource",
     "TestConsumedCallbackPipelineRefusesErasedWordABI",
