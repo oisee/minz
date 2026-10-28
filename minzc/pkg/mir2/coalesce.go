@@ -71,6 +71,7 @@ func coalesceAllocResult(f *Func, result *AllocResult, lr *LivenessResult, table
 			}
 		}
 	}
+	uses := countRegUses(f)
 	for _, b := range f.Blocks {
 		for _, x := range b.Insts {
 			if x.Ty == nil || x.Ty.Width() != 16 || x.ClsHard {
@@ -78,6 +79,14 @@ func coalesceAllocResult(f *Func, result *AllocResult, lr *LivenessResult, table
 			}
 			if cv, ok := constants[x.Src[1]]; ok && (x.Op == OpAdd || x.Op == OpSub) && smallWordStep(cv) && wordMaskFlagsUnobserved(f, x.Dst) {
 				edges = append(edges, affEdge{dst: x.Dst, src: x.Src[0]})
+				// INC/DEC destroys its input in place, so the result wants the
+				// operand's home. When that pair is held across the step's
+				// whole live range the recolour above is blocked and the step
+				// pays a copy; an operand consumed only here has nothing else
+				// to lose, so try the reverse direction as well.
+				if uses[x.Src[0]] == 1 {
+					edges = append(edges, affEdge{dst: x.Src[0], src: x.Dst})
+				}
 			}
 		}
 	}
@@ -174,6 +183,9 @@ func coalesceAllocResult(f *Func, result *AllocResult, lr *LivenessResult, table
 			if inst.Dst == NoReg || recolored[inst.Dst] {
 				continue
 			}
+			if result.Locs[inst.Dst].Kind == LocRemat {
+				continue // rematerialised: no home to recolour
+			}
 			if !isaAlwaysWritesA(inst) || !canRecolor(inst.Dst, locA) {
 				continue
 			}
@@ -201,6 +213,9 @@ func coalesceAllocResult(f *Func, result *AllocResult, lr *LivenessResult, table
 		_, dstOk := result.Locs[e.dst]
 		if !srcOk || !dstOk || result.Locs[e.dst] == srcLoc {
 			continue // already coalesced or one reg is unallocated (spill)
+		}
+		if srcLoc.Kind == LocRemat || result.Locs[e.dst].Kind == LocRemat {
+			continue // rematerialised constants have no home to share
 		}
 		// A finite soft cost does not override an explicit register constraint.
 		if !canRecolor(e.dst, srcLoc) {
@@ -265,7 +280,6 @@ func coalesceAllocResult(f *Func, result *AllocResult, lr *LivenessResult, table
 	// only unique, unconstrained definitions whose every use is a same-block
 	// count and whose load the code generator already proves dead. A count
 	// used by an edge, call, arithmetic value, or variable phi stays interfering.
-	uses := countRegUses(f)
 	dead := computeDeadConsts(f, result)
 	immediateOnly := map[Reg]bool{}
 	for r, n := range countUses {

@@ -133,11 +133,19 @@ func TestTetrisGhostLandingNativeVM(t *testing.T) {
 								if got := v.ReadHeap(v.GlobalAddr("ghost_answer"), 1)[0]; got != byte(want) {
 									t.Fatalf("VM %s got %d want %d", fmt.Sprint(pattern, kind, rot, x, y), got, want)
 								}
-								mem[0xeff0], mem[0xeff1] = 0, 0x70
-								z.SetRegisters(emulator.Registers{PC: uint16(a.Symbols["ghost_probe"]), SP: 0xeff0})
+								// The module's code and globals reach past 0xeff0, so the
+								// stack must start above the assembled image; a fixed
+								// 0xeff0 lands inside the globals and the pushes of
+								// ghost_probe/ghost_y/column_gap overwrite `board`.
+								stackTop := uint16(0x8000 + len(a.Binary) + 0x40)
+								if stackTop > 0xff00 {
+									t.Fatalf("image %d bytes leaves no stack room", len(a.Binary))
+								}
+								mem[stackTop], mem[stackTop+1] = 0, 0x70
+								z.SetRegisters(emulator.Registers{PC: uint16(a.Symbols["ghost_probe"]), SP: stackTop})
 								returned := false
 								for i := 0; i < 50000; i++ {
-									if z.GetPC() == 0x7000 && z.GetSP() == 0xeff2 {
+									if z.GetPC() == 0x7000 && z.GetSP() == stackTop+2 {
 										returned = true
 										break
 									}

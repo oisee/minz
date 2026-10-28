@@ -175,6 +175,11 @@ func nodeCosts(f *Func, info map[Reg]RegInfo, ct CostTable, locs []PhysLoc) map[
 
 // PBQPAllocate runs the PBQP allocator on function f.
 // It is a drop-in replacement for Allocate.
+//
+// Constants that no use ever reads out of a home are first identified with a
+// trial allocation and then re-solved with no physical location (LocRemat); see
+// constremat.go.  The candidate set only shrinks between iterations, so the
+// reduction order — and therefore the result — stays deterministic.
 func PBQPAllocate(f *Func, lr *LivenessResult, ct CostTable) *AllocResult {
 	if f.Attrs.IsExtern {
 		if _, isZ80 := ct.(Z80CostTable); isZ80 {
@@ -189,6 +194,36 @@ func PBQPAllocate(f *Func, lr *LivenessResult, ct CostTable) *AllocResult {
 			}
 		}
 	}
+	var remat map[Reg]bool
+	if constRematSupported(ct) && funcHasConstDefs(f) {
+		remat = constRematCandidates(f, pbqpSolve(f, lr, ct, nil), lr)
+	}
+	for {
+		ar := pbqpSolve(f, lr, ct, remat)
+		if len(remat) == 0 {
+			return ar
+		}
+		// Re-check under the allocation the constants are actually emitted
+		// with: freeing their pairs can move another operand to a location a
+		// folding pattern does not cover, and then the home would be read.
+		stillDead := computeDeadConsts(f, ar)
+		stable := true
+		for _, r := range slices.Sorted(maps.Keys(remat)) {
+			if !stillDead[r] {
+				delete(remat, r)
+				stable = false
+			}
+		}
+		if stable {
+			return ar
+		}
+	}
+}
+
+// pbqpSolve is PBQPAllocate's solver core.  remat names vregs that hold no
+// physical location: they are excluded from the interference graph so they
+// constrain nothing, and get LocRemat in the result.
+func pbqpSolve(f *Func, lr *LivenessResult, ct CostTable, remat map[Reg]bool) *AllocResult {
 	info := collectRegInfo(f)
 
 	// Pre-PBQP: propagate class hints through phi-web edges and return values.
@@ -199,16 +234,24 @@ func PBQPAllocate(f *Func, lr *LivenessResult, ct CostTable) *AllocResult {
 	ig := BuildInterferenceGraph(f, lr)
 	allLocs := ct.Locs()
 
-	// Collect candidates for each virtual reg.
+	// Collect candidates for each virtual reg.  Rematerialised constants hold
+	// no location, so they are not solved for and must not constrain their
+	// neighbours either.
 	states := make(map[Reg]*regState, len(info))
 	for r, ri := range info {
+		if remat[r] {
+			ig.removeNode(r)
+			continue
+		}
 		states[r] = &regState{info: ri}
 	}
 
 	// Build weighted cost vectors.
 	raw := nodeCosts(f, info, ct, allLocs)
 	for r, cv := range raw {
-		states[r].costs = cv
+		if rs := states[r]; rs != nil {
+			rs.costs = cv
+		}
 	}
 
 	// Phase 6e: PBQP affinity nudges — applied before solver to bias allocation.
@@ -452,7 +495,15 @@ func PBQPAllocate(f *Func, lr *LivenessResult, ct CostTable) *AllocResult {
 	// Eliminate parallel copies at block boundaries and within-block OpMoves
 	// by reassigning block params / OpMove dsts to their source's PhysLoc
 	// when no IG neighbour conflict prevents it.
+	// Rematerialised constants take their no-location marker first so the
+	// coalescer can recognise and leave them alone.
+	for r := range remat {
+		result.Locs[r] = PhysLoc{Kind: LocRemat, Name: RematLocName}
+	}
 	coalesceAllocResult(f, result, lr, ct)
+	for r := range remat {
+		result.Locs[r] = PhysLoc{Kind: LocRemat, Name: RematLocName}
+	}
 
 	return result
 }

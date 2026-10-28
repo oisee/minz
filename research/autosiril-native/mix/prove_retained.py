@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Recompile and execute the unchanged40626B in-process pairing/flatten path."""
+"""Recompile and execute the unchanged in-process pairing/flatten path pinned by the echo retained audit."""
 from pathlib import Path
 import argparse,base64,hashlib,json,subprocess,sys
 sys.dont_write_bytecode=True
@@ -26,8 +26,8 @@ def main():
     subprocess.run([sys.executable,HERE.parent/'linked/compose.py','--out',out/'generated'],check=True)
     files=HERE.parent/'midi/fixtures'
     subprocess.run(['go','run',str(out/'generated/linked-probe.go'),'-source',str(out/'generated/linked.nanz'),'-input',str(out/'cases.json'),'-music',str(files/'music.lanz'),'-manifest',str(files/'music-manifest.json'),'-linked-oracle',str(out/'ruby.json'),'-linked-records',str(out/'phases.json'),'-out',str(out/'measured')],cwd=ROOT/'minzc',check=True)
-    binary=out/'measured/program.bin';assert binary.stat().st_size==40626 and sha(binary)==previous['image_sha256']
+    binary=out/'measured/program.bin';assert binary.stat().st_size==previous['image_bytes'] and sha(binary)==previous['image_sha256']
     phases=json.loads((out/'phases.json').read_text());assert len(phases)==36
-    proof=dict(protocol='autosiril-mix-retained-linked/v1',source_sha256=previous['source_sha256'],oracle_execution='actual fresh Ruby' if a.autosiril else 'explicit frozen actual-fresh reference reuse',reference_sha256=sha(out/'ruby.json'),input_midi_sha256=sha(midi),image_bytes=40626,image_sha256=sha(binary),pipelines=9,phase_observations=36,phase_observations_sha256=sha(out/'phases.json'))
-    (out/'receipt.json').write_text(json.dumps(proof,indent=2)+'\n');print('PASS retained40626B/9 pipelines/36 phase observations')
+    proof=dict(protocol='autosiril-mix-retained-linked/v1',source_sha256=previous['source_sha256'],oracle_execution='actual fresh Ruby' if a.autosiril else 'explicit frozen actual-fresh reference reuse',reference_sha256=sha(out/'ruby.json'),input_midi_sha256=sha(midi),image_bytes=previous['image_bytes'],image_sha256=sha(binary),pipelines=9,phase_observations=36,phase_observations_sha256=sha(out/'phases.json'))
+    (out/'receipt.json').write_text(json.dumps(proof,indent=2)+'\n');print(f"PASS retained {previous['image_bytes']}B/9 pipelines/36 phase observations")
 if __name__=='__main__':main()

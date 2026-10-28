@@ -49,11 +49,16 @@ func TestProfileGuidedSumVMZ80(t *testing.T) {
 	profileJSON, _ := json.MarshalIndent(profileRun.Profile, "", "  ")
 	// The counted-pointer pass improves the ordinary loop as well as copy.
 	// These coefficients were remeasured over all 1022 length/address cases;
-	// pair-move codegen removed 27 module bytes; forwarding-cycle elimination
-	// now removes another 10. The guarded fast path remains 231+37*n T.
+	// pair-move codegen removed 27 module bytes and forwarding-cycle
+	// elimination another 10.  Constant rematerialisation (F6) would remove a
+	// further 9 from both variants, but sum_array neither spills nor holds a
+	// constant live across a call, so its reserved home is uncontested and F6's
+	// profitability gate keeps it — the module is unchanged at 171/238 B and
+	// every T coefficient with it (ordinary 41+54*n, fast path 231+37*n,
+	// zero-length entry 232).
 	// Current ordinary-options fallback was independently remeasured over
 	// all length/address families: 326+78*n T.
-	model := hir.LoopCostModel{CompilerID: context.CompilerID, SemanticsID: context.SemanticsID, Function: "sum_array", HIRSHA256: profileRun.Profile.Compatibility.HIRSHA256, TargetID: context.TargetID, EvidenceID: "sum-array-z80-forwarded-params-v10", OriginalBytes: 171, PointerBytes: 238, OriginalEntry: 41, OriginalIteration: 54, EqualEntryExtra: 7, FastEntry: 231, FastIteration: 37, FastZeroEntry: 232, FastZeroMeasured: true, FallbackEntry: 326, FallbackIteration: 78, FallbackMeasured: true}
+	model := hir.LoopCostModel{CompilerID: context.CompilerID, SemanticsID: context.SemanticsID, Function: "sum_array", HIRSHA256: profileRun.Profile.Compatibility.HIRSHA256, TargetID: context.TargetID, EvidenceID: "sum-array-z80-forwarded-params-v12", OriginalBytes: 171, PointerBytes: 238, OriginalEntry: 41, OriginalIteration: 54, EqualEntryExtra: 7, FastEntry: 231, FastIteration: 37, FastZeroEntry: 232, FastZeroMeasured: true, FallbackEntry: 326, FallbackIteration: 78, FallbackMeasured: true}
 	decisions, e := hir.SelectLoopVariants(bytes.NewReader(profileJSON), input, context, model, false)
 	if e != nil {
 		t.Fatal(e)

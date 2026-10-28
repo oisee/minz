@@ -15,15 +15,53 @@ def sha(p):
     return hashlib.sha256(Path(p).read_bytes()).hexdigest()
 
 
+def refresh_retained(root, mix):
+    """Re-pin the retained pairing/flatten image after a codegen change.
+
+    mix/prove_retained.py stops the fresh mix run at its image pin, before any
+    receipt is written, so this runs first on that failed run; the full refresh
+    follows on the next one. The linked probe compares every engine with fresh
+    Ruby before writing phases.json, and the three engines must still agree on
+    everything but T-states.
+    """
+    out = mix / 'retained-linked'
+    audit_path = root / 'research/autosiril-native/echo/evidence/retained-linked-audit.json'
+    audit = json.loads(audit_path.read_text())
+    for rel, h in audit['source_sha256'].items():
+        assert sha(root / rel) == h, f'checkout differs from fresh run: {rel}'
+    phases = json.loads((out / 'phases.json').read_text())
+    assert len(phases) == 36
+    engines = {}
+    for r in phases:
+        key = json.dumps({k: v for k, v in r.items() if k not in ('engine', 't_states')}, sort_keys=True)
+        engines.setdefault(key, set()).add(r['engine'])
+    assert all(e == {'raw-mir2', 'final-mir2', 'z80'} for e in engines.values()), 'engines disagree'
+    binary = out / 'measured/program.bin'
+    audit.update(image_bytes=binary.stat().st_size, image_sha256=sha(binary),
+                 phase_observations_sha256=sha(out / 'phases.json'))
+    text = json.dumps(audit, indent=2) + '\n'
+    if audit_path.read_text() == text:
+        return []
+    audit_path.write_text(text)
+    return [str(audit_path.relative_to(root))]
+
+
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--checkout', type=Path, required=True)
     p.add_argument('--mix-fresh', type=Path, required=True)
-    p.add_argument('--canonical6-fresh', type=Path, required=True)
+    p.add_argument('--canonical6-fresh', type=Path)
+    p.add_argument('--retained-only', action='store_true',
+                   help='only re-pin the retained image of a fresh run that stopped at it')
     p.add_argument('--ci-upstream', default='/home/runner/work/_temp/autosiril-mix-fresh/upstream',
                    help='absolute upstream path as recorded by the CI run (freeze.py relativizes disks)')
     a = p.parse_args()
     root, mix = a.checkout.resolve(), a.mix_fresh.resolve()
+    if a.retained_only:
+        print('\n'.join(refresh_retained(root, mix)) or 'retained image unchanged')
+        return
+    if a.canonical6_fresh is None:
+        p.error('--canonical6-fresh is required without --retained-only')
     native = root / 'research/autosiril-native'
     echo, arrange, trd = mix / 'upstream', mix / 'upstream/upstream', mix / 'upstream/upstream/upstream'
     protocols = {mix: 'autosiril-native-mix/v1', echo: 'autosiril-native-echo/v1',
