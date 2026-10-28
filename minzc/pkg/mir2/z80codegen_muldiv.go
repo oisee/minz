@@ -270,6 +270,15 @@ func (g *z80cg) genMul16(inst *Inst) {
 	dst := g.loc(inst.Dst)
 	lhs := g.loc(inst.Src[0])
 
+	// Two proven bytes inside a loop, in speed mode, multiply through the
+	// shared quarter-square table instead of the shift-and-add loop. Checked
+	// before the operand staging below, which would otherwise move lhs into HL
+	// for the loop body.
+	if g.mul16QuarterSquareAdmissible(inst) {
+		g.genMul16QuarterSquare(inst, pairLive)
+		return
+	}
+
 	cv, isConst := g.constVals[inst.Src[1]]
 	regInfo := collectRegInfo(g.fn)
 	// Widen byte operands according to their source type. Preserve A and its
@@ -555,6 +564,271 @@ func (g *z80cg) genMul16(inst *Inst) {
 // prove equivalence and register preservation against this implementation.
 func (g *z80cg) genMul32(inst *Inst) {
 	g.genWideArithmetic(inst)
+}
+
+// ── Quarter-square table multiply ─────────────────────────────────────────────
+
+// quarterSquareTableLabel names the module-wide quarter-square table.
+const quarterSquareTableLabel = "__qsq"
+
+// quarterSquareTableAsm emits the shared quarter-square table: 511 words,
+// sq[n] = floor(n*n/4) for n = 0..510 (1022 bytes). a*b = sq[a+b] - sq[|a-b|]
+// holds exactly because a+b and a-b have the same parity, so the two floors
+// cancel; the largest entry, sq[510] = 65025, still fits a word.
+func quarterSquareTableAsm() string {
+	var sb strings.Builder
+	sb.WriteString("; runtime: quarter-square table sq[n] = n*n/4, n = 0..510 (511 words)\n")
+	fmt.Fprintf(&sb, "%s:\n", quarterSquareTableLabel)
+	for n := 0; n <= 510; n += 8 {
+		sb.WriteString("    DW ")
+		for i := n; i <= n+7 && i <= 510; i++ {
+			if i > n {
+				sb.WriteString(", ")
+			}
+			fmt.Fprintf(&sb, "%d", (i*i)/4)
+		}
+		sb.WriteByte('\n')
+	}
+	return sb.String()
+}
+
+// mulLoopBodyLabels returns the labels of every block inside a natural loop,
+// i.e. reachable from a back edge (an edge whose target dominates its source)
+// without leaving the loop. AnalyzeNaturalLoops needs a unique preheader and a
+// single latch; this only needs dominance, so no loop shape is missed.
+func mulLoopBodyLabels(f *Func) map[string]bool {
+	if f == nil || len(f.Blocks) == 0 {
+		return nil
+	}
+	dom := reachableDominators(f)
+	pred := map[string][]*Block{}
+	for _, b := range f.Blocks {
+		if b.Term == nil {
+			continue
+		}
+		for _, s := range b.Term.Successors() {
+			pred[s] = append(pred[s], b)
+		}
+	}
+	inLoop := map[string]bool{}
+	for _, b := range f.Blocks {
+		if b.Term == nil {
+			continue
+		}
+		for _, s := range b.Term.Successors() {
+			if !dom[b.Label][s] { // not a back edge
+				continue
+			}
+			seen := map[string]bool{s: true}
+			stack := []*Block{b}
+			for len(stack) > 0 {
+				x := stack[len(stack)-1]
+				stack = stack[:len(stack)-1]
+				if seen[x.Label] {
+					continue
+				}
+				seen[x.Label] = true
+				stack = append(stack, pred[x.Label]...)
+			}
+			for label := range seen {
+				inLoop[label] = true
+			}
+		}
+	}
+	return inLoop
+}
+
+// blockInNaturalLoop reports whether the block being emitted sits inside a
+// natural loop, so a multiply there executes at least twice and can amortize
+// the module's shared quarter-square table.
+func (g *z80cg) blockInNaturalLoop() bool {
+	if g.curBlock == nil || g.fn == nil {
+		return false
+	}
+	if g.mulLoopFn != g.fn || g.mulLoopBlocks == nil {
+		g.mulLoopFn = g.fn
+		g.mulLoopBlocks = mulLoopBodyLabels(g.fn)
+	}
+	return g.mulLoopBlocks[g.curBlock.Label]
+}
+
+// genMul16QuarterSquare lowers a 16-bit multiply of two proven bytes through
+// the module's shared quarter-square table. Emits 185 T when lhs >= rhs and
+// 188 T when lhs < rhs (the NEG branch), against ~423 T for the 8-iteration
+// shift-and-add loop it replaces. The 1022-byte table is emitted once per
+// module, so only speed-mode multiplies inside a loop take this path.
+//
+// Inputs A = a, C = b (both 0..255); clobbers A, F, BC, DE, HL; IX/IY survive.
+// Output HL = a*b.
+//
+//	LD B, A        ; 4   B = a
+//	ADD A, C       ; 4   A = (a+b) & 255, CF = bit 8 of s = a+b
+//	LD L, A        ; 4
+//	LD H, 0        ; 7
+//	RL H           ; 8   H = bit 8 of s → HL = s
+//	ADD HL, HL     ; 11  HL = 2s
+//	LD DE, __qsq   ; 10
+//	ADD HL, DE     ; 11  HL = &sq[s]
+//	LD E, (HL)     ; 7
+//	INC HL         ; 6
+//	LD D, (HL)     ; 7   DE = sq[s]
+//	LD A, B        ; 4
+//	SUB C          ; 4   A = a-b, CF = borrow
+//	JRS NC, .pos   ; 12 taken (a≥b) / 7 not
+//	NEG            ; 8   A = |a-b|
+//	.pos:
+//	LD L, A        ; 4
+//	LD H, 0        ; 7
+//	ADD HL, HL     ; 11  HL = 2|a-b|
+//	LD BC, __qsq   ; 10
+//	ADD HL, BC     ; 11  HL = &sq[|a-b|]
+//	LD C, (HL)     ; 7
+//	INC HL         ; 6
+//	LD B, (HL)     ; 7   BC = sq[|a-b|]
+//	EX DE, HL      ; 4   HL = sq[s]
+//	OR A           ; 4
+//	SBC HL, BC     ; 15  HL = sq[s] - sq[|a-b|] = a*b
+func (g *z80cg) genMul16QuarterSquare(inst *Inst, pairLive func(string) bool) {
+	dst := g.loc(inst.Dst)
+	g.comment(fmt.Sprintf("mul16 %s * %s → HL (quarter-square %s)", g.loc(inst.Src[0]), g.loc(inst.Src[1]), quarterSquareTableLabel))
+	// AF and DE are saved like the shift-and-add path does: A may hold a
+	// pending accumulator the live set does not describe. A pair carrying the
+	// result is never saved — the restore would overwrite it.
+	g.emit("    PUSH AF")
+	savedDE := dst != "DE" && dst != "D" && dst != "E"
+	if savedDE {
+		g.emit("    PUSH DE")
+	}
+	savedHL := dst != "HL" && dst != "H" && dst != "L" && pairLive("HL")
+	if savedHL {
+		g.emit("    PUSH HL")
+	}
+	savedBC := dst != "BC" && dst != "B" && dst != "C" && pairLive("BC")
+	if savedBC {
+		g.emit("    PUSH BC")
+	}
+
+	// Stage the operand bytes into A and C. The core is symmetric in its
+	// operands, so assignment only has to avoid a load destroying the other
+	// operand: a spill takes A (LD A,(nn) is the only direct byte load, and a
+	// spill staged into C would have to borrow A), and a value already in A
+	// keeps it. After that, the order decides which load runs first: C first
+	// when its load reads or borrows A, A first when A's load would read C.
+	x, y := inst.Src[0], inst.Src[1]
+	lx, ly := g.loc(x), g.loc(y)
+	if isSpill(ly) != isSpill(lx) && isSpill(ly) {
+		x, y = y, x
+		lx, ly = ly, lx
+	} else if !isSpill(lx) && !isSpill(ly) && ly == "A" && lx != "A" {
+		x, y = y, x
+		lx, ly = ly, lx
+	}
+	loadByte := func(dstReg string, src Reg) {
+		if cv, ok := g.constVals[src]; ok {
+			g.emitf("    LD %s, %d", dstReg, cv&0xFF)
+			return
+		}
+		loc := g.loc(src)
+		if isSpill(loc) {
+			g.loadSpill8(dstReg, loc)
+		} else {
+			g.emitLD8(dstReg, loc)
+		}
+	}
+	switch {
+	case ly == "A" || (isSpill(ly) && lx != "A"):
+		// C's load reads A (LD C, A) or borrows it (spill): run it before A
+		// is staged.
+		loadByte("C", y)
+		loadByte("A", x)
+	default:
+		// A's load would read C when lx is C, so A runs first anyway.
+		loadByte("A", x)
+		loadByte("C", y)
+	}
+
+	posLbl := fmt.Sprintf(".%s_qsq_%d_pos", sanitizeIdent(g.fn.Name), int(inst.Dst))
+	g.emit("    LD B, A") // B = a
+	g.emit("    ADD A, C")
+	g.emit("    LD L, A")
+	g.emit("    LD H, 0")
+	g.emit("    RL H") // H = bit 8 of a+b
+	g.emit("    ADD HL, HL")
+	g.emitf("    LD DE, %s", quarterSquareTableLabel)
+	g.emit("    ADD HL, DE") // HL = &sq[a+b]
+	g.emit("    LD E, (HL)")
+	g.emit("    INC HL")
+	g.emit("    LD D, (HL)") // DE = sq[a+b]
+	g.emit("    LD A, B")
+	g.emit("    SUB C")
+	g.emitf("    JRS NC, %s", posLbl)
+	g.emit("    NEG") // A = |a-b|
+	g.emitf("%s:", posLbl)
+	g.emit("    LD L, A")
+	g.emit("    LD H, 0")
+	g.emit("    ADD HL, HL") // HL = 2*|a-b|
+	g.emitf("    LD BC, %s", quarterSquareTableLabel)
+	g.emit("    ADD HL, BC") // HL = &sq[|a-b|]
+	g.emit("    LD C, (HL)")
+	g.emit("    INC HL")
+	g.emit("    LD B, (HL)") // BC = sq[|a-b|]
+	g.emit("    EX DE, HL")  // HL = sq[a+b]
+	g.emit("    OR A")
+	g.emit("    SBC HL, BC") // HL = a*b
+	g.needsQuarterSquare = true
+
+	// Move the product to dst, then restore the saved pairs.
+	if dst == "HL" {
+		// already there
+	} else if isIXY(dst) {
+		g.emit("    PUSH HL")
+		g.emitf("    POP %s", dst)
+	} else if isSpill(dst) {
+		g.storeSpill16(dst, "HL")
+	} else {
+		g.emitLD8(highByte(dst), "H")
+		g.emitLD8(lowByte(dst), "L")
+	}
+	if savedBC {
+		g.emit("    POP BC")
+	}
+	if savedHL {
+		g.emit("    POP HL")
+	}
+	if savedDE {
+		g.emit("    POP DE")
+	}
+	g.emit("    POP AF")
+	g.invalidate("A")
+	g.invalidate("F")
+	g.invalidate("BC")
+	g.invalidate("DE")
+	g.invalidate(dst)
+	if savedHL {
+		g.invalidate("HL")
+	}
+}
+
+// mul16QuarterSquareAdmissible reports whether inst may take the quarter-square
+// table path: speed mode (the 1022-byte table is a size cost), both operands
+// runtime values proven below 256 by provenance, and the multiply inside a
+// natural loop so the table is amortized. Constants stay on the strength
+// reduction / loop paths: their cheap recipes (2^n, 3, 5, 6, 9, 10, 12) cost
+// far less than a table lookup, and admitting the rest would mean ordering this
+// gate after the constant recipes instead of before the operand staging.
+func (g *z80cg) mul16QuarterSquareAdmissible(inst *Inst) bool {
+	if g.optimizeForSize || !g.blockInNaturalLoop() {
+		return false
+	}
+	for _, src := range inst.Src[:2] {
+		if _, isConst := g.constVals[src]; isConst {
+			return false
+		}
+		if !g.provablyBelow256(src, inst.Ty.Width(), make(map[Reg]bool)) {
+			return false
+		}
+	}
+	return true
 }
 
 // ── Division / Modulo ─────────────────────────────────────────────────────────
