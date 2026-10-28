@@ -3,10 +3,14 @@ package mir2
 import "github.com/minz/minzc/pkg/z80spec"
 
 // preferByteLoadStepHome elides a byte copy when the load is consumed only by
-// an adjacent small add/sub. No access is moved or retired. The constant must
-// already be suppressed, and no value may need the new home in between.
+// an adjacent small add/sub. No access is moved or retired: the load is still
+// emitted, only into its consumer's home, so a native memory access recorded
+// for it stays anchored on the (still present) load instruction. It therefore
+// runs with annotation sinks attached too — the emitted bytes must not depend
+// on whether sinks are. The constant must already be suppressed, and no value
+// may need the new home in between.
 func (g *z80cg) preferByteLoadStepHome(load *Inst) {
-	if load.Op != OpLoad || load.Ty != TyU8 || load.ClsHard || g.curBlock == nil || g.nativeMemorySink != nil || g.nativeCallFrameSink != nil || g.nativeCallSpillSink != nil || countRegUses(g.fn)[load.Dst] != 1 {
+	if load.Op != OpLoad || load.Ty != TyU8 || load.ClsHard || g.curBlock == nil || countRegUses(g.fn)[load.Dst] != 1 {
 		return
 	}
 	n := g.curInstIdx + 1

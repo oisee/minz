@@ -197,9 +197,13 @@ func RunLoopProfile(m *Module, w ProfileWorkload) (*ProfileRun, error) {
 	}
 	out := &ProfileRun{Results: [][]mir2.Value{}, Snapshots: []ProfileMemorySnapshot{}}
 	var accesses *ProfileAccessRecorder
+	var traffic *profileTrafficModel
 	if owned.ExactDataAccess {
 		accesses = NewProfileAccessRecorder(m, p.VM, owned, addresses)
 		p.VM.ObserveDataAccess = accesses.Observe
+		if traffic, err = newProfileTrafficModel(m, owned); err != nil {
+			return nil, err
+		}
 	}
 
 	snapshotMemory := func() ProfileMemorySnapshot {
@@ -246,6 +250,17 @@ func RunLoopProfile(m *Module, w ProfileWorkload) (*ProfileRun, error) {
 				// No successful profile envelope may escape after access
 				// validation fails, even though the VM call itself completed.
 				return nil, err
+			}
+			if traffic != nil {
+				// The exact traffic model must describe the binary the workload
+				// is measured against, so it is replayed on the lowering that
+				// carries the emitted memory idioms (fill_bytes16 reloads its
+				// destination) rather than on the instrumented scalar loops.
+				modelled, err := traffic.replay(m, call, result, out.Snapshots[len(out.Snapshots)-1])
+				if err != nil {
+					return nil, err
+				}
+				a = modelled
 			}
 			out.Accesses = append(out.Accesses, a)
 		}
