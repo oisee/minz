@@ -159,12 +159,12 @@ func runCPM3Command(dir, command string, resetCode bool) error {
 
 // runSubmit executes a SUBMIT job: one command per line, ';' comments,
 // ':' conditional lines, and P_CHAIN continuations.
-func runSubmit(path string) (uint16, error) {
+func runSubmit(path string) (code uint16, err error) {
 	f, err := os.Open(path)
 	if err != nil {
 		return 0, err
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }() // read-only
 	dir, err := filepath.Abs(filepath.Dir(path))
 	if err != nil {
 		return 0, err
@@ -178,7 +178,11 @@ func runSubmit(path string) (uint16, error) {
 	if err := os.Chdir(dir); err != nil {
 		return 0, err
 	}
-	defer os.Chdir(cwd)
+	defer func() {
+		if e := os.Chdir(cwd); e != nil && err == nil {
+			err = e
+		}
+	}()
 	cpm3 = &cpm3State{}
 	scanner := bufio.NewScanner(f)
 	for scanner.Scan() {
