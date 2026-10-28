@@ -163,7 +163,7 @@ func ValidateZ80Symbols(m *Module) error {
 	}
 	seen := make(map[string]string)
 	// Runtime names and internal namespaces are reserved even when unused.
-	for _, name := range []string{"__mul8", "__mul16", "__call_ix", "__call_stack", "__agon_entry"} {
+	for _, name := range []string{"__mul8", "__mul16", "__qsq", "__call_ix", "__call_stack", "__agon_entry"} {
 		seen[name] = "compiler runtime"
 	}
 	for i := 0; i <= 7; i++ {
@@ -530,6 +530,11 @@ func z80CodegenWithLeafWrites(m *Module, ar *AllocResult, leafWrites map[string]
 		sb.WriteString("    RET\n")
 	}
 
+	// Emit the shared quarter-square table for in-loop byte multiplies.
+	if cg.needsQuarterSquare {
+		sb.WriteString("\n" + quarterSquareTableAsm())
+	}
+
 	// Run peephole pass first (may introduce __rotate_N calls from RLCA folding).
 	result := sb.String()
 	// Guarded growth sites must remain adjacent to their checks. The legacy
@@ -680,7 +685,10 @@ type z80cg struct {
 	needsCallStack                        bool                       // stack target trampoline, preserving all primary argument registers
 	needsCallIX                           bool                       // emit __call_ix trampoline (JP (IX)) at end of module
 	needsMul8                             bool                       // emit __mul8 runtime (A*B→A) at end of module
+	needsQuarterSquare                    bool                       // emit __qsq quarter-square table at end of module
 	needsRotate                           bool                       // emit __rotate RLCA sled (multi-entry barrel shifter)
+	mulLoopBlocks                         map[string]bool            // blocks inside a natural loop, for the quarter-square gate
+	mulLoopFn                             *Func                      // function the mulLoopBlocks cache belongs to
 	tsmcPairs                             []tsmcSpillPair            // TSMC spill-reload pairs for current function
 	curInstIdx                            int                        // current instruction index within block (for TSMC matching)
 
