@@ -22,9 +22,10 @@ fun execute() {
 }
 `
 
-// Same program with a named fold callback. The frontend infers the fold
-// accumulator type only from a *named* callback (nanz/parse.go, let/fold type
-// inference), so this is the form whose u16 accumulator survives the `let`.
+// Same program with a named fold callback. Both spellings now infer the u16
+// accumulator at the `let` (nanz/parse.go resolves the callback's return type
+// for lifted lambdas as well); before that fix the lambda form was typed u8
+// and its sum was truncated to the low byte.
 const foldFilterStageNamedSource = `global a: [u8; 4]
 global n: u16
 global r: u16
@@ -129,14 +130,9 @@ func TestFoldFilterStageInlinesPredicateVMZ80(t *testing.T) {
 	for _, src := range []struct {
 		name string
 		text string
-		// The lambda-callback form is typed u8 by the frontend's fold type
-		// inference (named callbacks only), so its u16 accumulator is truncated
-		// at the `let` — pre-existing on origin/main (LD D,0 before the store)
-		// and unchanged by the stage inlining under test.
-		truncated bool
 	}{
-		{"lambda_callback", foldFilterStageInlineSource, true},
-		{"named_callback", foldFilterStageNamedSource, false},
+		{"lambda_callback", foldFilterStageInlineSource},
+		{"named_callback", foldFilterStageNamedSource},
 	} {
 		t.Run(src.name, func(t *testing.T) {
 			steps, err := CompileHIRSteps(graceMeasureParse(t, src.text), Options{AssertMode: "none"})
@@ -157,9 +153,6 @@ func TestFoldFilterStageInlinesPredicateVMZ80(t *testing.T) {
 			}
 			for _, c := range cases {
 				want := c.sum
-				if src.truncated {
-					want &= 0xFF
-				}
 				if got := runExecuteGlobalsZ80(t, steps, c.data, c.n); got != want {
 					t.Fatalf("%s: r = %d, want %d (data=%v n=%d)\n%s", c.name, got, want, c.data, c.n, steps.Assembly)
 				}

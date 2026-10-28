@@ -672,6 +672,45 @@ func (p *parser) makeBitExpr(base hir.Expr, bitTok token) (*hir.BitExpr, error) 
 	return &hir.BitExpr{X: base, Bit: bit}, nil
 }
 
+// callbackReturnTy returns the return type of an iterator callback argument:
+// a named function (bare or `&fn`) or a lambda literal. parseLambda lifts a
+// lambda to a `lambda_N` function and registers its signature in funcSigs as
+// soon as it is parsed, so both spellings resolve here at the same time.
+// Nil when the callback is not a function the parser knows a signature for.
+func (p *parser) callbackReturnTy(cb hir.Expr) mir2.Ty {
+	switch cb := cb.(type) {
+	case *hir.VarRefExpr:
+		return p.funcSigs[cb.Name]
+	case *hir.AddrOfExpr:
+		return p.funcSigs[cb.Sym]
+	}
+	return nil
+}
+
+// foldAccumulatorTy returns the accumulator type a fold/reduce call produces:
+// the callback's return type — a named function's signature, or a lambda
+// literal's body type — and, when that is unknown (a callback with no
+// inferable return), the type of the init expression (`u16(0)` → u16).
+// Nil when neither is known; callers must diagnose rather than silently
+// narrowing the accumulator to u8.
+func (p *parser) foldAccumulatorTy(call *hir.CallExpr) mir2.Ty {
+	if len(call.Args) < 3 {
+		return nil
+	}
+	if ty := p.callbackReturnTy(call.Args[2]); ty != nil && ty != mir2.TyVoid {
+		return ty
+	}
+	// An untyped literal init (`0`) carries the language-wide literal default,
+	// not a type the source committed to, so it does not name the accumulator.
+	if lit, ok := call.Args[1].(*hir.IntLitExpr); ok && lit.Untyped {
+		return nil
+	}
+	if ty := call.Args[1].ExprTy(); ty != nil && ty != mir2.TyVoid {
+		return ty
+	}
+	return nil
+}
+
 // inferChainElemTy infers the element type flowing through an iterator chain.
 // For map/filter calls, the element type is the return type of the previous
 // stage's callback. For range sources and raw expressions, it's the expression type.
@@ -682,10 +721,8 @@ func (p *parser) inferChainElemTy(base hir.Expr) mir2.Ty {
 		case "map":
 			// map(source, cb) — element type is cb's return type
 			if len(call.Args) >= 2 {
-				if ref, ok2 := call.Args[1].(*hir.VarRefExpr); ok2 {
-					if sig, hasSig := p.funcSigs[ref.Name]; hasSig {
-						return sig
-					}
+				if ty := p.callbackReturnTy(call.Args[1]); ty != nil && ty != mir2.TyVoid {
+					return ty
 				}
 				return call.Args[1].ExprTy()
 			}
@@ -1355,17 +1392,13 @@ func (p *parser) fixExprCallTypes(e hir.Expr) {
 		// Fold lowering produces the callback's accumulator type, even when the
 		// chain occurs directly in a return rather than in a let binding.
 		if ex.Ty == mir2.TyVoid && (ex.Fn == "fold" || ex.Fn == "reduce") && len(ex.Args) >= 3 {
-			name := ""
-			switch cb := ex.Args[2].(type) {
-			case *hir.VarRefExpr:
-				name = cb.Name
-			case *hir.AddrOfExpr:
-				name = cb.Sym
-			}
-			if sig := p.funcSigs[name]; sig != nil && sig != mir2.TyVoid {
-				ex.Ty = sig
-			} else {
-				ex.Ty = mir2.TyU8
+			if ty := p.foldAccumulatorTy(ex); ty != nil {
+				ex.Ty = ty
+			} else if p.literalTypeErr == nil {
+				// Same refusal as the let binding: guessing u8 here would
+				// truncate a wider accumulator where the value is used.
+				p.literalTypeErr = fmt.Errorf("cannot infer the accumulator type of %s(...); give the callback a value-returning body or a typed init value, e.g. %s(u16(0), ...)",
+					ex.Fn, ex.Fn)
 			}
 		}
 	case *hir.CallIndirectExpr:
@@ -4471,17 +4504,13 @@ func (p *parser) parseLetDecl() (hir.Stmt, error) {
 	// fold/reduce returns the accumulator type (inferred from callback return).
 	if ty == nil || ty == mir2.TyVoid {
 		if call, ok := init.(*hir.CallExpr); ok && (call.Fn == "fold" || call.Fn == "reduce") && len(call.Args) >= 3 {
-			if cbRef, ok2 := call.Args[2].(*hir.AddrOfExpr); ok2 {
-				if cbSig, hasSig := p.funcSigs[cbRef.Sym]; hasSig {
-					ty = cbSig
-				}
-			} else if cbRef, ok2 := call.Args[2].(*hir.VarRefExpr); ok2 {
-				if cbSig, hasSig := p.funcSigs[cbRef.Name]; hasSig {
-					ty = cbSig
-				}
-			}
-			if ty == nil || ty == mir2.TyVoid {
-				ty = mir2.TyU8 // default fold accumulator type
+			ty = p.foldAccumulatorTy(call)
+			if ty == nil {
+				// A silent u8 here truncates a wider accumulator at the
+				// binding, so refuse to guess: the callback has no inferable
+				// return type and the init value is untyped.
+				return nil, fmt.Errorf("line %d: let %q: cannot infer the accumulator type of %s(...); give the callback a value-returning body or a typed init value, e.g. %s(u16(0), ...)",
+					nameTok.line, nameTok.val, call.Fn, call.Fn)
 			}
 		}
 	}
@@ -7000,6 +7029,7 @@ func (p *parser) resolveCall(base hir.Expr, args []hir.Expr) (hir.Expr, error) {
 			lambdaName := fmt.Sprintf("lambda_%d", p.lambdaCount)
 			p.lambdaCount++
 			f := &hir.Func{Name: lambdaName, Params: lambdaParams, RetTy: retTy, Body: hir.Blk(&hir.ReturnStmt{Val: &hir.CallExpr{Fn: name, Args: args, Ty: retTy}})}
+			p.funcSigs[lambdaName] = retTy
 			p.lambdas = append(p.lambdas, f)
 			if p.lambdaScopes == nil {
 				p.lambdaScopes = map[*hir.Func]map[string]mir2.Ty{}
@@ -7120,6 +7150,19 @@ func paramTysFromFunc(f *hir.Func) []mir2.Ty {
 	return tys
 }
 
+// valueReturn returns the block's last `return expr` statement, or nil when the
+// block returns no value. A lambda has nowhere to declare its return type, so
+// this is how a block body names it.
+func valueReturn(b *hir.Block) *hir.ReturnStmt {
+	var found *hir.ReturnStmt
+	for _, s := range b.Body {
+		if rs, ok := s.(*hir.ReturnStmt); ok && rs.Val != nil {
+			found = rs
+		}
+	}
+	return found
+}
+
 // The lambda is desugared into an anonymous top-level function "lambda_N" and the
 // expression returns a VarRefExpr naming that function. Zero-cost: no closure, no
 // heap allocation. Params default to u8 if the type annotation is omitted.
@@ -7191,18 +7234,22 @@ func (p *parser) parseLambda() (hir.Expr, error) {
 		body = &hir.Block{Body: []hir.Stmt{&hir.ReturnStmt{Val: expr}}}
 	}
 
-	// Infer return type from single-expression body.
+	// Infer return type from the body: a single-expression body is an implicit
+	// return; a block still names it with its `return expr` statement.
 	retTy := mir2.Ty(mir2.TyVoid)
-	if len(body.Body) == 1 {
-		if rs, ok := body.Body[0].(*hir.ReturnStmt); ok && rs.Val != nil {
-			retTy = rs.Val.ExprTy()
-		}
+	if rs := valueReturn(body); rs != nil {
+		retTy = rs.Val.ExprTy()
 	}
 
-	// Generate a unique name and register the anonymous function.
+	// Generate a unique name and register the anonymous function. The signature
+	// goes into funcSigs immediately: a lambda used as an iterator callback is
+	// the only place its return type can be learned from, and the surrounding
+	// expression (e.g. a fold's accumulator type) is typed before the module is
+	// assembled.
 	name := fmt.Sprintf("lambda_%d", p.lambdaCount)
 	p.lambdaCount++
 	f := &hir.Func{Name: name, Params: params, RetTy: retTy, Body: body}
+	p.funcSigs[name] = retTy
 	p.lambdas = append(p.lambdas, f)
 	if p.lambdaScopes == nil {
 		p.lambdaScopes = map[*hir.Func]map[string]mir2.Ty{}
