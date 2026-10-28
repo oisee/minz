@@ -26,9 +26,33 @@
       "words_approx": 2101,
       "diagrams": 5,
       "reading_minutes_approx": 11
+    },
+    {
+      "slug": "05-two-pages-for-one-song",
+      "words_approx": 1664,
+      "diagrams": 3,
+      "reading_minutes_approx": 9
+    },
+    {
+      "slug": "06-two-compilers-one-repository",
+      "words_approx": 1477,
+      "diagrams": 2,
+      "reading_minutes_approx": 8
+    },
+    {
+      "slug": "07-failure-at-sector-27",
+      "words_approx": 1299,
+      "diagrams": 2,
+      "reading_minutes_approx": 7
+    },
+    {
+      "slug": "08-last-mile-of-fusion",
+      "words_approx": 2362,
+      "diagrams": 1,
+      "reading_minutes_approx": 12
     }
   ],
-  "diagrams": 23,
+  "diagrams": 31,
   "illustrations": 2,
   "tools": {
     "mermaid_cli": "12.0.0",
@@ -39,8 +63,12 @@
     "02-melody-between-two-files.md": "ebeeafda71071527ed472d3dd1817a0b1ce7a0ebe67c7c660cc106a3af50eb8a",
     "03-borrowing-without-a-runtime.md": "25b3080b7ff092ad2f8351aab08504b1383902005b18a243e8b060ab8566be06",
     "04-four-rows-for-a-melody.md": "f54763af00e51df7d6a23127c057103ca938e660538dc427c4f44b25ebf7622e",
-    "README.md": "f30487dbbf39e5dd37c531d137b6b86b0c5f1b7971cff5e16665e4ae155185a2",
-    "edition.json": "6fe8bdec4f38a9f124cc41502802cd78ff84baf2132a9ee653ba3d9b27d9bc4c",
+    "05-two-pages-for-one-song.md": "9cfd8cb145cd5e227f39c589e0fbd64205161c4b87a3483c675e1c2991f539bd",
+    "06-two-compilers-one-repository.md": "cb4088ead2432d681e9c1925c64a95d0231ed52f49fa944a9ee053c3c6404cd7",
+    "07-failure-at-sector-27.md": "e403761a5bf09ee7907b49822c0083a438b4d0742aa7bca70d119a2bf48fee7f",
+    "08-last-mile-of-fusion.md": "d00581e803cd2119afd9e42e0281d0963f038d31218129f1209d14238c737189",
+    "README.md": "d76008798fb0412011d7f25537df8666c4dacc06b0ed8a9f44491ab950c61419",
+    "edition.json": "984307fc10cea162b3fc3fcf612758962a99e3af6743705365c870f528d6b630",
     "build.py": "3f0474963b5a10c192bdde854cdc4369f7446a13e445caa2dae79994b3d4085a",
     "style.css": "e3c21c5286cf6ff84d7b2abbae1dbcf386925d4fe59944d8a54e8cd4ab1f5488",
     "reader.js": "b3f8b196f4581578cf523bf6489fad4d796ce3d80aeb658ee9a88f2490d627a5"
@@ -49,7 +77,11 @@
     "01-languages-and-ideas.html": "6fd294fb9386a4de433222ecb81b226ce4839b8332496aeafeb4e09f206c0aec",
     "02-melody-between-two-files.html": "043a9d743cdc9383ccd085c5695a0261cfd1d50f4554bd4bd85b0725745d36ca",
     "03-borrowing-without-a-runtime.html": "e9b5396285d2e45a6240db2742f53d899d39104360bff7320839d5ab6e8e5bd8",
-    "04-four-rows-for-a-melody.html": "78fb5c6530e962ee88cb95b7de7dabb1f3ee5502c3e997440aea65c51dcfbb9c",
-    "index.html": "b390dda81f19098e43f6308b315f61402d130efda8d467e8cf870e02b60e5bd3"
+    "04-four-rows-for-a-melody.html": "4bb77cbd5d14a73dbaffe7379e16ce84fb0a07e195f378a70cf8f6291d9418b4",
+    "05-two-pages-for-one-song.html": "03437ee651ce573cf04b1ad047d532b93f9ab738d2c67ce49a4b42526bcc50bc",
+    "06-two-compilers-one-repository.html": "0af1822afbffaee00eecaddde410c29ef2926dc97a828d1b6337413a97636481",
+    "07-failure-at-sector-27.html": "fb17a6cfc8f72163082d60af4a9b295212c939e461d329ab6bfb6b42f3e985a5",
+    "08-last-mile-of-fusion.html": "e9d8551eae7c7972812e8e6af311d57b0b847525f87b53834e7e450cf283b165",
+    "index.html": "8e638c0dce35cf6e939ad569992a8f55db1c0727b7ffec4579a05c0d11680dac"
   }
 }
