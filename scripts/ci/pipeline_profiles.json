@@ -150,6 +150,8 @@
     "TestForwardCopyPrototypeZ80Boundary",
     "TestForwardCopySelectorRefusals",
     "TestForwardCopySelectorSitesBoundaryAndUnobserved",
+    "TestForwardGlobalReferencesOrderIndependentAssembly",
+    "TestForwardGlobalReferencesVMZ80",
     "TestFreshHIRRetainsDetachedSliceBacking",
     "TestFreshHIRRetainsDetachedStorageAcrossGC",
     "TestFreshHIRZeroSizeNodesHaveNoMutableStorage",
