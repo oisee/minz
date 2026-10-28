@@ -2,6 +2,8 @@ package mir2
 
 import (
 	"encoding/binary"
+	"maps"
+	"slices"
 	"regexp"
 	"strings"
 	"testing"
@@ -80,7 +82,11 @@ func buildConstRematLoop(m *Module, keepRegisterUse bool) (zero, one Reg) {
 	b.BrIf(cond, "body", nil, "exit", []Reg{a})
 
 	b.SwitchTo(body)
-	sum := b.Add(a, i, TyU16, ClassPointer)
+	// Calling inside the loop makes both constants live across a clobber set,
+	// which is the measured case: their reserved pairs are then PUSHed and
+	// POPped around it (fold_max pays 50 T per element for exactly this).
+	called := b.Call("keep", []Reg{i}, TyU16, ClassPointer, CallAttrs{})
+	sum := b.Add(a, called, TyU16, ClassPointer)
 	next := b.Sub(i, one, TyU16, ClassIndex)
 	b.Jmp("head", next, sum)
 
@@ -103,6 +109,15 @@ func constRematModule(keepRegisterUse bool) (*Module, Reg, Reg) {
 	if keepRegisterUse {
 		m.Globals = append(m.Globals, Global{Name: "one_out", Ty: TyU16, Init: make([]byte, 2)})
 	}
+	// A leaf the loop body calls, so the two constants are live across a
+	// clobber set — the measured case, where their reserved pairs are PUSHed
+	// and POPped around the call.
+	keep := m.AddFunc("keep")
+	kb := NewBuilder(keep)
+	kb.SwitchToNewBlock("entry")
+	kx := kb.Param("x", TyU16, ClassPointer)
+	keep.Contract.Returns = []Return{{Ty: TyU16, Class: ClassPointer}}
+	kb.Ret(kx)
 	zero, one := buildConstRematLoop(m, keepRegisterUse)
 	return m, zero, one
 }
@@ -112,7 +127,10 @@ func TestConstRematImmediateOnlyConstantGetsNoRegister(t *testing.T) {
 	if err := Verify(m); err != nil {
 		t.Fatal(err)
 	}
-	f := m.Funcs[0]
+	f := m.FuncByName("probe")
+	if f == nil {
+		t.Fatal("probe missing")
+	}
 	lr := ComputeLiveness(f)
 	ar := PBQPAllocate(f, lr, Z80CostTable{})
 	for r, name := range map[Reg]string{zero: "zero", one: "one"} {
@@ -149,7 +167,10 @@ func TestConstRematRegisterNeedingUseKeepsLocation(t *testing.T) {
 	if err := Verify(m); err != nil {
 		t.Fatal(err)
 	}
-	f := m.Funcs[0]
+	f := m.FuncByName("probe")
+	if f == nil {
+		t.Fatal("probe missing")
+	}
 	lr := ComputeLiveness(f)
 	ar := PBQPAllocate(f, lr, Z80CostTable{})
 	if loc := ar.Locs[one]; loc.Kind == LocRemat {
@@ -246,5 +267,107 @@ func TestConstRematPointerBaseConstKeepsLocation(t *testing.T) {
 	}
 	if got := binary.LittleEndian.Uint16(mem[a.Symbols["out"]:]); got != 0x3b {
 		t.Fatalf("native sum %d, want 59\n%s", got, asm)
+	}
+}
+
+// A caller may edit AllocResult after allocation — the pipeline's callers and
+// several fixtures force spill homes that way.  Such an edit can invalidate the
+// promise a LocRemat entry makes about the rest of the allocation (here: the
+// compare's left operand no longer lives in a pair, so the zero test stops
+// folding and the constant's home would be read).  Codegen must repair the
+// promise instead of emitting a location nothing backs.
+func TestConstRematSurvivesAllocationEdit(t *testing.T) {
+	m := &Module{Name: "constremat_edit", Globals: []Global{
+		{Name: "in", Ty: TyU16, Init: make([]byte, 2)},
+		{Name: "out", Ty: TyU8, Init: make([]byte, 1)},
+	}}
+	keep := m.AddFunc("keep")
+	kb := NewBuilder(keep)
+	kb.SwitchToNewBlock("entry")
+	kx := kb.Param("x", TyU16, ClassPointer)
+	keep.Contract.Returns = []Return{{Ty: TyU16, Class: ClassPointer}}
+	kb.Ret(kx)
+	f := m.AddFunc("probe")
+	b := NewBuilder(f)
+	entry := b.SwitchToNewBlock("entry")
+	nz := b.SwitchToNewBlock("nz")
+	zf := b.SwitchToNewBlock("z")
+
+	b.SwitchTo(entry)
+	n := b.Load(b.AddrOf("in", ClassPointer), TyU16, ClassIndex)
+	zero := b.Const(0, TyU16, ClassIndex)
+	// The call sits between the constant's definition and its use, so the
+	// constant is live across a clobber set — the case rematerialisation is
+	// for.
+	b.Call("keep", []Reg{n}, TyU16, ClassPointer, CallAttrs{})
+	cond := b.Cmp(CmpNe, n, zero, ClassFlag, false)
+	b.BrIf(cond, "nz", nil, "z", nil)
+
+	b.SwitchTo(nz)
+	b.Store(b.AddrOf("out", ClassPointer), b.Const(7, TyU8, ClassGeneral), TyU8)
+	b.Ret()
+
+	b.SwitchTo(zf)
+	b.Store(b.AddrOf("out", ClassPointer), b.Const(9, TyU8, ClassGeneral), TyU8)
+	b.Ret()
+
+	if err := Verify(m); err != nil {
+		t.Fatal(err)
+	}
+	lr := ComputeLiveness(f)
+	ar := PBQPAllocate(f, lr, Z80CostTable{})
+	if loc := ar.Locs[zero]; loc.Kind != LocRemat {
+		t.Fatalf("expected the zero constant to be rematerialised, got %v", loc)
+	}
+	// The edit that breaks the promise: move the compared value out of its pair.
+	edited := &AllocResult{Locs: maps.Clone(ar.Locs), Spilled: slices.Clone(ar.Spilled)}
+	edited.Locs[n] = PhysLoc{Kind: LocMem, Name: "mem", Offset: 0xf010}
+	edited.Spilled = append(edited.Spilled, n)
+	if computeDeadConsts(f, edited)[zero] {
+		t.Fatal("fixture does not invalidate the constant's fold")
+	}
+	asm, err := Z80Codegen(m, edited)
+	if err != nil {
+		t.Fatalf("codegen after an allocation edit: %v", err)
+	}
+	if strings.Contains(asm, RematLocName) {
+		t.Fatalf("rematerialised home reached the output:\n%s", asm)
+	}
+	a, err := z80asm.NewAssembler().AssembleString("ORG 0x8000\n" + asm)
+	if err != nil || len(a.Errors) != 0 {
+		t.Fatalf("assemble: %v %v\n%s", err, a.Errors, asm)
+	}
+	if _, ok := a.Symbols[Z80SpillLabel("probe", zero)]; !ok {
+		t.Fatalf("repaired constant has no home slot:\n%s", asm)
+	}
+	for _, in := range []uint16{0, 1, 0x100, 0xffff} {
+		want := byte(9)
+		if in != 0 {
+			want = 7
+		}
+		vm := NewVM(m)
+		vm.WriteHeapSlice(vm.GlobalAddr("in"), []byte{byte(in), byte(in >> 8)})
+		if _, err := vm.Call("probe", nil); err != nil {
+			t.Fatal(err)
+		}
+		if got := vm.ReadHeap(vm.GlobalAddr("out"), 1)[0]; got != want {
+			t.Fatalf("VM in=%#x got %d want %d", in, got, want)
+		}
+		z := emulator.NewRemogattoZ80()
+		mem := z.Memory()
+		copy(mem[0x8000:], a.Binary)
+		binary.LittleEndian.PutUint16(mem[a.Symbols["in"]:], in)
+		mem[a.Symbols["out"]] = 0xff
+		binary.LittleEndian.PutUint16(mem[0xeffe:], 0xf100)
+		z.SetRegisters(emulator.Registers{PC: uint16(a.Symbols["probe"]), SP: 0xeffe})
+		for i := 0; i < 100000 && z.GetPC() != 0xf100; i++ {
+			z.Step()
+		}
+		if regs := z.GetRegisters(); regs.PC != 0xf100 || regs.SP != 0xf000 {
+			t.Fatalf("native run did not return: PC/SP %04x/%04x\n%s", regs.PC, regs.SP, asm)
+		}
+		if got := mem[a.Symbols["out"]]; got != want {
+			t.Fatalf("native in=%#x got %d want %d\n%s", in, got, want, asm)
+		}
 	}
 }

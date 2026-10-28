@@ -25,7 +25,24 @@ func TestReadmissionCLIWeightedNative(t *testing.T) {
 	importer, compiler := filepath.Join(dir, "importer"), filepath.Join(dir, "mz")
 	run("go", "build", "-o", importer, ".")
 	run("go", "build", "-o", compiler, "../minzc")
-	source := "../../../docs/grace-real-leaf-local-tables/caller-harness.nanz"
+	// The frozen harness returns `heavy + light`, whose constant RHS is served
+	// from an immediate and rematerialised (F6).  That moves weighted's
+	// parameter off A, which leaves every proposal in the frozen table
+	// inadmissible — the op chain starts with x+x, expressible only from A.
+	// Keep the constant on the left so the saved allocation is still a valid
+	// proposal for the corpus it was measured on.
+	harness, err := os.ReadFile("../../../docs/grace-real-leaf-local-tables/caller-harness.nanz")
+	if err != nil {
+		t.Fatal(err)
+	}
+	swapped := strings.Replace(string(harness), "return heavy + light", "return light + heavy", 1)
+	if swapped == string(harness) {
+		t.Fatal("frozen harness no longer contains 'return heavy + light'")
+	}
+	source := filepath.Join(dir, "caller-harness.nanz")
+	if err := os.WriteFile(source, []byte(swapped), 0644); err != nil {
+		t.Fatal(err)
+	}
 	proposals := "../../../docs/grace-real-leaf-local-tables/caller-table.json"
 	table, evidence, assembly := filepath.Join(dir, "table.json"), filepath.Join(dir, "evidence.json"), filepath.Join(dir, "selected.a80")
 	run(importer, "--source", source, "--checked-proposals", proposals, "--proposal-limit", "1", "--out", table, "--evidence", evidence)

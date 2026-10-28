@@ -189,7 +189,7 @@ func PBQPAllocate(f *Func, lr *LivenessResult, ct CostTable) *AllocResult {
 	}
 	var remat map[Reg]bool
 	if constRematSupported(ct) && funcHasConstDefs(f) {
-		remat = constRematCandidates(f, pbqpSolve(f, lr, ct, nil))
+		remat = constRematCandidates(f, pbqpSolve(f, lr, ct, nil), lr)
 	}
 	for {
 		ar := pbqpSolve(f, lr, ct, remat)

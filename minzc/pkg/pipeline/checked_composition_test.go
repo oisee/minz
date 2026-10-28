@@ -184,18 +184,35 @@ func checkedCompositionWeightedNativeCaller(t *testing.T, moves bool) {
 	checkedCompositionWeightedNativeCallerMode(t, moves, false)
 }
 
-func checkedCompositionWeightedNativeCallerMode(t *testing.T, moves, automatic bool) {
+// weightedCorpusWithLiveConstant returns the 06_pbqp_weighted showcase corpus
+// plus a caller that keeps x live across the call, with the final expression
+// rewritten from `heavy + light` to `light + heavy`.
+//
+// `heavy + light` is an add whose constant RHS is served from an immediate, so
+// F6 rematerialises the constant instead of reserving a register for it.  That
+// is a strict improvement to the ordinary allocation — the parameter moves back
+// to A and the function needs no table — but it also leaves every checked local
+// table proposal inadmissible for this corpus (the op chain starts with x+x,
+// which the pattern set can only express from A).  Keeping the constant on the
+// left preserves a use that must hold a register, so the corpus still exercises
+// what these table tests exist to measure: a hand- or solver-chosen allocation
+// beating the ordinary one.
+func weightedCorpusWithLiveConstant(t *testing.T) string {
 	t.Helper()
 	source, err := os.ReadFile("../../../examples/nanz/06_pbqp_weighted.nanz")
 	if err != nil {
 		t.Fatal(err)
 	}
-	// The showcase source returns heavy + light, whose constant RHS is
-	// rematerialised (F6) and no longer reserves a register, which makes the
-	// ordinary allocation optimal for this function.  Swapping the final
-	// operand keeps a register-needing constant use, so the composed table
-	// still has something to beat.
-	text := strings.Replace(string(source), "return heavy + light", "return light + heavy", 1) + "\nfun weighted_caller(x:u8)->u8 { return weighted(x)+x }\n"
+	replaced := strings.Replace(string(source), "return heavy + light", "return light + heavy", 1)
+	if replaced == string(source) {
+		t.Fatal("showcase source no longer contains 'return heavy + light'")
+	}
+	return replaced + "\nfun weighted_caller(x:u8)->u8 { return weighted(x)+x }\n"
+}
+
+func checkedCompositionWeightedNativeCallerMode(t *testing.T, moves, automatic bool) {
+	t.Helper()
+	text := weightedCorpusWithLiveConstant(t)
 	for _, strategy := range []string{"greedy", "pbqp"} {
 		for _, grace := range []bool{false, true} {
 			opts := Options{OptSize: true, AssertMode: "none", ContractOpt: true, ContractStrategy: strategy, UseGrace: grace, UseHIRGrace: grace}

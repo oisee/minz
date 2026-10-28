@@ -35,11 +35,7 @@ func TestSavedWeightedReadmissionContractGraceMatrix(t *testing.T) {
 
 func testSavedWeightedReadmission(t *testing.T, opts Options) {
 	t.Helper()
-	src, err := os.ReadFile("../../../examples/nanz/06_pbqp_weighted.nanz")
-	if err != nil {
-		t.Fatal(err)
-	}
-	text := string(src) + "\nfun weighted_caller(x:u8)->u8{return weighted(x)+x}\n"
+	text := weightedCorpusWithLiveConstant(t)
 	var saved vir.RegAllocTable
 	saved.Init()
 	if err := saved.Load("../../../docs/grace-real-leaf-local-tables/caller-table.json"); err != nil {
