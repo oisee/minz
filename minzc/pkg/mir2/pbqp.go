@@ -109,6 +109,13 @@ func nodeCosts(f *Func, info map[Reg]RegInfo, ct CostTable, locs []PhysLoc) map[
 					useCount[a]++ // call arg use
 				}
 			}
+			if inst.Asm != nil {
+				for _, r := range inst.Asm.Ins {
+					if r != NoReg {
+						useCount[r]++ // inline-asm input use
+					}
+				}
+			}
 		}
 		if b.Term != nil {
 			for _, r := range b.Term.termUses() {

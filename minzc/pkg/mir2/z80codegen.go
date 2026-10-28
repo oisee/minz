@@ -990,6 +990,17 @@ func computeDeadConsts(f *Func, ar *AllocResult) map[Reg]bool {
 					// call args are never peephole-foldable
 				}
 			}
+			// Inline-asm inputs live in inst.Asm.Ins, which Inst.Uses() reads but
+			// the Src/Args walk above does not. The template reads the allocated
+			// physical register directly, so such a use is never immediate-served
+			// and its LD must not be suppressed.
+			if inst.Asm != nil {
+				for _, src := range inst.Asm.Ins {
+					if _, isConst := constVal[src]; isConst {
+						totalUses[src]++
+					}
+				}
+			}
 			for operand, src := range inst.Src {
 				cv, isConst := constVal[src]
 				if !isConst {
@@ -1414,13 +1425,15 @@ func (g *z80cg) genBlock(f *Func, b *Block) {
 	g.scanBitCmpPatterns(b)
 	g.scanShiftCarryPattern(b)
 
+	// Pre-scan: detect u8 load-modify-store bit updates so Store can emit
+	// SET/RES directly on memory and skip the intermediate Load/ALU regs.
+	// Runs before the global-field scan so that scan can leave a fused store
+	// to the bit emitter instead of claiming it with a direct-address path.
+	g.scanBitStorePatterns(b)
+
 	// Pre-scan: identify global struct field accesses so we can emit
 	// LD A,(sym__field) / LD (sym__field),A instead of LD HL,sym + INC HL… + LD A,(HL).
 	g.scanGlobalFieldPatterns(b)
-
-	// Pre-scan: detect u8 load-modify-store bit updates so Store can emit
-	// SET/RES directly on memory and skip the intermediate Load/ALU regs.
-	g.scanBitStorePatterns(b)
 
 	// Pre-scan: detect ptr_add+load patterns where the base (ptr) is in HL
 	// and must survive across the instruction (e.g. in a loop).  Arranges
