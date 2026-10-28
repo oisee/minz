@@ -369,13 +369,7 @@ func setupCPMBDOS(z80 *emulator.RemogattoZ80WithScreen) {
 	// Resolve CP/M file directory — same dir as the binary being executed.
 	// We find the .com file argument by looking for a path that exists.
 	cpmDir := "."
-	if cpmDirOverride != "" {
-		cpmDir = cpmDirOverride
-	}
 	for _, arg := range os.Args[1:] {
-		if cpmDirOverride != "" {
-			break
-		}
 		if strings.HasSuffix(strings.ToLower(arg), ".com") || strings.HasSuffix(strings.ToLower(arg), ".bin") {
 			d := filepath.Dir(arg)
 			if d != "" && d != "." {
@@ -431,9 +425,6 @@ func setupCPMBDOS(z80 *emulator.RemogattoZ80WithScreen) {
 	z80.SetBDOSHandler(func(function byte, de uint16) (a byte, hl uint16, handled bool) {
 		if verbose {
 			fmt.Fprintf(os.Stderr, "[BDOS %02X DE=%04X]\n", function, de)
-		}
-		if a, hl, ok := cpm3BDOS(z80, function, de); ok {
-			return a, hl, true
 		}
 		switch function {
 		case 0x00: // System reset (warm boot)

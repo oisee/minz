@@ -36,7 +36,7 @@ func runCPM3Job(t *testing.T, job string) uint16 {
 	if err := os.WriteFile(path, []byte(job), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	t.Cleanup(func() { cpm3, cpmDirOverride = nil, "" })
+	t.Cleanup(func() { cpm3 = nil })
 	code, err := runSubmit(path)
 	if err != nil {
 		t.Fatal(err)

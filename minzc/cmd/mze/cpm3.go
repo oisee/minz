@@ -36,10 +36,6 @@ type cpm3State struct {
 // cpm3 is non-nil only inside `mze submit`.
 var cpm3 *cpm3State
 
-// cpmDirOverride replaces the CP/M file directory normally derived from the
-// .COM argument; the SUBMIT runner sets it to the job file's directory.
-var cpmDirOverride string
-
 // cpm3BDOS handles the CP/M 3 functions when the SUBMIT runner is active.
 func cpm3BDOS(z80 *emulator.RemogattoZ80WithScreen, function byte, de uint16) (byte, uint16, bool) {
 	if cpm3 == nil {
@@ -74,6 +70,34 @@ func cpm3BDOS(z80 *emulator.RemogattoZ80WithScreen, function byte, de uint16) (b
 	return 0, 0, false
 }
 
+// trapCPM3BDOS serves P_CODE and P_CHAIN before the CP/M 2.2 handler in
+// main.go sees them. The emulator checks its T-state trap after every
+// instruction and its BDOS intercept before the next one, so a trap re-armed
+// one T-state ahead sees each CALL 5 first and returns like the intercept.
+// Keeping the hook here leaves main.go, which frozen Autosiril evidence pins,
+// unchanged.
+func trapCPM3BDOS(z80 *emulator.RemogattoZ80WithScreen) {
+	cpu := z80.RemogattoZ80
+	var trap func(int64)
+	trap = func(now int64) {
+		defer cpu.SetTStateTrap(now+1, trap)
+		r := cpu.GetRegisters()
+		if r.PC != 0x0005 {
+			return
+		}
+		a, hl, ok := cpm3BDOS(z80, byte(r.BC), r.DE)
+		if !ok {
+			return
+		}
+		r.A, r.HL = a, hl
+		ret := uint16(z80.ReadMemory(r.SP+1))<<8 | uint16(z80.ReadMemory(r.SP))
+		r.SP += 2
+		r.PC = ret
+		cpu.SetRegisters(r)
+	}
+	cpu.SetTStateTrap(1, trap)
+}
+
 // runCPM3Command loads NAME.COM from dir and runs it with the given tail,
 // like the CCP: the command tail goes to 80h as a length byte plus text.
 func runCPM3Command(dir, command string, resetCode bool) error {
@@ -103,6 +127,7 @@ func runCPM3Command(dir, command string, resetCode bool) error {
 	z80 := emulator.NewRemogattoZ80WithScreen()
 	setExecutionLimit(z80.RemogattoZ80, timeout)
 	setupCPMBDOS(z80)
+	trapCPM3BDOS(z80)
 	tail := strings.ToUpper(strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(command), fields[0])))
 	if tail != "" {
 		tail = " " + tail
@@ -144,7 +169,16 @@ func runSubmit(path string) (uint16, error) {
 	if err != nil {
 		return 0, err
 	}
-	cpmDirOverride = dir
+	// setupCPMBDOS serves files from the current directory when no .COM is
+	// named on the command line, so run the job from its own directory.
+	cwd, err := os.Getwd()
+	if err != nil {
+		return 0, err
+	}
+	if err := os.Chdir(dir); err != nil {
+		return 0, err
+	}
+	defer os.Chdir(cwd)
 	cpm3 = &cpm3State{}
 	scanner := bufio.NewScanner(f)
 	for scanner.Scan() {
