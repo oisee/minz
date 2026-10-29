@@ -266,7 +266,28 @@ func remapInst(inst *Inst, regMap map[Reg]Reg) *Inst {
 			ni.ExtraRets[i] = remapReg(r, regMap)
 		}
 	}
+	// An inline-asm template names its operand registers by position, so a
+	// remapped copy must rename them too — and must not share the AsmExtra with
+	// the original, whose Ins/Outs are still the unmapped registers.
+	if inst.Asm != nil && (len(inst.Asm.Ins) > 0 || len(inst.Asm.Outs) > 0) {
+		clone := *inst.Asm
+		clone.Ins = remapRegs(inst.Asm.Ins, regMap)
+		clone.Outs = remapRegs(inst.Asm.Outs, regMap)
+		ni.Asm = &clone
+	}
 	return &ni
+}
+
+// remapRegs returns a copy of regs with every entry substituted via regMap.
+func remapRegs(regs []Reg, regMap map[Reg]Reg) []Reg {
+	if len(regs) == 0 {
+		return nil
+	}
+	out := make([]Reg, len(regs))
+	for i, r := range regs {
+		out[i] = remapReg(r, regMap)
+	}
+	return out
 }
 
 // remapReg returns the mapped register, or r itself if not in regMap.

@@ -514,6 +514,17 @@ func compileMIRProductSteps(hm *hir.Module, opt Options, s Steps, splitInfo map[
 		mir2.FoldConditionalCalls(f)
 	}
 
+	// Inline compare-and-select callbacks (`if x > a { return x } return a`).
+	// Those bodies are multi-block, so InlineTrivial refuses them and a fused
+	// fold would pay PUSH/PUSH/CALL/POP/POP per element.  Runs before Verify so
+	// a malformed rewrite fails compilation instead of reaching codegen.
+	if mir2.InlineCompareSelect(m, inlineStats.KeepCallers, opt.variantInlinedCallers) {
+		for _, f := range m.Funcs {
+			mir2.PropagateCopies(f)
+			mir2.DeadStoreElim(f)
+		}
+	}
+
 	s.MIR2Opt = m.Dump()
 	s.MIR2Module = m
 
@@ -818,6 +829,16 @@ func CompileHIRWithOptions(hm *hir.Module, opts Options) (string, error) {
 		}
 		if opts.Backend == "" || opts.Backend == "z80" {
 			mir2.PackBytePairs(f)
+		}
+	}
+
+	// Compare-and-select callbacks (see compileMIRProductSteps).  The legacy
+	// path never runs CondRetSink, so the plain branch+ret shape is what the
+	// matcher sees here.
+	if mir2.InlineCompareSelect(m, nil, nil) {
+		for _, f := range m.Funcs {
+			mir2.PropagateCopies(f)
+			mir2.DeadStoreElim(f)
 		}
 	}
 
