@@ -391,13 +391,33 @@ func PreallocCoalesce(f *Func) PreallocCoalesceMap {
 		for i := range b.Params {
 			b.Params[i].Dst = mapReg(b.Params[i].Dst)
 		}
-		// Remap instruction operands.
+		// Remap instruction operands.  This is RenumberRegs' apply phase: the
+		// two must stay in step, since a list only one of them visits is a
+		// register that stops matching its definition.
 		for _, inst := range b.Insts {
 			inst.Dst = mapReg(inst.Dst)
 			inst.Src[0] = mapReg(inst.Src[0])
 			inst.Src[1] = mapReg(inst.Src[1])
+			// Metadata registers need a consistent mapping even when their
+			// executable definitions were eliminated after fusion.
+			for _, d := range inst.SequentialAddressDefs {
+				if d != nil {
+					d.Dst = mapReg(d.Dst)
+					d.Src[0] = mapReg(d.Src[0])
+					d.Src[1] = mapReg(d.Src[1])
+				}
+			}
+			for _, o := range inst.SequentialByteOrigins {
+				if o != nil {
+					o.Src[0] = mapReg(o.Src[0])
+				}
+			}
 			mapSlice(inst.Args)
 			mapSlice(inst.ExtraRets)
+			if inst.Asm != nil {
+				mapSlice(inst.Asm.Ins)
+				mapSlice(inst.Asm.Outs)
+			}
 		}
 		// Remap terminators.
 		if b.Term != nil {

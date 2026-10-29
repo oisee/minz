@@ -361,21 +361,9 @@ func PropagateCopies(f *Func) bool {
 	// Rewrite instruction operands.
 	for _, b := range f.Blocks {
 		for _, inst := range b.Insts {
-			for i, s := range inst.Src {
-				if s == NoReg {
-					continue
-				}
-				if r := resolve(s); r != s {
-					inst.Src[i] = r
-					changed = true
-				}
-			}
-			for i, a := range inst.Args {
-				if a == NoReg {
-					continue
-				}
-				if r := resolve(a); r != a {
-					inst.Args[i] = r
+			for _, u := range inst.Uses() {
+				if r := resolve(u); r != u {
+					inst.ReplaceUse(u, r)
 					changed = true
 				}
 			}

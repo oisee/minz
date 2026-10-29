@@ -151,6 +151,25 @@ type AsmExtra struct {
 	Effects []z80effects.Effect
 }
 
+// WritesFlags reports whether the template may leave the CPU flags holding
+// something other than what the compiler last put there.  The declared clobber
+// set decides when it names the flag class; the per-instruction effects catch a
+// declaration narrower than the template's real writes.
+func (a *AsmExtra) WritesFlags() bool {
+	if a == nil {
+		return false
+	}
+	if a.Clobbers.Has(ClassFlag) {
+		return true
+	}
+	for _, e := range a.Effects {
+		if !e.Known || e.Writes&z80effects.F != 0 {
+			return true
+		}
+	}
+	return false
+}
+
 // ── Use/def analysis ─────────────────────────────────────────────────────────
 
 // Uses returns all Reg values *read* by this instruction (Dst excluded).
@@ -198,6 +217,32 @@ func filterNoReg(regs ...Reg) []Reg {
 		}
 	}
 	return out
+}
+
+// ReplaceUse substitutes new for old in every operand list Uses() reports.
+// Definitions (Dst, ExtraRets, Asm.Outs) are not touched: a use that has been
+// renamed still reads the same value.
+func (inst *Inst) ReplaceUse(old, new Reg) {
+	if old == new {
+		return
+	}
+	for i := range inst.Src {
+		if inst.Src[i] == old {
+			inst.Src[i] = new
+		}
+	}
+	for i := range inst.Args {
+		if inst.Args[i] == old {
+			inst.Args[i] = new
+		}
+	}
+	if inst.Asm != nil {
+		for i := range inst.Asm.Ins {
+			if inst.Asm.Ins[i] == old {
+				inst.Asm.Ins[i] = new
+			}
+		}
+	}
 }
 
 // ── Terminators ───────────────────────────────────────────────────────────────

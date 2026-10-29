@@ -40,6 +40,8 @@ func localInlineCSE(m *Module, f *Func) {
 			for i, r := range x.Args {
 				x.Args[i] = resolve(r)
 			}
+			// Asm.Ins needs no substitution here: wordMaskFlagsUnobserved
+			// above rejects any function containing OpAsm before this loop.
 			if x.Op == OpMove && !x.ClsHard {
 				copies[x.Dst] = x.Src[0]
 				continue

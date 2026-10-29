@@ -118,7 +118,12 @@ func deduplicatePtrAddsInBlock(f *Func, b *Block, ptrKey string) int {
 	return replaced
 }
 
-// replaceSrc replaces occurrences of old with new in inst's Src slots.
+// replaceSrc replaces occurrences of old with new in inst's Src slots only.
+// It deliberately skips Args and Asm.Ins: deduplicatePtrAddsInBlock turns the
+// duplicate ptr_add into `OpMove keep → old` rather than deleting it, so a use
+// it misses still reads a live definition holding the same value and costs an
+// instruction, not a wrong one. Changing the caller to drop the definition
+// would make that a dangling operand — use Inst.ReplaceUse there instead.
 func replaceSrc(inst *Inst, old, new Reg) {
 	if inst.Src[0] == old {
 		inst.Src[0] = new
