@@ -2,12 +2,12 @@
 @media(max-width:1000px){.layout{grid-template-columns:minmax(0,1fr);max-width:900px}.toc{position:static;max-height:none;display:none}.hero{max-width:900px;padding-top:42px}.hero h1{font-size:43px}.cards{grid-template-columns:1fr}.card{padding:26px}.status{grid-template-columns:1fr}.card h2{font-size:27px}}
 @media(max-width:600px){body{font-size:17px;line-height:1.75}.sitebar{padding:12px 20px}.sitebar nav{gap:12px;font-size:12px}.hero{padding:32px 20px 27px}.hero h1{font-size:33px;letter-spacing:-.035em}.hero p{font-size:19px}.layout{padding:0 12px 45px}.layout article{padding:23px 20px;border-radius:15px}article h2{font-size:25px}pre{margin:22px -8px;padding:17px;font-size:12px}.diagram{margin:25px -10px;padding:10px}.diagram-viewport{padding:10px 0}footer{padding:0 24px 32px}.index-content{padding:0 20px 40px}.controls{grid-template-columns:1fr}.cards{gap:15px}.playground{padding:18px}}
 @media print{body{background:white;font-size:11pt}.sitebar,.toc,.progress,.playground,.next{display:none}.layout{display:block;padding:0}.hero{padding:0 0 20px}.hero h1{font-size:28pt}article{border:0;box-shadow:none;padding:0}.diagram{break-inside:avoid}.diagram-viewport{overflow:visible}.diagram-viewport img{max-width:100%!important;width:100%!important}.diagram details{display:none}a{color:inherit}pre{white-space:pre-wrap;color:#17313b;background:#f1f4ee}footer{padding:20px 0}}
-</style></head><body><div class="progress" aria-hidden="true"></div><header class="sitebar"><a class="brand" href="index.html">MinZ / Дневник</a><nav><a href="01-languages-and-ideas.html">Языки</a><a href="02-melody-between-two-files.html">Музыка</a><a href="03-borrowing-without-a-runtime.html">Экосистемы</a><a href="04-four-rows-for-a-melody.html">Downmix</a><a href="https://github.com/oisee/minz">GitHub</a></nav></header><div class="hero"><div class="eyebrow">День компилятора · Глава 08</div><h1>Последняя миля fusion</h1><p>Глава сессии minz: почему слитый цикл вдвое медленнее SDCC, анатомия одной итерации, F4 и отрицательный контроль.</p><div class="meta"><span class="pill">≈ 12 мин</span><span class="pill cream">1 Mermaid-схем</span><span class="pill">Ruby · Crystal · Nanz · Z80</span></div></div><main class="layout"><aside class="toc" aria-label="Содержание"><strong>В этой главе</strong><a class="" href="#как-мы-считаем">Как мы считаем</a><a class="" href="#анатомия-одной-итерации">Анатомия одной итерации</a><a class="" href="#откуда-берутся-потери">Откуда берутся потери</a><a class="sub" href="#f1-лямбду-встроили-но-не-везде">F1. Лямбду встроили, но не
+</style></head><body><div class="progress" aria-hidden="true"></div><header class="sitebar"><a class="brand" href="index.html">MinZ / Дневник</a><nav><a href="01-languages-and-ideas.html">Языки</a><a href="02-melody-between-two-files.html">Музыка</a><a href="03-borrowing-without-a-runtime.html">Экосистемы</a><a href="04-four-rows-for-a-melody.html">Downmix</a><a href="https://github.com/oisee/minz">GitHub</a></nav></header><div class="hero"><div class="eyebrow">День компилятора · Глава 08</div><h1>Последняя миля fusion</h1><p>Глава сессии minz: почему слитый цикл вдвое медленнее SDCC, анатомия одной итерации, F4 и отрицательный контроль.</p><div class="meta"><span class="pill">≈ 15 мин</span><span class="pill cream">1 Mermaid-схем</span><span class="pill">Ruby · Crystal · Nanz · Z80</span></div></div><main class="layout"><aside class="toc" aria-label="Содержание"><strong>В этой главе</strong><a class="" href="#как-мы-считаем">Как мы считаем</a><a class="" href="#анатомия-одной-итерации">Анатомия одной итерации</a><a class="" href="#откуда-берутся-потери">Откуда берутся потери</a><a class="sub" href="#f1-лямбду-встроили-но-не-везде">F1. Лямбду встроили, но не
 везде</a><a class="sub" href="#f3-цикл-не-знает-что-k-не-меняется">F3. Цикл не знает, что k не
 меняется</a><a class="sub" href="#f5-callback-из-нескольких-блоков">F5. Callback из нескольких
 блоков</a><a class="sub" href="#f6-регистры-занятые-константами">F6. Регистры, занятые
 константами</a><a class="" href="#f4-первый-закрытый-шаг">F4: первый закрытый шаг</a><a class="" href="#тест-который-проверяет-что-оптимизация-не-сработала">Тест,
-который проверяет, что оптимизация не сработала</a><a class="" href="#дальше-таблица-вместо-цикла">Дальше: таблица вместо цикла</a><a class="" href="#хватит-ли-этого">Хватит ли этого</a><a class="" href="#почему-последняя-миля">Почему «последняя миля»</a></aside><article><p><em>Слияние цепочки итераторов в один цикл у MinZ работает. Почему
+который проверяет, что оптимизация не сработала</a><a class="" href="#дальше-таблица-вместо-цикла">Дальше: таблица вместо цикла</a><a class="" href="#хватит-ли-этого">Хватит ли этого</a><a class="" href="#что-получилось-на-самом-деле">Что получилось на самом деле</a><a class="" href="#почему-последняя-миля">Почему «последняя миля»</a></aside><article><p><em>Слияние цепочки итераторов в один цикл у MinZ работает. Почему
 тогда цикл вдвое медленнее, чем у SDCC, который сливать цепочки не
 умеет, и как это лечится по одному такту.</em></p>
 <blockquote>
@@ -43,7 +43,7 @@ Nanz не медленнее лучшего SDCC и не больше чем в�
 кода.</p>
 <table>
 <thead>
-<tr>
+<tr class="header">
 <th>Кейс</th>
 <th style="text-align: right;">Nanz, T</th>
 <th style="text-align: right;">SDCC, T</th>
@@ -52,63 +52,63 @@ Nanz не медленнее лучшего SDCC и не больше чем в�
 </tr>
 </thead>
 <tbody>
-<tr>
+<tr class="odd">
 <td>dot_product</td>
 <td style="text-align: right;">8 028 801</td>
 <td style="text-align: right;">2 834 057</td>
 <td style="text-align: right;">2 695 436</td>
 <td style="text-align: right;">2.83</td>
 </tr>
-<tr>
+<tr class="even">
 <td>filter_count</td>
 <td style="text-align: right;">4 088 375</td>
 <td style="text-align: right;">1 818 220</td>
 <td style="text-align: right;">682 705</td>
 <td style="text-align: right;">2.25</td>
 </tr>
-<tr>
+<tr class="odd">
 <td>fold_min</td>
 <td style="text-align: right;">1 121 667</td>
 <td style="text-align: right;">558 391</td>
 <td style="text-align: right;">225 706</td>
 <td style="text-align: right;">2.01</td>
 </tr>
-<tr>
+<tr class="even">
 <td>filter_map_sum</td>
 <td style="text-align: right;">1 237 724</td>
 <td style="text-align: right;">626 142</td>
 <td style="text-align: right;">280 890</td>
 <td style="text-align: right;">1.98</td>
 </tr>
-<tr>
+<tr class="odd">
 <td>map_filter_sum</td>
 <td style="text-align: right;">1 979 597</td>
 <td style="text-align: right;">1 014 504</td>
 <td style="text-align: right;">349 042</td>
 <td style="text-align: right;">1.95</td>
 </tr>
-<tr>
+<tr class="even">
 <td>fold_max</td>
 <td style="text-align: right;">1 120 286</td>
 <td style="text-align: right;">578 293</td>
 <td style="text-align: right;">221 379</td>
 <td style="text-align: right;">1.94</td>
 </tr>
-<tr>
+<tr class="odd">
 <td>map_store</td>
 <td style="text-align: right;">438 350</td>
 <td style="text-align: right;">662 995</td>
 <td style="text-align: right;">230 310</td>
 <td style="text-align: right;">0.66</td>
 </tr>
-<tr>
+<tr class="even">
 <td>window_sum</td>
 <td style="text-align: right;">430 573</td>
 <td style="text-align: right;">1 142 715</td>
 <td style="text-align: right;">269 353</td>
 <td style="text-align: right;">0.38</td>
 </tr>
-<tr>
+<tr class="odd">
 <td><strong>Итого</strong></td>
 <td style="text-align: right;"><strong>18 445 373</strong></td>
 <td style="text-align: right;"><strong>9 235 317</strong></td>
@@ -158,25 +158,25 @@ next: DJNZ loop</code></pre>
 проигрывающих кейсов и сложил потери по причинам.</p>
 <table>
 <thead>
-<tr>
+<tr class="header">
 <th>Причина (категория F0)</th>
 <th style="text-align: right;">Лишние такты на наборе</th>
 </tr>
 </thead>
 <tbody>
-<tr>
+<tr class="odd">
 <td>F3 · инвариант в цикле</td>
 <td style="text-align: right;">3.11M</td>
 </tr>
-<tr>
+<tr class="even">
 <td>F4 · умножение ×16</td>
 <td style="text-align: right;">2.52M</td>
 </tr>
-<tr>
+<tr class="odd">
 <td>F1 · bool через память</td>
 <td style="text-align: right;">2.34M</td>
 </tr>
-<tr>
+<tr class="even">
 <td>F5 · CALL в fold</td>
 <td style="text-align: right;">1.57M</td>
 </tr>
@@ -294,24 +294,24 @@ next: DJNZ loop</code></pre>
 тела.</em></p>
 <table>
 <thead>
-<tr>
+<tr class="header">
 <th>dot_product</th>
 <th style="text-align: right;">T</th>
 <th style="text-align: right;">байты</th>
 </tr>
 </thead>
 <tbody>
-<tr>
+<tr class="odd">
 <td>main</td>
 <td style="text-align: right;">8 028 801</td>
 <td style="text-align: right;">668</td>
 </tr>
-<tr>
+<tr class="even">
 <td>8 итераций</td>
 <td style="text-align: right;">5 506 401</td>
 <td style="text-align: right;">—</td>
 </tr>
-<tr>
+<tr class="odd">
 <td>8 итераций + тело на DJNZ</td>
 <td style="text-align: right;">5 007 176</td>
 <td style="text-align: right;">664</td>
@@ -351,22 +351,25 @@ SDCC. У z80-optimizer есть таблицы оптимального умно
 </blockquote>
 <p>Для байтов <code>a + b</code> не больше 510, значит таблица
 <code>sq</code> — 511 значений по 16 бит, около килобайта. Умножение
-превращается в сложение, вычитание, модуль и две выборки из таблицы. По
-оценке это 60–80 тактов против нынешних примерно 400 у
-восьмиитерационного цикла. Формула точная: <code>(a+b)²</code> и
-<code>(a−b)²</code> имеют одинаковую чётность, поэтому округление вниз в
-обоих членах сокращается.</p>
-<p>Килобайт таблицы — цена, которую имеет смысл платить только в
-speed-режиме и только для умножения в горячем цикле. В
+превращается в сложение, вычитание, модуль и две выборки из таблицы.
+Первая оценка была 60–80 тактов, и она оказалась слишком оптимистичной:
+реальное ядро, которое написал и посчитал воркер F4b, занимает 185
+тактов при a ≥ b и 188 при a &lt; b. Это всё равно вдвое быстрее
+восьмиитерационного цикла, который стоит 399–447 тактов. Формула точная:
+<code>(a+b)²</code> и <code>(a−b)²</code> имеют одинаковую чётность,
+поэтому округление вниз в обоих членах сокращается.</p>
+<p>Килобайт таблицы (1022 байта) — цена, которую имеет смысл платить
+только в speed-режиме и только для умножения в горячем цикле. В
 <code>--Osize</code> остаётся цикл. Проверка опять полная, по всем 65
-536 парам: на CPU это секунды, GPU не нужен. Это шаг F4b, он идёт сразу
-после слияния F4, потому что обе правки трогают один файл.</p>
+536 парам: на CPU это секунды, GPU не нужен. Это шаг F4b (<a
+href="https://github.com/oisee/minz/pull/281">#281</a>):
+<code>dot_product</code> 5.01M → 3.59M T.</p>
 <h2 id="хватит-ли-этого">Хватит ли этого</h2>
 <p>F0 посчитал прогноз: каждую категорию потерь заменил остаточной ценой
 цикла, которую уже показывают выигрывающие кейсы на том же скелете.</p>
 <table>
 <thead>
-<tr>
+<tr class="header">
 <th>Кейс</th>
 <th style="text-align: right;">сейчас, T</th>
 <th style="text-align: right;">прогноз F1+F3+F4+F5</th>
@@ -374,55 +377,55 @@ speed-режиме и только для умножения в горячем �
 </tr>
 </thead>
 <tbody>
-<tr>
+<tr class="odd">
 <td>fold_max</td>
 <td style="text-align: right;">1 120 286</td>
 <td style="text-align: right;">333 087</td>
 <td style="text-align: right;">0.58</td>
 </tr>
-<tr>
+<tr class="even">
 <td>fold_min</td>
 <td style="text-align: right;">1 121 667</td>
 <td style="text-align: right;">336 898</td>
 <td style="text-align: right;">0.60</td>
 </tr>
-<tr>
+<tr class="odd">
 <td>filter_map_sum</td>
 <td style="text-align: right;">1 237 724</td>
 <td style="text-align: right;">407 253</td>
 <td style="text-align: right;">0.65</td>
 </tr>
-<tr>
+<tr class="even">
 <td>map_filter_sum</td>
 <td style="text-align: right;">1 979 597</td>
 <td style="text-align: right;">467 898</td>
 <td style="text-align: right;">0.46</td>
 </tr>
-<tr>
+<tr class="odd">
 <td>filter_count</td>
 <td style="text-align: right;">4 088 375</td>
 <td style="text-align: right;">977 571</td>
 <td style="text-align: right;">0.54</td>
 </tr>
-<tr>
+<tr class="even">
 <td>dot_product</td>
 <td style="text-align: right;">8 028 801</td>
 <td style="text-align: right;">5 506 401</td>
 <td style="text-align: right;">1.94</td>
 </tr>
-<tr>
+<tr class="odd">
 <td>map_store</td>
 <td style="text-align: right;">438 350</td>
 <td style="text-align: right;">438 350</td>
 <td style="text-align: right;">0.66</td>
 </tr>
-<tr>
+<tr class="even">
 <td>window_sum</td>
 <td style="text-align: right;">430 573</td>
 <td style="text-align: right;">430 573</td>
 <td style="text-align: right;">0.38</td>
 </tr>
-<tr>
+<tr class="odd">
 <td><strong>Итого</strong></td>
 <td style="text-align: right;"><strong>18 445 373</strong></td>
 <td style="text-align: right;"><strong>8 898 031</strong></td>
@@ -440,6 +443,156 @@ speed-режиме и только для умножения в горячем �
 <p>Отстающим остаётся <code>dot_product</code>. Его вытянут F6, который
 освободит регистры от констант и уберёт спиллы, и таблица квадратов из
 F4b.</p>
+<h2 id="что-получилось-на-самом-деле">Что получилось на самом деле</h2>
+<p>Прогноз выше — это F0, до единой строки кода. Ниже измерение: каждый
+этап цели F перемерен из своего коммита слияния на одном хосте (i10) с
+одной сборкой SDCC 4.6. «К SDCC» — сумма Nanz, делённая на сумму лучшего
+профиля SDCC по каждому кейсу.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Этап</th>
+<th>PR</th>
+<th style="text-align: right;">Nanz, T</th>
+<th style="text-align: right;">к SDCC</th>
+<th style="text-align: right;">к ручному asm</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>старт цели F</td>
+<td>—</td>
+<td style="text-align: right;">18 445 373</td>
+<td style="text-align: right;">2.00×</td>
+<td style="text-align: right;">3.72×</td>
+</tr>
+<tr class="even">
+<td>F4 · умножение DJNZ</td>
+<td><a href="https://github.com/oisee/minz/pull/277">#277</a></td>
+<td style="text-align: right;">15 423 748</td>
+<td style="text-align: right;">1.67×</td>
+<td style="text-align: right;">3.11×</td>
+</tr>
+<tr class="odd">
+<td>F1 · инлайн одновыражённых колбэков</td>
+<td><a href="https://github.com/oisee/minz/pull/278">#278</a></td>
+<td style="text-align: right;">13 087 084</td>
+<td style="text-align: right;">1.42×</td>
+<td style="text-align: right;">2.64×</td>
+</tr>
+<tr class="even">
+<td>F3 · вынос инвариантных загрузок</td>
+<td><a href="https://github.com/oisee/minz/pull/284">#284</a></td>
+<td style="text-align: right;">12 388 279</td>
+<td style="text-align: right;">1.34×</td>
+<td style="text-align: right;">2.50×</td>
+</tr>
+<tr class="odd">
+<td>F4b · таблица квадратов</td>
+<td><a href="https://github.com/oisee/minz/pull/281">#281</a></td>
+<td style="text-align: right;">10 972 368</td>
+<td style="text-align: right;">1.19×</td>
+<td style="text-align: right;">2.21×</td>
+</tr>
+<tr class="even">
+<td>F6 · рематериализация констант</td>
+<td><a href="https://github.com/oisee/minz/pull/285">#285</a></td>
+<td style="text-align: right;">7 615 908</td>
+<td style="text-align: right;">0.82×</td>
+<td style="text-align: right;">1.54×</td>
+</tr>
+<tr class="odd">
+<td>F5 · инлайн «сравни и выбери»</td>
+<td><a href="https://github.com/oisee/minz/pull/288">#288</a></td>
+<td style="text-align: right;"><strong>7 137 009</strong></td>
+<td style="text-align: right;"><strong>0.77×</strong></td>
+<td style="text-align: right;"><strong>1.44×</strong></td>
+</tr>
+</tbody>
+</table>
+<p>Цель F — не больше 1.0× от SDCC и не больше 2.0× от ручного кода —
+выполнена с запасом: 0.77× и 1.44×. Прогноз F0 был 0.96× и 1.80×.</p>
+<p>Прогноз ошибся в двух местах, и оба интересны. F6 F0 оценил скромно,
+в 0.5–0.8M T «самой по себе». На деле он дал 3.36M T, больше любой
+другой правки: регистры, освобождённые от констант, достались настоящим
+значениям сразу в нескольких кейсах, а не только в
+<code>dot_product</code>. А F5 F0 считал запасом, а не условием цели.
+Так и вышло, но его вклад меньше прогноза: 0.48M T вместо 1.57M. Вызов
+исчез, но аккумулятор свёртки PBQP положил в <code>IYH</code>, и около
+55 тактов на элемент до ручного кода осталось, уже не из-за вызова, а
+из-за выбора регистра.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Кейс</th>
+<th style="text-align: right;">Nanz сейчас, T</th>
+<th style="text-align: right;">к SDCC</th>
+<th style="text-align: right;">к ручному asm</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>dot_product</td>
+<td style="text-align: right;">2 922 800</td>
+<td style="text-align: right;">1.03</td>
+<td style="text-align: right;">1.08</td>
+</tr>
+<tr class="even">
+<td>fold_max</td>
+<td style="text-align: right;">510 661</td>
+<td style="text-align: right;">0.88</td>
+<td style="text-align: right;">2.31</td>
+</tr>
+<tr class="odd">
+<td>fold_min</td>
+<td style="text-align: right;">474 413</td>
+<td style="text-align: right;">0.85</td>
+<td style="text-align: right;">2.10</td>
+</tr>
+<tr class="even">
+<td>filter_count</td>
+<td style="text-align: right;">1 568 675</td>
+<td style="text-align: right;">0.86</td>
+<td style="text-align: right;">2.30</td>
+</tr>
+<tr class="odd">
+<td>filter_map_sum</td>
+<td style="text-align: right;">386 789</td>
+<td style="text-align: right;">0.62</td>
+<td style="text-align: right;">1.38</td>
+</tr>
+<tr class="even">
+<td>map_filter_sum</td>
+<td style="text-align: right;">492 188</td>
+<td style="text-align: right;">0.49</td>
+<td style="text-align: right;">1.41</td>
+</tr>
+<tr class="odd">
+<td>map_store</td>
+<td style="text-align: right;">353 430</td>
+<td style="text-align: right;">0.53</td>
+<td style="text-align: right;">1.53</td>
+</tr>
+<tr class="even">
+<td>window_sum</td>
+<td style="text-align: right;">428 053</td>
+<td style="text-align: right;">0.37</td>
+<td style="text-align: right;">1.59</td>
+</tr>
+</tbody>
+</table>
+<p>SDCC быстрее только на <code>dot_product</code>, на 3%. При этом
+<code>dot_product</code> ближе всех к ручному коду, 1.08×: проигрыш SDCC
+там уже не в цикле, а в цене самого умножения.</p>
+<p>По дороге нашлись четыре тихих miscompile, все на main и до цели F:
+тип глобала, объявленного позже использования (<a
+href="https://github.com/oisee/minz/pull/282">#282</a>); тип
+аккумулятора `fold`, усечённый до <code>u8</code> (<a
+href="https://github.com/oisee/minz/pull/283">#283</a>); константа,
+переданная в <code>asm</code>, которую никто не загружал, и битовая
+запись через указатель в <code>DE</code>, которая писала мусор (<a
+href="https://github.com/oisee/minz/pull/286">#286</a>). Каждый нашёл
+критик или воркер, проверявший чужую правку, а не фаззер.</p>
 <h2 id="почему-последняя-миля">Почему «последняя миля»</h2>
 <p>Ни одна из этих потерь не означает, что fusion устроен неправильно.
 Цепочка исчезла, цикл один, элементы читаются один раз. Это самая
@@ -461,7 +614,9 @@ HIR и MIR2, между MIR2 и аллокатором, между аллока�
 href="https://github.com/oisee/minz/pull/277">#277</a>, бенч
 <code>research/c89-benchmark/fusion</code> против SDCC 4.6. Код цели F
 пишут воркеры claude-z (GLM-5.3); менеджер проверяет, гоняет гейты и
-сливает. Цифры будут обновлены, когда F1 и F3 попадут в main.</em></p>
+сливает. Раздел «Что получилось на самом деле» добавлен 29 октября по
+замерам на i10; данные и график по этапам — на дашборде MinZ vs
+SDCC.</em></p>
 <div class="next"><a href="01-languages-and-ideas.html">Дальше: Ruby рассказывает, Z80 считает →</a></div></article></main><footer>26–27 октября 2026 · MinZ · Две главы подготовлены совместно с Astra. Работающие возможности, эксперименты и предложения различаются в тексте. <a href="README.md">Markdown и воспроизведение</a></footer><script>const progress=document.querySelector('.progress');
 function readingProgress(){const d=document.documentElement;const max=d.scrollHeight-d.clientHeight;if(progress)progress.style.width=(max>0?100*d.scrollTop/max:0)+'%'}
 addEventListener('scroll',readingProgress,{passive:true});readingProgress();

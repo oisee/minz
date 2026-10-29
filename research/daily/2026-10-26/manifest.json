@@ -47,9 +47,9 @@
     },
     {
       "slug": "08-last-mile-of-fusion",
-      "words_approx": 2362,
+      "words_approx": 2882,
       "diagrams": 1,
-      "reading_minutes_approx": 12
+      "reading_minutes_approx": 15
     }
   ],
   "diagrams": 31,
@@ -66,7 +66,7 @@
     "05-two-pages-for-one-song.md": "9cfd8cb145cd5e227f39c589e0fbd64205161c4b87a3483c675e1c2991f539bd",
     "06-two-compilers-one-repository.md": "cb4088ead2432d681e9c1925c64a95d0231ed52f49fa944a9ee053c3c6404cd7",
     "07-failure-at-sector-27.md": "e403761a5bf09ee7907b49822c0083a438b4d0742aa7bca70d119a2bf48fee7f",
-    "08-last-mile-of-fusion.md": "d00581e803cd2119afd9e42e0281d0963f038d31218129f1209d14238c737189",
+    "08-last-mile-of-fusion.md": "844eb568850cb461e7c6b674387700d33432193a29c992b2dd16395871a7c82d",
     "README.md": "d76008798fb0412011d7f25537df8666c4dacc06b0ed8a9f44491ab950c61419",
     "edition.json": "984307fc10cea162b3fc3fcf612758962a99e3af6743705365c870f528d6b630",
     "build.py": "3f0474963b5a10c192bdde854cdc4369f7446a13e445caa2dae79994b3d4085a",
@@ -81,7 +81,7 @@
     "05-two-pages-for-one-song.html": "03437ee651ce573cf04b1ad047d532b93f9ab738d2c67ce49a4b42526bcc50bc",
     "06-two-compilers-one-repository.html": "0af1822afbffaee00eecaddde410c29ef2926dc97a828d1b6337413a97636481",
     "07-failure-at-sector-27.html": "fb17a6cfc8f72163082d60af4a9b295212c939e461d329ab6bfb6b42f3e985a5",
-    "08-last-mile-of-fusion.html": "e9d8551eae7c7972812e8e6af311d57b0b847525f87b53834e7e450cf283b165",
+    "08-last-mile-of-fusion.html": "e7f8993a66bfe68f2392647ede9453d5398acac379d64e783af1f75231dd525c",
     "index.html": "8e638c0dce35cf6e939ad569992a8f55db1c0727b7ffec4579a05c0d11680dac"
   }
 }
