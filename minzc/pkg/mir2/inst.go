@@ -200,6 +200,32 @@ func filterNoReg(regs ...Reg) []Reg {
 	return out
 }
 
+// ReplaceUse substitutes new for old in every operand list Uses() reports.
+// Definitions (Dst, ExtraRets, Asm.Outs) are not touched: a use that has been
+// renamed still reads the same value.
+func (inst *Inst) ReplaceUse(old, new Reg) {
+	if old == new {
+		return
+	}
+	for i := range inst.Src {
+		if inst.Src[i] == old {
+			inst.Src[i] = new
+		}
+	}
+	for i := range inst.Args {
+		if inst.Args[i] == old {
+			inst.Args[i] = new
+		}
+	}
+	if inst.Asm != nil {
+		for i := range inst.Asm.Ins {
+			if inst.Asm.Ins[i] == old {
+				inst.Asm.Ins[i] = new
+			}
+		}
+	}
+}
+
 // ── Terminators ───────────────────────────────────────────────────────────────
 
 // Term is the mandatory terminator of a basic block.

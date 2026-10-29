@@ -155,8 +155,8 @@ func TestPropagateCopiesRemapsAsmIns(t *testing.T) {
 
 // TestReplaceRegInBlockRemovesEveryUse: the HIR-Grace versioned-pointer rule
 // deletes the defining ptr_add after this rewrite, so any operand class the
-// helper skips — call Args and inline-asm inputs both live outside Src — is
-// left naming a register with no definition.
+// helper skips — call Args, inline-asm inputs, or a terminator it does not
+// switch on — is left naming a register with no definition.
 func TestReplaceRegInBlockRemovesEveryUse(t *testing.T) {
 	m := &Module{}
 	f := m.AddFunc("asmreplace")
@@ -177,7 +177,7 @@ func TestReplaceRegInBlockRemovesEveryUse(t *testing.T) {
 	replaceRegInBlock(body, 4, 9)
 	// Simulate the caller's next step: the definition is removed.
 	body.Insts = body.Insts[1:]
-	for _, want := range [][]Reg{body.Insts[0].Args, body.Insts[1].Asm.Ins} {
+	for _, want := range [][]Reg{body.Insts[0].Args, body.Insts[1].Asm.Ins, body.Term.(*TermRet).Vals} {
 		for _, r := range want {
 			if r != 9 {
 				t.Fatalf("use not rewritten to the replacement register: %v", r)
@@ -186,5 +186,101 @@ func TestReplaceRegInBlockRemovesEveryUse(t *testing.T) {
 	}
 	if bad := asmOperandUndefined(f); len(bad) > 0 {
 		t.Fatalf("dangling operands after replaceRegInBlock: %v", bad)
+	}
+}
+
+// TestInstReplaceUseCoversEveryUseOperand: ReplaceUse must visit every operand
+// list Uses() reports, so a substitution cannot leave one behind. Each row
+// builds an instruction whose only uses are the list under test.
+func TestInstReplaceUseCoversEveryUseOperand(t *testing.T) {
+	cases := map[string]*Inst{
+		"src":      {Op: OpAdd, Src: [2]Reg{1, 2}},
+		"args":     {Op: OpCall, Args: []Reg{1, 2}},
+		"asm-ins":  {Op: OpAsm, Asm: &AsmExtra{Ins: []Reg{1, 2}}},
+		"all":      {Op: OpAsm, Src: [2]Reg{1, NoReg}, Args: []Reg{1}, Asm: &AsmExtra{Ins: []Reg{1}}},
+		"call-ind": {Op: OpCallIndirect, Src: [2]Reg{1, NoReg}, Args: []Reg{2}},
+	}
+	for name, inst := range cases {
+		inst.ReplaceUse(1, 9)
+		for _, u := range inst.Uses() {
+			if u == 1 {
+				t.Errorf("%s: %%r1 still a use after ReplaceUse (%v)", name, inst.Uses())
+			}
+		}
+	}
+	// Definitions are not uses and must not move, even when the same register
+	// is both this instruction's result and one of its asm inputs.
+	def := &Inst{Op: OpAsm, Dst: 1, ExtraRets: []Reg{1}, Asm: &AsmExtra{Ins: []Reg{1}, Outs: []Reg{1}}}
+	def.ReplaceUse(1, 9)
+	if def.Dst != 1 || def.ExtraRets[0] != 1 || def.Asm.Outs[0] != 1 {
+		t.Errorf("ReplaceUse rewrote a definition: Dst=%d ExtraRets=%v Outs=%v", def.Dst, def.ExtraRets, def.Asm.Outs)
+	}
+	if def.Asm.Ins[0] != 9 {
+		t.Errorf("asm input not substituted: %v", def.Asm.Ins)
+	}
+}
+
+// TestPropagateCopiesSubstitutesCondRetUses: TermCondRet reports Cond, Vals and
+// ThenArgs as uses, so a copy propagation that reports a substitution must
+// actually perform it there.
+func TestPropagateCopiesSubstitutesCondRetUses(t *testing.T) {
+	m := &Module{}
+	f := m.AddFunc("condretcopy")
+	f.Contract.Returns = []Return{{Ty: TyU8, Class: ClassAcc}}
+	b := f.NewBlock("entry")
+	b.Insts = []*Inst{
+		{Op: OpConst, Dst: 1, Ty: TyU8, Imm: 7},
+		{Op: OpMove, Dst: 2, Ty: TyU8, Src: [2]Reg{1, NoReg}},
+	}
+	b.Term = &TermCondRet{Cond: 2, Vals: []Reg{2}, Then: "other", ThenArgs: []Reg{2}}
+	o := f.NewBlock("other")
+	o.Params = []BlockParam{{Dst: 3, Ty: TyU8, Class: ClassGeneral}}
+	o.Term = &TermRet{Vals: []Reg{3}}
+	if err := Verify(m); err != nil {
+		t.Fatalf("verify: %v", err)
+	}
+	if !PropagateCopies(f) {
+		t.Fatal("fixture must propagate something")
+	}
+	cr := b.Term.(*TermCondRet)
+	if cr.Cond != 1 || cr.Vals[0] != 1 || cr.ThenArgs[0] != 1 {
+		t.Fatalf("TermCondRet uses not substituted: Cond=%%r%d Vals=%v ThenArgs=%v (want all %%r1)",
+			cr.Cond, cr.Vals, cr.ThenArgs)
+	}
+}
+
+// TestRemapTermRegsHandlesDJNZ: a DJNZ carries its counter and both edge
+// argument lists; a remap that skips them leaves the loop jumping on the
+// wrong register.
+func TestRemapTermRegsHandlesDJNZ(t *testing.T) {
+	term := &TermDJNZ{Counter: 1, Body: "body", BodyArgs: []Reg{2}, Exit: "exit", ExitArgs: []Reg{1, 3}}
+	remapTermRegs(term, map[Reg]Reg{1: 9, 2: 8})
+	if term.Counter != 9 || term.BodyArgs[0] != 8 || term.ExitArgs[0] != 9 {
+		t.Fatalf("DJNZ operands not remapped: Counter=%%r%d BodyArgs=%v ExitArgs=%v",
+			term.Counter, term.BodyArgs, term.ExitArgs)
+	}
+}
+
+// TestReplaceRegInBlockRemapsEveryTerminator: the same rule runs on blocks
+// whose terminator is not a plain Ret; a kind the switch does not cover keeps
+// reading the register whose definition the rule just deleted.
+func TestReplaceRegInBlockRemapsEveryTerminator(t *testing.T) {
+	terms := map[string]Term{
+		"jmp":     &TermJmp{Target: "next", Args: []Reg{4}},
+		"brif":    &TermBrIf{Cond: 4, Then: "next", ThenArgs: []Reg{4}, Else: "other", ElseArgs: []Reg{4}},
+		"brif2":   &TermBrIf2{Lhs: 4, Rhs: 1, Eq: "next", EqArgs: []Reg{4}, Lt: "next", LtArgs: []Reg{4}, Gt: "next", GtArgs: []Reg{4}},
+		"djnz":    &TermDJNZ{Counter: 4, Body: "next", BodyArgs: []Reg{4}, Exit: "other", ExitArgs: []Reg{4}},
+		"condret": &TermCondRet{Cond: 4, Vals: []Reg{4}, Then: "next", ThenArgs: []Reg{4}},
+		"error":   &TermErrorRet{Code: 4},
+		"ret":     &TermRet{Vals: []Reg{4}},
+	}
+	for name, term := range terms {
+		blk := &Block{Label: "body", Insts: []*Inst{{Op: OpPtrAdd, Dst: 4, Ty: TyPtr, Src: [2]Reg{1, 2}}}, Term: term}
+		replaceRegInBlock(blk, 4, 9)
+		for _, u := range term.termUses() {
+			if u == 4 {
+				t.Errorf("%s: %%r4 still a terminator use after replaceRegInBlock (%v)", name, term.termUses())
+			}
+		}
 	}
 }

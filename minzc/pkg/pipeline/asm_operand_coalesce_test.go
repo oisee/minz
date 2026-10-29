@@ -286,3 +286,44 @@ fun execute() {
 		})
 	}
 }
+
+// TestTailRecursionAsmOperandFollowsLoopParam: elimTailRecursion moves the
+// function body into a new loop-head block and rewrites its uses to the loop
+// parameters. An inline-asm input is a use like any other; leaving it on the
+// contract parameter makes the template read the first invocation's argument
+// on every iteration.
+func TestTailRecursionAsmOperandFollowsLoopParam(t *testing.T) {
+	const src = `global result: u16
+fun tail(n: u8, acc: u8) -> u8 {
+    asm z80 (in n) (ret A) { ADD A, 1 }
+    if n == 0 { return acc }
+    return tail(n - 1, acc + n + 1)
+}
+fun execute() {
+    result = u16(tail(3, 0))
+}
+`
+	_, m := asmOperandModule(t, src)
+	tail := m.FuncByName("tail")
+	if tail == nil {
+		t.Fatal("tail not found")
+	}
+	head := tail.BlockByLabel("tail_tail_loop")
+	if head == nil {
+		t.Skip("elimTailRecursion did not fire for this shape")
+	}
+	for _, b := range tail.Blocks {
+		for _, in := range b.Insts {
+			if in.Asm == nil {
+				continue
+			}
+			for _, r := range in.Asm.Ins {
+				for _, cp := range tail.Contract.Params {
+					if r == cp.Reg {
+						t.Fatalf("asm input names the contract param %%r%d; the loop param is %%r%d", r, head.Params[0].Dst)
+					}
+				}
+			}
+		}
+	}
+}

@@ -361,40 +361,10 @@ func PropagateCopies(f *Func) bool {
 	// Rewrite instruction operands.
 	for _, b := range f.Blocks {
 		for _, inst := range b.Insts {
-			for i, s := range inst.Src {
-				if s == NoReg {
-					continue
-				}
-				if r := resolve(s); r != s {
-					inst.Src[i] = r
+			for _, u := range inst.Uses() {
+				if r := resolve(u); r != u {
+					inst.ReplaceUse(u, r)
 					changed = true
-				}
-			}
-			for i, a := range inst.Args {
-				if a == NoReg {
-					continue
-				}
-				if r := resolve(a); r != a {
-					inst.Args[i] = r
-					changed = true
-				}
-			}
-			// An inline-asm template reads its inputs from the physical
-			// register the allocator chose, so a substituted operand must be
-			// renamed here too. DeadStoreElim keeps the feeding move alive
-			// (countRegUses reads Inst.Uses(), which includes Asm.Ins), so the
-			// cost of skipping this is a redundant live value rather than a
-			// dangling operand — but it leaves the template reading a different
-			// virtual register than every other consumer of the same value.
-			if inst.Asm != nil {
-				for i, a := range inst.Asm.Ins {
-					if a == NoReg {
-						continue
-					}
-					if r := resolve(a); r != a {
-						inst.Asm.Ins[i] = r
-						changed = true
-					}
 				}
 			}
 		}

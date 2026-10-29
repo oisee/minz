@@ -1148,14 +1148,9 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 		bodyBlocks := append([]*Block{loopBlock}, f.Blocks[1:]...)
 		for _, body := range bodyBlocks {
 			for _, inst := range body.Insts {
-				for si, src := range inst.Src {
-					if newR, ok := paramRemap[src]; ok {
-						inst.Src[si] = newR
-					}
-				}
-				for ai, arg := range inst.Args {
-					if newR, ok := paramRemap[arg]; ok {
-						inst.Args[ai] = newR
+				for _, u := range inst.Uses() {
+					if newR, ok := paramRemap[u]; ok {
+						inst.ReplaceUse(u, newR)
 					}
 				}
 			}
@@ -2018,27 +2013,7 @@ func findPointerWalkCandidate(f *Func, head, body *Block) (pointerWalkCandidate,
 // replaceRegInBlock replaces all uses of oldReg with newReg in a block's instructions and terminator.
 func replaceRegInBlock(blk *Block, oldReg, newReg Reg) {
 	for _, inst := range blk.Insts {
-		if inst.Src[0] == oldReg {
-			inst.Src[0] = newReg
-		}
-		if inst.Src[1] == oldReg {
-			inst.Src[1] = newReg
-		}
-		for i, a := range inst.Args {
-			if a == oldReg {
-				inst.Args[i] = newReg
-			}
-		}
-		// Inline-asm inputs live in Asm.Ins, which the Src/Args walks do not
-		// cover.  The definition is removed right after this rewrite, so a
-		// missed use would dangle.
-		if inst.Asm != nil {
-			for i, r := range inst.Asm.Ins {
-				if r == oldReg {
-					inst.Asm.Ins[i] = newReg
-				}
-			}
-		}
+		inst.ReplaceUse(oldReg, newReg)
 		// Don't replace Dst — the definition is being removed, not renamed
 	}
 	// Replace in terminator args
@@ -2062,6 +2037,60 @@ func replaceRegInBlock(blk *Block, oldReg, newReg Reg) {
 			if r == oldReg {
 				t.ElseArgs[i] = newReg
 			}
+		}
+	case *TermBrIf2:
+		if t.Lhs == oldReg {
+			t.Lhs = newReg
+		}
+		if t.Rhs == oldReg {
+			t.Rhs = newReg
+		}
+		for i, r := range t.EqArgs {
+			if r == oldReg {
+				t.EqArgs[i] = newReg
+			}
+		}
+		for i, r := range t.LtArgs {
+			if r == oldReg {
+				t.LtArgs[i] = newReg
+			}
+		}
+		for i, r := range t.GtArgs {
+			if r == oldReg {
+				t.GtArgs[i] = newReg
+			}
+		}
+	case *TermDJNZ:
+		if t.Counter == oldReg {
+			t.Counter = newReg
+		}
+		for i, r := range t.BodyArgs {
+			if r == oldReg {
+				t.BodyArgs[i] = newReg
+			}
+		}
+		for i, r := range t.ExitArgs {
+			if r == oldReg {
+				t.ExitArgs[i] = newReg
+			}
+		}
+	case *TermCondRet:
+		if t.Cond == oldReg {
+			t.Cond = newReg
+		}
+		for i, r := range t.Vals {
+			if r == oldReg {
+				t.Vals[i] = newReg
+			}
+		}
+		for i, r := range t.ThenArgs {
+			if r == oldReg {
+				t.ThenArgs[i] = newReg
+			}
+		}
+	case *TermErrorRet:
+		if t.Code == oldReg {
+			t.Code = newReg
 		}
 	case *TermRet:
 		for i, r := range t.Vals {
@@ -2346,6 +2375,10 @@ func remapTermRegs(t Term, remap map[Reg]Reg) {
 		repl(&t.Cond)
 		replSlice(t.Vals)
 		replSlice(t.ThenArgs)
+	case *TermDJNZ:
+		repl(&t.Counter)
+		replSlice(t.BodyArgs)
+		replSlice(t.ExitArgs)
 	}
 }
 
