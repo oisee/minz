@@ -38,9 +38,12 @@ func asmOperandUndefined(f *Func) []Reg {
 	return bad
 }
 
-// coalesceFixture builds entry→head(param)→body→…, the shape whose entry→head
-// forward edge PreallocCoalesce merges. The asm in body reads the head param.
-func coalesceFixture(t *testing.T) *Func {
+// coalesceFixture builds entry→head(param)→asm, the shape whose entry→head
+// forward edge PreallocCoalesce merges. whichList picks whether the merged
+// block parameter reaches the template as an input or as an output — no
+// frontend populates Asm.Outs today (the parser maps (out REG) to a return
+// register), so the Ins case cannot cover it.
+func coalesceFixture(t *testing.T, whichList string) *Func {
 	t.Helper()
 	m := &Module{}
 	f := m.AddFunc("asmcoalesce")
@@ -48,18 +51,20 @@ func coalesceFixture(t *testing.T) *Func {
 	f.Contract.Returns = []Return{{Ty: TyU8, Class: ClassAcc}}
 	entry := f.NewBlock("entry")
 	head := f.NewBlock("head")
-	body := f.NewBlock("body")
-	exit := f.NewBlock("exit")
 	entry.Insts = []*Inst{{Op: OpConst, Dst: 1, Ty: TyU8, Imm: 41}}
 	entry.Term = &TermJmp{Target: "head", Args: []Reg{1}}
 	head.Params = []BlockParam{{Dst: 2, Ty: TyU8, Class: ClassGeneral}}
-	head.Insts = []*Inst{{Op: OpConst, Dst: 3, Ty: TyU8, Imm: 1}, {Op: OpAdd, Dst: 4, Ty: TyU8, Src: [2]Reg{2, 3}}}
-	head.Term = &TermJmp{Target: "body", Args: []Reg{4}}
-	body.Params = []BlockParam{{Dst: 5, Ty: TyU8, Class: ClassGeneral}}
-	body.Insts = []*Inst{{Op: OpAsm, Ty: TyU8, Cls: ClassAcc, Asm: &AsmExtra{Template: "ADD A, 1", Ins: []Reg{5}, Clobbers: AllClasses}}}
-	body.Term = &TermJmp{Target: "exit", Args: []Reg{5}}
-	exit.Params = []BlockParam{{Dst: 6, Ty: TyU8, Class: ClassGeneral}}
-	exit.Term = &TermRet{Vals: []Reg{6}}
+	asm := &AsmExtra{Template: "ADD A, 1", Clobbers: AllClasses}
+	switch whichList {
+	case "ins":
+		asm.Ins = []Reg{2}
+	case "outs":
+		asm.Outs = []Reg{2}
+	default:
+		t.Fatalf("unknown operand list %q", whichList)
+	}
+	head.Insts = []*Inst{{Op: OpAsm, Ty: TyU8, Cls: ClassAcc, Asm: asm}}
+	head.Term = &TermRet{Vals: []Reg{2}}
 	if err := Verify(m); err != nil {
 		t.Fatalf("fixture must verify before the pass: %v", err)
 	}
@@ -70,47 +75,24 @@ func coalesceFixture(t *testing.T) *Func {
 // Params/Dst/Src/Args/ExtraRets and terminators to union-find roots but leave
 // Asm.Ins/Asm.Outs on the pre-merge register, which no longer has a definition.
 func TestPreallocCoalesceRemapsAsmOperands(t *testing.T) {
-	f := coalesceFixture(t)
-	canon := PreallocCoalesce(f)
-	if len(canon) == 0 {
-		t.Fatal("fixture must merge at least one block-arg/param pair")
-	}
-	if bad := asmOperandUndefined(f); len(bad) > 0 {
-		t.Fatalf("dangling asm operands after PreallocCoalesce: %v", bad)
-	}
-	// The remapped operand must still be the value the template reads: the head
-	// param's root, not a register that only the pre-merge module defined.
-	asm := f.BlockByLabel("body").Insts[0]
-	if len(asm.Asm.Ins) != 1 {
-		t.Fatalf("asm operand list changed length: %v", asm.Asm.Ins)
-	}
-	if asm.Asm.Ins[0] != f.BlockByLabel("body").Params[0].Dst {
-		t.Fatalf("asm Ins %%r%d is not the block param %%r%d", asm.Asm.Ins[0], f.BlockByLabel("body").Params[0].Dst)
-	}
-}
-
-// TestPreallocCoalesceRemapsAsmOuts: no frontend populates Asm.Outs today, so
-// the Ins test cannot cover it. Same merge, operand on the output list.
-func TestPreallocCoalesceRemapsAsmOuts(t *testing.T) {
-	m := &Module{}
-	f := m.AddFunc("asmouts")
-	f.Attrs.HasAsm = true
-	f.Contract.Returns = []Return{{Ty: TyU8, Class: ClassAcc}}
-	entry := f.NewBlock("entry")
-	head := f.NewBlock("head")
-	entry.Insts = []*Inst{{Op: OpConst, Dst: 1, Ty: TyU8, Imm: 7}}
-	entry.Term = &TermJmp{Target: "head", Args: []Reg{1}}
-	head.Params = []BlockParam{{Dst: 2, Ty: TyU8, Class: ClassGeneral}}
-	head.Insts = []*Inst{
-		{Op: OpAsm, Asm: &AsmExtra{Template: "LD A, 7", Outs: []Reg{2}, Clobbers: AllClasses}},
-	}
-	head.Term = &TermRet{Vals: []Reg{2}}
-	if err := Verify(m); err != nil {
-		t.Fatalf("fixture must verify before the pass: %v", err)
-	}
-	PreallocCoalesce(f)
-	if bad := asmOperandUndefined(f); len(bad) > 0 {
-		t.Fatalf("dangling asm operands after PreallocCoalesce: %v", bad)
+	for _, whichList := range []string{"ins", "outs"} {
+		t.Run(whichList, func(t *testing.T) {
+			f := coalesceFixture(t, whichList)
+			if len(PreallocCoalesce(f)) == 0 {
+				t.Fatal("fixture must merge at least one block-arg/param pair")
+			}
+			if bad := asmOperandUndefined(f); len(bad) > 0 {
+				t.Fatalf("dangling asm operands after PreallocCoalesce: %v", bad)
+			}
+			// The remapped operand must still be the value the template names:
+			// the block param's root, not a register only the pre-merge module
+			// defined.
+			asm := f.BlockByLabel("head").Insts[0].Asm
+			got := append(append([]Reg(nil), asm.Ins...), asm.Outs...)
+			if len(got) != 1 || got[0] != f.BlockByLabel("head").Params[0].Dst {
+				t.Fatalf("asm %s = %v, want the block param %%r%d", whichList, got, f.BlockByLabel("head").Params[0].Dst)
+			}
+		})
 	}
 }
 

@@ -11,12 +11,18 @@ import "fmt"
 //   - Block labels are unique within each function.
 //   - Every block is sealed (has a terminator).
 //   - Every Reg referenced in instructions/terminators is a param or a
-//     dominating definition (independent of block layout).
+//     dominating definition (independent of block layout).  Inst.Uses() covers
+//     inline-asm inputs, so a dangling Asm.Ins is caught here too.
 //   - Side-effecting ops (OpStore, OpPatch) have Dst == NoReg.
 //   - Branch targets exist within the function.
 //   - Block-argument arity matches target block params. Numeric edge conversions
 //     retain the VM contract; strict type checking is not performed here.
 //   - [host] calls appear only inside [comptime] functions.
+//
+// Verify describes a module in SSA form.  PreallocCoalesce deliberately breaks
+// the single-definition rule — it merges a block parameter into the definition
+// feeding it, so the same register is defined twice — which is why the pipeline
+// runs Verify before that pass and not after.
 func Verify(m *Module) error {
 	if m == nil {
 		return fmt.Errorf("mir2: nil module")

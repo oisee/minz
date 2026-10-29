@@ -465,6 +465,7 @@
     "TestStructuredSpriteWhenDiagnostics",
     "TestSwitchTerminationVMZ80",
     "TestSystemCFAT12ImageNativeVM",
+    "TestTailRecursionAsmOperandFollowsLoopParam",
     "TestTerminalHaltIntrinsicNative",
     "TestTerminalHaltIntrinsicRejectsArguments",
     "TestTetrisDirectMainMachine",

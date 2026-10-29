@@ -13,18 +13,26 @@ import (
 	"github.com/minz/minzc/pkg/z80asm"
 )
 
-// asmOperandFixture is one Nanz source compiled with the production options,
-// together with the globals it reads.
-type asmOperandFixture struct {
+// asmOperandCase is one Nanz program and the globals it reads. Every asm block
+// names its inputs with (in …), and every input reaches the block through a
+// block parameter — the shape whose block-arg/param pairs PreallocCoalesce
+// merges.
+//
+// value selects the cases the MIR2 VM can judge. The VM treats an asm block as
+// a no-op, so it is an oracle exactly when the program's answer must not depend
+// on what the template does: the block declares (ret A) and the result is
+// discarded. A block with no result register is different — its inputs are
+// in-out, and a template that writes the input's own register is how the value
+// escapes, which is what TestOriginalRotateSledNative pins — so those cases are
+// only checked for well-formedness.
+type asmOperandCase struct {
 	src     string
 	globals map[string][]byte
+	value   bool
 }
 
-// asmOperandSources covers the shapes whose block-arg/param pairs
-// PreallocCoalesce merges: a while loop carrying a value across the back edge,
-// an if/else diamond, and a value selected by an inlined compare-and-select
-// inside a loop. Every asm block names its input explicitly with (in …).
-var asmOperandSources = map[string]asmOperandFixture{
+var asmOperandCases = map[string]asmOperandCase{
+	// A while loop carrying one and then two values across the back edge.
 	"loop_carried": {
 		src: `global n: u16
 global result: u16
@@ -32,7 +40,7 @@ fun execute() {
     let acc: u8 = 5
     let i: u16 = 0
     while i < n {
-        asm z80 (in acc) { ADD A, 1 }
+        asm z80 (in acc) (ret A) { ADD A, 1 }
         acc = acc + 1
         i = i + 1
     }
@@ -58,7 +66,29 @@ fun execute() {
 }
 `,
 		globals: map[string][]byte{"n": {3, 0}, "result": {0xef, 0xbe}},
+		value:   false,
 	},
+	// The asm is the last read of the carried value, inside an if.
+	"loop_local_last": {
+		src: `global n: u16
+global result: u16
+fun execute() {
+    let acc: u8 = 5
+    let i: u16 = 0
+    while i < n {
+        i = i + 1
+        if i == 2 {
+            asm z80 (in acc) (ret A) { ADD A, 1 }
+            result = u16(acc)
+        }
+        acc = acc + 1
+    }
+}
+`,
+		globals: map[string][]byte{"n": {3, 0}, "result": {0xef, 0xbe}},
+	},
+	// An if/else diamond. Its join parameter interferes with both arms, so
+	// nothing merges and the operand stays well formed.
 	"if_diamond": {
 		src: `global c: u8
 global result: u16
@@ -69,12 +99,14 @@ fun execute() {
     } else {
         v = c + 2
     }
-    asm z80 (in v) { ADD A, 1 }
+    asm z80 (in v) (ret A) { ADD A, 1 }
     result = u16(v)
 }
 `,
 		globals: map[string][]byte{"c": {10}, "result": {0xef, 0xbe}},
+		value:   true,
 	},
+	// A value selected by an inlined compare-and-select inside a loop.
 	"block_param_after_call": {
 		src: `global data: [u8; 8]
 global n: u16
@@ -92,25 +124,74 @@ fun execute() {
 }
 `,
 		globals: map[string][]byte{"n": {4, 0}, "result": {0xef, 0xbe}, "data": {1, 200, 3, 100}},
+		value:   false,
+	},
+	// The compare-and-select shape with no loop: the one form where the
+	// dangling operand used to make origin/main lucky, because the allocator
+	// homed the selected value in B and the template's write to A missed it.
+	"pick_then_asm": {
+		src: `global ga: u8
+global gb: u8
+global result: u16
+fun pick(a: u8, x: u8) -> u8 { if x > a { return x } return a }
+fun execute() {
+    let t: u8 = pick(ga, gb)
+    asm z80 (in t) (ret A) { ADD A, 7 }
+    result = u16(t)
+}
+`,
+		globals: map[string][]byte{"ga": {199}, "gb": {100}, "result": {0xef, 0xbe}},
+		value:   true,
+	},
+	// Two asm inputs and a template that writes the second one's register.
+	// Plain while, no inlining and no compare-and-select: the shortest
+	// demonstration that the clobber hole is not specific to either.
+	"loop_two_inputs_ld_b_a": {
+		src: `global n: u16
+global result: u16
+fun execute() {
+    let v0: u8 = 5
+    let v1: u8 = 9
+    let i: u16 = 0
+    while i < n {
+        asm z80 (in v0, v1) (ret A) { LD B, A }
+        v0 = v0 + 2
+        v1 = v1 + 2
+        i = i + 1
+    }
+    result = u16(v0) + u16(v1)
+}
+`,
+		globals: map[string][]byte{"n": {3, 0}, "result": {0xef, 0xbe}},
+		value:   true,
 	},
 }
 
-// asmOperandModule compiles src with the production options and returns the
-// lowered-but-unoptimised module and the final module.  The final module is the
-// same object the allocator and Z80 codegen see, so it already carries whatever
-// PreallocCoalesce rewrote in place.
-func asmOperandModule(t *testing.T, src string) (raw, final *mir2.Module) {
+// asmOperandBuild compiles one case once and returns everything the three
+// assertions need: the unoptimised module for the VM oracle, the final module,
+// and the assembled program for the Z80.
+type asmOperandBuild struct {
+	raw   *mir2.Module
+	final *mir2.Module
+	asm   *z80asm.Result
+}
+
+func asmOperandBuildCase(t *testing.T, c asmOperandCase) asmOperandBuild {
 	t.Helper()
-	hm, err := nanz.Parse(src, "asm_operand.nanz")
+	hm, err := nanz.Parse(c.src, "asm_operand.nanz")
 	if err != nil {
 		t.Fatalf("parse: %v", err)
 	}
-	raw = hir.LowerModule(hm)
+	raw := hir.LowerModule(hm)
 	steps, err := CompileHIRSteps(hm, DefaultOptions())
 	if err != nil {
 		t.Fatalf("compile: %v", err)
 	}
-	return raw, steps.MIR2Module
+	asm, err := z80asm.NewAssembler().AssembleString("ORG 0x8000\n" + steps.Assembly)
+	if err != nil || len(asm.Errors) != 0 {
+		t.Fatalf("assemble: %v %v", err, asm.Errors)
+	}
+	return asmOperandBuild{raw: raw, final: steps.MIR2Module, asm: asm}
 }
 
 // danglingAsmOperands reports every Asm.Ins / Asm.Outs register in m that has
@@ -157,133 +238,18 @@ func danglingAsmOperands(m *mir2.Module) []string {
 // naming the pre-merge virtual registers, which no longer have a definition.
 // On origin/main it reported:
 //
-//	loop_carried:          execute: asm Ins=%r3 undefined (in loop_body2)
-//	loop_carried_two:      execute: asm Ins=%r4 and %r6 undefined (in loop_body2)
+//	loop_carried:           execute: asm Ins=%r3 undefined (in loop_body2)
+//	loop_carried_two:       execute: asm Ins=%r4 and %r6 undefined (in loop_body2)
 //	block_param_after_call: execute: asm Ins=%r18 undefined (in cmpsel4_c)
 func TestAsmOperandsDefinedAfterCoalesce(t *testing.T) {
 	var bad []string
-	for name, tc := range asmOperandSources {
-		_, m := asmOperandModule(t, tc.src)
-		if d := danglingAsmOperands(m); len(d) > 0 {
+	for name, c := range asmOperandCases {
+		if d := danglingAsmOperands(asmOperandBuildCase(t, c).final); len(d) > 0 {
 			bad = append(bad, name+": "+strings.Join(d, "; "))
 		}
 	}
 	if len(bad) > 0 {
 		t.Errorf("dangling asm operands after PreallocCoalesce:\n\t%s", strings.Join(bad, "\n\t"))
-	}
-}
-
-// asmOperandVMResult runs fn on the MIR2 VM and returns the u16 global.
-func asmOperandVMResult(t *testing.T, m *mir2.Module, fn, global string, globals map[string][]byte) uint16 {
-	t.Helper()
-	vm := mir2.NewVM(m)
-	for k, v := range globals {
-		vm.WriteHeapSlice(vm.GlobalAddr(k), v)
-	}
-	if _, err := vm.Call(fn, nil); err != nil {
-		t.Fatalf("vm call %s: %v", fn, err)
-	}
-	return binary.LittleEndian.Uint16(vm.ReadHeap(vm.GlobalAddr(global), 2))
-}
-
-// asmOperandZ80Result assembles the final module and runs fn on the Z80
-// emulator, returning the u16 global.
-func asmOperandZ80Result(t *testing.T, src, fn, global string, globals map[string][]byte) uint16 {
-	t.Helper()
-	hm, err := nanz.Parse(src, "asm_operand.nanz")
-	if err != nil {
-		t.Fatalf("parse: %v", err)
-	}
-	steps, err := CompileHIRSteps(hm, DefaultOptions())
-	if err != nil {
-		t.Fatalf("compile: %v", err)
-	}
-	asm, err := z80asm.NewAssembler().AssembleString("ORG 0x8000\n" + steps.Assembly)
-	if err != nil || len(asm.Errors) != 0 {
-		t.Fatalf("assemble: %v %v", err, asm.Errors)
-	}
-	z := emulator.NewRemogattoZ80()
-	mem := z.Memory()
-	copy(mem[0x8000:], asm.Binary)
-	for k, v := range globals {
-		copy(mem[asm.Symbols[k]:], v)
-	}
-	mem[0xeffe], mem[0xefff] = 0, 0xf1
-	entry, ok := asm.Symbols[fn]
-	if !ok {
-		t.Fatalf("symbol %s not found; have %v", fn, asm.Symbols)
-	}
-	z.SetRegisters(emulator.Registers{PC: uint16(entry), SP: 0xeffe})
-	for step := 0; step < 1000000 && z.GetPC() != 0xf100; step++ {
-		z.Step()
-	}
-	r := z.GetRegisters()
-	if r.PC != 0xf100 || r.SP != 0xf000 {
-		t.Fatalf("%s did not return cleanly: PC/SP %04x/%04x\n%s", fn, r.PC, r.SP, steps.Assembly)
-	}
-	return binary.LittleEndian.Uint16(mem[asm.Symbols[global] : asm.Symbols[global]+2])
-}
-
-// TestAsmLoopCarriedOperandValue: the two shapes where the dangling operand
-// produced a wrong value on the Z80.  Both templates write A while the
-// loop-carried input was allocated to A precisely because the asm's use of it
-// had been dropped from the register counts — so `ADD A, 1` landed on the
-// carried value itself instead of on a value nobody else observes.
-//
-// On origin/main the Z80 returned 11 and 7 where both VMs and the source return
-// 8 and 6.
-func TestAsmLoopCarriedOperandValue(t *testing.T) {
-	cases := map[string]asmOperandFixture{
-		// acc = 5, three iterations of `acc = acc + 1`; the asm statement's
-		// (ret A) result is discarded, so acc must end at 8.
-		"loop_local_mut": {
-			src: `global n: u16
-global result: u16
-fun execute() {
-    let acc: u8 = 5
-    let i: u16 = 0
-    while i < n {
-        asm z80 (in acc) (ret A) { ADD A, 1 }
-        acc = acc + 1
-        i = i + 1
-    }
-    result = u16(acc)
-}
-`,
-			globals: map[string][]byte{"n": {3, 0}, "result": {0xef, 0xbe}},
-		},
-		// The asm runs once, when i == 2, after one `acc = acc + 1`; its result
-		// is discarded, so result must observe acc == 6.
-		"loop_local_last": {
-			src: `global n: u16
-global result: u16
-fun execute() {
-    let acc: u8 = 5
-    let i: u16 = 0
-    while i < n {
-        i = i + 1
-        if i == 2 {
-            asm z80 (in acc) (ret A) { ADD A, 1 }
-            result = u16(acc)
-        }
-        acc = acc + 1
-    }
-}
-`,
-			globals: map[string][]byte{"n": {3, 0}, "result": {0xef, 0xbe}},
-		},
-	}
-	for name, tc := range cases {
-		t.Run(name, func(t *testing.T) {
-			raw, final := asmOperandModule(t, tc.src)
-			want := asmOperandVMResult(t, raw, "execute", "result", tc.globals)
-			if got := asmOperandVMResult(t, final, "execute", "result", tc.globals); got != want {
-				t.Fatalf("MIR2 VM disagrees with itself: raw=%d final=%d", want, got)
-			}
-			if got := asmOperandZ80Result(t, tc.src, "execute", "result", tc.globals); got != want {
-				t.Fatalf("Z80=%d, MIR2 VM=%d — the asm template read the wrong register", got, want)
-			}
-		})
 	}
 }
 
@@ -303,8 +269,15 @@ fun execute() {
     result = u16(tail(3, 0))
 }
 `
-	_, m := asmOperandModule(t, src)
-	tail := m.FuncByName("tail")
+	hm, err := nanz.Parse(src, "asm_operand.nanz")
+	if err != nil {
+		t.Fatalf("parse: %v", err)
+	}
+	steps, err := CompileHIRSteps(hm, DefaultOptions())
+	if err != nil {
+		t.Fatalf("compile: %v", err)
+	}
+	tail := steps.MIR2Module.FuncByName("tail")
 	if tail == nil {
 		t.Fatal("tail not found")
 	}
@@ -325,5 +298,69 @@ fun execute() {
 				}
 			}
 		}
+	}
+}
+
+// asmOperandVMResult runs fn on the MIR2 VM and returns the u16 global.
+func asmOperandVMResult(t *testing.T, m *mir2.Module, globals map[string][]byte) uint16 {
+	t.Helper()
+	vm := mir2.NewVM(m)
+	for k, v := range globals {
+		vm.WriteHeapSlice(vm.GlobalAddr(k), v)
+	}
+	if _, err := vm.Call("execute", nil); err != nil {
+		t.Fatalf("vm call execute: %v", err)
+	}
+	return binary.LittleEndian.Uint16(vm.ReadHeap(vm.GlobalAddr("result"), 2))
+}
+
+// asmOperandZ80Result runs the assembled program and returns the u16 global.
+func asmOperandZ80Result(t *testing.T, b asmOperandBuild, globals map[string][]byte) uint16 {
+	t.Helper()
+	sym := func(k string) int {
+		if a, ok := b.asm.Symbols[k]; ok {
+			return a
+		}
+		return b.asm.Symbols["v_"+k]
+	}
+	z := emulator.NewRemogattoZ80()
+	mem := z.Memory()
+	copy(mem[0x8000:], b.asm.Binary)
+	for k, v := range globals {
+		copy(mem[sym(k):], v)
+	}
+	mem[0xeffe], mem[0xefff] = 0, 0xf1
+	z.SetRegisters(emulator.Registers{PC: uint16(sym("execute")), SP: 0xeffe})
+	for step := 0; step < 1000000 && z.GetPC() != 0xf100; step++ {
+		z.Step()
+	}
+	r := z.GetRegisters()
+	if r.PC != 0xf100 || r.SP != 0xf000 {
+		t.Fatalf("execute did not return cleanly: PC/SP %04x/%04x", r.PC, r.SP)
+	}
+	return binary.LittleEndian.Uint16(mem[sym("result") : sym("result")+2])
+}
+
+// TestAsmLoopCarriedOperandValue asserts the Z80 agrees with the MIR2 VM for
+// every case in the table. Two of them were wrong on origin/main for the
+// renaming bug (the loop-carried input was homed in A, where the template's own
+// ADD landed on it: 11 and 7 where the source says 8 and 6); two more were
+// wrong for the clobber bug (pick_then_asm 206 vs 199, loop_two_inputs_ld_b_a
+// 17 vs 26 — the second input was homed in B, which `LD B, A` overwrites).
+func TestAsmLoopCarriedOperandValue(t *testing.T) {
+	for name, c := range asmOperandCases {
+		if !c.value {
+			continue
+		}
+		t.Run(name, func(t *testing.T) {
+			b := asmOperandBuildCase(t, c)
+			want := asmOperandVMResult(t, b.raw, c.globals)
+			if got := asmOperandVMResult(t, b.final, c.globals); got != want {
+				t.Fatalf("MIR2 VM disagrees with itself: raw=%d final=%d", want, got)
+			}
+			if got := asmOperandZ80Result(t, b, c.globals); got != want {
+				t.Fatalf("Z80=%d, MIR2 VM=%d — the asm template read the wrong register", got, want)
+			}
+		})
 	}
 }
