@@ -56,6 +56,15 @@ func MIR2Codegen(m *mir2.Module, ar *mir2.AllocResult) string {
 	if len(m.Globals) > 0 {
 		cg.emit("; globals")
 		for _, g := range m.Globals {
+			if g.At != nil {
+				// Absolute-address global: same rule as the Z80 emitter — the
+				// symbol names a fixed address and owns no image storage, so
+				// it becomes an EQU constant and every reference resolves to
+				// that address. ADL addresses are 24-bit, but Global.At is a
+				// 16-bit address and evaluates as such in the low 64K.
+				cg.emitf("%s    EQU  $%04X", sanitize(g.Name), *g.At)
+				continue
+			}
 			w := mir2.ByteWidth(g.Ty)
 			if len(g.Init) > w {
 				w = len(g.Init)

@@ -2655,7 +2655,7 @@ func (p *parser) parseGlobalDecl() (mir2.Global, error) {
 
 	// at(addr)?
 	if p.l.isIdent("at") {
-		p.l.next()
+		atTok := p.l.next()
 		if _, err := p.l.eat(tokLParen); err != nil {
 			return g, err
 		}
@@ -2666,10 +2666,11 @@ func (p *parser) parseGlobalDecl() (mir2.Global, error) {
 		if _, err := p.l.eat(tokRParen); err != nil {
 			return g, err
 		}
-		if lit, ok := addrExpr.(*hir.IntLitExpr); ok {
-			addr := uint16(lit.Val)
-			g.At = &addr
+		addr, err := atAddress(addrExpr, atTok.line)
+		if err != nil {
+			return g, err
 		}
+		g.At = &addr
 	}
 
 	// = initializer?
@@ -2680,10 +2681,31 @@ func (p *parser) parseGlobalDecl() (mir2.Global, error) {
 		if err != nil {
 			return g, err
 		}
+		if g.At != nil {
+			// No storage exists for an at-global, so initial data would be
+			// silently dropped. MIR2 keeps the same rule as a backstop for
+			// other producers, but this is where the source position is.
+			return g, fmt.Errorf("line %d: global %q at(0x%04X) cannot have an initialiser: it has no storage in the program image", nameTok.line, nameTok.val, *g.At)
+		}
 		g.Init = init
 	}
 
 	return g, nil
+}
+
+// atAddress validates the `at(expr)` clause of a global or var declaration.
+// The address names one fixed Z80 address, so it must be a literal inside
+// 0..0xFFFF; truncating or ignoring it would silently place the variable
+// somewhere else.
+func atAddress(expr hir.Expr, line int) (uint16, error) {
+	lit, ok := expr.(*hir.IntLitExpr)
+	if !ok {
+		return 0, fmt.Errorf("line %d: at() requires a literal address in 0..0xFFFF", line)
+	}
+	if lit.Val < 0 || lit.Val > 0xFFFF {
+		return 0, fmt.Errorf("line %d: at() address %d is outside 0..0xFFFF", line, lit.Val)
+	}
+	return uint16(lit.Val), nil
 }
 
 func (p *parser) parseConstDecl() (mir2.Global, error) {
@@ -4668,7 +4690,7 @@ func (p *parser) parseVarDecl() (hir.Stmt, error) {
 		if p.uninitVars != nil {
 			delete(p.uninitVars, nameTok.val)
 		}
-		p.l.next()
+		atTok := p.l.next()
 		if _, err := p.l.eat(tokLParen); err != nil {
 			return nil, err
 		}
@@ -4679,10 +4701,11 @@ func (p *parser) parseVarDecl() (hir.Stmt, error) {
 		if _, err := p.l.eat(tokRParen); err != nil {
 			return nil, err
 		}
-		if lit, ok := addrExpr.(*hir.IntLitExpr); ok {
-			addr := uint16(lit.Val)
-			d.At = &addr
+		addr, err := atAddress(addrExpr, atTok.line)
+		if err != nil {
+			return nil, err
 		}
+		d.At = &addr
 	}
 
 	// = initializer?

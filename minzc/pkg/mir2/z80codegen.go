@@ -44,6 +44,32 @@ func paddedInitBytes(ty Ty, init []byte) []byte {
 	return buf
 }
 
+// emitGlobalFieldEQUs emits one EQU label per struct field so that direct
+// addressing (LD A,(sym__field)) works without pointer arithmetic.
+// Format: sanitizeIdent(sym)__fieldName  EQU  sym + byteOffset
+// The base symbol may itself be an EQU constant (absolute-address global);
+// the assembler resolves the addition either way.
+func emitGlobalFieldEQUs(sb *strings.Builder, sanitized string, ty Ty) {
+	st, ok := ty.(*StructTy)
+	if !ok {
+		return
+	}
+	for index, f := range st.Fields {
+		off := st.ByteOffset(index)
+		var equLbl string
+		if f.Name != "" {
+			equLbl = sanitized + "__" + f.Name
+		} else {
+			equLbl = fmt.Sprintf("%s__off%d", sanitized, off)
+		}
+		if off == 0 {
+			fmt.Fprintf(sb, "%s    EQU  %s\n", equLbl, sanitized)
+		} else {
+			fmt.Fprintf(sb, "%s    EQU  %s + %d\n", equLbl, sanitized, off)
+		}
+	}
+}
+
 func emitTypedGlobalData(sb *strings.Builder, ty Ty, init []byte) {
 	init = paddedInitBytes(ty, init)
 	switch t := ty.(type) {
@@ -266,8 +292,13 @@ func z80CodegenWithLeafWrites(m *Module, ar *AllocResult, leafWrites map[string]
 	// Native Z80 addresses cannot represent a host-sized global allocation.
 	// This checks data alone; code, alignment and runtime storage can reduce
 	// the remaining capacity further and still require assembler/layout checks.
+	// Absolute-address globals place no bytes in the image, so they cost none
+	// of this budget.
 	globalBytes := 0
 	for _, g := range m.Globals {
+		if g.At != nil {
+			continue
+		}
 		width := ByteWidth(g.Ty)
 		if width < 0 || width > 65536-globalBytes {
 			return "", fmt.Errorf("Z80 global %q exceeds 16-bit address space (data before global: %d bytes, global: %d bytes)", g.Name, globalBytes, width)
@@ -429,11 +460,23 @@ func z80CodegenWithLeafWrites(m *Module, ar *AllocResult, leafWrites map[string]
 	if len(m.Globals) > 0 {
 		sb.WriteString("; globals\n")
 		for _, g := range m.Globals {
+			sanitized := sanitizeIdent(g.Name)
+			// Absolute-address global (Global.At): the symbol names a fixed
+			// address — memory-mapped hardware, a resident buffer, VRAM. It
+			// owns no storage in the program image and carries no initial
+			// data (VerifyGlobalInitializers rejects one), so it becomes an
+			// EQU constant. Every addressing form that names the symbol —
+			// LD A,(nn), LD HL,nn, indexed (sym + off) and pointers taken
+			// from it — then resolves to the fixed address.
+			if g.At != nil {
+				fmt.Fprintf(&sb, "%s    EQU  0x%04X\n", sanitized, *g.At)
+				emitGlobalFieldEQUs(&sb, sanitized, g.Ty)
+				continue
+			}
 			w := ByteWidth(g.Ty)
 			if w == 0 {
 				// Zero-size struct: emit the label so address-of references resolve,
 				// but no data bytes — the struct occupies no memory at runtime.
-				sanitized := sanitizeIdent(g.Name)
 				sb.WriteString(sanitized + ":\n")
 				continue
 			}
@@ -441,32 +484,13 @@ func z80CodegenWithLeafWrites(m *Module, ar *AllocResult, leafWrites map[string]
 			if at, ok := g.Ty.(*ArrayTy); ok && at.Align > 0 {
 				fmt.Fprintf(&sb, "    ALIGN %d\n", at.Align)
 			}
-			sanitized := sanitizeIdent(g.Name)
 			sb.WriteString(sanitized + ":\n")
 			if len(g.Relocs) > 0 {
 				emitRelocatedGlobalData(&sb, g)
 			} else {
 				emitTypedGlobalData(&sb, g.Ty, g.Init)
 			}
-			// For struct globals, emit EQU labels for each field so that direct
-			// addressing (LD A,(sym__field)) works without pointer arithmetic.
-			// Format: sanitizeIdent(sym)__fieldName  EQU  sym + byteOffset
-			if st, ok := g.Ty.(*StructTy); ok {
-				for index, f := range st.Fields {
-					off := st.ByteOffset(index)
-					var equLbl string
-					if f.Name != "" {
-						equLbl = sanitized + "__" + f.Name
-					} else {
-						equLbl = fmt.Sprintf("%s__off%d", sanitized, off)
-					}
-					if off == 0 {
-						fmt.Fprintf(&sb, "%s    EQU  %s\n", equLbl, sanitized)
-					} else {
-						fmt.Fprintf(&sb, "%s    EQU  %s + %d\n", equLbl, sanitized, off)
-					}
-				}
-			}
+			emitGlobalFieldEQUs(&sb, sanitized, g.Ty)
 		}
 	}
 

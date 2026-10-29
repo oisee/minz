@@ -155,6 +155,7 @@ func TestInvariantGlobalLoadHoistDecisions(t *testing.T) {
 		}},
 		{name: "at-addressed-global", hoist: false, mutate: func(m *Module, f *Func, body *Block, load **Inst) {
 			m.Globals[0].At = &addr
+			m.Globals[0].Init = nil // an at-global owns no image storage, so no initial data
 		}},
 		{name: "volatile-global", hoist: false, mutate: func(m *Module, f *Func, body *Block, load **Inst) {
 			m.Globals[0].Volatile = true
