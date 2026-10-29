@@ -143,6 +143,65 @@ fun execute() {
 		globals: map[string][]byte{"ga": {199}, "gb": {100}, "result": {0xef, 0xbe}},
 		value:   true,
 	},
+	// A bool produced by a compare and consumed on the far side of a template
+	// that writes F. The value is carried in the flags, so the template destroys
+	// it unless the pending predicate is saved first. Straight-line form.
+	"bool_across_flag_template": {
+		src: `global ga: u8
+global result: u16
+fun execute() {
+    let g: u8 = ga
+    let b: bool = g > 3
+    asm z80 (in g) (ret A) { XOR A }
+    if b { result = 1 } else { result = 2 }
+}
+`,
+		globals: map[string][]byte{"ga": {10}, "result": {0xef, 0xbe}},
+		value:   true,
+	},
+	// Same shape inside a loop: the bool is live only into the terminator.
+	"bool_across_flag_template_in_loop": {
+		src: `global ga: u8
+global gc: u8
+global n: u16
+global result: u16
+fun execute() {
+    let acc: u8 = 5
+    let i: u16 = 0
+    while i < n {
+        let go: bool = ga < gc
+        asm z80 (in acc) (ret A) { ADD A, C }
+        if go { acc = acc + 1 }
+        i = i + 1
+    }
+    result = u16(acc)
+}
+`,
+		globals: map[string][]byte{"ga": {200}, "gc": {100}, "n": {2, 0}, "result": {0xef, 0xbe}},
+		value:   true,
+	},
+	// Control for the two above: a template that writes no flags changes
+	// nothing, so the branch is correct with or without the save.
+	"bool_across_nop_template": {
+		src: `global ga: u8
+global gc: u8
+global n: u16
+global result: u16
+fun execute() {
+    let acc: u8 = 5
+    let i: u16 = 0
+    while i < n {
+        let go: bool = ga < gc
+        asm z80 (in acc) (ret A) { NOP }
+        if go { acc = acc + 1 }
+        i = i + 1
+    }
+    result = u16(acc)
+}
+`,
+		globals: map[string][]byte{"ga": {200}, "gc": {100}, "n": {2, 0}, "result": {0xef, 0xbe}},
+		value:   true,
+	},
 	// Two asm inputs and a template that writes the second one's register.
 	// Plain while, no inlining and no compare-and-select: the shortest
 	// demonstration that the clobber hole is not specific to either.

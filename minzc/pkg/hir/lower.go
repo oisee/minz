@@ -4746,6 +4746,7 @@ func z80WrittenClasses(writes z80effects.Registers) mir2.ClassSet {
 	add(z80effects.IX, mir2.ClassIX, mir2.ClassIXY8, mir2.ClassGeneral, mir2.ClassPair)
 	add(z80effects.IY, mir2.ClassIY, mir2.ClassIXY8, mir2.ClassGeneral, mir2.ClassPair)
 	add(z80effects.F, mir2.ClassFlag)
+	add(z80effects.SP, mir2.ClassStack)
 	add(z80effects.BCAlt|z80effects.DEAlt|z80effects.HLAlt, mir2.ClassShadow, mir2.ClassDWord)
 	add(z80effects.AFAlt, mir2.ClassAccShadow)
 	return classes

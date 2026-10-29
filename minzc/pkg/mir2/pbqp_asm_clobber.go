@@ -75,10 +75,14 @@ func asmClobberAvoid(f *Func, lr *LivenessResult) map[Reg]ClassSet {
 
 // locHomesClobbers reports whether loc can hold a value of a class in
 // clobbers.  A clobber set names register classes, so a location is unsafe
-// when it is a legal home for any of them.
+// when it is a legal home for any of them.  Absolute memory is the one home no
+// template can touch, which is what keeps a block declaring (clob all)
+// allocatable; a frame slot is only unsafe when the template moves SP.
 func locHomesClobbers(ct CostTable, clobbers ClassSet, loc PhysLoc) bool {
 	switch loc.Kind {
-	case LocStack, LocMem:
+	case LocStack:
+		return clobbers.Has(ClassStack)
+	case LocMem:
 		return false
 	}
 	for c := RegClass(0); c < classCount; c++ {

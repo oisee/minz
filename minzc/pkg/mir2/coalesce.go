@@ -137,6 +137,9 @@ func coalesceAllocResult(f *Func, result *AllocResult, lr *LivenessResult, table
 		ct = tables[0]
 	}
 	info := collectRegInfo(f)
+	// Asm.Clobbers is a Z80 register-class set; only a table that understands
+	// those classes can exclude homes by it.
+	_, z80Table := ct.(Z80CostTable)
 	asmAvoid := asmClobberAvoid(f, lr)
 	canRecolor := func(r Reg, loc PhysLoc) bool {
 		// Preserve explicit instruction/ABI constraints, including a hard
@@ -149,7 +152,7 @@ func coalesceAllocResult(f *Func, result *AllocResult, lr *LivenessResult, table
 		}
 		// A value live across an inline-asm block must not be recoloured into
 		// a register the template writes — PBQP already excluded those.
-		if locHomesClobbers(ct, asmAvoid[r], loc) {
+		if z80Table && locHomesClobbers(ct, asmAvoid[r], loc) {
 			return false
 		}
 		cls, ok := regClass[r]

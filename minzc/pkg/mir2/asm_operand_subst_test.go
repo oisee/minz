@@ -1,6 +1,10 @@
 package mir2
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/minz/minzc/pkg/z80effects"
+)
 
 // asmOperandUndefined reports every Asm.Ins/Asm.Outs register in f that has no
 // definition in the function. Renaming passes that rewrite Src/Args/Dst but not
@@ -264,5 +268,38 @@ func TestReplaceRegInBlockRemapsEveryTerminator(t *testing.T) {
 				t.Errorf("%s: %%r4 still a terminator use after replaceRegInBlock (%v)", name, term.termUses())
 			}
 		}
+	}
+}
+
+// TestAsmWritesFlags: the codegen decides whether a template destroys a pending
+// predicate from the declared clobber set, with the per-instruction effects
+// catching a declaration narrower than the template's real writes.
+func TestAsmWritesFlags(t *testing.T) {
+	var clob, clobNoFlag ClassSet
+	for _, c := range []RegClass{ClassAcc, ClassGeneral, ClassFlag} {
+		clob.Add(c)
+		if c != ClassFlag {
+			clobNoFlag.Add(c)
+		}
+	}
+	cases := map[string]*AsmExtra{
+		// What z80AutoClobbers derives from "ADD A, C": writes A and F.
+		"auto-detected": {Clobbers: clob},
+		// (clob A) on a template that also writes F: the declaration alone
+		// misses it, the effects do not.
+		"narrow-declaration": {Clobbers: clobNoFlag,
+			Effects: []z80effects.Effect{{Known: true, Writes: z80effects.A | z80effects.F}}},
+		"nop":              {},
+		"unknown-mnemonic": {Clobbers: clobNoFlag, Effects: []z80effects.Effect{{}}},
+	}
+	want := map[string]bool{"auto-detected": true, "narrow-declaration": true, "nop": false, "unknown-mnemonic": true}
+	for name, a := range cases {
+		if got := a.WritesFlags(); got != want[name] {
+			t.Errorf("%s: WritesFlags() = %v, want %v", name, got, want[name])
+		}
+	}
+	var nilAsm *AsmExtra
+	if nilAsm.WritesFlags() {
+		t.Error("nil AsmExtra must not report flag writes")
 	}
 }

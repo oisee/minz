@@ -62,18 +62,32 @@ func TestAsmClobberInOutInputsExempt(t *testing.T) {
 	}
 }
 
-// TestLocHomesClobbersIgnoresSpillSlots: stack and memory are the escape hatch
-// that keeps a function whose template clobbers everything allocatable, so a
-// clobber set must never exclude them.
+// TestLocHomesClobbersIgnoresSpillSlots: absolute memory is the escape hatch
+// that keeps a function whose template clobbers everything allocatable, so no
+// clobber set may exclude it.  A frame slot is unsafe only when the template
+// moves SP, which is what z80WrittenClasses maps a SP write to.
 func TestLocHomesClobbersIgnoresSpillSlots(t *testing.T) {
 	ct := Z80CostTable{}
 	for _, loc := range ct.Locs() {
-		if loc.Kind != LocStack && loc.Kind != LocMem {
+		if loc.Kind != LocMem {
 			continue
 		}
 		if locHomesClobbers(ct, AllClasses, loc) {
 			t.Fatalf("%v %q must never be treated as clobbered", loc.Kind, loc.Name)
 		}
+	}
+	stack := PhysLoc{Kind: LocStack, Name: "stack"}
+	var noStack ClassSet
+	for c := RegClass(0); c < classCount; c++ {
+		if c != ClassStack {
+			noStack.Add(c)
+		}
+	}
+	if locHomesClobbers(ct, noStack, stack) {
+		t.Fatal("a frame slot is safe unless the template moves SP")
+	}
+	if !locHomesClobbers(ct, AllClasses, stack) {
+		t.Fatal("a template that writes SP must exclude the frame slots")
 	}
 	if !locHomesClobbers(ct, AllClasses, PhysLoc{Kind: LocReg, Name: "A"}) {
 		t.Fatal("AllClasses must exclude the accumulator")

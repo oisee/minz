@@ -151,6 +151,25 @@ type AsmExtra struct {
 	Effects []z80effects.Effect
 }
 
+// WritesFlags reports whether the template may leave the CPU flags holding
+// something other than what the compiler last put there.  The declared clobber
+// set decides when it names the flag class; the per-instruction effects catch a
+// declaration narrower than the template's real writes.
+func (a *AsmExtra) WritesFlags() bool {
+	if a == nil {
+		return false
+	}
+	if a.Clobbers.Has(ClassFlag) {
+		return true
+	}
+	for _, e := range a.Effects {
+		if !e.Known || e.Writes&z80effects.F != 0 {
+			return true
+		}
+	}
+	return false
+}
+
 // ── Use/def analysis ─────────────────────────────────────────────────────────
 
 // Uses returns all Reg values *read* by this instruction (Dst excluded).
