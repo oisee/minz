@@ -2024,6 +2024,21 @@ func replaceRegInBlock(blk *Block, oldReg, newReg Reg) {
 		if inst.Src[1] == oldReg {
 			inst.Src[1] = newReg
 		}
+		for i, a := range inst.Args {
+			if a == oldReg {
+				inst.Args[i] = newReg
+			}
+		}
+		// Inline-asm inputs live in Asm.Ins, which the Src/Args walks do not
+		// cover.  The definition is removed right after this rewrite, so a
+		// missed use would dangle.
+		if inst.Asm != nil {
+			for i, r := range inst.Asm.Ins {
+				if r == oldReg {
+					inst.Asm.Ins[i] = newReg
+				}
+			}
+		}
 		// Don't replace Dst — the definition is being removed, not renamed
 	}
 	// Replace in terminator args

@@ -16,6 +16,8 @@
     "TestAlignedLUTRetainsLiveHighByteNative",
     "TestArithmeticProspectiveHeldout",
     "TestAsmInputConstE2E",
+    "TestAsmLoopCarriedOperandValue",
+    "TestAsmOperandsDefinedAfterCoalesce",
     "TestAssertBootstrapInitializesAllocatedSpill",
     "TestAssertMissingReturnContracts",
     "TestAssertRejectsMalformedRawResults",

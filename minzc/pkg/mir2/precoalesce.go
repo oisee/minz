@@ -398,6 +398,13 @@ func PreallocCoalesce(f *Func) PreallocCoalesceMap {
 			inst.Src[1] = mapReg(inst.Src[1])
 			mapSlice(inst.Args)
 			mapSlice(inst.ExtraRets)
+			// Asm.Ins/Asm.Outs name the same virtual registers as Src/Args —
+			// renumber.go remaps them, so leaving them behind here points the
+			// template at a register that no longer has a definition.
+			if inst.Asm != nil {
+				mapSlice(inst.Asm.Ins)
+				mapSlice(inst.Asm.Outs)
+			}
 		}
 		// Remap terminators.
 		if b.Term != nil {
