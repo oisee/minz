@@ -1,0 +1,14 @@
+global source: [u8; 512]
+global n: u16
+global result: u16
+fun execute() {
+    var sum: u8 = 0
+    var p: ^u8 = &source
+    var i: u16 = n
+    while i != 0 {
+        sum = sum + (p^ & 19)
+        p = p + 2
+        i = i - 1
+    }
+    result = u16(sum)
+}

@@ -26,6 +26,7 @@ the workload contract, not an optimization of arbitrary 16-bit counts.
 | fusion_fold_max | maximum byte, empty=0 | fold(u8(0), larger) |
 | fusion_dot_product | sum source[i]*other[i] mod 65536 | forEach, captured second pointer and u16 sum |
 | fusion_filter_map_sum | sum u8(x xor 255) for x>=128 | filter → map → fold(u16(0), add) |
+| fusion_two_ptr_xor | sum u16(*p xor *q) over two walking pointers | while loop; no zip in the audited interface |
 
 The [G0 audit](../../../docs/Nanz_Iteration_Audit.md) takes precedence over the
 Nanz book's historical iterator claims. `iter()`, `skip`, `take`, and `enumerate`
@@ -36,6 +37,28 @@ predicate-driven early exit. `any`/`all`/`find` are absent from that interface,
 so filter→map→fold consumes all n elements. The optional enumerate case is
 omitted due to G0-5. Range countdown sources are deliberately avoided, including
 G0-9 at 256; memory chains use u16 lengths and preserve forward order.
+
+`fusion_two_ptr_xor` walks two pointers through two buffers in one loop. Nanz
+has no audited `zip`, so the idiomatic spelling is the `while i != 0` countdown
+over `p^ xor q^` rather than an iterator chain: a shape ordinary Nanz programs
+use for compare/XOR/checksum kernels, which no earlier suite contained and which
+a register-allocation change made 21-68 % slower without any benchmark noticing.
+The C89 case spells the same algorithm as two walking `unsigned char *` pointers
+instead of indices, which is also the loop SDCC is asked to optimize. A
+stride-2/stride-3 second pointer was measured and rejected as a second case: on
+this revision both strides allocate exactly like stride 1 (IX and IY hold the
+two pointers; only the pointer-update sequence differs), so it would measure the
+same decision twice.
+
+Its hand loop keeps both pointers in the main register bank (HL, DE) and parks
+the u16 accumulator in the shadow bank behind `EXX`, where B stays 0 forever so
+`ADD HL,BC` adds a bare byte: **62 T per element** (`LD A,[DE]` 7, `XOR [HL]` 7,
+`INC HL` 6, `INC DE` 6, `EXX` 4, `LD C,A` 4, `ADD HL,BC` 11, `EXX` 4, `DJNZ`
+13). B=0 still means exactly 256 elements, but the DJNZ counter is the
+main-bank B, not the sum bank's high byte. The workload reuses the dot
+product's five frozen datasets and twelve lengths byte for byte, so both
+two-buffer cases see identical inputs; XOR cannot wrap the accumulator
+(256 x 255 = 65280 < 65536), so the case measures the loop, not the overflow.
 
 Min/max use named conditional callbacks; current lowering calls these helpers
 per element rather than inlining their control flow. The scalar fold result is
@@ -48,7 +71,7 @@ Each case includes lengths 0,1,2,3,4,5,16,127,128,254,255,256 over five datasets
 repeated threshold/overflow boundary bytes, all 6, all 0, all 255, and a byte
 ramp. Filter/count additionally uses k=0,6,255; window uses limit=0,7,256.
 Thus every filtered case includes all-pass and none-pass inputs. Each case has
-60 calls, except count/window with 180, totalling 720 distinct case samples.
+60 calls, except count/window with 180, totalling 780 distinct case samples.
 The store case checks all 256 destination bytes, including its untouched tail.
 The dot case includes 255*255 products and accumulated word wraparound.
 
@@ -59,3 +82,40 @@ clamped slices and scalar zip products, before measurement; GCC validates them
 against the frozen C. Changing a workload or fixture requires an explicit
 manifest update and a fresh matrix plus host replay. Do not silently refreeze
 a failing expectation or select a faster dataset after observing results.
+
+## Register-allocation probes
+
+The fusion and main suites froze their sources before any compiler experiment,
+which is exactly why a shape nobody had written down — an ordinary Nanz `while`
+loop walking two pointers — could regress by 21-68 % without a single row
+moving. [`../probes/`](../probes/) is the companion corpus for gating
+register-allocation changes between two compiler *builds* rather than two
+revisions of this repository:
+
+* `probes/hand/` holds the three hand probes from that investigation (the
+  minimal two-pointer XOR sum, its stride-3 branch variant, and the crc8-shaped
+  inner loop). `probes/generated/` holds 24 one/two-pointer byte loops drawn
+  from a fixed seed over pointers (1-2), strides (1/2/3), u8 or u16 accumulator,
+  an optional in-loop branch and an optional call. `probes/gen.py` regenerates
+  them byte for byte and `probes/gen.py --check` refuses to run on a drifted
+  corpus.
+* Every probe ships a frozen workload whose expectations are computed by the
+  generator in Python from the bytes alone; the runner checks the result, the
+  untouched input regions and PC/SP on the Z80 emulator, so a probe that is
+  merely *miscompiled* is reported separately from one that is merely slower.
+* `probes/probe_runner.go` imports no compiler package, only the assembler and
+  the emulator, so both compilers under comparison are measured by the same
+  harness.
+
+```sh
+python3 scripts/regalloc_probes.py --base /path/to/base/mz --cand /path/to/cand/mz
+```
+
+The script compiles each probe with both binaries under the default and `size`
+profiles, prints per-probe base/candidate T-states and image bytes, and ends
+with `probes: N, worse>1%: K, wrong: W`. A probe is *worse* when the candidate
+is more than 1 % slower on either profile and *wrong* when either compiler
+misses the workload expectation; the exit status is non-zero in both cases. On
+origin/main against itself the corpus is silent (0 worse, 0 wrong); against the
+F7 allocator commit it flags 11 of 27 probes, from +10 % to +63 %, including
+every hand probe.
