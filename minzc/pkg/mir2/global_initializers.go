@@ -14,6 +14,12 @@ func VerifyGlobalInitializers(m *Module) error {
 			return fmt.Errorf("mir2: global %q has no type (producer: %s)", g.Name, producer)
 		}
 		width := ByteWidth(g.Ty)
+		if g.At != nil && len(g.Init) != 0 {
+			// An absolute-address global owns no storage in the program image,
+			// so initial data has nowhere to live: it would be silently
+			// dropped while the code reads whatever the hardware holds there.
+			return fmt.Errorf("mir2: global %q at 0x%04X cannot have an initialiser: it has no storage in the program image (producer: %s)", g.Name, *g.At, producer)
+		}
 		if len(g.Init) > width {
 			return fmt.Errorf("mir2: global %q: initializer is %d bytes, type width is %d bytes (producer: %s)", g.Name, len(g.Init), width, producer)
 		}
