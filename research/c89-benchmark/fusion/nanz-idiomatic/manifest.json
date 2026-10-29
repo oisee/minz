@@ -43,6 +43,12 @@
       "workload_sha256": "3c6b50b052d361bfdc639d0852c5a3b7d4cc53de5816411014d17898db206f6f"
     },
     {
+      "file": "fusion_two_ptr_xor.nanz",
+      "sha256": "1d20e1f1f74b2ae19d21787c52d263e6f98ca8ff08dfc5e7759358b54fe23cd3",
+      "workload": "workloads/fusion_two_ptr_xor.json",
+      "workload_sha256": "23d5d490834e4276b4fc646dd72d5f1ad5c814ad9c676579012f1105a194ffd6"
+    },
+    {
       "file": "fusion_window_sum.nanz",
       "sha256": "b720507774759867d27040145087eb8af1687242987263cbd7b089547a40101e",
       "workload": "workloads/fusion_window_sum.json",

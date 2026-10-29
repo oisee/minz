@@ -1,0 +1,17 @@
+global source: [u8; 512]
+global other: [u8; 512]
+global n: u16
+global result: u16
+fun execute() {
+    var sum: u8 = 0
+    var p: ^u8 = &source
+    var q: ^u8 = &other
+    var i: u16 = n
+    while i != 0 {
+        sum = sum + (p^ xor q^)
+        p = p + 2
+        q = q + 2
+        i = i - 1
+    }
+    result = u16(sum)
+}
