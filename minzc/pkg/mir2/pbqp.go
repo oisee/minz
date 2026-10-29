@@ -262,6 +262,7 @@ func pbqpSolve(f *Func, lr *LivenessResult, ct CostTable, remat map[Reg]bool) *A
 	if _, z80 := ct.(Z80CostTable); z80 {
 		applyByteMemoryCosts(f, lr, states, allLocs)
 	}
+	applyAsmClobberCosts(f, lr, states, allLocs, ct)
 
 	result := &AllocResult{Locs: make(map[Reg]PhysLoc)}
 
