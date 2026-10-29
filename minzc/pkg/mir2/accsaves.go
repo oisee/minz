@@ -290,23 +290,7 @@ func accSaveDefines(inst *Inst, r Reg) bool {
 func renameUses(blk *Block, idx int, oldReg, newReg Reg) {
 	for j := idx + 1; j < len(blk.Insts); j++ {
 		inst := blk.Insts[j]
-		for k := range inst.Src {
-			if inst.Src[k] == oldReg {
-				inst.Src[k] = newReg
-			}
-		}
-		for k, a := range inst.Args {
-			if a == oldReg {
-				inst.Args[k] = newReg
-			}
-		}
-		if inst.Asm != nil {
-			for k, r := range inst.Asm.Ins {
-				if r == oldReg {
-					inst.Asm.Ins[k] = newReg
-				}
-			}
-		}
+		inst.ReplaceUse(oldReg, newReg)
 		// Uses in a redefining instruction consume the old value; later uses do not.
 		if accSaveDefines(inst, oldReg) {
 			return

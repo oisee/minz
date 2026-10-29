@@ -580,24 +580,7 @@ func SimplifyIdentities(f *Func) bool {
 // never rewritten.
 func rewriteBlockUses(b *Block, old, new_ Reg) {
 	for _, inst := range b.Insts {
-		if inst.Src[0] == old {
-			inst.Src[0] = new_
-		}
-		if inst.Src[1] == old {
-			inst.Src[1] = new_
-		}
-		for i, a := range inst.Args {
-			if a == old {
-				inst.Args[i] = new_
-			}
-		}
-		if inst.Asm != nil {
-			for i, r := range inst.Asm.Ins {
-				if r == old {
-					inst.Asm.Ins[i] = new_
-				}
-			}
-		}
+		inst.ReplaceUse(old, new_)
 	}
 	rewriteTermUses(b.Term, old, new_)
 }
@@ -642,6 +625,12 @@ func rewriteTermUses(t Term, old, new_ Reg) {
 		}
 	case *TermRet:
 		rewriteSlice(t.Vals)
+	case *TermCondRet:
+		if t.Cond == old {
+			t.Cond = new_
+		}
+		rewriteSlice(t.Vals)
+		rewriteSlice(t.ThenArgs)
 	}
 }
 

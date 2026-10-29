@@ -261,6 +261,9 @@ func pbqpSolve(f *Func, lr *LivenessResult, ct CostTable, remat map[Reg]bool) *A
 
 	if _, z80 := ct.(Z80CostTable); z80 {
 		applyByteMemoryCosts(f, lr, states, allLocs)
+		// Asm.Clobbers is a Z80 register-class set, so excluding homes by it is
+		// only meaningful for a table that understands those classes.
+		applyAsmClobberCosts(f, lr, states, allLocs, ct)
 	}
 
 	result := &AllocResult{Locs: make(map[Reg]PhysLoc)}

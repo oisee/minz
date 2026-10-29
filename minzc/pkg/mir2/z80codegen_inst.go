@@ -1607,6 +1607,14 @@ func (g *z80cg) genInst(inst *Inst) {
 		g.lastFlagsLhs = ""
 		g.lastFlagsRhs = ""
 		if inst.Asm != nil {
+			// A template that writes F destroys whatever predicate the codegen
+			// believes is still sitting in it. Save the one that is still
+			// needed, then forget it: a later branch must read the saved home,
+			// not the flags the template happened to leave behind.
+			if inst.Asm.WritesFlags() {
+				g.materializePendingFlag(inst)
+				g.pendingFlagReg = NoReg
+			}
 			if g.runtime == Z80RuntimeCPM {
 				for _, line := range strings.Split(inst.Asm.Template, "\n") {
 					g.emitInlineAsm("    " + strings.TrimSpace(line))
