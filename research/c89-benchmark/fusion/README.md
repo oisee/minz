@@ -45,20 +45,36 @@ use for compare/XOR/checksum kernels, which no earlier suite contained and which
 a register-allocation change made 21-68 % slower without any benchmark noticing.
 The C89 case spells the same algorithm as two walking `unsigned char *` pointers
 instead of indices, which is also the loop SDCC is asked to optimize. A
-stride-2/stride-3 second pointer was measured and rejected as a second case: on
-this revision both strides allocate exactly like stride 1 (IX and IY hold the
-two pointers; only the pointer-update sequence differs), so it would measure the
-same decision twice.
+stride-3 second pointer was measured and rejected as a second case, for a
+different reason than allocation: the per-element cost is 117 / 127 / **199** T
+for a stride-1/2/3 second pointer, because `q + 3` compiles to an immediate
+16-bit add through the stack (`LD BC,3; PUSH HL; PUSH IY; POP HL; ADD HL,BC;
+PUSH HL; POP IY; POP HL`) instead of an increment pair. That is a
+strength-reduction weakness, not the register decision this case was added to
+watch, and it belongs to the unfrozen probe corpus (`hand_two_ptr_stride3_branch`
+and several `gen*` probes walk stride-3 pointers) rather than to a frozen case.
 
 Its hand loop keeps both pointers in the main register bank (HL, DE) and parks
 the u16 accumulator in the shadow bank behind `EXX`, where B stays 0 forever so
 `ADD HL,BC` adds a bare byte: **62 T per element** (`LD A,[DE]` 7, `XOR [HL]` 7,
 `INC HL` 6, `INC DE` 6, `EXX` 4, `LD C,A` 4, `ADD HL,BC` 11, `EXX` 4, `DJNZ`
 13). B=0 still means exactly 256 elements, but the DJNZ counter is the
-main-bank B, not the sum bank's high byte. The workload reuses the dot
-product's five frozen datasets and twelve lengths byte for byte, so both
-two-buffer cases see identical inputs; XOR cannot wrap the accumulator
-(256 x 255 = 65280 < 65536), so the case measures the loop, not the overflow.
+main-bank B, not the sum bank's high byte.
+
+Hand rows are deliberately **non-unrolled** loops, like the other eight
+references. Unrolling the same contract reaches ~52 T per element (4x unroll +
+remainder singles: 286,665 T over this workload, 610 B; 8x: 280,615 T), against
+a structural floor of about 49 T for this shape, so a "vs hand" ratio for this
+case is measured against the convention, not against the optimum.
+
+The workload reuses the dot product's five frozen datasets and twelve lengths
+byte for byte, so both two-buffer cases see identical inputs; XOR cannot wrap
+the accumulator (256 x 255 = 65280 < 65536), so the case measures the loop, not
+the overflow. `fusion_two_ptr_xor` carries `"headline": false` in
+`cases/manifest.json`: the goal-F headline stays on the eight frozen
+iterator-fusion cases, because this one is a register-allocation probe.
+`run.py --suite fusion` prints and saves both bases in `fusion-headline.json`,
+so a change of basis is visible rather than silent.
 
 Min/max use named conditional callbacks; current lowering calls these helpers
 per element rather than inlining their control flow. The scalar fold result is

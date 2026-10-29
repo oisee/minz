@@ -46,7 +46,8 @@
       "file": "fusion_two_ptr_xor.c",
       "sha256": "a97c08f33951d62acb778b4e3bef0388fbef0857e9d60fe6c3baebd29338e7b3",
       "workload": "workloads/fusion_two_ptr_xor.json",
-      "workload_sha256": "23d5d490834e4276b4fc646dd72d5f1ad5c814ad9c676579012f1105a194ffd6"
+      "workload_sha256": "23d5d490834e4276b4fc646dd72d5f1ad5c814ad9c676579012f1105a194ffd6",
+      "headline": false
     },
     {
       "file": "fusion_window_sum.c",

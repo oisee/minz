@@ -36,11 +36,10 @@ BRANCHES = ([('>', t, d) for t in (40, 100, 200) for d in (1, 55) if t > d] +
             [('<', t, d) for t in (40, 100, 200) for d in (1, 55) if t + d <= 255])
 PROBES = Path(__file__).resolve().parent
 
-# The three hand probes are the F7 critic's reproductions (see ../f7crit/REPORT.md
-# B1), kept in the shapes it published; only the array lengths are grown so the
-# longest workload length stays inside the buffer for a stride-3 walk. The
-# critic's min2p.nanz is byte-identical to repro-two-pointer.nanz and is not
-# duplicated here.
+# The hand probes reproduce the two-walking-pointer loop shapes that the F7
+# register-allocation change regressed: the minimal XOR sum, its stride-3
+# branch variant, and a crc8-shaped inner loop. Array lengths are sized for the
+# longest stride so the longest workload length stays inside the buffer.
 HAND = {
     'hand_two_ptr_xor': {
         'kind': 'loop', 'pointers': 2, 'strides': [1, 1], 'acc': 'u16',
@@ -202,7 +201,7 @@ def draw(rng):
 
 
 def specs():
-    """The frozen corpus: the critic's hand probes plus 24 seeded programs."""
+    """The frozen corpus: the hand probes above plus 24 seeded programs."""
     corpus = dict(HAND)
     corpus['hand_crc8_shape'] = dict(HAND_CRC8)
     rng = random.Random(SEED)

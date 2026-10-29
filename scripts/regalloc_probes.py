@@ -60,6 +60,9 @@ def measure(task):
     name = Path(case['file']).stem
     dest = out / compiler / profile / name
     dest.mkdir(parents=True, exist_ok=True)
+    # A crashed invocation must not leave an earlier run's result behind when
+    # --out is reused, for the same reason run.py unlinks measurements.json.
+    (dest / 'probe.json').unlink(missing_ok=True)
     module = dest / 'probe.a80'
     source = PROBES / case['file']
     build = [str(args.compiler[compiler])] + PROFILES[profile] + [str(source), '-o', str(module)]

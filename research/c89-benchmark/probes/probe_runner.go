@@ -5,6 +5,13 @@
 // The runner deliberately imports no compiler package: the module under test is
 // produced by an external `mz` binary, so base and candidate compilers are
 // measured by exactly the same harness.
+//
+// research/c89-benchmark/measure.go is this file's twin and must change in step
+// with it: same sentinel return protocol (RET lands on 0xf100 from 0xeffe, SP
+// back at 0xf000), same 0xbeef result seed, same cycle counting and the same
+// result / after-memory / PC-SP checks. measure.go additionally bounds-checks
+// occupied addresses and replays raw and final MIR2 VM checks for in-tree
+// builds; this runner keeps only what an externally compiled module needs.
 package main
 
 import (
