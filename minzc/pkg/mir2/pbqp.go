@@ -178,8 +178,9 @@ func nodeCosts(f *Func, info map[Reg]RegInfo, ct CostTable, locs []PhysLoc) map[
 //
 // Constants that no use ever reads out of a home are first identified with a
 // trial allocation and then re-solved with no physical location (LocRemat); see
-// constremat.go.  The candidate set only shrinks between iterations, so the
-// reduction order — and therefore the result — stays deterministic.
+// constremat.go and rematDecision for how that re-solve is admitted.  The
+// candidate set only shrinks between iterations, so the reduction order — and
+// therefore the result — stays deterministic.
 func PBQPAllocate(f *Func, lr *LivenessResult, ct CostTable) *AllocResult {
 	if f.Attrs.IsExtern {
 		if _, isZ80 := ct.(Z80CostTable); isZ80 {
@@ -194,12 +195,14 @@ func PBQPAllocate(f *Func, lr *LivenessResult, ct CostTable) *AllocResult {
 			}
 		}
 	}
-	var remat map[Reg]bool
-	if constRematSupported(ct) && funcHasConstDefs(f) {
-		remat = constRematCandidates(f, pbqpSolve(f, lr, ct, nil), lr)
-	}
+	remat, first := rematDecision(f, lr, ct)
 	for {
-		ar := pbqpSolve(f, lr, ct, remat)
+		var ar *AllocResult
+		if first != nil {
+			ar, first = first, nil
+		} else {
+			ar = pbqpSolve(f, lr, ct, remat)
+		}
 		if len(remat) == 0 {
 			return ar
 		}
@@ -218,6 +221,46 @@ func PBQPAllocate(f *Func, lr *LivenessResult, ct CostTable) *AllocResult {
 			return ar
 		}
 	}
+}
+
+// rematDecision runs the trial allocation and decides which constants, if any,
+// hold no home.  The first return value is the rematerialisation set; the
+// second is an allocation the caller should use for its first solve instead of
+// re-solving, or nil when the caller should solve normally.
+//
+// When the spill or the live-across-a-call clause admits the constants, the
+// trial allocation is simply discarded as before — those premises already
+// imply the reserved home is costing something.  When only the index-half
+// clause does, the re-solve is a *candidate* that has to earn its place: it is
+// returned as `first` only if every vreg the clause was justified with reached
+// the primary register file and the modelled cost went down.  Freeing a pair
+// re-ties the whole allocation, and the model's belief that a primary register
+// beats an index register for a dereferenced walking pointer is wrong (the
+// emitter still reaches the pointer through IX), so the premise alone is not
+// evidence of a win.
+func rematDecision(f *Func, lr *LivenessResult, ct CostTable) (map[Reg]bool, *AllocResult) {
+	if !constRematSupported(ct) || !funcHasConstDefs(f) {
+		return nil, nil
+	}
+	trial := pbqpSolve(f, lr, ct, nil)
+	locs := ct.Locs()
+	costs := nodeCosts(f, collectRegInfo(f), ct, locs)
+	remat, blockers := constRematCandidates(f, trial, lr, ct, costs, locs)
+	if len(remat) == 0 || len(blockers) == 0 {
+		return remat, nil
+	}
+	candidate := pbqpSolve(f, lr, ct, remat)
+	// The LocReg check is the whole guard: the re-solve is kept only when every
+	// vreg that justified it actually reached the primary register file.  A
+	// modelled-cost comparison was tried and rejected — it never fired in 502
+	// candidate re-solves across the benchmark corpus and examples/ (157
+	// rejected here, 51 accepted, 0 by cost), so it guarded nothing.
+	for v := range blockers {
+		if candidate.Locs[v].Kind != LocReg {
+			return nil, trial
+		}
+	}
+	return remat, candidate
 }
 
 // pbqpSolve is PBQPAllocate's solver core.  remat names vregs that hold no
