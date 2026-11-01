@@ -444,8 +444,8 @@ spaces and destroyed the screen. Fixed three ways: the pad is guarded
 (`if n < width`), `IDX_W` is 3 (0..254 needs three digits), and the label row
 uses `IDX_W` and `SCR_W - 6 - IDX_W` instead of literals. Verified at N=120 by
 `TestZVDBDemoWideDataSetDoesNotOverflow`, which walks the cursor to record 119
-and asserts zero characters past column 80; before the fix the same run wrote
-196 characters past the edge.
+and asserts zero characters past column 80; with the pre-fix demo the same run
+reports 140,005 characters past column 80 and a label line truncated to "Rec".
 
 **Out-of-bounds shift in `zv_top_k` (blocker 3).** The guard was on `p`, not on
 `cnt`, so once the ranking filled up the first store wrote `zv_top_val[cap]`
