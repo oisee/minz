@@ -33,7 +33,7 @@ last search. Only what changed is redrawn.
 | `minzc/pkg/pipeline/zvdb_demo_layout_test.go` | Go tests: VT100 screen reconstruction, N=120 no-overflow, N=252 top-K vs an independent reference, 51-column variant |
 | `examples/nanz/zvdb_bench.nanz` | T-state bench for `zv_top_k` and the scoring pass, with an idle baseline |
 | `scripts/ci/pipeline_profiles.json` | the two new tests registered in the `fast` profile |
-| `reports/zvdb-demo-cpm/` | captured screens and codegen repros (+ `repro/README.md`); build products are gitignored |
+| `reports/zvdb-demo-cpm/` | captured screens and codegen repros (+ `repro/README.md`, `repro/check-cap-255.py`); build products are gitignored |
 
 Layout is parameterised by `SCR_W`, `SCR_H`, `ROW_*`, `N_ROWS`, `LEFT_X/W`,
 `RIGHT_X/W`, `IDX_W`, `SCORE_W`, `LABEL_L_W`, `LABEL_R_W`; no other 80-column
@@ -688,7 +688,7 @@ round 2 blamed.
 255-record TSV (real embeddings, rotated per record):
 
 ```
-$ python3 /tmp/check_cap.py 255
+$ python3 reports/zvdb-demo-cpm/repro/check-cap-255.py 255
 [cap] generator accepted 255 records
 [cap] reference rows: 64770 (want 64770)          # 255 * 254
 [cap] Z80 top-K vs independent scorer at n=255: 5 selections x 5 ranks, 0 mismatches

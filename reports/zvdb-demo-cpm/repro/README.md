@@ -128,3 +128,20 @@ so changing that asm is a compiler change and task Z1 forbids touching `pkg/`.
 `reports/tetris-main-native/freeze-corrected.json` and
 `reports/tetris-family-native/freeze.json`, both of which would have to be
 re-frozen alongside it.
+
+## 7. Generator cap at the kernel limit — `check-cap-255.py`
+
+`scripts/zvdb_demo_data.py` and `zvdb_kernel.zv_rank_cap` both cap the data set
+at 255 records. This check synthesises a 255-record TSV from the real embeddings,
+runs the generator on it, and compiles a sampling dump driver against the
+*generated* module so the Z80 top-K is compared with a scorer that reads the
+generated `.nanz` back — it exercises the generator, not just the kernel:
+
+```
+$ python3 reports/zvdb-demo-cpm/repro/check-cap-255.py 255
+[cap] generator accepted 255 records
+[cap] reference rows: 64770 (want 64770)
+[cap] Z80 top-K vs independent scorer at n=255: 5 selections x 5 ranks, 0 mismatches
+```
+
+Needs the `zvdb-ref` sample TSV next to the repo and `minzc/{mz,mze}` built.
