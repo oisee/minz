@@ -560,6 +560,22 @@ three bodies sharing a loop nest, selected by the first key read, so the harness
 cost can be subtracted. Both repro scan headers no longer describe the wrong
 variant or the wrong output name.
 
+### 2.6b Nice-to-haves applied
+
+2 (`ui_put_blank` inlined away), 3 (`old_row` is a `let` local again, not a
+global), 6 (a key of 0 — end of input on the host side, unreachable on real
+CP/M — now quits, so a key script with no trailing `q` terminates instead of
+spinning to the cycle limit) and 9 (both repro scan headers corrected). 7 was
+also picked up incidentally: `zv_popcount` now carries an "assert surface only"
+note so nobody wires the hot loop through it.
+
+Verified for 6, on the shipped build:
+
+```
+$ printf 'jj' | mze zvdb.com -t cpm --cpm-no-echo -c | tail -c 40
+Total execution: 4345407 T-states      # exits rc=0 after the two moves
+```
+
 ### 2.7 Corrected numbers
 
 | measurement | round 1 | round 2 | note |
