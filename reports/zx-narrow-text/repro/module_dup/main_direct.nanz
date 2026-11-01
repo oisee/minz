@@ -1,0 +1,6 @@
+import leaf
+
+fun main() -> void {
+    let v: u8 = leaf_work(1)
+    asm z80 (in v) { LD (0x4000), A }
+}

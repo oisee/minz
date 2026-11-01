@@ -17,3 +17,4 @@
 
 # Build artifacts
 cmd/mzx/BUILD
+/mzx-headless

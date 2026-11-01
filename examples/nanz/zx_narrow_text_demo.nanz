@@ -1,0 +1,244 @@
+// zx_narrow_text_demo.nanz — ZX Spectrum 51/42/32 column window demo (task Z3)
+//
+// Two panes from split_vertical():
+//   left  a numbered list of sentences, one per window row, the cursor row in
+//         inverse video (win_invert_row);
+//   right a paragraph printed with win_print, so it wraps at the window edge
+//         and scrolls inside the window only.
+//
+// Keys (port $FE matrix scan, zx_getkey below; no ROM LAST_K, no IM1):
+//   1  51 columns  (5 px glyphs)
+//   2  42 columns  (6 px glyphs)
+//   3  32 columns  (8 px ROM font, unsqueezed)
+//   j / k  move the highlighted list row down / up
+//   q  clear the screen and exit
+//
+// Memory map (48K Spectrum, built with `mz -o demo.a80` + `mza`, ORG $8000):
+//   $0000-$3FFF  ROM (only ever read: the font at $3D00)
+//   $4000-$57FF  pixel bitmap, $5800-$5AFF attributes
+//   $8000-......  program (code, then the generated mask/font tables)
+//   ......       nf_packed6 768, nf_packed5 768, nf_shift 12288 (see the build
+//                log for the exact end address; the whole image is ~16K)
+//   $FFFF        initial SP (mzx --run sets SP=FFFF); the demo needs < 64 bytes
+//
+// Interrupts: the demo runs with DI (mzx --run passes DI). The blitters clobber
+// IY, so a ROM IM1 interrupt service would fault — keep interrupts off, or set
+// IY back to $5C3A around any EI, if this is embedded elsewhere.
+//
+// Build:  minzc/mz examples/nanz/zx_narrow_text_demo.nanz -o demo.a80
+//         minzc/mza demo.a80 -o demo.bin
+// Run:    minzc/mzx-headless --model 48k --run demo.bin@8000 \\
+//             --set PC=8000,SP=FFFF,DI,IM=1 --screenshot demo.png
+//         (--run already implies that --set)
+
+import zx.text
+
+// ── Keys ────────────────────────────────────────────────────────────────────
+
+const KEY_1: u8 = 49
+const KEY_2: u8 = 50
+const KEY_3: u8 = 51
+const KEY_J: u8 = 106
+const KEY_K: u8 = 107
+const KEY_Q: u8 = 113
+
+// (row * 5 + bit) -> ASCII, matching the ULA half-row layout:
+//   row $FE: V C X Z SHIFT   row $FD: G F D S A   row $FB: T R E W Q
+//   row $F7: 5 4 3 2 1       row $EF: 6 7 8 9 0   row $DF: Y U I O P
+//   row $BF: H J K L ENTER   row $7F: B N M SYM SPACE
+global KEYTAB: [u8; 40] = [
+    0, 90, 88, 67, 86,
+    65, 83, 68, 70, 71,
+    81, 87, 69, 82, 84,
+    49, 50, 51, 52, 53,
+    48, 57, 56, 55, 54,
+    80, 79, 73, 85, 89,
+    13, 76, 75, 74, 72,
+    32, 0, 77, 78, 66,
+]
+
+fun zx_in_fe(@z80_a high: u8) -> u8 {
+    asm z80 (in high) (ret A) (clob A, F) { IN A, (0xFE) }
+}
+
+// First key currently held, 0 if none.
+fun zx_scan() -> u8 {
+    var addr: u8 = 0xFE
+    var idx: u8 = 0
+    var m: u8 = 1
+    var row: u8 = 0
+    while row < 8 {
+        let bits: u8 = zx_in_fe(addr)
+        var b: u8 = 0
+        var mask: u8 = 1
+        while b < 5 {
+            if (bits & mask) == 0 {
+                return KEYTAB[idx]
+            }
+            idx = idx + 1
+            mask = mask << 1
+            b = b + 1
+        }
+        addr = (addr << 1) | 1
+        row = row + 1
+    }
+    return 0
+}
+
+global last_key: u8 = 0
+
+// One event per physical press: a key held down reports once, then nothing
+// until it is released.
+fun zx_getkey() -> u8 {
+    let k: u8 = zx_scan()
+    if k != 0 {
+        if k == last_key {
+            return 0
+        }
+        last_key = k
+        return k
+    }
+    last_key = 0
+    return 0
+}
+
+// ── Content ─────────────────────────────────────────────────────────────────
+
+const NSENT: u8 = 24
+
+fun sentence(i: u8) -> ^u8 {
+    if i == 0 { return c"The forest is calm at dawn." }
+    if i == 1 { return c"Birds chirp in the cold air." }
+    if i == 2 { return c"Nature finds a quiet way." }
+    if i == 3 { return c"Walking in the woods helps." }
+    if i == 4 { return c"The river flows past stone." }
+    if i == 5 { return c"I love to explore new places." }
+    if i == 6 { return c"Travel broadens the mind." }
+    if i == 7 { return c"My next trip will be far." }
+    if i == 8 { return c"Backpacking was an adventure." }
+    if i == 9 { return c"The journey matters most." }
+    if i == 10 { return c"A good book transports you." }
+    if i == 11 { return c"Literature opens a window." }
+    if i == 12 { return c"Reading is a journey too." }
+    if i == 13 { return c"Classic novels age well." }
+    if i == 14 { return c"The library is a treasure." }
+    if i == 15 { return c"Science moves very fast." }
+    if i == 16 { return c"AI is the future of work." }
+    if i == 17 { return c"The digital age changed all." }
+    if i == 18 { return c"Smartphones are everywhere." }
+    if i == 19 { return c"Small teams build fast." }
+    if i == 20 { return c"A balanced diet matters." }
+    if i == 21 { return c"Dining out is a joy." }
+    if i == 22 { return c"Sushi is a delicate art." }
+    return c"Rain on the roof is calm."
+}
+
+// Two decimal digits.
+fun win_put_u8(v: u8) -> void {
+    var n: u8 = v
+    var tens: u8 = 0
+    while n >= 10 {
+        n = n - 10
+        tens = tens + 1
+    }
+    win_putch(48 + tens)
+    win_putch(48 + n)
+}
+
+// ── Layout ──────────────────────────────────────────────────────────────────
+// The left pane width is chosen per glyph width so that its pixel width is a
+// multiple of 8: the two panes then never share an attribute cell (see the
+// colour rule in stdlib/zx/text.nanz).
+
+fun left_w_for(w: u8) -> u8 {
+    if w == 6 {
+        return 16
+    }
+    if w == 8 {
+        return 16
+    }
+    return 24
+}
+
+global cursor: u8 = 23          // highlighted row in the left pane
+global cur_width: u8 = 5
+
+fun draw_left() -> void {
+    win_select(0)
+    win_attr(0, 5, 1)            // black on cyan, bright
+    win_clear(0)
+    var i: u8 = 0
+    while i < NSENT {
+        win_goto(0, i)
+        win_put_u8(i)
+        win_putch(32)
+        win_print_padded(sentence(i), win_width() - 4)
+        i = i + 1
+    }
+    win_invert_row(cursor)
+}
+
+fun draw_right() -> void {
+    win_select(1)
+    win_attr(7, 1, 0)            // white on blue
+    win_clear(1)
+    win_print(c"The narrow text engine squeezes the ROM font at runtime. Five pixel glyphs give fifty one columns on a 256 pixel line, six pixel glyphs give forty two, and the untouched eight pixel font gives thirty two. A window prints with wrap at its own edge and scrolls only inside its own rectangle, so the two panes never disturb each other. Colour is per attribute cell, which is coarser than a character, so a window paints whole attribute columns. Switch widths with the keys one, two and three, and watch the layout reflow without losing a single character of the text. This paragraph is deliberately long so that it wraps and scrolls the right pane.")
+}
+
+fun draw_all() -> void {
+    draw_left()
+    draw_right()
+}
+
+// ── Main ────────────────────────────────────────────────────────────────────
+
+fun main() -> void {
+    cur_width = 5
+    text_set_width(cur_width)
+    split_vertical(left_w_for(cur_width), 1)
+    draw_all()
+
+    var running: u8 = 1
+    while running != 0 {
+        let k: u8 = zx_getkey()
+        if k != 0 {
+            if (k == KEY_1) | (k == KEY_2) | (k == KEY_3) {
+                if k == KEY_1 {
+                    cur_width = 5
+                }
+                if k == KEY_2 {
+                    cur_width = 6
+                }
+                if k == KEY_3 {
+                    cur_width = 8
+                }
+                text_set_width(cur_width)
+                split_vertical(left_w_for(cur_width), 1)
+                draw_all()
+            } else {
+                if k == KEY_J {
+                    if cursor + 1 < NSENT {
+                        win_select(0)
+                        win_invert_row(cursor)
+                        cursor = cursor + 1
+                        win_invert_row(cursor)
+                    }
+                } else {
+                    if k == KEY_K {
+                        if cursor > 0 {
+                            win_select(0)
+                            win_invert_row(cursor)
+                            cursor = cursor - 1
+                            win_invert_row(cursor)
+                        }
+                    } else {
+                        if k == KEY_Q {
+                            running = 0
+                        }
+                    }
+                }
+            }
+        }
+    }
+    tx_clear_screen()
+}

@@ -562,6 +562,8 @@
     "TestZXDirectPrimitivesNative",
     "TestZXHalfCellRotozoomerFullMachine",
     "TestZXHalfCellRotozoomerLibraryFullMachine",
+    "TestZXNarrowTextDemoAllWidths",
+    "TestZXNarrowTextTiming",
     "TestZXPairedSpriteAdmission",
     "TestZXPairedSpriteNative",
     "TestZXPixelSpriteAdmission",

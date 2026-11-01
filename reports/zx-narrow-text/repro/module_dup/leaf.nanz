@@ -1,0 +1,11 @@
+// A module with a non-trivial function, so its code size is visible.
+
+fun leaf_work(v: u8) -> u8 {
+    var i: u8 = 0
+    var acc: u8 = v
+    while i < 8 {
+        acc = acc + i
+        i = i + 1
+    }
+    return acc
+}
