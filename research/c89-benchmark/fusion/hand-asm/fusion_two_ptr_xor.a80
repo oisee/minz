@@ -1,0 +1,43 @@
+; Hand Z80 reference. Contract: 0 <= n <= 256; disjoint buffers.
+; 62 T per element: LD A,[DE] 7, XOR [HL] 7, INC HL 6, INC DE 6, EXX 4,
+; LD C,A 4, ADD HL,BC 11, EXX 4, DJNZ 13. Both pointers walk the main bank;
+; the u16 sum lives in the shadow bank, whose B stays 0 so ADD HL,BC adds a
+; bare byte. B=0 therefore still means exactly 256 elements, but the counter
+; is the main-bank B (DJNZ) rather than the sum bank's high byte.
+ORG 0x8000
+execute:
+    LD HL,[n]
+    LD A,H
+    OR L
+    LD B,L
+    LD HL,source
+    LD DE,other
+    EXX
+    LD HL,0
+    LD B,0
+    EXX
+    JR Z,done
+loop:
+    LD A,[DE]
+    XOR [HL]
+    INC HL
+    INC DE
+    EXX
+    LD C,A
+    ADD HL,BC
+    EXX
+    DJNZ loop
+done:
+    EXX
+    LD [result],HL
+    EXX
+    RET
+
+source:
+    DS 256,0
+n:
+    DS 2,0
+result:
+    DS 2,0
+other:
+    DS 256,0

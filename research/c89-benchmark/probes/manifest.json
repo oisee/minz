@@ -1,0 +1,166 @@
+{
+  "cases": [
+    {
+      "file": "generated/gen01.nanz",
+      "sha256": "f3b92ad7121236f3eeeac9d61b72cfe7d81f99f6533db75d154d5cdff47cbf31",
+      "workload": "workloads/gen01.json",
+      "workload_sha256": "ce5b1c78071bd863b308f3214e98984e832b32feed455476eb47a518feec40e4"
+    },
+    {
+      "file": "generated/gen02.nanz",
+      "sha256": "9c1f84c3c9c5506ec742bbfcc45aa2b2628a18e4c5753ed939e44040c74a5020",
+      "workload": "workloads/gen02.json",
+      "workload_sha256": "7ca7c9353a5d7053344e5435b66ea568481836269720d80da8ec7768a678d3a1"
+    },
+    {
+      "file": "generated/gen03.nanz",
+      "sha256": "6c826f7f70f82138bd45c8c801272b33f1924c7f691388794fc63021b1df7a1e",
+      "workload": "workloads/gen03.json",
+      "workload_sha256": "a3749162e092855a9fd537765ec4e0fcbfb5f484c5314df3234c66f94a91e269"
+    },
+    {
+      "file": "generated/gen04.nanz",
+      "sha256": "18577d79c76713deccc9ac1cdf0a5c2d7019d3502422f2fc89a88de187ceaa47",
+      "workload": "workloads/gen04.json",
+      "workload_sha256": "13d4280d2f0547e7a9831e640d8d33a1c860fd3c7c0f9dbeecd7f6caeaa4a615"
+    },
+    {
+      "file": "generated/gen05.nanz",
+      "sha256": "9806e75b8d9b37397bb58c2832bd4efef78db068eb746bf427d647ca5dad531b",
+      "workload": "workloads/gen05.json",
+      "workload_sha256": "69d90f0db529b6644a4f655de7a90b6a7ca1486c0dfe5fcc3d7cf1c281dcc5b0"
+    },
+    {
+      "file": "generated/gen06.nanz",
+      "sha256": "a04420e35d35d6ffd547f1fe5802d1ca4fd03b32de31f4b2942f8ab8a1a03307",
+      "workload": "workloads/gen06.json",
+      "workload_sha256": "eaa760a356d01bd8a6ab1c3e56c2f40e02f0d63cfa4698c1a1245f6acb2b6c86"
+    },
+    {
+      "file": "generated/gen07.nanz",
+      "sha256": "82cdef0c59013ba8f63d7a7caf4959a0bbcc2463bc60bad9de552a4522f952c1",
+      "workload": "workloads/gen07.json",
+      "workload_sha256": "9bf7b9cc7fd47ce435238ae6c67353cd10243c0b4e57202ca20837f0ebd11697"
+    },
+    {
+      "file": "generated/gen08.nanz",
+      "sha256": "6e2b2e41a6faf2bca23319313efaaa0c9266012343e882649c82d77a737af94b",
+      "workload": "workloads/gen08.json",
+      "workload_sha256": "8e46dc44fd0115f8451fe936d5d2a1ed666c87412045ed3c05857151d31ce3e3"
+    },
+    {
+      "file": "generated/gen09.nanz",
+      "sha256": "5e022c503f199e949515aad7a65ea032da9f2f1b5c1a09e173029af4ca9a5cd8",
+      "workload": "workloads/gen09.json",
+      "workload_sha256": "b2d6319e3ae64bdfeff56f141dbfdb791fdda256ecbc74e50d86bee94493aaa6"
+    },
+    {
+      "file": "generated/gen10.nanz",
+      "sha256": "c93f1146976f0aad4670c530bfe178c74d5bc17f8147a46331ab9c2febdbb2f5",
+      "workload": "workloads/gen10.json",
+      "workload_sha256": "83f510c4dc32e29fea3c85538b25ab78c53005c6039c2aad9ec05b3b583c513a"
+    },
+    {
+      "file": "generated/gen11.nanz",
+      "sha256": "6836d13d3937fc8c7172f51a1f151d05f99be0fc2215dd2967f98c563861add9",
+      "workload": "workloads/gen11.json",
+      "workload_sha256": "06e65a211e1fc56f4f2b452257486ed000accd7cfa23e8b1f021cdd5a0c95110"
+    },
+    {
+      "file": "generated/gen12.nanz",
+      "sha256": "34dfedf10238064f4f0a0c35308b22a179a1c58db17ba7ce920e76053c910fe3",
+      "workload": "workloads/gen12.json",
+      "workload_sha256": "cf057c4dced60aa4ad4d5d530302df3fd7e3a80698e54c518888ac89047e7e07"
+    },
+    {
+      "file": "generated/gen13.nanz",
+      "sha256": "578b80d5e822f27df82a5457b53dc1e746a28b7904751380735d0f28a031e5a5",
+      "workload": "workloads/gen13.json",
+      "workload_sha256": "91c365972f2187a5c16ad5119dea57bcf673867e4f88a754385dbbbd3f8699d4"
+    },
+    {
+      "file": "generated/gen14.nanz",
+      "sha256": "06edad60efdf6b430d4e1ea951b2ae4d14be1530ef4e3c5dfbf01b85fd3adf84",
+      "workload": "workloads/gen14.json",
+      "workload_sha256": "62dcb9a5dabaf377adb4df9615d1882a2fe6d645b9b70e27f6936247b86cf708"
+    },
+    {
+      "file": "generated/gen15.nanz",
+      "sha256": "89987dbedb8aec31249fc1d5baf1acbe880c09f90cdef4359a80cd8c0daf41fc",
+      "workload": "workloads/gen15.json",
+      "workload_sha256": "756830b28c5aebe8d4b44bc6db08c96c1a80c222459b8d0e770427a397965a1e"
+    },
+    {
+      "file": "generated/gen16.nanz",
+      "sha256": "1daeb9e7df797b584f5e9a155a671a6119aa515d0a502ec8307b34f2504f2f8a",
+      "workload": "workloads/gen16.json",
+      "workload_sha256": "ee1fd51081a50459cf94d84217420419d55fcdf9261bedb2e5c20c2cd348abcd"
+    },
+    {
+      "file": "generated/gen17.nanz",
+      "sha256": "c72a5eaf3400e061e7ca42f75d10345cbab0e8f086dde19cd3c88a8a6277e33b",
+      "workload": "workloads/gen17.json",
+      "workload_sha256": "43500271bfd27b28e9fc2d7db9527c173abe7da9189d19d6174ae7fcb941c901"
+    },
+    {
+      "file": "generated/gen18.nanz",
+      "sha256": "0eb2e4afbdec980330ebd82149cdb07c81fcb94cf5ebcd507e8ad6407fabe967",
+      "workload": "workloads/gen18.json",
+      "workload_sha256": "9425d32eb654c348610593e316181c52ae127d93e40897acf7413bc67eb47ff5"
+    },
+    {
+      "file": "generated/gen19.nanz",
+      "sha256": "1339d0d441b8196ccd3cef446198385b3b5c5a6ed62b64fc17f49aa244fb3cfc",
+      "workload": "workloads/gen19.json",
+      "workload_sha256": "d020be05e33b5b7bb34793e96624e9375a3bb6b580097173943869db13285ee6"
+    },
+    {
+      "file": "generated/gen20.nanz",
+      "sha256": "8e69a271c965139cb4f2a378414d09b5b2e026a82b41646761d09ffd588c595b",
+      "workload": "workloads/gen20.json",
+      "workload_sha256": "ddaa1b19c6f7709a02ae9904d47542f37755799bdd47dd0b669f8721a5f98264"
+    },
+    {
+      "file": "generated/gen21.nanz",
+      "sha256": "7feb08719eef60773b85083d4f545bd032e09dc7099f78f2578d0e05a1b17645",
+      "workload": "workloads/gen21.json",
+      "workload_sha256": "da1bc6ab3bead68f68e4e7c48a0fdb00cc2db05cd3660b84ad5d61273d749cf5"
+    },
+    {
+      "file": "generated/gen22.nanz",
+      "sha256": "c340d4730f430580042f0d7aee3edbf4bec2a2123af82433cef66086455c5984",
+      "workload": "workloads/gen22.json",
+      "workload_sha256": "deb27688dacfcd5b03aec136bf568c2b9053a9284a8f083bb0c83f6f7e63c156"
+    },
+    {
+      "file": "generated/gen23.nanz",
+      "sha256": "8d746b2216b21b10afa3cbf4bac3d0c62539cf7f23373c0aa2a7c1667c59102a",
+      "workload": "workloads/gen23.json",
+      "workload_sha256": "e02270528a275a0fc1c94e6eb6c95ca6333ee42bf0dacadd428588263e1abd08"
+    },
+    {
+      "file": "generated/gen24.nanz",
+      "sha256": "b0f9afe7eec1ce1d69615efd2f0d2f9bb9b3d50a323cc1de69699081e1bf0aa1",
+      "workload": "workloads/gen24.json",
+      "workload_sha256": "b65c2e816ed6ae87256a575bac9bb1232681bc721a6ead4faefa5a62c69bb258"
+    },
+    {
+      "file": "hand/hand_crc8_shape.nanz",
+      "sha256": "29ebac90ae6eddb401ba7524ea4f97704b678331784c17132141c43487d850fa",
+      "workload": "workloads/hand_crc8_shape.json",
+      "workload_sha256": "d46ed6f2e3b3a1684d620cd75d0417334b36894d25dcd015039028fe7cc9d7af"
+    },
+    {
+      "file": "hand/hand_two_ptr_stride3_branch.nanz",
+      "sha256": "3b0a3dbb17d7801d8b967e97da5fdfb8c1f9f085ad19c6436a28fb545e208468",
+      "workload": "workloads/hand_two_ptr_stride3_branch.json",
+      "workload_sha256": "62a4acc32d08303a5c7fe3d29a371f222675c7eab420e142ffa5a7302184ece8"
+    },
+    {
+      "file": "hand/hand_two_ptr_xor.nanz",
+      "sha256": "c67f07f636f8723c36865ba38dd9b7790b538b8d24f05e9d3883a71e35d1e278",
+      "workload": "workloads/hand_two_ptr_xor.json",
+      "workload_sha256": "c6d5a077a5623de2eaf976588113e3d5aee14342a56a50597dd326ea72186a73"
+    }
+  ]
+}

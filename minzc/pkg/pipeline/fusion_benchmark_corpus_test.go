@@ -53,8 +53,8 @@ func TestFusionBenchmarkCorpus(t *testing.T) {
 		if err := json.Unmarshal(read(filepath.Join(root, folder, "manifest.json")), &manifest); err != nil {
 			t.Fatal(err)
 		}
-		if len(manifest.Cases) != 8 {
-			t.Fatalf("%s: want eight frozen cases", folder)
+		if len(manifest.Cases) != 9 {
+			t.Fatalf("%s: want nine frozen cases", folder)
 		}
 		seen := map[string]bool{}
 		for _, e := range manifest.Cases {
@@ -78,7 +78,7 @@ func TestFusionBenchmarkCorpus(t *testing.T) {
 			}
 		}
 	}
-	if len(hashes) != 8 {
+	if len(hashes) != 9 {
 		t.Fatal("reference case names differ")
 	}
 	for _, source := range sources {
