@@ -806,6 +806,24 @@ $ python3 scripts/assert_matrix.py --mz minzc/mz --glob 'examples/nanz/zvdb*.nan
 
 `TestZVDBDemoBelowMinimumScreenLayout` is registered in the `fast` profile (590
 entries, inventory check clean). The const repro still fails on both backends,
-as a repro should.
+as a repro should. The sharded fast profile re-run after round 3:
+
+```
+$ (cd minzc && python3 ../scripts/ci/run_stable_pipeline.py --profile fast \
+      --output /tmp/fast3 --shards 4 --workers 4)
+Pipeline inventory: 961 total, 590 selected (fast, job 1/1), 4 shards, 4 workers
+$ python3 -c "import json;print([s['exit_code'] for s in json.load(open('/tmp/fast3/statuses.json'))])"
+[0, 0, 0, 0]
+$ grep -hc '^--- FAIL' /tmp/fast3/shard-*.log        # 0 0 0 0
+$ grep -hc '^--- PASS' /tmp/fast3/shard-*.log | paste -sd+ | bc   # 558 (+32 skipped = 590)
+$ grep -h ZVDB /tmp/fast3/shard-*.log | grep '^--- '
+--- PASS: TestZVDBDemoTopKMatchesPythonReference (0.49s)
+--- PASS: TestZVDBDemoTopKAtCapacityMatchesReference (0.55s)
+--- PASS: TestZVDBDemoCPMScriptedSession (0.84s)
+--- PASS: TestZVDBDemoNarrowScreenLayout (0.88s)
+--- PASS: TestZVDBDemoCPMScreenContent (0.79s)
+--- PASS: TestZVDBDemoBelowMinimumScreenLayout (0.64s)
+--- PASS: TestZVDBDemoWideDataSetDoesNotOverflow (2.57s)
+```
 
 STATUS: DONE
