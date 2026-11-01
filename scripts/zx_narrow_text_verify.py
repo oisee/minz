@@ -23,7 +23,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-import zx_narrow_text_ocr as ocr  # noqa: E402
+import zx_narrow_text_model as model  # noqa: E402
 
 REPO = Path(__file__).resolve().parent.parent
 MZ = REPO / "minzc" / "mz"
@@ -34,16 +34,25 @@ OUT = REPO / "reports" / "zx-narrow-text"
 
 ROWS = 24
 NSENT = 24
+WIDTH_TAG = {"w5-startup": "w5", "w6-startup": "w6", "w8-startup": "w8",
+                 "5to6": "w6", "5to8": "w8", "6to8": "w8",
+                 "8to6": "w6", "6to5": "w5", "8to5": "w5"}
 
-# width -> (columns, left pane cells, key that switches to it, frame the key is
-# pressed at, total frames to run). The demo starts at 51 columns.
-LAYOUTS = [
-    (5, 51, 24, None, 0, 500),
-    (6, 42, 16, "2", 400, 1000),
-    (8, 32, 16, "3", 400, 1000),
-]
-
+# (width, key that switches to it, keys pressed in order with their frames,
+#  total frames). Keys are held 80 frames so each spans the redraw it triggers.
 KEY_BITS = {"1": (3, 0), "2": (3, 1), "3": (3, 2)}
+WIDTH_KEY = {5: "1", 6: "2", 8: "3"}
+LAYOUTS = [
+    ("w5-startup", 5, [], 250),
+    ("w6-startup", 6, [("2", 200)], 750),
+    ("w8-startup", 8, [("3", 200)], 750),
+    ("5to6", 6, [("2", 200)], 750),
+    ("5to8", 8, [("3", 200)], 750),
+    ("6to8", 8, [("2", 200), ("3", 900)], 1600),
+    ("8to6", 6, [("3", 200), ("2", 900)], 1600),
+    ("6to5", 5, [("2", 200), ("1", 900)], 1600),
+    ("8to5", 5, [("3", 200), ("1", 900)], 1600),
+]
 
 
 # ── expected content, read straight out of the demo source ──────────────────
@@ -60,52 +69,7 @@ def demo_sentences() -> list[str]:
 
 
 def demo_paragraph() -> str:
-    src = DEMO.read_text()
-    return re.search(r'win_print\(c"([^"]*)"\)', src).group(1)
-
-
-def left_row(i: int, cols: int) -> str:
-    field = cols - 4
-    text = demo_sentences()[i]
-    padded = text[:field].ljust(field)
-    return f"{i:02d} {padded}".ljust(cols)
-
-
-def right_rows(right_cols: int) -> list[str]:
-    """Mirror win_print's cursor advance exactly, including the wrap after the
-    last character and the window scroll it triggers."""
-    text = demo_paragraph()
-    screen: list[list[str]] = []
-    col = row = 0
-    for ch in text:
-        if row == len(screen):
-            screen.append([" "] * right_cols)
-        screen[row][col] = ch
-        col += 1
-        if col >= right_cols:
-            col = 0
-            row += 1
-            if row >= ROWS:
-                screen.pop(0)
-                screen.append([" "] * right_cols)
-                row = ROWS - 1
-    while len(screen) < ROWS:
-        screen.append([" "] * right_cols)
-    return ["".join(r) for r in screen[:ROWS]]
-
-
-def geometry(width: int, cols: int, left_w: int) -> tuple[int, int, int, int, int]:
-    """(left_x_px, left_cols, right_x_px, right_cols, divider_px) — the same
-    arithmetic split_vertical performs on the Z80."""
-    left_end = left_w * width
-    div_end = left_end + 8 if left_end % 8 == 0 else (left_end + 7) & ~7
-    right_x = 0
-    px = 0
-    while px < div_end:
-        px += width
-        right_x += 1
-    div_px = left_end + ((div_end - left_end) >> 1)
-    return 0, left_w, right_x * width, cols - right_x, div_px
+    return re.search(r'win_print\(c"([^"]*)"\)', DEMO.read_text()).group(1)
 
 
 # ── runner ──────────────────────────────────────────────────────────────────
@@ -125,73 +89,64 @@ def build_demo() -> Path:
     return bin_
 
 
-def capture(bin_: Path, tag: str, key: str | None, key_frame: int, frames: int) -> Path:
+def capture(bin_: Path, tag: str, keys: list[tuple[str, int]], frames: int) -> Path:
     scr_dir = OUT / f"scr-{tag}"
     if scr_dir.exists():
         shutil.rmtree(scr_dir)
     cmd = [str(MZX), "--model", "48k", "--run", f"{bin_}@8000",
            "--frames", str(frames), "--dump-scr", str(scr_dir),
-           "--screenshot", str(OUT / f"screenshot-{tag}.png")]
-    if key is not None:
-        row, bit = KEY_BITS[key]
+           "--screenshot", str(OUT / f"screenshot-{WIDTH_TAG[tag]}.png")]
+    if keys:
+        events = []
+        for key, frame in keys:
+            row, bit = KEY_BITS[key]
+            events += [{"frame": frame, "row": row, "bit": bit, "down": True},
+                       {"frame": frame + 80, "row": row, "bit": bit, "down": False}]
         script = OUT / f"keys-{tag}.json"
-        script.write_text(json.dumps(
-            [{"frame": key_frame, "row": row, "bit": bit, "down": True},
-             {"frame": key_frame + 20, "row": row, "bit": bit, "down": False}]))
+        script.write_text(json.dumps(events))
         cmd += ["--key-script", str(script)]
     r = subprocess.run(cmd, capture_output=True, text=True)
     if r.returncode != 0:
         sys.exit(f"mzx failed: {r.stderr}")
-    dumps = sorted((scr_dir).glob("frame_*.scr"))
+    dumps = sorted(scr_dir.glob("frame_*.scr"))
     if not dumps:
         sys.exit("mzx produced no screen dumps")
     return dumps[-1]
 
 
-def check(tag: str, scr_path: Path, width: int, cols: int, left_w: int) -> list[str]:
-    s = ocr.Screen(scr_path)
-    left_px, left_cols, right_px, right_cols, div_px = geometry(width, cols, left_w)
-    problems: list[str] = []
-
-    want_left = [left_row(i, left_cols) for i in range(NSENT)]
-    got_left = s.window(left_px, 0, left_cols, ROWS, width)
-    for r, (want, got) in enumerate(zip(want_left, got_left)):
-        if want != got:
-            problems.append(f"{tag} left pane row {r}: want {want!r} got {got!r}")
-
-    want_right = right_rows(right_cols)
-    got_right = s.window(right_px, 0, right_cols, ROWS, width)
-    for r, (want, got) in enumerate(zip(want_right, got_right)):
-        if want != got:
-            problems.append(f"{tag} right pane row {r}: want {want!r} got {got!r}")
-
-    # attributes: left pane black ink on cyan paper bright, the cursor row (23)
-    # inverted; right pane white ink on blue paper.
-    def attr(bcol: int, row: int) -> int:
-        return s.scr[6144 + row * 32 + bcol]
-
-    lb0, lb1 = left_px >> 3, (left_px + left_cols * width - 1) >> 3
-    rb0, rb1 = right_px >> 3, (right_px + right_cols * width - 1) >> 3
-    want_l, want_li = (5 << 3) | 0 | 0x40, (0 << 3) | 5 | 0x40
-    want_r = (1 << 3) | 7
-    for row in range(ROWS):
-        for b in range(lb0, lb1 + 1):
-            want = want_li if row == ROWS - 1 else want_l
-            if attr(b, row) != want:
-                problems.append(f"{tag} left attr row {row} col {b}: "
-                                f"{attr(b, row):#04x} want {want:#04x}")
-        for b in range(rb0, rb1 + 1):
-            if attr(b, row) != want_r:
-                problems.append(f"{tag} right attr row {row} col {b}: "
-                                f"{attr(b, row):#04x} want {want_r:#04x}")
-
-    # the divider is a one-pixel vertical rule spanning all 24 character rows
-    byte, bit = div_px >> 3, 0x80 >> (div_px & 7)
+def check(tag: str, scr_path: Path, width: int) -> list[str]:
+    """Compare all 6144 bitmap bytes and all 768 attribute bytes against the
+    independent model, and report anything outside the windows separately."""
+    actual = scr_path.read_bytes()
+    want, g = model.expected_screen(width)
+    problems = []
+    inside = outside = attrs = 0
+    first_out = first_attr = ""
     for row in range(ROWS):
         for line in range(8):
-            v = s.scr[ocr.scr_offset(byte, row, line)]
-            if not v & bit:
-                problems.append(f"{tag} divider missing at row {row} line {line}")
+            for b in range(32):
+                off = model.scr_offset(b, row, line)
+                if actual[off] == want[off]:
+                    continue
+                pane = (g["left_b0"] <= b <= g["left_b1"]) or (g["right_b0"] <= b <= g["right_b1"])
+                if pane:
+                    inside += 1
+                else:
+                    outside += 1
+                    if not first_out:
+                        first_out = f"byte col {b} char row {row} line {line}: " \
+                                    f"got {actual[off]:#04x} want {want[off]:#04x}"
+        for b in range(32):
+            off = model.attr_offset(b, row)
+            if actual[off] != want[off]:
+                attrs += 1
+                if not first_attr:
+                    first_attr = f"attr col {b} row {row}: got {actual[off]:#04x} want {want[off]:#04x}"
+    if inside or outside or attrs:
+        problems.append(f"{tag} width {width}: {inside} bitmap bytes inside the panes, "
+                        f"{outside} outside, {attrs} attribute cells differ\n"
+                        f"    first outside: {first_out or '-'}\n"
+                        f"    first attribute: {first_attr or '-'}")
     return problems
 
 
@@ -203,26 +158,24 @@ def main() -> int:
 
     bin_ = build_demo()
     failures = 0
-    for width, cols, left_w, key, key_frame, frames in LAYOUTS:
-        tag = f"w{width}"
-        scr = capture(bin_, tag, key, key_frame, frames)
-        problems = check(tag, scr, width, cols, left_w)
-        status = "PASS" if not problems else f"FAIL ({len(problems)} problems)"
-        print(f"[{tag}] {cols} columns, {scr.name}: {status}")
-        for p in problems[:8]:
+    shots = set()
+    for tag, width, keys, frames in LAYOUTS:
+        shots.add(WIDTH_TAG[tag])
+        scr = capture(bin_, tag, keys, frames)
+        problems = check(tag, scr, width)
+        print(f"[{tag}] {width} px, {scr.name}: {'PASS' if not problems else 'FAIL'}")
+        for p in problems:
             print("    " + p)
-        if len(problems) > 8:
-            print(f"    ... and {len(problems) - 8} more")
         failures += len(problems)
         if not a.keep:
             shutil.rmtree(OUT / f"scr-{tag}", ignore_errors=True)
 
     # a snapshot of the running 51-column screen
-    run([str(MZX), "--model", "48k", "--run", f"{bin_}@8000", "--frames", "500",
+    run([str(MZX), "--model", "48k", "--run", f"{bin_}@8000", "--frames", "250",
          "--save-snapshot", str(OUT / "zx_narrow_text_demo.sna")])
     print(f"[sna] {OUT / 'zx_narrow_text_demo.sna'}")
 
-    print(f"{'ALL PASS' if failures == 0 else f'{failures} FAILURES'}")
+    print("ALL PASS" if failures == 0 else f"{failures} FAILURES")
     return 0 if failures == 0 else 1
 
 

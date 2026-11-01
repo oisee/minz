@@ -29,18 +29,31 @@
 //   8c..8c+7, i.e. characters floor(8c/W) to floor((8c+7)/W). win_open and
 //   win_attr therefore paint a window's attribute over the whole attribute
 //   columns its ink can touch — [x_px>>3, (x_px+w_px-1)>>3] — rounded outward,
-//   last writer wins. split_vertical snaps the right pane to an 8-px boundary
-//   so the two panes never share an attribute cell; the divider gutter absorbs
-//   the rounding, and the divider line itself takes the left pane's attribute.
-//   Byte-level operations (win_clear, win_scroll) work on the same rounded-out
-//   byte range.
+//   last writer wins. split_vertical keeps the two panes' attribute columns
+//   disjoint (the divider gutter absorbs the rounding) and paints the gutter
+//   itself with the left pane's attribute, so the 1-px rule is always visible.
+//
+// Pixels
+//   Every pixel operation — blit, clear, scroll — is masked to the window's own
+//   pixels, including at a byte-shared edge: a window whose origin or end is
+//   not on an 8-px boundary shares its first/last screen byte with a neighbour
+//   and only ever rewrites the bits it owns (wn_ke0 / wn_ke1). So text in one
+//   window never disturbs the pixels of another, whatever the alignment.
+//
+// IY
+//   The public entry points below save and restore IY, so a caller may keep
+//   interrupts enabled (IY = $5C3A) or return to BASIC across them. The *_i
+//   forms used internally do not.
 //
 // The API is shaped like a terminal backend so a VT100 implementation can
 // provide the same calls later:
 //   text_set_width(8|6|5)    win_open(id,x,y,w,h)    win_select(id)
 //   win_clear(id)            win_goto(col,row)       win_print(str)
 //   win_putch(ch)            win_print_padded(str,w) win_attr(ink,paper,bright)
-//   win_invert_row(row)      split_vertical(left_w,gap)
+//   win_invert_row(row)      split_vertical(left_w,gap)   text_cols()
+//
+// Each public call is a thin wrapper that preserves IY around the *_i
+// implementation of the same name (see "Public entry points" at the bottom).
 //
 // The window record lives in parallel byte arrays rather than an array of
 // structs: struct methods still trip BUG-008 (arena codegen), and every field
@@ -64,36 +77,45 @@ global tx_core: u8 = 0         // 0 = pre-shifted table, 1 = rotate
 // tx_colpx[c] = c * tx_width, filled in by text_set_width.
 global tx_colpx: [u8; 64]
 
-// KEEP masks. tx_masks[2*s] clears the left screen byte down to the bits this
-// cell writes into it, tx_masks[2*s+1] does the same for the right byte, and 0
-// means the cell never reaches a second byte. They are the complement of the
-// cell's footprint, so a blit rewrites only its own pixels and leaves the
-// neighbouring cell that shares the byte untouched. With W the glyph width and
+// KEEP masks, one 16-byte block per glyph width (5, then 6, then 8), selected
+// by tx_masktab so only one table ships and nothing is copied at run time.
+// tx_masks_w[2*s] clears the left screen byte down to the bits this cell writes
+// into it, tx_masks_w[2*s+1] the same for the right byte, and 0 means the cell
+// never reaches a second byte. They are the complement of the cell's footprint,
+// so a blit rewrites only its own pixels and leaves the neighbouring cell that
+// shares the byte untouched. With W the glyph width and
 //   f0 = ((1<<W)-1) << (8-W-s)  if s + W <= 8,  else  0xFF >> s
 //   f1 = (0xFF << (16-s-W)) & 0xFF              if s + W >  8,  else  0
 // the entries are m0 = f0 ^ 0xFF and m1 = f1 ^ 0xFF, with 0 kept as "no second
 // byte" (which is exactly when f1 is 0).
-global tx_masks: [u8; 16]
 
-// Addresses of the font artefacts for the active width, cached here so the
-// asm bodies only ever name this module's own symbols (the compiler renames a
-// foreign global reference to <importer>__<name>, which hand-written asm cannot
-// spell portably).
-global tx_font: u16 = 0        // packed font (the ROM font for width 8)
-global tx_shift: u16 = 0       // pre-shifted glyph table
-
-global tx_masks5: [u8; 16] = [
+global tx_masks_w: [u8; 48] = [
     0x07, 0x00, 0x83, 0x00, 0xC1, 0x00, 0xE0, 0x00,
     0xF0, 0x7F, 0xF8, 0x3F, 0xFC, 0x1F, 0xFE, 0x0F,
-]
-global tx_masks6: [u8; 16] = [
     0x03, 0x00, 0x81, 0x00, 0xC0, 0x00, 0xE0, 0x7F,
     0xF0, 0x3F, 0xF8, 0x1F, 0xFC, 0x0F, 0xFE, 0x07,
-]
-global tx_masks8: [u8; 16] = [
     0x00, 0x00, 0x80, 0x7F, 0xC0, 0x3F, 0xE0, 0x1F,
     0xF0, 0x0F, 0xF8, 0x07, 0xFC, 0x03, 0xFE, 0x01,
 ]
+
+// The 16-byte block of tx_masks_w the active width uses, plus the addresses of
+// the font artefacts. All three are cached in this module's own globals so the
+// asm bodies only ever name zx__text__ symbols: the compiler renames a foreign
+// global reference to <importer>__<name>, which hand-written asm cannot spell
+// portably.
+
+global tx_masktab: u16 = 0     // the active 16-byte keep-mask block
+global tx_font: u16 = 0        // packed font (the ROM font for width 8)
+global tx_shift: u16 = 0       // pre-shifted glyph table
+
+// Window-edge ownership. A window covering pixels x0..x1 owns, in its first
+// byte, the pixels from x0 to the end of that byte (mask 0xFF >> (x0&7)) and,
+// in its last byte, the pixels from that byte's start to x1 (mask 0xFF <<
+// (7-(x1&7))). tx_lowmask / tx_highmask are those two masks by residue, so
+// win_open can build the keep masks wn_ke0 / wn_ke1 without a variable shift.
+
+global tx_lowmask: [u8; 8] = [0xFF, 0x7F, 0x3F, 0x1F, 0x0F, 0x07, 0x03, 0x01]
+global tx_highmask: [u8; 8] = [0x80, 0xC0, 0xE0, 0xF0, 0xF8, 0xFC, 0xFE, 0xFF]
 
 // ── Window records ──────────────────────────────────────────────────────────
 
@@ -108,11 +130,31 @@ global wn_xpx: [u8; 4]    // origin, pixels (= wn_x * tx_width)
 global wn_b0: [u8; 4]     // first byte column covered, x_px>>3
 global wn_b1: [u8; 4]     // last byte column covered, (x_px+w_px-1)>>3
 global wn_bytes: [u8; 4]  // wn_b1 - wn_b0 + 1
+global wn_ke0: [u8; 4]    // keep mask in byte wn_b0 (bits the window does not own)
+global wn_ke1: [u8; 4]    // keep mask in byte wn_b1
+global wn_ab0: [u8; 4]    // first attribute cell whose 8 px are all inside
+global wn_ab1: [u8; 4]    // last such cell
 global wn_cur: u8 = 0           // the window win_putch & co. write to
+
+// Argument slots for the public wrappers, which are pure asm and therefore
+// cannot call a Nanz function with parameters: the compiler picks each
+// function's calling convention from its own body (a pointer arrives in HL for
+// one function and DE for another), which a hand-written CALL cannot know in
+// advance. The wrappers park their arguments here and call the parameterless
+// *_i implementations.
+
+global tx_arg0: u8 = 0
+global tx_arg1: u8 = 0
+global tx_arg2: u8 = 0
+global tx_arg3: u8 = 0
+global tx_arg4: u8 = 0
+global tx_argp: u16 = 0
 
 global sp_open: u8 = 0          // a split_vertical layout is live
 global sp_left_w: u8 = 0
 global sp_gap: u8 = 0
+global sp_b0: u8 = 0            // divider attribute cells, inclusive
+global sp_b1: u8 = 0
 
 // ── Screen address helpers ──────────────────────────────────────────────────
 // ZX layout: H = 010 TT LLL (TT = row/8, LLL = pixel line), L = RRR CCCCC
@@ -184,6 +226,12 @@ fun tx_copy(@z80_hl src: u16, @z80_de dst: u16, @z80_c n: u8) -> void {
 
 
 // ── The unrolled pair blitter, shared by both cores ─────────────────────────
+//
+// The eight pixel rows are unrolled: no loop counter, and DE (screen) and HL
+// (the (T,U) pair) advance by +0x100 and +2, both a single INC. Per row this
+// costs ~44 T when the cell fits one screen byte (LD/AND/OR/LD + INC HL x2 +
+// INC D) and ~74 T when it straddles (a second masked byte, INC E / DEC E),
+// which is the measured +264 T for a whole straddling glyph.
 // HL = 16 bytes holding (T, U) per pixel row, DE = screen address of pixel
 // line 0, B = left-byte mask, C = right-byte mask (0 when the cell fits one
 // byte). Eight rows unrolled: no loop counter, and DE/HL advance by +0x100 and
@@ -410,7 +458,7 @@ fun tx_blit(@z80_a ch: u8, @z80_c xpx: u8, @z80_e row: u8) -> void {
         ADD A, A
         LD C, A
         LD B, 0
-        LD IX, zx__text__tx_masks
+        LD IX, (zx__text__tx_masktab)
         ADD IX, BC
         LD B, (IX+0)
         LD C, (IX+1)
@@ -489,7 +537,7 @@ fun tx_blit_rot(@z80_a ch: u8, @z80_c xpx: u8, @z80_e row: u8) -> void {
         ADD A, A
         LD C, A
         LD B, 0
-        LD IX, zx__text__tx_masks
+        LD IX, (zx__text__tx_masktab)
         ADD IX, BC
         LD B, (IX+0)
         LD C, (IX+1)
@@ -502,16 +550,71 @@ fun tx_blit_rot(@z80_a ch: u8, @z80_c xpx: u8, @z80_e row: u8) -> void {
 
 // ── Attributes ──────────────────────────────────────────────────────────────
 
-// Paint the current window's attribute byte over every attribute cell its ink
-// can touch (whole attribute columns, rounded outward — see the header).
+// Paint the window's attribute byte over `rows` attribute rows starting at
+// char row r0, covering every attribute cell its ink can touch (whole
+// attribute columns, rounded outward — see the header).
 
-fun win_apply_attr(id: u8) -> void {
-    var r: u8 = 0
-    while r < wn_h[id] {
-        var p: ^u8 = tx_attr_addr(wn_b0[id], wn_y[id] + r)
+fun win_apply_rows(id: u8, r0: u8, rows: u8) -> void {
+    var n: u8 = rows
+    var r: u8 = r0
+    while n > 0 {
+        var p: ^u8 = tx_attr_addr(wn_b0[id], r)
         var c: u8 = wn_b0[id]
         while c <= wn_b1[id] {
             p^ = wn_attr[id]
+            p = p + 1
+            c = c + 1
+        }
+        r = r + 1
+        n = n - 1
+    }
+}
+
+// Paint only the attribute cells the window owns every pixel of — used after a
+// scroll, where the rounded-out range would recolour a cell shared with a
+// neighbour.
+
+fun win_apply_own(id: u8, r0: u8, rows: u8) -> void {
+    if wn_ab0[id] > wn_ab1[id] {
+        return
+    }
+    var n: u8 = rows
+    var r: u8 = r0
+    while n > 0 {
+        var p: ^u8 = tx_attr_addr(wn_ab0[id], r)
+        var c: u8 = wn_ab0[id]
+        while c <= wn_ab1[id] {
+            p^ = wn_attr[id]
+            p = p + 1
+            c = c + 1
+        }
+        r = r + 1
+        n = n - 1
+    }
+}
+
+fun win_apply_attr(id: u8) -> void {
+    win_apply_rows(id, 0, wn_h[id])
+    if (id == 0) & (sp_open != 0) {
+        tx_paint_divider()
+    }
+}
+
+// The divider is chrome that belongs to the left pane, so it takes the left
+// pane's attribute. Without this the gutter cell keeps whatever the last
+// tx_clear_screen left behind, which at 51 columns is black-on-black and the
+// rule is invisible.
+
+fun tx_paint_divider() -> void {
+    if sp_open == 0 {
+        return
+    }
+    var r: u8 = 0
+    while r < TX_ROWS {
+        var p: ^u8 = tx_attr_addr(sp_b0, r)
+        var c: u8 = sp_b0
+        while c <= sp_b1 {
+            p^ = wn_attr[0]
             p = p + 1
             c = c + 1
         }
@@ -521,60 +624,159 @@ fun win_apply_attr(id: u8) -> void {
 
 // ── Window lifecycle ────────────────────────────────────────────────────────
 
-fun win_open(id: u8, x: u8, y: u8, w: u8, h: u8) -> void {
+// Pixel-exact row helpers. A window whose pixel origin or end is not on an
+// 8-px boundary shares its first and/or last screen byte with a neighbour; the
+// keep masks wn_ke0 / wn_ke1 hold the bits of those bytes the window does NOT
+// own, so clearing and scrolling leave them alone.
+
+fun win_clear_line(id: u8, row: u8, line: u8) -> void {
+    if wn_b0[id] == wn_b1[id] {
+        var p: ^u8 = tx_scr_addr(wn_b0[id], row, line)
+        p^ = p^ & (wn_ke0[id] & wn_ke1[id])
+        return
+    }
+    var p0: ^u8 = tx_scr_addr(wn_b0[id], row, line)
+    p0^ = p0^ & wn_ke0[id]
+    if wn_b1[id] > wn_b0[id] + 1 {
+        tx_zero(tx_scr_addr(wn_b0[id] + 1, row, line), wn_b1[id] - wn_b0[id] - 1)
+    }
+    var p1: ^u8 = tx_scr_addr(wn_b1[id], row, line)
+    p1^ = p1^ & wn_ke1[id]
+}
+
+fun win_copy_line(id: u8, dstrow: u8, srcrow: u8, line: u8) -> void {
+    if wn_b0[id] == wn_b1[id] {
+        let ke: u8 = wn_ke0[id] & wn_ke1[id]
+        var d: ^u8 = tx_scr_addr(wn_b0[id], dstrow, line)
+        var s: ^u8 = tx_scr_addr(wn_b0[id], srcrow, line)
+        d^ = (d^ & ke) | (s^ & (ke ^ 0xFF))
+        return
+    }
+    var d0: ^u8 = tx_scr_addr(wn_b0[id], dstrow, line)
+    var s0: ^u8 = tx_scr_addr(wn_b0[id], srcrow, line)
+    d0^ = (d0^ & wn_ke0[id]) | (s0^ & (wn_ke0[id] ^ 0xFF))
+    if wn_b1[id] > wn_b0[id] + 1 {
+        tx_copy(tx_scr_addr(wn_b0[id] + 1, srcrow, line),
+                tx_scr_addr(wn_b0[id] + 1, dstrow, line),
+                wn_b1[id] - wn_b0[id] - 1)
+    }
+    var d1: ^u8 = tx_scr_addr(wn_b1[id], dstrow, line)
+    var s1: ^u8 = tx_scr_addr(wn_b1[id], srcrow, line)
+    d1^ = (d1^ & wn_ke1[id]) | (s1^ & (wn_ke1[id] ^ 0xFF))
+}
+
+// Reject origins outside the screen and clamp the size to the screen on both
+// axes; a rejected or empty window keeps width/height 0 and prints nothing.
+// (Without the clamp, a window taller than 24 rows paints attributes past
+// $5AFF into the system-variable area, and x >= tx_cols underflows tx_cols-x.)
+
+fun win_open_i() -> void {
+    let id: u8 = tx_arg0
+    let x: u8 = tx_arg1
+    let y: u8 = tx_arg2
+    let w: u8 = tx_arg3
+    let h: u8 = tx_arg4
+    wn_cur = id
+    wn_w[id] = 0
+    wn_h[id] = 0
+    if (x >= tx_cols) | (y >= TX_ROWS) {
+        return
+    }
     var ww: u8 = w
     if x + w > tx_cols {
         ww = tx_cols - x
     }
+    var hh: u8 = h
+    if y + h > TX_ROWS {
+        hh = TX_ROWS - y
+    }
     wn_x[id] = x
     wn_y[id] = y
     wn_w[id] = ww
-    wn_h[id] = h
+    wn_h[id] = hh
     wn_col[id] = 0
     wn_row[id] = 0
     wn_attr[id] = 0x07
     wn_xpx[id] = tx_colpx[x]
     wn_b0[id] = wn_xpx[id] >> 3
-    wn_b1[id] = (wn_xpx[id] + tx_colpx[ww] - 1) >> 3
-    wn_bytes[id] = wn_b1[id] - wn_b0[id] + 1
-    wn_cur = id
+    wn_ke0[id] = 0xFF
+    wn_ke1[id] = 0xFF
+    wn_ab0[id] = 1
+    wn_ab1[id] = 0
+    if ww > 0 {
+        let x1: u8 = wn_xpx[id] + tx_colpx[ww] - 1
+        wn_b1[id] = x1 >> 3
+        var fo0: u8 = tx_lowmask[wn_xpx[id] & 7]
+        var fo1: u8 = tx_highmask[x1 & 7]
+        if wn_b1[id] == wn_b0[id] {
+            fo0 = fo0 & fo1
+            fo1 = 0
+        }
+        wn_ke0[id] = fo0 ^ 0xFF
+        wn_ke1[id] = fo1 ^ 0xFF
+        wn_bytes[id] = wn_b1[id] - wn_b0[id] + 1
+        // attribute cells this window owns every pixel of: scrolling moves
+        // only these, so a cell shared with a neighbour keeps that
+        // neighbour's colour. Painting (win_open/win_attr) still covers the
+        // rounded-out range, because a window has to be able to colour every
+        // cell its ink can land in.
+        var lastpx: u8 = wn_xpx[id] + tx_colpx[ww] - 1
+        wn_ab0[id] = (wn_xpx[id] + 7) >> 3
+        if lastpx >= 7 {
+            wn_ab1[id] = (lastpx - 7) >> 3
+        } else {
+            wn_ab1[id] = 0
+            wn_ab0[id] = 1
+        }
+        if wn_ab1[id] < wn_ab0[id] {
+            wn_ab1[id] = 0
+            wn_ab0[id] = 1
+        }
+    } else {
+        wn_b1[id] = wn_b0[id]
+        wn_bytes[id] = 1
+        wn_ab0[id] = 1
+        wn_ab1[id] = 0
+    }
     win_apply_attr(id)
 }
 
-fun win_select(id: u8) -> void {
+fun win_select_i() -> void {
+    let id: u8 = tx_arg0
     wn_cur = id
 }
 
 // Accessors, so callers do not have to reach into the window arrays.
 
-fun win_width() -> u8 {
+fun win_width_i() -> u8 {
     return wn_w[wn_cur]
 }
 
-fun win_height() -> u8 {
+fun win_height_i() -> u8 {
     return wn_h[wn_cur]
 }
 
-fun win_col() -> u8 {
+fun win_col_i() -> u8 {
     return wn_col[wn_cur]
 }
 
-fun win_row() -> u8 {
+fun win_row_i() -> u8 {
     return wn_row[wn_cur]
 }
 
-fun text_cols() -> u8 {
+fun text_cols_i() -> u8 {
     return tx_cols
 }
 
-// Blank the window's pixel bytes, repaint its attributes and home the cursor.
+// Blank the window's own pixels, repaint its attributes and home the cursor.
 
-fun win_clear(id: u8) -> void {
+fun win_clear_i() -> void {
+    let id: u8 = tx_arg0
     var r: u8 = 0
     while r < wn_h[id] {
         var line: u8 = 0
         while line < 8 {
-            tx_zero(tx_scr_addr(wn_b0[id], wn_y[id] + r, line), wn_bytes[id])
+            win_clear_line(id, wn_y[id] + r, line)
             line = line + 1
         }
         r = r + 1
@@ -585,58 +787,71 @@ fun win_clear(id: u8) -> void {
 }
 
 // Move the window's text up one character row; the bottom row is blanked and
-// repainted with the window attribute. Scrolls inside the window only.
+// repainted with the window attribute. Scrolls inside the window only: the
+// edge bytes are masked, so pixels of a neighbour sharing the byte stay put.
+// A window with fewer than two rows has nothing to move and must not scroll
+// (scrolling a 1-row window used to blank its only row, and a 0-row window
+// underflowed and erased the row above its origin).
 
-fun win_scroll(id: u8) -> void {
+fun win_scroll_i() -> void {
+    let id: u8 = tx_arg0
+    if wn_h[id] < 2 {
+        return
+    }
     var r: u8 = 0
     while r + 1 < wn_h[id] {
         var line: u8 = 0
         while line < 8 {
-            let up: u16 = tx_scr_addr(wn_b0[id], wn_y[id] + r, line)
-            let down: u16 = tx_scr_addr(wn_b0[id], wn_y[id] + r + 1, line)
-            tx_copy(down, up, wn_bytes[id])
+            win_copy_line(id, wn_y[id] + r, wn_y[id] + r + 1, line)
             line = line + 1
         }
-        let aup: u16 = tx_attr_addr(wn_b0[id], wn_y[id] + r)
-        let adown: u16 = tx_attr_addr(wn_b0[id], wn_y[id] + r + 1)
-        tx_copy(adown, aup, wn_bytes[id])
+        if wn_ab0[id] <= wn_ab1[id] {
+            tx_copy(tx_attr_addr(wn_ab0[id], wn_y[id] + r + 1),
+                    tx_attr_addr(wn_ab0[id], wn_y[id] + r),
+                    wn_ab1[id] - wn_ab0[id] + 1)
+        }
         r = r + 1
     }
     var last: u8 = wn_y[id] + wn_h[id] - 1
     var line2: u8 = 0
     while line2 < 8 {
-        tx_zero(tx_scr_addr(wn_b0[id], last, line2), wn_bytes[id])
+        win_clear_line(id, last, line2)
         line2 = line2 + 1
     }
-    var p: ^u8 = tx_attr_addr(wn_b0[id], last)
-    var c: u8 = wn_b0[id]
-    while c <= wn_b1[id] {
-        p^ = wn_attr[id]
-        p = p + 1
-        c = c + 1
-    }
+    win_apply_own(id, last, 1)
+    // a partially-shared edge cell keeps the neighbour's colour: it is outside
+    // wn_ab0..wn_ab1, so neither the copy above nor this repaint touches it
 }
 
 // ── Cursor ──────────────────────────────────────────────────────────────────
 
-fun win_goto(col: u8, row: u8) -> void {
+fun win_goto_i(@z80_a col: u8, @z80_c row: u8) -> void {
     let id: u8 = wn_cur
-    var c: u8 = col
-    var r: u8 = row
-    if c >= wn_w[id] {
-        c = wn_w[id] - 1
+    wn_col[id] = 0
+    wn_row[id] = 0
+    if wn_w[id] == 0 {
+        return
     }
-    if r >= wn_h[id] {
-        r = wn_h[id] - 1
+    if col < wn_w[id] {
+        wn_col[id] = col
+    } else {
+        wn_col[id] = wn_w[id] - 1
     }
-    wn_col[id] = c
-    wn_row[id] = r
+    if wn_h[id] == 0 {
+        return
+    }
+    if row < wn_h[id] {
+        wn_row[id] = row
+    } else {
+        wn_row[id] = wn_h[id] - 1
+    }
 }
 
 fun win_advance_row(id: u8) -> void {
     var r: u8 = wn_row[id] + 1
     if r >= wn_h[id] {
-        win_scroll(id)
+        tx_arg0 = id
+        win_scroll_i()
         wn_row[id] = wn_h[id] - 1
     } else {
         wn_row[id] = r
@@ -645,8 +860,12 @@ fun win_advance_row(id: u8) -> void {
 
 // ── Output ──────────────────────────────────────────────────────────────────
 
-fun win_putch(ch: u8) -> void {
+fun win_putch_i(@z80_a ch: u8) -> void {
     let id: u8 = wn_cur
+    let w: u8 = wn_w[id]
+    if (w == 0) | (wn_h[id] == 0) {
+        return
+    }
     if ch == 13 {
         wn_col[id] = 0
         win_advance_row(id)
@@ -665,7 +884,7 @@ fun win_putch(ch: u8) -> void {
         tx_blit_rot(ch, xpx, row)
     }
     var col: u8 = wn_col[id] + 1
-    if col >= wn_w[id] {
+    if col >= w {
         wn_col[id] = 0
         win_advance_row(id)
     } else {
@@ -673,10 +892,11 @@ fun win_putch(ch: u8) -> void {
     }
 }
 
-fun win_print(str: ^u8) -> void {
+fun win_print_i() -> void {
+    let str: ^u8 = tx_argp
     var i: u16 = 0
     while str[i] != 0 {
-        win_putch(str[i])
+        win_putch_i(str[i])
         i = i + 1
     }
 }
@@ -684,26 +904,31 @@ fun win_print(str: ^u8) -> void {
 // Fixed-width field: prints at most `width` characters of str, then pads with
 // spaces (or truncates) so the cursor always lands width cells further on.
 
-fun win_print_padded(str: ^u8, width: u8) -> void {
+fun win_print_padded_i() -> void {
+    let str: ^u8 = tx_argp
+    let width: u8 = tx_arg0
     var i: u8 = 0
     var stop: u8 = 0
     while (i < width) & (stop == 0) {
         if str[i] == 0 {
             stop = 1
         } else {
-            win_putch(str[i])
+            win_putch_i(str[i])
             i = i + 1
         }
     }
     while i < width {
-        win_putch(32)
+        win_putch_i(32)
         i = i + 1
     }
 }
 
 // ── Colour ──────────────────────────────────────────────────────────────────
 
-fun win_attr(ink: u8, paper: u8, bright: u8) -> void {
+fun win_attr_i() -> void {
+    let ink: u8 = tx_arg0
+    let paper: u8 = tx_arg1
+    let bright: u8 = tx_arg2
     let id: u8 = wn_cur
     var a: u8 = (paper << 3) | ink
     if bright != 0 {
@@ -716,7 +941,8 @@ fun win_attr(ink: u8, paper: u8, bright: u8) -> void {
 // Inverse video for one window row, for a highlighted cursor line: swaps the
 // ink and paper bits of every attribute cell the row covers.
 
-fun win_invert_row(row: u8) -> void {
+fun win_invert_row_i() -> void {
+    let row: u8 = tx_arg0
     let id: u8 = wn_cur
     var p: ^u8 = tx_attr_addr(wn_b0[id], wn_y[id] + row)
     var c: u8 = wn_b0[id]
@@ -731,17 +957,154 @@ fun win_invert_row(row: u8) -> void {
     }
 }
 
+// ── Two-pane layout ─────────────────────────────────────────────────────────
+// gap = 0: a one-pixel rule at the boundary, the right pane starts at the next
+//          character cell.
+// gap = 1: the gutter is widened to the next 8-px boundary so it owns a whole
+//          attribute cell of its own, which the divider then paints.
+//
+// The right pane starts at the first character cell at or after the gutter's
+// end, so its pixel origin need not be 8-px aligned (at 5 px the reachable
+// aligned origins are 40, 80, 120, 160 ...). What the layout does guarantee is
+// that the two panes' byte ranges are disjoint, and since every clear, scroll
+// and blit is masked to the window's own pixels, neither pane can ever write
+// the gutter: only the divider rule does.
+//
+// left_w is clamped so the left pane always leaves the right pane at least one
+// column, and the parameters are remembered for the caller's convenience only
+// (text_set_width does not re-lay out — see below).
+
+fun split_vertical_i() -> void {
+    let left_w: u8 = tx_arg0
+    let gap: u8 = tx_arg1
+    var lw: u8 = left_w
+    if lw >= tx_cols {
+        lw = tx_cols - 1
+    }
+    // the gutter must still fit on the line: left_w * W + 8 <= 255, or the
+    // divider end would wrap round the u8 and the panes would overlap
+    while (lw > 0) & (tx_colpx[lw] > 247) {
+        lw = lw - 1
+    }
+    sp_open = 1
+    sp_left_w = lw
+    sp_gap = gap
+    tx_arg0 = 0
+    tx_arg1 = 0
+    tx_arg2 = 0
+    tx_arg3 = lw
+    tx_arg4 = TX_ROWS
+    win_open_i()
+
+    let left_px: u8 = tx_colpx[lw]
+    var div_end: u8 = 0
+    if gap == 0 {
+        div_end = left_px + 1
+    } else {
+        if (left_px & 7) == 0 {
+            div_end = left_px + 8
+        } else {
+            div_end = (left_px + 7) & 0xF8
+        }
+    }
+    sp_b0 = left_px >> 3
+    sp_b1 = (div_end - 1) >> 3
+
+    var right_x: u8 = 0
+    var px: u8 = 0
+    while px < div_end {
+        px = px + tx_width
+        right_x = right_x + 1
+    }
+    tx_arg0 = 1
+    tx_arg1 = right_x
+    tx_arg2 = 0
+    tx_arg3 = tx_cols - right_x
+    tx_arg4 = TX_ROWS
+    win_open_i()
+
+    var div_px: u8 = left_px + ((div_end - left_px) >> 1)
+    tx_paint_divider()
+    tx_vline(div_px, 0, TX_ROWS - 1)
+    wn_cur = 0
+}
+
+// ── Width switching ─────────────────────────────────────────────────────────
+
+// Rebuild the font artefacts for a width without touching the window layout.
+// Public so a benchmark (or a caller that wants to pre-warm both widths) can
+// reach narrow_font_build without importing zx.narrow_font itself: the compiler
+// emits a second copy of a module's code for every extra importer.
+
+fun text_build_font(w: u8) -> void {
+    narrow_font_build(w)
+    tx_font = narrow_font_base(w)
+    tx_shift = narrow_font_shift_table()
+}
+
+// Switch glyph width. Every open window's geometry is expressed in cells of the
+// old font, so all windows are closed here and the screen is cleared; the
+// caller re-opens (or re-splits) and redraws. The demo does exactly that after
+// every switch, so no layout is silently reused.
+
+fun text_set_width_i() -> void {
+    let w: u8 = tx_arg0
+    text_build_font(w)
+    tx_width = w
+    if w == 8 {
+        tx_cols = 32
+    } else {
+        if w == 6 {
+            tx_cols = 42
+        } else {
+            tx_cols = 51
+        }
+    }
+    var i: u8 = 0
+    var p: u8 = 0
+    while i < 64 {
+        tx_colpx[i] = p
+        p = p + w
+        i = i + 1
+    }
+    var blk: u16 = 0
+    if w == 6 {
+        blk = 16
+    } else {
+        if w == 8 {
+            blk = 32
+        }
+    }
+    var mt: ^u8 = &tx_masks_w
+    tx_masktab = mt + blk
+    sp_open = 0
+    sp_b0 = 0
+    sp_b1 = 0
+    var n: u8 = 0
+    while n < TX_NWIN {
+        wn_w[n] = 0
+        wn_h[n] = 0
+        n = n + 1
+    }
+    tx_clear_screen()
+}
+
 // ── Screen-wide helpers ─────────────────────────────────────────────────────
 
 fun tx_clear_screen() -> void {
-    var line: u8 = 0
-    while line < 8 {
-        tx_zero(tx_scr_addr(0, 0, line), 32)
-        line = line + 1
+    var row: u8 = 0
+    while row < TX_ROWS {
+        var line: u8 = 0
+        while line < 8 {
+            tx_zero(tx_scr_addr(0, row, line), 32)
+            line = line + 1
+        }
+        row = row + 1
     }
-    tx_zero(0x5800, 255)
-    tx_zero(0x58FF, 255)
-    tx_zero(0x59FE, 255)
+    tx_zero(0x5800, 255)     // $5800..$58FE
+    tx_zero(0x58FF, 255)     // $58FF..$59FD
+    tx_zero(0x59FE, 255)     // $59FE..$5AFC
+    tx_zero(0x5AFD, 3)       // the last three cells the 255-byte runs miss
 }
 
 // One-pixel vertical rule at pixel column px, char rows row0..row1 inclusive.
@@ -766,90 +1129,179 @@ fun tx_vline(px: u8, row0: u8, row1: u8) -> void {
     }
 }
 
-// ── Two-pane layout ─────────────────────────────────────────────────────────
-// gap = 0: a one-pixel rule at the boundary, the right pane starts at the next
-//          character cell.
-// gap = 1: the gutter is widened to the next 8-px boundary so it owns a whole
-//          attribute cell of its own and the right pane starts byte-aligned.
-// The parameters are remembered so text_set_width can redo the layout.
+// ── Public entry points ─────────────────────────────────────────────────────
+// Every public call saves and restores IY around its implementation. The
+// compiled bodies — not just the asm blitters — use IYH/IYL as a spill tier, so
+// the save has to happen before any generated code runs, and the Spectrum's
+// contract while interrupts are enabled (and on return to BASIC) needs
+// IY = $5C3A.
+//
+// A public call therefore parks its arguments in the tx_arg* slots, then runs
+// an asm block that pushes IY and calls the parameterless *_i implementation.
+// Passing arguments straight through an asm body is not possible: the compiler
+// picks each function's calling convention from its body and its caller
+// independently — for a (pointer, byte) pair the declared ABI says the byte
+// arrives in A while the call site puts it in C — so no hand-written operand
+// can be relied on. Cost per public call: 46 T for PUSH IY + CALL + POP IY
+// against 17 T for a plain call, plus the argument stores. Inside a win_print
+// that amortises to well under 1 T per glyph; callers chasing the last few
+// percent, and with interrupts off, can call the *_i forms directly.
 
-fun split_vertical(left_w: u8, gap: u8) -> void {
-    sp_open = 1
-    sp_left_w = left_w
-    sp_gap = gap
-    win_open(0, 0, 0, left_w, TX_ROWS)
-
-    let left_px: u8 = tx_colpx[left_w]
-    var div_end: u8 = 0
-    if gap == 0 {
-        div_end = left_px + 1
-    } else {
-        if (left_px & 7) == 0 {
-            div_end = left_px + 8
-        } else {
-            div_end = (left_px + 7) & 0xF8
-        }
+fun win_open(win: u8, x: u8, y: u8, w: u8, h: u8) -> void {
+    tx_arg0 = win
+    tx_arg1 = x
+    tx_arg2 = y
+    tx_arg3 = w
+    tx_arg4 = h
+    asm z80 (clob A, F, B, C, D, E, H, L, IX, IY) {
+        PUSH IY
+        CALL zx__text__win_open_i
+        POP IY
     }
-    var right_x: u8 = 0
-    var px: u8 = 0
-    while px < div_end {
-        px = px + tx_width
-        right_x = right_x + 1
-    }
-    win_open(1, right_x, 0, tx_cols - right_x, TX_ROWS)
-
-    var div_px: u8 = left_px + ((div_end - left_px) >> 1)
-    tx_vline(div_px, 0, TX_ROWS - 1)
-    wn_cur = 0
 }
 
-// ── Width switching ─────────────────────────────────────────────────────────
+fun win_select(win: u8) -> void {
+    tx_arg0 = win
+    asm z80 (clob A, F, B, C, D, E, H, L, IX, IY) {
+        PUSH IY
+        CALL zx__text__win_select_i
+        POP IY
+    }
+}
 
-// Rebuild the font artefacts for a width without touching the window layout.
-// Public so a benchmark (or a caller that wants to pre-warm both widths) can
-// reach narrow_font_build without importing zx.narrow_font itself: the compiler
-// emits a second copy of a module's code for every extra importer.
+fun win_clear(win: u8) -> void {
+    tx_arg0 = win
+    asm z80 (clob A, F, B, C, D, E, H, L, IX, IY) {
+        PUSH IY
+        CALL zx__text__win_clear_i
+        POP IY
+    }
+}
 
-fun text_build_font(w: u8) -> void {
-    narrow_font_build(w)
-    tx_font = narrow_font_base(w)
-    tx_shift = narrow_font_shift_table()
+fun win_scroll(win: u8) -> void {
+    tx_arg0 = win
+    asm z80 (clob A, F, B, C, D, E, H, L, IX, IY) {
+        PUSH IY
+        CALL zx__text__win_scroll_i
+        POP IY
+    }
+}
+
+fun win_goto(@z80_a col: u8, @z80_c row: u8) -> void {
+    asm z80 (in col, row) (clob A, F, B, C, D, E, H, L, IX, IY) {
+        PUSH IY
+        CALL zx__text__win_goto_i
+        POP IY
+    }
+}
+
+// win_putch is the per-character hot path, so it keeps its argument in a
+// register: the wrapper passes A straight through to win_putch_i(@z80_a ch),
+// which costs only the PUSH/CALL/POP trampoline (46 T) instead of the argument
+// slot. A single-register ABI is the one case the compiler reliably honours.
+fun win_putch(@z80_a ch: u8) -> void {
+    asm z80 (in ch) (clob A, F, B, C, D, E, H, L, IX, IY) {
+        PUSH IY
+        CALL zx__text__win_putch_i
+        POP IY
+    }
+}
+
+fun win_print(@z80_hl str: ^u8) -> void {
+    tx_argp = str
+    asm z80 (clob A, F, B, C, D, E, H, L, IX, IY) {
+        PUSH IY
+        CALL zx__text__win_print_i
+        POP IY
+    }
+}
+
+fun win_print_padded(str: ^u8, width: u8) -> void {
+    tx_argp = str
+    tx_arg0 = width
+    asm z80 (clob A, F, B, C, D, E, H, L, IX, IY) {
+        PUSH IY
+        CALL zx__text__win_print_padded_i
+        POP IY
+    }
+}
+
+fun win_attr(ink: u8, paper: u8, bright: u8) -> void {
+    tx_arg0 = ink
+    tx_arg1 = paper
+    tx_arg2 = bright
+    asm z80 (clob A, F, B, C, D, E, H, L, IX, IY) {
+        PUSH IY
+        CALL zx__text__win_attr_i
+        POP IY
+    }
+}
+
+fun win_invert_row(row: u8) -> void {
+    tx_arg0 = row
+    asm z80 (clob A, F, B, C, D, E, H, L, IX, IY) {
+        PUSH IY
+        CALL zx__text__win_invert_row_i
+        POP IY
+    }
+}
+
+fun split_vertical(left_w: u8, gap: u8) -> void {
+    tx_arg0 = left_w
+    tx_arg1 = gap
+    asm z80 (clob A, F, B, C, D, E, H, L, IX, IY) {
+        PUSH IY
+        CALL zx__text__split_vertical_i
+        POP IY
+    }
 }
 
 fun text_set_width(w: u8) -> void {
-    text_build_font(w)
-    tx_width = w
-    if w == 8 {
-        tx_cols = 32
-    } else {
-        if w == 6 {
-            tx_cols = 42
-        } else {
-            tx_cols = 51
-        }
-    }
-    var i: u8 = 0
-    var p: u8 = 0
-    while i < 64 {
-        tx_colpx[i] = p
-        p = p + w
-        i = i + 1
-    }
-    var src: ^u8 = &tx_masks5
-    if w == 8 {
-        src = &tx_masks8
-    } else {
-        if w == 6 {
-            src = &tx_masks6
-        }
-    }
-    var k: u8 = 0
-    while k < 16 {
-        tx_masks[k] = src[k]
-        k = k + 1
-    }
-    if sp_open != 0 {
-        tx_clear_screen()
-        split_vertical(sp_left_w, sp_gap)
+    tx_arg0 = w
+    asm z80 (clob A, F, B, C, D, E, H, L, IX, IY) {
+        PUSH IY
+        CALL zx__text__text_set_width_i
+        POP IY
     }
 }
+
+fun win_width() -> u8 {
+    asm z80 (ret A) (clob A, F, B, C, D, E, H, L, IX, IY) {
+        PUSH IY
+        CALL zx__text__win_width_i
+        POP IY
+    }
+}
+
+fun win_height() -> u8 {
+    asm z80 (ret A) (clob A, F, B, C, D, E, H, L, IX, IY) {
+        PUSH IY
+        CALL zx__text__win_height_i
+        POP IY
+    }
+}
+
+fun win_col() -> u8 {
+    asm z80 (ret A) (clob A, F, B, C, D, E, H, L, IX, IY) {
+        PUSH IY
+        CALL zx__text__win_col_i
+        POP IY
+    }
+}
+
+fun win_row() -> u8 {
+    asm z80 (ret A) (clob A, F, B, C, D, E, H, L, IX, IY) {
+        PUSH IY
+        CALL zx__text__win_row_i
+        POP IY
+    }
+}
+
+fun text_cols() -> u8 {
+    asm z80 (ret A) (clob A, F, B, C, D, E, H, L, IX, IY) {
+        PUSH IY
+        CALL zx__text__text_cols_i
+        POP IY
+    }
+}
+

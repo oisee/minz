@@ -22,6 +22,10 @@ Branch `feat/zx-narrow-text`, no pushes, everything committed locally. Compiler
 
 ## 2. Memory map (48K Spectrum, demo image loaded at `$8000`)
 
+> Superseded by the Round 2 map in §9.4 — round 2 added the IY wrappers, the
+> window keep-mask state and the single 48-byte mask table, and the image grew
+> from 19989 to 22419 bytes.
+
 ```
 $0000-$3FFF  ROM            only ever read (the font at $3D00)
 $4000-$57FF  pixel bitmap   6144 bytes
@@ -63,6 +67,9 @@ purpose; the automatic tables judged acceptable at both widths. Re-running the
 generator leaves all three outputs byte-identical (`--check`).
 
 ## 4. T-states
+
+> Superseded by the Round 2 measurements in §9.5: the IY-preserving entry points
+> and the new guards cost about 18 % more per printed row.
 
 Measured by `TestZXNarrowTextTiming` on the in-process 48K machine (real ROM, no
 contention), differential: the bench runs each phase `N=40` times and then 0
@@ -301,7 +308,254 @@ for byte, and all three widths decode to exactly the expected text.
 * 5 px glyphs have no inter-character gap (51 columns at 5 px is 255 px), so
   letters abut. That is inherent to the width; `OVERRIDES` in the generator is
   the escape hatch, and the previews exist to judge it.
-* The engine clobbers `IY`, so it must run with interrupts disabled (or with
-  `IY` restored around `EI`).
+* ~~The engine clobbers `IY`, so it must run with interrupts disabled~~ — fixed
+  in Round 2: every public call now preserves IY (§9.3).
+
+---
+
+## 9. Round 2 — the critic's findings, fixed
+
+Critic report: `CRITIC-1.md` (verdict GO-WITH-FIXES). Everything below was
+re-measured the way the critic measured it: probes compiled and run headless,
+state read back out of `.sna` snapshots, and the whole 6912-byte screen diffed
+against an independent model.
+
+### 9.1 The blockers
+
+**B1 — `tx_clear_screen` cleared 8 of 192 pixel lines and 765 of 768 attribute
+bytes.** Fixed: it now walks all 24 character rows and adds the three attribute
+bytes the 255-byte runs missed (`tx_zero(0x5AFD, 3)`). The critic's `$AA` probe
+(`crit/probe/p_clear.nanz`, rerun here) now reports **0 of 6144 bitmap and 0 of
+768 attribute bytes uncleared** (was 5888 and 3).
+
+**B2 — `win_scroll`/`win_clear` wrote outside a window that is not byte
+aligned.** Fixed properly, not by rejecting non-aligned windows: every window
+now carries the keep masks `wn_ke0`/`wn_ke1` for the bits of its first and last
+screen byte that it does not own, and `win_clear_line`/`win_copy_line` use them
+so only the window's own pixels are ever rewritten. Attributes are split the
+same way: `wn_ab0..wn_ab1` are the attribute cells whose 8 pixels are all inside
+the window, and a scroll moves only those. The critic's probe
+(`crit/probe/p_scroll.nanz`, rerun) gives
+
+```
+changed pixels inside B           : 0        (B row 0 still reads "aaaa")
+changed attribute cells in B      : 0        (attr col 6 rows 0..9 all 0x0f)
+A row 0 after three scrolls       : "DDDD"   (the scroll itself still works)
+```
+
+(was 71 pixels and 3 attribute cells). `win_open`/`win_attr` still paint the
+rounded-out attribute range — that is the documented colour rule, and a window
+has to be able to colour every cell its ink can reach — but a scroll no longer
+recruits a shared cell.
+
+**B3 — the right pane was not snapped to an 8-px boundary.** What the layout now
+guarantees is stated honestly in the module header and measured: at 5 px the
+byte-aligned origins reachable on the cell grid are 40/80/120/160 px, so snapping
+would burn up to six columns of screen. Instead the two panes' *byte ranges* are
+disjoint (left ends at byte 14/11/15, right starts at 16/13/17 at 5/6/8 px) and,
+since B2 made every pixel operation masked, neither pane can write the gutter at
+all — the divider rule is the only thing that does. The whole-screen model test
+(§9.6) asserts exactly that, including the gutter columns.
+
+**B4 — the divider was invisible at 51 columns.** `split_vertical` now records
+the divider's attribute cells and paints them with the left pane's attribute
+(`tx_paint_divider`), and `win_apply_attr(0, …)` repaints them whenever the left
+pane's colour changes. The model expects `0x68` there and the emulator agrees.
+
+### 9.2 The should-fix items
+
+| # | fix |
+|---|---|
+| 1 | `win_open` rejects `x >= tx_cols` or `y >= 24` (the window prints nothing) and clamps `h` as well as `w`. Probe: `win_open(0,0,0,51,30)` now reports `h = 24` and writes nothing past `$5AFF`; `win_open(1,60,0,5,4)` reports `w = 0` instead of 247 |
+| 2 | `win_scroll` returns immediately for `h < 2` |
+| 3 | follows: a 1×1 window now shows its last character (probe prints `QRST` into one and the cell reads `T`) |
+| 4 | `win_goto`/`win_putch` are no-ops on a zero-width or zero-height window, so `tx_colpx` is never read out of range |
+| 5 | `text_set_width` no longer re-splits with the previous width's `sp_left_w`: it closes every window, clears the screen and leaves the layout to the caller (documented in the header). This also removes the wasted intermediate redraw the critic measured |
+| 6 | `TestZXNarrowTextTiming` now asserts every measured value against the numbers in §9.5 within ±3 %; setting one expectation to a wrong value makes it fail (`win_goto: 631 T, want 400 +/- 3 %`) |
+| 7 | the whole-screen check is §9.6 |
+| 8 | `NF_SLOT_BYTES` and `nf_slots` deleted; `TX_NWIN` kept with the explanation (array sizes must be literals) |
+| 9 | the duplicated attribute-paint loop is `win_apply_rows(id, r0, rows)`, used by `win_apply_attr`, `win_scroll` and a new `win_apply_own` |
+| 10 | `zx_narrow_text_ocr.py` now exits 1 on unreadable or ambiguous cells (and says how many): decoding a 5 px screen as 6 px prints `7 unreadable cells` and exits 1 |
+| 11 | memory map corrected in §9.4 |
+
+Nice-to-haves taken: the three 16-byte mask tables plus their run-time copy are
+now one 48-byte table selected by a pointer (`tx_masks_w`/`tx_masktab`, so the
+blit loads `LD IX,(tx_masktab)` — the measured cost is the +6 T on `tx_blit`);
+`tx_blit_pair` carries a comment with its per-row costs (~44 T single-byte,
+~74 T straddling, which is the measured +264 T per glyph); `split_vertical`
+clamps `left_w` so the gutter still fits on the line — the critic's
+`split_vertical(51,1)` case now yields a 49-cell left pane and an empty right
+pane instead of two identical overlapping windows.
+
+Not taken: emitting `tx_masks` from arithmetic at run time needs variable shifts
+the compiler would have to loop, and the table is 48 bytes.
+
+### 9.3 IY — the critic's recommendation, implemented and measured
+
+Every public entry point is now a thin wrapper that saves IY, calls a
+parameterless `*_i` implementation and restores it: `win_open`, `win_select`,
+`win_width/height/col/row`, `text_cols`, `win_clear`, `win_scroll`, `win_goto`,
+`win_putch`, `win_print`, `win_print_padded`, `win_attr`, `win_invert_row`,
+`split_vertical`, `text_set_width`.
+
+Two things made it a wrapper rather than a `PUSH IY` in each function:
+
+* the compiled bodies — not just the asm blitters — use IYH/IYL as a spill tier,
+  so the save has to run before any generated code;
+* arguments cannot be passed through an asm body, because the compiler picks a
+  different calling convention per function and per call site (for a
+  `(pointer, byte)` pair the declared ABI says the byte arrives in A while the
+  call site puts it in C — that inconsistency is reproducible and is now
+  compiler finding 6 below). The wrappers therefore park their arguments in
+  `tx_arg*` slots, except `win_putch` and `win_goto`, where a single-register
+  ABI is reliable and worth the ~500 T.
+
+Measured cost (see §9.5): `win_goto` 397 → 631 T, `win_putch` (which includes a
+`win_goto`) 2173 → 2881 T, a 51-column row 120013 → 141829 T (+18 %). The
+critic's estimate of +29 T per call holds for the trampoline itself
+(`PUSH IY` + `CALL` + `POP IY` = 46 T against 17 T); the rest of the regression
+is the argument slots and the new zero-size guards, which cost about 500 T per
+`win_putch` because a dynamically indexed window-array read is ~250 T in this
+compiler.
+
+Verified with the critic's method, extended to every entry point: IY is set to
+`$5C3A` and checked inside the same asm block, with no generated code in
+between (an ordinary Nanz caller can clobber IY between calls — that is the
+caller's code, not the engine's). Result for all 15 public calls:
+**IY preserved**. The demo still runs with DI because its *own* compiled code
+clobbers IY; that is now stated in the demo header.
+
+### 9.4 Memory map after round 2 (image 22419 bytes, `$8000..$D793`)
+
+```
+$0000-$3FFF  ROM            only ever read (the font at $3D00)
+$4000-$57FF  pixel bitmap   6144 bytes
+$5800-$5AFF  attributes     768 bytes
+$8000-$99F1  code           engine + demo, 8.1 K
+$99F2-$9B71  deletion masks NF5/NF6 top+bottom, 384 bytes
+$9B75-$9E74  nf_packed6     768
+$9E75-$A174  nf_packed5     768
+$A175-$D174  nf_shift       pre-shifted glyph table, 12288
+$D17D-$D261  engine state   masks, colpx, window arrays (now incl. wn_ke0/ke1,
+                             wn_ab0/ab1 and the tx_arg slots), rotbuf
+$D262-$D289  KEYTAB         40 bytes
+     ...$D793 demo strings
+$FF58        initial SP     (< 64 bytes used)
+```
+
+Free RAM above the image: `$D794..$FFFF` = 10317 bytes, so the zvdb port has
+roughly 10 K for its data and kernel. One caveat the round-1 report glossed
+over, now stated plainly: **core 1 (rotate) does not save the 12 KB table.**
+`nf_shift` is emitted unconditionally and `narrow_font_build` always fills all
+eight slots for widths 5 and 6, so `tx_core = 1` costs the same memory and 1.6×
+the time. If 48 K ever gets tight the lever is making `nf_shift` conditional,
+not switching core.
+
+### 9.5 T-states after round 2 (same bench, same differential method)
+
+| width | cols | `tx_blit` aligned | `tx_blit` straddling | `win_goto` | `win_putch` core 0 | core 1 | full row | T/glyph |
+|---|---|---|---|---|---|---|---|---|
+| 5 | 51 | 835 | 1099 | 631 | **2881** | 3733 | **141829** | 2781 |
+| 6 | 42 | 835 | 1099 | 631 | **2881** | 3733 | **117183** | 2790 |
+| 8 | 32 | 835 | 828 | 631 | **2881** | 3733 | **85312** | 2666 |
+
+```
+width=5 cols=51 core=0: tx_blit(aligned)=835T tx_blit(straddling)=1099T win_goto=631T win_putch=2881T row=141829T (2781 T/glyph)
+width=5 cols=51 core=1: tx_blit(aligned)=835T tx_blit(straddling)=1099T win_goto=631T win_putch=3733T row=226561T (4442 T/glyph)
+width=6 cols=42 core=0: tx_blit(aligned)=835T tx_blit(straddling)=1099T win_goto=631T win_putch=2881T row=117183T (2790 T/glyph)
+width=6 cols=42 core=1: tx_blit(aligned)=835T tx_blit(straddling)=1099T win_goto=631T win_putch=3733T row=182743T (4351 T/glyph)
+width=8 cols=32 core=0: tx_blit(aligned)=835T tx_blit(straddling)=828T  win_goto=631T win_putch=2881T row=85312T  (2666 T/glyph)
+width=8 cols=32 core=1: tx_blit(aligned)=835T tx_blit(straddling)=828T  win_goto=631T win_putch=3733T row=112576T (3518 T/glyph)
+width=5: narrow_font_build=1595698T text_set_width=1857070T
+width=6: narrow_font_build=1584165T text_set_width=1845490T
+width=8: narrow_font_build=43621T   text_set_width=304948T
+```
+
+The pre-shifted core still wins at every width (2881 vs 3733 T per character,
+141829 vs 226561 T per row — now 1.6×, was 1.4×). A full demo redraw is
+19 × 141829 = **2 694 751 T** (0.77 s at 3.5 MHz, 39 frames); round 1 was
+2 280 247 T. `text_set_width` grew from 1.60 M to 1.86 M T because it now
+clears the whole screen file (192 `tx_zero` calls, ~250 k T) — that is the B1
+fix, not a regression.
+
+### 9.6 The whole-screen check
+
+New: `scripts/zx_narrow_text_model.py` renders the expected 6912 bytes from
+first principles (geometry, blit with keep masks, wrap/scroll, attribute rule,
+divider), and both verifiers diff the emulator's screen against it — all 6144
+bitmap bytes and all 768 attribute bytes, with anything *outside* the windows
+reported separately.
+
+* Go: `TestZXNarrowTextDemoScreens` (in the `fast` profile) runs the demo on an
+  in-process 48K machine for the startup screen at 51/42/32 columns and for all
+  six transitions 5→6, 5→8, 6→8, 8→6, 6→5, 8→5, pressing keys through the
+  native matrix. **All nine cases: 0 bytes differ.**
+* CLI: `python3 scripts/zx_narrow_text_verify.py` does the same through
+  `mzx-headless` and regenerates the screenshots:
+
+```
+[w5-startup] 5 px: PASS      [6to8] 8 px: PASS
+[w6-startup] 6 px: PASS      [8to6] 6 px: PASS
+[w8-startup] 8 px: PASS      [6to5] 5 px: PASS
+[5to6] 6 px: PASS            [8to5] 5 px: PASS
+[5to8] 8 px: PASS            ALL PASS
+```
+
+**It fails on the round-1 code.** With `stdlib/zx/text.nanz` and
+`stdlib/zx/narrow_font.nanz` reverted to commit `6048acbc9` and nothing else
+changed, the same test reports:
+
+```
+--- FAIL: TestZXNarrowTextDemoScreens/w5-startup  0 outside, 24 attribute cells
+--- FAIL: TestZXNarrowTextDemoScreens/w6-startup  118 outside, 24 attribute cells
+--- FAIL: TestZXNarrowTextDemoScreens/w8-startup   90 outside, 24 attribute cells
+--- FAIL: TestZXNarrowTextDemoScreens/5to6        118 outside, 24 attribute cells
+--- FAIL: TestZXNarrowTextDemoScreens/5to8         90 outside, 24 attribute cells
+--- FAIL: TestZXNarrowTextDemoScreens/6to8        126 outside, 24 attribute cells
+--- FAIL: TestZXNarrowTextDemoScreens/8to6        103 outside, 24 attribute cells
+--- FAIL: TestZXNarrowTextDemoScreens/6to5        110 outside, 24 attribute cells
+--- FAIL: TestZXNarrowTextDemoScreens/8to5          0 outside, 24 attribute cells
+```
+
+(the counts are differing *bytes*, so they are smaller than the critic's ink
+*pixel* counts of 312/137/256/199/227; the 24 attribute cells are the gutter
+column the round-1 code never painted). Restoring the round-2 stdlib makes all
+nine pass again.
+
+Screenshots regenerated: `screenshot-w5.png` (8958 B), `screenshot-w6.png`
+(8127 B), `screenshot-w8.png` (7095 B) — the 42-column one no longer carries the
+column of stale 51-column glyphs at screen x=96..103.
+
+### 9.7 Compiler finding 6 (new in round 2)
+
+**The calling convention a call site uses need not match the one declared for
+the callee.** Minimal repro, from the wrapper work:
+
+```nanz
+fun f(s: ^u8, w: u8) -> void {
+    asm z80 (in s, w) (clob A, F, B, C, D, E, H, L, IX, IY) { ... }
+}
+fun main() -> void { f(c"AB", 0x11) }
+```
+
+The emitted ABI comment says `f(s: ptr = HL, w: u8 = A)`, and a probe that
+stores A, B, C, D, E and HL on entry reads the pointer in HL but `w` in **C**.
+So an asm body cannot take a byte argument that follows a pointer, and by
+extension no hand-written `CALL` into compiled Nanz code can rely on the
+declared ABI. That is why the zx.text wrappers park their arguments in
+`tx_arg*` slots. (Finding 5 of round 1 — an imported module's code is emitted
+once per importer — also bit again here: the bench importing `zx.narrow_font`
+directly grew from 18.3 K to 33.1 K, which is why `text_build_font` exists.)
+
+### 9.8 What is still open
+
+* The window layer costs ~1950 T per character on top of the 835 T blit (round 1:
+  ~1344). An asm fast path that keeps the cursor state in registers across one
+  `win_print` is still the single biggest win, and would more than pay back the
+  round-2 regression.
+* A width switch costs 1.86 M T (0.53 s), of which ~250 k T is the screen clear.
+* 5 px glyphs still have no inter-character gap — inherent to 51 columns.
+* `win_print_padded`'s string pointer still goes through a slot rather than HL
+  (finding 6); the cost is inside the measured row number.
 
 STATUS: DONE

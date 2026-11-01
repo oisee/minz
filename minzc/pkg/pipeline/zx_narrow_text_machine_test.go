@@ -27,7 +27,7 @@ import (
 	"github.com/minz/minzc/pkg/z80asm"
 )
 
-const zxNarrowRepoRoot = "../../.."      // minzc/pkg/pipeline -> repo root
+const zxNarrowRepoRoot = "../../.." // minzc/pkg/pipeline -> repo root
 const zxNarrowROMPath = "../../cmd/mzx/roms/48.rom"
 
 // ── the font model, shared with scripts/zx_narrow_font.py ───────────────────
@@ -273,118 +273,209 @@ func zxNarrowGeometry(width, cols, leftW int) (leftX, leftCols, rightX, rightCol
 	return 0, leftW, rightX * width, cols - rightX, leftEnd + (divEnd-leftEnd)>>1
 }
 
-func TestZXNarrowTextDemoAllWidths(t *testing.T) {
+// zxNarrowBlit renders one glyph exactly as tx_blit is specified to: OR the
+// cell's pixels in under the keep masks for the bytes it touches.
+func zxNarrowBlit(scr []byte, ch, xpx, row, width int, font [96][8]byte) {
+	var glyph [8]byte
+	if ch >= 32 && ch < 128 {
+		glyph = font[ch-32]
+	}
+	b, s := xpx>>3, xpx&7
+	var f0, f1 int
+	if s+width <= 8 {
+		f0 = ((1 << width) - 1) << (8 - width - s)
+	} else {
+		f0, f1 = 0xFF>>s, (0xFF<<(16-s-width))&0xFF
+	}
+	m0, m1 := f0^0xFF, f1^0xFF
+	for line := 0; line < 8; line++ {
+		v := glyph[line]
+		lo := int(v >> s)
+		hi := 0
+		if s > 0 {
+			hi = int((v << (8 - s)) & 0xFF)
+		}
+		off := zxScrOffset(b, row, line)
+		scr[off] = (scr[off] & byte(m0)) | byte(lo)
+		if m1 != 0 {
+			off1 := zxScrOffset(b+1, row, line)
+			scr[off1] = (scr[off1] & byte(m1)) | byte(hi)
+		}
+	}
+}
+
+// zxNarrowWrapped mirrors win_print's cursor advance: one cell per character,
+// wrap at the window edge, scroll when the last row wraps.
+func zxNarrowWrapped(text string, cols int) []string {
+	var rows [][]byte
+	for _, ch := range []byte(text) {
+		if len(rows) == 0 {
+			rows = append(rows, make([]byte, 0, cols))
+		}
+		rows[len(rows)-1] = append(rows[len(rows)-1], ch)
+		if len(rows[len(rows)-1]) == cols {
+			rows = append(rows, make([]byte, 0, cols))
+			if len(rows) > 24 {
+				rows = rows[1:]
+			}
+		}
+	}
+	for len(rows) < 24 {
+		rows = append(rows, make([]byte, 0, cols))
+	}
+	out := make([]string, 24)
+	for i, r := range rows {
+		out[i] = string(r)
+	}
+	return out
+}
+
+const (
+	zxAttrL    = 5<<3 | 0x40     // win_attr(0, 5, 1): black on cyan, bright
+	zxAttrLInv = 0<<3 | 5 | 0x40 // the inverted cursor row
+	zxAttrR    = 1<<3 | 7        // win_attr(7, 1, 0): white on blue
+)
+
+// zxNarrowExpectedScreen renders the 6912 bytes the demo's screen should hold
+// at a given width, from the geometry and the engine's documented rules only.
+func zxNarrowExpectedScreen(t *testing.T, width int, sentences []string, paragraph string, fonts map[int][96][8]byte) []byte {
+	t.Helper()
+	cols := map[int]int{5: 51, 6: 42, 8: 32}[width]
+	leftW := 24
+	if width != 5 {
+		leftW = 16
+	}
+	leftX, leftCols, rightPx, rightCols, divPx := zxNarrowGeometry(width, cols, leftW)
+	scr := make([]byte, 6912)
+
+	for i := 0; i < 24; i++ {
+		field := leftCols - 4
+		text := fmt.Sprintf("%02d %-*s", i, field, sentences[i][:min(field, len(sentences[i]))])
+		for c := 0; c < len(text); c++ {
+			zxNarrowBlit(scr, int(text[c]), leftX*width+c*width, i, width, fonts[width])
+		}
+	}
+	for r, line := range zxNarrowWrapped(paragraph, rightCols) {
+		for c := 0; c < len(line); c++ {
+			zxNarrowBlit(scr, int(line[c]), rightPx+c*width, r, width, fonts[width])
+		}
+	}
+	divByte, divBit := divPx>>3, byte(0x80>>(divPx&7))
+	for row := 0; row < 24; row++ {
+		for line := 0; line < 8; line++ {
+			scr[zxScrOffset(divByte, row, line)] |= divBit
+		}
+	}
+	leftEnd := leftX*width + leftCols*width - 1
+	divStart, divEnd := leftW*width, leftW*width+8
+	for b := divStart >> 3; b <= (divEnd-1)>>3; b++ {
+		for row := 0; row < 24; row++ {
+			scr[6144+row*32+b] = zxAttrL
+		}
+	}
+	for row := 0; row < 24; row++ {
+		for b := leftX * width >> 3; b <= leftEnd>>3; b++ {
+			scr[6144+row*32+b] = zxAttrL
+			if row == 23 {
+				scr[6144+row*32+b] = zxAttrLInv
+			}
+		}
+		for b := rightPx >> 3; b <= (rightPx+rightCols*width-1)>>3; b++ {
+			scr[6144+row*32+b] = zxAttrR
+		}
+	}
+	return scr
+}
+
+// TestZXNarrowTextDemoScreens runs the demo on an in-process 48K machine with
+// the real ROM, switches widths with native key-matrix presses and compares the
+// whole 6912-byte screen — all 6144 bitmap bytes and all 768 attribute bytes,
+// including everything outside the windows — against the model above, for the
+// startup screen and for every width transition. Round 1 shipped a
+// tx_clear_screen that cleared 8 of 192 pixel lines; this test fails on that
+// code because the previous layout's ink survives between the panes.
+func TestZXNarrowTextDemoScreens(t *testing.T) {
 	bin, _ := zxNarrowCompile(t, zxNarrowRepoRoot+"/examples/nanz/zx_narrow_text_demo.nanz")
 	fonts := map[int][96][8]byte{5: zxNarrowPacked(t, 5), 6: zxNarrowPacked(t, 6), 8: zxNarrowPacked(t, 8)}
 	sentences, paragraph := zxNarrowDemoText(t)
 
+	// key: 1/2/3 select 51/42/32 columns (matrix row 3, bits 0/1/2)
 	cases := []struct {
-		width, cols, leftW int
-		keyRow, keyBit     int // the key that switches to this width
-		keyFrame           int
-		frames             int
+		name   string
+		width  int
+		keys   [][3]int // frame, row, bit
+		frames int
 	}{
-		{5, 51, 24, -1, -1, 0, 900},
-		{6, 42, 16, 3, 1, 500, 1600},
-		{8, 32, 16, 3, 2, 500, 1600},
+		{"w5-startup", 5, nil, 250},
+		{"w6-startup", 6, [][3]int{{200, 3, 1}}, 750},
+		{"w8-startup", 8, [][3]int{{200, 3, 2}}, 750},
+		{"5to6", 6, [][3]int{{200, 3, 1}}, 750},
+		{"5to8", 8, [][3]int{{200, 3, 2}}, 750},
+		{"6to8", 8, [][3]int{{200, 3, 1}, {900, 3, 2}}, 1600},
+		{"8to6", 6, [][3]int{{200, 3, 2}, {900, 3, 1}}, 1600},
+		{"6to5", 5, [][3]int{{200, 3, 1}, {900, 3, 0}}, 1600},
+		{"8to5", 5, [][3]int{{200, 3, 2}, {900, 3, 0}}, 1600},
 	}
 	for _, tc := range cases {
-		t.Run(fmt.Sprintf("%dpx", tc.width), func(t *testing.T) {
+		t.Run(tc.name, func(t *testing.T) {
+			held := map[[2]int]bool{}
 			keys := func(frame int, k *spectrum.Keyboard) {
-				if tc.keyRow < 0 {
-					return
-				}
-				if frame == tc.keyFrame {
-					k.KeyPress(tc.keyRow, tc.keyBit)
-				}
-				if frame == tc.keyFrame+20 {
-					k.KeyRelease(tc.keyRow, tc.keyBit)
+				for _, ev := range tc.keys {
+					id := [2]int{ev[1], ev[2]}
+					if frame == ev[0] {
+						k.KeyPress(ev[1], ev[2])
+						held[id] = true
+					}
+					// hold long enough to span the redraw the key triggers
+					if frame == ev[0]+80 && held[id] {
+						k.KeyRelease(ev[1], ev[2])
+						held[id] = false
+					}
 				}
 			}
 			scr, _, _ := zxNarrowRunScreen(t, bin, 0x8000, tc.frames, keys, nil)
-			run := scr
-			leftX, leftCols, rightX, rightCols, divPx := zxNarrowGeometry(tc.width, tc.cols, tc.leftW)
-
-			// left pane: "NN " + the sentence padded into the rest of the row
-			got := zxNarrowDecode(t, run, leftX, 0, leftCols, 24, tc.width, fonts)
-			for r := 0; r < 24; r++ {
-				field := leftCols - 4
-				want := fmt.Sprintf("%02d %s", r, sentences[r][:min(field, len(sentences[r]))])
-				want += strings.Repeat(" ", leftCols-len(want))
-				if got[r] != want {
-					t.Errorf("left pane row %d:\n got %q\nwant %q", r, got[r], want)
-				}
+			want := zxNarrowExpectedScreen(t, tc.width, sentences, paragraph, fonts)
+			var in, out, attr int
+			var firstOut, firstAttr string
+			cols := map[int]int{5: 51, 6: 42, 8: 32}[tc.width]
+			leftW := 24
+			if tc.width != 5 {
+				leftW = 16
 			}
-
-			// right pane: the paragraph, wrapped and scrolled by win_print
-			got = zxNarrowDecode(t, run, rightX, 0, rightCols, 24, tc.width, fonts)
-			screen, col, row := [][]string{}, 0, 0
-			for _, ch := range paragraph {
-				if row == len(screen) {
-					screen = append(screen, make([]string, rightCols))
-					for i := range screen[len(screen)-1] {
-						screen[len(screen)-1][i] = " "
-					}
-				}
-				screen[row][col] = string(ch)
-				col++
-				if col >= rightCols {
-					col, row = 0, row+1
-					if row >= 24 {
-						screen = screen[1:]
-						blank := make([]string, rightCols)
-						for i := range blank {
-							blank[i] = " "
-						}
-						screen = append(screen, blank)
-						row = 23
-					}
-				}
-			}
-			for len(screen) < 24 {
-				blank := make([]string, rightCols)
-				for i := range blank {
-					blank[i] = " "
-				}
-				screen = append(screen, blank)
-			}
-			for r := 0; r < 24; r++ {
-				want := strings.Join(screen[r], "")
-				if got[r] != want {
-					t.Errorf("right pane row %d:\n got %q\nwant %q", r, got[r], want)
-				}
-			}
-
-			// attributes: left pane black on cyan bright with the last row
-			// inverted, right pane white on blue
-			attr := func(bcol, row int) int { return int(run[6144+row*32+bcol]) }
-			lb0, lb1 := leftX>>3, (leftX+leftCols*tc.width-1)>>3
-			rb0, rb1 := rightX>>3, (rightX+rightCols*tc.width-1)>>3
-			for r := 0; r < 24; r++ {
-				for b := lb0; b <= lb1; b++ {
-					want := 5<<3 | 0x40
-					if r == 23 {
-						want = 0<<3 | 5 | 0x40
-					}
-					if attr(b, r) != want {
-						t.Errorf("left attr row %d col %d: %#04x want %#04x", r, b, attr(b, r), want)
-					}
-				}
-				for b := rb0; b <= rb1; b++ {
-					if want := 1<<3 | 7; attr(b, r) != want {
-						t.Errorf("right attr row %d col %d: %#04x want %#04x", r, b, attr(b, r), want)
-					}
-				}
-			}
-
-			// the divider is a one-pixel rule through all 24 character rows
-			byte, bit := divPx>>3, byte(0x80>>(divPx&7))
-			for r := 0; r < 24; r++ {
+			_, _, rightX, _, _ := zxNarrowGeometry(tc.width, cols, leftW)
+			lb0, lb1 := 0, (leftW*tc.width-1)>>3
+			rb0, rb1 := rightX*tc.width>>3, (rightX*tc.width+(cols-rightX)*tc.width-1)>>3
+			for row := 0; row < 24; row++ {
 				for line := 0; line < 8; line++ {
-					if run[zxScrOffset(byte, r, line)]&bit == 0 {
-						t.Errorf("divider missing at char row %d pixel line %d", r, line)
+					for b := 0; b < 32; b++ {
+						off := zxScrOffset(b, row, line)
+						if scr[off] == want[off] {
+							continue
+						}
+						if (b >= lb0 && b <= lb1) || (b >= rb0 && b <= rb1) {
+							in++
+						} else {
+							out++
+							if firstOut == "" {
+								firstOut = fmt.Sprintf("byte col %d char row %d line %d: got %#02x want %#02x",
+									b, row, line, scr[off], want[off])
+							}
+						}
 					}
 				}
+				for b := 0; b < 32; b++ {
+					off := 6144 + row*32 + b
+					if scr[off] != want[off] {
+						attr++
+						if firstAttr == "" {
+							firstAttr = fmt.Sprintf("attr col %d row %d: got %#02x want %#02x", b, row, scr[off], want[off])
+						}
+					}
+				}
+			}
+			if in+out+attr != 0 {
+				t.Errorf("screen differs from the model: %d bitmap bytes inside the panes, %d outside, %d attribute cells\n  first outside: %s\n  first attribute: %s",
+					in, out, attr, firstOut, firstAttr)
 			}
 		})
 	}
@@ -432,6 +523,22 @@ func TestZXNarrowTextTiming(t *testing.T) {
 	measure := func(sel, width, core byte) int64 {
 		return (stepped(N, sel, width, core) - stepped(0, sel, width, core)) / N
 	}
+	// The values published in REPORT.md, so a performance regression fails CI
+	// instead of only printing. Tolerance 3%: the emulator is deterministic
+	// (two runs give identical numbers), so this only trips on real changes.
+	want := map[string]int64{
+		"blit5": 835, "blit6": 1099, "goto": 631, "putch0": 2881, "putch1": 3733,
+		"row5c0": 141829, "row5c1": 226561, "row6c0": 117183, "row6c1": 182743,
+		"row8c0": 85312, "row8c1": 112576,
+		"build5": 1595698, "build6": 1584165, "build8": 43621,
+		"setw5": 1857070, "setw6": 1845490, "setw8": 304948,
+	}
+	near := func(what string, got, want int64) {
+		tol := want / 33
+		if got < want-tol || got > want+tol {
+			t.Errorf("%s: %d T, want %d +/- 3%% (REPORT.md round 2)", what, got, want)
+		}
+	}
 	for _, width := range []byte{5, 6, 8} {
 		cols := map[byte]int{5: 51, 6: 42, 8: 32}[width]
 		for _, core := range []byte{0, 1} {
@@ -442,10 +549,21 @@ func TestZXNarrowTextTiming(t *testing.T) {
 			row := measure(3, width, core)
 			t.Logf("width=%d cols=%d core=%d: tx_blit(aligned)=%dT tx_blit(straddling)=%dT win_goto=%dT win_putch=%dT row=%dT (%.0f T/glyph)",
 				width, cols, core, glyph, straddle, goto_, putch, row, float64(row)/float64(cols))
+			if width == 5 || width == 6 {
+				near(fmt.Sprintf("width %d tx_blit(aligned)", width), glyph, want["blit5"])
+				near(fmt.Sprintf("width %d tx_blit(straddling)", width), straddle, want["blit6"])
+			} else {
+				near("width 8 tx_blit(aligned)", glyph, want["blit5"])
+				near("width 8 tx_blit(straddling)", straddle, 828)
+			}
+			near("win_goto", goto_, want["goto"])
+			near(fmt.Sprintf("width %d core %d win_putch", width, core), putch, want[fmt.Sprintf("putch%d", core)])
+			near(fmt.Sprintf("width %d core %d row", width, core), row, want[fmt.Sprintf("row%dc%d", width, core)])
 		}
-		t.Logf("width=%d: narrow_font_build=%dT text_set_width=%dT", width,
-			measure(1, width, 0), measure(5, width, 0))
+		build := measure(1, width, 0)
+		sw := measure(5, width, 0)
+		t.Logf("width=%d: narrow_font_build=%dT text_set_width=%dT", width, build, sw)
+		near(fmt.Sprintf("width %d narrow_font_build", width), build, want[fmt.Sprintf("build%d", width)])
+		near(fmt.Sprintf("width %d text_set_width", width), sw, want[fmt.Sprintf("setw%d", width)])
 	}
 }
-
-

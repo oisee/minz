@@ -16,7 +16,7 @@ Command line:
     zx_narrow_text_ocr.py --scr F --width 5 --x-px 0 --cols 24 [--rows 24] [--y 0]
     zx_narrow_text_ocr.py --scr F --width 5 --dump   # whole screen, 51 columns
 
-Exit status is 0 only if every cell decoded to exactly one character.
+Exit status is 1 if any cell is unreadable (?) or ambiguous, 0 otherwise.
 """
 
 from __future__ import annotations
@@ -75,8 +75,11 @@ class Screen:
         font = self.fonts[width]
         return [chr(FIRST + i) for i, g in enumerate(font) if g == cell]
 
-    def window(self, x_px: int, y: int, cols: int, rows: int, width: int) -> list[str]:
-        """Decode a rectangle of character cells; '?' marks an unreadable cell."""
+    def window(self, x_px: int, y: int, cols: int, rows: int, width: int,
+               strict: bool = False) -> list[str]:
+        """Decode a rectangle of character cells; '?' marks an unreadable cell.
+        With strict=True, cells that decode to more than one character also
+        count as failures (the CLI uses this to set its exit status)."""
         out = []
         for r in range(rows):
             line = ""
@@ -89,6 +92,8 @@ class Screen:
                     line += cand[0]
                     if len(cand) > 1:
                         ambiguous.append((c, "".join(cand)))
+                        if strict:
+                            line = line[:-1] + "?"
             out.append(line)
             if ambiguous:
                 print(f"  note: row {r} ambiguous cells {ambiguous}", file=sys.stderr)
@@ -108,8 +113,13 @@ def main() -> int:
 
     s = Screen(a.scr)
     cols = a.cols if a.cols else {5: 51, 6: 42, 8: 32}[a.width]
-    for line in s.window(a.x_px, a.y, cols, a.rows, a.width):
+    bad = 0
+    for line in s.window(a.x_px, a.y, cols, a.rows, a.width, strict=True):
+        bad += line.count("?")
         print(line)
+    if bad:
+        print(f"{bad} unreadable cells", file=sys.stderr)
+        return 1
     return 0
 
 

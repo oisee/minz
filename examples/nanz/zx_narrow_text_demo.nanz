@@ -21,9 +21,11 @@
 //                log for the exact end address; the whole image is ~16K)
 //   $FFFF        initial SP (mzx --run sets SP=FFFF); the demo needs < 64 bytes
 //
-// Interrupts: the demo runs with DI (mzx --run passes DI). The blitters clobber
-// IY, so a ROM IM1 interrupt service would fault — keep interrupts off, or set
-// IY back to $5C3A around any EI, if this is embedded elsewhere.
+// Interrupts: the demo itself runs with DI (mzx --run passes DI) because its
+// own compiled code uses IYH/IYL as a spill tier. Every public zx.text call
+// saves and restores IY, so calls into the engine are safe with interrupts
+// enabled and on return to BASIC — it is the caller's generated code that can
+// still clobber IY, not the engine.
 //
 // Build:  minzc/mz examples/nanz/zx_narrow_text_demo.nanz -o demo.a80
 //         minzc/mza demo.a80 -o demo.bin

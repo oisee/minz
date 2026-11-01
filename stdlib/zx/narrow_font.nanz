@@ -45,7 +45,6 @@ import zx.narrow_font_tables { * }
 
 const NF_ROM_FONT: u16 = 0x3D00    // 96 glyphs, ASCII 32..127, 8 bytes each
 const NF_GLYPHS: u8 = 96
-const NF_SLOT_BYTES: u16 = 1536    // 96 glyphs * 8 rows * 2 bytes per shift
 
 // ── Buffers ─────────────────────────────────────────────────────────────────
 // nf_shift is sized for the worst case (8 shifts). Width 6 only ever reads the
@@ -61,7 +60,8 @@ global nf_shift: [u8; 12288]
 
 global nf_width: u8 = 0            // active glyph width: 5, 6 or 8 (0 = unbuilt)
 global nf_base: u16 = 0            // packed font address for the active width
-global nf_slots: u8 = 0            // how many slots of nf_shift are valid
+// (how many slots of nf_shift are valid is implied by nf_width: 1 slot
+//  for width 8, all 8 otherwise; a separate global was never read.)
 
 // ── Squeeze one glyph row ───────────────────────────────────────────────────
 // Drops the masked pixel columns (bit 7-c set = delete column c) and left-aligns
@@ -209,7 +209,6 @@ fun nf_build_packed(width: u8) -> void {
 fun narrow_font_build(width: u8) -> void {
     if width == 8 {
         nf_base = NF_ROM_FONT
-        nf_slots = 1
         nf_build_slots(NF_ROM_FONT, &nf_shift, 1)
     } else {
         nf_build_packed(width)
@@ -218,7 +217,6 @@ fun narrow_font_build(width: u8) -> void {
         } else {
             nf_base = &nf_packed5
         }
-        nf_slots = 8
         nf_build_slots(nf_base, &nf_shift, 8)
     }
     nf_width = width
