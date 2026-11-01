@@ -48,12 +48,11 @@ global zv_top_cnt: u8          // number of ranked entries (zv_n - 1)
 
 // ── Record accessors ─────────────────────────────────────────────────────────
 
+// Assert surface only: the hot loop in zv_score_pv reads zv_pop[] directly
+// because a per-byte call costs ~4% of the whole search.
 fun zv_popcount(x: u8) -> u8 {
     return zv_pop[x]
 }
-
-// Assert surface only: the hot loop in zv_score_pv reads zv_pop[] directly
-// because a per-byte call costs ~4% of the whole search.
 
 // NUL-terminated label of record i (O(1): offsets are a u16 table).
 fun zv_label(i: u8) -> ^u8 {

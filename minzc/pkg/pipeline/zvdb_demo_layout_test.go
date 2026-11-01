@@ -460,7 +460,7 @@ fun main() -> void {
 	t.Logf("%d selections x 6 ranks plus counts match the independent reference", len(selections))
 }
 
-// TestZVDBDemoNarrowScreenLayout proves the REPORT.md §7 porting claim: change
+// TestZVDBDemoNarrowScreenLayout proves the porting claim in reports/zvdb-demo-cpm/REPORT.md §7: change
 // the two per-port constants to 51 columns and nothing spills past column 51.
 // It also runs the documented minimum width, 49 columns, where the title and
 // status tails saturate to zero: the layout degrades instead of wrapping u8.
