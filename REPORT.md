@@ -635,6 +635,24 @@ $ python3 scripts/zvdb_demo_verify.py
 ```
 
 The two new Go tests cost 2.6 s and 0.5 s and are registered in the `fast`
-profile (now 589 entries, inventory check clean).
+profile (now 589 entries, inventory check clean). The sharded fast profile
+re-run after the fixes:
+
+```
+$ (cd minzc && python3 ../scripts/ci/run_stable_pipeline.py --profile fast \
+      --output /tmp/fast2 --shards 4 --workers 4)
+Pipeline inventory: 960 total, 589 selected (fast, job 1/1), 4 exhaustive process shards, 4 workers
+$ python3 -c "import json;print([s['exit_code'] for s in json.load(open('/tmp/fast2/statuses.json'))])"
+[0, 0, 0, 0]
+$ grep -hc '^--- FAIL' /tmp/fast2/shard-*.log        # 0 0 0 0
+$ grep -hc '^--- PASS' /tmp/fast2/shard-*.log | paste -sd+ | bc   # 557  (+32 skipped = 589)
+$ grep -h ZVDB /tmp/fast2/shard-*.log
+--- PASS: TestZVDBDemoTopKMatchesPythonReference (0.49s)
+--- PASS: TestZVDBDemoTopKAtCapacityMatchesReference (0.44s)
+--- PASS: TestZVDBDemoCPMScriptedSession (1.01s)
+--- PASS: TestZVDBDemoNarrowScreenLayout (0.72s)
+--- PASS: TestZVDBDemoCPMScreenContent (0.75s)
+--- PASS: TestZVDBDemoWideDataSetDoesNotOverflow (2.54s)
+```
 
 STATUS: DONE
