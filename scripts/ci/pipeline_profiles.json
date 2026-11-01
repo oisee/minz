@@ -558,6 +558,8 @@
     "TestZMachineRAMSaveOverflowNative",
     "TestZSQLZXEmbeddedReadlineCapacity",
     "TestZSQLZXRealReadlineCapacity",
+    "TestZVDBDemoCPMScriptedSession",
+    "TestZVDBDemoTopKMatchesPythonReference",
     "TestZXBankedMemoryNative",
     "TestZXDirectPrimitivesNative",
     "TestZXHalfCellRotozoomerFullMachine",

@@ -1,0 +1,239 @@
+// zvdb_kernel.nanz — zvdb similarity kernel, in the spirit of zvdb-z80
+// (https://github.com/oisee/zvdb-z80, ABAP vector DB).
+//
+// Console-free and pure Nanz: everything here is unit-testable with
+// `assert ... via mir2` / `via z80` and is shared by the CP/M demo
+// (zvdb_demo_cpm.nanz) and the reference dumper (zvdb_dump_cpm.nanz).
+//
+// Score = number of equal bits = 256 - popcount(a XOR b) over the 32-byte
+// (256-bit) random-hyperplane-quantised vectors in zvdb_demo_data.nanz.
+
+import zvdb_demo_data
+
+// ── 256-byte popcount LUT ────────────────────────────────────────────────────
+
+global zv_pop: [u8; 256] = [
+    0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4,
+    1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
+    1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
+    2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
+    1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
+    2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
+    2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
+    3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
+    1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
+    2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
+    2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
+    3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
+    2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
+    3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
+    3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
+    4, 5, 5, 6, 5, 6, 6, 7, 5, 6, 6, 7, 6, 7, 7, 8,
+]
+
+// ── Layout limits ────────────────────────────────────────────────────────────
+
+// Ranking buffer capacity. scripts/zvdb_demo_data.py refuses more records than
+// this, so zv_top_k can insert without a bounds check in the shift loop.
+const zv_rank_cap: u8 = 250
+
+// ── Last computed ranking (filled by zv_top_k) ──────────────────────────────
+
+global zv_top_val: [u16; 250]  // score at rank r
+global zv_top_idx: [u8; 250]   // record index at rank r
+global zv_top_cnt: u8          // number of ranked entries (zv_n - 1)
+
+// ── Record accessors ─────────────────────────────────────────────────────────
+
+fun zv_popcount(x: u8) -> u8 {
+    return zv_pop[x]
+}
+
+// NUL-terminated label of record i (O(1): offsets are a u16 table).
+fun zv_label(i: u8) -> ^u8 {
+    return &zv_labels[zv_label_off[i]]
+}
+
+// 32-byte quantised vector of record i (O(1)).
+fun zv_vec(i: u8) -> ^u8 {
+    return &zv_vecs[u16(i) * u16(zv_vec_bytes)]
+}
+
+// ── Similarity kernel ────────────────────────────────────────────────────────
+
+// Equal bits between two vectors given by pointer. Mutates a/b while walking.
+// The LUT is read directly rather than through zv_popcount(): this loop runs
+// 32 times per record and a per-byte call costs ~4% of the whole search.
+fun zv_score_pv(a: ^u8, b: ^u8) -> u16 {
+    var ham: u16 = 0
+    var k: u8 = 0
+    while k < zv_vec_bytes {
+        ham = ham + u16(zv_pop[a^ xor b^])
+        a = a + 1
+        b = b + 1
+        k = k + 1
+    }
+    return 256 - ham
+}
+
+// Equal bits between records i and j.
+fun zv_score(i: u8, j: u8) -> u16 {
+    return zv_score_pv(zv_vec(i), zv_vec(j))
+}
+
+// First rank at which (score s, index j) belongs before the current entry,
+// i.e. descending score, ties by ascending record index.
+fun zv_rank_pos(s: u16, j: u8, cnt: u8) -> u8 {
+    var p: u8 = 0
+    while p < cnt {
+        if s > zv_top_val[p] { return p }
+        if s == zv_top_val[p] {
+            if j < zv_top_idx[p] { return p }
+        }
+        p = p + 1
+    }
+    return p
+}
+
+// Rank every record other than `sel` against `sel`, best first.
+// Brute force, like zvdb: one 32-byte XOR+popcount scan per record. The
+// candidate vectors are walked with one advancing pointer.
+fun zv_top_k(sel: u8) -> void {
+    var sv: ^u8 = zv_vec(sel)
+    var vp: ^u8 = &zv_vecs
+    var cnt: u8 = 0
+    var j: u8 = 0
+    while j < zv_n {
+        if j != sel {
+            var s: u16 = zv_score_pv(sv, vp)
+            var p: u8 = zv_rank_pos(s, j, cnt)
+            if p < zv_rank_cap {
+                var k: u8 = cnt
+                while k > p {
+                    zv_top_val[k] = zv_top_val[k - 1]
+                    zv_top_idx[k] = zv_top_idx[k - 1]
+                    k = k - 1
+                }
+                zv_top_val[p] = s
+                zv_top_idx[p] = j
+                cnt = cnt + 1
+            }
+        }
+        vp = vp + u16(zv_vec_bytes)
+        j = j + 1
+    }
+    zv_top_cnt = cnt
+}
+
+// Read back the ranking computed by the last zv_top_k call.
+fun zv_rank_count() -> u8 {
+    return zv_top_cnt
+}
+
+fun zv_rank_index(r: u8) -> u8 {
+    return zv_top_idx[r]
+}
+
+fun zv_rank_score(r: u8) -> u16 {
+    return zv_top_val[r]
+}
+
+// Assert-friendly wrappers: compute then read, so no ordering assumptions.
+fun zv_top_count(sel: u8) -> u8 {
+    zv_top_k(sel)
+    return zv_top_cnt
+}
+
+fun zv_top_index(sel: u8, r: u8) -> u8 {
+    zv_top_k(sel)
+    return zv_top_idx[r]
+}
+
+fun zv_top_score(sel: u8, r: u8) -> u16 {
+    zv_top_k(sel)
+    return zv_top_val[r]
+}
+
+// ── Formatting (no console I/O here) ─────────────────────────────────────────
+
+// Decimal val into out, NUL terminated. Returns digit count (max 5).
+fun zv_fmt_u16(val: u16, out: ^u8) -> u8 {
+    var tmp: [u8; 5]
+    var n: u8 = 0
+    var v: u16 = val
+    if v == 0 {
+        out[0] = 48
+        out[1] = 0
+        return 1
+    }
+    while v > 0 {
+        tmp[n] = u8(v - (v / 10) * 10) + 48
+        n = n + 1
+        v = v / 10
+    }
+    var i: u8 = 0
+    while i < n {
+        out[i] = tmp[n - 1 - i]
+        i = i + 1
+    }
+    out[n] = 0
+    return n
+}
+
+// Assert helper: digit `pos` of the decimal rendering of val.
+fun zv_fmt_probe(val: u16, pos: u8) -> u8 {
+    var buf: [u8; 6]
+    zv_fmt_u16(val, &buf)
+    return buf[pos]
+}
+
+// ── Kernel asserts (dual backend, per the repo's C-test convention) ─────────
+
+assert zv_popcount(0) == 0 via mir2
+assert zv_popcount(0) == 0 via z80
+assert zv_popcount(1) == 1 via mir2
+assert zv_popcount(1) == 1 via z80
+assert zv_popcount(7) == 3 via mir2
+assert zv_popcount(7) == 3 via z80
+assert zv_popcount(255) == 8 via mir2
+assert zv_popcount(255) == 8 via z80
+assert zv_popcount(170) == 4 via mir2
+assert zv_popcount(170) == 4 via z80
+assert zv_score(0, 0) == 256 via mir2
+assert zv_score(0, 0) == 256 via z80
+assert zv_score(0, 1) == 214 via mir2
+assert zv_score(0, 1) == 214 via z80
+assert zv_score(34, 34) == 256 via mir2
+assert zv_score(34, 34) == 256 via z80
+assert zv_score(25, 30) == 237 via mir2
+assert zv_score(25, 30) == 237 via z80
+assert zv_top_count(0) == 34 via mir2
+assert zv_top_count(0) == 34 via z80
+assert zv_top_count(34) == 34 via mir2
+assert zv_top_count(34) == 34 via z80
+assert zv_top_index(0, 0) == 1 via mir2
+assert zv_top_index(0, 0) == 1 via z80
+assert zv_top_score(0, 0) == 214 via mir2
+assert zv_top_score(0, 0) == 214 via z80
+assert zv_top_index(0, 1) == 3 via mir2
+assert zv_top_index(0, 1) == 3 via z80
+assert zv_top_index(0, 33) == 24 via mir2
+assert zv_top_index(0, 33) == 24 via z80
+assert zv_top_score(0, 33) == 181 via mir2
+assert zv_top_score(0, 33) == 181 via z80
+assert zv_top_score(34, 0) == 227 via mir2
+assert zv_top_score(34, 0) == 227 via z80
+assert zv_top_index(34, 0) == 25 via mir2
+assert zv_top_index(34, 0) == 25 via z80
+assert zv_fmt_probe(0, 0) == 48 via mir2
+assert zv_fmt_probe(0, 0) == 48 via z80
+assert zv_fmt_probe(214, 0) == 50 via mir2
+assert zv_fmt_probe(214, 0) == 50 via z80
+assert zv_fmt_probe(214, 1) == 49 via mir2
+assert zv_fmt_probe(214, 1) == 49 via z80
+assert zv_fmt_probe(214, 2) == 52 via mir2
+assert zv_fmt_probe(214, 2) == 52 via z80
+assert zv_fmt_probe(256, 0) == 50 via mir2
+assert zv_fmt_probe(256, 0) == 50 via z80
+assert zv_fmt_probe(256, 2) == 54 via mir2
+assert zv_fmt_probe(256, 2) == 54 via z80

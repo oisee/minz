@@ -1,0 +1,24 @@
+ zvdb - vector similarity on Z80 (CP/M)  records:    35  quantised: 256 bits
+Rec  3: Walking in the woods is a great way to find inner peace.
+#   record                          | #  scr  nearest records
+ 0 The forest is calm and serene du|   0 214 The forest is calm and serene durin
+ 1 Birds chirp harmoniously as the |   2 210 Nature always finds a way to rejuve
+ 2 Nature always finds a way to rej|   1 208 Birds chirp harmoniously as the sun
+ 3 Walking in the woods is a great |   9 206 The journey is often more important   <== cursor
+ 4 The river flows gracefully throu|  18 205 Smartphones have become an integral
+ 5 I love exploring new destination|   4 202 The river flows gracefully through
+ 6 Traveling broadens the mind and |  14 201 The library is a treasure trove of
+ 7 My next vacation will be to a tr|  33 201 S/4 HANA is ancestor or SAP R/3.
+ 8 Backpacking across Europe was an|  21 200 I love the taste of freshly baked b
+ 9 The journey is often more import|  29 200 CDS is the best HANA DB option.
+10 A good book can transport you to|  30 200 ABAP is programming language for SA
+11 Literature provides a window int|   5 199 I love exploring new destinations a
+12 Reading is a journey of the mind|   8 198 Backpacking across Europe was an un
+13 Classic novels always have timel|  10 198 A good book can transport you to an
+14 The library is a treasure trove |  11 198 Literature provides a window into t
+15 Advancements in technology have |   7 197 My next vacation will be to a tropi
+16 Artificial intelligence is the f|  32 197 S/4 HANA is SAP ERP.
+17 The digital revolution has trans|  13 196 Classic novels always have timeless
+18 Smartphones have become an integ|  28 196 S/4 HANA is the best ERP system.
+--------------------------------------------------------------------------------
+ j/k or UP/DN move   q/ESC quit   last search: 35 recs

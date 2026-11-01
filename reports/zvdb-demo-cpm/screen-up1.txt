@@ -1,0 +1,24 @@
+ zvdb - vector similarity on Z80 (CP/M)  records:    35  quantised: 256 bits
+Rec  2: Nature always finds a way to rejuvenate itself.
+#   record                          | #  scr  nearest records
+ 0 The forest is calm and serene du|   3 210 Walking in the woods is a great way
+ 1 Birds chirp harmoniously as the |   0 202 The forest is calm and serene durin
+ 2 Nature always finds a way to rej|  15 201 Advancements in technology have res   <== cursor
+ 3 Walking in the woods is a great |   1 200 Birds chirp harmoniously as the sun
+ 4 The river flows gracefully throu|   4 200 The river flows gracefully through
+ 5 I love exploring new destination|   8 200 Backpacking across Europe was an un
+ 6 Traveling broadens the mind and |  11 200 Literature provides a window into t
+ 7 My next vacation will be to a tr|   5 199 I love exploring new destinations a
+ 8 Backpacking across Europe was an|  14 199 The library is a treasure trove of
+ 9 The journey is often more import|  17 199 The digital revolution has transfor
+10 A good book can transport you to|  24 199 A balanced diet is crucial for main
+11 Literature provides a window int|  13 198 Classic novels always have timeless
+12 Reading is a journey of the mind|  23 197 Dining out is a great way to experi
+13 Classic novels always have timel|  33 197 S/4 HANA is ancestor or SAP R/3.
+14 The library is a treasure trove |  16 196 Artificial intelligence is the futu
+15 Advancements in technology have |  21 196 I love the taste of freshly baked b
+16 Artificial intelligence is the f|   9 194 The journey is often more important
+17 The digital revolution has trans|  12 194 Reading is a journey of the mind an
+18 Smartphones have become an integ|  18 193 Smartphones have become an integral
+--------------------------------------------------------------------------------
+ j/k or UP/DN move   q/ESC quit   last search: 35 recs

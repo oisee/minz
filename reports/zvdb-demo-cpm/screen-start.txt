@@ -1,0 +1,24 @@
+ zvdb - vector similarity on Z80 (CP/M)  records:    35  quantised: 256 bits
+Rec  0: The forest is calm and serene during the early morning.
+#   record                          | #  scr  nearest records
+ 0 The forest is calm and serene du|   1 214 Birds chirp harmoniously as the sun   <== cursor
+ 1 Birds chirp harmoniously as the |   3 214 Walking in the woods is a great way
+ 2 Nature always finds a way to rej|  18 209 Smartphones have become an integral
+ 3 Walking in the woods is a great |  21 208 I love the taste of freshly baked b
+ 4 The river flows gracefully throu|   4 206 The river flows gracefully through
+ 5 I love exploring new destination|  14 203 The library is a treasure trove of
+ 6 Traveling broadens the mind and |  15 203 Advancements in technology have res
+ 7 My next vacation will be to a tr|   2 202 Nature always finds a way to rejuve
+ 8 Backpacking across Europe was an|   9 202 The journey is often more important
+ 9 The journey is often more import|  13 202 Classic novels always have timeless
+10 A good book can transport you to|  30 202 ABAP is programming language for SA
+11 Literature provides a window int|  11 200 Literature provides a window into t
+12 Reading is a journey of the mind|  26 200 ABAP is for SAP ERP.
+13 Classic novels always have timel|  17 199 The digital revolution has transfor
+14 The library is a treasure trove |   8 198 Backpacking across Europe was an un
+15 Advancements in technology have |  10 198 A good book can transport you to an
+16 Artificial intelligence is the f|  12 198 Reading is a journey of the mind an
+17 The digital revolution has trans|  31 198 ABAP is ABAP ERP.
+18 Smartphones have become an integ|   7 197 My next vacation will be to a tropi
+--------------------------------------------------------------------------------
+ j/k or UP/DN move   q/ESC quit   last search: 35 recs
