@@ -558,6 +558,7 @@
     "TestZMachineRAMSaveOverflowNative",
     "TestZSQLZXEmbeddedReadlineCapacity",
     "TestZSQLZXRealReadlineCapacity",
+    "TestZVDBDemoBelowMinimumScreenLayout",
     "TestZVDBDemoCPMScreenContent",
     "TestZVDBDemoCPMScriptedSession",
     "TestZVDBDemoNarrowScreenLayout",

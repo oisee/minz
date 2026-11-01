@@ -12,8 +12,9 @@
 // Build:  mz examples/nanz/zvdb_demo_cpm.nanz -t cpm -o zvdb_demo_cpm.com
 // Run:    mze zvdb_demo_cpm.com -t cpm
 // Headless: printf 'jjjkq' | mze zvdb_demo_cpm.com -t cpm --cpm-no-echo
-//          (always end a key script with q: mze's BDOS 1 returns 0 at EOF and
-//           the demo ignores keys it does not know, so it would never exit)
+//          A trailing q is the documented way out, but end of input also quits
+//          (mze's BDOS 1 returns 0 at EOF and main treats key 0 as quit), so a
+//          script without one terminates instead of spinning.
 //
 // I/O is stdlib/tui/render.nanz (BDOS + VT100) — the same layer tetris_cpm.nanz
 // uses. The similarity kernel lives in zvdb_kernel.nanz and is asserted there.
@@ -53,9 +54,15 @@ const ROW_ITEMS: u8 = 3       // first item row of both panes
 // Derived once by layout_init(). The title and status rows are
 // [head literal][number][tail], with the head field exactly as wide as its own
 // literal so the text stays contiguous and the tail field absorbing the rest of
-// the row. SCR_W must therefore be at least 49 columns (the status literal plus
-// NUM_W); the narrowest target, the ZX Spectrum's 51, clears it.
-global sep_x: u8 = 0          // pane divider column = LEFT_X + LEFT_W
+// the row. SCR_W must be at least 49 columns (the status literal plus NUM_W) and
+// SCR_H at least ROW_ITEMS + N_ROWS + 2 for the head literals to fit whole; the
+// narrowest target, the ZX Spectrum's 51x24, clears both. Below those minimums
+// the literals are truncated rather than rejected: every subtraction in
+// layout_init() saturates and both head widths are clamped to the row, so a
+// too-small screen degrades to zero-width fields instead of wrapping u8 and
+// flooding the screen with ~255-column fields.
+global left_w: u8 = 0         // master pane width, clamped to the screen
+global sep_x: u8 = 0          // pane divider column = LEFT_X + left_w
 global right_x: u8 = 0        // detail pane origin
 global right_w: u8 = 0        // detail pane width
 global row_sep: u8 = 0        // rule above the status line
@@ -68,19 +75,39 @@ global title_tail_w: u8 = 0   // title tail field, absorbs the remainder
 global status_head_w: u8 = 0  // width of the status head literal
 global status_tail_w: u8 = 0  // status tail field, absorbs the remainder
 
+// a - b, clamped at 0: u8 arithmetic would otherwise wrap to ~255.
+fun sat_sub(a: u8, b: u8) -> u8 {
+    if a > b {
+        return a - b
+    }
+    return 0
+}
+
 fun layout_init() -> void {
-    sep_x = LEFT_X + LEFT_W
+    left_w = LEFT_W
+    if left_w > SCR_W {
+        left_w = SCR_W
+    }
+    sep_x = LEFT_X + left_w
     right_x = sep_x + GAP_W
-    right_w = SCR_W - right_x
+    right_w = sat_sub(SCR_W, right_x)
     row_sep = ROW_ITEMS + N_ROWS
-    row_status = SCR_H - 1
-    label_l_w = LEFT_W - IDX_W - 1
-    label_r_w = right_w - IDX_W - SCORE_W - 2
-    label_w = SCR_W - 6 - IDX_W
-    title_head_w = 46   // " zvdb - Z80 vector similarity (CP/M)  records:"
-    title_tail_w = SCR_W - title_head_w - NUM_W
-    status_head_w = 46   // " j/k or UP/DN move   q/ESC quit   last search:"
-    status_tail_w = SCR_W - status_head_w - NUM_W
+    row_status = sat_sub(SCR_H, 1)
+    label_l_w = sat_sub(sat_sub(left_w, IDX_W), 1)
+    label_r_w = sat_sub(sat_sub(sat_sub(right_w, IDX_W), SCORE_W), 2)
+    label_w = sat_sub(sat_sub(SCR_W, 6), IDX_W)
+    // Each head field is its literal's width, never more than the row minus the
+    // number, so the literal is truncated rather than the row overflowing.
+    title_head_w = sat_sub(SCR_W, NUM_W)
+    if title_head_w > 46 {
+        title_head_w = 46    // " zvdb - Z80 vector similarity (CP/M)  records:"
+    }
+    title_tail_w = sat_sub(sat_sub(SCR_W, title_head_w), NUM_W)
+    status_head_w = sat_sub(SCR_W, NUM_W)
+    if status_head_w > 46 {
+        status_head_w = 46    // " j/k or UP/DN move   q/ESC quit   last search:"
+    }
+    status_tail_w = sat_sub(sat_sub(SCR_W, status_head_w), NUM_W)
 }
 
 // ── Keys (tui_read_key maps ESC [ A/B to 128/129) ───────────────────────────
@@ -196,8 +223,8 @@ fun draw_label_line() -> void {
 fun draw_head() -> void {
     tui_color(FG_YELLOW, BG_BLUE, 1)
     tui_goto(LEFT_X, ROW_HEAD)
-    puts_padded(c"#   record", LEFT_W)
-    tui_putch(124)             // divider: column LEFT_X + LEFT_W = sep_x
+    puts_padded(c"#   record", left_w)
+    tui_putch(124)             // divider: column LEFT_X + left_w = sep_x
     tui_goto(right_x, ROW_HEAD)
     puts_padded(c"#  scr  nearest records", right_w)
 }
@@ -215,10 +242,10 @@ fun draw_master_row(row: u8) -> void {
         ui_put_num(u16(idx), IDX_W)
         tui_putch(32)
         puts_padded(zv_label(idx), label_l_w)
-        tui_putch(124)         // divider: column LEFT_X + LEFT_W = sep_x
+        tui_putch(124)         // divider: column LEFT_X + left_w = sep_x
     } else {
         tui_color(FG_CYAN, BG_BLUE, 0)
-        ui_put_spaces(LEFT_W)
+        ui_put_spaces(left_w)
         tui_putch(124)
     }
 }

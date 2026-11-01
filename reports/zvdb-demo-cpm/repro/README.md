@@ -8,15 +8,21 @@ All measurements: `mz <file>.nanz -t cpm -o x.com && mze x.com -t cpm
 their kernel 250 times are divided by 250; the two benches subtract an idle
 baseline so only the kernel is counted.
 
-## 1. A `const` initialiser referencing another `const` reads back as 0 — `repro-const-expr.nanz`
+## 1. Any non-literal `const` initialiser is emitted as 0 — `repro-const-expr.nanz`
 
 ```nanz
-const A: u8 = 10
-const B: u8 = A + 5      // compiles; B is 0 at run time
+const P:   u8 = 10          -> P:   DB 10    correct
+const Q:   u8 = P + 5       -> Q:   DB 0     wrong
+const LW:  u8 = 36 - 3 - 1  -> LW:  DB 0     wrong, and no const is referenced
+const SUM: u8 = 1 + 2       -> SUM: DB 0     wrong, and no const is referenced
 ```
 
-Both backends agree, in either declaration order, and the same arithmetic at run
-time (`return A + 5`) is correct — so it is silent wrong code, not a diagnostic.
+The scope is wider than "a const that references another const": **every** const
+whose initialiser is not a single literal is emitted as 0, including pure-literal
+arithmetic. A compiler fix scoped to const-to-const references would leave
+`36 - 3 - 1` broken. Both backends agree, in either declaration order, and the
+same arithmetic at run time (`return 1 + 2`) is correct — silent wrong code, not
+a diagnostic.
 
 ```
 $ mz repro-const-expr.nanz --assert-receipt --asserts-force mir2 -o /dev/null
@@ -81,11 +87,17 @@ One module, three bodies sharing a loop nest, selected by the first key read
 
 | body | whole run | minus idle, / 250 |
 |---|---|---|
-| idle | 4,867,467 T | — |
-| one `zv_top_k` per iteration | 193,906,640 T | **756,156 T** per full ranking pass |
-| 34 `zv_score` calls per iteration | 100,398,331 T | **382,123 T** per scoring pass |
+| idle | 1,600,702 T | — |
+| one `zv_top_k` per iteration | 192,015,730 T | **761,660 T** per full ranking pass |
+| 34 `zv_score` calls per iteration | 93,902,176 T | **369,166 T** per scoring pass |
 
-The ranking half is the difference: 756,156 − 382,123 ≈ 374k T per pass.
+The ranking half is the difference: 761,660 − 369,166 ≈ 392k T per pass. The
+idle baseline is small because the selection index `i / 8` is a power-of-two
+division the compiler turns into a shift; an earlier version used `i / 7`, which
+cost a division loop in the harness itself and inflated the baseline to
+4,867,467 T (giving 756,156 T and 382,123 T for the two kernels — same
+conclusions, noisier baseline). The critic's own harness, with no inner loop at
+all, measures 751,490 T per ranking pass, 1.4% below this one.
 
 ## 5. `/` inside an `asm z80` block is a statement separator, even in a comment
 
@@ -100,6 +112,11 @@ was split on the slashes and assembled to three bogus instructions (`B`, `C`,
 blamed a `LD A, B` sixty lines away. Keep `/` out of asm comments.
 
 ## 6. `tui_read_key` cannot be fixed without touching `pkg/` — `tui_read_key-sequence-decode.patch`
+
+The patch is a real `git diff` (round 2 shipped a hand-written one whose hunk
+counts were wrong, so it did not apply): `git apply --check` passes against
+`origin/main`, applying it reproduces the verified build byte-for-byte, and the
+demo compiles to a 10,704-byte image.
 
 `stdlib/tui/render.nanz` returns 27 for every CSI sequence it does not decode,
 so on a real VT100 keyboard Home, PageUp, Delete, an F-key or Shift-Tab quits

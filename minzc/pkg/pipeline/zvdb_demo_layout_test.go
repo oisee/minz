@@ -327,8 +327,16 @@ func TestZVDBDemoCPMScreenContent(t *testing.T) {
 	if got := s.line(1); !strings.HasPrefix(got, "Rec  32: S/4 HANA is SAP ERP.") {
 		t.Errorf("label line = %q", got)
 	}
-	if got := s.line(23); !strings.Contains(got, "last search: 35 recs") {
-		t.Errorf("status line = %q", got)
+	// The head literals must fit the field widths layout_init() hand-copies from
+	// them (title_head_w / status_head_w). Without these prefixes a literal that
+	// outgrows its field is silently truncated mid-word and every other check
+	// still passes, because truncation overflows nothing.
+	if got := s.line(0); !strings.HasPrefix(got, " zvdb - Z80 vector similarity (CP/M)  records:") {
+		t.Errorf("title line = %q, want the full title head literal", got)
+	}
+	if got := s.line(23); !strings.HasPrefix(got, " j/k or UP/DN move   q/ESC quit   last search:") ||
+		!strings.Contains(got, "35 recs scanned") {
+		t.Errorf("status line = %q, want the full status head literal and the scan cost", got)
 	}
 	// The selection colours also paint the title bar, so the highlighted master
 	// row is the last inverse row inside the pane.
@@ -454,6 +462,8 @@ fun main() -> void {
 
 // TestZVDBDemoNarrowScreenLayout proves the REPORT.md §7 porting claim: change
 // the two per-port constants to 51 columns and nothing spills past column 51.
+// It also runs the documented minimum width, 49 columns, where the title and
+// status tails saturate to zero: the layout degrades instead of wrapping u8.
 func TestZVDBDemoNarrowScreenLayout(t *testing.T) {
 	dir := zvdbStage(t, 0)
 	b, err := os.ReadFile(filepath.Join(zvdbExampleRoot(), "zvdb_demo_cpm.nanz"))
@@ -477,5 +487,39 @@ func TestZVDBDemoNarrowScreenLayout(t *testing.T) {
 		if !strings.HasPrefix(s.line(row), want) {
 			t.Errorf("row %d = %q, want prefix %q", row, s.line(row), want)
 		}
+	}
+}
+
+// TestZVDBDemoBelowMinimumScreenLayout runs *below* the documented minimum of 49
+// columns, where the 46-character head literals no longer fit. layout_init()
+// clamps the head widths to the row and saturates every subtraction, so the
+// expectation is a truncated but complete screen with no character past the
+// edge - not a u8 wrap that floods the screen with ~255-column fields.
+func TestZVDBDemoBelowMinimumScreenLayout(t *testing.T) {
+	dir := zvdbStage(t, 0)
+	b, err := os.ReadFile(filepath.Join(zvdbExampleRoot(), "zvdb_demo_cpm.nanz"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(dir, "zvdb_demo_cpm.nanz"), b, 0644); err != nil {
+		t.Fatal(err)
+	}
+	image := zvdbBuildDir(t, dir, "zvdb_demo_cpm", map[string]string{
+		`const SCR_W: u8 = 80`:  `const SCR_W: u8 = 40`,
+		`const LEFT_W: u8 = 36`: `const LEFT_W: u8 = 24`,
+	})
+	s := newZvdbScreen(40, 24)
+	s.feed(zvdbLiveStream(zvdbRun(t, image, "q")))
+	s.checkLayout(t, 2, 20)
+	if got := s.line(0); !strings.HasPrefix(got, " zvdb - Z80 vector similarity") {
+		t.Errorf("title line = %q, want the head literal truncated, not lost", got)
+	}
+	// Below the minimum the head literal is truncated mid-word, which is the
+	// documented degradation; what must not happen is a u8 wrap flooding the row.
+	if got := s.line(23); !strings.HasPrefix(got, " j/k or UP/DN move") {
+		t.Errorf("status line = %q, want the head literal truncated, not lost", got)
+	}
+	if n := len(s.line(0)); n > 40 {
+		t.Errorf("title line is %d columns on a 40-column screen", n)
 	}
 }

@@ -1,9 +1,11 @@
 // zvdb_bench.nanz — T-state benches for the zvdb kernel (task Z1).
 //
-// Three bodies share one module and one loop nest so their costs can be
-// subtracted; pick one with the first key read. The idle body does no kernel
-// work, topk runs one full zvdb_top_k per iteration (the search the demo runs
-// on every cursor move), score runs only the 34 zv_score calls of that search.
+// Three bodies in one module, picked by the first key read, so the harness cost
+// can be subtracted. The idle body walks the same j loop as score but does no
+// kernel work (bench_topk has no inner loop, so its baseline is slightly
+// smaller); topk runs one full zvdb_top_k per iteration - the search the demo
+// runs on every cursor move - and score runs only that search's zv_score calls.
+// i / 8 keeps every selection index inside 0..31 for the 35-record data set.
 //
 //   mz examples/nanz/zvdb_bench.nanz -t cpm -o b.com
 //   printf 'i' | mze b.com -t cpm --cpm-no-echo -c     # idle
@@ -28,7 +30,7 @@ fun bench_idle() -> void {
     while i < REPS {
         var j: u8 = 0
         while j < zv_n {
-            if j != (i / 7) {
+            if j != (i / 8) {
                 acc = acc + 1
             }
             j = j + 1
@@ -41,7 +43,7 @@ fun bench_idle() -> void {
 fun bench_topk() -> void {
     var i: u8 = 0
     while i < REPS {
-        zv_top_k(i / 7)
+        zv_top_k(i / 8)
         acc = acc + 1
         i = i + 1
     }
@@ -53,8 +55,8 @@ fun bench_score() -> void {
     while i < REPS {
         var j: u8 = 0
         while j < zv_n {
-            if j != (i / 7) {
-                acc = acc + zv_score(i / 7, j)
+            if j != (i / 8) {
+                acc = acc + zv_score(i / 8, j)
             }
             j = j + 1
         }

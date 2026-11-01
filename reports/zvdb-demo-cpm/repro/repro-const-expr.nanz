@@ -1,41 +1,72 @@
-// repro-const-expr.nanz — a const initialiser that references another const
-// compiles and silently evaluates to 0 (task Z1, round 2).
+// repro-const-expr.nanz — any non-literal `const` initialiser emits 0
+// (task Z1, round 2; scope widened in round 3).
 //
-//   const A: u8 = 10
-//   const B: u8 = A + 5      // compiles; B reads back as 0
+//   const P:   u8 = 10            -> P:   DB 10     correct
+//   const Q:   u8 = P + 5         -> Q:   DB 0      wrong
+//   const LW:  u8 = 36 - 3 - 1    -> LW:  DB 0      wrong, no const referenced
+//   const SUM: u8 = 1 + 2         -> SUM: DB 0      wrong, no const referenced
+//   const NEG: u8 = 48            -> NEG: DB 48     correct
 //
-// Both backends agree, and in either declaration order, while the same
-// arithmetic at runtime (`return A + 5`) is correct. Found while deriving the
-// demo's layout widths from SCR_W/LEFT_W: the divider moved to column 0 and
-// puts_padded() with a derived width printed nothing.
+// So the rule is not "a const that references another const": EVERY const whose
+// initialiser is not a single literal is emitted as 0, including pure-literal
+// arithmetic. The emitted values above are from the .a80 (see below); the
+// asserts fail on both backends identically.
 //
 //   mz repro-const-expr.nanz --assert-receipt --asserts-force mir2 -o /dev/null
-//   mz repro-const-expr.nanz --assert-receipt --asserts-force z80  -o /dev/null
-//   -> Error: assert "assert getB() == 15 via mir2": got 0, want 15
+//   mz repro-const-expr.nanz --asserts none -o repro.a80 && grep -A1 '^SUM:' repro.a80
+//   -> Error: assert "assert getSUM() == 3 via z80": got 0, want 3
+//   -> SUM:
+//          DB 0
 //
-// Workaround used by the demo: keep only literal consts and compute the derived
-// widths at runtime in layout_init().
+// Found in round 2 when the layout widths were first written as const
+// expressions: the divider moved to column 0 and puts_padded() with a derived
+// width printed nothing, on a program that compiled cleanly and passed every
+// assert. A compiler fix scoped to "const referencing const" would leave
+// `36 - 3 - 1` broken, so the workaround covers all non-literal forms.
+//
+// Workaround used by the demo: only literal consts, and every derived width is
+// computed at run time in layout_init().
 
-const A: u8 = 10
-const B: u8 = A + 5
-const C: u8 = A - 2
-const D: u8 = 7
-const E: u8 = D + 1
+const P: u8 = 10
+const Q: u8 = P + 5
+const LW: u8 = 36 - 3 - 1
+const SUM: u8 = 1 + 2
+const NEG: u8 = 48
 
-fun getA() -> u8 { return A }
-fun getB() -> u8 { return B }
-fun getC() -> u8 { return C }
-fun getE() -> u8 { return E }
-fun sumAB() -> u8 { return A + 5 }
+fun getP() -> u8 {
+    return P
+}
 
-assert getA() == 10 via mir2
-assert getA() == 10 via z80
-assert sumAB() == 15 via mir2
-assert sumAB() == 15 via z80
-assert getB() == 15 via mir2
-assert getB() == 15 via z80
-assert getC() == 8 via mir2
-assert getC() == 8 via z80
-assert getE() == 8 via mir2
-assert getE() == 8 via z80
+fun getQ() -> u8 {
+    return Q
+}
+
+fun getLW() -> u8 {
+    return LW
+}
+
+fun getSUM() -> u8 {
+    return SUM
+}
+
+fun getNEG() -> u8 {
+    return NEG
+}
+
+fun getSumRuntime() -> u8 {
+    return 1 + 2
+}
+
+assert getP() == 10 via mir2
+assert getP() == 10 via z80
+assert getNEG() == 48 via mir2
+assert getNEG() == 48 via z80
+assert getSumRuntime() == 3 via mir2
+assert getSumRuntime() == 3 via z80
+assert getSUM() == 3 via mir2
+assert getSUM() == 3 via z80
+assert getLW() == 32 via mir2
+assert getLW() == 32 via z80
+assert getQ() == 15 via mir2
+assert getQ() == 15 via z80
 fun main() -> void { }

@@ -86,8 +86,9 @@ def read_tsv(path: Path) -> list[tuple[str, list[float]]]:
             records.append((text, vec))
     if not records:
         raise SystemExit(f"{path}: no records")
-    if len(records) > 250:
-        raise SystemExit(f"{path}: {len(records)} records, the demo indexes fit 0..249")
+    if len(records) > 255:
+        raise SystemExit(f"{path}: {len(records)} records, the kernel ranks at most 255 "
+                         "(zv_rank_cap in zvdb_kernel.nanz, and zv_n is a u8)")
     return records
 
 
