@@ -526,7 +526,7 @@ func TestZXNarrowTextTiming(t *testing.T) {
 	measure := func(sel, width, core byte) int64 {
 		return (stepped(N, sel, width, core) - stepped(0, sel, width, core)) / N
 	}
-	// The values published in REPORT.md, so a performance regression fails CI
+	// The values published in reports/zx-narrow-text/REPORT.md, so a performance regression fails CI
 	// instead of only printing. Tolerance 3%: the emulator is deterministic
 	// (two runs give identical numbers), so this only trips on real changes.
 	want := map[string]int64{
@@ -540,7 +540,7 @@ func TestZXNarrowTextTiming(t *testing.T) {
 	near := func(what string, got, want int64) {
 		tol := want / 33
 		if got < want-tol || got > want+tol {
-			t.Errorf("%s: %d T, want %d +/- 3%% (REPORT.md round 2)", what, got, want)
+			t.Errorf("%s: %d T, want %d +/- 3%% (reports/zx-narrow-text/REPORT.md)", what, got, want)
 		}
 	}
 	for _, width := range []byte{5, 6, 8} {

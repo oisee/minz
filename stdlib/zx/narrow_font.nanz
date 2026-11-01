@@ -33,7 +33,7 @@
 //       r_{s+1} = RRCA(T_s | U_s). Splitting r_{s+1} again needs one AND plus
 //       an XOR, which makes the whole table two linear streaming passes.
 //
-// Build cost (measured on the emulator, no contention): see REPORT.md. Only
+// Build cost (measured on the emulator, no contention): see reports/zx-narrow-text/REPORT.md. Only
 // this module knows where the tables live; stdlib/zx/text.nanz only reads them.
 //
 // Usage:

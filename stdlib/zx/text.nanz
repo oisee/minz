@@ -15,7 +15,7 @@
 //   mask, so it never disturbs a neighbouring cell. A cell at byte column 31
 //   never straddles: cols*W <= 255 keeps every cell inside the 256 px line.
 //
-// Two blit cores, switchable at run time through tx_core (measured, REPORT.md):
+// Two blit cores, switchable at run time through tx_core (measured, reports/zx-narrow-text/REPORT.md):
 //   tx_core = 0  pre-shifted glyph table (default). narrow_font.nanz keeps the
 //                (T, U) pair per pixel row for every shift, so a blit is two
 //                loads and two masked ORs per row — no shifting at all. Costs
@@ -485,7 +485,7 @@ fun tx_blit(@z80_a ch: u8, @z80_c xpx: u8, @z80_e row: u8) -> void {
 // rotated right by s in BC (SRL C / RR B gives T in C and U in B), the 16-byte
 // pair block is materialised in tx_rotbuf and then handed to the same unrolled
 // blitter. This is the run-time cost of producing the shifted pair that core 0
-// looks up; the measurement is in REPORT.md.
+// looks up; the measurement is in reports/zx-narrow-text/REPORT.md.
 
 global tx_rotbuf: [u8; 16]
 
