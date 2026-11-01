@@ -1,0 +1,168 @@
+// zx_narrow_text_bench.nanz — T-state bench for the narrow-text engine (task Z3)
+//
+// Runs exactly one phase, selected by bench_sel, bench_n times, then halts. The
+// Go test (minzc/pkg/pipeline/zx_narrow_text_machine_test.go) patches bench_n /
+// bench_sel / bench_width / bench_core in the loaded image, runs the program
+// twice with bench_n = N and bench_n = 0, and divides the T-state difference by
+// N — so every phase is measured with its own loop and call overhead removed.
+//
+//   bench_sel 0  idle loop (the baseline the others are corrected by)
+//             1  narrow_font_build(width)      the packed font + shift tables
+//             2  tx_blit(ch, x, row)           one glyph, pre-shifted core
+//             3  win_goto + win_print_padded   one full row of text
+//             4  win_goto + win_putch          one glyph through the window API
+//             5  text_set_width(width)         a whole width switch
+//
+//   bench_core 0 = pre-shifted table, 1 = rotate-by-shift-count
+//
+// Build:  minzc/mz examples/nanz/zx_narrow_text_bench.nanz -o bench.a80
+// Run:    minzc/mza bench.a80 -o bench.bin   (loaded at $8000, halts with DI)
+
+import zx.text
+
+// The four parameters live at $5B00 (just above the attribute file, which the
+// engine never writes): the harness pokes them straight into emulated memory
+// before starting the CPU, so one build serves every measurement and the
+// compiler cannot fold the values away.
+//
+//   $5B00 iterations      $5B02 glyph width (5/6/8)
+//   $5B01 phase           $5B03 blit core (0 table, 1 rotate)
+//
+// Phases 2 and 7 call tx_blit directly, so they always measure the pre-shifted
+// core; win_putch (phase 4) is what honours the core selector. Phase 8 scrolls a
+// full-width window (the fill before the loop is paid in both the N and the 0
+// run, so the difference is N scrolls).
+
+global bench_done: u8 = 0
+
+fun phase_goto(n: u8) -> void {
+    var i: u8 = 0
+    while i < n {
+        win_goto(0, 0)
+        i = i + 1
+    }
+}
+
+fun phase_straddle(n: u8, w: u8) -> void {
+    var i: u8 = 0
+    while i < n {
+        tx_blit(65, w, 0)
+        i = i + 1
+    }
+}
+
+fun phase_idle(n: u8) -> void {
+    var i: u8 = 0
+    while i < n { i = i + 1 }
+}
+
+fun phase_build(n: u8, w: u8) -> void {
+    var i: u8 = 0
+    while i < n {
+        text_build_font(w)
+        i = i + 1
+    }
+}
+
+fun phase_glyph(n: u8) -> void {
+    var i: u8 = 0
+    while i < n {
+        tx_blit(65, 0, 0)
+        i = i + 1
+    }
+}
+
+fun phase_putch(n: u8) -> void {
+    var i: u8 = 0
+    while i < n {
+        win_goto(0, 0)
+        win_putch(65)
+        i = i + 1
+    }
+}
+
+fun phase_row(n: u8) -> void {
+    var i: u8 = 0
+    while i < n {
+        win_goto(0, 0)
+        win_print_padded(c"The quick brown fox jumps over the lazy dog 0123456789", win_width())
+        i = i + 1
+    }
+}
+
+fun phase_scroll(n: u8) -> void {
+    win_goto(0, 0)
+    win_print_padded(c"The quick brown fox jumps over the lazy dog 0123456789", win_width())
+    var i: u8 = 0
+    while i < n {
+        win_scroll(0)
+        i = i + 1
+    }
+}
+
+fun phase_set_width(n: u8, w: u8) -> void {
+    var i: u8 = 0
+    while i < n {
+        text_set_width(w)
+        i = i + 1
+    }
+}
+
+fun main() -> void {
+    var cfg: ^u8 = 0x5B00
+    let n: u8 = cfg^
+    cfg = cfg + 1
+    let sel: u8 = cfg^
+    cfg = cfg + 1
+    let w: u8 = cfg^
+    cfg = cfg + 1
+    let core: u8 = cfg^
+
+    text_set_width(w)
+    tx_core = core
+    win_open(0, 0, 0, tx_cols, 24)
+    win_select(0)
+
+    if sel == 1 {
+        phase_build(n, w)
+        bench_done = 1
+        return
+    }
+    if sel == 2 {
+        phase_glyph(n)
+        bench_done = 1
+        return
+    }
+    if sel == 3 {
+        phase_row(n)
+        bench_done = 1
+        return
+    }
+    if sel == 4 {
+        phase_putch(n)
+        bench_done = 1
+        return
+    }
+    if sel == 5 {
+        phase_set_width(n, w)
+        bench_done = 1
+        return
+    }
+    if sel == 6 {
+        phase_goto(n)
+        bench_done = 1
+        return
+    }
+    if sel == 7 {
+        phase_straddle(n, w)
+        bench_done = 1
+        return
+    }
+    if sel == 8 {
+        phase_scroll(n)
+        bench_done = 1
+        return
+    }
+    phase_idle(n)
+    bench_done = 1
+}

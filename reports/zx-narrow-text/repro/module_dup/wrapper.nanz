@@ -1,0 +1,5 @@
+import leaf
+
+fun wrapper_work(v: u8) -> u8 {
+    return leaf_work(v)
+}

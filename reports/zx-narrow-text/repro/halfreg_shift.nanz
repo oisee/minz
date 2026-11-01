@@ -1,0 +1,27 @@
+// Repro B (task Z3): a 16-bit rotate in IY. SRL/RR on the IY half-registers are
+// real Z80 instructions (FDCB dd 3E / FDCB dd 1E for IYL/IYH), and the emulator
+// executes them, but the compiler's Z80-VALIDATE pass rejects the spelling, so
+// `mz` reports invalid instructions and the build is treated as failed.
+//
+//   $ mz halfreg_shift.nanz -o /tmp/b.a80
+//   [Z80-VALIDATE] main: 2 invalid instruction(s)
+//     line N: >>> SRL IYL <<<
+//     line N: >>> RR IYH <<<
+//
+// Workaround in stdlib/zx/text.nanz: rotate in BC instead (SRL C / RR B), which
+// validates, and hand the pair to the blitter as two plain registers.
+
+fun rot_right(@z80_a v: u8) -> u8 {
+    asm z80 (in v) (ret A) (clob A, F, IY) {
+        LD IYL, A
+        LD IYH, 0
+        SRL IYL
+        RR IYH
+        LD A, IYL
+    }
+}
+
+fun main() -> void {
+    let r: u8 = rot_right(0xF0)
+    asm z80 (in r) { LD (0x4000), A }
+}

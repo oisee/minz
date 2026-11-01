@@ -1,0 +1,20 @@
+// Repro D (task Z3): a `//` comment inside an asm z80 block is not passed
+// through to the assembler as a comment. The compiler drops the marker and
+// emits the comment text as if it were an instruction line, so mza then fails:
+//   $ mz asm_line_comment.nanz -o /tmp/d.a80 && mza /tmp/d.a80 -o /tmp/d.bin
+//   Assembly errors:
+//     line N: unknown instruction or invalid operands: RESULT
+// `;` comments on instruction lines survive; use those (or comment outside the
+// asm block), which is what stdlib/zx does.
+
+fun f(@z80_a v: u8) -> u8 {
+    asm z80 (in v) (ret A) (clob A, F) {
+        INC A              // increment the accumulator
+        RET
+    }
+}
+
+fun main() -> void {
+    let x: u8 = f(1)
+    asm z80 (in x) { LD (0x4000), A }
+}

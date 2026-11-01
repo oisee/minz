@@ -1,0 +1,242 @@
+// ============================================================================
+// stdlib/zx/narrow_font.nanz — run-time narrow-font builder (task Z3)
+// ============================================================================
+//
+// The 48K ROM already contains a good 8x8 font at $3D00 (96 glyphs, ASCII
+// 32..127, one byte per pixel row, bit 7 = leftmost column). This module
+// squeezes it down to 6 px or 5 px per glyph at run time, guided by the
+// per-glyph column-deletion masks generated into
+// stdlib/zx/narrow_font_tables.nanz by scripts/zx_narrow_font.py, so no font
+// bitmap is ever shipped in the binary.
+//
+// Two artefacts are produced:
+//
+//   nf_packed6 / nf_packed5 (768 bytes each)
+//       The packed font: glyph g, pixel row r lives at g*8 + r and holds the W
+//       surviving ink pixels left-aligned in the byte (rows 0-3 squeezed with
+//       the glyph's top mask, rows 4-7 with its bottom mask).
+//
+//   nf_shift (12288 bytes)
+//       The pre-shifted glyph table the fast blitter in stdlib/zx/text.nanz
+//       walks. For shift s (0..7) and glyph g, sixteen contiguous bytes at
+//       s*1536 + g*16 hold, per pixel row, the ordered pair
+//
+//           T = packed >> s        the bits that land in the left screen byte
+//           U = packed << (8-s)    the bits that spill into the right byte
+//
+//       U is zero exactly when s + W <= 8, i.e. when the cell does not straddle
+//       a byte boundary, which is how the blitter picks its fast path.
+//
+//       Slot s+1 is derived from slot s with a single RRCA: with
+//       r_s = ROR(packed, s) the two halves of the pair are disjoint and
+//       r_s = T_s | U_s (T_s holds the low 8-s bits, U_s the high s bits), so
+//       r_{s+1} = RRCA(T_s | U_s). Splitting r_{s+1} again needs one AND plus
+//       an XOR, which makes the whole table two linear streaming passes.
+//
+// Build cost (measured on the emulator, no contention): see reports/zx-narrow-text/REPORT.md. Only
+// this module knows where the tables live; stdlib/zx/text.nanz only reads them.
+//
+// Usage:
+//   import zx.narrow_font
+//   narrow_font_build(5)      // 51 columns; 6 -> 42; 8 -> 32 (ROM font)
+// ============================================================================
+
+import zx.narrow_font_tables { * }
+
+const NF_ROM_FONT: u16 = 0x3D00    // 96 glyphs, ASCII 32..127, 8 bytes each
+const NF_GLYPHS: u8 = 96
+
+// ── Buffers ─────────────────────────────────────────────────────────────────
+// nf_shift is sized for the worst case (8 shifts). Width 6 only ever reads the
+// even slots (6 px cells only ever land on shifts 0/2/4/6) but building all
+// eight keeps the slot index identical to the shift, so the blitter needs no
+// division. Width 8 needs only slot 0 and builds nothing else.
+
+global nf_packed6: [u8; 768]
+global nf_packed5: [u8; 768]
+global nf_shift: [u8; 12288]
+
+// ── State ───────────────────────────────────────────────────────────────────
+
+global nf_width: u8 = 0            // active glyph width: 5, 6 or 8 (0 = unbuilt)
+global nf_base: u16 = 0            // packed font address for the active width
+// (how many slots of nf_shift are valid is implied by nf_width: 1 slot
+//  for width 8, all 8 otherwise; a separate global was never read.)
+
+// ── Squeeze one glyph row ───────────────────────────────────────────────────
+// Drops the masked pixel columns (bit 7-c set = delete column c) and left-aligns
+// the survivors. ~430 T-states per row.
+
+fun nf_squeeze(@z80_a val: u8, @z80_c mask: u8) -> u8 {
+    asm z80 (in val, mask) (ret A) (clob A, F, B, C, D, E) {
+        LD D, 0                 ; result accumulator
+        LD E, 0                 ; deleted-column count
+        LD B, 8
+    .loop:
+        SLA C                   ; column c's mask bit -> carry
+        JR NC, .keep
+        RLCA                    ; rotate the column away, count it
+        INC E
+        DJNZ .loop
+        JR .align
+    .keep:
+        RLCA                    ; column's ink bit -> carry
+        RL D                    ; append it at the bottom of D
+        DJNZ .loop
+    .align:                     ; D holds the survivors in its low W bits
+        LD A, E
+        OR A
+        JR Z, .done
+    .al:
+        SLA D
+        DEC E
+        JR NZ, .al
+    .done:
+        LD A, D
+    }
+}
+
+// ── Build the pre-shifted glyph table ───────────────────────────────────────
+// HL = 768-byte source font (the packed font, or the ROM font for width 8,
+// where slot 0 is the untouched glyph), DE = destination table, A = number of
+// slots to build. ~43k T for slot 0 plus ~70k T per additional slot.
+//
+// The table address arrives as a parameter rather than being named as this
+// module's global: the compiler renames a module's symbols when another module
+// imports it (<importer>__<name>), and a hand-written asm operand cannot follow
+// that rename, so an asm body that spells its own module's global only links
+// while the module is compiled as the main module. See
+// reports/zx-narrow-text/repro/.
+
+fun nf_build_slots(@z80_hl src: u16, @z80_de table: u16, @z80_a nslots: u8) -> void {
+    asm z80 (in src, table, nslots) (clob A, F, B, C, D, E, H, L, IX, IY) {
+        LD IYH, A               ; slot limit; DE = table (slot 0 destination)
+        LD IYL, 3               ; 768 = 3 * 256
+    .p0o:
+        LD B, 0
+    .p0:
+        LD A, (HL)
+        LD (DE), A
+        INC DE
+        XOR A
+        LD (DE), A
+        INC DE
+        INC HL
+        DJNZ .p0
+        DEC IYL
+        JP NZ, .p0o
+
+        LD H, D                 ; HL = table again: DE ended pass 0 at
+        LD L, E                 ; table+1536, the slot 1 destination, so the
+        LD BC, 0xFA00           ; source for it is 1536 below that
+        ADD HL, BC
+        LD C, 0xFF              ; maskA[0] - shifted right once per slot
+        LD IXL, 1               ; s
+    .pso:
+        LD A, IXL
+        CP IYH
+        JR NC, .done
+        SRL C                   ; C = maskA[s] = 0xFF >> s
+        LD A, C
+        LD (.andimm+1), A       ; patch the split mask into the loop
+        LD IYL, 3
+    .ps1:
+        LD B, 0
+    .ps:
+        LD A, (HL)              ; T_{s-1}
+        INC HL
+        OR (HL)                 ; r_{s-1} = T_{s-1} | U_{s-1}
+        INC HL
+        RRCA                    ; r_s
+        LD IXH, A
+    .andimm:
+        AND 0xFF                 ; T_s = r_s & maskA[s]  (operand patched)
+        LD (DE), A
+        INC DE
+        XOR IXH                 ; U_s = r_s ^ T_s
+        LD (DE), A
+        INC DE
+        DJNZ .ps
+        DEC IYL
+        JP NZ, .ps1
+        INC IXL
+        JP .pso
+    .done:
+    }
+}
+
+// ── Build the packed font for one width ────────────────────────────────────
+// Plain Nanz on purpose: this is a one-off per width switch, and the loops stay
+// readable. The hot paths (the blitters) are the asm ones.
+
+fun nf_build_packed(width: u8) -> void {
+    var src: ^u8 = 0x3D00
+    var dst: ^u8 = 0x3D00
+    var top: ^u8 = 0x3D00
+    var bot: ^u8 = 0x3D00
+    if width == 6 {
+        dst = &nf_packed6
+        top = &NF6_TOP
+        bot = &NF6_BOT
+    } else {
+        dst = &nf_packed5
+        top = &NF5_TOP
+        bot = &NF5_BOT
+    }
+    var g: u8 = 0
+    while g < NF_GLYPHS {
+        var r: u8 = 0
+        while r < 8 {
+            var m: u8 = 0
+            if r < 4 {
+                m = top[g]
+            } else {
+                m = bot[g]
+            }
+            dst^ = nf_squeeze(src^, m)
+            src = src + 1
+            dst = dst + 1
+            r = r + 1
+        }
+        g = g + 1
+    }
+}
+
+// ── Public entry point ──────────────────────────────────────────────────────
+// width = 8 uses the ROM font directly (nothing is squeezed, only slot 0 of the
+// shift table is built, holding the untouched glyph bytes).
+
+fun narrow_font_build(width: u8) -> void {
+    if width == 8 {
+        nf_base = NF_ROM_FONT
+        nf_build_slots(NF_ROM_FONT, &nf_shift, 1)
+    } else {
+        nf_build_packed(width)
+        if width == 6 {
+            nf_base = &nf_packed6
+        } else {
+            nf_base = &nf_packed5
+        }
+        nf_build_slots(nf_base, &nf_shift, 8)
+    }
+    nf_width = width
+}
+
+// Address of the pre-shifted glyph table (stdlib/zx/text.nanz caches it in a
+// global of its own so its asm bodies never name another module's symbol).
+
+fun narrow_font_shift_table() -> u16 {
+    return &nf_shift
+}
+
+// Address of the packed font for a width (the OCR and the tests use this).
+
+fun narrow_font_base(width: u8) -> u16 {
+    if width == 8 {
+        return NF_ROM_FONT
+    }
+    if width == 6 {
+        return &nf_packed6
+    }
+    return &nf_packed5
+}
