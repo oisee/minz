@@ -1,0 +1,13 @@
+// collide.nanz — repro: a main-module global named `top` aliases the local
+// `top` of zx.narrow_font.nf_build_packed, and the font is built wrong.
+import zx.text
+
+global top: u8 = 0              // the colliding name
+
+fun main() -> void {
+    text_set_width(5)
+    win_open(0, 0, 0, 51, 24)
+    win_select(0)
+    win_print(c"The forest is calm and serene during the early morning.")
+    top = 1                     // never read; the aliasing alone is the defect
+}

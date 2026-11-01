@@ -1,0 +1,13 @@
+// collide.nanz — repro: a main-module global named `top` aliases the local
+// `top` of zx.narrow_font.nf_build_packed, and the font is built wrong.
+import zx.text
+
+global zvui_top: u8 = 0          // renamed: no stdlib local can alias it
+
+fun main() -> void {
+    text_set_width(5)
+    win_open(0, 0, 0, 51, 24)
+    win_select(0)
+    win_print(c"The forest is calm and serene during the early morning.")
+    zvui_top = 1
+}

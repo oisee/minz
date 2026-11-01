@@ -243,7 +243,7 @@ func TestShowcaseExecutableOracleCatalog(t *testing.T) {
 		counts[row.NativeBehavior]++
 		catalog = append(catalog, row)
 	}
-	if len(catalog) != 209 {
+	if len(catalog) != 211 {
 		t.Fatalf("corpus changed: %d paths; refresh catalog intentionally", len(catalog))
 	}
 	for name, count := range counts {
@@ -254,7 +254,7 @@ func TestShowcaseExecutableOracleCatalog(t *testing.T) {
 			Base    string               `json:"base_commit"`
 			Scope   string               `json:"scope"`
 			Entries []oracleCatalogEntry `json:"entries"`
-		}{"ee21cae8", "All 209 paths retained (the previous 202 plus the five zvdb CP/M demo sources and the ZX narrow-text demo and its bench). Reviewed evidence proves only named entries/workloads; discovered test references, source assertions and main declarations are not native execution proofs. Derived CP/M main is separate evidence, never transferred to original source.", catalog}, "", "  ")
+		}{"ee21cae8", "All 211 paths retained (the previous 202 plus the five zvdb CP/M demo sources, the ZX narrow-text demo and its bench, and the zvdb ZX Spectrum demo and its ranking dumper). Reviewed evidence proves only named entries/workloads; discovered test references, source assertions and main declarations are not native execution proofs. Derived CP/M main is separate evidence, never transferred to original source.", catalog}, "", "  ")
 		if e != nil {
 			t.Fatal(e)
 		}
