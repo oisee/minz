@@ -442,9 +442,12 @@ func TestZXNarrowTextDemoScreens(t *testing.T) {
 			if tc.width != 5 {
 				leftW = 16
 			}
-			_, _, rightX, _, _ := zxNarrowGeometry(tc.width, cols, leftW)
+			// zxNarrowGeometry's third result is already the right pane's
+			// pixel origin (right cells * width), so do not multiply again;
+			// the cell count comes back as the fourth result.
+			_, _, rightPx, rightCols, _ := zxNarrowGeometry(tc.width, cols, leftW)
 			lb0, lb1 := 0, (leftW*tc.width-1)>>3
-			rb0, rb1 := rightX*tc.width>>3, (rightX*tc.width+(cols-rightX)*tc.width-1)>>3
+			rb0, rb1 := rightPx>>3, (rightPx+rightCols*tc.width-1)>>3
 			for row := 0; row < 24; row++ {
 				for line := 0; line < 8; line++ {
 					for b := 0; b < 32; b++ {
@@ -527,9 +530,10 @@ func TestZXNarrowTextTiming(t *testing.T) {
 	// instead of only printing. Tolerance 3%: the emulator is deterministic
 	// (two runs give identical numbers), so this only trips on real changes.
 	want := map[string]int64{
-		"blit5": 835, "blit6": 1099, "goto": 631, "putch0": 2881, "putch1": 3733,
-		"row5c0": 141829, "row5c1": 226561, "row6c0": 117183, "row6c1": 182743,
-		"row8c0": 85312, "row8c1": 112576,
+		"blit5": 835, "blit6": 1099, "goto": 562, "putch0": 1960, "putch1": 2812,
+		"row5c0": 98167, "row5c1": 182899, "row6c0": 81189, "row6c1": 146749,
+		"row8c0": 57838, "row8c1": 85102,
+		"scroll5c0": 311292, "scroll6c0": 311292, "scroll8c0": 267330,
 		"build5": 1595698, "build6": 1584165, "build8": 43621,
 		"setw5": 1857070, "setw6": 1845490, "setw8": 304948,
 	}
@@ -558,6 +562,9 @@ func TestZXNarrowTextTiming(t *testing.T) {
 			}
 			near("win_goto", goto_, want["goto"])
 			near(fmt.Sprintf("width %d core %d win_putch", width, core), putch, want[fmt.Sprintf("putch%d", core)])
+			scroll := measure(8, width, core)
+			t.Logf("width=%d core=%d: win_scroll=%dT", width, core, scroll)
+			near(fmt.Sprintf("width %d core %d win_scroll", width, core), scroll, want[fmt.Sprintf("scroll%dc0", width)])
 			near(fmt.Sprintf("width %d core %d row", width, core), row, want[fmt.Sprintf("row%dc%d", width, core)])
 		}
 		build := measure(1, width, 0)

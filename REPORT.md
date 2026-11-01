@@ -421,7 +421,7 @@ compiler.
 Verified with the critic's method, extended to every entry point: IY is set to
 `$5C3A` and checked inside the same asm block, with no generated code in
 between (an ordinary Nanz caller can clobber IY between calls — that is the
-caller's code, not the engine's). Result for all 15 public calls:
+caller's code, not the engine's). Result for all 17 public calls:
 **IY preserved**. The demo still runs with DI because its *own* compiled code
 clobbers IY; that is now stated in the demo header.
 
@@ -431,7 +431,7 @@ clobbers IY; that is now stated in the demo header.
 $0000-$3FFF  ROM            only ever read (the font at $3D00)
 $4000-$57FF  pixel bitmap   6144 bytes
 $5800-$5AFF  attributes     768 bytes
-$8000-$99F1  code           engine + demo, 8.1 K
+$8000-$99F1  code           engine + demo, 6.0 K
 $99F2-$9B71  deletion masks NF5/NF6 top+bottom, 384 bytes
 $9B75-$9E74  nf_packed6     768
 $9E75-$A174  nf_packed5     768
@@ -443,7 +443,7 @@ $D262-$D289  KEYTAB         40 bytes
 $FF58        initial SP     (< 64 bytes used)
 ```
 
-Free RAM above the image: `$D794..$FFFF` = 10317 bytes, so the zvdb port has
+Free RAM above the image: `$D793..$FFFF` = 10318 bytes, so the zvdb port has
 roughly 10 K for its data and kernel. One caveat the round-1 report glossed
 over, now stated plainly: **core 1 (rotate) does not save the 12 KB table.**
 `nf_shift` is emitted unconditionally and `narrow_font_build` always fills all
@@ -526,26 +526,40 @@ Screenshots regenerated: `screenshot-w5.png` (8958 B), `screenshot-w6.png`
 (8127 B), `screenshot-w8.png` (7095 B) — the 42-column one no longer carries the
 column of stale 51-column glyphs at screen x=96..103.
 
-### 9.7 Compiler finding 6 (new in round 2)
+### 9.7 "Compiler finding 6" — RETRACTED in round 3
 
-**The calling convention a call site uses need not match the one declared for
-the callee.** Minimal repro, from the wrapper work:
+Round 2 claimed that for `fun f(s: ^u8, w: u8)` with an asm body "the emitted ABI
+comment says `w: u8 = A` and a probe reads `w` in **C**". That was a measurement
+artefact, not a compiler bug, and the claim is withdrawn.
 
-```nanz
-fun f(s: ^u8, w: u8) -> void {
-    asm z80 (in s, w) (clob A, F, B, C, D, E, H, L, IX, IY) { ... }
-}
-fun main() -> void { f(c"AB", 0x11) }
+What my probe actually did wrong: it stored B, C, D, E and HL at the asm entry
+but never A, because storing A would have needed a `LD A,r` first. The emitted
+caller is
+
+```
+LD HL, _mir2_str_0
+LD C, 17          ; the caller's own internal convention
+LD A, C           ; shuffle into the register the callee declares
+CALL f
 ```
 
-The emitted ABI comment says `f(s: ptr = HL, w: u8 = A)`, and a probe that
-stores A, B, C, D, E and HL on entry reads the pointer in HL but `w` in **C**.
-So an asm body cannot take a byte argument that follows a pointer, and by
-extension no hand-written `CALL` into compiled Nanz code can rely on the
-declared ABI. That is why the zx.text wrappers park their arguments in
-`tx_arg*` slots. (Finding 5 of round 1 — an imported module's code is emitted
-once per importer — also bit again here: the bench importing `zx.narrow_font`
-directly grew from 18.3 K to 33.1 K, which is why `text_build_font` exists.)
+so at the entry *both* A and C hold 17; sampling A (round 3, same probe) reads
+`A = 0x11` exactly as the comment says. The critic's independent matrix — six
+shapes, `mzd --regs --verify-abi` reporting 68/68 functions matched, and nine
+differently-shaped Nanz→Nanz call sites all correct — agrees.
+
+What *is* true, and is the real reason the zx.text wrappers park their arguments
+in `tx_arg*` slots instead of passing registers through: **the calling
+convention is chosen per function, from the callee's own body**, so a
+hand-written `CALL` into compiled Nanz code cannot know a register convention in
+advance. In this tree `win_print_padded_i` takes its string *in memory*
+(`str: ptr = mem, width: u8 = C`) because the pointer is spilled in its loop,
+while a sibling function with the same signature takes it in HL. That is a
+documentation caution, not a defect: check the emitted `; fun … (p: t = reg)`
+comment for the exact build before writing such a call. (Round-1 finding 5 — an
+imported module's code is emitted once per importer — did bite again here: the
+bench importing `zx.narrow_font` directly grew from 18.3 K to 33.1 K, which is
+why `text_build_font` exists.)
 
 ### 9.8 What is still open
 
@@ -555,7 +569,179 @@ directly grew from 18.3 K to 33.1 K, which is why `text_build_font` exists.)
   round-2 regression.
 * A width switch costs 1.86 M T (0.53 s), of which ~250 k T is the screen clear.
 * 5 px glyphs still have no inter-character gap — inherent to 51 columns.
-* `win_print_padded`'s string pointer still goes through a slot rather than HL
-  (finding 6); the cost is inside the measured row number.
+* ~~`win_print_padded`'s string pointer still goes through a slot rather than
+  HL~~ — moot: "finding 6" is retracted in §9.7, and the slots stay for the
+  documented reason.
+
+---
+
+## 10. Round 3 — the critic's second report, fixed
+
+Critic report: `CRITIC-2.md` (verdict GO-WITH-FIXES). Everything below was
+re-measured the same way the critic measured it.
+
+### 10.1 The CI manifest (the blocker)
+
+`TestZXNarrowTextDemoAllWidths` was replaced in round 2 but
+`scripts/ci/pipeline_profiles.json` still listed the old name, so
+`run_stable_pipeline.py` aborted on every profile ("unclassified=…Screens,
+stale=…AllWidths"). Fixed — the `fast` list now carries `TestZXNarrowTextDemoScreens`
+(585 entries, unchanged count) — and the whole fast profile was run with shards:
+
+```
+$ cd minzc && nice -n 19 taskset -c 4-15 python3 ../scripts/ci/run_stable_pipeline.py       --profile fast --output /tmp/fast-out --shards 4 --workers 4
+Pipeline inventory: 956 total, 585 selected (fast, job 1/1), 4 exhaustive process shards, 4 workers
+$ cat /tmp/fast-out/statuses.json
+[{"shard": 1, "exit_code": 0, ...}, {"shard": 2, "exit_code": 0, ...},
+ {"shard": 3, "exit_code": 0, ...}, {"shard": 4, "exit_code": 0, ...}]
+$ grep -c '^--- FAIL' /tmp/fast-out/shard-*.log
+shard-1.log:0  shard-2.log:0  shard-3.log:0  shard-4.log:0
+$ grep -h -- '--- PASS: TestZXNarrowText' /tmp/fast-out/shard-*.log
+--- PASS: TestZXNarrowTextDemoScreens (6.46s)     [all nine subtests PASS]
+--- PASS: TestZXNarrowTextTiming (2.08s)
+```
+
+### 10.2 win_open's clamps overflowed
+
+`if x + w > tx_cols` wraps in u8: `win_open(0, 0, 20, 10, 250)` gave `y + h = 14`,
+kept `h = 250` and painted attribute rows 20..269, i.e. straight past `$5AFF`
+into the system-variable area. Both tests now use the overflow-safe form
+`if ww > tx_cols - x` / `if hh > TX_ROWS - y` (the reject above already
+guarantees `x < tx_cols` and `y < TX_ROWS`, so the right-hand side cannot wrap).
+The critic's probe, rerun:
+
+```
+win_open(1, 0, 20, 10, 250)  ->  w = 10, h = 4    (was h = 250)
+win_open(2, 40, 0, 250, 4)   ->  w = 11, h = 4    (was w = 250, and win_clear on
+                                                    it corrupted the neighbour)
+bytes at $5B00..$5B07 after both:  all 0x00        (round 2 wrote 0x07 there)
+```
+
+### 10.3 Performance — round 1 beaten, not just matched
+
+Two changes, both from the critic's analysis:
+
+* **A scalar mirror of the current window** (`tx_c_xpx/y/w/h/col/row`), refreshed
+  by `win_open`, `win_select` and `win_goto`. A dynamically indexed `wn_x[id]`
+  read costs ~250 T in this compiler and `win_putch` did six of them per
+  character. The zero-size guard is now one scalar compare (an empty window is
+  collapsed to `w = h = 0` when the mirror is refreshed, so a zero-*height*
+  window with a non-zero width cannot slip through and underflow the row — the
+  edge-case probe caught exactly that during the port).
+* **The scroll is one asm block** (`tx_scroll_row`): one address per pixel line
+  (byte columns of a char row at a given line are contiguous, and the row below
+  is +32), a plain `LDIR` for the span when the window owns both edge bytes, and
+  two merged bytes otherwise. Round 2's scroll cost six `tx_scr_addr` calls per
+  line through a per-line helper.
+
+Measured with the same bench and the same differential method, and with the
+round-1 and round-2 trees checked out and re-measured against it:
+
+| | round 1 | round 2 | **round 3** |
+|---|---|---|---|
+| `tx_blit` aligned / straddling | 829 / 1093 | 835 / 1099 | 835 / 1099 |
+| `win_goto` | 397 | 631 | **562** |
+| `win_putch` (goto + putch, core 0) | 2173 | 2881 | **1960** |
+| `win_putch` (core 1) | 3025 | 3733 | **2812** |
+| 51-column row (core 0) | 120013 | 141829 | **98167** |
+| 42-column row | 99129 | 117183 | **81189** |
+| 32-column row | 71438 | 85312 | **57838** |
+| `win_scroll` (24-row pane, 5/6 px) | 484924 | 1117331 | **311292** |
+| `win_scroll` (8 px) | 484924 | 1118086 | **267330** |
+| T per glyph in a row | 2353 | 2781 | **1925** |
+
+**Full-redraw settle time** — frames from the keypress to the last screen
+change, the critic's `settle.py` method, which is also the window in which the
+demo cannot see the keyboard:
+
+| target width | round 1 | round 2 | **round 3** |
+|---|---|---|---|
+| 51 col | 90 frames / 6.29 M T / 1.80 s | 122 / 8.53 M / 2.44 s | **83 / 5.80 M / 1.66 s** |
+| 42 col | 90 / 6.29 M / 1.80 s | 130 / 9.09 M / 2.60 s | **82 / 5.73 M / 1.64 s** |
+| 32 col | 167 / 11.67 M / 3.33 s | 360 / 25.16 M / 7.19 s | **103 / 7.20 M / 2.06 s** |
+
+So the keyboard-deaf window after a width switch is down from 2.44 s to 1.66 s,
+and the 32-column case — 96 % of which was scrolling — from 7.19 s to 2.06 s.
+`narrow_font_build` and `text_set_width` are unchanged (1 595 698 / 1 857 070 T
+at 5 px). The timing test's assertion table carries all of these.
+
+### 10.4 "Finding 6" retracted
+
+See §9.7: the claim was a measurement artefact (the probe sampled C but never A,
+and the caller's `LD A, C` shuffle leaves the value in both). Sampling A reads
+exactly what the emitted ABI comment says, and `mzd --regs --verify-abi` reports
+68/68 functions matched. The true, documented statement — the convention is
+*per function*, chosen from the callee's body, so check the emitted
+`; fun … (p: t = reg)` comment before a hand-written `CALL` — replaces it in
+§9.7 and in `reports/zx-narrow-text/repro/README.md`. The argument-slot design
+stays, for that reason.
+
+### 10.5 The remaining should-fix items
+
+* **Memory map** (§9.4 numbers): code is 6.0 K not 8.1 K, free RAM 10318 not
+  10317, and there are 17 wrappers not 15. Fixed in place. Round 3 moves it
+  again — see §10.7.
+* **The inside/outside diagnostic** in `TestZXNarrowTextDemoScreens` multiplied
+  the right pane's pixel origin by the width a second time, so no byte was ever
+  classified "inside the right pane" and every right-pane difference was
+  reported as outside. Fixed: `rightPx` is used as the pixel origin directly and
+  the cell count comes from the geometry's fourth result. (The pass/fail verdict
+  was never affected — it fails on the total.)
+* **`sp_left_w` / `sp_gap` were write-only** after round 2's `text_set_width`
+  change. Dropped, along with the header sentence that claimed they were kept
+  for the caller; `split_vertical` no longer pretends to remember the layout.
+
+### 10.6 The showcase oracle catalog
+
+`minzc/pkg/nanz/showcase_oracle_catalog_test.go` hard-codes the number of corpus
+paths. The two new examples (`zx_narrow_text_demo.nanz`,
+`zx_narrow_text_bench.nanz`) take it from 202 to **204**, and the test failed
+until the count and the scope string were bumped:
+
+```
+$ go test ./pkg/nanz/ -run TestShowcaseExecutableOracleCatalog -count=1
+    showcase_oracle_catalog_test.go:247: corpus changed: 204 paths; refresh catalog intentionally
+--- FAIL   ->   (after the bump)   --- PASS (4.52s)
+```
+
+The scope string now reads "All 204 paths retained (the previous 202 plus the
+task-Z3 ZX narrow-text demo and its bench)". **Rebase note:** PR #296 adds five
+more examples, so if it lands before this branch the count must be bumped again
+to 209 (and the scope string reworded) — the test fails loudly, so it cannot be
+missed.
+
+### 10.7 Memory map after round 3 (image 23327 bytes, `$8000..$DB1E`)
+
+```
+$0000-$3FFF  ROM            only ever read (the font at $3D00)
+$4000-$57FF  pixel bitmap   6144 bytes
+$5800-$5AFF  attributes     768 bytes
+$8000-$9EF6  code           engine + demo + generated tables, 7.9 K
+$9EF7-$A1F6  nf_packed6     768
+$A1F7-$A4F6  nf_packed5     768
+$A4F7-$D4F6  nf_shift       12288
+$D53F-$D5D2  engine state   masks, colpx, window arrays, mirror, scroll params
+$D5D3-$D5ED  tx_rotbuf      16
+$D5EE-$D615  KEYTAB         40
+     ...$DB1E demo strings
+$FF58        initial SP     (< 64 bytes used)
+```
+
+Free RAM above the image: `$DB1F..$FFFF` = **9441 bytes** — still comfortably
+more than the zvdb port's ~4.2 K of data, but 877 bytes less than round 2
+(the mirror, the scroll parameters and the asm scroll helper).
+
+### 10.8 Verification after round 3
+
+* Whole screen, all nine states, both verifiers: `TestZXNarrowTextDemoScreens`
+  PASS (9 subtests) and `python3 scripts/zx_narrow_text_verify.py` → `ALL PASS`.
+* `$AA` clear-coverage probe: 0 of 6144 bitmap and 0 of 768 attribute bytes
+  uncleared.
+* Non-aligned scroll isolation probe: the neighbour's pixels and its attribute
+  column unchanged, the scrolling window's content correct.
+* Edge probe (rejected origin, overflow clamp, zero-height, zero-size, 1×1
+  window, `win_goto` clamp): all as specified, nothing written past `$5AFF`.
+* IY: preserved across all public calls (re-run after the mirror change).
+* Screenshots regenerated from the round-3 build.
 
 STATUS: DONE

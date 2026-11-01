@@ -29,7 +29,9 @@ import zx.text
 //   $5B01 phase           $5B03 blit core (0 table, 1 rotate)
 //
 // Phases 2 and 7 call tx_blit directly, so they always measure the pre-shifted
-// core; win_putch (phase 4) is what honours the core selector.
+// core; win_putch (phase 4) is what honours the core selector. Phase 8 scrolls a
+// full-width window (the fill before the loop is paid in both the N and the 0
+// run, so the difference is N scrolls).
 
 global bench_done: u8 = 0
 
@@ -84,6 +86,16 @@ fun phase_row(n: u8) -> void {
     while i < n {
         win_goto(0, 0)
         win_print_padded(c"The quick brown fox jumps over the lazy dog 0123456789", win_width())
+        i = i + 1
+    }
+}
+
+fun phase_scroll(n: u8) -> void {
+    win_goto(0, 0)
+    win_print_padded(c"The quick brown fox jumps over the lazy dog 0123456789", win_width())
+    var i: u8 = 0
+    while i < n {
+        win_scroll(0)
         i = i + 1
     }
 }
@@ -143,6 +155,11 @@ fun main() -> void {
     }
     if sel == 7 {
         phase_straddle(n, w)
+        bench_done = 1
+        return
+    }
+    if sel == 8 {
+        phase_scroll(n)
         bench_done = 1
         return
     }

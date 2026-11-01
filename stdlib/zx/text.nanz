@@ -151,10 +151,24 @@ global tx_arg4: u8 = 0
 global tx_argp: u16 = 0
 
 global sp_open: u8 = 0          // a split_vertical layout is live
-global sp_left_w: u8 = 0
-global sp_gap: u8 = 0
 global sp_b0: u8 = 0            // divider attribute cells, inclusive
 global sp_b1: u8 = 0
+
+// Scalar mirror of the *current* window's hot fields. A dynamically indexed
+// read of wn_x[id] costs ~250 T in this compiler (base plus index recomputed
+// from scratch), and win_putch used to do six of them per character, so the
+// cursor and the geometry the character path needs live here instead. The
+// window arrays stay the source of truth for everything else (byte ranges,
+// keep masks, attribute); win_open, win_select and win_goto refresh the mirror,
+// and every writer that changes a mirrored field does the same.
+
+global tx_c_id: u8 = 0          // which window the mirror describes
+global tx_c_xpx: u8 = 0         // pixel origin
+global tx_c_y: u8 = 0           // character-row origin
+global tx_c_w: u8 = 0           // width in cells (0 = the window prints nothing)
+global tx_c_h: u8 = 0           // height in rows
+global tx_c_col: u8 = 0         // cursor column
+global tx_c_row: u8 = 0         // cursor row
 
 // ── Screen address helpers ──────────────────────────────────────────────────
 // ZX layout: H = 010 TT LLL (TT = row/8, LLL = pixel line), L = RRR CCCCC
@@ -622,6 +636,128 @@ fun tx_paint_divider() -> void {
     }
 }
 
+// Copy a window's mirrored fields out of the window arrays.
+
+fun win_mirror(id: u8) -> void {
+    tx_c_id = id
+    tx_c_xpx = wn_xpx[id]
+    tx_c_y = wn_y[id]
+    tx_c_w = wn_w[id]
+    tx_c_h = wn_h[id]
+    tx_c_col = wn_col[id]
+    tx_c_row = wn_row[id]
+    // an empty window cannot print: collapse w and h together so the
+    // per-character guard is a single compare (a zero-height window with a
+    // non-zero width would otherwise advance its row past the window and
+    // underflow tx_c_row to 255)
+    if (tx_c_w == 0) | (tx_c_h == 0) {
+        tx_c_w = 0
+        tx_c_h = 0
+    }
+}
+
+// Parameters for tx_scroll_row: the masks and span are per-window constants,
+// so they travel through globals and the helper takes only two pointers.
+// (LD r,(nn) exists only for A, so registers are scarce inside the loop.)
+
+global tx_s_ke0: u8 = 0        // keep mask in the first byte
+global tx_s_ke1: u8 = 0        // keep mask in the last byte
+global tx_s_span: u8 = 0       // bytes per line
+global tx_s_whole: u8 = 0      // 1 when the window owns both edge bytes
+global tx_s_line: u8 = 0       // pixel-line counter
+
+// Scroll the 8 pixel lines of one character row up by one row: `span` bytes
+// from `src` (the row below) to `dst`, with the edge bytes merged under their
+// keep masks unless the window owns them whole. One asm block, so the cost is
+// the copy itself plus two merged bytes per line.
+
+fun tx_scroll_row(@z80_hl src: u16, @z80_de dst: u16) -> void {
+    asm z80 (in src, dst) (clob A, F, B, C, H, L, D, E, IX, IY) {
+        PUSH HL
+        POP IX                  ; IX = source base, walks +0x100 per line
+        PUSH DE
+        POP IY                  ; IY = destination base
+        LD A, 8
+        LD (zx__text__tx_s_line), A
+    .line:
+        PUSH IX
+        POP HL                  ; HL = this line's first source byte
+        PUSH IY
+        POP DE                  ; DE = this line's first destination byte
+        LD A, (zx__text__tx_s_whole)
+        OR A
+        JR NZ, .whole
+        ; first byte: dst = (dst & ke0) | (src & ~ke0)
+        LD A, (zx__text__tx_s_ke0)
+        LD B, A                 ; B = ke0
+        XOR 0xFF
+        LD C, A                 ; C = ~ke0
+        LD A, (DE)
+        AND B
+        LD (DE), A              ; park the neighbour's bits
+        LD A, (HL)
+        AND C
+        LD B, A
+        LD A, (DE)
+        OR B
+        LD (DE), A
+        LD A, (zx__text__tx_s_span)
+        CP 2
+        JR C, .next             ; one byte: it was the first and the last
+        JR Z, .last             ; two bytes: no middle
+        ; the middle is a plain block move of span-2 bytes; the line base is
+        ; saved first so the last byte's address can be derived from it after
+        DEC A
+        DEC A
+        LD C, A
+        LD B, 0
+        PUSH HL
+        PUSH DE
+        INC HL
+        INC DE
+        LDIR
+        POP DE
+        POP HL                  ; back to the line's first byte
+        LD A, (zx__text__tx_s_span)
+        DEC A                   ; offset of the last byte
+        LD C, A
+        LD B, 0
+        ADD HL, BC
+        EX DE, HL
+        ADD HL, BC
+        EX DE, HL
+    .last:
+        LD A, (zx__text__tx_s_ke1)
+        LD B, A
+        XOR 0xFF
+        LD C, A
+        LD A, (DE)
+        AND B
+        LD (DE), A
+        LD A, (HL)
+        AND C
+        LD B, A
+        LD A, (DE)
+        OR B
+        LD (DE), A
+        JR .next
+    .whole:
+        LD A, (zx__text__tx_s_span)
+        LD C, A
+        LD B, 0
+        PUSH BC
+        LDIR
+        POP BC
+    .next:
+        INC IXH                 ; the next pixel line is +0x100
+        INC IYH
+        LD A, (zx__text__tx_s_line)
+        DEC A
+        LD (zx__text__tx_s_line), A
+        JR NZ, .line
+    }
+}
+
 // ── Window lifecycle ────────────────────────────────────────────────────────
 
 // Pixel-exact row helpers. A window whose pixel origin or end is not on an
@@ -680,14 +816,19 @@ fun win_open_i() -> void {
     wn_w[id] = 0
     wn_h[id] = 0
     if (x >= tx_cols) | (y >= TX_ROWS) {
+        win_mirror(id)
         return
     }
+    // Overflow-safe: comparing x + w would wrap in u8 (y=20, h=250 gives 14,
+    // which is not > 24, so the height survived unclamped and the attribute
+    // paint ran off the end of the file into $5B00). x < tx_cols and
+    // y < TX_ROWS already hold, so the right-hand side cannot wrap.
     var ww: u8 = w
-    if x + w > tx_cols {
+    if ww > tx_cols - x {
         ww = tx_cols - x
     }
     var hh: u8 = h
-    if y + h > TX_ROWS {
+    if hh > TX_ROWS - y {
         hh = TX_ROWS - y
     }
     wn_x[id] = x
@@ -739,29 +880,31 @@ fun win_open_i() -> void {
         wn_ab1[id] = 0
     }
     win_apply_attr(id)
+    win_mirror(id)
 }
 
 fun win_select_i() -> void {
     let id: u8 = tx_arg0
     wn_cur = id
+    win_mirror(id)
 }
 
 // Accessors, so callers do not have to reach into the window arrays.
 
 fun win_width_i() -> u8 {
-    return wn_w[wn_cur]
+    return tx_c_w
 }
 
 fun win_height_i() -> u8 {
-    return wn_h[wn_cur]
+    return tx_c_h
 }
 
 fun win_col_i() -> u8 {
-    return wn_col[wn_cur]
+    return tx_c_col
 }
 
 fun win_row_i() -> u8 {
-    return wn_row[wn_cur]
+    return tx_c_row
 }
 
 fun text_cols_i() -> u8 {
@@ -769,21 +912,44 @@ fun text_cols_i() -> u8 {
 }
 
 // Blank the window's own pixels, repaint its attributes and home the cursor.
+// The geometry is read out of the window array once and the two edge bytes are
+// handled inline, so the per-line work is two screen reads and a tx_zero —
+// calling win_clear_line per line (round 2) cost six dynamically indexed array
+// reads per call, which is what made this 2.5x slower than round 1.
 
 fun win_clear_i() -> void {
     let id: u8 = tx_arg0
-    var r: u8 = 0
-    while r < wn_h[id] {
+    let b0: u8 = wn_b0[id]
+    let b1: u8 = wn_b1[id]
+    let ke0: u8 = wn_ke0[id]
+    let ke1: u8 = wn_ke1[id]
+    var r: u8 = wn_y[id]
+    var n: u8 = wn_h[id]
+    while n > 0 {
         var line: u8 = 0
         while line < 8 {
-            win_clear_line(id, wn_y[id] + r, line)
+            // one address per line: every byte column of a char row at a given
+            // pixel line is contiguous, so the rest is pointer arithmetic
+            let a: u16 = tx_scr_addr(b0, r, line)
+            var p0: ^u8 = a
+            p0^ = p0^ & ke0
+            if b1 > b0 {
+                if b1 > b0 + 1 {
+                    tx_zero(a + 1, b1 - b0 - 1)
+                }
+                var p1: ^u8 = a + (b1 - b0)
+                p1^ = p1^ & ke1
+            }
             line = line + 1
         }
         r = r + 1
+        n = n - 1
     }
     win_apply_attr(id)
     wn_col[id] = 0
     wn_row[id] = 0
+    tx_c_col = 0
+    tx_c_row = 0
 }
 
 // Move the window's text up one character row; the bottom row is blanked and
@@ -798,98 +964,123 @@ fun win_scroll_i() -> void {
     if wn_h[id] < 2 {
         return
     }
-    var r: u8 = 0
-    while r + 1 < wn_h[id] {
-        var line: u8 = 0
-        while line < 8 {
-            win_copy_line(id, wn_y[id] + r, wn_y[id] + r + 1, line)
-            line = line + 1
-        }
-        if wn_ab0[id] <= wn_ab1[id] {
-            tx_copy(tx_attr_addr(wn_ab0[id], wn_y[id] + r + 1),
-                    tx_attr_addr(wn_ab0[id], wn_y[id] + r),
-                    wn_ab1[id] - wn_ab0[id] + 1)
+    let b0: u8 = wn_b0[id]
+    let b1: u8 = wn_b1[id]
+    tx_s_ke0 = wn_ke0[id]
+    tx_s_ke1 = wn_ke1[id]
+    tx_s_span = b1 - b0 + 1
+    tx_s_whole = 0
+    if (tx_s_ke0 == 0) & (tx_s_ke1 == 0) {
+        tx_s_whole = 1
+    }
+    let ab0: u8 = wn_ab0[id]
+    let abn: u8 = wn_ab1[id] - wn_ab0[id] + 1
+    var r: u8 = wn_y[id]
+    var n: u8 = wn_h[id]
+    while n > 1 {
+        tx_scroll_row(tx_scr_addr(b0, r + 1, 0), tx_scr_addr(b0, r, 0))
+        if (abn > 0) & (ab0 <= wn_ab1[id]) {
+            tx_copy(tx_attr_addr(ab0, r + 1), tx_attr_addr(ab0, r), abn)
         }
         r = r + 1
+        n = n - 1
     }
-    var last: u8 = wn_y[id] + wn_h[id] - 1
+    // the bottom row becomes blank and takes the window's own attribute
+    win_apply_own(id, r, 1)
+    tx_s_whole = 0
     var line2: u8 = 0
     while line2 < 8 {
-        win_clear_line(id, last, line2)
+        let a: u16 = tx_scr_addr(b0, r, line2)
+        var p0: ^u8 = a
+        p0^ = p0^ & tx_s_ke0
+        if b1 > b0 {
+            if b1 > b0 + 1 {
+                tx_zero(a + 1, b1 - b0 - 1)
+            }
+            var p1: ^u8 = a + (b1 - b0)
+            p1^ = p1^ & tx_s_ke1
+        }
         line2 = line2 + 1
     }
-    win_apply_own(id, last, 1)
-    // a partially-shared edge cell keeps the neighbour's colour: it is outside
-    // wn_ab0..wn_ab1, so neither the copy above nor this repaint touches it
 }
 
 // ── Cursor ──────────────────────────────────────────────────────────────────
 
 fun win_goto_i(@z80_a col: u8, @z80_c row: u8) -> void {
-    let id: u8 = wn_cur
-    wn_col[id] = 0
-    wn_row[id] = 0
-    if wn_w[id] == 0 {
+    tx_c_col = 0
+    tx_c_row = 0
+    if tx_c_w == 0 {
         return
     }
-    if col < wn_w[id] {
-        wn_col[id] = col
+    if col < tx_c_w {
+        tx_c_col = col
     } else {
-        wn_col[id] = wn_w[id] - 1
+        tx_c_col = tx_c_w - 1
     }
-    if wn_h[id] == 0 {
+    if tx_c_h == 0 {
         return
     }
-    if row < wn_h[id] {
-        wn_row[id] = row
+    if row < tx_c_h {
+        tx_c_row = row
     } else {
-        wn_row[id] = wn_h[id] - 1
+        tx_c_row = tx_c_h - 1
     }
+    wn_col[tx_c_id] = tx_c_col
+    wn_row[tx_c_id] = tx_c_row
 }
 
-fun win_advance_row(id: u8) -> void {
-    var r: u8 = wn_row[id] + 1
-    if r >= wn_h[id] {
-        tx_arg0 = id
+fun win_advance_row() -> void {
+    var r: u8 = tx_c_row + 1
+    if r >= tx_c_h {
+        tx_arg0 = tx_c_id
         win_scroll_i()
-        wn_row[id] = wn_h[id] - 1
+        tx_c_row = tx_c_h - 1
     } else {
-        wn_row[id] = r
+        tx_c_row = r
     }
 }
 
 // ── Output ──────────────────────────────────────────────────────────────────
 
+// The per-character hot path: everything it touches is a scalar. The zero-size
+// guard is one scalar compare here (the mirror holds w = 0 for a window that
+// was rejected or opened empty), not the two dynamically indexed array reads
+// round 2 paid ~500 T for.
+
 fun win_putch_i(@z80_a ch: u8) -> void {
-    let id: u8 = wn_cur
-    let w: u8 = wn_w[id]
-    if (w == 0) | (wn_h[id] == 0) {
+    if tx_c_w == 0 {
         return
     }
     if ch == 13 {
-        wn_col[id] = 0
-        win_advance_row(id)
+        tx_c_col = 0
+        win_advance_row()
+        wn_col[tx_c_id] = tx_c_col
+        wn_row[tx_c_id] = tx_c_row
         return
     }
     if ch == 10 {
-        wn_col[id] = 0
-        win_advance_row(id)
+        tx_c_col = 0
+        win_advance_row()
+        wn_col[tx_c_id] = tx_c_col
+        wn_row[tx_c_id] = tx_c_row
         return
     }
-    let xpx: u8 = wn_xpx[id] + tx_colpx[wn_col[id]]
-    let row: u8 = wn_y[id] + wn_row[id]
+    let xpx: u8 = tx_c_xpx + tx_colpx[tx_c_col]
+    let row: u8 = tx_c_y + tx_c_row
     if tx_core == 0 {
         tx_blit(ch, xpx, row)
     } else {
         tx_blit_rot(ch, xpx, row)
     }
-    var col: u8 = wn_col[id] + 1
-    if col >= w {
-        wn_col[id] = 0
-        win_advance_row(id)
+    var col: u8 = tx_c_col + 1
+    if col >= tx_c_w {
+        tx_c_col = 0
+        win_advance_row()
     } else {
-        wn_col[id] = col
+        tx_c_col = col
     }
+    wn_col[tx_c_id] = tx_c_col
+    wn_row[tx_c_id] = tx_c_row
 }
 
 fun win_print_i() -> void {
@@ -987,8 +1178,6 @@ fun split_vertical_i() -> void {
         lw = lw - 1
     }
     sp_open = 1
-    sp_left_w = lw
-    sp_gap = gap
     tx_arg0 = 0
     tx_arg1 = 0
     tx_arg2 = 0

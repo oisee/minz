@@ -6,6 +6,7 @@ recorded here because task Z3 says not to change the compiler.
 
 | # | repro | one-liner | severity for this task |
 |---|---|---|---|
+| — | *(retracted, round 3)* | round 2 claimed a sixth finding — that a call site can pass an argument in a different register than the callee's declared ABI. It was a measurement artefact: the probe sampled C but never A, and the caller's `LD A, C` shuffle leaves the value in both. Sampling A reads exactly what the comment says, `mzd --regs --verify-abi` reports 68/68 OK. The true (and documented) caution is that the convention is *per function*, chosen from the callee's body — e.g. `win_print_padded_i` takes its string in memory because the pointer is spilled — so check the emitted `; fun … (p: t = reg)` comment before a hand-written `CALL`. No compiler defect. | — |
 | A | `asm_global_main.nanz` (+ `leaf.nanz`, `mid.nanz`) | a hand-written `asm z80` operand cannot name a module global portably, because the compiler prefixes every symbol of an imported module with the mangled name of the *importing* module | **blocker** — hit directly, worked around |
 | B | `halfreg_shift.nanz` | `SRL IYL` / `RR IYH` are rejected by the Z80-VALIDATE pass although they are real Z80 instructions the emulator executes | medium — worked around |
 | C | `const_array_size.nanz` | an array size must be a literal; a `const` name is a parse error | cosmetic |
