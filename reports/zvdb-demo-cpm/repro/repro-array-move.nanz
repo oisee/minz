@@ -1,0 +1,40 @@
+// repro-array-move.nanz — codegen cost repro for a dynamically indexed u16
+// global array element move (task Z1).
+//
+//   zv_val[k] = zv_val[k-1]
+//
+// is the inner loop of an insertion sort and of the zvdb demo's ranking pass.
+// Measure with:
+//   mz repro-array-move.nanz -t cpm -o repro3.com
+//   mze repro3.com -t cpm -c
+//
+// The emitted Z80 reloads both array bases, shifts the index left with
+// SLA/RL, stages the low byte through PUSH AF and routes the destination
+// address through IX — about 40 instructions per element move.
+
+global zv_val: [u16; 250]
+global zv_idx: [u8; 250]
+
+const REPS: u8 = 250
+const SHIFTS: u8 = 200
+
+global acc: u16 = 0
+
+// Shift SHIFTS elements one slot up, like one worst-case ranking insertion.
+fun shift_up(p: u8) -> void {
+    var k: u8 = SHIFTS
+    while k > p {
+        zv_val[k] = zv_val[k - 1]
+        zv_idx[k] = zv_idx[k - 1]
+        k = k - 1
+    }
+}
+
+fun main() -> void {
+    var r: u8 = 0
+    while r < REPS {
+        shift_up(0)
+        acc = acc + u16(zv_idx[0])
+        r = r + 1
+    }
+}
