@@ -1,0 +1,13 @@
+// probe.nanz — repro: win_open/win_attr painted attribute rows 0..h-1 instead
+// of y..y+h-1, so a window opened below row 0 recoloured the top of the screen.
+//
+// Prints nothing: the probe opens a 16x4 window at row 3 with a distinctive
+// attribute, and the checker reads the attribute file back out of a snapshot.
+import zx.text
+
+fun main() -> void {
+    text_set_width(8)
+    win_open(0, 0, 3, 16, 4)
+    win_select(0)
+    win_attr(7, 2, 0)          // white on green
+}

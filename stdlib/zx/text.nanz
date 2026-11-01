@@ -608,7 +608,11 @@ fun win_apply_own(id: u8, r0: u8, rows: u8) -> void {
 }
 
 fun win_apply_attr(id: u8) -> void {
-    win_apply_rows(id, 0, wn_h[id])
+    // wn_y matters: win_apply_rows takes absolute char rows, so a window opened
+    // at y > 0 paints its own rows and not 0..h-1 (which used to recolour the
+    // top of the screen whenever a window started below row 0 — invisible to
+    // every caller that only opened windows at y = 0).
+    win_apply_rows(id, wn_y[id], wn_h[id])
     if (id == 0) & (sp_open != 0) {
         tx_paint_divider()
     }
