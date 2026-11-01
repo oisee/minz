@@ -5,15 +5,34 @@ shows it and the observed output. All commands run from the repo root; build the
 tools first with `cd minzc && make all` plus
 `go build -tags mzx_headless -o mzx-headless ./cmd/mzx`.
 
-## 1. `label-home-collision/` — an imported module's variable home aliases a main-module global (silent wrong code)
+## 1. `label-home-collision/` — an identifier in an imported function resolves to the importer's same-named global (silent wrong code)
 
 `collide.nanz` and `control.nanz` are identical except for the name of one
-unused global: `top` versus `zvui_top`. `top` also happens to be the name of a
-local of `zx.narrow_font.nf_build_packed` (the mask-table pointer), and when the
-compiler gives that local a memory home it emits the *bare* label `top` — so the
-assembler resolves it to the main module's global. The font is then squeezed with
-a mask byte read back from the wrong address, and every glyph on the screen is
-wrong. No diagnostic anywhere: the program compiles, runs and draws.
+unused global: `top` versus `zvui_top`. `nf_build_packed` in
+`stdlib/zx/narrow_font.nanz` declares its own `var top` (the deletion-mask table
+pointer) and assigns it `top = &NF5_TOP`.
+
+With the global named `zvui_top` (the control), that assignment compiles to
+
+```
+LD BC, zx__text__zx__narrow_font__zx__narrow_font_tables__NF5_TOP
+LD IYH, B
+LD IYL, C                 ; the local `top` lives in IY
+```
+
+With the global named `top` (the collision), the *same source line* compiles to
+
+```
+LD BC, zx__text__zx__narrow_font__zx__narrow_font_tables__NF5_TOP
+LD A, C
+LD (top), A               ; one byte of the pointer, into the main module's global
+```
+
+so the identifier `top` inside the imported function has resolved to the
+importing module's `global top` instead of the function's own local — and taken
+the global's type, which is why exactly one byte of the pointer survives. The
+mask is then read back through that byte and every glyph on the screen is
+squeezed wrong. No diagnostic anywhere: the program compiles, runs and draws.
 
 ```sh
 for v in collide control; do
@@ -31,7 +50,8 @@ for v in ('collide', 'control'):
     s = Screen(f'/tmp/scr-{v}/frame_0250.scr')
     print(v, repr(s.window(x_px=0, y=0, cols=40, rows=1, width=5)[0]))
 EOF
-awk '/^zx__text__zx__narrow_font__nf_build_packed:/,/RET/' /tmp/collide.a80 | grep 'LD (top)'
+awk '/^zx__text__zx__narrow_font__nf_build_packed:/,/if_join2/' /tmp/collide.a80 | grep 'LD (top)'
+awk '/^zx__text__zx__narrow_font__nf_build_packed:/,/if_join2/' /tmp/control.a80 | grep -c 'LD (top)'
 ```
 
 Observed:
@@ -39,15 +59,16 @@ Observed:
 ```
 collide '??? ?????? ?? ???? ??? ?????? ?????? ???'
 control 'The forest is calm and serene during the'
-    LD (top), A          <- inside nf_build_packed, an imported module
+    LD (top), A          <- only in the collide build
+0                          <- the control build has no such store
 ```
 
-The same defect, with the same symptom, hits `left_w` and `right_x` — locals of
-`zx.text.split_vertical_i` — so the shipped demo's right pane would have opened
-at a garbage column too. `minzc/pkg/` is off limits for this task, so the fix is
-in the demo: every lowercase global lives in the `zvui_` namespace, and
-`TestZVDBZXGlobalNamespace` fails if one does not (and if any bare label of the
-main module is ever referenced from imported code again).
+The same defect hits `left_w` and `right_x` in `zx.text.split_vertical_i`, so
+the right pane would have opened at a garbage column too. `minzc/pkg/` is off
+limits for this task, so the fix is in the demo: every lowercase global lives in
+the `zvui_` namespace, and `TestZVDBZXGlobalNamespace` fails if one does not
+(and if any bare label of the main module is ever referenced from imported code
+again).
 
 ## 2. `win-open-attr-y/` — `win_open`/`win_attr` painted attribute rows 0..h-1, ignoring the window's y
 

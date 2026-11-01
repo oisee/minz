@@ -19,6 +19,8 @@
 // and Q — the physical keys a lowercase j, k and q would need Shift for):
 //   J or 6   next record (down; 6 is the Sinclair cursor key pair with 7)
 //   K or 7   previous record (up)
+//   CS+6 / CS+7 work too: the scan steps over the shift positions, so the
+//   emulator's and the 128K machine's cursor keys move the list
 //   1        51 columns (5 px glyphs)      2        42 columns (6 px glyphs)
 //   3        32 columns (8 px ROM font)    Q        quit
 // 'Q' blanks the screen and returns from main; the ZX epilogue the compiler
@@ -39,10 +41,13 @@
 // (zvdb_kernel.nanz: `assert zv_top_count(0) == 34` for zv_n = 35), i.e.
 // zvui_nrec = zv_rank_count() + 1 after the first search.
 //
-// Interrupts: the demo runs with DI (mzx --run passes DI) because its own
-// compiled code uses IYH/IYL as a spill tier. Every public zx.text call saves
-// and restores IY, so calls into the engine are safe with interrupts enabled —
-// it is the caller's generated code that can still clobber IY.
+// Interrupts: main executes DI before anything else, because the compiled
+// bodies — this module's own included — use IYH/IYL as a spill tier and a ROM
+// IM1 service routine would run with a garbage IY. mzx's --run and a BASIC
+// LOAD+RANDOMIZE USR 32768 both start with interrupts enabled, so the DI has to
+// be in the program, not in the loader. Every public zx.text call saves and
+// restores IY anyway; it is the caller's generated code that can clobber it.
+// The program halts rather than returns, so EI is never needed.
 //
 // Build:  minzc/mz examples/nanz/zvdb_demo_zx.nanz -o zvdb_demo_zx.a80
 //         minzc/mza zvdb_demo_zx.a80 -o zvdb_demo_zx.bin     (ORG $8000)
@@ -65,11 +70,11 @@ const KEY_J: u8 = 74
 const KEY_K: u8 = 75
 const KEY_Q: u8 = 81
 
-// (row * 5 + bit) -> ASCII, bit 0 of the half-row first, matching the ULA
-// layout the emulator (and the machine) reports:
-//   row $FE: SHIFT Z X C V   row $FD: A S D F G    row $FB: Q W E R T
-//   row $F7: 1 2 3 4 5       row $EF: 6 7 8 9 0    row $DF: Y U I O P
-//   row $BF: H J K L ENTER   row $7F: B N M SYM SPACE
+// (row * 5 + bit) -> ASCII. Every half-row is listed bit 0 first, exactly as the
+// table below is indexed, and bit 0 of a half-row is its leftmost key:
+//   row $FE: SHIFT Z X C V   row $FD: A S D F G     row $FB: Q W E R T
+//   row $F7: 1 2 3 4 5       row $EF: 0 9 8 7 6     row $DF: P O I U Y
+//   row $BF: ENTER L K J H   row $7F: SPACE SYM M N B
 global KEYTAB: [u8; 40] = [
     0, 90, 88, 67, 86,
     65, 83, 68, 70, 71,
@@ -85,7 +90,11 @@ fun zx_in_fe(@z80_a high: u8) -> u8 {
     asm z80 (in high) (ret A) (clob A, F) { IN A, (0xFE) }
 }
 
-// First key currently held, 0 if none.
+// First key currently held, 0 if none. The two shift positions are stepped over
+// rather than reported: a shift only modifies another key, and returning its
+// KEYTAB entry (0) as soon as one is seen would swallow the key it is held with
+// — which is exactly what CAPS SHIFT + 6/7, the emulator's and the 128K
+// machine's cursor keys, are.
 fun zx_scan() -> u8 {
     var addr: u8 = 0xFE
     var idx: u8 = 0
@@ -96,7 +105,9 @@ fun zx_scan() -> u8 {
         var mask: u8 = 1
         while b < 5 {
             if (bits & mask) == 0 {
-                return KEYTAB[idx]
+                if KEYTAB[idx] != 0 {
+                    return KEYTAB[idx]
+                }
             }
             idx = idx + 1
             mask = mask << 1
@@ -444,13 +455,19 @@ fun move_up() -> void {
 }
 
 fun main() -> void {
+    // Interrupts off before anything else: the compiled bodies (this module's
+    // own included) use IYH/IYL as a spill tier, so a ROM IM1 service routine
+    // would run with a garbage IY. Nothing here needs the interrupt, and the
+    // program halts rather than returns, so it is never re-enabled.
+    asm z80 (clob A, F) { DI }
     zvui_cur_w = 5
     // zvui_nrec from the kernel's contract: zv_top_k ranks every record but the
-    // selection, so the count it reports is zv_n - 1.
+    // selection, so the count it reports is zv_n - 1. That first ranking is
+    // also the one the opening screen shows, so it is not computed twice.
     zv_top_k(0)
     zvui_nrec = zv_rank_count() + 1
+    zvui_last_scan = zvui_nrec
     text_set_width(zvui_cur_w)
-    do_search()
     draw_all()
 
     var running: u8 = 1
@@ -469,9 +486,9 @@ fun main() -> void {
                 }
                 // text_set_width clears the screen and closes every window, so
                 // the whole screen is rebuilt; the cursor and the scroll
-                // position are kept
+                // position are kept, and so is the ranking — the selection has
+                // not changed, so the search is not run again
                 text_set_width(zvui_cur_w)
-                do_search()
                 draw_all()
             } else {
                 if (k == KEY_J) | (k == KEY_6) {

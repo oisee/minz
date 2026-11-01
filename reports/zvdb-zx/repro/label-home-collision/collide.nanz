@@ -1,5 +1,7 @@
-// collide.nanz — repro: a main-module global named `top` aliases the local
-// `top` of zx.narrow_font.nf_build_packed, and the font is built wrong.
+// collide.nanz — repro: `top = &NF5_TOP` inside zx.narrow_font.nf_build_packed
+// (stdlib/zx/narrow_font.nanz) resolves to this module's `global top` instead
+// of the function's own `var top`, so only one byte of the pointer is stored
+// and the font is built wrong.
 import zx.text
 
 global top: u8 = 0              // the colliding name

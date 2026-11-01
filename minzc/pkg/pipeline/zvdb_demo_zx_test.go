@@ -332,16 +332,21 @@ func zvdbZXCompileAsm(t *testing.T, name string) string {
 	return steps.Assembly
 }
 
-// TestZVDBZXGlobalNamespace guards the demo against the compiler's unmangled
-// variable homes. Some locals of an imported module are emitted under their bare
-// name — `top` in zx.narrow_font.nf_build_packed, `left_w` and `right_x` in
-// zx.text.split_vertical_i — so a global of the main module with the same name
-// silently aliases them and the build is wrong: the font was squeezed with a
-// garbage mask and the split got a garbage right-hand origin, with no diagnostic
-// at all (reports/zvdb-zx/repro/label-home-collision.nanz). Two guards:
+// TestZVDBZXGlobalNamespace guards the demo against a name-resolution defect in
+// the compiler: an identifier inside an imported function can bind to the
+// importing module's same-named global instead of the function's own local, and
+// takes the global's type. `top = &NF5_TOP` in zx.narrow_font.nf_build_packed
+// (stdlib/zx/narrow_font.nanz) compiles to `LD IYH, B / LD IYL, C` normally, but
+// with a `global top: u8` in the main module the same line compiles to
+// `LD A, C / LD (top), A` — one byte of the pointer into the main module's
+// global — and every glyph is then squeezed with a mask read back through it.
+// `left_w` and `right_x` in zx.text.split_vertical_i alias the same way. No
+// diagnostic at any stage; the repro is
+// reports/zvdb-zx/repro/label-home-collision/ (collide.nanz vs control.nanz).
+// Two guards:
 //
 //  1. every lowercase global of the demo source lives in the zvui_ namespace,
-//     which no stdlib local can collide with;
+//     which no stdlib local or field can resolve to;
 //  2. the emitted assembly references no bare label of the main module from
 //     inside an imported module's code, which would catch the same defect even
 //     if the naming rule were broken.
@@ -456,13 +461,15 @@ func zvdbZXHash(b []byte) uint64 {
 }
 
 // zvdbZXSettle returns how many frames pass from a keypress to the last screen
-// change it causes — the window in which the demo cannot see the keyboard. The
-// search stops at `until`, the frame of the next keypress, so a later key
-// cannot be credited to this one.
+// change it causes. hashes[f+1] is the screen after frame f, so hashes[f+1] !=
+// hashes[f] means frame f changed something; the search stops *before* `until`,
+// the frame the next key is applied, so that key's redraw cannot be credited to
+// this one. scripts/zvdb_zx_verify.py measures the same quantity on mzx's own
+// frame dumps, where dump N is the screen after frame N.
 func zvdbZXSettle(hashes []uint64, pressFrame, until int) int {
 	last := pressFrame
-	for f := pressFrame + 1; f <= until && f < len(hashes); f++ {
-		if hashes[f] != hashes[f-1] {
+	for f := pressFrame; f < until && f+1 < len(hashes); f++ {
+		if hashes[f+1] != hashes[f] {
 			last = f
 		}
 	}
@@ -546,29 +553,50 @@ func TestZVDBZXScriptedSessionScreens(t *testing.T) {
 	_, recordLabels, bySel := zvdbZXReference(t)
 	nrec := len(bySel)
 
-	// key matrix: J = row 6 bit 3, K = row 6 bit 2, 1/2/3 = row 3 bits 0/1/2
+	// key matrix: J = row 6 bit 3, K = row 6 bit 2, 1/2/3 = row 3 bits 0/1/2,
+	// CAPS SHIFT = row 0 bit 0 (held together with a digit for the cursor keys)
 	const (
 		jRow, jBit = 6, 3
 		kRow, kBit = 6, 2
 	)
 	const (
-		hold  = 8  // frames a key stays down
-		step  = 45 // frames between two moves; a move settles in ~35
+		hold  = 8   // frames a key stays down
+		step  = 60  // frames between two keys: a scroll-up move takes ~46 and the demo has no key queue
+		wgap  = 150 // frames after a width switch: the font rebuild plus a full redraw takes ~90
 		start = 110
 	)
 	var events []zvdbZXEvent
-	var labels []string // one label per keypress, in schedule order
-	press := func(label string, frame, row, bit, holdFrames int) {
-		events = append(events, zvdbZXEvent{frame, row, bit, true}, zvdbZXEvent{frame + holdFrames, row, bit, false})
-		labels = append(labels, label)
+	type keyPress struct {
+		label string
+		frame int
 	}
+	var presses []keyPress // one entry per logical keypress, in schedule order
+	press := func(label string, frame, row, bit int) {
+		events = append(events, zvdbZXEvent{frame, row, bit, true}, zvdbZXEvent{frame + hold, row, bit, false})
+		presses = append(presses, keyPress{label, frame})
+	}
+	// CAPS SHIFT + a digit: both go down at the same frame boundary and come up
+	// together, so the scan always sees them as a pair (the shift alone would be
+	// stepped over, which is the point of holding it with a digit)
+	pressCombo := func(label string, frame int, keys [][2]int) {
+		for _, k := range keys {
+			events = append(events, zvdbZXEvent{frame, k[0], k[1], true})
+		}
+		for _, k := range keys {
+			events = append(events, zvdbZXEvent{frame + hold, k[0], k[1], false})
+		}
+		presses = append(presses, keyPress{label, frame})
+	}
+	down := func(label string, frame int) { press(label, frame, jRow, jBit) }
+	up := func(label string, frame int) { press(label, frame, kRow, kBit) }
+	width := func(label string, frame, bit int) { press(label, frame, 3, bit) }
 
-	// the scripted session the task asks for — start, 3 down, 1 up, 30 down
-	// (scrolls), `2`, `3`, `1` — with moves after every width switch so the
-	// settle time is measured at each width and the scrolled screen is proved
-	// there too. The cursor ends the 30 down on the bottom row, so the moves
-	// after `2` go up (there is no room further down) and the two moves after
-	// `1` scroll the list again.
+	// The scripted session the task asks for — start, 3 down, 1 up, 30 down
+	// (scrolls), `2`, `3`, `1` — then everything the first draft left untested:
+	// moves past the last record (the bottom clamp), moves that scroll the list
+	// *up* (a different code path from a scroll down, and one win_scroll cannot
+	// express at all), a width switch while the list is scrolled, one more
+	// scroll-up at the new width, and one CAPS SHIFT + 6 cursor-key move.
 	type state struct {
 		name        string
 		frame       int
@@ -577,61 +605,85 @@ func TestZVDBZXScriptedSessionScreens(t *testing.T) {
 	}
 	var checks []state
 	f := start
-	for i := 0; i < 3; i++ {
-		press("move @51", f, jRow, jBit, hold)
-		f += step
-	}
-	checks = append(checks, state{"3 down", f - 5, 5, 3, 0})
-	press("move @51", f, kRow, kBit, hold)
+	down("move @51", f)
+	f += step
+	down("move @51", f)
+	f += step
+	pressCombo("CS+6 move @51", f, [][2]int{{0, 0}, {4, 4}})
+	f += step
+	checks = append(checks, state{"3 down (one of them CS+6)", f - 5, 5, 3, 0})
+	up("move @51", f)
 	f += step
 	checks = append(checks, state{"1 up", f - 5, 5, 2, 0})
+	// the first sixteen of the thirty do not scroll (cursor 3..18); from cursor
+	// 19 on, each one scrolls the list down a row
 	for i := 0; i < 30; i++ {
-		press("move @51", f, jRow, jBit, hold)
+		if i < 16 {
+			down("move @51", f)
+		} else {
+			down("move @51 (scrolled)", f)
+		}
 		f += step
 	}
 	checks = append(checks, state{"30 down (scrolled)", f - 5, 5, 32, 14})
 	f += 40
 
-	// a width switch keeps the cursor and the scroll position
-	switches := []struct {
-		key, label  string
-		bit, width  int
-		moves       int
-		down        bool
-		cursorAfter int
-	}{
-		{"2", "move @42", 1, 6, 3, false, 29},           // three moves up at 42 columns
-		{"3", "move @32", 2, 8, 3, true, 32},            // three moves down at 32 columns
-		{"1", "move @51 (scrolled)", 0, 5, 2, true, 34}, // two down at 51, both scroll
+	// three width switches, each followed by moves at the new width
+	width("switch to 42 columns", f, 1)
+	f += wgap
+	checks = append(checks, state{"key 2 (42 columns)", f - 30, 6, 32, 14})
+	for i := 0; i < 3; i++ {
+		up("move @42", f)
+		f += step
 	}
-	cursor, top := 32, 14
-	for _, sw := range switches {
-		cols := map[int]int{5: 51, 6: 42, 8: 32}[sw.width]
-		press(fmt.Sprintf("switch to %d columns", cols), f, 3, sw.bit, 80)
-		f += 440 // the font rebuild plus the full redraw
-		checks = append(checks, state{fmt.Sprintf("key %s (%d columns)", sw.key, cols), f - 30, sw.width, cursor, top})
-		row, bit := jRow, jBit
-		if !sw.down {
-			row, bit = kRow, kBit
-		}
-		for i := 0; i < sw.moves; i++ {
-			press(sw.label, f, row, bit, hold)
-			f += step
-			if sw.down {
-				cursor++
-				if cursor >= top+19 {
-					top++
-				}
-			} else {
-				cursor--
-			}
-		}
-		checks = append(checks, state{fmt.Sprintf("%d moves at %d columns", sw.moves, cols), f - 5, sw.width, cursor, top})
+	checks = append(checks, state{"3 up at 42 columns", f - 5, 6, 29, 14})
+	width("switch to 32 columns", f, 2)
+	f += wgap
+	checks = append(checks, state{"key 3 (32 columns)", f - 30, 8, 29, 14})
+	for i := 0; i < 3; i++ {
+		down("move @32", f)
+		f += step
 	}
+	checks = append(checks, state{"3 down at 32 columns", f - 5, 8, 32, 14})
+	width("switch to 51 columns", f, 0)
+	f += wgap
+	checks = append(checks, state{"key 1 (51 columns)", f - 30, 5, 32, 14})
+	for i := 0; i < 2; i++ {
+		down("move @51 (scrolled)", f)
+		f += step
+	}
+	checks = append(checks, state{"2 down at 51 columns (scrolled)", f - 5, 5, 34, 16})
+
+	// past the last record: every further down is clamped and redraws nothing
+	for i := 0; i < 2; i++ {
+		down("clamp @51", f)
+		f += step
+	}
+	checks = append(checks, state{"2 down past the end (clamped)", f - 5, 5, 34, 16})
+
+	// back up the list until it scrolls the other way: top drops from 16 to 14
+	// (at cursor 15 and again at 14, the last two of the twenty), which is the
+	// branch win_scroll cannot serve
+	for i := 0; i < 20; i++ {
+		if i < 18 {
+			up("move @51 (up)", f)
+		} else {
+			up("move @51 (scrolled up)", f)
+		}
+		f += step
+	}
+	checks = append(checks, state{"20 up at 51 columns (scrolled up)", f - 5, 5, 14, 14})
+
+	// a width switch while the list is scrolled, then one more scroll-up there
+	width("switch to 42 columns", f, 1)
+	f += wgap
+	checks = append(checks, state{"key 2 while scrolled", f - 30, 6, 14, 14})
+	up("move @42 (scrolled up)", f)
+	f += step
+	checks = append(checks, state{"1 up at 42 columns (scrolled up)", f - 5, 6, 13, 13})
 	maxFrames := checks[len(checks)-1].frame + 10
 
-	// the startup screen, captured once the first draw has settled
-	captures := []int{100}
+	captures := []int{100} // the startup screen, once the first draw has settled
 	for _, c := range checks {
 		captures = append(captures, c.frame)
 	}
@@ -700,33 +752,40 @@ func TestZVDBZXScriptedSessionScreens(t *testing.T) {
 	}
 
 	// the timings, measured on the same run: frames from a keypress to the last
-	// screen change it causes, at each width
-	var presses []int
-	for _, e := range events {
-		if e.down {
-			presses = append(presses, e.frame)
-		}
-	}
+	// screen change it causes, grouped by what the key was
 	byLabel := map[string][]int{}
-	for i, p := range presses {
+	for _, p := range presses {
 		until := maxFrames
-		if i+1 < len(presses) {
-			until = presses[i+1]
+		for _, q := range presses {
+			if q.frame > p.frame && q.frame < until {
+				until = q.frame
+			}
 		}
-		s := zvdbZXSettle(hashes, p, until)
-		byLabel[labels[i]] = append(byLabel[labels[i]], s)
-		budget := step // moves are spaced `step` frames
-		if strings.HasPrefix(labels[i], "switch") {
-			budget = 440 // width keys are spaced 440 frames
-		}
-		if s >= budget {
-			t.Errorf("%s (frame %d): the screen was still changing %d frames later, but the session spaces those keys %d frames apart", labels[i], p, s, budget)
+		byLabel[p.label] = append(byLabel[p.label], zvdbZXSettle(hashes, p.frame, until))
+	}
+	order := []string{"move @51", "CS+6 move @51", "move @51 (scrolled)", "clamp @51",
+		"move @51 (up)", "move @51 (scrolled up)", "switch to 42 columns", "move @42",
+		"move @42 (scrolled up)", "switch to 32 columns", "move @32",
+		"switch to 51 columns"}
+	for _, l := range order {
+		if v, ok := byLabel[l]; ok {
+			t.Logf("%-24s %v frames (max %d)", l+":", v, maxInt(v))
 		}
 	}
-	for _, l := range []string{"move @51", "switch to 42 columns", "move @42",
-		"switch to 32 columns", "move @32", "switch to 51 columns", "move @51 (scrolled)"} {
-		if v, ok := byLabel[l]; ok {
-			t.Logf("%-22s %v frames (max %d)", l+":", v, maxInt(v))
+	// A redraw must have finished before the next key arrives: the demo has no
+	// key queue, so a press that lands while the screen is still being written
+	// is lost. (Measuring the settle alone cannot show this — the search has to
+	// stop at the next key, or that key's redraw would be credited to this one.)
+	for i, p := range presses {
+		next := maxFrames
+		if i+1 < len(presses) {
+			next = presses[i+1].frame
+		}
+		for f := next - 3; f <= next && f >= 1; f++ {
+			if hashes[f] != hashes[f-1] {
+				t.Errorf("%s (frame %d): the screen was still changing at frame %d, %d frames before the next key arrives",
+					p.label, p.frame, f, next-f)
+			}
 		}
 	}
 }

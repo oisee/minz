@@ -35,7 +35,7 @@ global dump_val: [u16; 1600]   // score at (sel, rank)
 
 fun main() -> void {
     zv_top_k(0)
-    let n: u8 = zv_rank_count() + 1
+    var n: u8 = zv_rank_count() + 1
     if n > DUMP_SEL_CAP {
         n = DUMP_SEL_CAP
     }
