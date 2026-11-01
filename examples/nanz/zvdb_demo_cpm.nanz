@@ -23,31 +23,65 @@ import zvdb_demo_data
 import zvdb_kernel
 
 // ── Screen layout ────────────────────────────────────────────────────────────
-// Everything is derived from these constants: a ZX Spectrum port sets
-// SCR_W = 51 / SCR_H = 24, an Agon port picks its own numbers, and the panes
-// follow. Only these constants encode the 80-column assumption.
+// A port edits the *literal* constants below (SCR_W, SCR_H, LEFT_W, GAP_W,
+// N_ROWS and the field widths); layout_init() derives every other width from
+// them at startup, so no other line encodes the 80-column assumption.
+//
+// The derived values cannot be `const` expressions: `const X: u8 = LEFT_W - 1`
+// compiles but silently reads back as 0 on both backends — see
+// reports/zvdb-demo-cpm/repro/repro-const-expr.nanz. Hence runtime globals.
+//
+// Constraints: SCR_W > LEFT_W + GAP_W + IDX_W + SCORE_W + 2, and
+// SCR_H >= ROW_ITEMS + N_ROWS + 2. A ZX Spectrum port sets SCR_W = 51 with
+// LEFT_W = 24 and gets sep_x 24, right_x 26, label fields 20 and 17 wide.
 
 const SCR_W: u8 = 80          // terminal columns
 const SCR_H: u8 = 24          // terminal rows
+const LEFT_X: u8 = 0          // master pane origin
+const LEFT_W: u8 = 36         // master pane width (per-port choice)
+const GAP_W: u8 = 2           // blank columns between divider and detail pane
+const N_ROWS: u8 = 19         // visible rows per pane == K nearest shown
+const IDX_W: u8 = 3           // record index field, 0..254
+const SCORE_W: u8 = 3         // score field, 0..256
+const NUM_W: u8 = 3           // record-count field in the title/status rows
 
 const ROW_TITLE: u8 = 0       // application title
 const ROW_LABEL: u8 = 1       // full label of the selected record
 const ROW_HEAD: u8 = 2        // pane column headers
 const ROW_ITEMS: u8 = 3       // first item row of both panes
-const N_ROWS: u8 = 19         // visible rows per pane == K nearest shown
-const ROW_SEP: u8 = 22        // horizontal rule above the status line
-const ROW_STATUS: u8 = 23     // key help + cost of the last search
 
-const LEFT_X: u8 = 0          // master pane origin
-const LEFT_W: u8 = 36         // master pane width
-const SEP_X: u8 = 36          // vertical rule column
-const RIGHT_X: u8 = 38        // detail pane origin
-const RIGHT_W: u8 = 42        // detail pane width
+// Derived once by layout_init(). The title and status rows are
+// [head literal][number][tail], with the head field exactly as wide as its own
+// literal so the text stays contiguous and the tail field absorbing the rest of
+// the row. SCR_W must therefore be at least 49 columns (the status literal plus
+// NUM_W); the narrowest target, the ZX Spectrum's 51, clears it.
+global sep_x: u8 = 0          // pane divider column = LEFT_X + LEFT_W
+global right_x: u8 = 0        // detail pane origin
+global right_w: u8 = 0        // detail pane width
+global row_sep: u8 = 0        // rule above the status line
+global row_status: u8 = 0     // key help + cost of the last search
+global label_l_w: u8 = 0      // master label field
+global label_r_w: u8 = 0      // detail label field
+global label_w: u8 = 0        // label field on ROW_LABEL ("Rec " + IDX_W + ": ")
+global title_head_w: u8 = 0   // width of the title head literal
+global title_tail_w: u8 = 0   // title tail field, absorbs the remainder
+global status_head_w: u8 = 0  // width of the status head literal
+global status_tail_w: u8 = 0  // status tail field, absorbs the remainder
 
-const IDX_W: u8 = 2           // record index field
-const SCORE_W: u8 = 3         // score field (0..256)
-const LABEL_L_W: u8 = 32      // master label field, one column short of the divider
-const LABEL_R_W: u8 = 35      // detail label field  = RIGHT_W - IDX_W - 1 - SCORE_W
+fun layout_init() -> void {
+    sep_x = LEFT_X + LEFT_W
+    right_x = sep_x + GAP_W
+    right_w = SCR_W - right_x
+    row_sep = ROW_ITEMS + N_ROWS
+    row_status = SCR_H - 1
+    label_l_w = LEFT_W - IDX_W - 1
+    label_r_w = right_w - IDX_W - SCORE_W - 2
+    label_w = SCR_W - 6 - IDX_W
+    title_head_w = 46   // " zvdb - Z80 vector similarity (CP/M)  records:"
+    title_tail_w = SCR_W - title_head_w - NUM_W
+    status_head_w = 46   // " j/k or UP/DN move   q/ESC quit   last search:"
+    status_tail_w = SCR_W - status_head_w - NUM_W
+}
 
 // ── Keys (tui_read_key maps ESC [ A/B to 128/129) ───────────────────────────
 
@@ -73,7 +107,6 @@ const BG_BLACK: u8 = 0
 global cursor: u8 = 0         // selected record
 global top: u8 = 0            // first visible record in the master pane
 global last_scan: u8 = 0      // records walked by the last search
-global old_row: u8 = 0        // master row the cursor just left
 global numbuf: [u8; 6]        // zv_fmt_u16 scratch
 
 // ── Small output helpers, layered on stdlib/tui/render ──────────────────────
@@ -107,16 +140,16 @@ fun ui_put_spaces(n: u8) -> void {
     }
 }
 
-// val right-aligned in a width-wide field.
+// val right-aligned in a width-wide field. A value wider than the field is
+// printed unpadded rather than wrapping: u8 arithmetic would make
+// `width - n` underflow to ~255 spaces and destroy the screen (this is exactly
+// what happened for record indices >= 100 when IDX_W was 2).
 fun ui_put_num(val: u16, width: u8) -> void {
     var n: u8 = zv_fmt_u16(val, &numbuf)
-    ui_put_spaces(width - n)
+    if n < width {
+        ui_put_spaces(width - n)
+    }
     tui_puts(&numbuf)
-}
-
-// Blank field of exactly width columns.
-fun ui_put_blank(width: u8) -> void {
-    ui_put_spaces(width)
 }
 
 // ── Static chrome ────────────────────────────────────────────────────────────
@@ -124,36 +157,38 @@ fun ui_put_blank(width: u8) -> void {
 fun draw_title() -> void {
     tui_color(FG_BLACK, BG_CYAN, 1)
     tui_goto(0, ROW_TITLE)
-    puts_padded(c" zvdb - vector similarity on Z80 (CP/M)  records:", 52)
-    ui_put_num(u16(zv_n), 3)
-    puts_padded(c"  quantised: 256 bits", 25)
+    puts_padded(c" zvdb - Z80 vector similarity (CP/M)  records:", title_head_w)
+    ui_put_num(u16(zv_n), NUM_W)
+    puts_padded(c"  256-bit hyperplanes", title_tail_w)
 }
 
 fun draw_sep() -> void {
     tui_color(FG_CYAN, BG_BLUE, 0)
-    tui_goto(0, ROW_SEP)
-    tui_puts(c"--------------------------------------------------------------------------------")
+    tui_goto(0, row_sep)
+    var i: u8 = 0
+    while i < SCR_W {
+        tui_putch(5)          // BOX_H -> '-'
+        i = i + 1
+    }
 }
 
 fun draw_status() -> void {
     tui_color(FG_BLACK, BG_CYAN, 0)
-    tui_goto(0, ROW_STATUS)
-    puts_padded(c" j/k or UP/DN move   q/ESC quit   last search:", 46)
-    ui_put_num(u16(last_scan), 3)
-    puts_padded(c" recs", 5)
-    // 46 + 3 + 5 = 54; pad the rest of the line
-    ui_put_blank(SCR_W - 54)
+    tui_goto(0, row_status)
+    puts_padded(c" j/k or UP/DN move   q/ESC quit   last search:", status_head_w)
+    ui_put_num(u16(last_scan), NUM_W)
+    puts_padded(c" recs scanned", status_tail_w)
 }
 
-// Row 1: the selection's full label (longest label is 61 chars, so it always
-// fits; the truncation is kept so other data sets cannot overflow the row).
+// Row 1: the selection's full label, truncated to the row. "Rec " + IDX_W
+// digits + ": " is 6 + IDX_W columns, so the label gets the rest.
 fun draw_label_line() -> void {
     tui_color(FG_WHITE, BG_BLUE, 1)
     tui_goto(0, ROW_LABEL)
     puts_padded(c"Rec ", 4)
-    ui_put_num(u16(cursor), 2)
+    ui_put_num(u16(cursor), IDX_W)
     puts_padded(c": ", 2)
-    puts_padded(zv_label(cursor), SCR_W - 8)
+    puts_padded(zv_label(cursor), label_w)
 }
 
 // ── Master pane (left) ───────────────────────────────────────────────────────
@@ -162,9 +197,9 @@ fun draw_head() -> void {
     tui_color(FG_YELLOW, BG_BLUE, 1)
     tui_goto(LEFT_X, ROW_HEAD)
     puts_padded(c"#   record", LEFT_W)
-    tui_putch(124)             // pane divider at SEP_X
-    tui_goto(RIGHT_X, ROW_HEAD)
-    puts_padded(c"#  scr  nearest records", RIGHT_W)
+    tui_putch(124)             // divider: column LEFT_X + LEFT_W = sep_x
+    tui_goto(right_x, ROW_HEAD)
+    puts_padded(c"#  scr  nearest records", right_w)
 }
 
 // One master row: `top + row`, highlighted when it is the cursor row.
@@ -179,11 +214,11 @@ fun draw_master_row(row: u8) -> void {
         }
         ui_put_num(u16(idx), IDX_W)
         tui_putch(32)
-        puts_padded(zv_label(idx), LABEL_L_W)
-        tui_putch(124)         // pane divider at SEP_X
+        puts_padded(zv_label(idx), label_l_w)
+        tui_putch(124)         // divider: column LEFT_X + LEFT_W = sep_x
     } else {
         tui_color(FG_CYAN, BG_BLUE, 0)
-        ui_put_blank(LEFT_W)
+        ui_put_spaces(LEFT_W)
         tui_putch(124)
     }
 }
@@ -201,7 +236,7 @@ fun draw_master_all() -> void {
 fun draw_detail_all() -> void {
     var row: u8 = 0
     while row < N_ROWS {
-        tui_goto(RIGHT_X, ROW_ITEMS + row)
+        tui_goto(right_x, ROW_ITEMS + row)
         if row < zv_rank_count() {
             if row == 0 {
                 tui_color(FG_WHITE, BG_BLACK, 1)
@@ -213,10 +248,10 @@ fun draw_detail_all() -> void {
             tui_putch(32)
             ui_put_num(zv_rank_score(row), SCORE_W)
             tui_putch(32)
-            puts_padded(zv_label(idx), LABEL_R_W)
+            puts_padded(zv_label(idx), label_r_w)
         } else {
             tui_color(FG_WHITE, BG_BLACK, 0)
-            ui_put_blank(RIGHT_W)
+            ui_put_spaces(right_w)
         }
         row = row + 1
     }
@@ -245,6 +280,7 @@ fun draw_all() -> void {
 // ── Main ─────────────────────────────────────────────────────────────────────
 
 fun main() -> void {
+    layout_init()
     tui_clear()
     ui_cursor_hide()
     do_search()
@@ -259,7 +295,7 @@ fun main() -> void {
 
         if (key == KEY_DOWN) | (key == KEY_J) {
             if cursor + 1 < zv_n {
-                old_row = cursor - top
+                let old_row: u8 = cursor - top
                 cursor = cursor + 1
                 if cursor >= top + N_ROWS {
                     top = top + 1
@@ -274,7 +310,7 @@ fun main() -> void {
         }
         if (key == KEY_UP) | (key == KEY_K) {
             if cursor > 0 {
-                old_row = cursor - top
+                let old_row: u8 = cursor - top
                 cursor = cursor - 1
                 if cursor < top {
                     top = cursor
@@ -286,6 +322,12 @@ fun main() -> void {
                     draw_master_row(cursor - top)
                 }
             }
+        }
+        // Real CP/M console input never returns 0, so this only fires when the
+        // host reports end of input (mze at EOF) and stops a key script without
+        // a trailing q from spinning forever.
+        if key == 0 {
+            running = 0
         }
         if key == KEY_Q {
             running = 0

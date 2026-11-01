@@ -1,0 +1,41 @@
+// repro-const-expr.nanz — a const initialiser that references another const
+// compiles and silently evaluates to 0 (task Z1, round 2).
+//
+//   const A: u8 = 10
+//   const B: u8 = A + 5      // compiles; B reads back as 0
+//
+// Both backends agree, and in either declaration order, while the same
+// arithmetic at runtime (`return A + 5`) is correct. Found while deriving the
+// demo's layout widths from SCR_W/LEFT_W: the divider moved to column 0 and
+// puts_padded() with a derived width printed nothing.
+//
+//   mz repro-const-expr.nanz --assert-receipt --asserts-force mir2 -o /dev/null
+//   mz repro-const-expr.nanz --assert-receipt --asserts-force z80  -o /dev/null
+//   -> Error: assert "assert getB() == 15 via mir2": got 0, want 15
+//
+// Workaround used by the demo: keep only literal consts and compute the derived
+// widths at runtime in layout_init().
+
+const A: u8 = 10
+const B: u8 = A + 5
+const C: u8 = A - 2
+const D: u8 = 7
+const E: u8 = D + 1
+
+fun getA() -> u8 { return A }
+fun getB() -> u8 { return B }
+fun getC() -> u8 { return C }
+fun getE() -> u8 { return E }
+fun sumAB() -> u8 { return A + 5 }
+
+assert getA() == 10 via mir2
+assert getA() == 10 via z80
+assert sumAB() == 15 via mir2
+assert sumAB() == 15 via z80
+assert getB() == 15 via mir2
+assert getB() == 15 via z80
+assert getC() == 8 via mir2
+assert getC() == 8 via z80
+assert getE() == 8 via mir2
+assert getE() == 8 via z80
+fun main() -> void { }

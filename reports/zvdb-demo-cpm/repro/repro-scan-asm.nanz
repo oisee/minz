@@ -1,10 +1,11 @@
-// repro-scan-asm.nanz — codegen cost repro for the zvdb demo kernel (task Z1)
+// repro-scan-asm.nanz — the inline-Z80 half of the scan comparison (task Z1).
 //
-// One 32-byte XOR + 256-byte-LUT popcount scan, in plain Nanz. This is exactly
-// zvdb_kernel.zv_score_pv. Measure with:
-//   mz repro-scan-asm.nanz -t cpm -o repro1.com
-//   mze repro1.com -t cpm -c
-// See README.md here for the numbers and the inline-asm comparison.
+// The same 32-byte XOR + 256-byte-LUT popcount scan and the same harness as
+// repro-scan-nanz.nanz, but zv_score_pv is a hand-written asm z80 body rather
+// than the plain-Nanz loop. Measure with:
+//   mz repro-scan-asm.nanz -t cpm -o repro2.com
+//   mze repro2.com -t cpm -c
+// The ratio of the two totals is the codegen gap for this loop. See README.md.
 
 global zv_pop: [u8; 256] = [
     0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4,

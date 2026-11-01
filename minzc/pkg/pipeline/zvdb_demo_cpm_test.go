@@ -158,7 +158,7 @@ func TestZVDBDemoCPMScriptedSession(t *testing.T) {
 			t.Errorf("%s emitted %d times, want 35 (initial draw + 34 moves)", name, n)
 		}
 	}
-	if !strings.Contains(got, "last search: 35 recs") {
+	if !strings.Contains(got, "last search:") || !strings.Contains(got, "35 recs scanned") {
 		t.Error("status line never reported the scan cost")
 	}
 }

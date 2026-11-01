@@ -1,24 +1,24 @@
- zvdb - vector similarity on Z80 (CP/M)  records:    35  quantised: 256 bits
-Rec 32: S/4 HANA is SAP ERP.
+ zvdb - Z80 vector similarity (CP/M)  records: 35  256-bit hyperplanes
+Rec  32: S/4 HANA is SAP ERP.
 #   record                          | #  scr  nearest records
-14 The library is a treasure trove |  33 236 S/4 HANA is ancestor or SAP R/3.
-15 Advancements in technology have |  28 233 S/4 HANA is the best ERP system.
-16 Artificial intelligence is the f|  27 226 S/4 HANA uses ABAP and JS.
-17 The digital revolution has trans|  31 225 ABAP is ABAP ERP.
-18 Smartphones have become an integ|  26 223 ABAP is for SAP ERP.
-19 Innovative tech startups are cha|  30 223 ABAP is programming language for SA
-20 Italian cuisine is known for its|  25 220 ABAP is the best programming langua
-21 I love the taste of freshly bake|  29 217 CDS is the best HANA DB option.
-22 Sushi is a delicate art form as |  34 215 CDS is the best for ABAP.
-23 Dining out is a great way to exp|  17 204 The digital revolution has transfor
-24 A balanced diet is crucial for m|  19 203 Innovative tech startups are changi
-25 ABAP is the best programming lan|  14 198 The library is a treasure trove of
-26 ABAP is for SAP ERP.            |  15 198 Advancements in technology have res
-27 S/4 HANA uses ABAP and JS.      |   1 197 Birds chirp harmoniously as the sun
-28 S/4 HANA is the best ERP system.|   3 197 Walking in the woods is a great way
-29 CDS is the best HANA DB option. |  18 196 Smartphones have become an integral
-30 ABAP is programming language for|   0 195 The forest is calm and serene durin
-31 ABAP is ABAP ERP.               |   9 195 The journey is often more important
-32 S/4 HANA is SAP ERP.            |  10 195 A good book can transport you to an   <== cursor
+ 14 The library is a treasure trove |  33 236 S/4 HANA is ancestor or SAP R/3.
+ 15 Advancements in technology have |  28 233 S/4 HANA is the best ERP system.
+ 16 Artificial intelligence is the f|  27 226 S/4 HANA uses ABAP and JS.
+ 17 The digital revolution has trans|  31 225 ABAP is ABAP ERP.
+ 18 Smartphones have become an integ|  26 223 ABAP is for SAP ERP.
+ 19 Innovative tech startups are cha|  30 223 ABAP is programming language for S
+ 20 Italian cuisine is known for its|  25 220 ABAP is the best programming langu
+ 21 I love the taste of freshly bake|  29 217 CDS is the best HANA DB option.
+ 22 Sushi is a delicate art form as |  34 215 CDS is the best for ABAP.
+ 23 Dining out is a great way to exp|  17 204 The digital revolution has transfo
+ 24 A balanced diet is crucial for m|  19 203 Innovative tech startups are chang
+ 25 ABAP is the best programming lan|  14 198 The library is a treasure trove of
+ 26 ABAP is for SAP ERP.            |  15 198 Advancements in technology have re
+ 27 S/4 HANA uses ABAP and JS.      |   1 197 Birds chirp harmoniously as the su
+ 28 S/4 HANA is the best ERP system.|   3 197 Walking in the woods is a great wa
+ 29 CDS is the best HANA DB option. |  18 196 Smartphones have become an integra
+ 30 ABAP is programming language for|   0 195 The forest is calm and serene duri
+ 31 ABAP is ABAP ERP.               |   9 195 The journey is often more importan
+ 32 S/4 HANA is SAP ERP.            |  10 195 A good book can transport you to a   <== cursor
 --------------------------------------------------------------------------------
- j/k or UP/DN move   q/ESC quit   last search: 35 recs
+ j/k or UP/DN move   q/ESC quit   last search: 35 recs scanned

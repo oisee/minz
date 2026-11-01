@@ -1,0 +1,162 @@
+Apply to stdlib/tui/render.nanz. NOT APPLIED: the guarded CP/M runtime admits
+tui_read_key only by a byte-exact canonical body table in
+minzc/pkg/mir2/cpm_runtime_tui_bodies.go, so any change to this asm is a
+compiler change, and task Z1 forbids touching pkg/. With the patch applied
+(and the table entry updated) every unrecognised VT100 sequence is consumed and
+ignored instead of quitting the caller; verified on the demo build:
+
+    ESC [ 5 ~  (PageUp)          -> moved (ignored)  clears=2
+    ESC [ H    (Home)            -> moved (ignored)  clears=2
+    ESC [ 1 ~  (Insert)          -> moved (ignored)  clears=2
+    ESC [ 3 ~  (Delete)          -> moved (ignored)  clears=2
+    ESC [ Z    (Shift-Tab)       -> moved (ignored)  clears=2
+    ESC O A    (SS3 up)          -> moved (ignored)  clears=2
+    ESC Z      (DECID)           -> moved (ignored)  clears=2
+    ESC [ 1;5B (Ctrl-Down)       -> moved (ignored)  clears=2
+    bare ESC                      -> no move (quit)   clears=2
+
+Two things to know before applying:
+  * A "/" inside an asm block is a statement separator even inside a ";"
+    comment. The original comment "then map A/B/C/D." assembled to three bogus
+    instructions ("B", "C", "D.") and the assembler reported
+    `unknown instruction or invalid operands: B`. Keep asm comments slash-free.
+  * stdlib/tui/render.nanz is pinned by SHA-256 in
+    reports/tetris-main-native/freeze-corrected.json (dependency_sha256) and
+    reports/tetris-family-native/freeze.json (sources). Both must be re-frozen
+    together with the pkg/ table, or TestOriginalTetrisCPMMainNative and
+    TestPublicCPMTetrisNative fail.
+
+--- a/stdlib/tui/render.nanz
++++ b/stdlib/tui/render.nanz
+@@ -256,45 +256,66 @@
+-// Read one key (blocking).
+-// Uses BDOS 1 for blocking console input and decodes VT100 arrow sequences:
+-//   ESC [ A/B/C/D -> KEY_UP/DOWN/RIGHT/LEFT (128..131)
+-fun tui_read_key() -> u8 {
+-    asm z80 (ret A) (clob all) {
+-        ; BDOS 1: blocking console input, char returned in A.
+-        LD C, 1
+-        CALL 5
+-        CP 27              ; ESC?
+-        RET NZ
+-
+-        ; Try to decode VT100 escape sequence ESC [ X
+-        LD C, 1
+-        CALL 5
+-        CP 91              ; '['
+-        LD A, 27
+-        RET NZ
+-
+-        LD C, 1
+-        CALL 5
+-        CP 65              ; 'A'
+-        JR Z, .up
+-        CP 66              ; 'B'
+-        JR Z, .down
+-        CP 67              ; 'C'
+-        JR Z, .right
+-        CP 68              ; 'D'
+-        JR Z, .left
+-        LD A, 27
+-        RET
+-
+-        .up:
+-        LD A, 128
+-        RET
+-        .down:
+-        LD A, 129
+-        RET
+-        .left:
+-        LD A, 130
+-        RET
+-        .right:
+-        LD A, 131
+-        RET
+-    }
+-}
++// Read one key (blocking).
++// Uses BDOS 1 for blocking console input and decodes VT100 arrow sequences:
++//   ESC [ A/B/C/D  -> KEY_UP/DOWN/RIGHT/LEFT (128..131)
++//   ESC O A/B/C/D  -> same, SS3 form (some terminals and the application keypad)
++// A whole CSI sequence is consumed - parameters (0x30-0x3F), intermediates
++// (0x20-0x2F) and the final byte - so PageUp, Home, Delete, F-keys and friends
++// are swallowed instead of being reported as a stray ESC that quits the caller.
++//   returns 27  for a lone ESC (nothing follows it)
++//   returns 255 for a complete but undecoded sequence
++fun tui_read_key() -> u8 {
++    asm z80 (ret A) (clob all) {
++        ; BDOS 1: blocking console input, char returned in A.
++        LD C, 1
++        CALL 5
++        CP 27              ; ESC?
++        RET NZ
++
++        ; ESC on its own, or the start of a sequence? BDOS 11 (console status)
++        ; tells us whether another byte is already waiting.
++        LD C, 11
++        CALL 5
++        OR A
++        JR Z, .lone
++
++        ; A byte follows ESC: CSI is "ESC [", SS3 is "ESC O".
++        LD C, 1
++        CALL 5
++        CP 91              ; '['
++        JR Z, .csi
++        CP 79              ; 'O'
++        JR Z, .ss3
++        JR .unknown        ; some other two-byte sequence
++
++    .lone:
++        LD A, 27
++        RET
++    .unknown:
++        LD A, 255
++        RET
++
++    ; CSI: consume parameter and intermediate bytes until the final byte
++    ; (0x40-0x7E), then map it to an arrow code.
++    .csi:
++        LD C, 1
++        CALL 5
++        CP 0x40
++        JR NC, .final
++        CP 0x30
++        JR NC, .csi        ; 0x30-0x3F parameter byte
++        CP 0x20
++        JR NC, .csi        ; 0x20-0x2F intermediate byte
++        JR .unknown        ; control byte inside CSI: malformed
++
++    ; SS3: one final byte.
++    .ss3:
++        LD C, 1
++        CALL 5
++        CP 0x40
++        JR NC, .final
++        JR .unknown
++
++    .final:
++        CP 65              ; 'A'
++        JR Z, .up
++        CP 66              ; 'B'
++        JR Z, .down
++        CP 67              ; 'C'
++        JR Z, .right
++        CP 68              ; 'D'
++        JR Z, .left
++        JR .unknown
++
++        .up:
++        LD A, 128
++        RET
++        .down:
++        LD A, 129
++        RET
++        .left:
++        LD A, 130
++        RET
++        .right:
++        LD A, 131
++        RET
++    }
++}

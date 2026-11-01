@@ -1,0 +1,76 @@
+// zvdb_bench.nanz — T-state benches for the zvdb kernel (task Z1).
+//
+// Three bodies share one module and one loop nest so their costs can be
+// subtracted; pick one with the first key read. The idle body does no kernel
+// work, topk runs one full zvdb_top_k per iteration (the search the demo runs
+// on every cursor move), score runs only the 34 zv_score calls of that search.
+//
+//   mz examples/nanz/zvdb_bench.nanz -t cpm -o b.com
+//   printf 'i' | mze b.com -t cpm --cpm-no-echo -c     # idle
+//   printf 'k' | mze b.com -t cpm --cpm-no-echo -c     # topk
+//   printf 's' | mze b.com -t cpm --cpm-no-echo -c     # score
+//
+// Divide each total by REPS = 250; (topk - idle) / 250 is one zvdb_top_k and
+// (score - idle) / 250 is one 34-call scoring pass. Measured numbers are in
+// reports/zvdb-demo-cpm/repro/README.md.
+
+import tui.render
+import zvdb_demo_data
+import zvdb_kernel
+
+const REPS: u8 = 250
+
+global acc: u16 = 0
+
+// Same loop nest, no kernel work: the harness cost.
+fun bench_idle() -> void {
+    var i: u8 = 0
+    while i < REPS {
+        var j: u8 = 0
+        while j < zv_n {
+            if j != (i / 7) {
+                acc = acc + 1
+            }
+            j = j + 1
+        }
+        i = i + 1
+    }
+}
+
+// One full ranking pass per iteration.
+fun bench_topk() -> void {
+    var i: u8 = 0
+    while i < REPS {
+        zv_top_k(i / 7)
+        acc = acc + 1
+        i = i + 1
+    }
+}
+
+// Only the scoring half: 34 zv_score calls per iteration.
+fun bench_score() -> void {
+    var i: u8 = 0
+    while i < REPS {
+        var j: u8 = 0
+        while j < zv_n {
+            if j != (i / 7) {
+                acc = acc + zv_score(i / 7, j)
+            }
+            j = j + 1
+        }
+        i = i + 1
+    }
+}
+
+fun main() -> void {
+    var k: u8 = tui_read_key()
+    if k == 105 {
+        bench_idle()
+    }
+    if k == 107 {
+        bench_topk()
+    }
+    if k == 115 {
+        bench_score()
+    }
+}

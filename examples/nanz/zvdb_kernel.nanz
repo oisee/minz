@@ -33,14 +33,17 @@ global zv_pop: [u8; 256] = [
 
 // ── Layout limits ────────────────────────────────────────────────────────────
 
-// Ranking buffer capacity. scripts/zvdb_demo_data.py refuses more records than
-// this, so zv_top_k can insert without a bounds check in the shift loop.
-const zv_rank_cap: u8 = 250
+// Ranking buffer capacity: one slot per candidate, i.e. every record but the
+// selection. zv_n is a u8, so 255 slots cover the whole representable range and
+// scripts/zvdb_demo_data.py can allow any N up to 255. zv_top_k still clamps
+// both the shift start and the count to this cap, so a hand-written data module
+// with more records ranks a prefix instead of writing past the buffers.
+const zv_rank_cap: u8 = 255
 
 // ── Last computed ranking (filled by zv_top_k) ──────────────────────────────
 
-global zv_top_val: [u16; 250]  // score at rank r
-global zv_top_idx: [u8; 250]   // record index at rank r
+global zv_top_val: [u16; 255]  // score at rank r
+global zv_top_idx: [u8; 255]   // record index at rank r
 global zv_top_cnt: u8          // number of ranked entries (zv_n - 1)
 
 // ── Record accessors ─────────────────────────────────────────────────────────
@@ -48,6 +51,9 @@ global zv_top_cnt: u8          // number of ranked entries (zv_n - 1)
 fun zv_popcount(x: u8) -> u8 {
     return zv_pop[x]
 }
+
+// Assert surface only: the hot loop in zv_score_pv reads zv_pop[] directly
+// because a per-byte call costs ~4% of the whole search.
 
 // NUL-terminated label of record i (O(1): offsets are a u16 table).
 fun zv_label(i: u8) -> ^u8 {
@@ -108,7 +114,13 @@ fun zv_top_k(sel: u8) -> void {
             var s: u16 = zv_score_pv(sv, vp)
             var p: u8 = zv_rank_pos(s, j, cnt)
             if p < zv_rank_cap {
+                // Shift the tail right one slot. The copy starts one below the
+                // count, never at it: zv_top_val[cap] would be past the array,
+                // and that is exactly what happens once the ranking is full.
                 var k: u8 = cnt
+                if k >= zv_rank_cap {
+                    k = zv_rank_cap - 1
+                }
                 while k > p {
                     zv_top_val[k] = zv_top_val[k - 1]
                     zv_top_idx[k] = zv_top_idx[k - 1]
@@ -116,7 +128,9 @@ fun zv_top_k(sel: u8) -> void {
                 }
                 zv_top_val[p] = s
                 zv_top_idx[p] = j
-                cnt = cnt + 1
+                if cnt < zv_rank_cap {
+                    cnt = cnt + 1
+                }
             }
         }
         vp = vp + u16(zv_vec_bytes)
