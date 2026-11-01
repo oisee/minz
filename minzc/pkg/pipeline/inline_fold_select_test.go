@@ -275,12 +275,18 @@ func foldSelectSeed(data []byte, n int) map[string][]byte {
 // ── 1. The frozen fusion sources ──────────────────────────────────────────────
 
 func TestInlineFoldSelectFusionFrozenSources(t *testing.T) {
+	// F7 adds the register-choice filters: the fused loop may not touch an
+	// index half or swap shadow banks, because the accumulator and the loaded
+	// element must both live in the primary register file.  A prefixed home
+	// costs 8 T per access instead of 4, an EX AF,AF' pair around the byte
+	// load, and 16 T of parking the accumulator in the loop head.
+	foldLoopHomes := append([]string{"PUSH", "POP"}, foldIndexHalfAbsent...)
 	for _, p := range []foldSelectProg{
 		{
 			name: "fold_max", src: foldMaxSelectSource,
 			frozen:      "nanz-idiomatic/fusion_fold_max.nanz",
 			asmAbsent:   []string{"CALL larger"},
-			loopAbsent:  []string{"PUSH", "POP"},
+			loopAbsent:  foldLoopHomes,
 			loopPresent: []string{"CP"},
 			cases:       foldSelectDatasets(20261028, 256, 0, 1, 4, 256),
 			ref:         goRefMax, seed: foldSelectSeed, result: "result",
@@ -289,7 +295,7 @@ func TestInlineFoldSelectFusionFrozenSources(t *testing.T) {
 			name: "fold_min", src: foldMinSelectSource,
 			frozen:      "nanz-idiomatic/fusion_fold_min.nanz",
 			asmAbsent:   []string{"CALL smaller"},
-			loopAbsent:  []string{"PUSH", "POP"},
+			loopAbsent:  foldLoopHomes,
 			loopPresent: []string{"CP"},
 			cases:       foldSelectDatasets(20261028, 256, 0, 1, 4, 256),
 			ref:         goRefMin, seed: foldSelectSeed, result: "result",

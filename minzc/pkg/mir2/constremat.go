@@ -113,21 +113,64 @@ func funcHasConstDefs(f *Func) bool {
 // only wastes a slot and an interference-graph node.
 //
 // Profitability: only constants whose reserved home is actually contested are
-// re-solved for — the function spills somewhere, or the constant is live
-// across a call and so pays PUSH/POP for that home (fold_max's two constants
-// cost 50 T per element exactly that way).  Where neither holds, the home is a
-// free register for the whole function and rematerialising it cannot relieve
-// anything; the re-solve then only re-orders unrelated tie-breaks.  That is
-// not a win we can claim, and it measurably is not one: p1.nanz's `hu`
-// (straight-line, no spills, no calls) kept its constants' LDs suppressed on
-// main but re-tied its parameters when they stopped competing for HL, paying
-// 21 T of PUSH/POP per call for a compare operand that must survive, plus a
-// 42 T stack swap in the subtract arm — 5203 -> 9074 T over 63 calls.
-func constRematCandidates(f *Func, ar *AllocResult, lr *LivenessResult) map[Reg]bool {
+// re-solved for.  A reserved home is contested when one of three things holds:
+//
+//   - the function spills somewhere (the home is a register a live value needs);
+//   - the constant is live across a call, so a callee clobber set forces
+//     PUSH/POP for that home (fold_max's two constants cost 50 T per element
+//     exactly that way);
+//   - indexHalfBlockers found a vreg the reserved homes pushed into an index
+//     half.  The constant itself is never read, so its own cost is zero, but a
+//     pair blocks both of its bytes for the whole function (alloc.go
+//     physicalAliases), and in fold_max that is the entire difference between a
+//     byte loop element costing 0 (C) and 24 (IYH).
+//
+// Where none holds, the home is a free register for the whole function and
+// rematerialising it cannot relieve anything; the re-solve then only re-orders
+// unrelated tie-breaks, which is a coin flip with no basis behind it — and a
+// measurably bad one: p1.nanz's `hu` (straight-line, no spills, no calls)
+// re-tied its parameters when its constants stopped competing for HL, paying
+// 21 T of PUSH/POP per call plus a 42 T stack swap, 5203 -> 9074 T over 63
+// calls.
+//
+// The first two clauses are decided per constant, exactly as F6 decided them:
+// a constant that is itself neither spilled-for nor live across a call keeps
+// its home even when a sibling qualifies.  Only the third clause admits the
+// whole eligible set, because which constants end up squatting on the pair the
+// blocked byte needs is not known until the re-solve.
+//
+// The second return value names the vregs the third clause justified the
+// re-solve with, so the caller can check the re-solve actually helped them.  It
+// is nil when the first two clauses did the admitting.
+func constRematCandidates(f *Func, ar *AllocResult, lr *LivenessResult, ct CostTable, costs map[Reg][]int, locs []PhysLoc) (map[Reg]bool, map[Reg]bool) {
 	dead := computeDeadConsts(f, ar)
 	if len(dead) == 0 {
-		return nil
+		return nil, nil
 	}
+	eligible := eligibleRematConstants(f, ar, dead)
+	spilled := len(ar.Spilled) > 0
+	var blockers map[Reg]bool
+	if !spilled {
+		blockers = indexHalfBlockers(f, ar, lr, eligible, costs, locs)
+	}
+	liveAcrossCall := liveAcrossCallRegs(f, lr)
+	var candidates map[Reg]bool
+	for r := range eligible {
+		if !spilled && !liveAcrossCall[r] && len(blockers) == 0 {
+			continue
+		}
+		if candidates == nil {
+			candidates = make(map[Reg]bool, len(eligible))
+		}
+		candidates[r] = true
+	}
+	return candidates, blockers
+}
+
+// eligibleRematConstants filters computeDeadConsts' output down to the
+// constants that may hold no home: exactly one definition, not a block
+// parameter, and not in a location with its own materialisation path.
+func eligibleRematConstants(f *Func, ar *AllocResult, dead map[Reg]bool) map[Reg]bool {
 	blockParam := make(map[Reg]bool, len(f.Blocks))
 	for _, b := range f.Blocks {
 		for _, p := range b.Params {
@@ -142,9 +185,7 @@ func constRematCandidates(f *Func, ar *AllocResult, lr *LivenessResult) map[Reg]
 			}
 		}
 	}
-	spilled := len(ar.Spilled) > 0
-	liveAcrossCall := liveAcrossCallRegs(f, lr)
-	var candidates map[Reg]bool
+	eligible := make(map[Reg]bool, len(dead))
 	for r, isDead := range dead {
 		if !isDead || constDefs[r] != 1 || blockParam[r] {
 			continue
@@ -152,17 +193,116 @@ func constRematCandidates(f *Func, ar *AllocResult, lr *LivenessResult) map[Reg]
 		if loc, ok := ar.Locs[r]; !ok || loc.Kind == LocFlag || loc.Kind == LocDWord {
 			continue
 		}
-		if !spilled && !liveAcrossCall[r] {
-			continue
-		}
-		if candidates == nil {
-			candidates = make(map[Reg]bool, len(dead))
-		}
-		candidates[r] = true
+		eligible[r] = true
 	}
-	return candidates
+	return eligible
 }
 
+// indexHalfBlockers returns the live vregs that the eligible dead constants'
+// reserved homes pushed into an index half: the trial parked v in IXH/IXL/
+// IYH/IYL although v's own cost vector prices a primary register strictly
+// lower, that register is one of the constants' homes or its aliases, and it is
+// free of every neighbour that is not itself a dead constant.
+//
+// Only index halves count.  An index half is a second-class home for a byte:
+// no `LD IYH,(HL)` exists, so every load routes through A, and the emitter
+// brackets it with an `EX AF,AF'` pair.  A displacement *within* the primary
+// file (HL to BC, or BC to DE) does not count — that is a tie the model has no
+// basis to re-open, and re-opening it is exactly the `hu` regression above.  A
+// full index register does not count either: for a 16-bit value, and above all
+// for a walking pointer that is dereferenced through `(IX+d)` and advanced with
+// `INC IX`, IX and IY are first-class homes, and `costPointer`/`costGeneral`
+// price them only a few T above a primary pair.  Treating such a displacement
+// as a downgrade made the model prefer BC for a pointer the emitter still had
+// to reach through IX, at 28 extra T per iteration
+// (TestTwoWalkingPointerLoopRegisterChoice).
+func indexHalfBlockers(f *Func, ar *AllocResult, lr *LivenessResult, eligible map[Reg]bool, costs map[Reg][]int, locs []PhysLoc) map[Reg]bool {
+	if len(eligible) == 0 {
+		return nil
+	}
+	if lr == nil {
+		lr = ComputeLiveness(f)
+	}
+	idxOf := locIndex(locs)
+
+	// Every location the eligible constants' homes make unavailable: the home
+	// itself plus its pair/dword aliases.
+	reserved := make(map[int]bool, len(eligible)*3)
+	for r := range eligible {
+		i, ok := idxOf[ar.Locs[r]]
+		if !ok {
+			continue
+		}
+		reserved[i] = true
+		for _, alias := range physicalAliases(locs[i]) {
+			if j, ok := idxOf[alias]; ok {
+				reserved[j] = true
+			}
+		}
+	}
+
+	ig := BuildInterferenceGraph(f, lr)
+	var blockers map[Reg]bool
+	for v, cv := range costs {
+		if eligible[v] {
+			continue
+		}
+		homeIdx, ok := idxOf[ar.Locs[v]]
+		if !ok || homeIdx >= len(cv) || cv[homeIdx] >= InfCost {
+			continue // LocRemat, a spill offset, or no cost vector
+		}
+		if locs[homeIdx].Kind != LocIXY8 {
+			continue // not pushed out of the primary register file
+		}
+		homeCost := cv[homeIdx]
+		for i, c := range cv {
+			if locs[i].Kind != LocReg || c >= homeCost {
+				// Not a primary register, or not strictly cheaper than where
+				// the trial actually put v.
+				continue
+			}
+			if !reserved[i] {
+				continue // nothing the constants hold back
+			}
+			if !locBlockedByNeighbors(ig, v, locs[i], ar, eligible) {
+				if blockers == nil {
+					blockers = make(map[Reg]bool, 4)
+				}
+				blockers[v] = true
+				break
+			}
+		}
+	}
+	return blockers
+}
+
+// locBlockedByNeighbors reports whether any neighbour of v that is not in skip
+// is allocated to a location overlapping loc.
+func locBlockedByNeighbors(ig *InterferenceGraph, v Reg, loc PhysLoc, ar *AllocResult, skip map[Reg]bool) bool {
+	blocked := false
+	ig.Neighbors(v).Each(func(n Reg) {
+		if blocked || skip[n] {
+			return
+		}
+		// Both directions: physicalAliases is not symmetric (aliases(BC) names
+		// B and C, aliases(B) names BC), so a pair and either of its bytes
+		// overlap only when tested each way.
+		if physicallyConflicts(loc, ar.Locs[n]) || physicallyConflicts(ar.Locs[n], loc) {
+			blocked = true
+		}
+	})
+	return blocked
+}
+
+// locIndex maps each of the cost table's locations to its position, so an
+// allocation can be read back as a cost-vector index.
+func locIndex(locs []PhysLoc) map[PhysLoc]int {
+	idx := make(map[PhysLoc]int, len(locs))
+	for i, l := range locs {
+		idx[l] = i
+	}
+	return idx
+}
 // liveAcrossCallRegs returns the vregs whose live range covers a call, i.e. the
 // ones a callee's clobber set forces the caller to PUSH/POP.
 func liveAcrossCallRegs(f *Func, lr *LivenessResult) map[Reg]bool {
