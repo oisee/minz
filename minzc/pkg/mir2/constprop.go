@@ -551,6 +551,19 @@ func SimplifyIdentities(f *Func) bool {
 					}
 					changed = true
 				}
+			case OpCmp:
+				// cmp.ne(p, 0) of a canonical 0/1 predicate p is p itself. Only
+				// a comparison defined earlier in this block counts as canonical.
+				if p := defs[inst.Src[0]]; inst.Cond == CmpNe && inst.Ty == TyBool && !inst.ClsHard &&
+					p != nil && p.Op == OpCmp && p.Ty == TyBool {
+					if v, ok := consts[inst.Src[1]]; ok && v == 0 {
+						b.Insts[i] = &Inst{
+							Op: OpMove, Dst: inst.Dst,
+							Src: [2]Reg{inst.Src[0]}, Ty: inst.Ty, Cls: inst.Cls,
+						}
+						changed = true
+					}
+				}
 			case OpMul:
 				// Mul(x, 1) → Move(x), Mul(1, x) → Move(x)
 				if v, ok := consts[inst.Src[1]]; ok && v == 1 {
