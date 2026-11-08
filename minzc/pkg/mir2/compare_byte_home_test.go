@@ -42,7 +42,8 @@ func TestComparisonPublishesAllocatedByteHome(t *testing.T) {
 				if e != nil {
 					t.Fatal(e)
 				}
-				if !strings.Contains(asm, ".bool_true_") {
+				// Carry predicates materialize branchlessly (SBC A, A); the rest branch.
+				if !strings.Contains(asm, ".bool_true_") && !strings.Contains(asm, "SBC A, A") {
 					t.Fatalf("missing byte materialization:\n%s", asm)
 				}
 				program, e := z80asm.NewAssembler().AssembleString("ORG 0x8000\nCALL compare_value\nHALT\n" + asm)
