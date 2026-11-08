@@ -12,6 +12,9 @@ import (
 // ── Instructions ──────────────────────────────────────────────────────────────
 
 func (g *z80cg) genInst(inst *Inst) {
+	if g.bitAccumSkip[inst] || g.genBitAccum(inst) {
+		return
+	}
 	if g.widenedByteAdds[inst] {
 		return
 	}
