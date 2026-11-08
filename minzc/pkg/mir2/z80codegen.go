@@ -805,8 +805,8 @@ type z80cg struct {
 	// bitAccumAt/bitAccumSkip: fused "count += v & 1; v >>= 1" steps.
 	bitAccumAt   map[*Inst]bitAccum
 	bitAccumSkip map[*Inst]bool
-	bitCmpPat          map[Reg]bitCmpPat
-	bitCmpSkip         map[Reg]bool
+	bitCmpPat    map[Reg]bitCmpPat
+	bitCmpSkip   map[Reg]bool
 
 	// globalU16StoreSym[addrReg] = sym: addrReg holds the address of a u16 global.
 	// Enables emitting LD (sym), HL (16T, no A clobber) instead of the

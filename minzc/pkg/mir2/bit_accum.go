@@ -111,7 +111,7 @@ func (g *z80cg) scanBitAccumPatterns(b *Block) {
 			}
 			vl, pl := g.loc(v), g.loc(acc)
 			if !byteReg(vl) || g.loc(shr.Dst) != vl || g.loc(add.Dst) != pl ||
-				!(pl == "BC" || pl == "DE" || pl == "HL" || pl == "IX" || pl == "IY") ||
+				(pl != "BC" && pl != "DE" && pl != "HL" && pl != "IX" && pl != "IY") ||
 				parentPair(vl) == pl {
 				continue
 			}
