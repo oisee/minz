@@ -74,6 +74,13 @@ func coalesceAllocResult(f *Func, result *AllocResult, lr *LivenessResult, table
 	uses := countRegUses(f)
 	for _, b := range f.Blocks {
 		for _, x := range b.Insts {
+			// A byte step by 1..3 is INC/DEC in place on any register too.
+			if x.Ty != nil && x.Ty.Width() == 8 && !x.ClsHard && (x.Op == OpAdd || x.Op == OpSub) {
+				if cv, ok := constants[x.Src[1]]; ok && cv >= 1 && cv <= 3 && wordMaskFlagsUnobserved(f, x.Dst) {
+					edges = append(edges, affEdge{dst: x.Dst, src: x.Src[0]})
+				}
+				continue
+			}
 			if x.Ty == nil || x.Ty.Width() != 16 || x.ClsHard {
 				continue
 			}
@@ -206,6 +213,11 @@ func coalesceAllocResult(f *Func, result *AllocResult, lr *LivenessResult, table
 				continue // rematerialised: no home to recolour
 			}
 			if !isaAlwaysWritesA(inst) || !canRecolor(inst.Dst, locA) {
+				continue
+			}
+			// A byte step by 1..3 is INC/DEC on any register: no A constraint.
+			if cv, ok := constants[inst.Src[1]]; ok && (inst.Op == OpAdd || inst.Op == OpSub) &&
+				inst.Ty != nil && inst.Ty.Width() == 8 && cv >= 1 && cv <= 3 {
 				continue
 			}
 			if result.Locs[inst.Dst] == locA {
