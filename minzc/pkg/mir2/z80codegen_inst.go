@@ -504,7 +504,7 @@ func (g *z80cg) genInst(inst *Inst) {
 		// preserve A in their own branch below and must not be saved twice.
 		_, lutLoad := g.lutLoadPat[inst.Dst]
 		loadPtr := g.loc(inst.Src[0])
-		if inst.Ty.Width() <= 8 && dst != "A" &&
+		if inst.Ty.Width() <= 8 && dst != "A" && g.accumulatorHoldsLiveValue(inst) &&
 			((loadPtr == "BC" || loadPtr == "DE") || !isSpill(dst) && (lutLoad || isIXYReg(dst))) {
 			g.emit("    EX AF, AF'      ; preserve byte-load scratch")
 			defer func() {
@@ -1633,4 +1633,33 @@ func (g *z80cg) genInst(inst *Inst) {
 	default:
 		g.comment(fmt.Sprintf("TODO: %s", inst.Op))
 	}
+}
+
+// accumulatorHoldsLiveValue reports whether A or F carries anything the
+// program still needs across inst: a value homed (or relocated) in A, a
+// pending accumulator, or a pending/live flag predicate. Byte loads that use A
+// as an encoding bridge only need to preserve AF in that case.
+func (g *z80cg) accumulatorHoldsLiveValue(inst *Inst) bool {
+	if g.fn == nil || g.curBlock == nil || g.liveness == nil {
+		return true // no liveness: preserve as before
+	}
+	if g.pendingAccReg != NoReg || g.pendingFlagReg != NoReg {
+		return true
+	}
+	for r := range g.regsLiveAfterInst(inst) {
+		if loc := g.loc(r); loc == "A" || loc == "AF" || loc == "F" {
+			return true
+		}
+	}
+	for _, r := range inst.Uses() {
+		if loc := g.loc(r); loc == "A" || loc == "F" {
+			return true
+		}
+	}
+	for _, loc := range g.physOverride {
+		if loc == "A" {
+			return true
+		}
+	}
+	return false
 }
