@@ -22,7 +22,6 @@ func applyAccumulatorPressureCosts(f *Func, lr *LivenessResult, states map[Reg]*
 		return
 	}
 	for r, cost := range accumulatorPressure(f, lr) {
-
 		if state := states[r]; state != nil && state.costs[aIdx] < InfCost {
 			state.costs[aIdx] += cost
 		}
@@ -32,43 +31,18 @@ func applyAccumulatorPressureCosts(f *Func, lr *LivenessResult, states map[Reg]*
 // accumulatorPressure returns, per byte value, the modelled cost of homing it
 // in A (see applyAccumulatorPressureCosts).
 func accumulatorPressure(f *Func, lr *LivenessResult) map[Reg]int {
-	pressure, _ := accumulatorPressureAndCredit(f, lr)
-	return pressure
-}
-
-// accumulatorPressureAndCredit also returns, per value, what homing it outside
-// A costs the A-form operations that take it as their left operand.
-func accumulatorPressureAndCredit(f *Func, lr *LivenessResult) (map[Reg]int, map[Reg]int) {
 	if lr == nil {
-		return nil, nil
+		return nil
 	}
 	info := collectRegInfo(f)
 	depth := map[string]int{}
-	// Only loop induction variables (counters such as i and i+1) are priced
-	// out of A: they are read by little more than an INC and a compare, so A
-	// buys them almost nothing while it costs every byte load and ALU step of
-	// the body. Accumulators such as a running CRC keep their A preference.
-	counters := map[Reg]bool{}
-	consts := map[Reg]int64{}
-	for _, b := range f.Blocks {
-		for _, i := range b.Insts {
-			if i.Op == OpConst {
-				consts[i.Dst] = i.Imm
-			}
-		}
-	}
 	for _, loop := range AnalyzeNaturalLoops(f) {
 		for label := range loop.Blocks {
 			depth[label]++
 		}
-		for _, ind := range loop.Inductions {
-			counters[ind.Param.Dst] = true
-			counters[ind.Next] = true
-		}
 	}
 	const perUse = 8 // EX AF,AF' twice, or LD r,A / LD A,r
 	pressure := map[Reg]int{}
-	credit := map[Reg]int{}
 	for bi, b := range f.Blocks {
 		weight := 1
 		for d := 0; d < depth[b.Label] && d < 3; d++ {
@@ -86,20 +60,13 @@ func accumulatorPressureAndCredit(f *Func, lr *LivenessResult) (map[Reg]int, map
 			for _, r := range inst.ExtraRets {
 				live.Remove(r)
 			}
-			// Credit: an A-form operation whose left operand is r wants r in A;
-			// elsewhere it pays LD A,r (and LD r,A) instead.
-			if (needsAccumulator(inst) || isByteShift(inst)) && !byteConstStep(inst, consts) {
-				if r := inst.Src[0]; r != NoReg {
-					credit[r] += perUse * weight
-				}
-			}
 			if needsAccumulator(inst) {
 				read := map[Reg]bool{}
 				for _, r := range inst.Uses() {
 					read[r] = true
 				}
 				live.Each(func(r Reg) {
-					if ri, ok := info[r]; (counters[r] || allBytesCharged) && !read[r] && ok && ri.Ty != nil && ri.Ty.Width() <= 8 {
+					if ri, ok := info[r]; !read[r] && ok && ri.Ty != nil && ri.Ty.Width() <= 8 {
 						pressure[r] += perUse * weight
 					}
 				})
@@ -109,21 +76,7 @@ func accumulatorPressureAndCredit(f *Func, lr *LivenessResult) (map[Reg]int, map
 			}
 		}
 	}
-	net := map[Reg]int{}
-	for r, c := range credit {
-		if left := c - pressure[r]; left > 0 {
-			net[r] = left
-		}
-		if pressure[r] -= c; pressure[r] <= 0 {
-			delete(pressure, r)
-		}
-	}
-	return pressure, net
-}
-
-// isByteShift reports byte shifts, which the emitter prefers in A (ADD A,A).
-func isByteShift(inst *Inst) bool {
-	return (inst.Op == OpShl || inst.Op == OpShr) && inst.Ty != nil && inst.Ty.Width() == 8
+	return pressure
 }
 
 // loopAccumulatorPressure is the pressure at which a value is kept out of A by
@@ -143,15 +96,3 @@ func needsAccumulator(inst *Inst) bool {
 	}
 	return false
 }
-
-// byteConstStep reports a byte add/sub of 1..3, emitted as INC/DEC on any
-// register: it gives its operand no reason to live in A.
-func byteConstStep(inst *Inst, consts map[Reg]int64) bool {
-	if (inst.Op != OpAdd && inst.Op != OpSub) || inst.Ty == nil || inst.Ty.Width() != 8 {
-		return false
-	}
-	cv, ok := consts[inst.Src[1]]
-	return ok && cv >= 1 && cv <= 3
-}
-
-const allBytesCharged = true
