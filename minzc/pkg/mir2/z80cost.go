@@ -68,7 +68,14 @@ var Z80PhysLocs = []PhysLoc{
 //	Memory round-trip: z80timing.MemRoundTrip8    = 26T  (LD (nn),A + LD A,(nn))
 //	IXY overhead:      z80timing.IXY_OVERHEAD     =  4T  (DD/FD prefix per instr)
 //	Flag materialise:  z80timing.FlagMaterialise8 =  8T  (SCF+SBC A,A)
-type Z80CostTable struct{ OptimizeForSize bool }
+//
+// Z80CostTable is the Z80 PBQP cost model. AccumulatorPressure additionally
+// prices byte values out of A where loop bodies need A as a working register
+// (see applyAccumulatorPressureCosts); variant search decides where it pays.
+type Z80CostTable struct {
+	OptimizeForSize     bool
+	AccumulatorPressure bool
+}
 
 var _ CostTable = (*Z80CostTable)(nil)
 
