@@ -94,9 +94,9 @@
     "research/crystal-hir/export.cr": "a96d3c756cb0798120aad69427b13259f761908ea95c9cf8f6b58317249cc663",
     "research/crystal-hir/typed_export.cr": "d06f1a8e22dec408b7ada5b5482023cb69fbf32d49183bf8d344683b44b3655c"
   },
-  "reused_positive_sha256": "f8fc9174b7837e91cce360b1986be7474de787dba914eb6426d1b60ac78aff4d",
-  "reused_musical_sha256": "3b3c763f6afd21bc9a549665b270a56ed2fb283f816c1e18a4345b9702cdc2c6",
-  "reused_arrangement_sha256": "bb07bacbac75049a2aa905d763c0cfa68a80861c6564599fa339d24ef0220dd9",
+  "reused_positive_sha256": "5e87f103d2bb2b13dcc7a320ae69c398d349b6ab1d180737988ebe78615cce1d",
+  "reused_musical_sha256": "0114aecf21de2d43c49b61fffd05164cb9e6fcd8dfd3e0d06b0e0f0f5a42718c",
+  "reused_arrangement_sha256": "88f43219fc65865ae5e643422882eba180fe9d0bcfa9640a2ec40b7963be199e",
   "proofs": {
     "invalid": {
       "protocol": "autosiril-echo-invalid/v1",
@@ -21576,7 +21576,7 @@
         "scope": "initial actual Ruby musical matrix; full malformed/IO/CPM/CI pending"
       },
       "cpm": {
-        "binary_sha256": "69f5ee9b1406dedb3dd848e586c62316bd0cb35604f823f9e1a6cedc4dbac3d4",
+        "binary_sha256": "82ad2ddcbac7bf289213740bd17be5a5b9f20aa8f21e5eff5216bf7c90fba3d4",
         "cases": [
           {
             "bdos_calls": {
@@ -21651,7 +21651,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 22,
-            "t_states": 26765
+            "t_states": 26759
           },
           {
             "bdos_calls": {
@@ -21726,7 +21726,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 22,
-            "t_states": 28951
+            "t_states": 28945
           },
           {
             "bdos_calls": {
@@ -21801,7 +21801,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 22,
-            "t_states": 31599
+            "t_states": 31593
           },
           {
             "bdos_calls": {
@@ -21876,7 +21876,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 22,
-            "t_states": 31628
+            "t_states": 31622
           },
           {
             "bdos_calls": {
@@ -21951,7 +21951,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 22,
-            "t_states": 31660
+            "t_states": 31654
           },
           {
             "bdos_calls": {
@@ -22026,7 +22026,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 22,
-            "t_states": 31692
+            "t_states": 31686
           },
           {
             "bdos_calls": {
@@ -22101,7 +22101,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 22,
-            "t_states": 31692
+            "t_states": 31686
           },
           {
             "bdos_calls": {
@@ -22176,7 +22176,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 22,
-            "t_states": 32344
+            "t_states": 32338
           },
           {
             "bdos_calls": {
@@ -22251,7 +22251,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 40807
+            "t_states": 40801
           },
           {
             "bdos_calls": {
@@ -22326,7 +22326,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 42971
+            "t_states": 42965
           },
           {
             "bdos_calls": {
@@ -22401,7 +22401,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 22,
-            "t_states": 27337
+            "t_states": 27331
           },
           {
             "bdos_calls": {
@@ -22476,7 +22476,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 45242
+            "t_states": 45236
           },
           {
             "bdos_calls": {
@@ -22551,7 +22551,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 260401
+            "t_states": 260395
           },
           {
             "bdos_calls": {
@@ -22626,7 +22626,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 283765
+            "t_states": 283753
           },
           {
             "bdos_calls": {
@@ -22701,7 +22701,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 285951
+            "t_states": 285939
           },
           {
             "bdos_calls": {
@@ -22776,7 +22776,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 288599
+            "t_states": 288587
           },
           {
             "bdos_calls": {
@@ -22851,7 +22851,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 288628
+            "t_states": 288616
           },
           {
             "bdos_calls": {
@@ -22926,7 +22926,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 288660
+            "t_states": 288648
           },
           {
             "bdos_calls": {
@@ -23001,7 +23001,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 288692
+            "t_states": 288680
           },
           {
             "bdos_calls": {
@@ -23076,7 +23076,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 288692
+            "t_states": 288680
           },
           {
             "bdos_calls": {
@@ -23154,7 +23154,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 295530
+            "t_states": 295512
           },
           {
             "bdos_calls": {
@@ -23232,7 +23232,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 2,
             "stack_below_entry": 46,
-            "t_states": 390028
+            "t_states": 390010
           },
           {
             "bdos_calls": {
@@ -23310,7 +23310,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 2,
             "stack_below_entry": 46,
-            "t_states": 392192
+            "t_states": 392174
           },
           {
             "bdos_calls": {
@@ -23385,7 +23385,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 284337
+            "t_states": 284325
           },
           {
             "bdos_calls": {
@@ -23463,7 +23463,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 2,
             "stack_below_entry": 46,
-            "t_states": 394463
+            "t_states": 394445
           },
           {
             "bdos_calls": {
@@ -23541,7 +23541,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 2,
             "stack_below_entry": 46,
-            "t_states": 552706
+            "t_states": 552688
           },
           {
             "bdos_calls": {
@@ -23616,7 +23616,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 22,
-            "t_states": 31847
+            "t_states": 31841
           },
           {
             "bdos_calls": {
@@ -23691,7 +23691,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 22,
-            "t_states": 34741
+            "t_states": 34735
           },
           {
             "bdos_calls": {
@@ -23766,7 +23766,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 22,
-            "t_states": 34961
+            "t_states": 34955
           },
           {
             "bdos_calls": {
@@ -23841,7 +23841,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 22,
-            "t_states": 35060
+            "t_states": 35054
           },
           {
             "bdos_calls": {
@@ -23916,7 +23916,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 22,
-            "t_states": 39493
+            "t_states": 39487
           },
           {
             "bdos_calls": {
@@ -23997,7 +23997,7 @@
             "physical_sha256": "a30ea62130dde2b2deabeb1779e809d36956a9c63f47c7c2597e85cec885dec1",
             "ring_peak": 0,
             "stack_below_entry": 26,
-            "t_states": 9850716
+            "t_states": 9850698
           },
           {
             "bdos_calls": {
@@ -24072,7 +24072,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 9242244
+            "t_states": 9242238
           },
           {
             "bdos_calls": {
@@ -24150,7 +24150,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 342221
+            "t_states": 342203
           },
           {
             "bdos_calls": {
@@ -24228,7 +24228,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 343129
+            "t_states": 343111
           },
           {
             "bdos_calls": {
@@ -24306,7 +24306,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 343162
+            "t_states": 343144
           },
           {
             "bdos_calls": {
@@ -24384,7 +24384,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 344109
+            "t_states": 344091
           },
           {
             "bdos_calls": {
@@ -24462,7 +24462,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 343372
+            "t_states": 343354
           },
           {
             "bdos_calls": {
@@ -24540,7 +24540,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 343551
+            "t_states": 343533
           },
           {
             "bdos_calls": {
@@ -24618,7 +24618,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 343227
+            "t_states": 343209
           },
           {
             "bdos_calls": {
@@ -24696,7 +24696,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 344233
+            "t_states": 344215
           },
           {
             "bdos_calls": {
@@ -24774,7 +24774,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 344759
+            "t_states": 344741
           },
           {
             "bdos_calls": {
@@ -24852,7 +24852,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 345107
+            "t_states": 345089
           },
           {
             "bdos_calls": {
@@ -24930,7 +24930,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 345285
+            "t_states": 345267
           },
           {
             "bdos_calls": {
@@ -25008,7 +25008,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 2,
             "stack_below_entry": 46,
-            "t_states": 400083
+            "t_states": 400065
           },
           {
             "bdos_calls": {
@@ -25086,7 +25086,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 307838
+            "t_states": 307820
           },
           {
             "bdos_calls": {
@@ -25164,7 +25164,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 307963
+            "t_states": 307945
           },
           {
             "bdos_calls": {
@@ -25242,7 +25242,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 308316
+            "t_states": 308298
           },
           {
             "bdos_calls": {
@@ -25320,7 +25320,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 311776
+            "t_states": 311758
           },
           {
             "bdos_calls": {
@@ -25398,7 +25398,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 313037
+            "t_states": 313019
           },
           {
             "bdos_calls": {
@@ -25476,7 +25476,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 319844
+            "t_states": 319826
           },
           {
             "bdos_calls": {
@@ -25554,7 +25554,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 26,
-            "t_states": 531543
+            "t_states": 531525
           },
           {
             "bdos_calls": {
@@ -25632,7 +25632,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 26,
-            "t_states": 550900
+            "t_states": 550882
           },
           {
             "bdos_calls": {
@@ -25713,7 +25713,7 @@
             "physical_sha256": "00521349bd23263eff309cf5d90f8dd5a25ccdf32377ed32d7c59806d2e4e8f5",
             "ring_peak": 0,
             "stack_below_entry": 34,
-            "t_states": 31639975
+            "t_states": 31639957
           },
           {
             "bdos_calls": {
@@ -25794,7 +25794,7 @@
             "physical_sha256": "c51bf05aedc0c5ee7e288483c079cf9c92f9959e156bba9d75b769d8cb9cd52b",
             "ring_peak": 0,
             "stack_below_entry": 34,
-            "t_states": 30984171
+            "t_states": 30984153
           },
           {
             "bdos_calls": {
@@ -25875,7 +25875,7 @@
             "physical_sha256": "ed01029b469addae1104d67c1cb668d2647f2e2d90ff08ae85d972d261353af8",
             "ring_peak": 0,
             "stack_below_entry": 34,
-            "t_states": 3210670
+            "t_states": 3210652
           },
           {
             "bdos_calls": {
@@ -25953,7 +25953,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 1,
             "stack_below_entry": 46,
-            "t_states": 379040
+            "t_states": 379022
           },
           {
             "bdos_calls": {
@@ -26031,7 +26031,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 1,
             "stack_below_entry": 46,
-            "t_states": 375410
+            "t_states": 375392
           },
           {
             "bdos_calls": {
@@ -26109,7 +26109,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 1,
             "stack_below_entry": 46,
-            "t_states": 375395
+            "t_states": 375377
           },
           {
             "bdos_calls": {
@@ -26190,7 +26190,7 @@
             "physical_sha256": "8425aa4e81817dd562c2d1f7e7da6c17737748768468490c5db2f7f50a3e8854",
             "ring_peak": 3,
             "stack_below_entry": 46,
-            "t_states": 210171681
+            "t_states": 210171663
           },
           {
             "bdos_calls": {
@@ -26265,7 +26265,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 40713
+            "t_states": 40707
           },
           {
             "bdos_calls": {
@@ -26343,7 +26343,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 2,
             "stack_below_entry": 46,
-            "t_states": 389934
+            "t_states": 389916
           },
           {
             "bdos_calls": {
@@ -26418,7 +26418,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 288756
+            "t_states": 288744
           },
           {
             "bdos_calls": {
@@ -26493,7 +26493,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 288756
+            "t_states": 288744
           },
           {
             "bdos_calls": {
@@ -26568,7 +26568,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 22,
-            "t_states": 34961
+            "t_states": 34955
           },
           {
             "bdos_calls": {
@@ -26646,7 +26646,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 344141
+            "t_states": 344123
           },
           {
             "bdos_calls": {
@@ -26724,7 +26724,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 344346
+            "t_states": 344328
           },
           {
             "bdos_calls": {
@@ -26802,7 +26802,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 345449
+            "t_states": 345431
           },
           {
             "bdos_calls": {
@@ -26880,7 +26880,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 309175
+            "t_states": 309157
           },
           {
             "bdos_calls": {
@@ -26958,7 +26958,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 346771
+            "t_states": 346753
           },
           {
             "bdos_calls": {
@@ -27036,7 +27036,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 362371
+            "t_states": 362353
           },
           {
             "bdos_calls": {
@@ -27114,7 +27114,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 358724
+            "t_states": 358706
           },
           {
             "bdos_calls": {},
@@ -27297,8 +27297,8 @@
             "t_states": 1891
           }
         ],
-        "code_and_bootstrap_bytes": 12047,
-        "image_bytes": 15312,
+        "code_and_bootstrap_bytes": 12044,
+        "image_bytes": 15309,
         "loaded_globals_bytes": 2997,
         "matrix_sha256": "7c7d45218cb618e6a553c19cbd7d86f2e71540d9f8d2591afdc389e207b39e80",
         "protocol": "autosiril-echo-cpm-musical/v1",
@@ -89540,7 +89540,7 @@
         "scope": "initial actual Ruby musical matrix; full malformed/IO/CPM/CI pending"
       },
       "cpm": {
-        "binary_sha256": "69f5ee9b1406dedb3dd848e586c62316bd0cb35604f823f9e1a6cedc4dbac3d4",
+        "binary_sha256": "82ad2ddcbac7bf289213740bd17be5a5b9f20aa8f21e5eff5216bf7c90fba3d4",
         "cases": [
           {
             "bdos_calls": {
@@ -89609,7 +89609,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 6,
-            "t_states": 20696
+            "t_states": 20687
           },
           {
             "bdos_calls": {
@@ -89684,7 +89684,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 22,
-            "t_states": 23745
+            "t_states": 23739
           },
           {
             "bdos_calls": {
@@ -89759,7 +89759,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 259620
+            "t_states": 259608
           },
           {
             "bdos_calls": {
@@ -89834,7 +89834,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 276214
+            "t_states": 276199
           },
           {
             "bdos_calls": {
@@ -89909,7 +89909,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 280745
+            "t_states": 280733
           },
           {
             "bdos_calls": {
@@ -89987,7 +89987,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 288885
+            "t_states": 288864
           },
           {
             "bdos_calls": {
@@ -90068,7 +90068,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 2,
             "stack_below_entry": 46,
-            "t_states": 699109
+            "t_states": 699091
           },
           {
             "bdos_calls": {
@@ -90149,7 +90149,7 @@
             "physical_sha256": "f4a3f060d57137943783a01e8ee9ea8bb7e4cbedebf4351e4b2cc617b50a00f7",
             "ring_peak": 2,
             "stack_below_entry": 46,
-            "t_states": 699566
+            "t_states": 699542
           },
           {
             "bdos_calls": {
@@ -90230,7 +90230,7 @@
             "physical_sha256": "f4a3f060d57137943783a01e8ee9ea8bb7e4cbedebf4351e4b2cc617b50a00f7",
             "ring_peak": 2,
             "stack_below_entry": 46,
-            "t_states": 699566
+            "t_states": 699542
           },
           {
             "bdos_calls": {
@@ -90308,7 +90308,7 @@
             "physical_sha256": "daef7ce9d0e61a8502a8e86810534c4d618e5141a551d06db16788a53c3f8785",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 288885
+            "t_states": 288864
           },
           {
             "bdos_calls": {
@@ -90383,7 +90383,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 3313543
+            "t_states": 3313537
           },
           {
             "bdos_calls": {
@@ -90464,7 +90464,7 @@
             "physical_sha256": "c784a74bba531e480e20731eeec5d132fed7f1790f898f2c0d8b5932aff5fd57",
             "ring_peak": 13,
             "stack_below_entry": 46,
-            "t_states": 173025625
+            "t_states": 173025607
           },
           {
             "bdos_calls": {
@@ -90545,7 +90545,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 5,
             "stack_below_entry": 46,
-            "t_states": 7727830
+            "t_states": 7727812
           },
           {
             "bdos_calls": {
@@ -90626,7 +90626,7 @@
             "physical_sha256": "7d923161cd1bde0b8a0048008bd3cafac306eb152f347e1ece615f875cfae9d5",
             "ring_peak": 13,
             "stack_below_entry": 46,
-            "t_states": 201303941
+            "t_states": 201303923
           },
           {
             "bdos_calls": {
@@ -90707,11 +90707,11 @@
             "physical_sha256": "fd7738e37b8b53c494351a069150e223541337632dd7ce4c68fdc829ccc16760",
             "ring_peak": 13,
             "stack_below_entry": 46,
-            "t_states": 400643333
+            "t_states": 400643315
           }
         ],
-        "code_and_bootstrap_bytes": 12047,
-        "image_bytes": 15312,
+        "code_and_bootstrap_bytes": 12044,
+        "image_bytes": 15309,
         "loaded_globals_bytes": 2997,
         "matrix_sha256": "cd5a31502251590bd20c59c2856d65f03b349ed1397dadcf2d00e6008d7f3989",
         "protocol": "autosiril-echo-cpm-musical/v1",
@@ -95360,7 +95360,7 @@
               "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
               "ring_peak": 0,
               "stack_below_entry": 22,
-              "t_states": 1810955
+              "t_states": 1810949
             }
           ]
         },
@@ -95439,7 +95439,7 @@
               "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
               "ring_peak": 0,
               "stack_below_entry": 22,
-              "t_states": 23577
+              "t_states": 23571
             }
           ]
         },
@@ -95518,7 +95518,7 @@
               "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
               "ring_peak": 0,
               "stack_below_entry": 22,
-              "t_states": 23651
+              "t_states": 23645
             }
           ]
         },
@@ -95597,7 +95597,7 @@
               "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
               "ring_peak": 0,
               "stack_below_entry": 22,
-              "t_states": 23582
+              "t_states": 23576
             }
           ]
         },
@@ -95685,7 +95685,7 @@
               "physical_sha256": "f4a3f060d57137943783a01e8ee9ea8bb7e4cbedebf4351e4b2cc617b50a00f7",
               "ring_peak": 2,
               "stack_below_entry": 46,
-              "t_states": 701923
+              "t_states": 701905
             }
           ]
         },
@@ -95764,7 +95764,7 @@
               "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
               "ring_peak": 0,
               "stack_below_entry": 8,
-              "t_states": 21334
+              "t_states": 21328
             }
           ]
         },
@@ -95843,7 +95843,7 @@
               "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
               "ring_peak": 0,
               "stack_below_entry": 8,
-              "t_states": 21393
+              "t_states": 21387
             }
           ]
         },
@@ -95922,7 +95922,7 @@
               "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
               "ring_peak": 0,
               "stack_below_entry": 8,
-              "t_states": 21452
+              "t_states": 21446
             }
           ]
         },
@@ -96001,7 +96001,7 @@
               "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
               "ring_peak": 0,
               "stack_below_entry": 8,
-              "t_states": 21550
+              "t_states": 21544
             }
           ]
         },
@@ -96083,7 +96083,7 @@
               "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
               "ring_peak": 0,
               "stack_below_entry": 24,
-              "t_states": 2071220
+              "t_states": 2071208
             }
           ]
         },
@@ -96165,7 +96165,7 @@
               "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
               "ring_peak": 0,
               "stack_below_entry": 24,
-              "t_states": 280773
+              "t_states": 280761
             }
           ]
         },
@@ -96247,7 +96247,7 @@
               "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
               "ring_peak": 0,
               "stack_below_entry": 24,
-              "t_states": 280847
+              "t_states": 280835
             }
           ]
         },
@@ -96329,7 +96329,7 @@
               "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
               "ring_peak": 0,
               "stack_below_entry": 24,
-              "t_states": 280778
+              "t_states": 280766
             }
           ]
         },
@@ -96417,7 +96417,7 @@
               "physical_sha256": "f4a3f060d57137943783a01e8ee9ea8bb7e4cbedebf4351e4b2cc617b50a00f7",
               "ring_peak": 2,
               "stack_below_entry": 46,
-              "t_states": 701938
+              "t_states": 701920
             }
           ]
         },
@@ -96499,7 +96499,7 @@
               "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
               "ring_peak": 0,
               "stack_below_entry": 24,
-              "t_states": 278388
+              "t_states": 278376
             }
           ]
         },
@@ -96581,7 +96581,7 @@
               "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
               "ring_peak": 0,
               "stack_below_entry": 24,
-              "t_states": 278447
+              "t_states": 278435
             }
           ]
         },
@@ -96663,7 +96663,7 @@
               "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
               "ring_peak": 0,
               "stack_below_entry": 24,
-              "t_states": 278496
+              "t_states": 278484
             }
           ]
         },
@@ -96745,7 +96745,7 @@
               "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
               "ring_peak": 0,
               "stack_below_entry": 24,
-              "t_states": 278594
+              "t_states": 278582
             }
           ]
         },
@@ -96833,7 +96833,7 @@
               "physical_sha256": "20d4c1f337e1f5438e04721fc888c4fc8e5b93ff3d1661b16c16b874b387043c",
               "ring_peak": 7,
               "stack_below_entry": 46,
-              "t_states": 1165804
+              "t_states": 1165786
             }
           ]
         },
@@ -96921,7 +96921,7 @@
               "physical_sha256": "f4a3f060d57137943783a01e8ee9ea8bb7e4cbedebf4351e4b2cc617b50a00f7",
               "ring_peak": 2,
               "stack_below_entry": 46,
-              "t_states": 1556700
+              "t_states": 1556682
             },
             {
               "bdos_calls": {
@@ -97002,7 +97002,7 @@
               "physical_sha256": "58d7554f0c4dc43b447dc0d0ead1376744719cfb61301f1ab2f65065953e70dd",
               "ring_peak": 65,
               "stack_below_entry": 46,
-              "t_states": 36637320
+              "t_states": 36637302
             }
           ]
         },
@@ -97090,7 +97090,7 @@
               "physical_sha256": "f4a3f060d57137943783a01e8ee9ea8bb7e4cbedebf4351e4b2cc617b50a00f7",
               "ring_peak": 2,
               "stack_below_entry": 46,
-              "t_states": 986630
+              "t_states": 986612
             },
             {
               "bdos_calls": {
@@ -97171,7 +97171,7 @@
               "physical_sha256": "58d7554f0c4dc43b447dc0d0ead1376744719cfb61301f1ab2f65065953e70dd",
               "ring_peak": 65,
               "stack_below_entry": 46,
-              "t_states": 32361795
+              "t_states": 32361777
             }
           ]
         },
@@ -97259,7 +97259,7 @@
               "physical_sha256": "f4a3f060d57137943783a01e8ee9ea8bb7e4cbedebf4351e4b2cc617b50a00f7",
               "ring_peak": 2,
               "stack_below_entry": 46,
-              "t_states": 699532
+              "t_states": 699514
             }
           ]
         },
@@ -97347,7 +97347,7 @@
               "physical_sha256": "f4a3f060d57137943783a01e8ee9ea8bb7e4cbedebf4351e4b2cc617b50a00f7",
               "ring_peak": 2,
               "stack_below_entry": 46,
-              "t_states": 699532
+              "t_states": 699514
             }
           ]
         },
@@ -97435,7 +97435,7 @@
               "physical_sha256": "f4a3f060d57137943783a01e8ee9ea8bb7e4cbedebf4351e4b2cc617b50a00f7",
               "ring_peak": 2,
               "stack_below_entry": 46,
-              "t_states": 699574
+              "t_states": 699514
             }
           ]
         }
