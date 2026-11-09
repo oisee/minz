@@ -805,6 +805,10 @@ type z80cg struct {
 	// bitAccumAt/bitAccumSkip: fused "count += v & 1; v >>= 1" steps.
 	bitAccumAt   map[*Inst]bitAccum
 	bitAccumSkip map[*Inst]bool
+	// addCarryInst/addCarryCmp: a u16 add whose unsigned overflow is tested by
+	// the block's branch-only cmp; see scanAddCarryPattern.
+	addCarryInst *Inst
+	addCarryCmp  *Inst
 	bitCmpPat    map[Reg]bitCmpPat
 	bitCmpSkip   map[Reg]bool
 
@@ -1454,6 +1458,7 @@ func (g *z80cg) genBlock(f *Func, b *Block) {
 	g.scanBitCmpPatterns(b)
 	g.scanShiftCarryPattern(b)
 	g.scanBitAccumPatterns(b)
+	g.scanAddCarryPattern(b)
 
 	// Pre-scan: detect u8 load-modify-store bit updates so Store can emit
 	// SET/RES directly on memory and skip the intermediate Load/ALU regs.

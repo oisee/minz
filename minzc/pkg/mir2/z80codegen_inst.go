@@ -15,6 +15,9 @@ func (g *z80cg) genInst(inst *Inst) {
 	if g.bitAccumSkip[inst] || g.genBitAccum(inst) {
 		return
 	}
+	if inst == g.addCarryInst {
+		defer g.publishAddCarry(inst, g.sb.Len())
+	}
 	if g.widenedByteAdds[inst] {
 		return
 	}
