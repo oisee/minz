@@ -94,7 +94,7 @@
     "research/crystal-hir/export.cr": "a96d3c756cb0798120aad69427b13259f761908ea95c9cf8f6b58317249cc663",
     "research/crystal-hir/typed_export.cr": "d06f1a8e22dec408b7ada5b5482023cb69fbf32d49183bf8d344683b44b3655c"
   },
-  "reused_completed_fresh_arrangement_sha256": "a4da2cbdd7fe46072956162cebaa6bc8b737e2d7f3bba97a1bacddd28719db98",
+  "reused_completed_fresh_arrangement_sha256": "ebcdf931a51192916653b3a47cc0549ffedc6e1a8d50c5960702160bade6d0da",
   "actual_ruby_source_sha256": "41f621b555fc089effd711319e723494576eb47ea0282847082ec91c1cdd4c01",
   "ruby_result_sha256": "3fd0a8bd835484f4a9ca7385811b414bea09ec991805323a20db49d8e32e952a",
   "canonical_full_ruby_sha256": "1257a40f7f26be9223811afaeedd2a079b2891f7c094cd3817c20a047698e5c5",
@@ -106,7 +106,7 @@
   "generated_driver_sha256": "852cfdf963616d1a11ac1b964d7825ea01a86229c64431283126caf62180c5bb",
   "actual_crystal_music_sha256": "9fb9f831651875e5b4b65b45a121d3f8d3b9ebce7ec6f7652a7abd909485ce9a",
   "actual_crystal_manifest_sha256": "f2ba3f05a0700c79e9b6deff99461d1cc57d70f3c4a460ba69fcb5f82d80835d",
-  "native_echo_image_sha256": "1d2049c98534253033711d55461eb681346b806b0daefee9fa5a130212625a76",
+  "native_echo_image_sha256": "770be30ffe294248f5f9d0d1137fb22f3e1532a8693a95e3530270ec70bb4eca",
   "expected_wire_sha256": "2b115c050b50dfa0b3cececdc84dfb4144eaae6daa37c67600b2df9058093b25",
   "echo": {
     "cases": [
@@ -5013,9 +5013,9 @@
         "engine": "scorpion-z80",
         "native": {
           "bounce_bank_reserved_bytes": 16384,
-          "code_and_stub_bytes": 15189,
+          "code_and_stub_bytes": 15177,
           "external_fixed_workspace_reserved_bytes": 2048,
-          "image_bytes": 16448,
+          "image_bytes": 16436,
           "input_closes": 2,
           "input_opens": 2,
           "loaded_globals_bytes": 905,
@@ -7454,7 +7454,7 @@
         "sector_reads": 187,
         "sector_writes": 217,
         "stack_below_entry": 46,
-        "t_states": 404773403,
+        "t_states": 404696303,
         "wire_bytes": 54880,
         "wire_sha256": "2b115c050b50dfa0b3cececdc84dfb4144eaae6daa37c67600b2df9058093b25"
       }
