@@ -71,9 +71,16 @@ func coalesceAllocResult(f *Func, result *AllocResult, lr *LivenessResult, table
 			}
 		}
 	}
-	var accPressure map[Reg]int
+	// Only loop counters under accumulator pressure are kept out of A here; an
+	// accumulator such as a running CRC still follows its A-form affinities.
+	accPressure := map[Reg]int{}
 	if _, z80 := tableOrDefault(tables).(Z80CostTable); z80 {
-		accPressure = accumulatorPressure(f, lr)
+		counters := loopCounters(f)
+		for r, p := range accumulatorPressure(f, lr) {
+			if counters[r] {
+				accPressure[r] = p
+			}
+		}
 	}
 	uses := countRegUses(f)
 	for _, b := range f.Blocks {

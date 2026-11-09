@@ -41,6 +41,18 @@ func accumulatorPressure(f *Func, lr *LivenessResult) map[Reg]int {
 			depth[label]++
 		}
 	}
+	defs := map[Reg]*Inst{}
+	consts := map[Reg]int64{}
+	for _, b := range f.Blocks {
+		for _, i := range b.Insts {
+			if i.Dst != NoReg {
+				defs[i.Dst] = i
+			}
+			if i.Op == OpConst {
+				consts[i.Dst] = i.Imm
+			}
+		}
+	}
 	const perUse = 8 // EX AF,AF' twice, or LD r,A / LD A,r
 	pressure := map[Reg]int{}
 	for bi, b := range f.Blocks {
@@ -60,7 +72,7 @@ func accumulatorPressure(f *Func, lr *LivenessResult) map[Reg]int {
 			for _, r := range inst.ExtraRets {
 				live.Remove(r)
 			}
-			if needsAccumulator(inst) {
+			if needsAccumulator(inst) && !bitTestable(inst, defs, consts) {
 				read := map[Reg]bool{}
 				for _, r := range inst.Uses() {
 					read[r] = true
@@ -95,4 +107,42 @@ func needsAccumulator(inst *Inst) bool {
 		return byteTy(inst.SrcTy)
 	}
 	return false
+}
+
+// bitTestable reports a single-bit mask and its zero test, which the emitter
+// fuses into BIT n,r (or a shift carry) without touching A.
+func bitTestable(inst *Inst, defs map[Reg]*Inst, consts map[Reg]int64) bool {
+	single := func(r Reg) bool {
+		v, ok := consts[r]
+		return ok && v > 0 && v&(v-1) == 0
+	}
+	switch inst.Op {
+	case OpAnd:
+		return single(inst.Src[0]) || single(inst.Src[1])
+	case OpCmp:
+		if inst.Cond != CmpEq && inst.Cond != CmpNe {
+			return false
+		}
+		if v, ok := consts[inst.Src[1]]; !ok || v != 0 {
+			return false
+		}
+		d := defs[inst.Src[0]]
+		return d != nil && d.Op == OpAnd && (single(d.Src[0]) || single(d.Src[1]))
+	}
+	return false
+}
+
+// loopCounters returns the induction variables of f's natural loops and
+// their step results: the values the coalescer keeps out of A.
+func loopCounters(f *Func) map[Reg]bool {
+	counters := map[Reg]bool{}
+	for _, loop := range AnalyzeNaturalLoops(f) {
+		for _, ind := range loop.Inductions {
+			counters[ind.Param.Dst] = true
+			if ind.Next != NoReg {
+				counters[ind.Next] = true
+			}
+		}
+	}
+	return counters
 }
