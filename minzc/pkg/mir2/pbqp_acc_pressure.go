@@ -96,4 +96,3 @@ func needsAccumulator(inst *Inst) bool {
 	}
 	return false
 }
-
