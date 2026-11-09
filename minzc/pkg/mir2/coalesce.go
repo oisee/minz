@@ -141,7 +141,17 @@ func coalesceAllocResult(f *Func, result *AllocResult, lr *LivenessResult, table
 	// those classes can exclude homes by it.
 	_, z80Table := ct.(Z80CostTable)
 	asmAvoid := asmClobberAvoid(f, lr)
+	var accPressure map[Reg]int
+	if z80Table {
+		accPressure = accumulatorPressure(f, lr)
+	}
 	canRecolor := func(r Reg, loc PhysLoc) bool {
+		// A byte value that a loop keeps live across A-working instructions
+		// was priced out of A by PBQP; an affinity must not pull it back.
+		if loc.Kind == LocReg && loc.Name == "A" && result.Locs[r] != loc &&
+			accPressure[r] >= loopAccumulatorPressure {
+			return false
+		}
 		// Preserve explicit instruction/ABI constraints, including a hard
 		// register assignment whose affinity partner has spilled.
 		if hard[r] && result.Locs[r] != loc {
