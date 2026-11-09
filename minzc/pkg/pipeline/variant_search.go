@@ -25,12 +25,16 @@ type FunctionVariant struct {
 	DJNZTrampoline   bool
 	CompactShifts    bool
 	SizeAllocation   bool
+	AccPressure      bool
 }
 
 func (v FunctionVariant) String() string {
 	s := fmt.Sprintf("counted=%d,mir-grace=%t,hir-grace=%t", v.Counted, v.MIRGrace, v.HIRGrace)
 	if v.CompactByteLoops || v.KeepCalls || v.IndexedPointers || v.BitTests || v.DJNZTrampoline || v.CompactShifts || v.SizeAllocation {
 		s += fmt.Sprintf(",compact-bytes=%t,calls=%t,indexed=%t,bit=%t,trampoline=%t,compact-shifts=%t,size-alloc=%t", v.CompactByteLoops, v.KeepCalls, v.IndexedPointers, v.BitTests, v.DJNZTrampoline, v.CompactShifts, v.SizeAllocation)
+	}
+	if v.AccPressure {
+		s += ",acc-pressure=true"
 	}
 	return s
 }
@@ -319,9 +323,9 @@ func compileVariantSearch(source *hir.Module, options ...Options) (Steps, error)
 	// Otherwise cheap early Grace trials can exhaust the cap before a later
 	// function gets even its ordinary-loop alternative. Ordering and cap remain
 	// deterministic; every accepted recipe is still a fresh complete product.
-	axes := []int{0, 1, 2, 3, 10}
+	axes := []int{0, 1, 2, 3, 10, 11}
 	if o.OptSize {
-		axes = []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
+		axes = []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}
 	}
 	for _, axis := range axes {
 		for _, i := range variantAxisOrder(axis, best.MIR2Module, decisions) {
@@ -333,7 +337,7 @@ func compileVariantSearch(source *hir.Module, options ...Options) (Steps, error)
 				continue // an earlier complete-module choice may have pruned it
 			}
 			// Keep loop-free speed search and its compilation budget unchanged.
-			if !o.OptSize && axis == 10 && len(f.StaticLoops) == 0 {
+			if (axis == 11 || !o.OptSize && axis == 10) && len(f.StaticLoops) == 0 {
 				continue
 			}
 			oldCost, supported := image.score(f)
@@ -366,6 +370,8 @@ func compileVariantSearch(source *hir.Module, options ...Options) (Steps, error)
 				candidate.CompactShifts = !candidate.CompactShifts
 			case 10:
 				candidate.SizeAllocation = !candidate.SizeAllocation
+			case 11:
+				candidate.AccPressure = !candidate.AccPressure
 			}
 			if axis >= 4 && !sizeAxisRelevant(axis, best, name, inlinedCallers) {
 				continue
@@ -431,7 +437,7 @@ func compileVariantSearch(source *hir.Module, options ...Options) (Steps, error)
 					// Allocation-only trials may trade bounded path regressions for
 					// a lower loop-weighted maximum. Identical complete MIR keeps
 					// source branch meaning aligned for the labeled CFG comparison.
-					allocationOnly := axis == 10 && best.MIR2Opt == trial.MIR2Opt
+					allocationOnly := (axis == 10 || axis == 11) && best.MIR2Opt == trial.MIR2Opt
 					pathsOK := image.nonIncreasingPaths(trialImage, name)
 					if !pathsOK && allocationOnly {
 						pathsOK = image.boundedAllocationPaths(trialImage, name)

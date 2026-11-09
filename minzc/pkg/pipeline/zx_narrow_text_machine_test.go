@@ -526,14 +526,17 @@ func TestZXNarrowTextTiming(t *testing.T) {
 	measure := func(sel, width, core byte) int64 {
 		return (stepped(N, sel, width, core) - stepped(0, sel, width, core)) / N
 	}
-	// The values published in reports/zx-narrow-text/REPORT.md, so a performance regression fails CI
+	// Baseline from reports/zx-narrow-text/REPORT.md, so a performance regression fails CI
 	// instead of only printing. Tolerance 3%: the emulator is deterministic
 	// (two runs give identical numbers), so this only trips on real changes.
+	// Remeasured after the acc-pressure allocation recipe (loop counters out
+	// of A): goto/putch/row/scroll got 1-7% cheaper; REPORT.md keeps the
+	// figures it was written with.
 	want := map[string]int64{
-		"blit5": 835, "blit6": 1099, "goto": 562, "putch0": 1960, "putch1": 2812,
-		"row5c0": 98167, "row5c1": 182899, "row6c0": 81189, "row6c1": 146749,
-		"row8c0": 57838, "row8c1": 85102,
-		"scroll5c0": 311292, "scroll6c0": 311292, "scroll8c0": 267330,
+		"blit5": 835, "blit6": 1099, "goto": 546, "putch0": 1928, "putch1": 2780,
+		"row5c0": 92227, "row5c1": 176959, "row6c0": 76293, "row6c1": 141853,
+		"row8c0": 54102, "row8c1": 81366,
+		"scroll5c0": 308018, "scroll6c0": 308018, "scroll8c0": 263956,
 		"build5": 1595698, "build6": 1584165, "build8": 43621,
 		"setw5": 1857070, "setw6": 1845490, "setw8": 304948,
 	}

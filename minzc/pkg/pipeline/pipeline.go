@@ -583,6 +583,10 @@ func compileMIRProductSteps(hm *hir.Module, opt Options, s Steps, splitInfo map[
 		if variantFor(opt, f.Name).SizeAllocation {
 			allocationCost = mir2.Z80CostTable{OptimizeForSize: true}
 		}
+		if z, ok := allocationCost.(mir2.Z80CostTable); ok && variantFor(opt, f.Name).AccPressure {
+			z.AccumulatorPressure = true
+			allocationCost = z
+		}
 		ar := mir2.PBQPAllocate(f, lr, allocationCost)
 		for r, loc := range ar.Locs {
 			combined.Locs[r] = loc

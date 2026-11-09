@@ -53,12 +53,17 @@ func TestProfileGuidedSumVMZ80(t *testing.T) {
 	// elimination another 10.  Constant rematerialisation (F6) would remove a
 	// further 9 from both variants, but sum_array neither spills nor holds a
 	// constant live across a call, so its reserved home is uncontested and F6's
-	// profitability gate keeps it.  The bytewise unsigned u16 compare then
-	// shrank the pointer variant to 233 B (ordinary stays 41+54*n at 171 B):
-	// fast path 202+37*n, zero-length entry 203, equality entry +0.
+	// profitability gate keeps it — the module is unchanged at 171/238 B and
+	// every T coefficient with it (ordinary 41+54*n, fast path 231+37*n,
+	// zero-length entry 232).  The acc-pressure allocation recipe then shrank
+	// the pointer variant to 226 B: fast 181+37*n, zero-length entry 182.
 	// Current ordinary-options fallback was independently remeasured over
-	// all length/address families: 288+78*n T.
-	model := hir.LoopCostModel{CompilerID: context.CompilerID, SemanticsID: context.SemanticsID, Function: "sum_array", HIRSHA256: profileRun.Profile.Compatibility.HIRSHA256, TargetID: context.TargetID, EvidenceID: "sum-array-z80-bytewise-cmp-v13", OriginalBytes: 171, PointerBytes: 233, OriginalEntry: 41, OriginalIteration: 54, EqualEntryExtra: 0, FastEntry: 202, FastIteration: 37, FastZeroEntry: 203, FastZeroMeasured: true, FallbackEntry: 288, FallbackIteration: 78, FallbackMeasured: true}
+	// all length/address families: 226+78*n T.  The branch-only unsigned u16
+	// compare through A (no SBC HL) then removed 29T from the fast/equality
+	// entries and 38T from the fallback entry: pointer variant 221 B,
+	// fast 152+37*n, zero-length entry 153, equality extra 0,
+	// fallback 188+78*n T.
+	model := hir.LoopCostModel{CompilerID: context.CompilerID, SemanticsID: context.SemanticsID, Function: "sum_array", HIRSHA256: profileRun.Profile.Compatibility.HIRSHA256, TargetID: context.TargetID, EvidenceID: "sum-array-z80-acc-pressure-v14", OriginalBytes: 171, PointerBytes: 221, OriginalEntry: 41, OriginalIteration: 54, EqualEntryExtra: 0, FastEntry: 152, FastIteration: 37, FastZeroEntry: 153, FastZeroMeasured: true, FallbackEntry: 188, FallbackIteration: 78, FallbackMeasured: true}
 	decisions, e := hir.SelectLoopVariants(bytes.NewReader(profileJSON), input, context, model, false)
 	if e != nil {
 		t.Fatal(e)
@@ -224,7 +229,7 @@ func TestProfileGuidedSumVMZ80(t *testing.T) {
 	}
 	writeJSON("size-decision.json", sizeDecisions)
 	// Execute both sides of the profitability boundary, including retained original.
-	for _, n := range []int64{0, 1, 9, 10, 11} {
+	for _, n := range []int64{0, 1, 6, 7, 8} {
 		one := workload
 		one.Calls = []hir.ProfileInvocation{{Function: "sum_array", Arguments: []hir.ProfileArgument{{Resource: "array"}, literal(n)}}}
 		run, e := hir.RunLoopProfile(parse(), one)
@@ -242,7 +247,7 @@ func TestProfileGuidedSumVMZ80(t *testing.T) {
 				t.Fatal(e)
 			}
 			expectedVariant := "original"
-			if n >= 10 && !size {
+			if n >= 7 && !size {
 				expectedVariant = "pointer-walk"
 			}
 			if d[0].Variant != expectedVariant {
