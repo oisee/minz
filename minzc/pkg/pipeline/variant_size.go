@@ -75,6 +75,8 @@ func sizeAxisRelevant(axis int, s Steps, name string, callers map[string]bool) b
 		return false
 	case 10:
 		return len(f.Blocks) > 0
+	case 11:
+		return len(f.StaticLoops) > 0
 	}
 	for _, b := range f.Blocks {
 		for _, x := range b.Insts {

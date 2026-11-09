@@ -94,9 +94,9 @@
     "research/crystal-hir/export.cr": "a96d3c756cb0798120aad69427b13259f761908ea95c9cf8f6b58317249cc663",
     "research/crystal-hir/typed_export.cr": "d06f1a8e22dec408b7ada5b5482023cb69fbf32d49183bf8d344683b44b3655c"
   },
-  "reused_positive_sha256": "59ac29490e89ef042fe7a75b70f28248399fb81dce6884c9a953f0ac04d4b173",
-  "reused_musical_sha256": "724a75c49299782d431ce8580b5baaa474da51236ddb06868aa611f3b0e63e81",
-  "reused_arrangement_sha256": "a4da2cbdd7fe46072956162cebaa6bc8b737e2d7f3bba97a1bacddd28719db98",
+  "reused_positive_sha256": "9cff68c77df149a933462921f1fb32e02a86d242d18b2316ed1c66573947f365",
+  "reused_musical_sha256": "85f74901b3986d98a402708ceb580bc99e1d3f1fa88f39def6091463b52f9f9f",
+  "reused_arrangement_sha256": "ebcdf931a51192916653b3a47cc0549ffedc6e1a8d50c5960702160bade6d0da",
   "proofs": {
     "invalid": {
       "protocol": "autosiril-echo-invalid/v1",
@@ -285,9 +285,9 @@
             "input_opens": 1,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -404,9 +404,9 @@
             "input_opens": 1,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -523,9 +523,9 @@
             "input_opens": 1,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -642,9 +642,9 @@
             "input_opens": 1,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -761,9 +761,9 @@
             "input_opens": 1,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -880,9 +880,9 @@
             "input_opens": 1,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -999,9 +999,9 @@
             "input_opens": 1,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -1118,9 +1118,9 @@
             "input_opens": 1,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -1237,9 +1237,9 @@
             "input_opens": 1,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -1356,9 +1356,9 @@
             "input_opens": 1,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -1475,9 +1475,9 @@
             "input_opens": 1,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -1594,9 +1594,9 @@
             "input_opens": 1,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -1713,9 +1713,9 @@
             "input_opens": 1,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -1868,9 +1868,9 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -2041,9 +2041,9 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -2214,9 +2214,9 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -2387,9 +2387,9 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -2560,9 +2560,9 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -2733,9 +2733,9 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -2906,9 +2906,9 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -3079,9 +3079,9 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -3252,9 +3252,9 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -3425,9 +3425,9 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -3598,9 +3598,9 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -3771,9 +3771,9 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -3944,9 +3944,9 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -4081,9 +4081,9 @@
             "input_opens": 1,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -4200,9 +4200,9 @@
             "input_opens": 1,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -4319,9 +4319,9 @@
             "input_opens": 1,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -4438,9 +4438,9 @@
             "input_opens": 1,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -4557,9 +4557,9 @@
             "input_opens": 1,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -5444,9 +5444,9 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -6607,9 +6607,9 @@
             "input_opens": 1,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -7092,9 +7092,9 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -7265,9 +7265,9 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -7438,9 +7438,9 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -7611,9 +7611,9 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -7784,9 +7784,9 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -7957,9 +7957,9 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -8130,9 +8130,9 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -8303,9 +8303,9 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -8476,9 +8476,9 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -8649,9 +8649,9 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -8822,9 +8822,9 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -8995,9 +8995,9 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -9168,9 +9168,9 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -9341,9 +9341,9 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -9514,9 +9514,9 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -9687,9 +9687,9 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -9860,9 +9860,9 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -10033,9 +10033,9 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -10206,9 +10206,9 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -10379,9 +10379,9 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -11500,9 +11500,9 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -13035,9 +13035,9 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -13748,9 +13748,9 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -13969,9 +13969,9 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -14142,9 +14142,9 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -14315,9 +14315,9 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -17740,9 +17740,9 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -19503,9 +19503,9 @@
             "input_opens": 1,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -19658,9 +19658,9 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -19831,9 +19831,9 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -20004,9 +20004,9 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -20141,9 +20141,9 @@
             "input_opens": 1,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -20296,9 +20296,9 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -20469,9 +20469,9 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -20517,7 +20517,7 @@
             "ring_peak": 0,
             "sector_calls": 6,
             "stack_below_entry": 42,
-            "t_states": 245815,
+            "t_states": 245765,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -20642,9 +20642,9 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -20690,7 +20690,7 @@
             "ring_peak": 0,
             "sector_calls": 6,
             "stack_below_entry": 42,
-            "t_states": 246918,
+            "t_states": 246818,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -20815,9 +20815,9 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -20988,9 +20988,9 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -21161,9 +21161,9 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -21334,9 +21334,9 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -21433,9 +21433,9 @@
             "input_opens": 0,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -21495,9 +21495,9 @@
             "input_opens": 0,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -21557,9 +21557,9 @@
             "input_opens": 0,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -21576,7 +21576,7 @@
         "scope": "initial actual Ruby musical matrix; full malformed/IO/CPM/CI pending"
       },
       "cpm": {
-        "binary_sha256": "c9d08d213a9974c6bb47f49187ef6127b6a6fabdc0a96b06108a28b0c6c532d5",
+        "binary_sha256": "b848fd5ed8e47bf468f998d66e715ef8203a56ecc080f485682a75d557326db2",
         "cases": [
           {
             "bdos_calls": {
@@ -26724,7 +26724,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 344250
+            "t_states": 344200
           },
           {
             "bdos_calls": {
@@ -26802,7 +26802,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 345353
+            "t_states": 345253
           },
           {
             "bdos_calls": {
@@ -27297,8 +27297,8 @@
             "t_states": 1891
           }
         ],
-        "code_and_bootstrap_bytes": 12036,
-        "image_bytes": 15301,
+        "code_and_bootstrap_bytes": 12024,
+        "image_bytes": 15289,
         "loaded_globals_bytes": 2997,
         "matrix_sha256": "7c7d45218cb618e6a553c19cbd7d86f2e71540d9f8d2591afdc389e207b39e80",
         "protocol": "autosiril-echo-cpm-musical/v1",
@@ -27470,9 +27470,9 @@
             "input_opens": 0,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -27565,9 +27565,9 @@
             "input_opens": 0,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -27678,9 +27678,9 @@
             "input_opens": 1,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -27809,9 +27809,9 @@
             "input_opens": 1,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -27958,9 +27958,9 @@
             "input_opens": 1,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -28125,9 +28125,9 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -28310,9 +28310,9 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -28513,9 +28513,9 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -28734,9 +28734,9 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -28973,9 +28973,9 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -29230,9 +29230,9 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -29385,9 +29385,9 @@
             "input_opens": 0,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -29486,9 +29486,9 @@
             "input_opens": 0,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -29587,9 +29587,9 @@
             "input_opens": 0,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -29700,9 +29700,9 @@
             "input_opens": 1,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -29819,9 +29819,9 @@
             "input_opens": 1,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -29926,9 +29926,9 @@
             "input_opens": 0,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -30063,9 +30063,9 @@
             "input_opens": 1,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -30218,9 +30218,9 @@
             "input_opens": 1,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -30337,9 +30337,9 @@
             "input_opens": 0,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -30486,9 +30486,9 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -30659,9 +30659,9 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -30784,9 +30784,9 @@
             "input_opens": 0,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -30885,9 +30885,9 @@
             "input_opens": 0,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -30974,9 +30974,9 @@
             "input_opens": 0,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -31057,9 +31057,9 @@
             "input_opens": 0,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -31152,9 +31152,9 @@
             "input_opens": 0,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -31253,9 +31253,9 @@
             "input_opens": 0,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -31402,9 +31402,9 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -31743,9 +31743,9 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -32060,9 +32060,9 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -32263,9 +32263,9 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -32376,9 +32376,9 @@
             "input_opens": 0,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -32579,9 +32579,9 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -32866,9 +32866,9 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -33309,9 +33309,9 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -38372,9 +38372,9 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -40808,7 +40808,7 @@
             "ring_peak": 13,
             "sector_calls": 404,
             "stack_below_entry": 46,
-            "t_states": 404773403,
+            "t_states": 404696303,
             "wire_sha256": "2b115c050b50dfa0b3cececdc84dfb4144eaae6daa37c67600b2df9058093b25"
           },
           {
@@ -45649,9 +45649,9 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -48055,7 +48055,7 @@
             "ring_peak": 13,
             "sector_calls": 399,
             "stack_below_entry": 46,
-            "t_states": 404682479,
+            "t_states": 404605379,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -48672,9 +48672,9 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -48966,7 +48966,7 @@
             "ring_peak": 6,
             "sector_calls": 47,
             "stack_below_entry": 46,
-            "t_states": 8807931,
+            "t_states": 8807031,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -51683,9 +51683,9 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -53027,7 +53027,7 @@
             "ring_peak": 13,
             "sector_calls": 222,
             "stack_below_entry": 46,
-            "t_states": 204691769,
+            "t_states": 204614669,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -57880,9 +57880,9 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -60292,7 +60292,7 @@
             "ring_peak": 13,
             "sector_calls": 400,
             "stack_below_entry": 46,
-            "t_states": 404723838,
+            "t_states": 404646738,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -65157,9 +65157,9 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -67575,7 +67575,7 @@
             "ring_peak": 13,
             "sector_calls": 401,
             "stack_below_entry": 46,
-            "t_states": 404736476,
+            "t_states": 404659376,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -72452,9 +72452,9 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -74876,7 +74876,7 @@
             "ring_peak": 13,
             "sector_calls": 402,
             "stack_below_entry": 46,
-            "t_states": 404749405,
+            "t_states": 404672305,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -79765,9 +79765,9 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -82195,7 +82195,7 @@
             "ring_peak": 13,
             "sector_calls": 403,
             "stack_below_entry": 46,
-            "t_states": 404760909,
+            "t_states": 404683809,
             "wire_sha256": "2b115c050b50dfa0b3cececdc84dfb4144eaae6daa37c67600b2df9058093b25"
           },
           {
@@ -87096,9 +87096,9 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15189,
+              "code_and_stub_bytes": 15177,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16448,
+              "image_bytes": 16436,
               "loaded_globals_bytes": 905,
               "static_spill_bytes": 354
             },
@@ -89532,7 +89532,7 @@
             "ring_peak": 13,
             "sector_calls": 404,
             "stack_below_entry": 46,
-            "t_states": 404773485,
+            "t_states": 404696385,
             "wire_sha256": "2b115c050b50dfa0b3cececdc84dfb4144eaae6daa37c67600b2df9058093b25"
           }
         ],
@@ -89540,7 +89540,7 @@
         "scope": "initial actual Ruby musical matrix; full malformed/IO/CPM/CI pending"
       },
       "cpm": {
-        "binary_sha256": "c9d08d213a9974c6bb47f49187ef6127b6a6fabdc0a96b06108a28b0c6c532d5",
+        "binary_sha256": "b848fd5ed8e47bf468f998d66e715ef8203a56ecc080f485682a75d557326db2",
         "cases": [
           {
             "bdos_calls": {
@@ -90464,7 +90464,7 @@
             "physical_sha256": "c784a74bba531e480e20731eeec5d132fed7f1790f898f2c0d8b5932aff5fd57",
             "ring_peak": 13,
             "stack_below_entry": 46,
-            "t_states": 172977769
+            "t_states": 172900669
           },
           {
             "bdos_calls": {
@@ -90545,7 +90545,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 5,
             "stack_below_entry": 46,
-            "t_states": 7727522
+            "t_states": 7726922
           },
           {
             "bdos_calls": {
@@ -90626,7 +90626,7 @@
             "physical_sha256": "7d923161cd1bde0b8a0048008bd3cafac306eb152f347e1ece615f875cfae9d5",
             "ring_peak": 13,
             "stack_below_entry": 46,
-            "t_states": 201247509
+            "t_states": 201170409
           },
           {
             "bdos_calls": {
@@ -90707,11 +90707,11 @@
             "physical_sha256": "fd7738e37b8b53c494351a069150e223541337632dd7ce4c68fdc829ccc16760",
             "ring_peak": 13,
             "stack_below_entry": 46,
-            "t_states": 400531985
+            "t_states": 400454885
           }
         ],
-        "code_and_bootstrap_bytes": 12036,
-        "image_bytes": 15301,
+        "code_and_bootstrap_bytes": 12024,
+        "image_bytes": 15289,
         "loaded_globals_bytes": 2997,
         "matrix_sha256": "cd5a31502251590bd20c59c2856d65f03b349ed1397dadcf2d00e6008d7f3989",
         "protocol": "autosiril-echo-cpm-musical/v1",
@@ -91040,9 +91040,9 @@
               "input_opens": 1,
               "native": {
                 "bounce_bank_reserved_bytes": 16384,
-                "code_and_stub_bytes": 15251,
+                "code_and_stub_bytes": 15239,
                 "external_fixed_reserved_bytes": 2048,
-                "image_bytes": 16515,
+                "image_bytes": 16503,
                 "loaded_globals_bytes": 906,
                 "static_spill_bytes": 358
               },
@@ -91148,9 +91148,9 @@
               "input_opens": 1,
               "native": {
                 "bounce_bank_reserved_bytes": 16384,
-                "code_and_stub_bytes": 15251,
+                "code_and_stub_bytes": 15239,
                 "external_fixed_reserved_bytes": 2048,
-                "image_bytes": 16515,
+                "image_bytes": 16503,
                 "loaded_globals_bytes": 906,
                 "static_spill_bytes": 358
               },
@@ -91256,9 +91256,9 @@
               "input_opens": 1,
               "native": {
                 "bounce_bank_reserved_bytes": 16384,
-                "code_and_stub_bytes": 15251,
+                "code_and_stub_bytes": 15239,
                 "external_fixed_reserved_bytes": 2048,
-                "image_bytes": 16515,
+                "image_bytes": 16503,
                 "loaded_globals_bytes": 906,
                 "static_spill_bytes": 358
               },
@@ -91364,9 +91364,9 @@
               "input_opens": 1,
               "native": {
                 "bounce_bank_reserved_bytes": 16384,
-                "code_and_stub_bytes": 15251,
+                "code_and_stub_bytes": 15239,
                 "external_fixed_reserved_bytes": 2048,
-                "image_bytes": 16515,
+                "image_bytes": 16503,
                 "loaded_globals_bytes": 906,
                 "static_spill_bytes": 358
               },
@@ -91580,9 +91580,9 @@
               "input_opens": 2,
               "native": {
                 "bounce_bank_reserved_bytes": 16384,
-                "code_and_stub_bytes": 15277,
+                "code_and_stub_bytes": 15265,
                 "external_fixed_reserved_bytes": 2048,
-                "image_bytes": 16542,
+                "image_bytes": 16530,
                 "loaded_globals_bytes": 907,
                 "static_spill_bytes": 358
               },
@@ -91742,9 +91742,9 @@
               "input_opens": 1,
               "native": {
                 "bounce_bank_reserved_bytes": 16384,
-                "code_and_stub_bytes": 15209,
+                "code_and_stub_bytes": 15197,
                 "external_fixed_reserved_bytes": 2048,
-                "image_bytes": 16469,
+                "image_bytes": 16457,
                 "loaded_globals_bytes": 906,
                 "static_spill_bytes": 354
               },
@@ -91850,9 +91850,9 @@
               "input_opens": 1,
               "native": {
                 "bounce_bank_reserved_bytes": 16384,
-                "code_and_stub_bytes": 15209,
+                "code_and_stub_bytes": 15197,
                 "external_fixed_reserved_bytes": 2048,
-                "image_bytes": 16469,
+                "image_bytes": 16457,
                 "loaded_globals_bytes": 906,
                 "static_spill_bytes": 354
               },
@@ -91958,9 +91958,9 @@
               "input_opens": 1,
               "native": {
                 "bounce_bank_reserved_bytes": 16384,
-                "code_and_stub_bytes": 15209,
+                "code_and_stub_bytes": 15197,
                 "external_fixed_reserved_bytes": 2048,
-                "image_bytes": 16469,
+                "image_bytes": 16457,
                 "loaded_globals_bytes": 906,
                 "static_spill_bytes": 354
               },
@@ -92102,9 +92102,9 @@
               "input_opens": 2,
               "native": {
                 "bounce_bank_reserved_bytes": 16384,
-                "code_and_stub_bytes": 15252,
+                "code_and_stub_bytes": 15240,
                 "external_fixed_reserved_bytes": 2048,
-                "image_bytes": 16516,
+                "image_bytes": 16504,
                 "loaded_globals_bytes": 906,
                 "static_spill_bytes": 358
               },
@@ -92264,9 +92264,9 @@
               "input_opens": 2,
               "native": {
                 "bounce_bank_reserved_bytes": 16384,
-                "code_and_stub_bytes": 15252,
+                "code_and_stub_bytes": 15240,
                 "external_fixed_reserved_bytes": 2048,
-                "image_bytes": 16516,
+                "image_bytes": 16504,
                 "loaded_globals_bytes": 906,
                 "static_spill_bytes": 358
               },
@@ -92426,9 +92426,9 @@
               "input_opens": 2,
               "native": {
                 "bounce_bank_reserved_bytes": 16384,
-                "code_and_stub_bytes": 15252,
+                "code_and_stub_bytes": 15240,
                 "external_fixed_reserved_bytes": 2048,
-                "image_bytes": 16516,
+                "image_bytes": 16504,
                 "loaded_globals_bytes": 906,
                 "static_spill_bytes": 358
               },
@@ -92588,9 +92588,9 @@
               "input_opens": 2,
               "native": {
                 "bounce_bank_reserved_bytes": 16384,
-                "code_and_stub_bytes": 15252,
+                "code_and_stub_bytes": 15240,
                 "external_fixed_reserved_bytes": 2048,
-                "image_bytes": 16516,
+                "image_bytes": 16504,
                 "loaded_globals_bytes": 906,
                 "static_spill_bytes": 358
               },
@@ -92822,9 +92822,9 @@
               "input_opens": 2,
               "native": {
                 "bounce_bank_reserved_bytes": 16384,
-                "code_and_stub_bytes": 15278,
+                "code_and_stub_bytes": 15266,
                 "external_fixed_reserved_bytes": 2048,
-                "image_bytes": 16543,
+                "image_bytes": 16531,
                 "loaded_globals_bytes": 907,
                 "static_spill_bytes": 358
               },
@@ -93020,9 +93020,9 @@
               "input_opens": 2,
               "native": {
                 "bounce_bank_reserved_bytes": 16384,
-                "code_and_stub_bytes": 15210,
+                "code_and_stub_bytes": 15198,
                 "external_fixed_reserved_bytes": 2048,
-                "image_bytes": 16470,
+                "image_bytes": 16458,
                 "loaded_globals_bytes": 906,
                 "static_spill_bytes": 354
               },
@@ -93182,9 +93182,9 @@
               "input_opens": 2,
               "native": {
                 "bounce_bank_reserved_bytes": 16384,
-                "code_and_stub_bytes": 15210,
+                "code_and_stub_bytes": 15198,
                 "external_fixed_reserved_bytes": 2048,
-                "image_bytes": 16470,
+                "image_bytes": 16458,
                 "loaded_globals_bytes": 906,
                 "static_spill_bytes": 354
               },
@@ -93344,9 +93344,9 @@
               "input_opens": 2,
               "native": {
                 "bounce_bank_reserved_bytes": 16384,
-                "code_and_stub_bytes": 15210,
+                "code_and_stub_bytes": 15198,
                 "external_fixed_reserved_bytes": 2048,
-                "image_bytes": 16470,
+                "image_bytes": 16458,
                 "loaded_globals_bytes": 906,
                 "static_spill_bytes": 354
               },
@@ -93542,9 +93542,9 @@
               "input_opens": 2,
               "native": {
                 "bounce_bank_reserved_bytes": 16384,
-                "code_and_stub_bytes": 15190,
+                "code_and_stub_bytes": 15178,
                 "external_fixed_reserved_bytes": 2048,
-                "image_bytes": 16449,
+                "image_bytes": 16437,
                 "loaded_globals_bytes": 905,
                 "static_spill_bytes": 354
               },
@@ -93794,9 +93794,9 @@
               "input_opens": 2,
               "native": {
                 "bounce_bank_reserved_bytes": 16384,
-                "code_and_stub_bytes": 15760,
+                "code_and_stub_bytes": 15748,
                 "external_fixed_reserved_bytes": 2048,
-                "image_bytes": 17287,
+                "image_bytes": 17275,
                 "loaded_globals_bytes": 1165,
                 "static_spill_bytes": 362
               },
@@ -94261,9 +94261,9 @@
               "input_opens": 2,
               "native": {
                 "bounce_bank_reserved_bytes": 16384,
-                "code_and_stub_bytes": 15760,
+                "code_and_stub_bytes": 15748,
                 "external_fixed_reserved_bytes": 2048,
-                "image_bytes": 17287,
+                "image_bytes": 17275,
                 "loaded_globals_bytes": 1165,
                 "static_spill_bytes": 362
               },
@@ -94633,9 +94633,9 @@
               "input_opens": 2,
               "native": {
                 "bounce_bank_reserved_bytes": 16384,
-                "code_and_stub_bytes": 15760,
+                "code_and_stub_bytes": 15748,
                 "external_fixed_reserved_bytes": 2048,
-                "image_bytes": 17287,
+                "image_bytes": 17275,
                 "loaded_globals_bytes": 1165,
                 "static_spill_bytes": 362
               },
@@ -95100,9 +95100,9 @@
               "input_opens": 2,
               "native": {
                 "bounce_bank_reserved_bytes": 16384,
-                "code_and_stub_bytes": 15760,
+                "code_and_stub_bytes": 15748,
                 "external_fixed_reserved_bytes": 2048,
-                "image_bytes": 17287,
+                "image_bytes": 17275,
                 "loaded_globals_bytes": 1165,
                 "static_spill_bytes": 362
               },

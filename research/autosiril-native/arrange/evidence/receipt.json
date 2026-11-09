@@ -122,7 +122,7 @@
     },
     "generated_source_sha256": "c690b3c2894a27e7aa42a5f9aa1ca5a8b2ada7239540012396de7b17d5b98ae6",
     "generated_driver_sha256": "baee5ef9d3ef292d1498bbada3f8c6b67c1e0dc9386a6eb7614e65f883b0d2ac",
-    "reused_completed_fresh_upstream_sha256": "fab5f8cc876158b1eb33feefd5db8b85c4bf6a1a1af1dd3c57ac39c1139f8e66",
+    "reused_completed_fresh_upstream_sha256": "f06e72c675a0a7c39d29a0e5c3f74ab8556069a9c12e2fc59d385728eb3da02c",
     "ruby_full_sha256": "1257a40f7f26be9223811afaeedd2a079b2891f7c094cd3817c20a047698e5c5",
     "original_ruby_source_sha256": "41f621b555fc089effd711319e723494576eb47ea0282847082ec91c1cdd4c01",
     "input_disk_sha256": "acfd8eed55463f8d34011f0894e54521b5214ea0779ee88cd931d9921e82aded",
@@ -51646,7 +51646,7 @@
     "standalone_arrange_sha256": "d6b41caa2f26b4ecbc77c98a5df5914e8ce106cc3f3f03449218812edb2bbfb4",
     "scope": "CP/M CALL5 traps; three independent COM images via actual saved files; verifier SP/HALT contract, no physical TPA/CCP bootstrap or full VT2/VTX claim"
   },
-  "fresh_upstream_sha256": "fab5f8cc876158b1eb33feefd5db8b85c4bf6a1a1af1dd3c57ac39c1139f8e66",
+  "fresh_upstream_sha256": "f06e72c675a0a7c39d29a0e5c3f74ab8556069a9c12e2fc59d385728eb3da02c",
   "fresh_upstream": {
     "protocol": "autosiril-trd-flatten/v1",
     "source_sha256": {
@@ -81298,7 +81298,7 @@
       }
     ],
     "scope": "Scorpion sector API traps with saved native producer disks; not ROM/FDC/hardware or bootable disks",
-    "fresh_prior_sha256": "f6eb191e3a18412ecedd6b3b7d2e7052737a4acf1d139904ae779ca4ddc1a32d",
+    "fresh_prior_sha256": "184bd71ee27a12549b6d0f64ae1f223c3475d4d05788d0131e116bef985a2328",
     "fresh_prior": {
       "protocol": "autosiril-common-flatten/v1",
       "source_sha256": {
@@ -84919,8 +84919,8 @@
       "directory_success_executions": 9,
       "standalone_notes_sha256": "4ecfa8a78d0146fe2f7dbcdcab711fa1ca803332044b3e4d81f684c80a37039f",
       "standalone_events_sha256": "7a6a96d5a438bc27488295a580245baa14f3b6a4b6c1b896274538286891fff7",
-      "fresh_reference_sha256": "c091c4fbb578354b85208a215d9f3bc7fdfbe039f20972f498b1d38d3577de5a",
-      "fresh_producer_sha256": "78d7c3c95de3c6250af326eae2a18ccfefc4654332f7b36f1915c8f889c0a4cd",
+      "fresh_reference_sha256": "f562f6e3d6b1f4d02736ab804508a4fc8f07b78becf0e5ae166e69785e743463",
+      "fresh_producer_sha256": "ed7e78f2d757cc7cc21d70ad7b45a32533f0569f4a2b86cf28808f19e0c2832e",
       "fresh_reference": {
         "protocol": "autosiril-cpm-file-chain-fresh/v1",
         "source_sha256": {
@@ -84930,7 +84930,7 @@
           "research/autosiril-native/file-flatten/cpm.nanz": "ea5affe2477bd1133059efde61b21414dfa45b53ff93ab217ab8b41fa2f5c503",
           "research/autosiril-native/file-flatten/driver.go.txt": "ef255a6adcb0feabe0c5781b20f370de6ffba98ef94b10d2e898cd59f68ca777"
         },
-        "pair_receipt_sha256": "37d400cf656808ff11499eddc5b35021b57e71dc8875e4cdbbc472c092c27357",
+        "pair_receipt_sha256": "27c59b6bcfc3062cfb34007da0c4d55c944be9741bc1ed52e6359b71cee43c45",
         "matrix_sha256": "b9d48e6ac84de63c5d095b3e3217196a8fc6ee9ec1024bd500ae5418e6628425",
         "oracle_source_sha256": "5575b3ac8e8a7bc5fd051ee48745726d09a205a25be0847efdc3bdf7e5a01942",
         "oracle_input_sha256": "70d0a0387564341561d7fa2247587f77904cd1780c81d503a4b0230784be5971",
@@ -94134,11 +94134,11 @@
         "rejected_native_mutants": 3,
         "directory_success_executions": 9,
         "standalone_wire_sha256": "4ecfa8a78d0146fe2f7dbcdcab711fa1ca803332044b3e4d81f684c80a37039f",
-        "standalone_mze_sha256": "70289b33af1d4cdcb4899e15f92588b09e746811ffdc2d802b1ca622d1b5ca78",
+        "standalone_mze_sha256": "4d6e5d07a0c31dbbbcaba6815321cff2b70ede559d1f75fbfc8b0270cdee21e8",
         "chronos_logical_sha256": "56e0b7266c9f4ba610f8d77d2475c6293d49af40e5778ad96a162f7daf50d76b",
         "scope": "CP/M and Scorpion API traps; not physical ROM/hardware",
-        "fresh_file_reference_sha256": "37d400cf656808ff11499eddc5b35021b57e71dc8875e4cdbbc472c092c27357",
-        "fresh_midi_reference_sha256": "c3eacdb91fc0aaf022bb902fab54618b1f3be9d119abc23259cd8fbaa2fcb2f4",
+        "fresh_file_reference_sha256": "27c59b6bcfc3062cfb34007da0c4d55c944be9741bc1ed52e6359b71cee43c45",
+        "fresh_midi_reference_sha256": "de55b2bafac81d08e8bbd7b4830145af7a80457c55b69071b8289038d12fa65c",
         "fresh_midi_executions": 342,
         "fresh_file_reference": {
           "protocol": "autosiril-file-pair-fresh/v1",
@@ -94151,7 +94151,7 @@
             "minzc/cmd/mze/cpm_record.go": "2959ad5fbd05889fdc0d1bdf991429ae163b948a424c369bd3f311f5d2a667c7",
             "minzc/cmd/mze/cpm_record_test.go": "ed65e0346a0773ddcb167ac3222a6fd434221c333bd6f995a57e1b7a889ed8d5"
           },
-          "reference_sha256": "c3eacdb91fc0aaf022bb902fab54618b1f3be9d119abc23259cd8fbaa2fcb2f4",
+          "reference_sha256": "de55b2bafac81d08e8bbd7b4830145af7a80457c55b69071b8289038d12fa65c",
           "matrix_sha256": "29d8568e2178f72c60c2005e520a7ecfceb6056f5627bb21a53a796fb64a3dd8",
           "generated_source_sha256": "d214edcd4ef504308e4e1aa1ef34f4d7842cc34ea39741342c043e872ba0a875",
           "generated_driver_sha256": "2988674e20602b0f3f4e99df1b718666a918ef2a86e3e3e19f1202ccf278b47c",
@@ -97068,7 +97068,7 @@
             "target_executions": 147
           },
           "standalone_wire_sha256": "4ecfa8a78d0146fe2f7dbcdcab711fa1ca803332044b3e4d81f684c80a37039f",
-          "standalone_mze_sha256": "70289b33af1d4cdcb4899e15f92588b09e746811ffdc2d802b1ca622d1b5ca78",
+          "standalone_mze_sha256": "4d6e5d07a0c31dbbbcaba6815321cff2b70ede559d1f75fbfc8b0270cdee21e8",
           "local_go_overlay_sha256": null,
           "local_go_overlay_sources": {},
           "scope": "first file stage only; target note-file reader and flatten-file stage pending"
@@ -97106,10 +97106,10 @@
           "music_sha256": "9fb9f831651875e5b4b65b45a121d3f8d3b9ebce7ec6f7652a7abd909485ce9a",
           "manifest_sha256": "f2ba3f05a0700c79e9b6deff99461d1cc57d70f3c4a460ba69fcb5f82d80835d",
           "exporter_sha256": "a750f0a95d2ab2bce3bddc1c15548007febd46d94d043317e381ddfdbf71506f",
-          "consumer_sha256": "2dd4d4875b3a4ff5f232061f79035f0fa09d9240f117056cb48d2cd5d3e8ebc2",
+          "consumer_sha256": "0ed26708ebed1b31260d1f46d27bac13bbb1999be2f47178ac03fbab1f3e58d2",
           "input_sha256": "8b5f831c93d6dd251fdb4f3c6986b59ccb6ace4208f4c39c12dc0d5a4db7f9db",
           "native": {
-            "assembly_sha256": "177ab9110cebdd4cd558b3a1c32768c9b5769970586fa9e5c1aedab7cbb3a73b",
+            "assembly_sha256": "ca6a7a662ede3272a8fbb51fb8ffef7f4224cdbf8c449b785a0ad12b9b25c78e",
             "backend_spills": [
               {
                 "name": "_spill_midi__smf__SmfDecoder_init_r45",
@@ -97163,607 +97163,607 @@
               },
               {
                 "name": "_spill_midi__smf__SmfDecoder_feed_byte_r184",
-                "address": 24482,
+                "address": 24464,
                 "bytes": 4
               },
               {
                 "name": "_spill_midi__smf__SmfDecoder_feed_byte_r191",
-                "address": 24486,
+                "address": 24468,
                 "bytes": 4
               },
               {
                 "name": "_spill_midi__smf__SmfDecoder_feed_byte_r192",
-                "address": 24490,
+                "address": 24472,
                 "bytes": 4
               },
               {
                 "name": "_spill_midi__smf__SmfDecoder_feed_byte_r193",
-                "address": 24494,
+                "address": 24476,
                 "bytes": 4
               },
               {
                 "name": "_spill_midi__smf__SmfDecoder_feed_byte_r228",
-                "address": 24498,
+                "address": 24480,
                 "bytes": 4
               },
               {
                 "name": "_spill_midi__smf__SmfDecoder_feed_byte_r230",
-                "address": 24502,
+                "address": 24484,
                 "bytes": 4
               },
               {
                 "name": "_spill_midi__smf__SmfDecoder_feed_byte_r231",
-                "address": 24506,
+                "address": 24488,
                 "bytes": 4
               },
               {
                 "name": "_spill_midi__smf__SmfDecoder_feed_byte_r232",
-                "address": 24510,
+                "address": 24492,
                 "bytes": 4
               },
               {
                 "name": "_spill_midi__smf__SmfDecoder_feed_byte_r244",
-                "address": 24514,
+                "address": 24496,
                 "bytes": 4
               },
               {
                 "name": "_spill_midi__smf__SmfDecoder_feed_byte_r251",
-                "address": 24518,
+                "address": 24500,
                 "bytes": 4
               },
               {
                 "name": "_spill_midi__smf__SmfDecoder_feed_byte_r252",
-                "address": 24522,
+                "address": 24504,
                 "bytes": 4
               },
               {
                 "name": "_spill_midi__smf__SmfDecoder_feed_byte_r253",
-                "address": 24526,
+                "address": 24508,
                 "bytes": 4
               },
               {
                 "name": "_spill_midi__smf__SmfDecoder_feed_byte_r255",
-                "address": 24530,
+                "address": 24512,
                 "bytes": 4
               },
               {
                 "name": "_spill_midi__smf__SmfDecoder_feed_byte_r358",
-                "address": 24534,
+                "address": 24516,
                 "bytes": 4
               },
               {
                 "name": "_spill_midi__smf__SmfDecoder_feed_byte_r369",
-                "address": 24538,
+                "address": 24520,
                 "bytes": 4
               },
               {
                 "name": "_spill_midi__smf__SmfDecoder_feed_byte_r370",
-                "address": 24542,
+                "address": 24524,
                 "bytes": 4
               },
               {
                 "name": "_spill_midi__smf__SmfDecoder_feed_byte_r371",
-                "address": 24546,
+                "address": 24528,
                 "bytes": 4
               },
               {
                 "name": "_spill_midi__smf__SmfDecoder_feed_byte_r374",
-                "address": 24550,
+                "address": 24532,
                 "bytes": 4
               },
               {
                 "name": "_spill_midi__smf__SmfDecoder_feed_byte_r405",
-                "address": 24554,
+                "address": 24536,
                 "bytes": 4
               },
               {
                 "name": "_spill_midi__smf__SmfDecoder_feed_byte_r415",
-                "address": 24558,
+                "address": 24540,
                 "bytes": 4
               },
               {
                 "name": "_spill_midi__smf__SmfDecoder_feed_byte_r417",
-                "address": 24562,
+                "address": 24544,
                 "bytes": 4
               },
               {
                 "name": "_spill_midi__smf__SmfDecoder_feed_byte_r418",
-                "address": 24566,
+                "address": 24548,
                 "bytes": 4
               },
               {
                 "name": "_spill_midi__smf__SmfDecoder_feed_byte_r419",
-                "address": 24570,
+                "address": 24552,
                 "bytes": 4
               },
               {
                 "name": "_spill_midi__smf__SmfDecoder_feed_byte_r431",
-                "address": 24574,
+                "address": 24556,
                 "bytes": 4
               },
               {
                 "name": "_spill_midi__smf__SmfDecoder_feed_byte_r438",
-                "address": 24578,
+                "address": 24560,
                 "bytes": 4
               },
               {
                 "name": "_spill_midi__smf__SmfDecoder_feed_byte_r440",
-                "address": 24582,
+                "address": 24564,
                 "bytes": 4
               },
               {
                 "name": "_spill_midi__smf__SmfDecoder_feed_byte_r442",
-                "address": 24586,
+                "address": 24568,
                 "bytes": 4
               },
               {
                 "name": "_spill_midi__smf__SmfDecoder_feed_byte_r444",
-                "address": 24590,
+                "address": 24572,
                 "bytes": 4
               },
               {
                 "name": "_spill_midi__smf__SmfDecoder_feed_byte_r463",
-                "address": 24594,
+                "address": 24576,
                 "bytes": 4
               },
               {
                 "name": "_spill_midi__smf__SmfDecoder_feed_byte_r465",
-                "address": 24598,
+                "address": 24580,
                 "bytes": 4
               },
               {
                 "name": "_spill_midi__smf__SmfDecoder_feed_byte_r468",
-                "address": 24602,
+                "address": 24584,
                 "bytes": 4
               },
               {
                 "name": "_spill_midi__smf__SmfDecoder_feed_byte_r469",
-                "address": 24606,
+                "address": 24588,
                 "bytes": 4
               },
               {
                 "name": "_spill_midi__smf__SmfDecoder_feed_byte_r484",
-                "address": 24610,
+                "address": 24592,
                 "bytes": 4
               },
               {
                 "name": "_spill_midi__smf__SmfDecoder_feed_byte_r487",
-                "address": 24614,
+                "address": 24596,
                 "bytes": 4
               },
               {
                 "name": "_spill_midi__smf__SmfDecoder_feed_byte_r488",
-                "address": 24618,
+                "address": 24600,
                 "bytes": 4
               },
               {
                 "name": "_spill_midi__smf__SmfDecoder_feed_byte_r490",
-                "address": 24622,
+                "address": 24604,
                 "bytes": 4
               },
               {
                 "name": "_spill_midi__smf__SmfDecoder_feed_byte_r491",
-                "address": 24626,
+                "address": 24608,
                 "bytes": 4
               },
               {
                 "name": "_spill_midi__smf__SmfDecoder_feed_byte_r497",
-                "address": 24630,
+                "address": 24612,
                 "bytes": 4
               },
               {
                 "name": "_spill_midi__smf__SmfDecoder_feed_byte_r499",
-                "address": 24634,
+                "address": 24616,
                 "bytes": 4
               },
               {
                 "name": "_spill_midi__smf__SmfDecoder_feed_byte_r500",
-                "address": 24638,
+                "address": 24620,
                 "bytes": 4
               },
               {
                 "name": "_spill_midi__smf__SmfDecoder_feed_byte_r502",
-                "address": 24642,
+                "address": 24624,
                 "bytes": 4
               },
               {
                 "name": "_spill_midi__smf__SmfDecoder_feed_byte_r519",
-                "address": 24646,
+                "address": 24628,
                 "bytes": 4
               },
               {
                 "name": "_spill_midi__smf__SmfDecoder_feed_byte_r625",
-                "address": 24650,
+                "address": 24632,
                 "bytes": 4
               },
               {
                 "name": "_spill_midi__smf__SmfDecoder_feed_byte_r627",
-                "address": 24654,
+                "address": 24636,
                 "bytes": 4
               },
               {
                 "name": "_spill_midi__smf__SmfDecoder_feed_byte_r630",
-                "address": 24658,
+                "address": 24640,
                 "bytes": 4
               },
               {
                 "name": "_spill_midi__smf__SmfDecoder_feed_byte_r631",
-                "address": 24662,
+                "address": 24644,
                 "bytes": 4
               },
               {
                 "name": "_spill_midi__smf__SmfDecoder_feed_byte_r646",
-                "address": 24666,
+                "address": 24648,
                 "bytes": 4
               },
               {
                 "name": "_spill_midi__smf__SmfDecoder_feed_byte_r649",
-                "address": 24670,
+                "address": 24652,
                 "bytes": 4
               },
               {
                 "name": "_spill_midi__smf__SmfDecoder_feed_byte_r652",
-                "address": 24674,
+                "address": 24656,
                 "bytes": 4
               },
               {
                 "name": "_spill_midi__smf__SmfDecoder_feed_byte_r654",
-                "address": 24678,
+                "address": 24660,
                 "bytes": 4
               },
               {
                 "name": "_spill_midi__smf__SmfDecoder_feed_byte_r660",
-                "address": 24682,
+                "address": 24664,
                 "bytes": 4
               },
               {
                 "name": "_spill_midi__smf__SmfDecoder_feed_byte_r663",
-                "address": 24686,
+                "address": 24668,
                 "bytes": 4
               },
               {
                 "name": "_spill_midi__smf__SmfDecoder_feed_byte_r677",
-                "address": 24690,
+                "address": 24672,
                 "bytes": 4
               },
               {
                 "name": "_spill_midi__smf__SmfDecoder_feed_byte_r684",
-                "address": 24694,
+                "address": 24676,
                 "bytes": 4
               },
               {
                 "name": "_spill_midi__smf__SmfDecoder_feed_byte_r691",
-                "address": 24698,
+                "address": 24680,
                 "bytes": 4
               },
               {
                 "name": "_spill_midi__smf__SmfDecoder_feed_byte_r705",
-                "address": 24702,
+                "address": 24684,
                 "bytes": 4
               },
               {
                 "name": "_spill_midi__smf__SmfDecoder_feed_byte_r706",
-                "address": 24706,
+                "address": 24688,
                 "bytes": 4
               },
               {
                 "name": "_spill_midi__smf__SmfDecoder_feed_byte_r707",
-                "address": 24710,
+                "address": 24692,
                 "bytes": 4
               },
               {
                 "name": "_spill_midi__smf__SmfDecoder_feed_byte_r710",
-                "address": 24714,
+                "address": 24696,
                 "bytes": 4
               },
               {
                 "name": "_spill_crystal_quantize_r715",
-                "address": 24793,
+                "address": 24775,
                 "bytes": 4
               },
               {
                 "name": "_spill_crystal_quantize_r716",
-                "address": 24797,
+                "address": 24779,
                 "bytes": 4
               },
               {
                 "name": "_spill_crystal_quantize_r717",
-                "address": 24801,
+                "address": 24783,
                 "bytes": 4
               },
               {
                 "name": "_spill_paired_row_r735",
-                "address": 26512,
+                "address": 26494,
                 "bytes": 4
               },
               {
                 "name": "_spill_paired_row_r731",
-                "address": 26516,
+                "address": 26498,
                 "bytes": 4
               },
               {
                 "name": "_spill_paired_row_r742",
-                "address": 26520,
+                "address": 26502,
                 "bytes": 4
               },
               {
                 "name": "_spill_paired_row_r745",
-                "address": 26524,
+                "address": 26506,
                 "bytes": 4
               },
               {
                 "name": "_spill_paired_row_r746",
-                "address": 26528,
+                "address": 26510,
                 "bytes": 4
               },
               {
                 "name": "_spill_paired_row_r747",
-                "address": 26532,
+                "address": 26514,
                 "bytes": 4
               },
               {
                 "name": "_spill_paired_row_r748",
-                "address": 26536,
+                "address": 26518,
                 "bytes": 4
               },
               {
                 "name": "_spill_paired_row_r749",
-                "address": 26540,
+                "address": 26522,
                 "bytes": 4
               },
               {
                 "name": "_spill_paired_row_r750",
-                "address": 26544,
+                "address": 26526,
                 "bytes": 4
               },
               {
                 "name": "_spill_paired_row_r751",
-                "address": 26548,
+                "address": 26530,
                 "bytes": 4
               },
               {
                 "name": "_spill_paired_row_r753",
-                "address": 26552,
+                "address": 26534,
                 "bytes": 4
               },
               {
                 "name": "_spill_paired_row_r754",
-                "address": 26556,
+                "address": 26538,
                 "bytes": 4
               },
               {
                 "name": "_spill_paired_row_r757",
-                "address": 26560,
+                "address": 26542,
                 "bytes": 4
               },
               {
                 "name": "_spill_paired_row_r763",
-                "address": 26564,
+                "address": 26546,
                 "bytes": 4
               },
               {
                 "name": "_spill_paired_row_r764",
-                "address": 26568,
+                "address": 26550,
                 "bytes": 4
               },
               {
                 "name": "_spill_close_paired_r767",
-                "address": 26657,
+                "address": 26639,
                 "bytes": 4
               },
               {
                 "name": "_spill_release_paired_r793",
-                "address": 27011,
+                "address": 26993,
                 "bytes": 4
               },
               {
                 "name": "_spill_release_paired_r788",
-                "address": 27015,
+                "address": 26997,
                 "bytes": 4
               },
               {
                 "name": "_spill_release_paired_r792",
-                "address": 27019,
+                "address": 27001,
                 "bytes": 1
               },
               {
                 "name": "_spill_consume_paired_event_r895",
-                "address": 27624,
+                "address": 27606,
                 "bytes": 4
               },
               {
                 "name": "_spill_consume_paired_event_r934",
-                "address": 27628,
+                "address": 27610,
                 "bytes": 2
               },
               {
                 "name": "_spill_consume_paired_event_r935",
-                "address": 27630,
+                "address": 27612,
                 "bytes": 2
               },
               {
                 "name": "_spill_consume_paired_event_r941",
-                "address": 27632,
+                "address": 27614,
                 "bytes": 2
               },
               {
                 "name": "_spill_consume_paired_event_r946",
-                "address": 27634,
+                "address": 27616,
                 "bytes": 2
               },
               {
                 "name": "_spill_consume_paired_event_r950",
-                "address": 27636,
+                "address": 27618,
                 "bytes": 2
               },
               {
                 "name": "_spill_consume_paired_event_r951",
-                "address": 27638,
+                "address": 27620,
                 "bytes": 2
               },
               {
                 "name": "_spill_consume_paired_event_r954",
-                "address": 27640,
+                "address": 27622,
                 "bytes": 2
               },
               {
                 "name": "_spill_consume_paired_event_r955",
-                "address": 27642,
+                "address": 27624,
                 "bytes": 2
               },
               {
                 "name": "_spill_paired_boot_r1005",
-                "address": 28201,
+                "address": 28183,
                 "bytes": 4
               },
               {
                 "name": "_spill_paired_boot_r1007",
-                "address": 28205,
+                "address": 28187,
                 "bytes": 4
               },
               {
                 "name": "_spill_paired_boot_r1009",
-                "address": 28209,
+                "address": 28191,
                 "bytes": 4
               },
               {
                 "name": "_spill_paired_boot_r1024",
-                "address": 28213,
+                "address": 28195,
                 "bytes": 4
               },
               {
                 "name": "_spill_paired_boot_r1032",
-                "address": 28217,
+                "address": 28199,
                 "bytes": 4
               },
               {
                 "name": "_spill_native_main_r1103",
-                "address": 28803,
+                "address": 28785,
                 "bytes": 4
               },
               {
                 "name": "_spill_native_main_r1104",
-                "address": 28807,
+                "address": 28789,
                 "bytes": 4
               },
               {
                 "name": "_spill_native_main_r1105",
-                "address": 28811,
+                "address": 28793,
                 "bytes": 4
               },
               {
                 "name": "_spill_native_main_r1122",
-                "address": 28815,
+                "address": 28797,
                 "bytes": 4
               },
               {
                 "name": "_spill_native_main_r1123",
-                "address": 28819,
+                "address": 28801,
                 "bytes": 4
               },
               {
                 "name": "_spill_native_main_r1124",
-                "address": 28823,
+                "address": 28805,
                 "bytes": 4
               },
               {
                 "name": "_spill_cr_crystal_quantize_0_r1143",
-                "address": 30530,
+                "address": 30512,
                 "bytes": 4
               },
               {
                 "name": "_spill_cr_crystal_quantize_0_r1142",
-                "address": 30534,
+                "address": 30516,
                 "bytes": 4
               },
               {
                 "name": "_spill_cr_crystal_quantize_0_r1144",
-                "address": 30538,
+                "address": 30520,
                 "bytes": 4
               },
               {
                 "name": "_spill_cr_crystal_quantize_0_r1145",
-                "address": 30542,
+                "address": 30524,
                 "bytes": 4
               },
               {
                 "name": "_spill_cr_crystal_quantize_0_r1146",
-                "address": 30546,
+                "address": 30528,
                 "bytes": 4
               },
               {
                 "name": "_spill_cr_crystal_quantize_0_r1147",
-                "address": 30550,
+                "address": 30532,
                 "bytes": 4
               },
               {
                 "name": "_spill_cr_crystal_quantize_0_r1148",
-                "address": 30554,
+                "address": 30536,
                 "bytes": 4
               },
               {
                 "name": "_spill_cr_crystal_quantize_0_r1149",
-                "address": 30558,
+                "address": 30540,
                 "bytes": 4
               },
               {
                 "name": "_spill_cr_crystal_quantize_0_r1150",
-                "address": 30562,
+                "address": 30544,
                 "bytes": 4
               },
               {
                 "name": "_spill_cr_crystal_quantize_0_r1151",
-                "address": 30566,
+                "address": 30548,
                 "bytes": 4
               },
               {
                 "name": "_spill_cr_crystal_quantize_0_r1152",
-                "address": 30570,
+                "address": 30552,
                 "bytes": 4
               },
               {
                 "name": "_spill_cr_crystal_quantize_0_r1153",
-                "address": 30574,
+                "address": 30556,
                 "bytes": 4
               },
               {
                 "name": "_spill_consume_paired_event_split_5_r1196",
-                "address": 31190,
+                "address": 31172,
                 "bytes": 4
               },
               {
                 "name": "_spill_consume_paired_event_split_5_r1163",
-                "address": 31194,
+                "address": 31176,
                 "bytes": 4
               },
               {
                 "name": "_spill_consume_paired_event_split_5_r1178",
-                "address": 31198,
+                "address": 31180,
                 "bytes": 4
               },
               {
                 "name": "_spill_consume_paired_event_split_5_r1185",
-                "address": 31202,
+                "address": 31184,
                 "bytes": 4
               },
               {
                 "name": "_spill_consume_paired_event_split_5_r1188",
-                "address": 31206,
+                "address": 31188,
                 "bytes": 4
               },
               {
                 "name": "_spill_consume_paired_event_split_5_r1189",
-                "address": 31210,
+                "address": 31192,
                 "bytes": 4
               },
               {
                 "name": "_spill_consume_paired_event_split_5_r1195",
-                "address": 31214,
+                "address": 31196,
                 "bytes": 4
               }
             ],
             "backend_static_spill_bytes": 501,
-            "binary_sha256": "87443ea606b0559df3889c19ff11a542683e8a9704dd72b9602406033992c6b4",
+            "binary_sha256": "08ca523c674e729a6ed9e1c077ac83a65d405482d9569a269dcaa6de49ea721e",
             "cases": [
               {
                 "chunk_size": 1,
@@ -97805,7 +97805,7 @@
                     "peak_active": 2,
                     "sources": 2,
                     "stack_below_entry": 58,
-                    "t_states": 432832047
+                    "t_states": 432831747
                   }
                 ],
                 "midi_sha256": "0d4c0289fe42c81ea01c9715c9d382807e97549161c419c737e15f18d6abc02f",
@@ -97851,7 +97851,7 @@
                     "peak_active": 2,
                     "sources": 2,
                     "stack_below_entry": 58,
-                    "t_states": 430168995
+                    "t_states": 430168695
                   }
                 ],
                 "midi_sha256": "0d4c0289fe42c81ea01c9715c9d382807e97549161c419c737e15f18d6abc02f",
@@ -97897,7 +97897,7 @@
                     "peak_active": 2,
                     "sources": 2,
                     "stack_below_entry": 58,
-                    "t_states": 429737501
+                    "t_states": 429737201
                   }
                 ],
                 "midi_sha256": "0d4c0289fe42c81ea01c9715c9d382807e97549161c419c737e15f18d6abc02f",
@@ -97943,7 +97943,7 @@
                     "peak_active": 0,
                     "sources": 0,
                     "stack_below_entry": 24,
-                    "t_states": 133655
+                    "t_states": 133355
                   }
                 ],
                 "midi_sha256": "cf2daaa8396b81f4d5ebd27cc35085aa3abfe1a9de6d52e3957af3c2baa124e1",
@@ -97989,7 +97989,7 @@
                     "peak_active": 0,
                     "sources": 0,
                     "stack_below_entry": 24,
-                    "t_states": 126109
+                    "t_states": 125809
                   }
                 ],
                 "midi_sha256": "cf2daaa8396b81f4d5ebd27cc35085aa3abfe1a9de6d52e3957af3c2baa124e1",
@@ -98035,7 +98035,7 @@
                     "peak_active": 0,
                     "sources": 0,
                     "stack_below_entry": 24,
-                    "t_states": 125080
+                    "t_states": 124780
                   }
                 ],
                 "midi_sha256": "cf2daaa8396b81f4d5ebd27cc35085aa3abfe1a9de6d52e3957af3c2baa124e1",
@@ -98081,7 +98081,7 @@
                     "peak_active": 1,
                     "sources": 1,
                     "stack_below_entry": 58,
-                    "t_states": 491064
+                    "t_states": 490764
                   }
                 ],
                 "midi_sha256": "89c0acd3a45bd1376a3feaedc9b9a2476e06bb52c6b3bb612823bdbd6ceb87b2",
@@ -98127,7 +98127,7 @@
                     "peak_active": 1,
                     "sources": 1,
                     "stack_below_entry": 58,
-                    "t_states": 481117
+                    "t_states": 480817
                   }
                 ],
                 "midi_sha256": "89c0acd3a45bd1376a3feaedc9b9a2476e06bb52c6b3bb612823bdbd6ceb87b2",
@@ -98173,7 +98173,7 @@
                     "peak_active": 1,
                     "sources": 1,
                     "stack_below_entry": 58,
-                    "t_states": 479745
+                    "t_states": 479445
                   }
                 ],
                 "midi_sha256": "89c0acd3a45bd1376a3feaedc9b9a2476e06bb52c6b3bb612823bdbd6ceb87b2",
@@ -98219,7 +98219,7 @@
                     "peak_active": 2,
                     "sources": 1,
                     "stack_below_entry": 58,
-                    "t_states": 796327
+                    "t_states": 796027
                   }
                 ],
                 "midi_sha256": "d5c10b0e99d4fe7dea0da6eec48402f2e288cda67f28b3668fe2fe16c1e26b2c",
@@ -98265,7 +98265,7 @@
                     "peak_active": 2,
                     "sources": 1,
                     "stack_below_entry": 58,
-                    "t_states": 783979
+                    "t_states": 783679
                   }
                 ],
                 "midi_sha256": "d5c10b0e99d4fe7dea0da6eec48402f2e288cda67f28b3668fe2fe16c1e26b2c",
@@ -98311,7 +98311,7 @@
                     "peak_active": 2,
                     "sources": 1,
                     "stack_below_entry": 58,
-                    "t_states": 782264
+                    "t_states": 781964
                   }
                 ],
                 "midi_sha256": "d5c10b0e99d4fe7dea0da6eec48402f2e288cda67f28b3668fe2fe16c1e26b2c",
@@ -98357,7 +98357,7 @@
                     "peak_active": 2,
                     "sources": 1,
                     "stack_below_entry": 58,
-                    "t_states": 800340
+                    "t_states": 800040
                   }
                 ],
                 "midi_sha256": "16fc4acdecd66446ac9e06d1aad7bcc50c07848223348f6916f4f970fafb9c0a",
@@ -98403,7 +98403,7 @@
                     "peak_active": 2,
                     "sources": 1,
                     "stack_below_entry": 58,
-                    "t_states": 787992
+                    "t_states": 787692
                   }
                 ],
                 "midi_sha256": "16fc4acdecd66446ac9e06d1aad7bcc50c07848223348f6916f4f970fafb9c0a",
@@ -98449,7 +98449,7 @@
                     "peak_active": 2,
                     "sources": 1,
                     "stack_below_entry": 58,
-                    "t_states": 786277
+                    "t_states": 785977
                   }
                 ],
                 "midi_sha256": "16fc4acdecd66446ac9e06d1aad7bcc50c07848223348f6916f4f970fafb9c0a",
@@ -98495,7 +98495,7 @@
                     "peak_active": 3,
                     "sources": 1,
                     "stack_below_entry": 58,
-                    "t_states": 1415723
+                    "t_states": 1415423
                   }
                 ],
                 "midi_sha256": "f81c10bf6fe737bbf8e9f7a7be44618f1b61a2bee82a8aef1bc6cab1dc6f165c",
@@ -98541,7 +98541,7 @@
                     "peak_active": 3,
                     "sources": 1,
                     "stack_below_entry": 58,
-                    "t_states": 1398916
+                    "t_states": 1398616
                   }
                 ],
                 "midi_sha256": "f81c10bf6fe737bbf8e9f7a7be44618f1b61a2bee82a8aef1bc6cab1dc6f165c",
@@ -98587,7 +98587,7 @@
                     "peak_active": 3,
                     "sources": 1,
                     "stack_below_entry": 58,
-                    "t_states": 1396172
+                    "t_states": 1395872
                   }
                 ],
                 "midi_sha256": "f81c10bf6fe737bbf8e9f7a7be44618f1b61a2bee82a8aef1bc6cab1dc6f165c",
@@ -98633,7 +98633,7 @@
                     "peak_active": 1,
                     "sources": 1,
                     "stack_below_entry": 58,
-                    "t_states": 552530
+                    "t_states": 552230
                   }
                 ],
                 "midi_sha256": "879ef791f1422ff9b639cd28ede1185afe28ed4311dc8d1edd223d772443a909",
@@ -98679,7 +98679,7 @@
                     "peak_active": 1,
                     "sources": 1,
                     "stack_below_entry": 58,
-                    "t_states": 540182
+                    "t_states": 539882
                   }
                 ],
                 "midi_sha256": "879ef791f1422ff9b639cd28ede1185afe28ed4311dc8d1edd223d772443a909",
@@ -98725,7 +98725,7 @@
                     "peak_active": 1,
                     "sources": 1,
                     "stack_below_entry": 58,
-                    "t_states": 538467
+                    "t_states": 538167
                   }
                 ],
                 "midi_sha256": "879ef791f1422ff9b639cd28ede1185afe28ed4311dc8d1edd223d772443a909",
@@ -98771,7 +98771,7 @@
                     "peak_active": 2,
                     "sources": 1,
                     "stack_below_entry": 58,
-                    "t_states": 787411
+                    "t_states": 787111
                   }
                 ],
                 "midi_sha256": "e243456b668b234296eb9f83c9dd4da956b71a85b4b99d839792ab31fa39dbb9",
@@ -98817,7 +98817,7 @@
                     "peak_active": 2,
                     "sources": 1,
                     "stack_below_entry": 58,
-                    "t_states": 775749
+                    "t_states": 775449
                   }
                 ],
                 "midi_sha256": "e243456b668b234296eb9f83c9dd4da956b71a85b4b99d839792ab31fa39dbb9",
@@ -98863,7 +98863,7 @@
                     "peak_active": 2,
                     "sources": 1,
                     "stack_below_entry": 58,
-                    "t_states": 774034
+                    "t_states": 773734
                   }
                 ],
                 "midi_sha256": "e243456b668b234296eb9f83c9dd4da956b71a85b4b99d839792ab31fa39dbb9",
@@ -98909,7 +98909,7 @@
                     "peak_active": 1,
                     "sources": 2,
                     "stack_below_entry": 58,
-                    "t_states": 1006233
+                    "t_states": 1005933
                   }
                 ],
                 "midi_sha256": "ad5677a0c3c4433007f67323122e84a197ca2e88ccfb971e4c2e6bf0fbb79902",
@@ -98955,7 +98955,7 @@
                     "peak_active": 1,
                     "sources": 2,
                     "stack_below_entry": 58,
-                    "t_states": 983595
+                    "t_states": 983295
                   }
                 ],
                 "midi_sha256": "ad5677a0c3c4433007f67323122e84a197ca2e88ccfb971e4c2e6bf0fbb79902",
@@ -99001,7 +99001,7 @@
                     "peak_active": 1,
                     "sources": 2,
                     "stack_below_entry": 58,
-                    "t_states": 979822
+                    "t_states": 979522
                   }
                 ],
                 "midi_sha256": "ad5677a0c3c4433007f67323122e84a197ca2e88ccfb971e4c2e6bf0fbb79902",
@@ -99047,7 +99047,7 @@
                     "peak_active": 2,
                     "sources": 1,
                     "stack_below_entry": 62,
-                    "t_states": 729213
+                    "t_states": 728913
                   }
                 ],
                 "midi_sha256": "d3e159cf7743ae0be3908df51947773cd84fc325d51badeabd8167d38bae0899",
@@ -99093,7 +99093,7 @@
                     "peak_active": 2,
                     "sources": 1,
                     "stack_below_entry": 62,
-                    "t_states": 719266
+                    "t_states": 718966
                   }
                 ],
                 "midi_sha256": "d3e159cf7743ae0be3908df51947773cd84fc325d51badeabd8167d38bae0899",
@@ -99139,7 +99139,7 @@
                     "peak_active": 2,
                     "sources": 1,
                     "stack_below_entry": 62,
-                    "t_states": 717894
+                    "t_states": 717594
                   }
                 ],
                 "midi_sha256": "d3e159cf7743ae0be3908df51947773cd84fc325d51badeabd8167d38bae0899",
@@ -99185,7 +99185,7 @@
                     "peak_active": 1,
                     "sources": 1,
                     "stack_below_entry": 58,
-                    "t_states": 489797
+                    "t_states": 489497
                   }
                 ],
                 "midi_sha256": "ed7c10622e1dea24e708c2598e970a4122591426c1fcd17221daa500278d5df7",
@@ -99231,7 +99231,7 @@
                     "peak_active": 1,
                     "sources": 1,
                     "stack_below_entry": 58,
-                    "t_states": 479850
+                    "t_states": 479550
                   }
                 ],
                 "midi_sha256": "ed7c10622e1dea24e708c2598e970a4122591426c1fcd17221daa500278d5df7",
@@ -99277,7 +99277,7 @@
                     "peak_active": 1,
                     "sources": 1,
                     "stack_below_entry": 58,
-                    "t_states": 478478
+                    "t_states": 478178
                   }
                 ],
                 "midi_sha256": "ed7c10622e1dea24e708c2598e970a4122591426c1fcd17221daa500278d5df7",
@@ -99323,7 +99323,7 @@
                     "peak_active": 1,
                     "sources": 1,
                     "stack_below_entry": 58,
-                    "t_states": 492316
+                    "t_states": 492016
                   }
                 ],
                 "midi_sha256": "7bafc0a5c102aa0ae267a474435c3f837e933f7319ce83aae495900dc2aa9432",
@@ -99369,7 +99369,7 @@
                     "peak_active": 1,
                     "sources": 1,
                     "stack_below_entry": 58,
-                    "t_states": 482026
+                    "t_states": 481726
                   }
                 ],
                 "midi_sha256": "7bafc0a5c102aa0ae267a474435c3f837e933f7319ce83aae495900dc2aa9432",
@@ -99415,7 +99415,7 @@
                     "peak_active": 1,
                     "sources": 1,
                     "stack_below_entry": 58,
-                    "t_states": 480654
+                    "t_states": 480354
                   }
                 ],
                 "midi_sha256": "7bafc0a5c102aa0ae267a474435c3f837e933f7319ce83aae495900dc2aa9432",
@@ -99461,7 +99461,7 @@
                     "peak_active": 1,
                     "sources": 1,
                     "stack_below_entry": 58,
-                    "t_states": 550426
+                    "t_states": 550126
                   }
                 ],
                 "midi_sha256": "d42748a3cb9d94f0d19cba85eabfa6967964fc23c22961d2090823d11428169a",
@@ -99507,7 +99507,7 @@
                     "peak_active": 1,
                     "sources": 1,
                     "stack_below_entry": 58,
-                    "t_states": 538078
+                    "t_states": 537778
                   }
                 ],
                 "midi_sha256": "d42748a3cb9d94f0d19cba85eabfa6967964fc23c22961d2090823d11428169a",
@@ -99553,7 +99553,7 @@
                     "peak_active": 1,
                     "sources": 1,
                     "stack_below_entry": 58,
-                    "t_states": 536363
+                    "t_states": 536063
                   }
                 ],
                 "midi_sha256": "d42748a3cb9d94f0d19cba85eabfa6967964fc23c22961d2090823d11428169a",
@@ -99599,7 +99599,7 @@
                     "peak_active": 0,
                     "sources": 0,
                     "stack_below_entry": 24,
-                    "t_states": 3945289
+                    "t_states": 3944989
                   }
                 ],
                 "midi_sha256": "f01875fcf978e52ef83cf80bef8dad21c2d3448f5ffa381ea557828bf72ca6f0",
@@ -99645,7 +99645,7 @@
                     "peak_active": 0,
                     "sources": 0,
                     "stack_below_entry": 24,
-                    "t_states": 3785794
+                    "t_states": 3785494
                   }
                 ],
                 "midi_sha256": "f01875fcf978e52ef83cf80bef8dad21c2d3448f5ffa381ea557828bf72ca6f0",
@@ -99691,7 +99691,7 @@
                     "peak_active": 0,
                     "sources": 0,
                     "stack_below_entry": 24,
-                    "t_states": 3760069
+                    "t_states": 3759769
                   }
                 ],
                 "midi_sha256": "f01875fcf978e52ef83cf80bef8dad21c2d3448f5ffa381ea557828bf72ca6f0",
@@ -99737,7 +99737,7 @@
                     "peak_active": 1,
                     "sources": 1,
                     "stack_below_entry": 58,
-                    "t_states": 495415
+                    "t_states": 495115
                   }
                 ],
                 "midi_sha256": "04c380dca057ebbc119fbda1957b68a4e9d0da6fdedc03c2a3b91b6003083856",
@@ -99783,7 +99783,7 @@
                     "peak_active": 1,
                     "sources": 1,
                     "stack_below_entry": 58,
-                    "t_states": 484782
+                    "t_states": 484482
                   }
                 ],
                 "midi_sha256": "04c380dca057ebbc119fbda1957b68a4e9d0da6fdedc03c2a3b91b6003083856",
@@ -99829,7 +99829,7 @@
                     "peak_active": 1,
                     "sources": 1,
                     "stack_below_entry": 58,
-                    "t_states": 483067
+                    "t_states": 482767
                   }
                 ],
                 "midi_sha256": "04c380dca057ebbc119fbda1957b68a4e9d0da6fdedc03c2a3b91b6003083856",
@@ -99875,7 +99875,7 @@
                     "peak_active": 512,
                     "sources": 1,
                     "stack_below_entry": 62,
-                    "t_states": 139373141
+                    "t_states": 139372841
                   }
                 ],
                 "midi_sha256": "4f363d667009f1d12d3ea3d9ff6f9b5db10726951730fb466117322c18a4a0e3",
@@ -99921,7 +99921,7 @@
                     "peak_active": 512,
                     "sources": 1,
                     "stack_below_entry": 62,
-                    "t_states": 138763630
+                    "t_states": 138763330
                   }
                 ],
                 "midi_sha256": "4f363d667009f1d12d3ea3d9ff6f9b5db10726951730fb466117322c18a4a0e3",
@@ -99967,7 +99967,7 @@
                     "peak_active": 512,
                     "sources": 1,
                     "stack_below_entry": 62,
-                    "t_states": 138664846
+                    "t_states": 138664546
                   }
                 ],
                 "midi_sha256": "4f363d667009f1d12d3ea3d9ff6f9b5db10726951730fb466117322c18a4a0e3",
@@ -100013,7 +100013,7 @@
                     "peak_active": 1,
                     "sources": 1,
                     "stack_below_entry": 58,
-                    "t_states": 614473903
+                    "t_states": 614473603
                   }
                 ],
                 "midi_sha256": "5a2688aeea6eb30a21ea82cc21ee55550395b23fd188b7a23aeec5c2395cf514",
@@ -100059,7 +100059,7 @@
                     "peak_active": 1,
                     "sources": 1,
                     "stack_below_entry": 58,
-                    "t_states": 609654067
+                    "t_states": 609653767
                   }
                 ],
                 "midi_sha256": "5a2688aeea6eb30a21ea82cc21ee55550395b23fd188b7a23aeec5c2395cf514",
@@ -100105,7 +100105,7 @@
                     "peak_active": 1,
                     "sources": 1,
                     "stack_below_entry": 58,
-                    "t_states": 608873056
+                    "t_states": 608872756
                   }
                 ],
                 "midi_sha256": "5a2688aeea6eb30a21ea82cc21ee55550395b23fd188b7a23aeec5c2395cf514",
@@ -100151,7 +100151,7 @@
                     "peak_active": 1,
                     "sources": 64,
                     "stack_below_entry": 58,
-                    "t_states": 24117165
+                    "t_states": 24116865
                   }
                 ],
                 "midi_sha256": "65318ea80b0247c9fb3371e189d9e03f11df7584ac78ec9a841cc3cb79a2151f",
@@ -100197,7 +100197,7 @@
                     "peak_active": 1,
                     "sources": 64,
                     "stack_below_entry": 58,
-                    "t_states": 23736778
+                    "t_states": 23736478
                   }
                 ],
                 "midi_sha256": "65318ea80b0247c9fb3371e189d9e03f11df7584ac78ec9a841cc3cb79a2151f",
@@ -100243,7 +100243,7 @@
                     "peak_active": 1,
                     "sources": 64,
                     "stack_below_entry": 58,
-                    "t_states": 23675381
+                    "t_states": 23675081
                   }
                 ],
                 "midi_sha256": "65318ea80b0247c9fb3371e189d9e03f11df7584ac78ec9a841cc3cb79a2151f",
@@ -100427,7 +100427,7 @@
                     "peak_active": 0,
                     "sources": 0,
                     "stack_below_entry": 24,
-                    "t_states": 114811
+                    "t_states": 114511
                   }
                 ],
                 "midi_sha256": "fc1a744a5546fd85811d50f8f1ebda1dc2b7a21057ac0291ffbff3709fce735a",
@@ -100473,7 +100473,7 @@
                     "peak_active": 0,
                     "sources": 0,
                     "stack_below_entry": 24,
-                    "t_states": 107608
+                    "t_states": 107308
                   }
                 ],
                 "midi_sha256": "fc1a744a5546fd85811d50f8f1ebda1dc2b7a21057ac0291ffbff3709fce735a",
@@ -100519,7 +100519,7 @@
                     "peak_active": 0,
                     "sources": 0,
                     "stack_below_entry": 24,
-                    "t_states": 106579
+                    "t_states": 106279
                   }
                 ],
                 "midi_sha256": "fc1a744a5546fd85811d50f8f1ebda1dc2b7a21057ac0291ffbff3709fce735a",
@@ -100565,7 +100565,7 @@
                     "peak_active": 0,
                     "sources": 0,
                     "stack_below_entry": 24,
-                    "t_states": 114069
+                    "t_states": 113769
                   }
                 ],
                 "midi_sha256": "30cf7238e86b68904afac325d33a92877beabe486d4ba747dd715378ba7c10e4",
@@ -100611,7 +100611,7 @@
                     "peak_active": 0,
                     "sources": 0,
                     "stack_below_entry": 24,
-                    "t_states": 106866
+                    "t_states": 106566
                   }
                 ],
                 "midi_sha256": "30cf7238e86b68904afac325d33a92877beabe486d4ba747dd715378ba7c10e4",
@@ -100657,7 +100657,7 @@
                     "peak_active": 0,
                     "sources": 0,
                     "stack_below_entry": 24,
-                    "t_states": 105837
+                    "t_states": 105537
                   }
                 ],
                 "midi_sha256": "30cf7238e86b68904afac325d33a92877beabe486d4ba747dd715378ba7c10e4",
@@ -100703,7 +100703,7 @@
                     "peak_active": 0,
                     "sources": 0,
                     "stack_below_entry": 24,
-                    "t_states": 109423
+                    "t_states": 109123
                   }
                 ],
                 "midi_sha256": "7a53ea9d9ddaa871cab18205b64bd2175beef1a71388b3608edb09a75f47f44d",
@@ -100749,7 +100749,7 @@
                     "peak_active": 0,
                     "sources": 0,
                     "stack_below_entry": 24,
-                    "t_states": 102563
+                    "t_states": 102263
                   }
                 ],
                 "midi_sha256": "7a53ea9d9ddaa871cab18205b64bd2175beef1a71388b3608edb09a75f47f44d",
@@ -100795,7 +100795,7 @@
                     "peak_active": 0,
                     "sources": 0,
                     "stack_below_entry": 24,
-                    "t_states": 101534
+                    "t_states": 101234
                   }
                 ],
                 "midi_sha256": "7a53ea9d9ddaa871cab18205b64bd2175beef1a71388b3608edb09a75f47f44d",
@@ -100841,7 +100841,7 @@
                     "peak_active": 0,
                     "sources": 0,
                     "stack_below_entry": 24,
-                    "t_states": 119535
+                    "t_states": 119235
                   }
                 ],
                 "midi_sha256": "b1d7e070cfa46853af4aa5fdd2f71ae2901c6bbc5c080c30c0e65364769036f8",
@@ -100887,7 +100887,7 @@
                     "peak_active": 0,
                     "sources": 0,
                     "stack_below_entry": 24,
-                    "t_states": 111989
+                    "t_states": 111689
                   }
                 ],
                 "midi_sha256": "b1d7e070cfa46853af4aa5fdd2f71ae2901c6bbc5c080c30c0e65364769036f8",
@@ -100933,7 +100933,7 @@
                     "peak_active": 0,
                     "sources": 0,
                     "stack_below_entry": 24,
-                    "t_states": 110960
+                    "t_states": 110660
                   }
                 ],
                 "midi_sha256": "b1d7e070cfa46853af4aa5fdd2f71ae2901c6bbc5c080c30c0e65364769036f8",
@@ -100979,7 +100979,7 @@
                     "peak_active": 0,
                     "sources": 0,
                     "stack_below_entry": 24,
-                    "t_states": 130944
+                    "t_states": 130644
                   }
                 ],
                 "midi_sha256": "285ecfdc31f63d53d56258ba7b6e55d6a86935ceade304956c6ed2af3b2e5779",
@@ -101025,7 +101025,7 @@
                     "peak_active": 0,
                     "sources": 0,
                     "stack_below_entry": 24,
-                    "t_states": 123055
+                    "t_states": 122755
                   }
                 ],
                 "midi_sha256": "285ecfdc31f63d53d56258ba7b6e55d6a86935ceade304956c6ed2af3b2e5779",
@@ -101071,7 +101071,7 @@
                     "peak_active": 0,
                     "sources": 0,
                     "stack_below_entry": 24,
-                    "t_states": 122026
+                    "t_states": 121726
                   }
                 ],
                 "midi_sha256": "285ecfdc31f63d53d56258ba7b6e55d6a86935ceade304956c6ed2af3b2e5779",
@@ -101117,7 +101117,7 @@
                     "peak_active": 0,
                     "sources": 0,
                     "stack_below_entry": 24,
-                    "t_states": 135297
+                    "t_states": 134997
                   }
                 ],
                 "midi_sha256": "08b5b3b0d7b04ac7f544d3fae2be3ec83d8ba9bd7d7de0f2cb71622777e93b5f",
@@ -101163,7 +101163,7 @@
                     "peak_active": 0,
                     "sources": 0,
                     "stack_below_entry": 24,
-                    "t_states": 127408
+                    "t_states": 127108
                   }
                 ],
                 "midi_sha256": "08b5b3b0d7b04ac7f544d3fae2be3ec83d8ba9bd7d7de0f2cb71622777e93b5f",
@@ -101209,7 +101209,7 @@
                     "peak_active": 0,
                     "sources": 0,
                     "stack_below_entry": 24,
-                    "t_states": 126379
+                    "t_states": 126079
                   }
                 ],
                 "midi_sha256": "08b5b3b0d7b04ac7f544d3fae2be3ec83d8ba9bd7d7de0f2cb71622777e93b5f",
@@ -101255,7 +101255,7 @@
                     "peak_active": 0,
                     "sources": 0,
                     "stack_below_entry": 24,
-                    "t_states": 125536
+                    "t_states": 125236
                   }
                 ],
                 "midi_sha256": "a004bfc24606343db8b8eb7c86a86a1c7ce7f31fbda4fc3af78c9638fc7cc51d",
@@ -101301,7 +101301,7 @@
                     "peak_active": 0,
                     "sources": 0,
                     "stack_below_entry": 24,
-                    "t_states": 117990
+                    "t_states": 117690
                   }
                 ],
                 "midi_sha256": "a004bfc24606343db8b8eb7c86a86a1c7ce7f31fbda4fc3af78c9638fc7cc51d",
@@ -101347,7 +101347,7 @@
                     "peak_active": 0,
                     "sources": 0,
                     "stack_below_entry": 24,
-                    "t_states": 116961
+                    "t_states": 116661
                   }
                 ],
                 "midi_sha256": "a004bfc24606343db8b8eb7c86a86a1c7ce7f31fbda4fc3af78c9638fc7cc51d",
@@ -101669,7 +101669,7 @@
                     "peak_active": 512,
                     "sources": 1,
                     "stack_below_entry": 56,
-                    "t_states": 77213620
+                    "t_states": 77213320
                   }
                 ],
                 "midi_sha256": "ccfad976fadcf817c890f78892bf5be30200fc01bbb7826249150fa4a469c374",
@@ -101715,7 +101715,7 @@
                     "peak_active": 512,
                     "sources": 1,
                     "stack_below_entry": 56,
-                    "t_states": 76604109
+                    "t_states": 76603809
                   }
                 ],
                 "midi_sha256": "ccfad976fadcf817c890f78892bf5be30200fc01bbb7826249150fa4a469c374",
@@ -101761,7 +101761,7 @@
                     "peak_active": 512,
                     "sources": 1,
                     "stack_below_entry": 56,
-                    "t_states": 76505325
+                    "t_states": 76505025
                   }
                 ],
                 "midi_sha256": "ccfad976fadcf817c890f78892bf5be30200fc01bbb7826249150fa4a469c374",
@@ -101807,7 +101807,7 @@
                     "peak_active": 1,
                     "sources": 1,
                     "stack_below_entry": 58,
-                    "t_states": 614463789
+                    "t_states": 614463489
                   }
                 ],
                 "midi_sha256": "e1e89ed019376db646c6c85ec54e57d28daaf646bf097bff49c7c76d3e00b061",
@@ -101853,7 +101853,7 @@
                     "peak_active": 1,
                     "sources": 1,
                     "stack_below_entry": 58,
-                    "t_states": 609643953
+                    "t_states": 609643653
                   }
                 ],
                 "midi_sha256": "e1e89ed019376db646c6c85ec54e57d28daaf646bf097bff49c7c76d3e00b061",
@@ -101899,7 +101899,7 @@
                     "peak_active": 1,
                     "sources": 1,
                     "stack_below_entry": 58,
-                    "t_states": 608862942
+                    "t_states": 608862642
                   }
                 ],
                 "midi_sha256": "e1e89ed019376db646c6c85ec54e57d28daaf646bf097bff49c7c76d3e00b061",
@@ -101945,7 +101945,7 @@
                     "peak_active": 0,
                     "sources": 0,
                     "stack_below_entry": 54,
-                    "t_states": 198986
+                    "t_states": 198686
                   }
                 ],
                 "midi_sha256": "6f35ee6371e8de18f231a7239075c5221fed3dc3aadda21640df4611a5765a1d",
@@ -101991,7 +101991,7 @@
                     "peak_active": 0,
                     "sources": 0,
                     "stack_below_entry": 54,
-                    "t_states": 190754
+                    "t_states": 190454
                   }
                 ],
                 "midi_sha256": "6f35ee6371e8de18f231a7239075c5221fed3dc3aadda21640df4611a5765a1d",
@@ -102037,7 +102037,7 @@
                     "peak_active": 0,
                     "sources": 0,
                     "stack_below_entry": 54,
-                    "t_states": 189382
+                    "t_states": 189082
                   }
                 ],
                 "midi_sha256": "6f35ee6371e8de18f231a7239075c5221fed3dc3aadda21640df4611a5765a1d",
@@ -102083,7 +102083,7 @@
                     "peak_active": 1,
                     "sources": 1,
                     "stack_below_entry": 56,
-                    "t_states": 347352
+                    "t_states": 347052
                   }
                 ],
                 "midi_sha256": "aae95bf23f359dd735f166b8326937078042a23fe26dd4fe43c203306ecbf0cc",
@@ -102129,7 +102129,7 @@
                     "peak_active": 1,
                     "sources": 1,
                     "stack_below_entry": 56,
-                    "t_states": 337748
+                    "t_states": 337448
                   }
                 ],
                 "midi_sha256": "aae95bf23f359dd735f166b8326937078042a23fe26dd4fe43c203306ecbf0cc",
@@ -102175,7 +102175,7 @@
                     "peak_active": 1,
                     "sources": 1,
                     "stack_below_entry": 56,
-                    "t_states": 336376
+                    "t_states": 336076
                   }
                 ],
                 "midi_sha256": "aae95bf23f359dd735f166b8326937078042a23fe26dd4fe43c203306ecbf0cc",
@@ -102221,7 +102221,7 @@
                     "peak_active": 0,
                     "sources": 0,
                     "stack_below_entry": 54,
-                    "t_states": 200424
+                    "t_states": 200124
                   }
                 ],
                 "midi_sha256": "5ba1a88ba895625b866cbaba63c7c0355f5d06050c34d4a1e75c83113635cf6b",
@@ -102267,7 +102267,7 @@
                     "peak_active": 0,
                     "sources": 0,
                     "stack_below_entry": 54,
-                    "t_states": 192192
+                    "t_states": 191892
                   }
                 ],
                 "midi_sha256": "5ba1a88ba895625b866cbaba63c7c0355f5d06050c34d4a1e75c83113635cf6b",
@@ -102313,7 +102313,7 @@
                     "peak_active": 0,
                     "sources": 0,
                     "stack_below_entry": 54,
-                    "t_states": 190820
+                    "t_states": 190520
                   }
                 ],
                 "midi_sha256": "5ba1a88ba895625b866cbaba63c7c0355f5d06050c34d4a1e75c83113635cf6b",
@@ -102359,7 +102359,7 @@
                     "peak_active": 0,
                     "sources": 0,
                     "stack_below_entry": 24,
-                    "t_states": 4610324
+                    "t_states": 4610024
                   }
                 ],
                 "midi_sha256": "ae69346dbc3589d2f75b3a49a70cf2704586d0a75db69e63a20f80d11a6e9acf",
@@ -102405,7 +102405,7 @@
                     "peak_active": 0,
                     "sources": 0,
                     "stack_below_entry": 24,
-                    "t_states": 4377084
+                    "t_states": 4376784
                   }
                 ],
                 "midi_sha256": "ae69346dbc3589d2f75b3a49a70cf2704586d0a75db69e63a20f80d11a6e9acf",
@@ -102451,7 +102451,7 @@
                     "peak_active": 0,
                     "sources": 0,
                     "stack_below_entry": 24,
-                    "t_states": 4339354
+                    "t_states": 4339054
                   }
                 ],
                 "midi_sha256": "ae69346dbc3589d2f75b3a49a70cf2704586d0a75db69e63a20f80d11a6e9acf",
@@ -102497,7 +102497,7 @@
                     "peak_active": 1,
                     "sources": 64,
                     "stack_below_entry": 58,
-                    "t_states": 24177128
+                    "t_states": 24176828
                   }
                 ],
                 "midi_sha256": "7c09413451503abf4cd2ef35732dda03700610ceeebf5ebaff0bd7a827867328",
@@ -102543,7 +102543,7 @@
                     "peak_active": 1,
                     "sources": 64,
                     "stack_below_entry": 58,
-                    "t_states": 23793311
+                    "t_states": 23793011
                   }
                 ],
                 "midi_sha256": "7c09413451503abf4cd2ef35732dda03700610ceeebf5ebaff0bd7a827867328",
@@ -102589,7 +102589,7 @@
                     "peak_active": 1,
                     "sources": 64,
                     "stack_below_entry": 58,
-                    "t_states": 23731228
+                    "t_states": 23730928
                   }
                 ],
                 "midi_sha256": "7c09413451503abf4cd2ef35732dda03700610ceeebf5ebaff0bd7a827867328",
@@ -102635,7 +102635,7 @@
                     "peak_active": 2,
                     "sources": 1,
                     "stack_below_entry": 62,
-                    "t_states": 623148
+                    "t_states": 622848
                   }
                 ],
                 "midi_sha256": "cb63c34d3c9490b6f62b95127a8bbcd5ed8545090e6be4284a622ef6fc31fb69",
@@ -102681,7 +102681,7 @@
                     "peak_active": 2,
                     "sources": 1,
                     "stack_below_entry": 62,
-                    "t_states": 612858
+                    "t_states": 612558
                   }
                 ],
                 "midi_sha256": "cb63c34d3c9490b6f62b95127a8bbcd5ed8545090e6be4284a622ef6fc31fb69",
@@ -102727,7 +102727,7 @@
                     "peak_active": 2,
                     "sources": 1,
                     "stack_below_entry": 62,
-                    "t_states": 611143
+                    "t_states": 610843
                   }
                 ],
                 "midi_sha256": "cb63c34d3c9490b6f62b95127a8bbcd5ed8545090e6be4284a622ef6fc31fb69",
@@ -102773,7 +102773,7 @@
                     "peak_active": 1,
                     "sources": 1,
                     "stack_below_entry": 56,
-                    "t_states": 1189499
+                    "t_states": 1189199
                   }
                 ],
                 "midi_sha256": "b976710876efab277d30e03eb90420451b8ed4a078a23d51869690260600a7d1",
@@ -102819,7 +102819,7 @@
                     "peak_active": 1,
                     "sources": 1,
                     "stack_below_entry": 56,
-                    "t_states": 1149025
+                    "t_states": 1148725
                   }
                 ],
                 "midi_sha256": "b976710876efab277d30e03eb90420451b8ed4a078a23d51869690260600a7d1",
@@ -102865,7 +102865,7 @@
                     "peak_active": 1,
                     "sources": 1,
                     "stack_below_entry": 56,
-                    "t_states": 1142508
+                    "t_states": 1142208
                   }
                 ],
                 "midi_sha256": "b976710876efab277d30e03eb90420451b8ed4a078a23d51869690260600a7d1",
@@ -102911,7 +102911,7 @@
                     "peak_active": 0,
                     "sources": 0,
                     "stack_below_entry": 24,
-                    "t_states": 993075
+                    "t_states": 992775
                   }
                 ],
                 "midi_sha256": "81d77ebf789bad299c10275267b0d4e968f5805d352baedcb03b3d83311d8050",
@@ -102957,7 +102957,7 @@
                     "peak_active": 0,
                     "sources": 0,
                     "stack_below_entry": 24,
-                    "t_states": 953630
+                    "t_states": 953330
                   }
                 ],
                 "midi_sha256": "81d77ebf789bad299c10275267b0d4e968f5805d352baedcb03b3d83311d8050",
@@ -103003,15 +103003,15 @@
                     "peak_active": 0,
                     "sources": 0,
                     "stack_below_entry": 24,
-                    "t_states": 947113
+                    "t_states": 946813
                   }
                 ],
                 "midi_sha256": "81d77ebf789bad299c10275267b0d4e968f5805d352baedcb03b3d83311d8050",
                 "name": "decoder_tick_overflow"
               }
             ],
-            "code_bytes": 14333,
-            "image_bytes": 29661,
+            "code_bytes": 14315,
+            "image_bytes": 29643,
             "input_sha256": "8b5f831c93d6dd251fdb4f3c6986b59ccb6ace4208f4c39c12dc0d5a4db7f9db",
             "manifest_sha256": "f2ba3f05a0700c79e9b6deff99461d1cc57d70f3c4a460ba69fcb5f82d80835d",
             "module_globals_bytes": 14827,
@@ -103024,7 +103024,7 @@
           "go_version": "go version go1.24.3 linux/amd64",
           "ruby_version": "ruby 3.3.8 (2025-04-09 revision b200bad6cd) [x86_64-linux-gnu]",
           "crystal_version": "Crystal 1.20.1 [e60210eb9] (2026-04-29)\n\nLLVM: 20.1.8\nDefault target: x86_64-unknown-linux-gnu",
-          "git_head": "80e9aef32d13897777edc6b72a6055edc79599e2",
+          "git_head": "d9f22c8e3898e536f9422501d83529aa9ca82161",
           "git_dirty": true,
           "scope": "complete Chronos streamed MIDI parsing/pairing/quantization on target; separate image from flatten; fresh Ruby/target boundary corpus; no combined converter or physical banking"
         },
