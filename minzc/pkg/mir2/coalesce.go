@@ -71,12 +71,17 @@ func coalesceAllocResult(f *Func, result *AllocResult, lr *LivenessResult, table
 			}
 		}
 	}
+	var accPressure map[Reg]int
+	if _, z80 := tableOrDefault(tables).(Z80CostTable); z80 {
+		accPressure = accumulatorPressure(f, lr)
+	}
 	uses := countRegUses(f)
 	for _, b := range f.Blocks {
 		for _, x := range b.Insts {
 			// A byte step by 1..3 is INC/DEC in place on any register too.
 			if x.Ty != nil && x.Ty.Width() == 8 && !x.ClsHard && (x.Op == OpAdd || x.Op == OpSub) {
-				if cv, ok := constants[x.Src[1]]; ok && cv >= 1 && cv <= 3 && wordMaskFlagsUnobserved(f, x.Dst) {
+				if cv, ok := constants[x.Src[1]]; ok && cv >= 1 && cv <= 3 && wordMaskFlagsUnobserved(f, x.Dst) &&
+					accPressure[x.Src[0]] >= loopAccumulatorPressure {
 					edges = append(edges, affEdge{dst: x.Dst, src: x.Src[0]})
 				}
 				continue
@@ -148,10 +153,6 @@ func coalesceAllocResult(f *Func, result *AllocResult, lr *LivenessResult, table
 	// those classes can exclude homes by it.
 	_, z80Table := ct.(Z80CostTable)
 	asmAvoid := asmClobberAvoid(f, lr)
-	var accPressure map[Reg]int
-	if z80Table {
-		accPressure = accumulatorPressure(f, lr)
-	}
 	canRecolor := func(r Reg, loc PhysLoc) bool {
 		// A byte value that a loop keeps live across A-working instructions
 		// was priced out of A by PBQP; an affinity must not pull it back.
@@ -215,9 +216,11 @@ func coalesceAllocResult(f *Func, result *AllocResult, lr *LivenessResult, table
 			if !isaAlwaysWritesA(inst) || !canRecolor(inst.Dst, locA) {
 				continue
 			}
-			// A byte step by 1..3 is INC/DEC on any register: no A constraint.
+			// A byte step by 1..3 is INC/DEC on any register. When its operand
+			// is a loop value priced out of A, do not force the step into A.
 			if cv, ok := constants[inst.Src[1]]; ok && (inst.Op == OpAdd || inst.Op == OpSub) &&
-				inst.Ty != nil && inst.Ty.Width() == 8 && cv >= 1 && cv <= 3 {
+				inst.Ty != nil && inst.Ty.Width() == 8 && cv >= 1 && cv <= 3 &&
+				accPressure[inst.Src[0]] >= loopAccumulatorPressure {
 				continue
 			}
 			if result.Locs[inst.Dst] == locA {
@@ -371,4 +374,12 @@ func isaAlwaysWritesA(inst *Inst) bool {
 		return true
 	}
 	return false
+}
+
+// tableOrDefault is the allocating backend's cost table, Z80 by default.
+func tableOrDefault(tables []CostTable) CostTable {
+	if len(tables) > 0 {
+		return tables[0]
+	}
+	return Z80CostTable{}
 }
