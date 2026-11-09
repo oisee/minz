@@ -479,6 +479,14 @@ func (g *z80cg) genExt(inst *Inst) {
 		srcW = 8
 	}
 
+	// An index half zero-extends into BC/DE directly: LD C/E, IXH… is a legal
+	// DD/FD form (only H and L are taken by the prefix), so no byte snapshot.
+	if srcW == 8 && dstW == 16 && isIXYReg(src) && (dst == "BC" || dst == "DE") {
+		g.emitLD8(lowByte(dst), src)
+		g.emitLD8(highByte(dst), "0")
+		g.invalidate(dst)
+		return
+	}
 	if (srcW == 8 || srcW == 16 || srcW == 24) && dstW > srcW && dstW <= 32 &&
 		(dstW >= 24 || isSpill(dst) || isSpill(src) || isIXYReg(src) || strings.HasSuffix(src, "'")) {
 		g.genUnsignedExtBytes(dst, src, srcW, dstW)
