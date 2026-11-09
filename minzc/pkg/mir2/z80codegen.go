@@ -802,8 +802,11 @@ type z80cg struct {
 	shiftCarryInst     *Inst
 	shiftCarryCmp      *Inst
 	shiftCarryDeferred bool
-	bitCmpPat          map[Reg]bitCmpPat
-	bitCmpSkip         map[Reg]bool
+	// bitAccumAt/bitAccumSkip: fused "count += v & 1; v >>= 1" steps.
+	bitAccumAt   map[*Inst]bitAccum
+	bitAccumSkip map[*Inst]bool
+	bitCmpPat    map[Reg]bitCmpPat
+	bitCmpSkip   map[Reg]bool
 
 	// globalU16StoreSym[addrReg] = sym: addrReg holds the address of a u16 global.
 	// Enables emitting LD (sym), HL (16T, no A clobber) instead of the
@@ -1165,6 +1168,8 @@ func (g *z80cg) genFunc(f *Func) {
 	}
 	g.cmpSwapped = make(map[Reg]bool)
 	g.cmpBranchCC = make(map[Reg]string)
+	g.bitAccumAt = make(map[*Inst]bitAccum)
+	g.bitAccumSkip = make(map[*Inst]bool)
 	g.cmpAndZero = make(map[Reg]bool)
 	g.cmpNeedsTwo = make(map[Reg]bool)
 	g.callFlags = make(map[Reg]CmpCond)
@@ -1448,6 +1453,7 @@ func (g *z80cg) genBlock(f *Func, b *Block) {
 	// Pre-scan: detect u8 bit-test compares against zero so Cmp can emit BIT.
 	g.scanBitCmpPatterns(b)
 	g.scanShiftCarryPattern(b)
+	g.scanBitAccumPatterns(b)
 
 	// Pre-scan: detect u8 load-modify-store bit updates so Store can emit
 	// SET/RES directly on memory and skip the intermediate Load/ALU regs.
