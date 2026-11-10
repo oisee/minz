@@ -28,7 +28,7 @@ func (l *lowerer) scanLambdaMutations(blk *Block, env map[string]mir2.Reg, muts,
 			for _, arg := range call.Args {
 				name := l.resolveFunc(arg)
 				fn := l.hirFuncs[name]
-				if name == "" || fn == nil || len(fn.Captures) == 0 || seen[name] {
+				if fn == nil || len(fn.Captures) == 0 || seen[name] {
 					continue
 				}
 				seen[name] = true
