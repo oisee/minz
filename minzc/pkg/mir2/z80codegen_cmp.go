@@ -244,6 +244,9 @@ func (g *z80cg) genCmp(inst *Inst) {
 		g.pendingFlagReg = inst.Dst
 		return
 	}
+	if g.tryAddCarryCmp(inst) {
+		return
+	}
 	if g.tryUnsignedPreservePairCmp(inst) {
 		return
 	}

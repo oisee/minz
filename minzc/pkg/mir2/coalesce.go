@@ -71,9 +71,28 @@ func coalesceAllocResult(f *Func, result *AllocResult, lr *LivenessResult, table
 			}
 		}
 	}
+	// Only loop counters under accumulator pressure are kept out of A here; an
+	// accumulator such as a running CRC still follows its A-form affinities.
+	accPressure := map[Reg]int{}
+	if z80ct, z80 := tableOrDefault(tables).(Z80CostTable); z80 && z80ct.AccumulatorPressure {
+		counters := loopCounters(f)
+		for r, p := range accumulatorPressure(f, lr) {
+			if counters[r] {
+				accPressure[r] = p
+			}
+		}
+	}
 	uses := countRegUses(f)
 	for _, b := range f.Blocks {
 		for _, x := range b.Insts {
+			// A byte step by 1..3 is INC/DEC in place on any register too.
+			if x.Ty != nil && x.Ty.Width() == 8 && !x.ClsHard && (x.Op == OpAdd || x.Op == OpSub) {
+				if cv, ok := constants[x.Src[1]]; ok && cv >= 1 && cv <= 3 && wordMaskFlagsUnobserved(f, x.Dst) &&
+					accPressure[x.Src[0]] >= loopAccumulatorPressure {
+					edges = append(edges, affEdge{dst: x.Dst, src: x.Src[0]})
+				}
+				continue
+			}
 			if x.Ty == nil || x.Ty.Width() != 16 || x.ClsHard {
 				continue
 			}
@@ -142,6 +161,12 @@ func coalesceAllocResult(f *Func, result *AllocResult, lr *LivenessResult, table
 	_, z80Table := ct.(Z80CostTable)
 	asmAvoid := asmClobberAvoid(f, lr)
 	canRecolor := func(r Reg, loc PhysLoc) bool {
+		// A byte value that a loop keeps live across A-working instructions
+		// was priced out of A by PBQP; an affinity must not pull it back.
+		if loc.Kind == LocReg && loc.Name == "A" && result.Locs[r] != loc &&
+			accPressure[r] >= loopAccumulatorPressure {
+			return false
+		}
 		// Preserve explicit instruction/ABI constraints, including a hard
 		// register assignment whose affinity partner has spilled.
 		if hard[r] && result.Locs[r] != loc {
@@ -196,6 +221,13 @@ func coalesceAllocResult(f *Func, result *AllocResult, lr *LivenessResult, table
 				continue // rematerialised: no home to recolour
 			}
 			if !isaAlwaysWritesA(inst) || !canRecolor(inst.Dst, locA) {
+				continue
+			}
+			// A byte step by 1..3 is INC/DEC on any register. When its operand
+			// is a loop value priced out of A, do not force the step into A.
+			if cv, ok := constants[inst.Src[1]]; ok && (inst.Op == OpAdd || inst.Op == OpSub) &&
+				inst.Ty != nil && inst.Ty.Width() == 8 && cv >= 1 && cv <= 3 &&
+				accPressure[inst.Src[0]] >= loopAccumulatorPressure {
 				continue
 			}
 			if result.Locs[inst.Dst] == locA {
@@ -349,4 +381,12 @@ func isaAlwaysWritesA(inst *Inst) bool {
 		return true
 	}
 	return false
+}
+
+// tableOrDefault is the allocating backend's cost table, Z80 by default.
+func tableOrDefault(tables []CostTable) CostTable {
+	if len(tables) > 0 {
+		return tables[0]
+	}
+	return Z80CostTable{}
 }
