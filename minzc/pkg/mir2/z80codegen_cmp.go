@@ -777,6 +777,9 @@ func (g *z80cg) genCmp16(inst *Inst) {
 		g.pendingFlagReg = inst.Dst
 		return
 	}
+	if g.tryBytewiseUnsignedCmp16(inst) {
+		return
+	}
 	defer g.saveWrittenScratch(inst)()
 
 	// CmpGt/CmpLe traditionally swap operands so SBC HL,rr gives the C flag
