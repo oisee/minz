@@ -2268,9 +2268,9 @@
     "independent_model": "Book v7 named byte fields/unsigned width; host Manhattan abs differences modulo256 and named accessors",
     "boundary": "All nine source-defined entries have bounded independent raw/finalVM/native proof; generated lambda_0 raw-only because final inlining prunes it. Not all byte Cartesian inputs, and assertions retain original qualifiers.",
     "evidence": {
-      "reports/showcase-manhattan/proof/manifest.json": "288fef1a2487c78a606d5122184d641dda12285ecfd83aa94a25cbf7a22b727f",
+      "reports/showcase-manhattan/proof/manifest.json": "45c26026ecea3b119e92619e385fbfa6ef0c9be9c42b37f3e08f502a3e2f5a42",
       "docs/grace-integration-103/local-frame-integrated-original.txt": "2bd415b2b089f946d65435b2fa6e3d58f3fa15a2bee077bbcb37a2279810f75c",
-      "reports/showcase-ex19-complete/manifest.json": "64f21185fe315a1749cf4d7bae3464efb5db7580ff5174e6b3d8d64028fb5c70",
+      "reports/showcase-ex19-complete/manifest.json": "68c38a05e60a1c88dbef191eab16ada79efa11f87c2067925da539c00d3ee7e4",
       "docs/grace-integration-105/ex19-complete-root.txt": "9e7519f4d6bed0bc575b0c2cc236c17314ae13ab88fdaa85cf5fad59b03ca1c9"
     }
   },
