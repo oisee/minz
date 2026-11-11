@@ -2,8 +2,8 @@ global target: [u16; 256]
 global n: u8 = 0
 global result: u16 = 0
 fun execute() {
-    range(0..n).forEach(|counter: u8| {
-        target[counter] = u16(counter)
+    range(n..0).forEach(|i: u8| {
+        target[i] = u16(i)
     })
     result = u16(n)
 }
