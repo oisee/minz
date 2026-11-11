@@ -195,7 +195,7 @@
     "evidence": {
       "minzc/pkg/pipeline/original_lizp_lanz_family_native_test.go": "1952fd3f9c44cb0596e5645f1a7fcf068bfbd70b0603561175cab6a5cd07ad73",
       "reports/lizp-last-form/manifest.json": "ed61e1c78b4e34e20d14898eb40da959fbcccf42dad6a77ef3850161053768b1",
-      "docs/Nanz_Language_Book_v7.md": "e84929ca31ffb948a856dba9ba6250ea23f62a9c0df539dfb74de8f54d1b4a03"
+      "docs/Nanz_Language_Book_v7.md": "a5758b446daa399988e58aa9419a9c4b025cb001f79b3fc7b3f978f4e39ad6b3"
     }
   },
   {
@@ -2488,7 +2488,7 @@
     "independent_model": "2*x+1 modulo256 independent host arithmetic",
     "boundary": "Exact import consumer and local mathlib dependency; raw/final VM + assembled native return/SP/guards/image",
     "evidence": {
-      "minzc/pkg/pipeline/showcase_pipe_import_oracle_test.go": "f40b8aac4baf2649603ad2e3a44160ed83cf7479908211d12101628167daeecd"
+      "minzc/pkg/pipeline/showcase_pipe_import_oracle_test.go": "6c4f85c658d1eda5d218338c0efb56e6ecd410aea382bb972d5e0bbb1670eb13"
     }
   },
   {
@@ -2499,7 +2499,7 @@
     "independent_model": "2*10+5 equals25",
     "boundary": "Exact qualified import consumer; local mathlib, no general stdlib claim",
     "evidence": {
-      "minzc/pkg/pipeline/showcase_pipe_import_oracle_test.go": "f40b8aac4baf2649603ad2e3a44160ed83cf7479908211d12101628167daeecd"
+      "minzc/pkg/pipeline/showcase_pipe_import_oracle_test.go": "6c4f85c658d1eda5d218338c0efb56e6ecd410aea382bb972d5e0bbb1670eb13"
     }
   },
   {
@@ -2510,7 +2510,7 @@
     "independent_model": "3*3+1 equals10",
     "boundary": "Exact alias import consumer; local mathlib, no general stdlib claim",
     "evidence": {
-      "minzc/pkg/pipeline/showcase_pipe_import_oracle_test.go": "f40b8aac4baf2649603ad2e3a44160ed83cf7479908211d12101628167daeecd"
+      "minzc/pkg/pipeline/showcase_pipe_import_oracle_test.go": "6c4f85c658d1eda5d218338c0efb56e6ecd410aea382bb972d5e0bbb1670eb13"
     }
   },
   {
@@ -2547,7 +2547,7 @@
     "independent_model": "Independent n-to-1 range with doubled then optional +1, byte accumulation",
     "boundary": "Named pipe/trans/use/apply unchanged; only fixed original entry workloads, not additional invented parameterized pipeline",
     "evidence": {
-      "minzc/pkg/pipeline/showcase_pipe_import_oracle_test.go": "f40b8aac4baf2649603ad2e3a44160ed83cf7479908211d12101628167daeecd"
+      "minzc/pkg/pipeline/showcase_pipe_import_oracle_test.go": "6c4f85c658d1eda5d218338c0efb56e6ecd410aea382bb972d5e0bbb1670eb13"
     }
   },
   {
@@ -2558,7 +2558,7 @@
     "independent_model": "Host byte addition / 2*x / 3*x modulo256",
     "boundary": "Library file has no main/asserts; all three callable entries independently checked, no all-libraries claim",
     "evidence": {
-      "minzc/pkg/pipeline/showcase_pipe_import_oracle_test.go": "f40b8aac4baf2649603ad2e3a44160ed83cf7479908211d12101628167daeecd"
+      "minzc/pkg/pipeline/showcase_pipe_import_oracle_test.go": "6c4f85c658d1eda5d218338c0efb56e6ecd410aea382bb972d5e0bbb1670eb13"
     }
   },
   {

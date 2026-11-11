@@ -3462,6 +3462,10 @@ func unionKeys(a, b map[string]bool, env map[string]mir2.Reg) []string {
 // ── Used-variable scanner ─────────────────────────────────────────────────────
 
 // scanUsedExpr adds to used the names of env-variables referenced in e.
+// The walk is exhaustive over every Expr kind with sub-expressions (including
+// assignment-target shapes like AddrOfExpr/IndexExpr/FieldExpr) so a use of the
+// loop element hiding inside an lvalue — data[j] = k, pts[j].x = k, p = &data[j]
+// — is never missed: missing one silently picks the wrong loop lowering.
 func scanUsedExpr(e Expr, env map[string]mir2.Reg, used map[string]bool) {
 	switch ex := e.(type) {
 	case *VarRefExpr:
@@ -3486,6 +3490,10 @@ func scanUsedExpr(e Expr, env map[string]mir2.Reg, used map[string]bool) {
 		scanUsedExpr(ex.X, env, used)
 	case *BitExpr:
 		scanUsedExpr(ex.X, env, used)
+	case *AddrOfExpr:
+		// Sym names a global/function/string symbol, not an env variable;
+		// X is an addressable expression that may reference variables.
+		scanUsedExpr(ex.X, env, used)
 	case *LoadExpr:
 		scanUsedExpr(ex.Ptr, env, used)
 	case *DerefExpr:
@@ -3495,8 +3503,32 @@ func scanUsedExpr(e Expr, env map[string]mir2.Reg, used map[string]bool) {
 	case *IndexExpr:
 		scanUsedExpr(ex.Base, env, used)
 		scanUsedExpr(ex.Idx, env, used)
-		// IntLitExpr, BoolLitExpr, AddrOfExpr: no variable references
+	case *StructLitExpr:
+		for _, fi := range ex.Fields {
+			scanUsedExpr(fi.Val, env, used)
+		}
+	case *RangeSourceExpr:
+		scanUsedExpr(ex.Lo, env, used)
+		scanUsedExpr(ex.Hi, env, used)
+	case *GenMakeExpr:
+		for _, a := range ex.Args {
+			scanUsedExpr(a, env, used)
+		}
+	case *GenNextExpr:
+		scanUsedExpr(ex.Frame, env, used)
+		scanUsedExpr(ex.Out, env, used)
+	case *CondExpr:
+		scanUsedExpr(ex.Cond, env, used)
+		scanUsedExpr(ex.Then, env, used)
+		scanUsedExpr(ex.Else, env, used)
+	case *LetInExpr:
+		// Name binds a fresh local (a shadow, not a use); Init and Body may
+		// still reference env variables — scanning Body conservatively also
+		// counts references to a same-named shadow as uses.
+		scanUsedExpr(ex.Init, env, used)
+		scanUsedExpr(ex.Body, env, used)
 	}
+	// IntLitExpr, BoolLitExpr, ConstPtrExpr: no variable references.
 }
 
 // scanUsedInBlock adds to used the names of env-variables referenced in blk.
@@ -3514,11 +3546,16 @@ func scanUsedInStmt(s Stmt, env map[string]mir2.Reg, used map[string]bool) {
 		if st.Init != nil {
 			scanUsedExpr(st.Init, env, used)
 		}
-	case *AssignStmt:
-		scanUsedExpr(st.Val, env, used)
-		if d, ok := st.Target.(*DerefExpr); ok {
-			scanUsedExpr(d.Ptr, env, used)
+		for _, v := range st.Initial {
+			scanUsedExpr(v, env, used)
 		}
+	case *AssignStmt:
+		// The target itself may reference variables: data[j] = k (IndexExpr),
+		// pts[j].x = k (FieldExpr), a bare *p = v (DerefExpr). A plain VarRefExpr
+		// target is a mutation, not a read, but callers union this scan with
+		// scanMutations, which already includes those names.
+		scanUsedExpr(st.Target, env, used)
+		scanUsedExpr(st.Val, env, used)
 	case *ReturnStmt:
 		if st.Val != nil {
 			scanUsedExpr(st.Val, env, used)
@@ -3534,6 +3571,8 @@ func scanUsedInStmt(s Stmt, env map[string]mir2.Reg, used map[string]bool) {
 		scanUsedExpr(st.Expr, env, used)
 	case *StoreStmt:
 		scanUsedExpr(st.Ptr, env, used)
+		scanUsedExpr(st.Val, env, used)
+	case *YieldStmt:
 		scanUsedExpr(st.Val, env, used)
 	case *IfStmt:
 		scanUsedExpr(st.Cond, env, used)
@@ -3559,6 +3598,11 @@ func scanUsedInStmt(s Stmt, env map[string]mir2.Reg, used map[string]bool) {
 		}
 		scanUsedExpr(st.Len, env, used)
 		scanUsedInBlock(st.Body, env, used)
+	case *GenForStmt:
+		for _, a := range st.Args {
+			scanUsedExpr(a, env, used)
+		}
+		scanUsedInBlock(st.Body, env, used)
 	case *SwitchStmt:
 		scanUsedExpr(st.Val, env, used)
 		for _, c := range st.Cases {
@@ -3566,6 +3610,18 @@ func scanUsedInStmt(s Stmt, env map[string]mir2.Reg, used map[string]bool) {
 		}
 		if st.Default != nil {
 			scanUsedInBlock(st.Default, env, used)
+		}
+	case *AsmStmt:
+		// Explicit operands name in-scope variables (reads and writes).
+		for _, op := range st.Ins {
+			if _, ok := env[op.Name]; ok {
+				used[op.Name] = true
+			}
+		}
+		for _, op := range st.Outs {
+			if _, ok := env[op.Name]; ok {
+				used[op.Name] = true
+			}
 		}
 		// BreakStmt, ContinueStmt, LabelStmt, GotoStmt: no expressions to scan
 	}
@@ -4082,8 +4138,8 @@ func (l *lowerer) lowerFusedFold(chain iterChain) mir2.Reg {
 // descending spelling range(n..0) yields n-1, ..., 0. The loop is still driven
 // by a DJNZ counter (count = hi-lo) only when the element is never read
 // (counter-only loop) or for the descending spelling (element = counter-1);
-// a read ascending element is lowered through the `for i in lo..hi` path. See Nanz Language Book, chapter 6. lowerRangeLoop emits
-// TermDJNZ directly.
+// a read ascending element is lowered through the `for i in lo..hi` path
+// (lowerForRange) instead. See the Nanz Language Book, chapter 6.
 //
 // lowerRangeForEach lowers range(lo..hi).forEach(cb) to a counter-only loop.
 func (l *lowerer) lowerRangeForEach(chain iterChain) {
@@ -4216,7 +4272,9 @@ func (l *lowerer) foldStageBody(stages []iterStage, elemVar string, elemTy mir2.
 	return body
 }
 
-// lowerRangeLoop emits a counter-only DJNZ loop for range(lo..hi) sources.
+// lowerRangeLoop emits a counter-only DJNZ loop for range(lo..hi) sources
+// whose element is never read, and for the descending spelling range(n..0).
+// A read ascending element is redirected to lowerForRange before this runs.
 //
 // Uses TermDJNZ directly — no CmpNe/AND A inside the loop at all.
 //
@@ -4226,7 +4284,7 @@ func (l *lowerer) foldStageBody(stages []iterStage, elemVar string, elemTy mir2.
 //	    BrIf(cond, rng_body, rng_exit)
 //
 //	rng_body(cnt: B, mutated...):
-//	    elem = idx                   forward element (cnt itself if elem unused)
+//	    elem = cnt                   (cnt-1 for the descending read spelling)
 //	    [body stmts]                 may update mutated vars
 //	    DJNZ rng_body(cnt-1, mutated...) | rng_exit(mutated...)
 //	    ──> emitted as TermDJNZ; no CmpNe, no register clobber
@@ -4412,6 +4470,8 @@ func renameExpr(e Expr, from, to string) Expr {
 		return &CallIndirectExpr{FnPtr: renameExpr(ex.FnPtr, from, to), Args: args, Ty: ex.Ty, Signature: ex.Signature.Clone()}
 	case *LoadExpr:
 		return &LoadExpr{Ptr: renameExpr(ex.Ptr, from, to), Ty: ex.Ty, Volatile: ex.Volatile}
+	case *DerefExpr:
+		return &DerefExpr{Ptr: renameExpr(ex.Ptr, from, to), Ty: ex.Ty, Volatile: ex.Volatile}
 	case *IndexExpr:
 		return &IndexExpr{
 			Base: renameExpr(ex.Base, from, to), Idx: renameExpr(ex.Idx, from, to),
@@ -4428,6 +4488,24 @@ func renameExpr(e Expr, from, to string) Expr {
 		return &AddrOfExpr{Sym: ex.Sym}
 	case *ConstPtrExpr:
 		return &ConstPtrExpr{ElemTy: ex.ElemTy, Addr: ex.Addr}
+	case *StructLitExpr:
+		fields := make([]FieldInit, len(ex.Fields))
+		for i, fi := range ex.Fields {
+			fields[i] = FieldInit{Name: fi.Name, Val: renameExpr(fi.Val, from, to)}
+		}
+		return &StructLitExpr{St: ex.St, Fields: fields}
+	case *RangeSourceExpr:
+		return &RangeSourceExpr{Lo: renameExpr(ex.Lo, from, to), Hi: renameExpr(ex.Hi, from, to), Rev: ex.Rev}
+	case *GenMakeExpr:
+		args := make([]Expr, len(ex.Args))
+		for i, a := range ex.Args {
+			args[i] = renameExpr(a, from, to)
+		}
+		return &GenMakeExpr{Gen: ex.Gen, Frame: ex.Frame, Args: args}
+	case *GenNextExpr:
+		return &GenNextExpr{Gen: ex.Gen, ElemTy: ex.ElemTy, Frame: renameExpr(ex.Frame, from, to), Out: renameExpr(ex.Out, from, to)}
+	case *CondExpr:
+		return &CondExpr{Cond: renameExpr(ex.Cond, from, to), Then: renameExpr(ex.Then, from, to), Else: renameExpr(ex.Else, from, to), Ty: ex.Ty}
 	case *LetInExpr:
 		return &LetInExpr{
 			Name: ex.Name, Ty: ex.Ty,
@@ -4465,7 +4543,45 @@ func renameStmt(s Stmt, from, to string, lineage ...map[Stmt]LoopLineage) (renam
 	case *AssignStmt:
 		return &AssignStmt{Target: renameExpr(st.Target, from, to), Val: renameExpr(st.Val, from, to)}
 	case *VarDeclStmt:
-		return &VarDeclStmt{Name: st.Name, Ty: st.Ty, Init: renameExpr(st.Init, from, to)}
+		initial := make([]Expr, len(st.Initial))
+		for i, v := range st.Initial {
+			initial[i] = renameExpr(v, from, to)
+		}
+		return &VarDeclStmt{Name: st.Name, Ty: st.Ty, ArrayLen: st.ArrayLen, Init: renameExpr(st.Init, from, to), Initial: initial, At: st.At}
+	case *TupleLetStmt:
+		call := *st.Call
+		call.Args = make([]Expr, len(st.Call.Args))
+		for i, a := range st.Call.Args {
+			call.Args[i] = renameExpr(a, from, to)
+		}
+		return &TupleLetStmt{Names: st.Names, Tys: st.Tys, Call: &call}
+	case *YieldStmt:
+		return &YieldStmt{Val: renameExpr(st.Val, from, to)}
+	case *GenForStmt:
+		args := make([]Expr, len(st.Args))
+		for i, a := range st.Args {
+			args[i] = renameExpr(a, from, to)
+		}
+		return &GenForStmt{Var: st.Var, Gen: st.Gen, Frame: st.Frame, Args: args, ElemTy: st.ElemTy, Body: renameBlock(st.Body, from, to, lineage...)}
+	case *AsmStmt:
+		renameOp := func(ops []AsmOperand) []AsmOperand {
+			if ops == nil {
+				return nil
+			}
+			out := make([]AsmOperand, len(ops))
+			for i, op := range ops {
+				if op.Name == from {
+					op.Name = to
+				}
+				out[i] = op
+			}
+			return out
+		}
+		return &AsmStmt{
+			Target: st.Target, Code: st.Code, ClobberAll: st.ClobberAll,
+			Ins: renameOp(st.Ins), Outs: renameOp(st.Outs),
+			RetReg: st.RetReg, ClobberRegs: st.ClobberRegs, ClobberAuto: st.ClobberAuto,
+		}
 	case *IfStmt:
 		var els *Block
 		if st.Else != nil {

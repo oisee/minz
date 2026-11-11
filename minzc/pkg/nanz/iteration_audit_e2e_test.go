@@ -920,3 +920,119 @@ assert nested() == 179          // 0..5 folded: 0;1;5;18;58;179
 		t.Fatal(err)
 	}
 }
+
+// TestRangeForwardElementUses pins that the element-use scan sees uses of the
+// loop element hidden inside assignment targets (data[j] = k, pts[j].x = k),
+// address-of operands (p = &data[j]), if-expressions and nested range bounds
+// (range(0..j)). A missed use silently picks the DJNZ countdown lowering and
+// miscompiles the forward order; every case runs against a `for` loop oracle.
+func TestRangeForwardElementUses(t *testing.T) {
+	src := `
+global udata: [u8; 8] = [10, 20, 30, 40, 50, 60, 70, 80]
+global uk: u8 = 0
+struct UP { x: u8, y: u8 }
+global upts: [UP; 8]
+
+fun reset_udata() -> void {
+    for q in 0..8 { udata[q] = (q + 1) * 10 }
+}
+
+fun idx_store_each() -> u8 {
+    reset_udata()
+    uk = 1
+    range(0..5).forEach(|j: u8| { udata[j] = uk
+        uk = uk + 1 })
+    return udata[0] * 100 + udata[4] * 10 + udata[5]
+}
+fun idx_store_for() -> u8 {
+    reset_udata()
+    uk = 1
+    for j in 0..5 { udata[j] = uk
+        uk = uk + 1 }
+    return udata[0] * 100 + udata[4] * 10 + udata[5]
+}
+
+fun field_store_each() -> u8 {
+    uk = 1
+    range(0..5).forEach(|j: u8| { upts[j].x = uk
+        uk = uk + 1 })
+    return upts[0].x * 10 + upts[5].x
+}
+fun field_store_for() -> u8 {
+    for q in 0..8 { upts[q].x = 0 }
+    uk = 1
+    for j in 0..5 { upts[j].x = uk
+        uk = uk + 1 }
+    return upts[0].x * 10 + upts[5].x
+}
+
+fun addr_read_each() -> u8 {
+    reset_udata()
+    var t: u8 = 0
+    range(0..5).forEach(|j: u8| { var p: ptr
+        p = &udata[j]
+        t = t * 3 + p^ })
+    return t
+}
+fun addr_read_for() -> u8 {
+    reset_udata()
+    var t: u8 = 0
+    for j in 0..5 { var p: ptr
+        p = &udata[j]
+        t = t * 3 + p^ }
+    return t
+}
+
+fun cond_each() -> u8 {
+    var t: u8 = 0
+    range(0..6).forEach(|j: u8| {
+        var pick: u8 = 0
+        pick = if j % 2 == 0 { j } else { 7 }
+        t = t * 2 + pick
+    })
+    return t
+}
+fun cond_for() -> u8 {
+    var t: u8 = 0
+    for j in 0..6 {
+        var pick: u8 = 0
+        pick = if j % 2 == 0 { j } else { 7 }
+        t = t * 2 + pick
+    }
+    return t
+}
+
+fun nested_range_each() -> u8 {
+    var t: u8 = 0
+    range(0..5).forEach(|j: u8| {
+        var c: u8 = 0
+        range(0..j).forEach(|q: u8| { c = c + 1 })
+        t = t * 3 + c
+    })
+    return t
+}
+fun nested_range_for() -> u8 {
+    var t: u8 = 0
+    for j in 0..5 {
+        var c: u8 = 0
+        for q in 0..j { c = c + 1 }
+        t = t * 3 + c
+    }
+    return t
+}
+
+assert idx_store_each() == 210
+assert idx_store_for() == 210
+assert field_store_each() == 10
+assert field_store_for() == 10
+assert addr_read_each() == 254
+assert addr_read_for() == 254
+assert cond_each() == 171
+assert cond_for() == 171
+assert nested_range_each() == 58
+assert nested_range_for() == 58
+`
+	if err := g0RunAsserts(t, src); err != nil {
+		t.Fatal(err)
+	}
+}
