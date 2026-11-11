@@ -18,7 +18,7 @@ fun callback(acc:u8,x:u8)->u8 { hits = hits + 1
  return acc + x }
 fun test(n:u8)->u8 { hits=0
  let sum=range(0..n).fold(0,callback)
- return sum + hits*16 }`, 95},
+ return sum + hits*16 }`, 90},
 		{"acc_only_callback", `global hits:u8
 fun callback(acc:u8)->u8 { hits=hits+1
  return acc+1 }
@@ -27,9 +27,9 @@ fun test(n:u8)->u8 { hits=0
  return sum+hits*16 }`, 85},
 		{"callback_local", `fun callback(acc:u8,x:u8)->u8 { let shifted=x+1
  return acc+shifted }
-fun test(n:u8)->u8 { return range(0..n).fold(0,callback) }`, 20},
+fun test(n:u8)->u8 { return range(0..n).fold(0,callback) }`, 15},
 		{"counter_order", `fun callback(acc:u8,x:u8)->u8 { return acc*3+x }
-fun test(n:u8)->u8 { return range(0..n).fold(0,callback) }`, (5*81 + 4*27 + 3*9 + 2*3 + 1) & 255},
+fun test(n:u8)->u8 { return range(0..n).fold(0,callback) }`, (((((0*3+0)*3+1)*3+2)*3+3)*3 + 4) & 255},
 		{"filter_then_map", `global hits:u8
 fun keep(x:u8)->bool { return x>2 }
 fun mapper(x:u8)->u8 { hits=hits+1
@@ -37,7 +37,7 @@ fun mapper(x:u8)->u8 { hits=hits+1
 fun callback(acc:u8,x:u8)->u8 { return acc+x }
 fun test(n:u8)->u8 { hits=0
  let sum=range(0..n).filter(keep).map(mapper).fold(0,callback)
- return sum+hits*16 }`, 63},
+ return sum+hits*16 }`, 41},
 		{"map_then_filter", `global hits:u8
 fun keep(x:u8)->bool { return x>3 }
 fun mapper(x:u8)->u8 { hits=hits+1
@@ -45,7 +45,7 @@ fun mapper(x:u8)->u8 { hits=hits+1
 fun callback(acc:u8,x:u8)->u8 { return acc+x }
 fun test(n:u8)->u8 { hits=0
  let sum=range(0..n).map(mapper).filter(keep).fold(0,callback)
- return sum+hits*16 }`, 95},
+ return sum+hits*16 }`, 89},
 		{"two_filters", `global hits:u8
 fun keep(x:u8)->bool { return x>2 }
 fun predicate(x:u8)->bool { hits=hits+1
@@ -53,7 +53,7 @@ fun predicate(x:u8)->bool { hits=hits+1
 fun callback(acc:u8,x:u8)->u8 { return acc+x }
 fun test(n:u8)->u8 { hits=0
  let sum=range(0..n).filter(keep).filter(predicate).fold(0,callback)
- return sum+hits*16 }`, 55},
+ return sum+hits*16 }`, 39},
 		{"filter_none", `fun keep(x:u8)->bool { return false }
 fun callback(acc:u8,x:u8)->u8 { return acc+x }
 fun test(n:u8)->u8 { return range(0..n).filter(keep).fold(7,callback) }`, 7},
@@ -81,11 +81,11 @@ fun test(n:u8)->u8 { hits=0
 		for _, n := range counts {
 			want := c.want
 			if c.name == "callback_prefix" {
-				want = int64((n*(n+1)/2 + n*16) & 255)
+				want = int64((n*(n-1)/2 + n*16) & 255)
 			}
 			if c.name == "counter_order" {
 				want = 0
-				for i := n; i > 0; i-- {
+				for i := 0; i < n; i++ {
 					want = (want*3 + int64(i)) & 255
 				}
 			}

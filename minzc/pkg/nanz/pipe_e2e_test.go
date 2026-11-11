@@ -10,8 +10,8 @@ import (
 func TestPipe_E2E_RangeFold(t *testing.T) {
 	// pipe with a map stage: range(0..5).apply(doubled).fold(0, add_acc)
 	// doubled maps each element x → x+x
-	// fold accumulates: sum of 2*5 + 2*4 + 2*3 + 2*2 + 2*1 = 10+8+6+4+2 = 30
-	// (range(0..5) counts 5,4,3,2,1 — DJNZ semantics)
+	// fold accumulates: sum of 2*0 + 2*1 + 2*2 + 2*3 + 2*4 = 0+2+4+6+8 = 20
+	// (range(0..5) yields 0,1,2,3,4)
 	src := `
 fun add_acc(acc: u8, x: u8) -> u8 { return (acc + x) }
 
@@ -25,15 +25,15 @@ fun sum_doubled() -> u8 {
 	if err != nil {
 		t.Fatalf("compile/run: %v", err)
 	}
-	if got != 30 {
-		t.Errorf("sum_doubled: want 30, got %d", got)
+	if got != 20 {
+		t.Errorf("sum_doubled: want 20, got %d", got)
 	}
 }
 
 func TestPipe_E2E_UseComposition(t *testing.T) {
 	// trans composed = { use base; map(|x| x + 1) }
 	// base doubles, then composed adds 1
-	// range(0..3): elements 3,2,1 → double → 6,4,2 → +1 → 7,5,3 → sum = 15
+	// range(0..3): elements 0,1,2 → double → 0,2,4 → +1 → 1,3,5 → sum = 9
 	src := `
 fun add_acc(acc: u8, x: u8) -> u8 { return (acc + x) }
 
@@ -48,8 +48,8 @@ fun sum_composed() -> u8 {
 	if err != nil {
 		t.Fatalf("compile/run: %v", err)
 	}
-	if got != 15 {
-		t.Errorf("sum_composed: want 15, got %d", got)
+	if got != 9 {
+		t.Errorf("sum_composed: want 9, got %d", got)
 	}
 }
 
@@ -105,7 +105,7 @@ fun sum_doubled() -> u8 {
 	if err != nil {
 		t.Fatalf("compile/run: %v", err)
 	}
-	if got != 30 {
-		t.Errorf("sum_doubled: want 30, got %d", got)
+	if got != 20 {
+		t.Errorf("sum_doubled: want 20, got %d", got)
 	}
 }

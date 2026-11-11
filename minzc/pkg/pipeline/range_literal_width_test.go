@@ -190,8 +190,8 @@ func TestRangeLiteralWidthVMZ80(t *testing.T) {
 		}
 	})
 	t.Run("range_source_wide_followup", func(t *testing.T) {
-		// range(lo..hi) yields the countdown hi-lo, ..., 1 (Nanz book ch. 6), so
-		// range(300..310) correctly sums to 55. The open defect is the trip
+		// range(lo..hi) yields lo..hi-1 ascending (Nanz book ch. 6), so
+		// range(300..310) sums to 3045. The open defect is the trip
 		// count: more than 255 iterations truncate (G0-9).
 		t.Skip("G0-9: range-source counts above 255 truncate; see TestG0Finding_RangeCounterWidth")
 		src := `fun probe()->u16 { var s:u16=0

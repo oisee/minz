@@ -2262,7 +2262,7 @@
   },
   {
     "path": "reports/showcase-src/2026-03-13/ex19_assert_forms.nanz",
-    "source_sha256": "1f4349338f02fbe8eaa253bc9033115ebf4bcaace3d675222fcab4c140224567",
+    "source_sha256": "f261459dff6b3998f5c6fc867ab6405ba36b4708cc623f835127001a4f9db7bb",
     "native_behavior": "bounded-independent-vm-native",
     "workload": "reports/showcase-ex19-complete/workload.json; reports/showcase-manhattan/workload.json",
     "independent_model": "Book v7 named byte fields/unsigned width; host Manhattan abs differences modulo256 and named accessors",
@@ -2541,7 +2541,7 @@
   },
   {
     "path": "reports/showcase-src/2026-03-14/ex28_pipe.nanz",
-    "source_sha256": "f1c25c6f70c1e5105813fe3a84ddef5f7b6fd54aa1915383cc2859d29c0101e4",
+    "source_sha256": "67ff2b053dfdd2565e489bd35cd968870027a927a58b4e3ee97989ededf2a4a0",
     "native_behavior": "executed-independent-vm-z80",
     "workload": "Both full sum_doubled/sum_tripled entries and both source asserts",
     "independent_model": "Independent n-to-1 range with doubled then optional +1, byte accumulation",

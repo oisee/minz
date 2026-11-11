@@ -4078,10 +4078,12 @@ func (l *lowerer) lowerFusedFold(chain iterChain) mir2.Reg {
 // range(lo..hi).forEach(cb)   — pure DJNZ loop, no memory access
 // range(lo..hi).fold(init,cb) — DJNZ accumulator loop, result in register
 //
-// The range source exposes a countdown, not a conventional half-open interval:
-// range(0..n) and range(n..0) both yield n, n-1, ..., 1. Other forward
-// bounds give count = hi-lo; the element is the counter, not lo+offset.
-// See Nanz Language Book, chapter 6. lowerRangeLoop emits TermDJNZ directly.
+// range(lo..hi) yields lo, lo+1, ..., hi-1 (like `for i in lo..hi`); the
+// descending spelling range(n..0) yields n-1, ..., 0. The loop is still driven
+// by a DJNZ counter (count = hi-lo) only when the element is never read
+// (counter-only loop) or for the descending spelling (element = counter-1);
+// a read ascending element is lowered through the `for i in lo..hi` path. See Nanz Language Book, chapter 6. lowerRangeLoop emits
+// TermDJNZ directly.
 //
 // lowerRangeForEach lowers range(lo..hi).forEach(cb) to a counter-only loop.
 func (l *lowerer) lowerRangeForEach(chain iterChain) {
@@ -4224,7 +4226,7 @@ func (l *lowerer) foldStageBody(stages []iterStage, elemVar string, elemTy mir2.
 //	    BrIf(cond, rng_body, rng_exit)
 //
 //	rng_body(cnt: B, mutated...):
-//	    elem = cnt                   element = current B value
+//	    elem = idx                   forward element (cnt itself if elem unused)
 //	    [body stmts]                 may update mutated vars
 //	    DJNZ rng_body(cnt-1, mutated...) | rng_exit(mutated...)
 //	    ──> emitted as TermDJNZ; no CmpNe, no register clobber
@@ -4235,6 +4237,26 @@ func (l *lowerer) foldStageBody(stages []iterStage, elemVar string, elemTy mir2.
 // DJNZ handles all subsequent iterations without touching A.
 func (l *lowerer) lowerRangeLoop(chain iterChain, elemVar string, elemTy mir2.Ty, bodyStmts []Stmt) {
 	envBefore := cloneMap(l.env)
+
+	// Element read: forward ascending range lowers exactly like
+	// `for i in lo..hi` (so the counted-loop decisions of the for path apply);
+	// the DJNZ loop below serves unused elements and the descending spelling.
+	usedProbe := cloneMap(envBefore)
+	usedProbe[elemVar] = mir2.Reg(0)
+	elemUsed := map[string]bool{}
+	scanUsedInBlock(&Block{Body: bodyStmts}, usedProbe, elemUsed)
+	needIdx := elemUsed[elemVar]
+	if needIdx && !chain.rangeRev {
+		idx := l.fresh("iter_idx")
+		defer l.saveLexicalName(elemVar)()
+		ity := RangeType(chain.rangeLo, chain.rangeHi)
+		decl := &VarDeclStmt{Name: elemVar, Ty: elemTy, Init: &VarRefExpr{Name: idx, Ty: ity}}
+		l.lowerForRange(&ForRangeStmt{
+			Var: idx, Start: chain.rangeLo, End: chain.rangeHi,
+			Body: &Block{Body: append([]Stmt{decl}, bodyStmts...)},
+		})
+		return
+	}
 
 	// Compute loop count (initial B value).
 	var countExpr Expr
@@ -4250,6 +4272,18 @@ func (l *lowerer) lowerRangeLoop(chain iterChain, elemVar string, elemTy mir2.Ty
 		}
 	}
 	cntReg := l.lowerExpr(countExpr) // typically ClassAcc (A from func param)
+
+	// Descending spelling range(n..0) with the element read: the element is
+	// cnt-1 (n-1 ... 0), derived from the DJNZ counter each iteration, so the
+	// loop stays a pure DJNZ loop with no extra register.
+	cntVar := l.fresh("iter_cnt")
+	if needIdx {
+		bodyStmts = append([]Stmt{&AssignStmt{
+			Target: &VarRefExpr{Name: elemVar, Ty: elemTy},
+			Val: &BinExpr{Op: "-", L: &VarRefExpr{Name: cntVar, Ty: elemTy},
+				R: &IntLitExpr{Val: 1, Ty: elemTy}, Ty: elemTy},
+		}}, bodyStmts...)
+	}
 
 	// Scan body for mutated outer vars (block params for loop-carried state).
 	elemInitReg := l.bld.Const(0, elemTy, mir2.ClassGeneral)
@@ -4294,8 +4328,9 @@ func (l *lowerer) lowerRangeLoop(chain iterChain, elemVar string, elemTy mir2.Ty
 	}
 	l.env = bodyEnv
 
-	// Element = current B value.
+	// Element = current B value (unused or rewritten by the prologue above).
 	l.bind(elemVar, bodyCnt, elemTy)
+	l.bind(cntVar, bodyCnt, elemTy)
 
 	// A fold owns its accumulator in A. A forEach body may have several
 	// independently live values (including stage results and captures); use
@@ -4326,6 +4361,7 @@ func (l *lowerer) lowerRangeLoop(chain iterChain, elemVar string, elemTy mir2.Ty
 		exitEnv[name] = r
 	}
 	delete(exitEnv, elemVar)
+	delete(exitEnv, cntVar)
 	l.env = exitEnv
 }
 

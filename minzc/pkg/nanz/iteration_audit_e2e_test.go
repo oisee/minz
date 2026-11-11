@@ -233,20 +233,19 @@ fun cnt_sum(x: u8) -> void {
     n16 = n16 + 1
 }
 
-// range(0..n) counts DOWN: n, n-1, ..., 1 — the reverse of for i in 0..n.
+// range(0..n) yields 0, 1, ..., n-1 — the same order as for i in 0..n.
 fun order_0_5() -> u8 {
     acc = 0
     range(0..5).forEach(step)
     return acc
 }
-// range(n..0) is the same back-counting loop (Rev spelling).
+// range(n..0) is the descending spelling: n-1, ..., 0.
 fun order_5_0() -> u8 {
     acc = 0
     range(5..0).forEach(step)
     return acc
 }
-// For non-zero bounds the ELEMENT is the countdown counter, not lo+offset:
-// range(2..7) has count 5 and yields 5,4,3,2,1.
+// range(2..7) yields lo..hi-1 = 2,3,4,5,6.
 fun order_2_7() -> u8 {
     acc = 0
     range(2..7).forEach(step)
@@ -274,12 +273,12 @@ fun n255_cnt() -> u16 {
     range(0..255).forEach(cnt_sum)
     return n16
 }
-assert order_0_5() == 35     // elements 5,4,3,2,1
-assert order_5_0() == 35
-assert order_2_7() == 35     // elements 5,4,3,2,1 (NOT 2..6)
+assert order_0_5() == 58     // elements 0,1,2,3,4
+assert order_5_0() == 170    // elements 4,3,2,1,0
+assert order_2_7() == 44     // elements 2,3,4,5,6
 assert empty() == 77
-assert one() == 1            // single element 1
-assert n255_sum() == 32640   // 255+254+...+1
+assert one() == 0            // single element 0
+assert n255_sum() == 32385   // 0+1+...+254
 assert n255_cnt() == 255
 `
 	if err := g0RunAsserts(t, src); err != nil {
@@ -485,7 +484,7 @@ fun reduce_mem() -> u8 {
     load()
     return reduce(src8, 0, acc3, 5)
 }
-// chainable range fold: countdown order 5,4,3,2,1.
+// chainable range fold: ascending order 0,1,2,3,4.
 fun fold_range() -> u8 {
     return range(0..5).fold(0, acc3)
 }
@@ -493,15 +492,15 @@ fun fold_range() -> u8 {
 fun fold_empty() -> u8 {
     return fold(src8, 42, acc3, 0)
 }
-// fold after filter on a range source: filter sees 9..1, keeps 2,1.
+// fold after filter on a range source: filter sees 0..8, keeps 0,1,2.
 fun fold_filter_range() -> u8 {
     return range(0..9).filter(keep_small).fold(100, acc3)
 }
 assert fold_mem() == 179
 assert reduce_mem() == 179
-assert fold_range() == 35
+assert fold_range() == 58
 assert fold_empty() == 42
-assert fold_filter_range() == 139
+assert fold_filter_range() == 145
 `
 	if err := g0RunAsserts(t, src); err != nil {
 		t.Fatal(err)
@@ -555,7 +554,7 @@ fun trans_mem() -> u8 {
     src8.apply(doubled_big).forEach(sum_into, 5)
     return acc
 }
-assert pipe_range_fold() == 68   // 6,4,2 folded forward: 6;22;68
+assert pipe_range_fold() == 10   // 0,2,4 folded forward: 0;2;10
 assert pipe_mem_foreach() == 30  // 2+4+6+8+10
 assert trans_mem() == 10         // doubled 2,4,6,8,10; filter >8 keeps 10
 `
@@ -602,7 +601,7 @@ fun consumer_range() -> u8 {
     return acc
 }
 assert consumer() == 12        // 1+2+4+5: element 3 skipped, loop continues
-assert consumer_range() == 13  // elements 5,4,3,2,1; skip 2 → 5+4+3+1
+assert consumer_range() == 8   // elements 0,1,2,3,4; skip 2 → 0+1+3+4
 `
 	if err := g0RunAsserts(t, src); err != nil {
 		t.Fatal(err)
@@ -794,13 +793,13 @@ fun wide_range() -> u16 {
     first = 0
     range(0..256).forEach(step)
     if count != 256 { return 1 }
-    if first != 256 { return 2 }
+    if first != 0 { return 2 }
     return total
 }
-assert wide_range() == 32896
+assert wide_range() == 32640
 `
 	if err := g0RunAsserts(t, src); err != nil {
-		t.Skip("G0 finding G0-9: range count 256 truncates to u8; expected u16 counter yielding 256..1: ", err)
+		t.Skip("G0 finding G0-9: range count 256 truncates to u8; expected u16 counter yielding 0..255: ", err)
 	}
 }
 
@@ -826,4 +825,98 @@ func g0HasUndefinedIteratorCall(assembly string, names ...string) bool {
 		}
 	}
 	return false
+}
+
+// TestRangeForwardOrder pins the owner decision that range(lo..hi) iterates
+// FORWARD like `for i in lo..hi`: lo, lo+1, ..., hi-1, for every chain stage.
+// All checks are order-sensitive (acc*3 + x checksums, first/last element).
+func TestRangeForwardOrder(t *testing.T) {
+	src := `
+global acc: u8 = 0
+global cur: u8 = 0
+
+fun step(x: u8) -> void {
+    acc = acc * 3 + x
+}
+fun firstel() -> u8 {
+    var f: u8 = 200
+    var last: u8 = 0
+    range(0..3).forEach(|j: u8| { if f == 200 { f = j }
+        last = j })
+    return f * 10 + last
+}
+fun first_last_2_7() -> u8 {
+    var f: u8 = 200
+    var last: u8 = 0
+    range(2..7).forEach(|j: u8| { if f == 200 { f = j }
+        last = j })
+    return f * 10 + last
+}
+fun sum_2_7() -> u8 {
+    var sum: u8 = 0
+    range(2..7).forEach(|j: u8| { sum = sum + j })
+    return sum
+}
+fun order_2_7() -> u8 {
+    acc = 0
+    range(2..7).forEach(step)
+    return acc
+}
+fun order_empty() -> u8 {
+    acc = 77
+    range(3..3).forEach(step)
+    return acc
+}
+fun fold_2_7() -> u8 {
+    return range(2..7).fold(0, |a: u8, x: u8| { return a * 3 + x })
+}
+fun map_filter_each() -> u8 {
+    acc = 0
+    range(1..6).map(|x: u8| x + 10).filter(|x: u8| x != 13).forEach(step)
+    return acc
+}
+fun filter_fold() -> u8 {
+    return range(1..6).filter(|x: u8| x != 3).fold(0, |a: u8, x: u8| { return a * 3 + x })
+}
+fun rev_fold() -> u8 {
+    return range(4..0).fold(0, |a: u8, x: u8| { return a * 3 + x })
+}
+fun rev_each() -> u8 {
+    acc = 0
+    range(4..0).forEach(step)
+    return acc
+}
+fun unused_count() -> u8 {
+    var n: u8 = 0
+    range(2..7).forEach(|j: u8| { n = n + 1 })
+    return n
+}
+fun inner_step(j: u8) -> void {
+    acc = acc * 3 + cur * 2 + j
+}
+fun outer_step(i: u8) -> void {
+    cur = i
+    range(0..2).forEach(inner_step)
+}
+fun nested() -> u8 {
+    acc = 0
+    range(0..3).forEach(outer_step)
+    return acc
+}
+assert firstel() == 2
+assert first_last_2_7() == 26   // first 2, last 6
+assert sum_2_7() == 20
+assert order_2_7() == 44        // 2,3,4,5,6
+assert order_empty() == 77
+assert fold_2_7() == 44
+assert map_filter_each() == 206 // 11,12,14,15
+assert filter_fold() == 62      // 1,2,4,5
+assert rev_fold() == 102        // 3,2,1,0
+assert rev_each() == 102
+assert unused_count() == 5
+assert nested() == 179          // 0..5 folded: 0;1;5;18;58;179
+`
+	if err := g0RunAsserts(t, src); err != nil {
+		t.Fatal(err)
+	}
 }
