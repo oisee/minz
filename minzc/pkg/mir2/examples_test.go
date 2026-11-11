@@ -2242,9 +2242,10 @@ func TestMin16Z80(t *testing.T) {
 	asm := compileFunc(t, m)
 	t.Log("\n" + asm)
 
-	// Verify SBC HL, DE is in the output (16-bit comparison).
-	if !strings.Contains(asm, "SBC HL, DE") {
-		t.Errorf("expected 'SBC HL, DE' in assembly:\n%s", asm)
+	// The branch-only unsigned compare runs bytewise through A and leaves HL
+	// (the returned a) intact: no SBC HL or PUSH/POP around it.
+	if !strings.Contains(asm, "SBC A, D") || strings.Contains(asm, "SBC HL") || strings.Contains(asm, "PUSH HL") {
+		t.Errorf("expected bytewise 'SUB E / SBC A, D' compare in assembly:\n%s", asm)
 	}
 
 	cases := []struct{ a, b, want int }{

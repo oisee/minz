@@ -58,8 +58,12 @@ func TestProfileGuidedSumVMZ80(t *testing.T) {
 	// zero-length entry 232).  The acc-pressure allocation recipe then shrank
 	// the pointer variant to 226 B: fast 181+37*n, zero-length entry 182.
 	// Current ordinary-options fallback was independently remeasured over
-	// all length/address families: 226+78*n T.
-	model := hir.LoopCostModel{CompilerID: context.CompilerID, SemanticsID: context.SemanticsID, Function: "sum_array", HIRSHA256: profileRun.Profile.Compatibility.HIRSHA256, TargetID: context.TargetID, EvidenceID: "sum-array-z80-acc-pressure-v13", OriginalBytes: 171, PointerBytes: 226, OriginalEntry: 41, OriginalIteration: 54, EqualEntryExtra: 7, FastEntry: 181, FastIteration: 37, FastZeroEntry: 182, FastZeroMeasured: true, FallbackEntry: 226, FallbackIteration: 78, FallbackMeasured: true}
+	// all length/address families: 226+78*n T.  The branch-only unsigned u16
+	// compare through A (no SBC HL) then removed 29T from the fast/equality
+	// entries and 38T from the fallback entry: pointer variant 221 B,
+	// fast 152+37*n, zero-length entry 153, equality extra 0,
+	// fallback 188+78*n T.
+	model := hir.LoopCostModel{CompilerID: context.CompilerID, SemanticsID: context.SemanticsID, Function: "sum_array", HIRSHA256: profileRun.Profile.Compatibility.HIRSHA256, TargetID: context.TargetID, EvidenceID: "sum-array-z80-acc-pressure-v14", OriginalBytes: 171, PointerBytes: 221, OriginalEntry: 41, OriginalIteration: 54, EqualEntryExtra: 0, FastEntry: 152, FastIteration: 37, FastZeroEntry: 153, FastZeroMeasured: true, FallbackEntry: 188, FallbackIteration: 78, FallbackMeasured: true}
 	decisions, e := hir.SelectLoopVariants(bytes.NewReader(profileJSON), input, context, model, false)
 	if e != nil {
 		t.Fatal(e)
@@ -225,7 +229,7 @@ func TestProfileGuidedSumVMZ80(t *testing.T) {
 	}
 	writeJSON("size-decision.json", sizeDecisions)
 	// Execute both sides of the profitability boundary, including retained original.
-	for _, n := range []int64{0, 1, 8, 9, 10} {
+	for _, n := range []int64{0, 1, 6, 7, 8} {
 		one := workload
 		one.Calls = []hir.ProfileInvocation{{Function: "sum_array", Arguments: []hir.ProfileArgument{{Resource: "array"}, literal(n)}}}
 		run, e := hir.RunLoopProfile(parse(), one)
@@ -243,7 +247,7 @@ func TestProfileGuidedSumVMZ80(t *testing.T) {
 				t.Fatal(e)
 			}
 			expectedVariant := "original"
-			if n >= 9 && !size {
+			if n >= 7 && !size {
 				expectedVariant = "pointer-walk"
 			}
 			if d[0].Variant != expectedVariant {
