@@ -5,7 +5,7 @@ import "fmt"
 // bitAccum is one fused "count += v & 1; v >>= 1" step:
 //
 //	%e = ext %v : u8 -> u16      (optional)
-//	%m = and %e, 1
+//	%m = and %e, 1               (or Nanz's %m = ext(and %v, 1))
 //	%s = add %acc, %m : u16
 //	%w = shr %v, 1 : u8
 //
@@ -74,6 +74,13 @@ func (g *z80cg) scanBitAccumPatterns(b *Block) {
 		for k := 0; k < 2; k++ {
 			acc, m := add.Src[k], add.Src[1-k]
 			and := def(m)
+			// Nanz masks the byte before widening: ext(and(v, 1)). Unwrap
+			// that ext the same way as the C form's and(ext(v), 1).
+			var widen *Inst
+			if and != nil && and.Op == OpExt && uses[m] == 1 && and.SrcTy != nil && and.SrcTy.Width() == 8 {
+				widen, m = and, and.Src[0]
+				and = def(m)
+			}
 			if and == nil || and.Op != OpAnd || uses[m] != 1 || len(and.Src) != 2 {
 				continue
 			}
@@ -120,6 +127,9 @@ func (g *z80cg) scanBitAccumPatterns(b *Block) {
 			g.bitAccumSkip[shr] = true
 			if ext != nil {
 				g.bitAccumSkip[ext] = true
+			}
+			if widen != nil {
+				g.bitAccumSkip[widen] = true
 			}
 			break
 		}
