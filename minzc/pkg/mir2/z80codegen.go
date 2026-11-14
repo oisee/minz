@@ -845,6 +845,7 @@ type z80cg struct {
 	// When genCmp is about to emit "LD A, imm", if pendingAccReg is still live
 	// downstream, it emits LD D,A and reroutes pendingAccReg to "D".
 	widenedByteAdds map[*Inst]bool // adjacent ext/add pairs emitted at the extension
+	fusedExt        map[Reg]string // suppressed zero-extensions → source byte location
 	pendingAccReg   Reg
 
 	// ptrAddPushHL: set by scanPtrAddBase when a ptr_add's base is in HL and
@@ -1178,6 +1179,7 @@ func (g *z80cg) genFunc(f *Func) {
 	g.cmpNeedsTwo = make(map[Reg]bool)
 	g.callFlags = make(map[Reg]CmpCond)
 	g.constVals = make(map[Reg]int64)
+	g.fusedExt = make(map[Reg]string)
 	// Build set of block-parameter registers: their values change per iteration
 	// (even if PreallocCoalesce merged an OpConst into the same Reg). Excluding
 	// them from constVals prevents the codegen from treating loop counters as

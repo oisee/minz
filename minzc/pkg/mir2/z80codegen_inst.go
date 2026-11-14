@@ -253,6 +253,9 @@ func (g *z80cg) genInst(inst *Inst) {
 	case OpOr:
 		g.lastFlagsLhs = ""
 		g.lastFlagsRhs = ""
+		if g.genFusedExtOr(inst) {
+			return
+		}
 		g.genBinOp("OR", inst)
 
 	case OpXor:
@@ -426,6 +429,9 @@ func (g *z80cg) genInst(inst *Inst) {
 	case OpShl:
 		g.lastFlagsLhs = ""
 		g.lastFlagsRhs = ""
+		if g.genFusedExtShl(inst) {
+			return
+		}
 		g.genShift("SLA", inst)
 
 	case OpShr:
@@ -441,7 +447,7 @@ func (g *z80cg) genInst(inst *Inst) {
 	case OpPackBytes:
 		g.genPackBytes(inst)
 	case OpExt:
-		if g.genWideningByteAdd(inst) {
+		if g.genWideningByteAdd(inst) || g.tryFuseExt(inst) {
 			return
 		}
 		// Zero-extend srcTy → Ty.  Primary case: u8 → u16 into HL.
