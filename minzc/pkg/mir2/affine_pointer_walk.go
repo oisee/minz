@@ -1,8 +1,9 @@
 package mir2
 
-// strengthReduceAffinePointers handles single-body natural loops. The index
-// proof is separate from address matching: byte expressions must not wrap
-// before widening, whereas word address arithmetic is modular throughout.
+// strengthReduceAffinePointers handles innermost natural loops with one latch.
+// The body below the header test may branch and may leave the loop early. The
+// index proof is separate from address matching: byte expressions must not
+// wrap before widening, whereas word address arithmetic is modular throughout.
 // Only pure address DAGs are cloned into the preheader; loads/stores never move.
 func strengthReduceAffinePointers(f *Func) int {
 	if f == nil || verifyFunc(f) != nil || f.Attrs.HasAsm || f.Attrs.FallibleCY {
@@ -29,7 +30,7 @@ func strengthReduceAffinePointers(f *Func) int {
 	}
 	changed := 0
 	for _, l := range AnalyzeNaturalLoops(f) {
-		if l.Opaque || len(l.Blocks) > 2 || countPredecessors(f, l.Header.Label) != 2 {
+		if l.Opaque || countPredecessors(f, l.Header.Label) != 2 {
 			continue
 		}
 		// On a conditional entering edge, keep the guard comparison last.
@@ -46,7 +47,22 @@ func strengthReduceAffinePointers(f *Func) int {
 			continue
 		}
 		// A recurrence update must execute exactly once on every backedge.
-		// Admit a self-loop or a header whose sole continuing edge enters the latch.
+		// Admit a self-loop, or a loop whose only backedge is the latch's
+		// unconditional jump: the advance is appended to the latch, so it runs
+		// once per completed iteration and never on an exit path. The analysis
+		// already refuses a second backedge (a `continue` that re-enters the
+		// header from another block).
+		//
+		// The header must end in the exit test with exactly one successor in the
+		// loop. Every other loop block is then reached only through the
+		// continuing edge, where the test held for this iteration's index; the
+		// index range proof below depends on that. Header instructions run
+		// before the test and are not candidates.
+		//
+		// The body must be acyclic below the header (no inner loop): the index
+		// is fixed for one iteration, but an inner loop would make "once per
+		// iteration" unprovable from the CFG shape alone.
+		body := []*Block{l.Latch}
 		if l.Header != l.Latch {
 			if l.Back == nil {
 				continue
@@ -60,8 +76,14 @@ func strengthReduceAffinePointers(f *Func) int {
 					target = t.Then
 				}
 			}
-			if target != l.Latch.Label || countPredecessors(f, l.Latch.Label) != 1 {
+			if target == "" || target == l.Header.Label || !l.Blocks[target] || !affineLoopBodyAcyclic(f, l, target) {
 				continue
+			}
+			body = body[:0]
+			for _, b := range f.Blocks {
+				if l.Blocks[b.Label] && b != l.Header {
+					body = append(body, b)
+				}
 			}
 		}
 		for _, iv := range l.Inductions {
@@ -169,8 +191,20 @@ func strengthReduceAffinePointers(f *Func) int {
 				}
 				return false
 			}
+			// Candidates with the same base value and the same affine index
+			// (scale, offset) compute the same address in every iteration, so
+			// they share one walk. The match admits only non-wrapping byte steps
+			// and modular word arithmetic, so equal (scale, offset) means equal
+			// 16-bit values. The base is keyed by its invariant root or symbol.
+			type walkKey struct {
+				base          Reg
+				sym           string
+				scale, offset int64
+			}
 			var candidates []*Inst
-			for _, x := range l.Latch.Insts {
+			var walkOf []int
+			walks := map[walkKey]int{}
+			for _, x := range affineBodyInsts(body) {
 				if x.Op != OpPtrAdd || x.Ty != TyPtr || !plainCountedPointerInst(x) {
 					continue
 				}
@@ -179,15 +213,25 @@ func strengthReduceAffinePointers(f *Func) int {
 					continue
 				}
 				// The base must be invariant, including a known normal global symbol.
-				if _, ok := l.Invariant[x.Src[0]]; !ok {
+				key := walkKey{scale: a.scale, offset: a.offset}
+				if root, ok := l.Invariant[x.Src[0]]; ok {
+					key.base = root
+				} else {
 					b := defs[x.Src[0]]
 					if b == nil || b.Op != OpAddrOf || b.ClsHard || f.mod == nil || !invariantGlobalSymbol(f.mod, b.Sym) {
 						continue
 					}
+					key.sym = b.Sym
+				}
+				w, ok := walks[key]
+				if !ok {
+					w = len(walks)
+					walks[key] = w
 				}
 				candidates = append(candidates, x)
+				walkOf = append(walkOf, w)
 			}
-			if len(candidates) == 0 || !affinePointerProfitable(f, l, iv, candidates, defs, types) {
+			if len(candidates) == 0 || !affinePointerProfitable(f, l, iv, candidates, len(walks), defs, types) {
 				continue
 			}
 			// Once addressing has its own pointer, a word IV no longer needs
@@ -223,10 +267,18 @@ func strengthReduceAffinePointers(f *Func) int {
 				l.Preheader.Insts = append(l.Preheader.Insts, &x)
 				return x.Dst
 			}
-			for _, x := range candidates {
+			walkRegs := make([]Reg, len(walks))
+			for n, x := range candidates {
+				if walk := walkRegs[walkOf[n]]; walk != NoReg {
+					x.Op = OpMove
+					x.Src = [2]Reg{walk}
+					changed++
+					continue
+				}
 				a, _ := match(x.Src[1], 0)
 				initial := init(x.Dst)
 				walk, bump := f.AllocReg(), f.AllocReg()
+				walkRegs[walkOf[n]] = walk
 				l.Header.Params = append(l.Header.Params, BlockParam{Dst: walk, Ty: TyPtr, Class: ClassPointer})
 				appendAffinePointerEdge(l.Preheader.Term, l.Header.Label, initial)
 				// OpPtrBump(-1) is the SoA column sentinel, not subtraction.
@@ -265,6 +317,54 @@ func strengthReduceAffinePointers(f *Func) int {
 		DeadBlockArgElim(f)
 	}
 	return changed
+}
+
+func affineBodyInsts(body []*Block) []*Inst {
+	var out []*Inst
+	for _, b := range body {
+		out = append(out, b.Insts...)
+	}
+	return out
+}
+
+// affineLoopBodyAcyclic reports whether the loop blocks reachable from the
+// header's continuing successor, ignoring edges back to the header, form a
+// DAG. Each block then executes at most once per iteration.
+func affineLoopBodyAcyclic(f *Func, l *NaturalLoop, start string) bool {
+	blocks := map[string]*Block{}
+	for _, b := range f.Blocks {
+		blocks[b.Label] = b
+	}
+	const (
+		active = 1
+		done   = 2
+	)
+	state := map[string]int{}
+	var visit func(string) bool
+	visit = func(label string) bool {
+		if label == l.Header.Label || !l.Blocks[label] {
+			return true
+		}
+		switch state[label] {
+		case active:
+			return false
+		case done:
+			return true
+		}
+		state[label] = active
+		b := blocks[label]
+		if b == nil {
+			return false
+		}
+		for _, s := range b.Successors() {
+			if !visit(s) {
+				return false
+			}
+		}
+		state[label] = done
+		return true
+	}
+	return visit(start)
 }
 
 func plainAffineConstant(x *Inst) bool {
@@ -359,7 +459,7 @@ func affinePointerIndexRange(l *NaturalLoop, iv LoopInduction, defs map[Reg]*Ins
 
 // Reject partial walks before making any edits. A surviving index address
 // needs HL as scratch while the new loop-carried pointers occupy the pairs.
-func affinePointerProfitable(f *Func, l *NaturalLoop, iv LoopInduction, candidates []*Inst, defs map[Reg]*Inst, types map[Reg]Ty) bool {
+func affinePointerProfitable(f *Func, l *NaturalLoop, iv LoopInduction, candidates []*Inst, walks int, defs map[Reg]*Inst, types map[Reg]Ty) bool {
 	replaced := map[Reg]bool{}
 	for _, x := range candidates {
 		replaced[x.Dst] = true
@@ -439,7 +539,7 @@ func affinePointerProfitable(f *Func, l *NaturalLoop, iv LoopInduction, candidat
 	// Persistent word state includes surviving loop parameters and invariant
 	// words needed on subsequent iterations. Rematerialised constants/addresses
 	// are excluded. Reserve BC for counters; only HL and DE budget walks/state.
-	words := len(candidates)
+	words := walks
 	state := map[Reg]bool{}
 	for _, p := range l.Header.Params {
 		if needed[p.Dst] && p.Ty.Width() == 16 {
