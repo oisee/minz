@@ -12,6 +12,20 @@ func (g *z80cg) emitFlagPredicateByte(cc string) {
 	trueLabel := fmt.Sprintf(".bool_true_%d", idx)
 	falseLabel := fmt.Sprintf(".bool_false_%d", idx)
 	doneLabel := fmt.Sprintf(".bool_done_%d", idx)
+	// Carry predicates materialize without branching. SBC A,A and NEG/INC A
+	// keep C as it was, so a later branch on the same predicate still works.
+	switch cc {
+	case "C":
+		g.emit("    SBC A, A")
+		g.emit("    NEG")
+		g.invalidate("A")
+		return
+	case "NC":
+		g.emit("    SBC A, A")
+		g.emit("    INC A")
+		g.invalidate("A")
+		return
+	}
 	switch cc {
 	case "CLE":
 		g.emitf("    JP C, %s", trueLabel)
@@ -371,6 +385,11 @@ func (g *z80cg) genCmp(inst *Inst) {
 				return
 			}
 			// lhs IS "A": force-swap would clobber the live value in A.
+			// When A dies here, SCF / SBC A, rhs computes a − b − 1, whose
+			// borrow is exactly a ≤ b: one carry predicate instead of C-or-Z.
+			if g.tryCarryUnsignedLeA(inst, rhs) {
+				return
+			}
 			// Emit normally (A=lhs already, CP rhs); TermBrIf will use two JPs.
 			g.cmpNeedsTwo[inst.Dst] = true
 			// Fall through to normal CP code (which will find A=lhs and emit CP rhs).
@@ -1091,4 +1110,46 @@ func (g *z80cg) publishShiftCarry(inst *Inst) {
 		g.cmpBranchCC[g.shiftCarryCmp.Dst] = cc
 		g.pendingFlagReg = g.shiftCarryCmp.Dst
 	}
+}
+
+// tryCarryUnsignedLeA lowers an unsigned a ≤ b / a > b with a in a dying A as
+// SCF / SBC A, b. The borrow of a − b − 1 is a ≤ b, so the predicate is C (≤)
+// or NC (>), materializable without branches. Z does not carry equality.
+func (g *z80cg) tryCarryUnsignedLeA(inst *Inst, rhs string) bool {
+	if isSignedOrdering(inst) || (inst.SrcTy != nil && inst.SrcTy.Width() > 8) {
+		return false
+	}
+	cc := "C"
+	switch inst.Cond {
+	case CmpLe, CmpUle:
+	case CmpGt, CmpUgt:
+		cc = "NC"
+	default:
+		return false
+	}
+	operand := ""
+	if cv, ok := g.constVals[inst.Src[1]]; ok {
+		operand = fmt.Sprintf("%d", cv&0xFF)
+	} else if isSimpleReg(rhs) && !isPairReg(rhs) && rhs != "A" && rhs != "F" {
+		operand = rhs
+	} else {
+		return false
+	}
+	for r := range g.regsLiveAfterInst(inst) {
+		if loc := g.loc(r); loc == "A" || loc == "AF" {
+			return false
+		}
+	}
+	if g.pendingAccReg != NoReg && g.pendingAccReg != inst.Src[0] {
+		return false
+	}
+	g.lastFlagsLhs, g.lastFlagsRhs = "", ""
+	g.emit("    SCF")
+	g.emitf("    SBC A, %s", operand)
+	g.invalidate("A")
+	g.cmpBranchCC[inst.Dst] = cc
+	delete(g.cmpNeedsTwo, inst.Dst)
+	delete(g.cmpSwapped, inst.Dst)
+	g.pendingFlagReg = inst.Dst
+	return true
 }

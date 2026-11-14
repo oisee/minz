@@ -551,6 +551,30 @@ func SimplifyIdentities(f *Func) bool {
 					}
 					changed = true
 				}
+			case OpCmp:
+				// cmp.ne(p, 0) of a canonical 0/1 predicate p is p itself. Only
+				// a comparison defined earlier in this block counts as canonical.
+				// Only constants may sit between the two comparisons, so the
+				// predicate's flags are still the current ones.
+				adjacent := false
+				for j := i - 1; j >= 0; j-- {
+					if b.Insts[j].Dst == inst.Src[0] {
+						adjacent = true
+						break
+					}
+					if b.Insts[j].Op != OpConst {
+						break
+					}
+				}
+				if p := defs[inst.Src[0]]; adjacent && inst.Cond == CmpNe && inst.Ty == TyBool && !inst.ClsHard &&
+					p != nil && p.Op == OpCmp && p.Ty == TyBool {
+					// Rewrite the readers instead of emitting a move: a copy of a
+					// flag-class predicate is not a reliable codegen operand.
+					if v, ok := consts[inst.Src[1]]; ok && v == 0 && localOnlyUses(f, b, inst.Dst) {
+						rewriteBlockUses(b, inst.Dst, inst.Src[0])
+						changed = true
+					}
+				}
 			case OpMul:
 				// Mul(x, 1) → Move(x), Mul(1, x) → Move(x)
 				if v, ok := consts[inst.Src[1]]; ok && v == 1 {
@@ -748,4 +772,28 @@ func simplifyTypedZeroIdentities(f *Func) bool {
 		}
 	}
 	return changed
+}
+
+// localOnlyUses reports whether every read of r is inside block b.
+func localOnlyUses(f *Func, b *Block, r Reg) bool {
+	for _, other := range f.Blocks {
+		if other == b {
+			continue
+		}
+		for _, i := range other.Insts {
+			for _, u := range i.Uses() {
+				if u == r {
+					return false
+				}
+			}
+		}
+		if other.Term != nil {
+			for _, u := range termRegUses(other.Term) {
+				if u == r {
+					return false
+				}
+			}
+		}
+	}
+	return true
 }
