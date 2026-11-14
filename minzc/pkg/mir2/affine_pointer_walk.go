@@ -231,7 +231,17 @@ func strengthReduceAffinePointers(f *Func) int {
 				candidates = append(candidates, x)
 				walkOf = append(walkOf, w)
 			}
-			if len(candidates) == 0 || !affinePointerProfitable(f, l, iv, candidates, len(walks), defs, types) {
+			if len(candidates) == 0 {
+				continue
+			}
+			replaced := map[Reg]bool{}
+			for _, x := range candidates {
+				replaced[x.Dst] = true
+			}
+			// The down-counter is part of this rewrite: DisableAffine (and the
+			// IndexedPointers variant) keeps the indexed shape for both.
+			counter := affineCounterPlan(f, l, iv, replaced, defs, types)
+			if !affinePointerProfitable(f, l, iv, candidates, len(walks), counter, defs, types) {
 				continue
 			}
 			// Once addressing has its own pointer, a word IV no longer needs
@@ -297,6 +307,9 @@ func strengthReduceAffinePointers(f *Func) int {
 				x.Src = [2]Reg{walk}
 				changed++
 			}
+			if counter != nil {
+				counter.apply(f, l)
+			}
 			// Keep a preheader guard after the cloned arithmetic. Besides reducing
 			// predicate live ranges, this avoids relying on flags across address ALU.
 			if t, ok := l.Preheader.Term.(*TermBrIf); ok {
@@ -317,6 +330,110 @@ func strengthReduceAffinePointers(f *Func) int {
 		DeadBlockArgElim(f)
 	}
 	return changed
+}
+
+// affineNeeded models address-DAG DCE over the loop without modifying the
+// function. A replacement pointer is a leaf: its old base/index operands no
+// longer stay live. Invariant header parameters forwarded unchanged by the
+// backedge are not uses. With a counter plan, the header exit test and the
+// index's backedge argument are not roots either: both are replaced.
+func affineNeeded(f *Func, l *NaturalLoop, replaced map[Reg]bool, defs map[Reg]*Inst, counter *affineCounter) map[Reg]bool {
+	needed := map[Reg]bool{}
+	var need func(Reg)
+	need = func(r Reg) {
+		if r == NoReg || needed[r] {
+			return
+		}
+		needed[r] = true
+		if replaced[r] {
+			return
+		}
+		if x := defs[r]; x != nil {
+			for _, s := range x.Uses() {
+				need(s)
+			}
+		}
+	}
+	for _, b := range f.Blocks {
+		if !l.Blocks[b.Label] {
+			continue
+		}
+		for _, x := range b.Insts {
+			if !isDSEPure(x.Op) {
+				for _, r := range x.Uses() {
+					need(r)
+				}
+			}
+		}
+		if jump, ok := b.Term.(*TermJmp); ok && jump.Target == l.Header.Label {
+			for i, r := range jump.Args {
+				if _, invariant := l.Invariant[l.Header.Params[i].Dst]; invariant {
+					continue
+				}
+				if counter != nil && l.Header.Params[i].Dst == counter.iv.Param.Dst {
+					continue
+				}
+				need(r)
+			}
+		} else {
+			for _, r := range termRegUses(b.Term) {
+				if counter != nil && b == l.Header && r == counter.cmp.Dst {
+					continue
+				}
+				need(r)
+			}
+		}
+	}
+	return needed
+}
+
+// affineWordTemporary reports a needed 16-bit loop value that must live in a
+// register pair of its own: not a replaced address, not a constant or symbol
+// address (rematerialised), and not loop-carried state itself, which already
+// has its pair. A state value is one passed on an edge; an `ext` of a byte
+// whose only uses are adds/subs forming such state is folded into the add.
+func affineWordTemporary(f *Func, l *NaturalLoop, replaced, needed map[Reg]bool) bool {
+	edge := map[Reg]bool{}
+	users := map[Reg][]*Inst{}
+	for _, b := range f.Blocks {
+		if !l.Blocks[b.Label] {
+			continue
+		}
+		b.Term.ForEachEdge(func(_ string, args []Reg, _ int) {
+			for _, r := range args {
+				edge[r] = true
+			}
+		})
+		for _, x := range b.Insts {
+			for _, r := range x.Uses() {
+				users[r] = append(users[r], x)
+			}
+		}
+	}
+	for _, b := range f.Blocks {
+		if !l.Blocks[b.Label] {
+			continue
+		}
+		for _, x := range b.Insts {
+			if x.Dst == NoReg || !needed[x.Dst] || replaced[x.Dst] || x.Ty == nil || x.Ty.Width() != 16 || edge[x.Dst] {
+				continue
+			}
+			switch x.Op {
+			case OpConst, OpAddrOf:
+				continue
+			case OpExt:
+				folded := x.SrcTy != nil && x.SrcTy.Width() == 8 && len(users[x.Dst]) > 0
+				for _, u := range users[x.Dst] {
+					folded = folded && (u.Op == OpAdd || u.Op == OpSub) && edge[u.Dst]
+				}
+				if folded {
+					continue
+				}
+			}
+			return true
+		}
+	}
+	return false
 }
 
 func affineBodyInsts(body []*Block) []*Inst {
@@ -459,7 +576,12 @@ func affinePointerIndexRange(l *NaturalLoop, iv LoopInduction, defs map[Reg]*Ins
 
 // Reject partial walks before making any edits. A surviving index address
 // needs HL as scratch while the new loop-carried pointers occupy the pairs.
-func affinePointerProfitable(f *Func, l *NaturalLoop, iv LoopInduction, candidates []*Inst, walks int, defs map[Reg]*Inst, types map[Reg]Ty) bool {
+//
+// An index that affineCounterPlan converts is not state: the model drops its
+// exit test and its backedge argument, so neither the index nor a bound used
+// only by that test is counted. The counter replacing them takes BC, which
+// this budget reserves for counters.
+func affinePointerProfitable(f *Func, l *NaturalLoop, iv LoopInduction, candidates []*Inst, walks int, counter *affineCounter, defs map[Reg]*Inst, types map[Reg]Ty) bool {
 	replaced := map[Reg]bool{}
 	for _, x := range candidates {
 		replaced[x.Dst] = true
@@ -495,47 +617,7 @@ func affinePointerProfitable(f *Func, l *NaturalLoop, iv LoopInduction, candidat
 			}
 		}
 	}
-	// Model address-DAG DCE without modifying the function. A replacement
-	// pointer is a leaf: its old base/index operands no longer stay live.
-	needed := map[Reg]bool{}
-	var need func(Reg)
-	need = func(r Reg) {
-		if r == NoReg || needed[r] {
-			return
-		}
-		needed[r] = true
-		if replaced[r] {
-			return
-		}
-		if x := defs[r]; x != nil {
-			for _, s := range x.Uses() {
-				need(s)
-			}
-		}
-	}
-	for _, b := range f.Blocks {
-		if !l.Blocks[b.Label] {
-			continue
-		}
-		for _, x := range b.Insts {
-			if !isDSEPure(x.Op) {
-				for _, r := range x.Uses() {
-					need(r)
-				}
-			}
-		}
-		if jump, ok := b.Term.(*TermJmp); ok && jump.Target == l.Header.Label {
-			for i, r := range jump.Args {
-				if _, invariant := l.Invariant[l.Header.Params[i].Dst]; !invariant {
-					need(r)
-				}
-			}
-		} else {
-			for _, r := range termRegUses(b.Term) {
-				need(r)
-			}
-		}
-	}
+	needed := affineNeeded(f, l, replaced, defs, counter)
 	// Persistent word state includes surviving loop parameters and invariant
 	// words needed on subsequent iterations. Rematerialised constants/addresses
 	// are excluded. Reserve BC for counters; only HL and DE budget walks/state.
@@ -562,6 +644,13 @@ func affinePointerProfitable(f *Func, l *NaturalLoop, iv LoopInduction, candidat
 		words++
 	}
 	if words > 2 {
+		return false
+	}
+	// A counter occupies BC. With HL and DE also loop-carried, a word
+	// temporary in the body has no pair left and is spilled to IX/IY on every
+	// iteration, which costs more than the indexed loop it replaces. The
+	// widening byte add `state + ext(byte)` needs no pair and is not counted.
+	if counter != nil && words == 2 && affineWordTemporary(f, l, replaced, needed) {
 		return false
 	}
 	// Setup is not amortised for a statically tiny loop. Strict ascending and

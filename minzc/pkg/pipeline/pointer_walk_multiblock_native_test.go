@@ -14,20 +14,23 @@ import (
 // indexedLoopCase is a C kernel over `unsigned char src[256]` with a bound
 // global `n`, an optional pointer global `base` and a u16 `result`. oracle
 // computes the expected result independently of both VMs and the compiler;
-// mem reads the byte the kernel sees at an address.
+// mem reads the byte the kernel sees at an address before it runs.
 type indexedLoopCase struct {
 	name   string
 	source string
 	kernel string
 	byteN  bool
-	walk   bool // the hot loop must use a pointer walk (default profile)
+	// shape of the hot loop in the default profile: "counter" (walk and
+	// down-counter, index gone), "walk" (walk, index kept) or "indexed".
+	shape  string
+	aliasN bool // base points at n
 	oracle func(mem func(int) byte, src int, n, base int) uint16
 }
 
 func indexedLoopCases() []indexedLoopCase {
 	return []indexedLoopCase{
 		{
-			name: "fold_max", kernel: "execute", walk: true,
+			name: "fold_max", kernel: "execute", shape: "counter",
 			source: `unsigned char src[256]; unsigned short n, base, result;
 void execute(void) {
     unsigned short i; unsigned char s = 0;
@@ -45,7 +48,7 @@ void execute(void) {
 			},
 		},
 		{
-			name: "fold_min_break", kernel: "execute", walk: true,
+			name: "fold_min_break", kernel: "execute", shape: "counter",
 			source: `unsigned char src[256]; unsigned short n, base, result;
 void execute(void) {
     unsigned short i; unsigned char s = 255;
@@ -70,7 +73,7 @@ void execute(void) {
 			},
 		},
 		{
-			name: "find_return", kernel: "find", walk: true,
+			name: "find_return", kernel: "find", shape: "walk",
 			source: `unsigned char src[256]; unsigned short n, base, result;
 unsigned short find(void) {
     unsigned short i;
@@ -96,7 +99,7 @@ void execute(void) { result = 0; result = find() + result; }`,
 			},
 		},
 		{
-			name: "count_less_wrap", kernel: "count_less", byteN: true, walk: true,
+			name: "count_less_wrap", kernel: "count_less", byteN: true, shape: "counter",
 			source: `unsigned char src[256], n; unsigned short base, result;
 unsigned short count_less(unsigned char *p, unsigned char length, unsigned char threshold) {
     unsigned short count = 0;
@@ -118,7 +121,7 @@ void execute(void) { result = count_less((unsigned char *)base, n, 0x80); }`,
 			},
 		},
 		{
-			name: "window_sum", kernel: "execute",
+			name: "window_sum", kernel: "execute", shape: "counter",
 			source: `unsigned char src[256]; unsigned short n, base, result;
 void execute(void) {
     unsigned short s = 0, i, count = 0;
@@ -135,7 +138,7 @@ void execute(void) {
 			},
 		},
 		{
-			name: "index_after_loop", kernel: "execute",
+			name: "index_after_loop", kernel: "execute", shape: "walk",
 			source: `unsigned char src[256]; unsigned short n, base, result;
 void execute(void) {
     unsigned short i; unsigned char s = 0;
@@ -150,6 +153,66 @@ void execute(void) {
 					}
 				}
 				return uint16(int(s) + n)
+			},
+		},
+		{
+			// Walk, sum and counter would fill HL, DE and BC while the body
+			// needs a word temporary for the i16 multiply.
+			name: "map_filter_sum", kernel: "execute", shape: "indexed",
+			source: `unsigned char src[256]; unsigned short n, base, result;
+void execute(void) {
+    unsigned short s = 0, i; unsigned char y;
+    for (i = 0; i < n; ++i) { y = (unsigned char)(src[i] * 2); if (y > 10 && y < 200) s += y; }
+    result = s;
+}`,
+			oracle: func(mem func(int) byte, src, n, _ int) uint16 {
+				s := 0
+				for i := 0; i < n; i++ {
+					if y := byte(int(mem(src+i)) * 2); y > 10 && y < 200 {
+						s += int(y)
+					}
+				}
+				return uint16(s)
+			},
+		},
+		{
+			// The loop stores to its bound: no down-counter.
+			name: "bound_stored", kernel: "execute", byteN: true, shape: "walk",
+			source: `unsigned char src[256], n; unsigned short base, result;
+void execute(void) {
+    unsigned char i, s = 0;
+    for (i = 0; i < n; ++i) { s += src[i]; if (src[i] == 0xEE) n = 3; }
+    result = s;
+}`,
+			oracle: func(mem func(int) byte, src, n, _ int) uint16 {
+				s := byte(0)
+				for i := 0; i < n; i++ {
+					v := mem(src + i)
+					s += v
+					if v == 0xee {
+						n = 3
+					}
+				}
+				return uint16(s)
+			},
+		},
+		{
+			// The loop stores through a pointer that aliases its bound.
+			name: "bound_aliased", kernel: "execute", byteN: true, shape: "walk", aliasN: true,
+			source: `unsigned char src[256], n; unsigned short base, result;
+void execute(void) {
+    unsigned char i, s = 0; unsigned char *q = (unsigned char *)base;
+    for (i = 0; i < n; ++i) { s += src[i]; *q = (unsigned char)(src[i] | 0x80); }
+    result = s;
+}`,
+			oracle: func(mem func(int) byte, src, n, _ int) uint16 {
+				s := byte(0)
+				for i := 0; i < n; i++ {
+					v := mem(src + i)
+					s += v
+					n = int(v | 0x80)
+				}
+				return uint16(s)
 			},
 		},
 	}
@@ -184,7 +247,7 @@ func TestIndexedLoopPointerWalkNative(t *testing.T) {
 				if err != nil {
 					t.Fatal(err)
 				}
-				if tc.walk && mode == "default" {
+				if mode == "default" {
 					var kernel *mir2.Func
 					for _, f := range s.MIR2Module.Funcs {
 						if f.Name == tc.kernel {
@@ -194,24 +257,35 @@ func TestIndexedLoopPointerWalkNative(t *testing.T) {
 					if kernel == nil {
 						t.Fatalf("no kernel %s\n%s", tc.kernel, s.MIR2Opt)
 					}
-					bumps, indexed := 0, 0
+					bumps, indexed, ult, ne := 0, 0, 0, 0
 					for _, l := range mir2.AnalyzeNaturalLoops(kernel) {
 						for _, b := range kernel.Blocks {
 							if !l.Blocks[b.Label] {
 								continue
 							}
 							for _, x := range b.Insts {
-								switch x.Op {
-								case mir2.OpPtrBump:
+								switch {
+								case x.Op == mir2.OpPtrBump:
 									bumps++
-								case mir2.OpPtrAdd:
+								case x.Op == mir2.OpPtrAdd:
 									indexed++
+								case x.Op == mir2.OpCmp && b == l.Header && x.Cond == mir2.CmpNe:
+									ne++
+								case x.Op == mir2.OpCmp && b == l.Header:
+									ult++
 								}
 							}
 						}
 					}
-					if bumps != 1 || indexed != 0 {
-						t.Fatalf("want one walk and no indexed address, got %d/%d\n%s", bumps, indexed, s.MIR2Opt)
+					got := "indexed"
+					if bumps == 1 && indexed == 0 {
+						got = "walk"
+						if ne == 1 && ult == 0 {
+							got = "counter"
+						}
+					}
+					if got != tc.shape {
+						t.Fatalf("loop shape %s, want %s\n%s", got, tc.shape, s.MIR2Opt)
 					}
 				}
 				a, err := z80asm.NewAssembler().AssembleString("ORG 0x8000\n" + s.Assembly)
@@ -237,6 +311,9 @@ func TestIndexedLoopPointerWalkNative(t *testing.T) {
 					if tc.name == "count_less_wrap" {
 						bases = []int{-1, 0xff80}
 					}
+					if tc.aliasN {
+						bases = []int{addr("n")}
+					}
 					for _, base := range bases {
 						z := emulator.NewRemogattoZ80()
 						mem := z.Memory()
@@ -245,7 +322,8 @@ func TestIndexedLoopPointerWalkNative(t *testing.T) {
 						for k := 0; k < 256; k++ {
 							mem[src+k] = indexedLoopPattern(k)
 						}
-						if base >= 0 {
+						wrap := base >= 0 && !tc.aliasN
+						if wrap {
 							for k := 0; k < 256; k++ {
 								mem[(base+k)&0xffff] = indexedLoopPattern(k + 1000)
 							}
@@ -270,8 +348,8 @@ func TestIndexedLoopPointerWalkNative(t *testing.T) {
 						if z.GetPC() != 0xf100 || z.GetRegisters().SP != 0xf000 || got != want {
 							t.Fatalf("Z80 n=%d base=%#x: got %d want %d\n%s\n%s", n, base, got, want, s.MIR2Opt, s.Assembly)
 						}
-						// The untransformed MIR in the VM, for inputs inside src.
-						if base >= 0 {
+						// The untransformed MIR in the VM, for inputs inside its heap.
+						if wrap {
 							continue
 						}
 						vm := mir2.NewVM(raw)
@@ -284,7 +362,11 @@ func TestIndexedLoopPointerWalkNative(t *testing.T) {
 						} else {
 							vm.WriteHeapSlice(vm.GlobalAddr("n"), []byte{byte(n), byte(n >> 8)})
 						}
-						vm.WriteHeapSlice(vm.GlobalAddr("base"), []byte{byte(vsrc), byte(vsrc >> 8)})
+						vbase := vsrc
+						if tc.aliasN {
+							vbase = vm.GlobalAddr("n")
+						}
+						vm.WriteHeapSlice(vm.GlobalAddr("base"), []byte{byte(vbase), byte(vbase >> 8)})
 						if _, err := vm.Call("execute", nil); err != nil {
 							t.Fatal(err)
 						}

@@ -98,6 +98,9 @@ func affineFoldFixture(mode string) (*Module, *Func) {
 		bound = paramBound
 	} else {
 		bound = b.Load(b.AddrOf("n", ClassPointer), boundTy, idxCls)
+		if has("volatile-load") {
+			head.Insts[len(head.Insts)-1].Volatile = true
+		}
 	}
 	cmpTy := idxTy
 	lhs, rhs := i, bound
@@ -268,6 +271,9 @@ func runFold(t *testing.T, m *Module, base, bound int64) []byte {
 	}
 	vm.WriteHeapSlice(at, []byte{byte(bound), byte(bound >> 8)})
 	vm.WriteHeapSlice(vm.GlobalAddr("src")+0x34, []byte{0xee})
+	if base < 0 {
+		base = vm.GlobalAddr("n")
+	}
 	out, err := vm.Call("fold", []Value{{I: base}, {I: bound}})
 	if err != nil {
 		t.Fatal(err)
@@ -287,51 +293,68 @@ func foldBounds(mode string) []int64 {
 }
 
 // TestAffinePointerWalkMultiBlock covers the multi-block body admitted by
-// strengthReduceAffinePointers. Each refusal mode leaves the function
+// strengthReduceAffinePointers and the down-counter that replaces the index
+// once only its exit test is left. Each refusal mode leaves the function
 // byte-identical; every mode, rewritten or not, must keep the VM result and
 // memory of the untransformed function.
 func TestAffinePointerWalkMultiBlock(t *testing.T) {
 	for _, tc := range []struct {
-		mode string
-		walk bool
+		mode          string
+		walk, counter bool
 	}{
-		{"", true},
-		{"u8", true},
-		{"param-base", true},
-		// Walk, index and a word bound would need three pairs.
-		{"param-bound", false},
-		{"u8+param-bound", true},
-		{"early-ret", true},
-		{"break", true},
-		{"live-after", true},
-		{"init1", true},
-		{"signed", true},
+		// The bound is a header load of a static global in a loop without
+		// stores (hoisted), an invariant parameter, byte or word.
+		{"", true, true},
+		{"u8", true, true},
+		{"param-base", true, true},
+		{"param-bound", true, true},
+		{"u8+param-bound", true, true},
+		// Early exits leave the counter and the walk dead, not wrong.
+		{"early-ret", true, true},
+		{"break", true, true},
+		// The index survives: it escapes the loop, it is stored, compared a
+		// second time, does not start at zero, or the test is signed.
+		{"live-after", true, false},
+		{"u8+param-bound+store-index", true, false},
+		{"u8+param-bound+cmp-twice", true, false},
+		{"init1", true, false},
+		{"signed", true, false},
+		// The bound may change during the loop or must not be read early: the
+		// loop stores to it directly or through an unknown pointer, or it has
+		// an absolute address or volatile storage.
+		{"store-bound", true, false},
+		{"u8+store-ptr", true, false},
+		{"at-bound", true, false},
+		{"volatile-bound", true, false},
+		// A volatile access makes the whole loop opaque.
+		{"volatile-load", false, false},
 		// Opaque bodies: calls, inline assembly and ports.
-		{"call", false},
-		{"call-index", false},
-		{"asm", false},
-		{"port", false},
+		{"call", false, false},
+		{"call-index", false, false},
+		{"asm", false, false},
+		{"port", false, false},
 		// The index range proof needs a unit step and a strict unsigned (or
-		// signed word) test of the index itself against the bound.
-		{"step2", false},
-		{"ule", false},
-		{"swapped", false},
-		{"narrow", false},
+		// signed word) test of the index itself against a bound of its width.
+		{"step2", false, false},
+		{"ule", false, false},
+		{"swapped", false, false},
+		{"narrow", false, false},
 		// A second backedge or an inner loop breaks "advance once per iteration".
-		{"continue", false},
-		{"inner", false},
+		{"continue", false, false},
+		{"inner", false, false},
 	} {
 		t.Run(tc.mode, func(t *testing.T) {
 			raw, _ := affineFoldFixture(tc.mode)
 			opt, f := affineFoldFixture(tc.mode)
+			index := f.Blocks[1].Params[0].Dst
 			before := opt.Dump()
 			n := StrengthReduceCountedPointers(f)
 			if err := Verify(opt); err != nil {
 				t.Fatal(err, opt.Dump())
 			}
-			walk, _, indexed := affineLoopShape(f)
-			if tc.walk != (n > 0) || tc.walk != walk {
-				t.Fatalf("rewrites=%d walk=%v want walk=%v\n%s", n, walk, tc.walk, opt.Dump())
+			walk, counter, indexed := affineLoopShape(f)
+			if tc.walk != (n > 0) || tc.walk != walk || tc.counter != counter {
+				t.Fatalf("rewrites=%d walk=%v counter=%v, want walk=%v counter=%v\n%s", n, walk, counter, tc.walk, tc.counter, opt.Dump())
 			}
 			if !tc.walk && opt.Dump() != before {
 				t.Fatalf("refusal mutated the function\n%s", opt.Dump())
@@ -339,14 +362,31 @@ func TestAffinePointerWalkMultiBlock(t *testing.T) {
 			if tc.walk && indexed {
 				t.Fatalf("indexed address left in the loop\n%s", opt.Dump())
 			}
+			if tc.counter {
+				for _, b := range f.Blocks {
+					for _, p := range b.Params {
+						if p.Dst == index {
+							t.Fatalf("index parameter survives\n%s", opt.Dump())
+						}
+					}
+				}
+			}
 			if tc.mode == "asm" || tc.mode == "port" {
 				return
 			}
-			for _, base := range []int64{0x8000, 0xff80} {
-				for _, bound := range foldBounds(tc.mode) {
-					if !strings.Contains(tc.mode, "param-base") && base != 0x8000 {
-						continue
-					}
+			bases := []int64{0x8000}
+			bounds := foldBounds(tc.mode)
+			if strings.Contains(tc.mode, "param-base") {
+				// 0xff80 + 256 and the maximum word bound wrap past 0xFFFF.
+				bases = append(bases, 0xff80)
+				bounds = append(bounds, 65535)
+			}
+			if strings.Contains(tc.mode, "store-ptr") {
+				// p aliases the bound: each store rewrites its low byte.
+				bases = append(bases, -1)
+			}
+			for _, base := range bases {
+				for _, bound := range bounds {
 					if !bytes.Equal(runFold(t, raw, base, bound), runFold(t, opt, base, bound)) {
 						t.Fatalf("base=%#x bound=%d differs\n%s", base, bound, opt.Dump())
 					}

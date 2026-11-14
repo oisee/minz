@@ -275,6 +275,98 @@ func hoistInvariantGlobalLoads(f *Func, facts *NaturalLoop) bool {
 			home[i] = b
 		}
 	}
+	// Address definitions move with their load, in dependency order.
+	var move []*Inst
+	moving := map[*Inst]bool{}
+	var emit func(i *Inst)
+	emit = func(i *Inst) {
+		if moving[i] {
+			return
+		}
+		moving[i] = true
+		for _, u := range i.Uses() {
+			if d := instDefs[u]; d != nil && loop[home[d].Label] && !moving[d] {
+				emit(d)
+			}
+		}
+		move = append(move, i)
+	}
+	// Collect the candidates first, keyed by the byte range they read, so a
+	// location the loop reads more than once can be refused as a whole.
+	type byteRange struct {
+		sym    string
+		offset int
+	}
+	candidates := map[byteRange][]*Inst{}
+	var order []byteRange
+	for _, b := range f.Blocks {
+		if !loop[b.Label] {
+			continue
+		}
+		for _, i := range b.Insts {
+			// Only byte-wide results are hoisted. A wider value has to hold a
+			// full pointer pair for the whole loop, while the direct-addressing
+			// form (LD rr,(nn)) already re-reads it in one instruction with no
+			// address register: hoisting the loop bound `n` measured 13-46%
+			// slower on the C fusion cases because the pair it occupied
+			// displaced the array base pointers into IX/IY.
+			if i.Op != OpLoad || i.Ty == nil || ByteWidth(i.Ty) != 1 {
+				continue
+			}
+			g, base, ok := staticGlobalLoad(f, i, instDefs)
+			if !ok {
+				continue
+			}
+			key := byteRange{g.Name, base}
+			if _, seen := candidates[key]; !seen {
+				order = append(order, key)
+			}
+			candidates[key] = append(candidates[key], i)
+		}
+	}
+	hoisted := false
+	for _, key := range order {
+		list := candidates[key]
+		// A loop that re-reads the same location several times is
+		// rematerialising it: LD A,(nn) costs 13T and no register, while
+		// several hoisted copies would each have to survive the whole loop
+		// (measured +28% on checksum16, whose loop bound is read in the head
+		// and again in the body). Leave such locations alone.
+		if len(list) != 1 {
+			continue
+		}
+		emit(list[0])
+		hoisted = true
+	}
+	if !hoisted {
+		return false
+	}
+	for _, i := range move {
+		b := home[i]
+		out := b.Insts[:0]
+		for _, x := range b.Insts {
+			if x != i {
+				out = append(out, x)
+			}
+		}
+		b.Insts = out
+	}
+	facts.Preheader.Insts = append(facts.Preheader.Insts, move...)
+	return true
+}
+
+// staticGlobalLoad proves that load reads a byte range inside one ordinary
+// module global through an address built from addr_of and constants only, and
+// returns that global and the offset. Such a read has no observable effect and
+// its storage always exists, so it may execute earlier than written; whether
+// the location can change in between is the caller's proof
+// (loopObscuresMemory for a loop).
+func staticGlobalLoad(f *Func, load *Inst, instDefs map[Reg]*Inst) (*Global, int, bool) {
+	if f.mod == nil || load.Op != OpLoad || load.Dst == NoReg || load.Volatile || load.SequentialBytes ||
+		len(load.SequentialByteOrigins) != 0 || len(load.SequentialAddressDefs) != 0 ||
+		load.Ty == nil || load.Src[0] == NoReg {
+		return nil, 0, false
+	}
 	word := f.mod.PointerType().Width()
 	// prove resolves r to the global it addresses and the byte offset within
 	// it, admitting only constants, addr_of and pure pointer arithmetic.
@@ -333,86 +425,11 @@ func hoistInvariantGlobalLoads(f *Func, facts *NaturalLoop) bool {
 		}
 		return nil, 0, false
 	}
-	// Address definitions move with their load, in dependency order.
-	var move []*Inst
-	moving := map[*Inst]bool{}
-	var emit func(i *Inst)
-	emit = func(i *Inst) {
-		if moving[i] {
-			return
-		}
-		moving[i] = true
-		for _, u := range i.Uses() {
-			if d := instDefs[u]; d != nil && loop[home[d].Label] && !moving[d] {
-				emit(d)
-			}
-		}
-		move = append(move, i)
+	g, base, ok := prove(load.Src[0], map[Reg]bool{})
+	if !ok || g == nil || g.Ty == nil || base < 0 || base+ByteWidth(load.Ty) > ByteWidth(g.Ty) {
+		return nil, 0, false
 	}
-	// Collect the candidates first, keyed by the byte range they read, so a
-	// location the loop reads more than once can be refused as a whole.
-	type byteRange struct {
-		sym    string
-		offset int
-	}
-	candidates := map[byteRange][]*Inst{}
-	var order []byteRange
-	for _, b := range f.Blocks {
-		if !loop[b.Label] {
-			continue
-		}
-		for _, i := range b.Insts {
-			// Only byte-wide results are hoisted. A wider value has to hold a
-			// full pointer pair for the whole loop, while the direct-addressing
-			// form (LD rr,(nn)) already re-reads it in one instruction with no
-			// address register: hoisting the loop bound `n` measured 13-46%
-			// slower on the C fusion cases because the pair it occupied
-			// displaced the array base pointers into IX/IY.
-			if i.Op != OpLoad || i.Dst == NoReg || i.Volatile || i.SequentialBytes ||
-				len(i.SequentialByteOrigins) != 0 || len(i.SequentialAddressDefs) != 0 ||
-				i.Ty == nil || i.Src[0] == NoReg || ByteWidth(i.Ty) != 1 {
-				continue
-			}
-			g, base, ok := prove(i.Src[0], map[Reg]bool{})
-			if !ok || g == nil || g.Ty == nil || base < 0 || base+ByteWidth(i.Ty) > ByteWidth(g.Ty) {
-				continue
-			}
-			key := byteRange{g.Name, base}
-			if _, seen := candidates[key]; !seen {
-				order = append(order, key)
-			}
-			candidates[key] = append(candidates[key], i)
-		}
-	}
-	hoisted := false
-	for _, key := range order {
-		list := candidates[key]
-		// A loop that re-reads the same location several times is
-		// rematerialising it: LD A,(nn) costs 13T and no register, while
-		// several hoisted copies would each have to survive the whole loop
-		// (measured +28% on checksum16, whose loop bound is read in the head
-		// and again in the body). Leave such locations alone.
-		if len(list) != 1 {
-			continue
-		}
-		emit(list[0])
-		hoisted = true
-	}
-	if !hoisted {
-		return false
-	}
-	for _, i := range move {
-		b := home[i]
-		out := b.Insts[:0]
-		for _, x := range b.Insts {
-			if x != i {
-				out = append(out, x)
-			}
-		}
-		b.Insts = out
-	}
-	facts.Preheader.Insts = append(facts.Preheader.Insts, move...)
-	return true
+	return g, base, true
 }
 
 func invariantEdgeArgs(t Term, target string) ([]Reg, bool) {
