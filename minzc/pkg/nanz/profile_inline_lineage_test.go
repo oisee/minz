@@ -59,7 +59,7 @@ fun main()->u8 {
 	}
 	vm := mir2.NewVM(raw)
 	result, err := vm.Call("main", nil)
-	if err != nil || len(result) != 1 || result[0].I != 9 {
+	if err != nil || len(result) != 1 || result[0].I != 4 {
 		t.Fatalf("result=%v err=%v", result, err)
 	}
 }

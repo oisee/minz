@@ -994,7 +994,9 @@ All 11 iterator chain combinations are verified end-to-end:
 
 ### 6.1 Overview
 
-`range(lo..hi)` is a **counter-based iterator source** — no memory pointer, no `LD A,(HL)`, no `INC HL`. Elements are the DJNZ counter value itself, counting down from `hi−lo` to `1`.
+`range(lo..hi)` is a **counter-based iterator source** — no memory pointer, no `LD A,(HL)`, no `INC HL`. It yields `lo, lo+1, …, hi−1` in ascending order, exactly like `for i in lo..hi`, and is empty when `lo == hi`.
+
+When the loop body never reads the element (for example a fold that ignores `i`), the compiler keeps a pure DJNZ counter loop: no element register at all. When the element is read, the loop is lowered exactly like `for i in lo..hi` (the chain is a `for` loop whose body is the inlined callbacks), so it costs the same as the hand-written `for`. The descending spelling `range(hi..0)` yields `hi−1, …, 0`, derived from the DJNZ counter.
 
 ```nanz
 fun sum_range(n: u8) -> u8 {
@@ -1002,45 +1004,43 @@ fun sum_range(n: u8) -> u8 {
 }
 ```
 
-Generated Z80:
+Generated Z80 (the element is read, so this is the `for` shape; the exact registers are chosen by the allocator and the calling convention):
 
 ```asm
-; fun sum_range(n: u8 = A) -> u8 = A
 sum_range:
-    LD B, 0              ; acc init = 0
-    AND A                ; pre-check: n == 0?
-    JRS NZ, .trmp0
-    JRS .rng_exit2
-.rng_body1:
-    ADD A, B             ; acc += counter  ← ONE instruction per iteration
-    DJNZ .rng_body1      ; B--; branch if B ≠ 0
-    LD B, A
-    JP .rng_exit2
-.rng_exit2:
-    LD A, B
-    RET
-.trmp0:
-    LD C, A              ; save n (parallel copy resolver)
-    LD A, B              ; A = 0 (acc init)
-    LD B, C              ; B = n (counter)
-    JRS .rng_body1
+    LD A, 0              ; acc init = 0
+    LD D, 0              ; i = 0
+.head:
+    LD E, A
+    LD A, D
+    CP C                 ; i < n ?
+    LD A, E
+    RET NC
+.body:
+    ADD A, D             ; acc += i
+    INC D
+    JRS .head
 ```
 
-**Body: one instruction per iteration — `ADD A, B`.** No loads. No stores. No spills.
+A fold or `forEach` whose callback ignores the element compiles to a counter-only `DJNZ` loop instead.
 
-### 6.2 Counting Semantics
+---
 
-`range(0..n)` counts **DOWN**: DJNZ starts at B=n and decrements to 0. The element values are `n, n-1, ..., 1` — the counter itself.
+### 6.2 Iteration Order
 
-This means `range(0..n).fold(0, |acc,i| acc+i)` computes **sum(1..n) = n*(n+1)/2**, not sum(0..n-1). This is intentional: counting down is the natural direction for DJNZ, and computing the triangular number is the correct mathematical result.
+`range(0..n)` counts **UP**: the elements are `0, 1, …, n-1`, and `range(lo..hi)` yields `lo … hi-1` (`range(2..7)` yields 2,3,4,5,6). This is the same order as `for i in lo..hi`, for every chain stage (`map`, `filter`, `fold`, `forEach`). The descending literal spelling `range(n..0)` yields `n-1, …, 0` (the reverse of `range(0..n)`).
+
+(Before 2026-11 `range` yielded the DJNZ countdown `n, n-1, …, 1` instead; code that depended on that order must be updated.)
+
+So `range(0..n).fold(0, |acc,i| acc+i)` computes **sum(0..n-1) = n*(n-1)/2**.
 
 | n | Expected result | Formula |
 |---|----------------|---------|
 | 0 | 0 | n=0: loop doesn't run |
-| 1 | 1 | just 1 |
-| 4 | 10 | 4+3+2+1 |
-| 5 | 15 | 5+4+3+2+1 |
-| 10 | 55 | 10×11/2 |
+| 1 | 0 | just 0 |
+| 4 | 6 | 0+1+2+3 |
+| 5 | 10 | 0+1+2+3+4 |
+| 10 | 45 | 10×9/2 |
 
 **All five verified on the Z80 binary** via `TestRangeFold_E2E_SumRange`.
 
@@ -1110,9 +1110,9 @@ If both pass: the function is correct by construction.
 
 | Situation | MIR2 VM | Z80 binary | What happened |
 |-----------|---------|------------|--------------|
-| `sum_range(5) = 15` | 15 | 15 | All good |
+| `sum_range(5) = 10` | 10 | 10 | All good |
 | `sum_range(5) = 7` | 7 | 7 | **Algorithm bug** |
-| `sum_range(5) = 15` | 15 | 0 | **Codegen bug** (e.g. the A↔B swap) |
+| `sum_range(5) = 10` | 10 | 0 | **Codegen bug** (e.g. the A↔B swap) |
 
 The third row is the canonical example. The MIR2 VM is ABI-agnostic — it doesn't simulate physical registers, so it cannot observe the swap corruption. The Z80 binary check catches it immediately.
 
@@ -1120,13 +1120,13 @@ The third row is the canonical example. The MIR2 VM is ABI-agnostic — it doesn
 
 ```nanz
 // Default: run on both MIR2 VM and Z80 binary
-assert sum_range(5) == 15
+assert sum_range(5) == 10
 
 // Only run on MIR2 VM (fast — skips Z80 assembly + emulator)
-assert sum_range(5) == 15 via mir2
+assert sum_range(5) == 10 via mir2
 
 // Only run on Z80 binary (skips MIR2 VM)
-assert sum_range(5) == 15 via z80
+assert sum_range(5) == 10 via z80
 ```
 
 ### 7.5 Multi-Value Assertions
