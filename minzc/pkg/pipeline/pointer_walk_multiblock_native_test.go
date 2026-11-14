@@ -156,6 +156,50 @@ void execute(void) {
 			},
 		},
 		{
+			// j is computed from the index inside the loop and read only
+			// after it, so the index cannot be replaced by a counter.
+			name: "derived_after_loop", kernel: "find", shape: "walk",
+			source: `unsigned char src[256]; unsigned short n, base, result;
+unsigned short find(void) {
+    unsigned short i;
+    for (i = 0; i < n; ++i) {
+        unsigned short j = i + 1;
+        if (src[i] == 0xEE) return j;
+    }
+    return 0;
+}
+void execute(void) { result = find(); }`,
+			oracle: func(mem func(int) byte, src, n, _ int) uint16 {
+				for i := 0; i < n; i++ {
+					if mem(src+i) == 0xee {
+						return uint16(i + 1)
+					}
+				}
+				return 0
+			},
+		},
+		{
+			name: "scaled_after_loop", kernel: "find", shape: "walk",
+			source: `unsigned char src[256]; unsigned short n, base, result;
+unsigned short find(void) {
+    unsigned short i;
+    for (i = 0; i < n; ++i) {
+        unsigned short off = i * 40;
+        if (src[i] == 0xEE) return off;
+    }
+    return 0xFFFF;
+}
+void execute(void) { result = find(); }`,
+			oracle: func(mem func(int) byte, src, n, _ int) uint16 {
+				for i := 0; i < n; i++ {
+					if mem(src+i) == 0xee {
+						return uint16(i * 40)
+					}
+				}
+				return 0xffff
+			},
+		},
+		{
 			// Walk, sum and counter would fill HL, DE and BC while the body
 			// needs a word temporary for the i16 multiply.
 			name: "map_filter_sum", kernel: "execute", shape: "indexed",

@@ -37,11 +37,13 @@ type affineCounter struct {
 //     on the entering path; the static-global proof makes the extra read on a
 //     guarded zero-trip path unobservable.
 //
-// Two further conditions are profitability, not safety: the index and its
-// increment have no use left once the replaced addresses are gone (inside the
-// loop by affineNeeded, after it by LiveOut), and a hoisted load is used only
+// Two further conditions keep the conversion a saving: the index has no use
+// left once the replaced addresses are gone, and a hoisted load is used only
 // by the exit test. Otherwise the index or the bound would stay live next to
-// the counter, adding a register pair instead of saving one.
+// the counter, adding a register pair instead of saving one. apply relies on
+// the first: it deletes the index together with every pure value computed
+// from it (affineCounterRemoved), so none of those may be needed inside the
+// loop (affineNeeded) or live after it (LiveOut).
 func affineCounterPlan(f *Func, l *NaturalLoop, iv LoopInduction, replaced map[Reg]bool, defs map[Reg]*Inst, types map[Reg]Ty) *affineCounter {
 	ty := iv.Param.Ty
 	if l.Header == l.Latch || l.Back == nil || iv.Step != 1 || (ty != TyU8 && ty != TyU16) {
@@ -109,8 +111,10 @@ func affineCounterPlan(f *Func, l *NaturalLoop, iv LoopInduction, replaced map[R
 		}
 		emit(load)
 	}
-	if l.LiveOut[iv.Param.Dst] || l.LiveOut[iv.Next] {
-		return nil
+	for r := range affineCounterRemoved(f, l, iv.Param.Dst) {
+		if l.LiveOut[r] {
+			return nil
+		}
 	}
 	needed := affineNeeded(f, l, replaced, defs, plan)
 	if needed[iv.Param.Dst] || needed[iv.Next] {
@@ -172,27 +176,45 @@ func (c *affineCounter) apply(f *Func, l *NaturalLoop) {
 	l.Header.Params = params
 	compactEdgeArgs(l.Preheader.Term, l.Header.Label, keep)
 	compactEdgeArgs(l.Latch.Term, l.Header.Label, keep)
-	dead := map[Reg]bool{c.iv.Param.Dst: true}
+	dead := affineCounterRemoved(f, l, c.iv.Param.Dst)
+	for _, b := range f.Blocks {
+		if !l.Blocks[b.Label] {
+			continue
+		}
+		out := b.Insts[:0]
+		for _, x := range b.Insts {
+			if !dead[x.Dst] || !isDSEPure(x.Op) {
+				out = append(out, x)
+			}
+		}
+		b.Insts = out
+	}
+}
+
+// affineCounterRemoved returns the index and every value a pure instruction
+// of the loop computes from it, directly or through other such values: the
+// registers that have no definition once the index parameter is gone.
+func affineCounterRemoved(f *Func, l *NaturalLoop, index Reg) map[Reg]bool {
+	dead := map[Reg]bool{index: true}
 	for progress := true; progress; {
 		progress = false
 		for _, b := range f.Blocks {
 			if !l.Blocks[b.Label] {
 				continue
 			}
-			out := b.Insts[:0]
 			for _, x := range b.Insts {
-				uses := false
-				for _, r := range x.Uses() {
-					uses = uses || dead[r]
-				}
-				if uses && isDSEPure(x.Op) {
-					dead[x.Dst] = true
-					progress = true
+				if x.Dst == NoReg || dead[x.Dst] || !isDSEPure(x.Op) {
 					continue
 				}
-				out = append(out, x)
+				for _, r := range x.Uses() {
+					if dead[r] {
+						dead[x.Dst] = true
+						progress = true
+						break
+					}
+				}
 			}
-			b.Insts = out
 		}
 	}
+	return dead
 }
