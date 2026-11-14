@@ -290,7 +290,7 @@
     "minzc/pkg/hir/hir.go": "24f86069d280ebcf04e1ecce9783d92bc3c8c0d01761971fd7c03d6393c36cb6",
     "minzc/pkg/hir/import_strings.go": "736dd4e855416b5618d912d35be3921713cfca145ef3e6e4bf66b9de062e761e",
     "minzc/pkg/hir/literal_type.go": "b184ddfb683c2f506d046fc7a86c631fca33ca03801573210bc547d01f15e501",
-    "minzc/pkg/hir/lower.go": "7d65318f92252c1f76d65b87c2b896da71a683278de0eb9ab6b8ffcb0918c15d",
+    "minzc/pkg/hir/lower.go": "efd0bd4379e81475eb6a0224eb7b1bc15138f7d02219bb1faa79fa04ba2f4dd1",
     "minzc/pkg/hir/lower_gen.go": "22dc95f6503d6eec6c23a23a7f7ce88849baa333d8751c6cd02de1e083e2f2da",
     "minzc/pkg/hir/lower_string_print.go": "7be591ddbc40c50d408669ac3bd780d0de5b41896f73a7a7eec46c00e88ca069",
     "minzc/pkg/hir/memory_host_loop_profile.go": "b83ae428cc262ba6951d8be9aa652dcd4676cb71252243f2b574e65a6cb2a8a5",
@@ -745,17 +745,17 @@
     "cursor-large": 63
   },
   "guard_mutants": 6,
-  "upstream_echo_receipt_sha256": "43d2fa3627e86dcf49039dfbba881c3bee847d43b920c75c7fc78545186c4734",
+  "upstream_echo_receipt_sha256": "ca87ef58e459b2e897ed6e44fe06a0b9d22f58726ca66eb20fdb98fb8e1f1459",
   "reused_upstream": null,
   "scope": "fifth independently linked native file stage, target downmix and NOTES timing, original Ruby oracle; private CP/M/TRD API traps, not physical ROM/FDC/hardware/boot/TPA-CCP/fullVT2VTX/MOS/eZ80",
-  "frozen_fixture_sha256": "866ca0bdcc0b992a56f4f8b283642e0a27c33be076ab459e2719b9a62435fcdb",
-  "fresh_receipt_sha256": "691fbf77700d256430686191b59deef5faf0fd7d6cf50ed86566d714cb0e553b",
+  "frozen_fixture_sha256": "6d5bdce111ab53c7a9f4ab4f3e8a49197feca3feabcc1279fcc3e0b93d0b3bbd",
+  "fresh_receipt_sha256": "e956b2e9672c0f521f00c205c9e05c98c1400c3de1709070be71e359b3b7be40",
   "native_images": {
     "kernel": {
       "program.com": "c879487092467a7e29119524842805d76cb673774d492ffa590b1c8e5a55e353"
     },
     "cpm": {
-      "program.com": "401d8fc21ff2e334198d75f8b5b8e3b33581bb9a33f97e0de65cea1a7a336b11"
+      "program.com": "fc0131367ff6ce81963cf91f2ab93b12b0267fca62fb12e50d210e88ceea4709"
     },
     "trd": {
       "capacity_lane_3073/scorpion-z80/program.bin": "77ad6ae44508b927a2f37a6c39f60f38f5acc5b9392e1c3c476b926ad5ab3697",
@@ -1046,10 +1046,10 @@
       "snapshot_267_1/scorpion-z80/program.bin": "77ad6ae44508b927a2f37a6c39f60f38f5acc5b9392e1c3c476b926ad5ab3697"
     },
     "cursor-chronos": {
-      "program.com": "78c7b9a480fba26f3502acdf7035a21c9b207a58d80f8639d5f2b008ff1c34eb"
+      "program.com": "c457f620df6aff40afa093f7bd361bdbf417d769f863809bab6df2949897812b"
     },
     "cursor-large": {
-      "program.com": "78c7b9a480fba26f3502acdf7035a21c9b207a58d80f8639d5f2b008ff1c34eb"
+      "program.com": "c457f620df6aff40afa093f7bd361bdbf417d769f863809bab6df2949897812b"
     }
   }
 }
