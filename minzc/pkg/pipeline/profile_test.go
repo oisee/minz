@@ -91,10 +91,11 @@ func TestMultiFunctionProfileVMZ80(t *testing.T) {
 		name   string
 		n      int64
 		cycles int
-	}{{"short_sum", 1, 95}, {"long_sum", 40, 1430}} {
+	}{{"short_sum", 1, 95}, {"long_sum", 40, 1401}} {
 		// short_sum now uses the ordinary counted-pointer pass: 41 + 54*n.
 		// Removing a forwarding-only cycle changes long_sum entry allocation
-		// by +4T (1426 to 1430); source results and per-item demand are unchanged.
+		// by +4T (1426 to 1430); the bytewise unsigned compare then removed 29T
+		// (1401). Source results and per-item demand are unchanged.
 		// The synthetic selector
 		// coefficients deliberately test dispatch, not production cost evidence.
 		want := call.n * (call.n + 1) / 2 & 255

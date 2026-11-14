@@ -16,8 +16,9 @@ import (
 )
 
 // Book v7 §19.2-19.3: named pipes splice doubled then +1; §6 range
-// counts n..1. §17 imports change names, not arithmetic. Host oracles use
-// uint8 arithmetic; no HIR/compiler execution computes the expected values.
+// iterates forward 0..n-1 like `for i in 0..n`. §17 imports change names,
+// not arithmetic. Host oracles use uint8 arithmetic; no HIR/compiler
+// execution computes the expected values.
 func TestOriginalPipeAndImportNativeModels(t *testing.T) {
 	type invocation struct {
 		Entry    string
@@ -26,7 +27,7 @@ func TestOriginalPipeAndImportNativeModels(t *testing.T) {
 	}
 	rangeSum := func(n int, composed bool) byte {
 		var acc byte
-		for x := n; x > 0; x-- {
+		for x := 0; x < n; x++ {
 			v := byte(2 * x)
 			if composed {
 				v++

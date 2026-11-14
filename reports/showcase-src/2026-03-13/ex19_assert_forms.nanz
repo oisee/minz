@@ -82,8 +82,8 @@ assert fib(8) == 21 via mir2
 assert fib(10) == 55 via mir2
 assert fib(12) == 144 via mir2
 
-// Range fold — sums i from n down to 1 (DJNZ counts down).
-// sum_range(n) = n*(n+1)/2.
+// Range fold — sums i over 0..n-1 (range yields lo..hi-1 ascending).
+// sum_range(n) = n*(n-1)/2.
 // Z80 path has a BrIf ClassAcc conflict at the loop-entry condition check;
 // the acc-init register gets clobbered before the first iteration.
 fun sum_range(n: u8) -> u8 {
@@ -91,10 +91,10 @@ fun sum_range(n: u8) -> u8 {
 }
 
 assert sum_range(0) == 0 via mir2
-assert sum_range(1) == 1 via mir2
-assert sum_range(4) == 10 via mir2    // 4+3+2+1
-assert sum_range(5) == 15 via mir2   // 5+4+3+2+1
-assert sum_range(10) == 55 via mir2  // 10+9+...+1
+assert sum_range(1) == 0 via mir2
+assert sum_range(4) == 6 via mir2     // 0+1+2+3
+assert sum_range(5) == 10 via mir2    // 0+1+2+3+4
+assert sum_range(10) == 45 via mir2   // 0+1+...+9
 
 // ── Tuple asserts — pass both MIR2 VM and Z80 emulator ──────────────────────
 //

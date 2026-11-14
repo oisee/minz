@@ -1,7 +1,7 @@
 {
   "schema": "minz.showcase-ex19-remaining/v1",
   "source_path": "reports/showcase-src/2026-03-13/ex19_assert_forms.nanz",
-  "source_sha256": "1f4349338f02fbe8eaa253bc9033115ebf4bcaace3d675222fcab4c140224567",
+  "source_sha256": "f261459dff6b3998f5c6fc867ab6405ba36b4708cc623f835127001a4f9db7bb",
   "pair_inputs": "all256 first bytes \u00d7 [0,1,127,128,254,255] second bytes",
   "clamp": "all256 v \u00d7 ordered lo/hi combinations of [0,1,127,128,254,255]",
   "fib_inputs": [
