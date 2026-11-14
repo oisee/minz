@@ -28,7 +28,7 @@ func main() {
  raw:=hir.LowerModule(buildOne());check(mir2.Verify(raw))
  opts:=pipeline.DefaultOptions();opts.AssertMode="none";opts.DisableVariantSearch=true
  steps,e:=pipeline.CompileHIRSteps(buildOne(),opts);check(e)
- assembly:="ORG 0x100\nLD SP,0xeffe\nCALL disk_main\nHALT\n"+steps.Assembly
+ assembly:="ORG 0x100\nLD SP,0xeffe\nCALL disk_main\nLD A,L\nOR H\nHALT\n"+steps.Assembly // the u16 fault is the exit status; A is otherwise whatever disk_main left
  a,e:=z80asm.NewAssembler().AssembleString(assembly);check(e);if len(a.Errors)!=0{panic(a.Errors)}
  if origin+len(a.Binary)+64>=floor{panic("image overlaps stack")}
  for name,b:=range map[string][]byte{"program.a80":[]byte(assembly),"program.com":a.Binary,"raw.mir":[]byte(raw.Dump()),"final.mir":[]byte(steps.MIR2Module.Dump())}{check(os.WriteFile(filepath.Join(*out,name),b,0644))}
