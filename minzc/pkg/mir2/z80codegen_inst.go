@@ -194,6 +194,14 @@ func (g *z80cg) genInst(inst *Inst) {
 
 	case OpMove:
 		src := g.loc(inst.Src[0])
+		// A copy of a predicate needs a byte home: F holds no byte to copy into,
+		// and the flags are materialized only for the pending comparison.
+		if dst == "F" || src == "F" && inst.Src[0] != g.pendingFlagReg {
+			if g.err == nil {
+				g.err = fmt.Errorf("z80 codegen: %s: move r%d (%s) <- r%d (%s) has no valid flag encoding", g.fn.Name, inst.Dst, dst, inst.Src[0], src)
+			}
+			return
+		}
 		if dst == src {
 			return // no-op
 		}
