@@ -5,8 +5,14 @@ import "fmt"
 // CPL only complements A. Explicitly stage each byte from its allocated home
 // and write it to the result; bool has one significant bit and uses XOR 1.
 func (g *z80cg) genNot(inst *Inst) {
-	src, dst := g.loc(inst.Src[0]), g.loc(inst.Dst)
 	width := inst.Ty.Width()
+	// XOR 1 writes flags; CPL leaves S, Z, P/V and C as they were. Without
+	// the PUSH AF / POP AF below, a pending predicate live after the NOT
+	// must be saved first.
+	if width == 1 && g.loc(inst.Dst) == "A" && g.pendingFlagReg != NoReg && g.regsLiveAfterInst(inst)[g.pendingFlagReg] {
+		g.materializePendingFlag(inst)
+	}
+	src, dst := g.loc(inst.Src[0]), g.loc(inst.Dst)
 	preserveA := dst != "A"
 	if preserveA {
 		g.emit("    PUSH AF")

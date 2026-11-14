@@ -425,8 +425,11 @@ func (g *z80cg) genCall(inst *Inst) error {
 				// A result in F is the pending predicate, saved before the
 				// next flag writer. A replaced pending predicate is dead or
 				// has a byte home: it cannot share F with this live result.
-				if g.loc(inst.Dst) == "F" {
+				if loc := g.loc(inst.Dst); loc == "F" {
 					g.pendingFlagReg = inst.Dst
+				} else if g.regsLiveAfterInst(inst)[inst.Dst] && g.err == nil {
+					// No pickup writes a flag return into a byte home.
+					g.err = fmt.Errorf("z80 codegen: %s: call %s returns r%d in flags, but r%d is allocated to %s", g.fn.Name, inst.Sym, inst.Dst, inst.Dst, loc)
 				}
 			}
 		}

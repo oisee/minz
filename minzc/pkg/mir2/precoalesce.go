@@ -127,10 +127,11 @@ func propagateClassHints(f *Func, info map[Reg]RegInfo) {
 
 // nonFlagDefs returns the registers with at least one definition that is not
 // a flag producer.  Flag producers are the definitions the code generator
-// emits into F itself: OpCmp (its condition), OpCall/OpCallIndirect (the
-// callee's ClassFlag return condition) and OpConst (SCF / AND A set or clear
-// carry).  Every other definition — OpMove, other instructions, extra call
-// results, block and function parameters — must have a byte home.
+// emits into F itself: OpCmp (its condition), OpCall to a callee whose
+// contract returns ClassFlag (that condition) and OpConst (SCF / AND A set or
+// clear carry).  Every other definition — OpMove, other calls (an indirect
+// call never returns in flags), other instructions, extra call results,
+// block and function parameters — must have a byte home.
 func nonFlagDefs(f *Func) map[Reg]bool {
 	nonFlag := make(map[Reg]bool)
 	for _, p := range f.Contract.Params {
@@ -142,7 +143,11 @@ func nonFlagDefs(f *Func) map[Reg]bool {
 		}
 		for _, inst := range b.Insts {
 			switch inst.Op {
-			case OpCmp, OpCall, OpCallIndirect, OpConst:
+			case OpCmp, OpConst:
+			case OpCall:
+				if !callReturnsFlag(f, inst) {
+					nonFlag[inst.Dst] = true
+				}
 			default:
 				nonFlag[inst.Dst] = true
 			}
@@ -153,6 +158,16 @@ func nonFlagDefs(f *Func) map[Reg]bool {
 	}
 	delete(nonFlag, NoReg)
 	return nonFlag
+}
+
+// callReturnsFlag reports whether the direct callee's contract returns its
+// first value in flags.
+func callReturnsFlag(f *Func, inst *Inst) bool {
+	if f.mod == nil {
+		return false
+	}
+	callee := f.mod.FuncByName(inst.Sym)
+	return callee != nil && len(callee.Contract.Returns) > 0 && callee.Contract.Returns[0].Class == ClassFlag
 }
 
 // canUpgradeClass reports whether a register currently assigned `from` can be

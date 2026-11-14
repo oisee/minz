@@ -163,6 +163,14 @@ func (g *z80cg) materializePendingFlag(upcomingInst *Inst) {
 	g.pendingFlagReg = NoReg
 }
 
+// flagReadError rejects a read of F as a byte when no predicate is pending:
+// the flags then hold no known value of any virtual register.
+func (g *z80cg) flagReadError() {
+	if g.err == nil {
+		g.err = fmt.Errorf("z80 codegen: %s: read of F as a byte with no pending flag predicate", g.fn.Name)
+	}
+}
+
 // materializePendingAcc checks whether pendingAccReg (a ClassAcc value
 // currently in A) is still needed after upcomingInst. If so, it saves A
 // to a scratch register that is not currently holding any live value,

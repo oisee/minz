@@ -272,8 +272,18 @@ func buildFlagSrc(src string, cond mir2.CmpCond, v int64, use string) flagSrcFun
 		kk := kb.Const(127, mir2.TyU8, mir2.ClassGeneral)
 		kb.Ret(kb.CmpWithSrcTy(cond, kx, kk, mir2.ClassFlag, false, mir2.TyU8))
 	}
+	if use == "callArg" || use == "icallArg" {
+		tk := m.AddFunc("takeb")
+		tk.Contract.Returns = []mir2.Return{{Ty: mir2.TyU8, Class: mir2.ClassAcc}}
+		tb := mir2.NewBuilder(tk)
+		tb.SwitchToNewBlock("entry")
+		tb.Ret(tb.Ext(tb.Param("b", mir2.TyBool, mir2.ClassAcc), mir2.TyBool, mir2.TyU8, mir2.ClassAcc))
+	}
 	f := m.AddFunc("pick")
 	f.Contract.Returns = []mir2.Return{{Ty: mir2.TyU8, Class: mir2.ClassAcc}}
+	if use == "ret" {
+		f.Contract.Returns = []mir2.Return{{Ty: mir2.TyBool, Class: mir2.ClassAcc}}
+	}
 	b := mir2.NewBuilder(f)
 	b.SwitchToNewBlock("entry")
 	r := flagSrcFunc{flagMoveFunc: flagMoveFunc{m: m, f: f}}
@@ -321,6 +331,83 @@ func buildFlagSrc(src string, cond mir2.CmpCond, v int64, use string) flagSrcFun
 	case "extRet":
 		b.Ret(b.Ext(r.s, mir2.TyBool, mir2.TyU8, mir2.ClassAcc))
 		return r
+	case "twoCalls":
+		q := b.Call("isk", []mir2.Reg{b.Const(50, mir2.TyU8, mir2.ClassGeneral)}, mir2.TyBool, mir2.ClassFlag, mir2.CallAttrs{})
+		yesVal = b.Ext(q, mir2.TyBool, mir2.TyU8, mir2.ClassAcc)
+		b.BrIf(r.s, "yes", nil, "no", nil)
+		noImm = 2
+	case "constAfter":
+		k := b.Const(1, mir2.TyBool, mir2.ClassFlag)
+		yesVal = b.Ext(r.s, mir2.TyBool, mir2.TyU8, mir2.ClassAcc)
+		b.BrIf(k, "yes", nil, "no", nil)
+		noImm = 2
+	case "notBr":
+		yesVal = b.Ext(b.Not(r.s, mir2.TyBool, mir2.ClassAcc), mir2.TyBool, mir2.TyU8, mir2.ClassAcc)
+		b.BrIf(r.s, "yes", nil, "no", nil)
+		noImm = 2
+	case "not", "neg":
+		var t mir2.Reg
+		if use == "neg" {
+			t = b.Neg(r.s, mir2.TyBool, mir2.ClassGeneral)
+		} else {
+			t = b.Not(r.s, mir2.TyBool, mir2.ClassGeneral)
+		}
+		b.Ret(b.Ext(t, mir2.TyBool, mir2.TyU8, mir2.ClassAcc))
+		return r
+	case "and1", "or0", "add1", "sub1", "mul1", "shl1", "shr1", "cmpEq1", "cmpNe0":
+		k := int64(1)
+		if use == "or0" || use == "cmpNe0" {
+			k = 0
+		}
+		kty := mir2.Ty(mir2.TyBool)
+		if use == "shl1" || use == "shr1" {
+			kty = mir2.TyU8
+		}
+		kr := b.Const(k, kty, mir2.ClassGeneral)
+		var t mir2.Reg
+		switch use {
+		case "cmpEq1", "cmpNe0":
+			cc := mir2.CmpEq
+			if use == "cmpNe0" {
+				cc = mir2.CmpNe
+			}
+			t = b.CmpWithSrcTy(cc, r.s, kr, mir2.ClassFlag, false, mir2.TyBool)
+		default:
+			op := map[string]mir2.Op{"and1": mir2.OpAnd, "or0": mir2.OpOr, "add1": mir2.OpAdd, "sub1": mir2.OpSub,
+				"mul1": mir2.OpMul, "shl1": mir2.OpShl, "shr1": mir2.OpShr}[use]
+			t = b.BinOp(op, r.s, kr, mir2.TyBool, mir2.ClassGeneral)
+		}
+		b.Ret(b.Ext(t, mir2.TyBool, mir2.TyU8, mir2.ClassAcc))
+		return r
+	case "sext":
+		b.Ret(b.Sext(r.s, mir2.TyBool, mir2.TyU8, mir2.ClassAcc))
+		return r
+	case "ret":
+		b.Ret(r.s)
+		return r
+	case "jmpArg":
+		b.Jmp("join", r.s)
+		j := b.SwitchToNewBlock("join")
+		p := b.BlockParam(j, mir2.TyBool, mir2.ClassGeneral)
+		b.Ret(b.Ext(p, mir2.TyBool, mir2.TyU8, mir2.ClassAcc))
+		return r
+	case "brArg":
+		c2 := b.CmpWithSrcTy(mir2.CmpUlt, r.x, b.Const(50, mir2.TyU8, mir2.ClassGeneral), mir2.ClassFlag, false, mir2.TyU8)
+		b.BrIf(c2, "join", []mir2.Reg{r.s}, "no", nil)
+		j := b.SwitchToNewBlock("join")
+		p := b.BlockParam(j, mir2.TyBool, mir2.ClassGeneral)
+		b.Ret(b.Ext(p, mir2.TyBool, mir2.TyU8, mir2.ClassAcc))
+		b.SwitchToNewBlock("no")
+		r.zero = b.Const(2, mir2.TyU8, mir2.ClassAcc)
+		b.Ret(r.zero)
+		return r
+	case "callArg":
+		b.Ret(b.Call("takeb", []mir2.Reg{r.s}, mir2.TyU8, mir2.ClassAcc, mir2.CallAttrs{}))
+		return r
+	case "icallArg":
+		fp := b.AddrOf("takeb", mir2.ClassIndex)
+		b.Ret(b.CallIndirect(fp, []mir2.Reg{r.s}, mir2.TyU8, mir2.ClassAcc))
+		return r
 	case "xor":
 		t := b.Xor(r.s, b.Const(1, mir2.TyBool, mir2.ClassGeneral), mir2.TyBool, mir2.ClassGeneral)
 		b.Ret(b.Ext(t, mir2.TyBool, mir2.TyU8, mir2.ClassAcc))
@@ -348,6 +435,16 @@ func buildFlagSrc(src string, cond mir2.CmpCond, v int64, use string) flagSrcFun
 // compileFlagSrc runs the production allocation sequence on every function.
 func compileFlagSrc(t *testing.T, fs flagSrcFunc, pbqp bool) (*mir2.AllocResult, string) {
 	t.Helper()
+	ar, asm, e := compileFlagSrcErr(t, fs, pbqp)
+	if e != nil {
+		t.Fatalf("%v\n%s", e, asm)
+	}
+	return ar, asm
+}
+
+// compileFlagSrcErr is compileFlagSrc returning the code generator's error.
+func compileFlagSrcErr(t *testing.T, fs flagSrcFunc, pbqp bool) (*mir2.AllocResult, string, error) {
+	t.Helper()
 	if e := mir2.Verify(fs.m); e != nil {
 		t.Fatal(e)
 	}
@@ -368,10 +465,7 @@ func compileFlagSrc(t *testing.T, fs flagSrcFunc, pbqp bool) (*mir2.AllocResult,
 		ar.Spilled = append(ar.Spilled, far.Spilled...)
 	}
 	asm, e := mir2.Z80Codegen(fs.m, ar)
-	if e != nil {
-		t.Fatalf("%v\n%s", e, asm)
-	}
-	return ar, asm
+	return ar, asm, e
 }
 
 // A bool constant and a call's flag result in F carry a known condition: a
@@ -516,17 +610,85 @@ func TestFlagProducerPending(t *testing.T) {
 			for _, use := range []string{"add200", "inc", "cmp2", "extRet", "xor", "store", "moveBr", "extBr"} {
 				name := fmt.Sprintf("%s/%s%d/%s/%s", alloc, vr.src, vr.v, vr.cond, use)
 				t.Run(name, func(t *testing.T) {
-					if alloc == "pbqp" && vr.src == "call" && use == "extRet" {
-						// PBQP gives the result a byte home (A); the call
-						// path does not yet write a flag return into one.
-						t.Skip("open: flag return of a call allocated to a byte register")
-					}
 					fs := buildFlagSrc(vr.src, vr.cond, vr.v, use)
+					if alloc == "pbqp" && vr.src == "call" && use == "extRet" {
+						// PBQP gives the result a byte home (A), which no
+						// pickup writes a flag return into: a compile error.
+						wantFlagReturnInByteError(t, fs, true)
+						return
+					}
 					ar, asm := compileFlagSrc(t, fs, alloc == "pbqp")
 					if testing.Verbose() {
 						t.Logf("s in %v", ar.Locs[fs.s])
 					}
 					runFlagMove(t, fs.flagMoveFunc, vr.cond, ar.Locs[fs.x].Name, asm)
+				})
+			}
+		}
+	}
+}
+
+// wantFlagReturnInByteError checks that a call returning in flags, whose
+// result the allocator gave a byte home, is rejected rather than miscompiled.
+func wantFlagReturnInByteError(t *testing.T, fs flagSrcFunc, pbqp bool) {
+	t.Helper()
+	_, asm, e := compileFlagSrcErr(t, fs, pbqp)
+	if e == nil || !strings.Contains(e.Error(), "in flags, but") {
+		t.Fatalf("want a flag-return-in-byte-home error, got %v\n%s", e, asm)
+	}
+}
+
+// Every consumer that takes a bool source must read a comparison, a call's
+// flag result or a constant held in F by its own condition. eq/ne are zero
+// predicates, which a carry-only read gets wrong. A call result that the
+// allocator gives a byte home must be a compile error.
+//
+// Not covered here: bool add/sub/shl/neg (the Z80 result is the byte, the VM
+// wraps to one bit, whatever the source's location) and bool sext (rejected
+// by the code generator as unsupported).
+func TestFlagProducerConsumers(t *testing.T) {
+	uses := []string{"not", "notBr", "and1", "or0", "xor", "mul1", "shr1", "cmpEq1", "cmpNe0",
+		"extRet", "ret", "jmpArg", "brArg", "callArg", "icallArg", "store", "moveBr"}
+	type variant struct {
+		src  string
+		cond mir2.CmpCond
+		v    int64
+	}
+	variants := []variant{{"const", mir2.CmpEq, 0}, {"const", mir2.CmpNe, 1}}
+	for _, src := range []string{"cmp", "call"} {
+		for _, cond := range []mir2.CmpCond{mir2.CmpEq, mir2.CmpNe, mir2.CmpUlt, mir2.CmpUge} {
+			variants = append(variants, variant{src, cond, 0})
+		}
+	}
+	for _, alloc := range []string{"pbqp", "greedy"} {
+		for _, vr := range variants {
+			for _, use := range uses {
+				name := fmt.Sprintf("%s/%s%d/%s/%s", alloc, vr.src, vr.v, vr.cond, use)
+				t.Run(name, func(t *testing.T) {
+					fs := buildFlagSrc(vr.src, vr.cond, vr.v, use)
+					ar, asm, e := compileFlagSrcErr(t, fs, alloc == "pbqp")
+					if e != nil {
+						if vr.src == "call" && ar.Locs[fs.s].Kind != mir2.LocFlag && strings.Contains(e.Error(), "in flags, but") {
+							return
+						}
+						t.Fatalf("%v\n%s", e, asm)
+					}
+					runFlagMove(t, fs.flagMoveFunc, vr.cond, ar.Locs[fs.x].Name, asm)
+				})
+			}
+		}
+	}
+}
+
+// A second flag-returning call while the first result is live, and a flag
+// constant defined while a call result is live: one of the two results then
+// needs a byte home, which a flag return cannot be written into.
+func TestFlagReturnInByteHomeRejected(t *testing.T) {
+	for _, use := range []string{"twoCalls", "constAfter"} {
+		for _, alloc := range []string{"pbqp", "greedy"} {
+			for _, cond := range []mir2.CmpCond{mir2.CmpEq, mir2.CmpNe, mir2.CmpUlt, mir2.CmpUge} {
+				t.Run(use+"/"+alloc+"/"+cond.String(), func(t *testing.T) {
+					wantFlagReturnInByteError(t, buildFlagSrc("call", cond, 0, use), alloc == "pbqp")
 				})
 			}
 		}
