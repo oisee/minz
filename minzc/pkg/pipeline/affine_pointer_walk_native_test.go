@@ -64,7 +64,7 @@ func TestAffinePointerWalkNativeCAndNanz(t *testing.T) {
 									loop = fmt.Sprintf("var i:i16=%s-1\nwhile i>=0 {%s[i]=%s(i+7)\ni=i-1}", count, base, nty)
 								}
 								if direction == "range" {
-									loop = fmt.Sprintf("range(0..u8(%s)).forEach(|counter:u8| {let i:u8=counter-1\n%s[i]=%s(i)})", count, base, nty)
+									loop = fmt.Sprintf("range(0..u8(%s)).forEach(|i:u8| {%s[i]=%s(i)})", count, base, nty)
 								}
 								if direction == "unsigned" {
 									loop = fmt.Sprintf("var i:u16=u16(%s)\nwhile i>0 {%s[i-1]=%s(i+6)\ni=i-1}", count, base, nty)

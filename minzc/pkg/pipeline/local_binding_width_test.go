@@ -142,7 +142,7 @@ return u16(x)+256}`
 			if e != nil {
 				t.Fatal(e)
 			}
-			want := (n * (n + 1) / 2) & 255
+			want := (n * (n - 1) / 2) & 255 // range(0..n) folds forward 0..n-1
 			want += 256
 			r, e := mir2.NewVM(hir.LowerModule(m)).Call(name, []mir2.Value{{I: n}})
 			if e != nil || r[0].I != want {
