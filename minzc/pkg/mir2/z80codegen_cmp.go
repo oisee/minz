@@ -613,6 +613,10 @@ func (g *z80cg) condCode(f *Func, cond Reg) string {
 
 	for _, b := range f.Blocks {
 		for _, inst := range b.Insts {
+			// A bool constant in F is SCF (true) or AND A (false): carry.
+			if inst.Dst == cond && inst.Op == OpConst && g.loc(cond) == "F" {
+				return "C"
+			}
 			if inst.Dst == cond && inst.Op == OpCmp {
 				c := inst.Cond
 				if g.cmpSwapped[cond] {
@@ -645,6 +649,37 @@ func (g *z80cg) condCode(f *Func, cond Reg) string {
 		}
 	}
 	return g.materializedCondCode(cond)
+}
+
+// flagCondKnown reports whether r, held in F but not the pending comparison,
+// has a condition condCode can name: a call's flag return or a bool constant.
+func (g *z80cg) flagCondKnown(r Reg) bool {
+	if _, ok := g.callFlags[r]; ok {
+		return true
+	}
+	for _, b := range g.fn.Blocks {
+		for _, inst := range b.Insts {
+			if inst.Dst == r && inst.Op == OpConst {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// emitFlagCopy writes the 0/1 byte of condition cc to dst. The predicate
+// sequences keep the tested flag, and a live A is kept when dst is not A.
+func (g *z80cg) emitFlagCopy(dst, cc string, width int) {
+	if dst != "A" {
+		g.emit("    PUSH AF")
+	}
+	g.emitFlagPredicateByte(cc)
+	g.emitMov(dst, "A", width)
+	if dst != "A" {
+		g.emit("    POP AF")
+	}
+	g.invalidate("A")
+	g.invalidate(dst)
 }
 
 func (g *z80cg) materializedCondCode(cond Reg) string {

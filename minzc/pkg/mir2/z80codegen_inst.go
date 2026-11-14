@@ -194,12 +194,17 @@ func (g *z80cg) genInst(inst *Inst) {
 
 	case OpMove:
 		src := g.loc(inst.Src[0])
-		// A copy of a predicate needs a byte home: F holds no byte to copy into,
-		// and the flags are materialized only for the pending comparison.
-		if dst == "F" || src == "F" && inst.Src[0] != g.pendingFlagReg {
+		// A copy of a predicate needs a byte home: F holds no byte to copy into.
+		// A source in F is copied by materializing its condition, which is
+		// known for the pending comparison, a call's flag return and a constant.
+		if dst == "F" || (src == "F" && inst.Src[0] != g.pendingFlagReg && !g.flagCondKnown(inst.Src[0])) {
 			if g.err == nil {
-				g.err = fmt.Errorf("z80 codegen: %s: move r%d (%s) <- r%d (%s) has no valid flag encoding", g.fn.Name, inst.Dst, dst, inst.Src[0], src)
+				g.err = fmt.Errorf("z80 codegen: %s: move r%d (%s) <- r%d (%s): a copy needs a byte home and a known flag condition", g.fn.Name, inst.Dst, dst, inst.Src[0], src)
 			}
+			return
+		}
+		if src == "F" && inst.Src[0] != g.pendingFlagReg {
+			g.emitFlagCopy(dst, g.condCode(g.fn, inst.Src[0]), 8*z80SpillBytes(inst.Ty))
 			return
 		}
 		if dst == src {
