@@ -421,6 +421,13 @@ func (g *z80cg) genCall(inst *Inst) error {
 			ret := callee.Contract.Returns[0]
 			if ret.Class == ClassFlag {
 				g.callFlags[inst.Dst] = ret.FlagCond
+				// Result pickup and caller restores keep the returned flags.
+				// A result in F is the pending predicate, saved before the
+				// next flag writer. A replaced pending predicate is dead or
+				// has a byte home: it cannot share F with this live result.
+				if g.loc(inst.Dst) == "F" {
+					g.pendingFlagReg = inst.Dst
+				}
 			}
 		}
 	}

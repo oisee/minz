@@ -117,6 +117,8 @@ func (g *z80cg) genInst(inst *Inst) {
 		}
 		if dst == "F" {
 			// Bool constant into flag register: SCF (true) or AND A (false, clears C+sets Z).
+			// It is the pending predicate (carry) until a flag writer saves it.
+			g.materializePendingFlag(inst)
 			g.lastFlagsLhs = ""
 			g.lastFlagsRhs = ""
 			if inst.Imm != 0 {
@@ -124,6 +126,7 @@ func (g *z80cg) genInst(inst *Inst) {
 			} else {
 				g.emit("    AND A") // A=A (no change), clears C, sets Z based on A
 			}
+			g.pendingFlagReg = inst.Dst
 			return
 		}
 		if !g.deadConsts[inst.Dst] {
@@ -195,16 +198,12 @@ func (g *z80cg) genInst(inst *Inst) {
 	case OpMove:
 		src := g.loc(inst.Src[0])
 		// A copy of a predicate needs a byte home: F holds no byte to copy into.
-		// A source in F is copied by materializing its condition, which is
-		// known for the pending comparison, a call's flag return and a constant.
-		if dst == "F" || (src == "F" && inst.Src[0] != g.pendingFlagReg && !g.flagCondKnown(inst.Src[0])) {
+		// F holds a known predicate only while it is pending: each flag
+		// producer in F (comparison, call flag return, constant) sets it.
+		if dst == "F" || (src == "F" && inst.Src[0] != g.pendingFlagReg) {
 			if g.err == nil {
-				g.err = fmt.Errorf("z80 codegen: %s: move r%d (%s) <- r%d (%s): a copy needs a byte home and a known flag condition", g.fn.Name, inst.Dst, dst, inst.Src[0], src)
+				g.err = fmt.Errorf("z80 codegen: %s: move r%d (%s) <- r%d (%s): a flag copy needs a byte home and a pending source predicate", g.fn.Name, inst.Dst, dst, inst.Src[0], src)
 			}
-			return
-		}
-		if src == "F" && inst.Src[0] != g.pendingFlagReg {
-			g.emitFlagCopy(dst, g.condCode(g.fn, inst.Src[0]), 8*z80SpillBytes(inst.Ty))
 			return
 		}
 		if dst == src {
