@@ -69,7 +69,8 @@ func (g *z80cg) tryFuseExt(ext *Inst) bool {
 	}
 	var use *Inst
 	for _, inst := range insts[at+1:] {
-		if inst.Op == OpConst && g.deadConsts[inst.Dst] && g.loc(inst.Dst) != "F" {
+		if inst.Op == OpConst && g.deadConsts[inst.Dst] && g.loc(inst.Dst) != "F" ||
+			inst.Op == OpAddrOf && g.deadConsts[inst.Dst] {
 			continue // emits nothing and writes no home
 		}
 		use = inst

@@ -99,6 +99,8 @@ func locOf(name string) PhysLoc {
 	switch {
 	case name == "mem":
 		return PhysLoc{Kind: LocMem, Name: "mem", Offset: 0xF040}
+	case name == "remat":
+		return PhysLoc{Kind: LocRemat, Name: RematLocName}
 	case name == "IX" || name == "IY":
 		return PhysLoc{Kind: LocIXY, Name: name}
 	case isIXYReg(name):

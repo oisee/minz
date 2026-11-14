@@ -44,6 +44,11 @@ func (g *z80cg) genInst(inst *Inst) {
 
 	// Suppressed immediates do not write their allocated home. In particular,
 	// they must not evict a relocated load before its immediate consumer.
+	// The same holds for an address whose every use is a ptr_add base and
+	// for an add folded into its ptr_add (ptrAddConstantFolds).
+	if inst.Op == OpAddrOf && g.deadConsts[inst.Dst] || g.ptrAddFoldedAdd[inst] {
+		return
+	}
 	if inst.Op == OpConst && g.deadConsts[inst.Dst] && g.loc(inst.Dst) != "F" {
 		if !g.blockParamRegs[inst.Dst] {
 			g.constVals[inst.Dst] = inst.Imm
@@ -1328,8 +1333,11 @@ func (g *z80cg) genInst(inst *Inst) {
 		if g.tryPtrAddForms(inst) {
 			return
 		}
+		// A dead address constant has no materialised home: it is named as
+		// an immediate (sym, or sym+k with a folded add whose index is offReg).
+		baseSym, offReg := g.ptrAddImmediateBase(inst)
 		base := g.loc(inst.Src[0])
-		off := g.loc(inst.Src[1])
+		off := g.loc(offReg)
 		// ADD uses HL as scratch even when the base/result live elsewhere.
 		// Preserve any unrelated live-through HL value (e.g. a loop offset).
 		preserveHL := false
@@ -1356,7 +1364,7 @@ func (g *z80cg) genInst(inst *Inst) {
 		// A byte offset is reused only via zero-extension: a pair holding a
 		// byte value has no guaranteed-zero high byte.
 		offPair := off
-		if info, ok := g.regInfo[inst.Src[1]]; ok && z80ValueWidth(info.Ty) <= 8 {
+		if info, ok := g.regInfo[offReg]; ok && z80ValueWidth(info.Ty) <= 8 {
 			offPair = ""
 		}
 		if offPair != "BC" && offPair != "DE" {
@@ -1383,7 +1391,7 @@ func (g *z80cg) genInst(inst *Inst) {
 		// Place offset into offPair BEFORE moving the base (avoids clobbering
 		// the offset when base and off share a register like DE).
 		if off != offPair {
-			if info, ok := g.regInfo[inst.Src[1]]; ok && z80ValueWidth(info.Ty) <= 8 {
+			if info, ok := g.regInfo[offReg]; ok && z80ValueWidth(info.Ty) <= 8 {
 				// Optimized ptr_add may consume a byte index directly. Its
 				// spill home is one byte, so never reload an adjacent byte.
 				g.genUnsignedExtBytes(offPair, off, 8, 16)
@@ -1396,7 +1404,9 @@ func (g *z80cg) genInst(inst *Inst) {
 		}
 
 		// Get base into HL.
-		if base != "HL" {
+		if baseSym != "" {
+			g.emitf("    LD HL, %s", baseSym)
+		} else if base != "HL" {
 			g.emitMov("HL", base, 16)
 		}
 

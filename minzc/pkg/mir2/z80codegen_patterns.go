@@ -1050,8 +1050,8 @@ func (g *z80cg) scanPtrAddBase(b *Block) {
 			continue
 		}
 		baseReg := inst.Src[0]
-		if g.ar.Loc(baseReg).Name != "HL" {
-			continue // base not in HL — no clobber risk
+		if g.ar.Loc(baseReg).Name != "HL" || g.deadConsts[baseReg] {
+			continue // base not in HL (or an immediate) — no clobber risk
 		}
 
 		// Check if baseReg is live after this ptr_add.
