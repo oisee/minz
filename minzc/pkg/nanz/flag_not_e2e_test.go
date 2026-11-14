@@ -58,3 +58,51 @@ func itoa(n int) string {
 	}
 	return s
 }
+
+// A comparison fused with the preceding subtraction lives in the carry flag.
+// It must survive a later flag writer and be readable as a byte.
+func TestFlagSubCarryPredicateSurvivesFlagWriter(t *testing.T) {
+	src := `
+global g: u8 = 0
+global gb: bool = false
+fun f2(a: u8, b: u8, c: u8) -> u8 {
+    let d: u8 = a - b
+    var lt: bool = a < b
+    g = d
+    if c == 3 { lt = false }
+    if lt { return 1 }
+    return 2
+}
+fun f5(a: u8, b: u8, c: u8) -> u8 {
+    let d: u8 = a - b
+    let lt: bool = a < b
+    g = d
+    let e: u8 = c + 200
+    g = e
+    if lt { return 1 }
+    return 2
+}
+fun f1(a: u8, b: u8) -> u8 {
+    let d: u8 = a - b
+    let lt: bool = a < b
+    g = d
+    gb = lt
+    return d
+}
+assert f2(3, 5, 1) == 1
+assert f2(3, 5, 3) == 2
+assert f2(5, 3, 1) == 2
+assert f2(5, 3, 4) == 2
+assert f2(7, 7, 1) == 2
+assert f5(3, 5, 1) == 1
+assert f5(5, 3, 1) == 2
+assert f5(3, 5, 100) == 1
+assert f5(5, 3, 100) == 2
+assert f5(0, 255, 56) == 1
+assert f1(3, 5) == 254
+assert f1(5, 3) == 2
+`
+	if err := g0RunAsserts(t, src); err != nil {
+		t.Fatal(err)
+	}
+}

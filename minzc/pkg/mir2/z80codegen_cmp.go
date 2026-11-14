@@ -260,7 +260,10 @@ func (g *z80cg) genCmp(inst *Inst) {
 	}
 	// CmpSubCarry / CmpSubCarryNot: carry flag already set by the immediately
 	// preceding SUB.  No instruction needed — carry encodes a < b (C) or a >= b (NC).
+	// The predicate is pending like any other comparison, so a later flag
+	// writer saves it and a byte read resolves its condition.
 	if inst.Cond == CmpSubCarry || inst.Cond == CmpSubCarryNot {
+		g.pendingFlagReg = inst.Dst
 		return
 	}
 
@@ -468,6 +471,7 @@ func (g *z80cg) genCmp(inst *Inst) {
 		g.lastFlagsLhs == lhs && g.lastFlagsRhs == rhs
 	if subCmpFused {
 		// Flags valid from preceding SUB — skip both LD A and CP.
+		g.pendingFlagReg = inst.Dst
 		return
 	}
 
