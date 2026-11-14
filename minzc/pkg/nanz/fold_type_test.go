@@ -22,7 +22,7 @@ func TestFoldReturnCarriesAccumulatorType(t *testing.T) {
 	}
 	vm := mir2.NewVM(hir.LowerModule(m))
 	got, err := vm.Call("f", []mir2.Value{{I: 255}})
-	if err != nil || len(got) != 1 || got[0].I != 32640 {
+	if err != nil || len(got) != 1 || got[0].I != 32385 {
 		t.Fatalf("got %v err %v", got, err)
 	}
 }

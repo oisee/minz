@@ -32,7 +32,7 @@ fun test(n:u8)->u8 { hits=0
  return sum+hits*16 }`
 		for _, n := range []int{0, 1, 5, 255} {
 			var sum, hits int
-			for x := n; x > 0; x-- {
+			for x := 0; x < n; x++ {
 				value := x
 				switch c.mode {
 				case 0:
@@ -105,7 +105,10 @@ func TestRangeForEachCapturedStagesVMZ80(t *testing.T) {
 }`
 		for _, n := range []int{0, 1, 5, 255} {
 			want := int64(0)
-			for x := n; x > 2; x-- {
+			for x := 0; x < n; x++ {
+				if x <= 2 {
+					continue
+				}
 				want = (want + int64((x+1)&255)) & 255
 			}
 			for _, grace := range []bool{false, true} {

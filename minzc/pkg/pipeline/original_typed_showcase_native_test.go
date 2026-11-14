@@ -231,10 +231,13 @@ func TestOriginalTypedShowcaseNative(t *testing.T) {
 							}
 							// Audited exact instruction set of these unchanged modules: only
 							// CALL writes memory. Verify its two bytes at the time of access.
+							// Forward range loops add register-only ops: LD D,n / LD A,C /
+							// LD B,A (0x16/0x79/0x47), CP D (0xba), INC C (0x0c),
+							// JR / JR C (0x18/0x38).
 							pc, sp := z.GetPC(), z.GetSP()
 							op := mem[pc]
 							switch op {
-							case 0xcd, 0xc9, 0x3e, 0x81, 0x87, 0x80, 0x3c, 0x29, 0x0e, 0x06, 0x5f, 0x78, 0x4f, 0x7b, 0x10, 0xc3:
+							case 0xcd, 0xc9, 0x3e, 0x81, 0x87, 0x80, 0x3c, 0x29, 0x0e, 0x06, 0x5f, 0x78, 0x4f, 0x7b, 0x10, 0xc3, 0x16, 0x79, 0x47, 0xba, 0x0c, 0x18, 0x38:
 							default:
 								t.Fatalf("unreviewed native effect opcode at %04x: %02x", pc, op)
 							}
@@ -299,7 +302,7 @@ func TestOriginalTypedShowcaseNative(t *testing.T) {
 						run("piped_args", nil, 16)
 					case "ex33_lambda_inference":
 						pair("add_acc", func(x, y int) int64 { return int64((x + y) & 255) })
-						run("sum_doubled", nil, 30)
+						run("sum_doubled", nil, 20) // range(0..5) forward: 0+2+4+6+8
 						unary("lambda_0", 256, func(x int) int64 { return int64((2 * x) & 255) })
 					}
 					for _, name := range source.entries {
