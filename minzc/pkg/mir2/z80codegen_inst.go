@@ -1325,6 +1325,9 @@ func (g *z80cg) genInst(inst *Inst) {
 		// the base; the subsequent OpLoad emits POP HL to restore it.
 		g.lastFlagsLhs = ""
 		g.lastFlagsRhs = ""
+		if g.tryPtrAddForms(inst) {
+			return
+		}
 		base := g.loc(inst.Src[0])
 		off := g.loc(inst.Src[1])
 		// ADD uses HL as scratch even when the base/result live elsewhere.
