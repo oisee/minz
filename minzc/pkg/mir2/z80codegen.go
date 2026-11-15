@@ -1115,6 +1115,22 @@ func computeDeadConsts(f *Func, ar *AllocResult) map[Reg]bool {
 					// no foldedUses increment — terminators are never peephole-dead
 				}
 			}
+			// A flag return sets the flags of a returned constant with
+			// XOR A / OR 1 / SCF / OR A; it reads no home.
+			var returned []Reg
+			switch t := b.Term.(type) {
+			case *TermRet:
+				returned = t.Vals
+			case *TermCondRet:
+				returned = t.Vals
+			}
+			if flagReturn(f) {
+				for _, v := range returned {
+					if _, ok := flagReturnConst(f, v); ok {
+						foldedUses[v]++
+					}
+				}
+			}
 		}
 	}
 

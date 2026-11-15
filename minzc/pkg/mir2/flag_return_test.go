@@ -211,19 +211,27 @@ func compileFlagRet(t *testing.T, m *mir2.Module, pbqp bool) (*mir2.AllocResult,
 	return ar, asm
 }
 
-// Each caller use of a flag-return call, compiled through the production
-// allocation sequence, must agree with the MIR2 VM for every input byte.
+var flagRetSites = []string{"natural", "other", "ugt", "byte", "const", "condRet", "frame", "tailSame", "tailOther", "tailByte"}
+
+// Each return-site kind of a flag-return callee, under each caller use and
+// compiled through the production allocation sequence, must agree with the
+// MIR2 VM for every input byte.
 func TestFlagReturnCallerUses(t *testing.T) {
 	for _, alloc := range []string{"pbqp", "greedy"} {
 		for _, cond := range flagRetConds {
-			for _, use := range []string{"br", "negBr", "ret", "pick", "across", "liveA"} {
-				t.Run(fmt.Sprintf("%s/%s/%s", alloc, cond, use), func(t *testing.T) {
-					m := &mir2.Module{}
-					buildFlagRetCallee(m, cond, "natural")
-					f, x, _, _ := buildFlagRetCaller(m, use)
-					ar, asm := compileFlagRet(t, m, alloc == "pbqp")
-					runFlagMove(t, flagMoveFunc{m: m, f: f}, cond, ar.Locs[x].Name, asm)
-				})
+			for _, site := range flagRetSites {
+				for _, use := range []string{"br", "negBr", "ret", "pick", "across", "liveA"} {
+					t.Run(fmt.Sprintf("%s/%s/%s/%s", alloc, cond, site, use), func(t *testing.T) {
+						m := &mir2.Module{}
+						buildFlagRetCallee(m, cond, site)
+						f, x, _, _ := buildFlagRetCaller(m, use)
+						ar, asm := compileFlagRet(t, m, alloc == "pbqp")
+						if testing.Verbose() {
+							t.Log(asm)
+						}
+						runFlagMove(t, flagMoveFunc{m: m, f: f}, cond, ar.Locs[x].Name, asm)
+					})
+				}
 			}
 		}
 	}
