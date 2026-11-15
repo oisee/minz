@@ -160,7 +160,12 @@ func coalesceAllocResult(f *Func, result *AllocResult, lr *LivenessResult, table
 	// those classes can exclude homes by it.
 	_, z80Table := ct.(Z80CostTable)
 	asmAvoid := asmClobberAvoid(f, lr)
+	nonFlag := nonFlagDefs(f)
 	canRecolor := func(r Reg, loc PhysLoc) bool {
+		// Only a flag producer may live in F (see nonFlagDefs).
+		if loc.Kind == LocFlag && nonFlag[r] {
+			return false
+		}
 		// A byte value that a loop keeps live across A-working instructions
 		// was priced out of A by PBQP; an affinity must not pull it back.
 		if loc.Kind == LocReg && loc.Name == "A" && result.Locs[r] != loc &&
