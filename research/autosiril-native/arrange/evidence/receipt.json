@@ -122,8 +122,8 @@
     },
     "generated_source_sha256": "c690b3c2894a27e7aa42a5f9aa1ca5a8b2ada7239540012396de7b17d5b98ae6",
     "generated_driver_sha256": "baee5ef9d3ef292d1498bbada3f8c6b67c1e0dc9386a6eb7614e65f883b0d2ac",
-    "reused_completed_fresh_upstream_sha256": "354e360ee088d718189ec38aeb72acd7a8ae02205c28ef261c28ae521459e1ae",
-    "ruby_full_sha256": "88a09d9b365759067b3cee6086d312498047c1c1c4e00cccac4b19769057b435",
+    "reused_completed_fresh_upstream_sha256": "cec83c189012d041f6ca5028256a15528ea50f25265bc8480f857a5a8082e2cc",
+    "ruby_full_sha256": "a0ea605cb8f5dbbfb013dd1e8de1224e33ead3b9f198f8cd1b394a955d04f48e",
     "original_ruby_source_sha256": "41f621b555fc089effd711319e723494576eb47ea0282847082ec91c1cdd4c01",
     "input_disk_sha256": "acfd8eed55463f8d34011f0894e54521b5214ea0779ee88cd931d9921e82aded",
     "upstream_native_image_sha256": "a177f3cb992bb882df2faddc918cca06ef96d6d7a12f9844d2c45148b0d84260",
@@ -51646,7 +51646,7 @@
     "standalone_arrange_sha256": "d6b41caa2f26b4ecbc77c98a5df5914e8ce106cc3f3f03449218812edb2bbfb4",
     "scope": "CP/M CALL5 traps; three independent COM images via actual saved files; verifier SP/HALT contract, no physical TPA/CCP bootstrap or full VT2/VTX claim"
   },
-  "fresh_upstream_sha256": "354e360ee088d718189ec38aeb72acd7a8ae02205c28ef261c28ae521459e1ae",
+  "fresh_upstream_sha256": "cec83c189012d041f6ca5028256a15528ea50f25265bc8480f857a5a8082e2cc",
   "fresh_upstream": {
     "protocol": "autosiril-trd-flatten/v1",
     "source_sha256": {
@@ -81298,7 +81298,7 @@
       }
     ],
     "scope": "Scorpion sector API traps with saved native producer disks; not ROM/FDC/hardware or bootable disks",
-    "fresh_prior_sha256": "84a09e1ece8be4350fc35f3055bc53fbce0fafb7797a980cff30a6e3fdd9c5d0",
+    "fresh_prior_sha256": "d6260c981f54a523a52a61c829752bbac676afe2b7a99f31834cf9ae887b6a6e",
     "fresh_prior": {
       "protocol": "autosiril-common-flatten/v1",
       "source_sha256": {
@@ -81319,7 +81319,7 @@
       "generated_source_sha256": "fae3e180ccae57461a2662dcb9f8c1cb647802a4e3783a7beb15b474dae7b28f",
       "generated_driver_sha256": "6d19f8edb4ed59ef5f8a3a0f7866bcfb3d72c61beaf16ef3ec1ef60bd96d6c78",
       "flatten": {
-        "assembly_sha256": "1831f50095e9a362ef047e8f8bee52a5c06e5587537ddb768594132ef62a377f",
+        "assembly_sha256": "4a19aeb196c0d33235b456ac97d14c8aa2461436777938216bf4dc1a366c3f97",
         "backend_spill_bytes": 193,
         "binary_sha256": "88802e32fe5d33f2e59cfdab694a30f37f780166d043a39ac883d48d0d54486c",
         "cases": [
@@ -84919,8 +84919,8 @@
       "directory_success_executions": 9,
       "standalone_notes_sha256": "4ecfa8a78d0146fe2f7dbcdcab711fa1ca803332044b3e4d81f684c80a37039f",
       "standalone_events_sha256": "7a6a96d5a438bc27488295a580245baa14f3b6a4b6c1b896274538286891fff7",
-      "fresh_reference_sha256": "582d878ef7c2247e57c7f17383afa8dce3eaae78be0c085470bcc5e6cfaeb1dc",
-      "fresh_producer_sha256": "ae26c119885e27aca674d59da9f61034e81b465a268bdbd72329b2740fc33c71",
+      "fresh_reference_sha256": "126d541f6229478ea63466f3d5436ef66a1ac63a46c15c5890c253471790addc",
+      "fresh_producer_sha256": "71972134fd1fabb4e17d66c04964de531ad0db08446d3ee3f06da07320753e4c",
       "fresh_reference": {
         "protocol": "autosiril-cpm-file-chain-fresh/v1",
         "source_sha256": {
@@ -84930,16 +84930,16 @@
           "research/autosiril-native/file-flatten/cpm.nanz": "ea5affe2477bd1133059efde61b21414dfa45b53ff93ab217ab8b41fa2f5c503",
           "research/autosiril-native/file-flatten/driver.go.txt": "ef255a6adcb0feabe0c5781b20f370de6ffba98ef94b10d2e898cd59f68ca777"
         },
-        "pair_receipt_sha256": "a07b641cc56d45080f6b716faaac475d1491ce54daee117f86eb89ea0c76a309",
+        "pair_receipt_sha256": "44904c71829cd1989f8843bac845b0fa84219632a20e4168ac6e3141b6eb6474",
         "matrix_sha256": "b9d48e6ac84de63c5d095b3e3217196a8fc6ee9ec1024bd500ae5418e6628425",
         "oracle_source_sha256": "5575b3ac8e8a7bc5fd051ee48745726d09a205a25be0847efdc3bdf7e5a01942",
         "oracle_input_sha256": "70d0a0387564341561d7fa2247587f77904cd1780c81d503a4b0230784be5971",
         "oracle_output_sha256": "4b13163dcb83522615a04c33005415413da2e84391709da7355803850c82d585",
-        "ruby_full_sha256": "88a09d9b365759067b3cee6086d312498047c1c1c4e00cccac4b19769057b435",
+        "ruby_full_sha256": "a0ea605cb8f5dbbfb013dd1e8de1224e33ead3b9f198f8cd1b394a955d04f48e",
         "generated_source_sha256": "fb07ee19839e2aebbdfc8c07f8b12ed25064c57c9c3d20f57fc692b7576a0a43",
         "generated_driver_sha256": "7f3622dfa1e32f871326ef45da44e570fe94e78ba5e768d73e761651f49c64a4",
         "flatten": {
-          "assembly_sha256": "502980bff795ac784ab5b4a179de30a1cc863a48ed7f568aafc28e23278eebd8",
+          "assembly_sha256": "fd140c474c20b3ca0b58183443abc877f1cc551a796c9eea1b0f939ba6297703",
           "backend_spill_bytes": 161,
           "binary_sha256": "6481dc6dfc5eee43dfa55723f06e97734c874e746b63991d013a0caba72d0826",
           "cases": [
@@ -94134,11 +94134,11 @@
         "rejected_native_mutants": 3,
         "directory_success_executions": 9,
         "standalone_wire_sha256": "4ecfa8a78d0146fe2f7dbcdcab711fa1ca803332044b3e4d81f684c80a37039f",
-        "standalone_mze_sha256": "4ad515a6dece3f6a75b9f3ae70a96b469533f20359b7a1e8929d1d4225068c39",
+        "standalone_mze_sha256": "ba2b3953489909ac90c184c318dba57fe52dc8cd474df4e29c2c3ce208a40e3b",
         "chronos_logical_sha256": "56e0b7266c9f4ba610f8d77d2475c6293d49af40e5778ad96a162f7daf50d76b",
         "scope": "CP/M and Scorpion API traps; not physical ROM/hardware",
-        "fresh_file_reference_sha256": "a07b641cc56d45080f6b716faaac475d1491ce54daee117f86eb89ea0c76a309",
-        "fresh_midi_reference_sha256": "c5609dd907b0ffd34c2b79824962cecfa70a8037c69f2453559f49ac68600b53",
+        "fresh_file_reference_sha256": "44904c71829cd1989f8843bac845b0fa84219632a20e4168ac6e3141b6eb6474",
+        "fresh_midi_reference_sha256": "07114f8840e7e69ac758727f67dfb668071c99f0359cf3e7b2d89b47fef6d6c7",
         "fresh_midi_executions": 342,
         "fresh_file_reference": {
           "protocol": "autosiril-file-pair-fresh/v1",
@@ -94151,7 +94151,7 @@
             "minzc/cmd/mze/cpm_record.go": "2959ad5fbd05889fdc0d1bdf991429ae163b948a424c369bd3f311f5d2a667c7",
             "minzc/cmd/mze/cpm_record_test.go": "ed65e0346a0773ddcb167ac3222a6fd434221c333bd6f995a57e1b7a889ed8d5"
           },
-          "reference_sha256": "c5609dd907b0ffd34c2b79824962cecfa70a8037c69f2453559f49ac68600b53",
+          "reference_sha256": "07114f8840e7e69ac758727f67dfb668071c99f0359cf3e7b2d89b47fef6d6c7",
           "matrix_sha256": "29d8568e2178f72c60c2005e520a7ecfceb6056f5627bb21a53a796fb64a3dd8",
           "generated_source_sha256": "d214edcd4ef504308e4e1aa1ef34f4d7842cc34ea39741342c043e872ba0a875",
           "generated_driver_sha256": "2988674e20602b0f3f4e99df1b718666a918ef2a86e3e3e19f1202ccf278b47c",
@@ -97068,7 +97068,7 @@
             "target_executions": 147
           },
           "standalone_wire_sha256": "4ecfa8a78d0146fe2f7dbcdcab711fa1ca803332044b3e4d81f684c80a37039f",
-          "standalone_mze_sha256": "4ad515a6dece3f6a75b9f3ae70a96b469533f20359b7a1e8929d1d4225068c39",
+          "standalone_mze_sha256": "ba2b3953489909ac90c184c318dba57fe52dc8cd474df4e29c2c3ce208a40e3b",
           "local_go_overlay_sha256": null,
           "local_go_overlay_sources": {},
           "scope": "first file stage only; target note-file reader and flatten-file stage pending"
@@ -97106,7 +97106,7 @@
           "music_sha256": "9fb9f831651875e5b4b65b45a121d3f8d3b9ebce7ec6f7652a7abd909485ce9a",
           "manifest_sha256": "f2ba3f05a0700c79e9b6deff99461d1cc57d70f3c4a460ba69fcb5f82d80835d",
           "exporter_sha256": "a750f0a95d2ab2bce3bddc1c15548007febd46d94d043317e381ddfdbf71506f",
-          "consumer_sha256": "5b2fac29af42f195c32ee7fcf34461d3ebafd4042937155d85c73f08abdaad6f",
+          "consumer_sha256": "eff26ad3a2a53bc7b0c7a767e2d25d4dcba9627abde2f978c5e1a296bb2cb161",
           "input_sha256": "8b5f831c93d6dd251fdb4f3c6986b59ccb6ace4208f4c39c12dc0d5a4db7f9db",
           "native": {
             "assembly_sha256": "77012e57fd2fc44e1f10296a558abafc72585aa758a44b950613e2f8c23aa0df",
@@ -103024,7 +103024,7 @@
           "go_version": "go version go1.24.3 linux/amd64",
           "ruby_version": "ruby 3.3.8 (2025-04-09 revision b200bad6cd) [x86_64-linux-gnu]",
           "crystal_version": "Crystal 1.20.1 [e60210eb9] (2026-04-29)\n\nLLVM: 20.1.8\nDefault target: x86_64-unknown-linux-gnu",
-          "git_head": "46940dfe98959884e72eca29f4e4ef79b5bc46d8",
+          "git_head": "f92da3f95f75df6b5a9a8f1c147ff37ead0a8b16",
           "git_dirty": true,
           "scope": "complete Chronos streamed MIDI parsing/pairing/quantization on target; separate image from flatten; fresh Ruby/target boundary corpus; no combined converter or physical banking"
         },
