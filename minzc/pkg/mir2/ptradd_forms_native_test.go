@@ -42,6 +42,12 @@ func TestPtrAddFormsVMZ80(t *testing.T) {
 		{name: "keepA-byte", symBase: true, base: "mem", off: "C", dst: "IY", byteOff: true, keepA: true, form: "byte-wise"},
 		{name: "dst-overlaps-off", base: "IY", off: "BC", dst: "BC", hold: true, form: "byte-wise"},
 		{name: "dst-overlaps-base", base: "IX", off: "DE", dst: "IX", hold: true, form: "byte-wise"},
+		{name: "ex-DE-BC", base: "DE", off: "BC", dst: "DE", form: "into DE through EX"},
+		{name: "ex-DE-BC-hold", base: "DE", off: "BC", dst: "DE", hold: true, form: "into DE through EX"},
+		{name: "ex-DE-BC-hold-keepA", base: "DE", off: "BC", dst: "DE", hold: true, keepA: true, form: "into DE through EX"},
+		{name: "ex-BC-DE-hold", base: "BC", off: "DE", dst: "DE", hold: true, form: "into DE through EX"},
+		{name: "ex-DE-HL-live", base: "DE", off: "HL", dst: "DE", live: true, form: "into DE through EX"},
+		{name: "DE-HL-dead", base: "HL", off: "DE", dst: "DE"},
 		{name: "spill-dst", symBase: true, base: "BC", off: "HL", dst: "mem", live: true},
 		// A rematerialised address (no home at all): only the immediate exists.
 		{name: "remat-offset-HL", symBase: true, base: "remat", off: "HL", dst: "HL", form: "constant base, offset in HL"},

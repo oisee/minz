@@ -15,6 +15,8 @@ import (
 //   - Constant base (addr_of a global), HL free afterwards, offset in BC/DE:
 //     LD HL, sym / ADD HL, off; offset in HL: LD rr, sym / ADD HL, rr with a
 //     pair rr that holds no live value.
+//   - Sum into DE, one operand dying in DE, the other in BC or a busy HL:
+//     EX DE, HL / ADD HL, rr / EX DE, HL.  HL is the same before and after.
 //   - Otherwise, when HL is busy or an index register is involved, the sum is
 //     formed byte-wise through A, writing the destination pair directly:
 //
@@ -176,6 +178,29 @@ func (g *z80cg) tryPtrAddForms(inst *Inst) bool {
 			g.emit("    ADD HL, " + pair)
 			g.invalidate(pair)
 			g.finishPtrAddHL(dst)
+			return true
+		}
+	}
+
+	// Sum into DE with one operand dying in DE and the other in BC or HL:
+	// EX DE, HL / ADD HL, rr / EX DE, HL forms it in place (3 bytes, 19 T) and
+	// hands HL back intact, whatever it holds.  A dead HL operand with HL free
+	// stays with the generic ADD HL, DE.
+	if sym == "" && !byteOff && dst == "DE" && (base == "DE" || off == "DE") {
+		other, inDE := off, inst.Src[0]
+		if off == "DE" {
+			other, inDE = base, offReg
+		}
+		if (other == "BC" || other == "HL" && !hlFree) && !g.regsLiveAfterInst(inst)[inDE] {
+			g.comment("ptr_add: into DE through EX DE, HL")
+			g.emit("    EX DE, HL")
+			if other == "HL" {
+				other = "DE" // the swap moved it
+			}
+			g.emit("    ADD HL, " + other)
+			g.emit("    EX DE, HL")
+			g.invalidate("HL")
+			g.invalidate("DE")
 			return true
 		}
 	}
