@@ -112,3 +112,27 @@ func (g *z80cg) emitFlagReturnValue(f *Func, val Reg) {
 		g.emit("    CP 1")
 	}
 }
+
+// flagResultZeroTest returns the condition of cmp.ne/cmp.eq %r, 0 when %r is
+// a flag-return call result pending in F, not live after the comparison,
+// and the comparison itself is allocated to F.
+func (g *z80cg) flagResultZeroTest(inst *Inst) (string, bool) {
+	if inst.Cond != CmpEq && inst.Cond != CmpNe || g.loc(inst.Dst) != "F" {
+		return "", false
+	}
+	for i, r := range inst.Src {
+		fc, ok := g.callFlags[r]
+		if !ok || r != g.pendingFlagReg || g.loc(r) != "F" || g.regsLiveAfterInst(inst)[r] {
+			continue
+		}
+		if v, ok := flagReturnConst(g.fn, inst.Src[1-i]); !ok || v != 0 {
+			continue
+		}
+		cc := cmpCondCode(fc)
+		if inst.Cond == CmpEq {
+			cc = invertCC(cc)
+		}
+		return cc, true
+	}
+	return "", false
+}
