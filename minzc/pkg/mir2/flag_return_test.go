@@ -130,6 +130,9 @@ func indexOfCond(c mir2.CmpCond) int {
 //	pick:    jmp @b; @b: br_if %r            (%r lives across blocks: byte home)
 //	across:  %n = call noise(x); br_if %r    yes: ret %n       no: ret 9
 //	liveA:   %a = x + 3 before the call; br_if %r  yes: ret %a  no: ret 9
+//	neBr:    br_if (cmp.ne %r, 0)            yes: ret 5        no: ret 9
+//	neCondRet, eqCondRet: cond_ret (cmp.ne/eq %r, 0) returning 9, else ret 5
+//	eqExt:   %c = cmp.eq %r, 0; br_if %c     yes: ret ext %c   no: ret 9
 func buildFlagRetCaller(m *mir2.Module, use string) (*mir2.Func, mir2.Reg, mir2.Reg, mir2.Reg) {
 	if use == "across" {
 		n := m.AddFunc("noise")
@@ -156,8 +159,23 @@ func buildFlagRetCaller(m *mir2.Module, use string) (*mir2.Func, mir2.Reg, mir2.
 	yes := mir2.NoReg
 	switch use {
 	case "br":
-	case "negBr":
+	case "negBr", "eqExt":
 		cond = b.CmpWithSrcTy(mir2.CmpEq, r, b.Const(0, mir2.TyBool, mir2.ClassGeneral), mir2.ClassFlag, false, mir2.TyBool)
+		if use == "eqExt" {
+			yes = b.Ext(cond, mir2.TyBool, mir2.TyU8, mir2.ClassAcc)
+		}
+	case "neBr":
+		cond = b.CmpWithSrcTy(mir2.CmpNe, b.Const(0, mir2.TyBool, mir2.ClassGeneral), r, mir2.ClassFlag, false, mir2.TyBool)
+	case "neCondRet", "eqCondRet":
+		cc := mir2.CmpNe
+		if use == "eqCondRet" {
+			cc = mir2.CmpEq
+		}
+		cond = b.CmpWithSrcTy(cc, r, b.Const(0, mir2.TyBool, mir2.ClassGeneral), mir2.ClassFlag, false, mir2.TyBool)
+		b.Cur.Seal(&mir2.TermCondRet{Cond: cond, Vals: []mir2.Reg{b.Const(9, mir2.TyU8, mir2.ClassAcc)}, Then: "yes"})
+		b.SwitchToNewBlock("yes")
+		b.Ret(b.Const(5, mir2.TyU8, mir2.ClassAcc))
+		return f, x, r, a
 	case "ret":
 		b.Ret(r)
 		return f, x, r, a
@@ -220,7 +238,7 @@ func TestFlagReturnCallerUses(t *testing.T) {
 	for _, alloc := range []string{"pbqp", "greedy"} {
 		for _, cond := range flagRetConds {
 			for _, site := range flagRetSites {
-				for _, use := range []string{"br", "negBr", "ret", "pick", "across", "liveA"} {
+				for _, use := range []string{"br", "negBr", "neBr", "neCondRet", "eqCondRet", "eqExt", "ret", "pick", "across", "liveA"} {
 					t.Run(fmt.Sprintf("%s/%s/%s/%s", alloc, cond, site, use), func(t *testing.T) {
 						m := &mir2.Module{}
 						buildFlagRetCallee(m, cond, site)
@@ -319,6 +337,81 @@ func TestFlagReturnCallerLiveA(t *testing.T) {
 						t.Log(asm)
 					}
 					runFlagMove(t, flagMoveFunc{m: m, f: f}, cond, "C", asm)
+				})
+			}
+		}
+	}
+}
+
+// The zero test of a flag-return call's result folds into the branch:
+// cmp.ne %r, 0 becomes %r, cmp.eq %r, 0 becomes %r with the arms swapped.
+// A cond_ret cannot swap arms and a comparison with another use stays.
+// The VM result is the same before and after, and the Z80 agrees with it.
+func TestFoldFlagReturnTests(t *testing.T) {
+	folds := map[string]bool{"negBr": true, "neBr": true, "neCondRet": true, "eqCondRet": false, "eqExt": false}
+	for _, cond := range flagRetConds {
+		for _, use := range []string{"negBr", "neBr", "neCondRet", "eqCondRet", "eqExt"} {
+			for _, flagCallee := range []bool{true, false} {
+				t.Run(fmt.Sprintf("%s/%s/%v", cond, use, flagCallee), func(t *testing.T) {
+					m := &mir2.Module{}
+					buildFlagRetCallee(m, cond, "natural")
+					if !flagCallee {
+						p := m.FuncByName("p")
+						p.Contract.Returns[0] = mir2.Return{Ty: mir2.TyBool, Class: mir2.ClassAcc}
+					}
+					f, x, r, _ := buildFlagRetCaller(m, use)
+					var before []int64
+					vm := mir2.NewVM(m)
+					for v := int64(0); v < 256; v++ {
+						out, e := vm.CallFunc(f, []mir2.Value{{I: v}})
+						if e != nil {
+							t.Fatal(e)
+						}
+						before = append(before, out[0].I)
+					}
+					want := folds[use] && flagCallee
+					if got := mir2.FoldFlagReturnTests(m); got != want {
+						t.Fatalf("fold reported %v, want %v\n%s", got, want, m.Dump())
+					}
+					if e := mir2.Verify(m); e != nil {
+						t.Fatal(e)
+					}
+					cmps := 0
+					for _, b := range f.Blocks {
+						for _, inst := range b.Insts {
+							if inst.Op == mir2.OpCmp {
+								cmps++
+							}
+						}
+						switch term := b.Term.(type) {
+						case *mir2.TermBrIf:
+							if want && term.Cond != r {
+								t.Fatalf("branch on r%d, want the call result r%d\n%s", term.Cond, r, m.Dump())
+							}
+						case *mir2.TermCondRet:
+							if want && term.Cond != r {
+								t.Fatalf("cond_ret on r%d, want the call result r%d\n%s", term.Cond, r, m.Dump())
+							}
+						}
+					}
+					if want == (cmps != 0) {
+						t.Fatalf("%d comparisons left after fold=%v\n%s", cmps, want, m.Dump())
+					}
+					vm = mir2.NewVM(m)
+					for v := int64(0); v < 256; v++ {
+						out, e := vm.CallFunc(f, []mir2.Value{{I: v}})
+						if e != nil {
+							t.Fatal(e)
+						}
+						if out[0].I != before[v] {
+							t.Fatalf("x=%d: VM %d after the fold, %d before\n%s", v, out[0].I, before[v], m.Dump())
+						}
+					}
+					if !flagCallee {
+						return
+					}
+					ar, asm := compileFlagRet(t, m, true)
+					runFlagMove(t, flagMoveFunc{m: m, f: f}, cond, ar.Locs[x].Name, asm)
 				})
 			}
 		}
