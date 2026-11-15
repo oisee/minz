@@ -99,6 +99,7 @@
     "TestConditionalLayoutWorkloadNativeAndArtifact",
     "TestConditionalLayoutWorkloadRechecksTablePin",
     "TestConditionalLayoutWorkloadRejectsDriftAndPartialResults",
+    "TestConditionalReturnOfComparisonAfterLogicalOrVMZ80",
     "TestConstRematFusionFoldMaxHoldsNoConstantPair",
     "TestConstantByteMulOrdinaryLiveWordsNative",
     "TestConstantCallPreservesPointerMemorySource",
