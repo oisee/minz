@@ -32,14 +32,7 @@ func validateCPMApplicationRuntime(m *Module, ar *AllocResult) error {
 		if localErr != nil {
 			return localErr
 		}
-		defs := map[Reg]*Inst{}
-		for _, b := range f.Blocks {
-			for _, i := range b.Insts {
-				if i.Dst != NoReg {
-					defs[i.Dst] = i
-				}
-			}
-		}
+		defs := cpmFuncDefs(f)
 		for _, b := range f.Blocks {
 			for _, i := range b.Insts {
 				for _, r := range i.Uses() {
@@ -92,7 +85,7 @@ func validateCPMApplicationRuntime(m *Module, ar *AllocResult) error {
 					if i.Op == OpLoad {
 						continue
 					}
-					def := defs[i.Src[0]]
+					def := defs.sole(i.Src[0])
 					if globalStores[i] != nil {
 						loc := ar.Loc(i.Src[0])
 						if !locCompatible(TyPtr, loc) || !(loc.Kind == LocMem || loc.Kind == LocReg && (loc.Name == "HL" || loc.Name == "DE" || loc.Name == "BC" || loc.Name == "IX" || loc.Name == "IY")) {

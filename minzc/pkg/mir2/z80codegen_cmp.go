@@ -2,6 +2,7 @@ package mir2
 
 import (
 	"fmt"
+	"slices"
 )
 
 // emitFlagPredicateByte writes a canonical 0/1 bool to A from the current
@@ -113,6 +114,18 @@ func (g *z80cg) pickScratch8(upcomingInst *Inst) string {
 
 // freeScratch8 reports exhaustion rather than selecting an occupied register.
 func (g *z80cg) freeScratch8(upcomingInst *Inst) string {
+	live := g.regsLiveAfterInst(upcomingInst)
+	for _, r := range g.instReads(upcomingInst) {
+		live[r] = true
+	}
+	live[upcomingInst.Dst] = true
+	return g.freeScratch8Outside(live, nil)
+}
+
+// freeScratch8Outside returns an 8-bit register that holds none of the live
+// values, no relocated value and none of the reserved locations, or "" when
+// every candidate is occupied. A and F are never candidates.
+func (g *z80cg) freeScratch8Outside(live map[Reg]bool, reserved []string) string {
 	used := map[string]bool{"A": true, "F": true}
 	mark := func(loc string) {
 		used[loc] = true
@@ -121,14 +134,13 @@ func (g *z80cg) freeScratch8(upcomingInst *Inst) string {
 			used[lowByte(loc)] = true
 		}
 	}
-	for r := range g.regsLiveAfterInst(upcomingInst) {
+	for r := range live {
 		mark(g.loc(r))
 	}
-	for _, r := range g.instReads(upcomingInst) {
-		mark(g.loc(r))
-	}
-	mark(g.loc(upcomingInst.Dst))
 	for _, loc := range g.physOverride {
+		mark(loc)
+	}
+	for _, loc := range reserved {
 		mark(loc)
 	}
 	for _, r := range []string{"E", "H", "L", "D", "B", "C", "IYH", "IYL", "IXH", "IXL"} {
@@ -161,6 +173,73 @@ func (g *z80cg) materializePendingFlag(upcomingInst *Inst) {
 	g.invalidate(scratch)
 	g.physOverride[g.pendingFlagReg] = scratch
 	g.pendingFlagReg = NoReg
+}
+
+// materializePendingFlagForTerm gives the pending predicate a byte home when
+// the terminator reads it as a value where F no longer holds it: after the
+// test of another condition (BIT, OR A or the CP of a three-way branch), or
+// in a trampoline, which is emitted after every block of the function. The
+// scratch byte stays reserved until the terminator's copies have read it.
+func (g *z80cg) materializePendingFlagForTerm(f *Func, t Term) {
+	p := g.pendingFlagReg
+	if p == NoReg || len(g.curBlock.Insts) == 0 {
+		return
+	}
+	// A predicate allocated to a byte was written there by its comparison.
+	if g.loc(p) != "F" {
+		return
+	}
+	uses := func(regs []Reg) bool { return slices.Contains(regs, p) }
+	switch t := t.(type) {
+	case *TermBrIf:
+		if !uses(t.ThenArgs) && !uses(t.ElseArgs) {
+			return
+		}
+	case *TermBrIf2:
+		if !uses(t.EqArgs) && !uses(t.LtArgs) && !uses(t.GtArgs) {
+			return
+		}
+	case *TermDJNZ:
+		if !uses(t.termUses()) {
+			return
+		}
+	case *TermCondRet:
+		// The return path follows the conditional jump directly, except for
+		// the two-test "greater" condition, which moves it into a trampoline.
+		inline := t.Cond == p && g.condCode(f, p) != "CGT"
+		if !uses(t.ThenArgs) && (!uses(t.Vals) || inline) {
+			return
+		}
+	default:
+		return
+	}
+	// Every relocated value returns to its allocated register before the
+	// terminator; the predicate's byte must not sit in one of them.
+	var reserved []string
+	for r := range g.physOverride {
+		reserved = append(reserved, g.ar.Loc(r).Name)
+	}
+	last := g.curBlock.Insts[len(g.curBlock.Insts)-1]
+	scratch := g.freeScratch8Outside(g.regsLiveAfterInst(last), reserved)
+	if scratch == "" {
+		scratch = g.spillLabel(p)
+	}
+	g.emit("    PUSH AF")
+	g.emitFlagPredicateByte(g.condCode(f, p))
+	g.emitLD8(scratch, "A")
+	g.emit("    POP AF")
+	g.invalidate("A")
+	g.invalidate(scratch)
+	g.physOverride[p] = scratch
+	g.pendingFlagReg = NoReg
+}
+
+// flagReadError rejects a read of F as a byte when no predicate is pending:
+// the flags then hold no known value of any virtual register.
+func (g *z80cg) flagReadError() {
+	if g.err == nil {
+		g.err = fmt.Errorf("z80 codegen: %s: read of F as a byte with no pending flag predicate", g.fn.Name)
+	}
 }
 
 // materializePendingAcc checks whether pendingAccReg (a ClassAcc value
@@ -255,7 +334,18 @@ func (g *z80cg) genCmp(inst *Inst) {
 	}
 	// CmpSubCarry / CmpSubCarryNot: carry flag already set by the immediately
 	// preceding SUB.  No instruction needed — carry encodes a < b (C) or a >= b (NC).
+	// The predicate is pending like any other comparison, so a later flag
+	// writer saves it and a byte read resolves its condition.
 	if inst.Cond == CmpSubCarry || inst.Cond == CmpSubCarryNot {
+		g.pendingFlagReg = inst.Dst
+		return
+	}
+	// A zero test of a flag-return call result that dies here, read while
+	// the result is the pending predicate in F: cmp.ne keeps the callee's
+	// condition and cmp.eq inverts it. No instruction is needed.
+	if cc, ok := g.flagResultZeroTest(inst); ok {
+		g.cmpBranchCC[inst.Dst] = cc
+		g.pendingFlagReg = inst.Dst
 		return
 	}
 
@@ -463,6 +553,7 @@ func (g *z80cg) genCmp(inst *Inst) {
 		g.lastFlagsLhs == lhs && g.lastFlagsRhs == rhs
 	if subCmpFused {
 		// Flags valid from preceding SUB — skip both LD A and CP.
+		g.pendingFlagReg = inst.Dst
 		return
 	}
 
@@ -616,6 +707,10 @@ func (g *z80cg) condCode(f *Func, cond Reg) string {
 
 	for _, b := range f.Blocks {
 		for _, inst := range b.Insts {
+			// A bool constant in F is SCF (true) or AND A (false): carry.
+			if inst.Dst == cond && inst.Op == OpConst && g.loc(cond) == "F" {
+				return "C"
+			}
 			if inst.Dst == cond && inst.Op == OpCmp {
 				c := inst.Cond
 				if g.cmpSwapped[cond] {
@@ -654,21 +749,26 @@ func (g *z80cg) materializedCondCode(cond Reg) string {
 	// A block parameter or another materialized boolean carries a byte,
 	// not the flags left by a predecessor's comparison. Test its location.
 	loc := g.loc(cond)
-	if loc != "F" {
-		if loc == "B" || loc == "C" || loc == "D" || loc == "E" || loc == "H" || loc == "L" {
-			g.emitf("    BIT 0, %s", loc)
-		} else if loc == "A" {
-			g.emit("    OR A")
-		} else {
-			// Preserve live A and HL without restoring stale flags.
-			g.emit("    PUSH HL")
-			g.emit("    PUSH AF")
-			g.emitLD8("A", loc)
-			g.emit("    OR A")
-			g.emit("    POP HL")
-			g.emit("    LD A, H")
-			g.emit("    POP HL")
+	if loc == "F" {
+		// F holds a predicate only for the flag producers handled by condCode.
+		if g.err == nil {
+			g.err = fmt.Errorf("z80 codegen: %s: r%d is allocated to F but has no known flag condition", g.fn.Name, cond)
 		}
+		return "NZ"
+	}
+	if loc == "B" || loc == "C" || loc == "D" || loc == "E" || loc == "H" || loc == "L" {
+		g.emitf("    BIT 0, %s", loc)
+	} else if loc == "A" {
+		g.emit("    OR A")
+	} else {
+		// Preserve live A and HL without restoring stale flags.
+		g.emit("    PUSH HL")
+		g.emit("    PUSH AF")
+		g.emitLD8("A", loc)
+		g.emit("    OR A")
+		g.emit("    POP HL")
+		g.emit("    LD A, H")
+		g.emit("    POP HL")
 	}
 	return "NZ" // materialized byte is nonzero exactly when true
 }

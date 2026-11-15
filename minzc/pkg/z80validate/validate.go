@@ -79,6 +79,7 @@ func Validate(asm string) []Error {
 		}
 		// Skip lines that look like comment fragments (not starting with valid Z80 mnemonic or label).
 		if !strings.HasPrefix(text, "LD ") && !strings.HasPrefix(text, "ADD ") &&
+			!strings.HasPrefix(text, "ADC ") &&
 			!strings.HasPrefix(text, "SUB ") && !strings.HasPrefix(text, "SBC ") &&
 			!strings.HasPrefix(text, "AND ") && !strings.HasPrefix(text, "OR ") &&
 			!strings.HasPrefix(text, "XOR ") && !strings.HasPrefix(text, "CP ") &&
@@ -213,7 +214,8 @@ func PrepareForValidation(asm string) string {
 	return sb.String()
 }
 
-// CollectBranchTargets extracts label names from JP/CALL/JR/DJNZ/LD instructions.
+// CollectBranchTargets extracts label names from JP/CALL/JR/DJNZ/LD instructions
+// and from ^H/^L operands of 8-bit arithmetic.
 func CollectBranchTargets(line string, refs map[string]bool) {
 	if idx := strings.IndexByte(line, ';'); idx >= 0 {
 		line = line[:idx]
@@ -287,12 +289,38 @@ func CollectBranchTargets(line string, refs map[string]bool) {
 		rest := strings.TrimSpace(trimmed[7:])
 		if idx := strings.IndexByte(rest, ')'); idx >= 0 {
 			label := strings.TrimSpace(rest[:idx])
+			// Strip +N offset (e.g. "table + 3" → "table")
+			if plusIdx := strings.IndexByte(label, '+'); plusIdx >= 0 {
+				label = strings.TrimSpace(label[:plusIdx])
+			}
 			if label != "" && !strings.HasPrefix(label, "$") && !strings.HasPrefix(label, "0") &&
-				(label[0] < '0' || label[0] > '9') && !strings.ContainsAny(label, " \t+") {
+				(label[0] < '0' || label[0] > '9') && !strings.ContainsAny(label, " \t") {
 				refs[label] = true
 			}
 		}
 		return
+	}
+
+	// ADD A, label^L / ADC A, label^H etc. — one byte of a symbolic address
+	// as an 8-bit immediate. Only a ^H/^L operand names a label here; a bare
+	// operand is a register.
+	aluPrefixes := []string{"ADD ", "ADC ", "SUB ", "SBC ", "AND ", "OR ", "XOR ", "CP "}
+	for _, prefix := range aluPrefixes {
+		if strings.HasPrefix(trimmedUpper, prefix) {
+			operand := strings.TrimSpace(trimmed[len(prefix):])
+			if idx := strings.LastIndexByte(operand, ','); idx >= 0 {
+				operand = strings.TrimSpace(operand[idx+1:])
+			}
+			if strings.IndexByte(operand, '^') > 0 {
+				label := stripLabelModifiers(operand)
+				if label != "" && !strings.HasPrefix(label, "$") &&
+					(label[0] < '0' || label[0] > '9') &&
+					!strings.ContainsAny(label, " \t()") {
+					refs[label] = true
+				}
+			}
+			return
+		}
 	}
 
 	// LD (label), A / LD (label), HL etc.

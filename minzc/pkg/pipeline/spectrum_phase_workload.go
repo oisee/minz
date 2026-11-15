@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"github.com/minz/minzc/pkg/spectrum"
 	"github.com/minz/minzc/pkg/z80asm"
+	"strings"
 )
 
 // SpectrumPhaseWorkload is a bounded, cold-start 48K scene with one ordered
@@ -99,6 +100,39 @@ func (w SpectrumPhaseWorkload) Validate() error {
 	return nil
 }
 
+// phaseReturnLocation is where the compiler's ABI comment in assembly says
+// function name returns its result: a register, or "F.<cc>" when the result is
+// the flag condition cc. It is empty when the assembly has no such comment.
+func phaseReturnLocation(assembly, name string) string {
+	for _, line := range strings.Split(assembly, "\n") {
+		if !strings.HasPrefix(line, "; fun "+name+"(") {
+			continue
+		}
+		line, _, _ = strings.Cut(line, " ; ")
+		if _, location, ok := strings.Cut(line, ") -> bool = "); ok {
+			return strings.TrimSpace(location)
+		}
+		return ""
+	}
+	return ""
+}
+
+// phaseReturnedTrue reports whether af holds true at the declared location:
+// the flag condition of an "F.<cc>" location, otherwise the byte 1 in A.
+func phaseReturnedTrue(location string, af uint16) bool {
+	switch location {
+	case "F.NZ":
+		return af&0x40 == 0
+	case "F.Z":
+		return af&0x40 != 0
+	case "F.C":
+		return af&0x01 != 0
+	case "F.NC":
+		return af&0x01 == 0
+	}
+	return byte(af>>8) == 1
+}
+
 type phaseProfileRegisters [10]uint16
 
 func phaseProfileRegs(c spectrum.CPUCore) phaseProfileRegisters {
@@ -117,6 +151,7 @@ type spectrumPhaseObserver struct {
 	machine              *spectrum.Machine
 	workload             SpectrumPhaseWorkload
 	addresses            [2]uint16
+	returns              [2]string
 	globals              map[string]uint16
 	active               *activeSpectrumPhase
 	expectedRole         int
@@ -197,7 +232,7 @@ func (c *spectrumPhaseObserver) DoOpcode() {
 	}
 	if c.active != nil && c.PC() == c.active.returnPC {
 		a := c.active
-		if c.SP() != a.sp+2 || c.IFF1() != a.iff1 || c.IFF2() != a.iff2 || byte(c.AF()>>8) != 1 {
+		if c.SP() != a.sp+2 || c.IFF1() != a.iff1 || c.IFF2() != a.iff2 || !phaseReturnedTrue(c.returns[a.index], c.AF()) {
 			c.err = fmt.Errorf("phase return must restore PC/SP/IFF and return true")
 		}
 		name := c.workload.Prepare
@@ -329,7 +364,7 @@ func RunSpectrumPhaseWorkload(assembly string, binary, rom []byte, w SpectrumPha
 	if err != nil {
 		return fail(err)
 	}
-	c := &spectrumPhaseObserver{machine: machine, workload: w, addresses: [2]uint16{symbols[1], symbols[2]}, globals: globals}
+	c := &spectrumPhaseObserver{machine: machine, workload: w, addresses: [2]uint16{symbols[1], symbols[2]}, returns: [2]string{phaseReturnLocation(assembly, w.Prepare), phaseReturnLocation(assembly, w.Publish)}, globals: globals}
 	memory := &phaseObservedMemory{Memory: machine.Memory, observer: c}
 	c.CPUCore = spectrum.NewRemogattoAdapter(memory, machine.Ports)
 	machine.CPU = c

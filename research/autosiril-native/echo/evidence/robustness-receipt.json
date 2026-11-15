@@ -94,9 +94,9 @@
     "research/crystal-hir/export.cr": "a96d3c756cb0798120aad69427b13259f761908ea95c9cf8f6b58317249cc663",
     "research/crystal-hir/typed_export.cr": "d06f1a8e22dec408b7ada5b5482023cb69fbf32d49183bf8d344683b44b3655c"
   },
-  "reused_positive_sha256": "60629c7d73fdee49ec4a3dde4effa5514384fd43008925d265b2afc1c399e7a5",
-  "reused_musical_sha256": "16ff4404cfda5bc4910149cc85e241a9b8d883fe8c5d567fe82015ba8d61293d",
-  "reused_arrangement_sha256": "2f43937012f2029733aee2ab7bc4d476e51cc3755b1f13d615037712b834b5cc",
+  "reused_positive_sha256": "3abe329ff3fa0bd91ea5618c6ba2daec9e22f8c1061792138ea185e49769c87a",
+  "reused_musical_sha256": "e74a89c3ff416f7cd815074666b9ffbf1bb287381fcfc32afa5eae5740242a4b",
+  "reused_arrangement_sha256": "e84b6e50a2a0f34391ca85822214f5cef2c29a0d3e598318c6d7b5ad8d572d39",
   "proofs": {
     "invalid": {
       "protocol": "autosiril-echo-invalid/v1",

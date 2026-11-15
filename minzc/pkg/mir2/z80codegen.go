@@ -1128,6 +1128,22 @@ func computeDeadConsts(f *Func, ar *AllocResult) map[Reg]bool {
 					// no foldedUses increment — terminators are never peephole-dead
 				}
 			}
+			// A flag return sets the flags of a returned constant with
+			// XOR A / OR 1 / SCF / OR A; it reads no home.
+			var returned []Reg
+			switch t := b.Term.(type) {
+			case *TermRet:
+				returned = t.Vals
+			case *TermCondRet:
+				returned = t.Vals
+			}
+			if flagReturn(f) {
+				for _, v := range returned {
+					if _, ok := flagReturnConst(f, v); ok {
+						foldedUses[v]++
+					}
+				}
+			}
 		}
 	}
 
@@ -1513,7 +1529,7 @@ func (g *z80cg) genBlock(f *Func, b *Block) {
 				// A tail JP would let the callee RET consume a nonexistent
 				// program return address and skip main's termination boundary.
 				haltingMain := f.Name == "main" && len(ret.Vals) == 0 && g.runtime != Z80RuntimeCPM && !g.calledMain
-				if isTail && !haltingMain {
+				if isTail && !haltingMain && !g.tailFlagReturnMismatch(f, last, ret) {
 					g.tailCallInst = last
 				}
 			}
@@ -1635,7 +1651,11 @@ func funcAnnotation(f *Func, ar *AllocResult) string {
 		} else {
 			sb.WriteString("?")
 		}
-		if reg := classToRegName(r.Class, r.Ty); reg != "" {
+		if r.Class == ClassFlag {
+			// A flag return names the condition that means true.
+			sb.WriteString(" = F.")
+			sb.WriteString(cmpCondCode(r.FlagCond))
+		} else if reg := classToRegName(r.Class, r.Ty); reg != "" {
 			sb.WriteString(" = ")
 			sb.WriteString(reg)
 		}
@@ -1726,4 +1746,22 @@ func emitStringLiteral(sb *strings.Builder, data []byte) {
 
 func isPrintableASCII(b byte) bool {
 	return b >= 0x20 && b <= 0x7E
+}
+
+// tailFlagReturnMismatch reports a tail call whose callee returns its value in
+// flags while the caller returns it otherwise, or the reverse, or under another
+// flag condition: a JP would hand the callee's convention to the caller's caller.
+func (g *z80cg) tailFlagReturnMismatch(f *Func, call *Inst, ret *TermRet) bool {
+	if len(ret.Vals) != 1 || len(f.Contract.Returns) == 0 || g.mod == nil {
+		return false
+	}
+	callee := g.mod.FuncByName(call.Sym)
+	if callee == nil || len(callee.Contract.Returns) == 0 {
+		return false
+	}
+	mine, theirs := f.Contract.Returns[0], callee.Contract.Returns[0]
+	if mine.Class != ClassFlag && theirs.Class != ClassFlag {
+		return false
+	}
+	return mine.Class != theirs.Class || mine.FlagCond != theirs.FlagCond
 }
