@@ -125,7 +125,8 @@ func (l *lowerer) tryCountedLoop(st *WhileStmt, fact mir2.StaticLoop) bool {
 		boundName = b.Name
 	}
 	// Includes bit-field assignments, whose root target is the scalar binder.
-	muts := scanMutations(body, l.env)
+	// The lowerer's scan also sees captures assigned inside iterator lambdas.
+	muts := l.scanMutations(body, l.env)
 	if muts[iv.Name] || muts[boundName] {
 		return false
 	}
