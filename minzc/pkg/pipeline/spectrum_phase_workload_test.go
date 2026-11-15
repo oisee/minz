@@ -82,9 +82,7 @@ func testSpectrumPhaseCompile(t *testing.T, source string, choice uint8) (string
 	if err != nil {
 		t.Fatal(err)
 	}
-	// The phase workload calls prepare/publish by name and reads their bool
-	// result in A (1 = true): keep the byte return for those entries.
-	steps, err := CompileHIRSteps(h, Options{OptSize: true, ContractOpt: true, AssertMode: "none", DisableFlagReturns: true})
+	steps, err := CompileHIRSteps(h, Options{OptSize: true, ContractOpt: true, AssertMode: "none"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -194,6 +192,31 @@ func TestSpectrumPhaseWorkloadRefusals(t *testing.T) {
 		a, b := testSpectrumPhaseCompile(t, mutant, 0)
 		if r, err := RunSpectrumPhaseWorkload(a, b, rom, w); err == nil || r != nil || !strings.Contains(err.Error(), "preparation wrote screen") {
 			t.Fatalf("transient/same-value store not rejected: %v", err)
+		}
+	}
+}
+
+func TestSpectrumPhaseReturnLocation(t *testing.T) {
+	assembly := "; fun prepare(frame: u8 = A) -> bool = F.NC ; clobbers: A, F\nprepare:\n; fun prepare_all() -> bool = A ; clobbers: A\n; fun publish() -> void ; clobbers: A\n"
+	for name, want := range map[string]string{"prepare": "F.NC", "prepare_all": "A", "publish": "", "absent": ""} {
+		if got := phaseReturnLocation(assembly, name); got != want {
+			t.Errorf("%s returns in %q, want %q", name, got, want)
+		}
+	}
+	const z, cy = 0x40, 0x01
+	for _, c := range []struct {
+		location string
+		af       uint16
+		want     bool
+	}{
+		{"F.NZ", 0x0100 | z, false}, {"F.NZ", 0, true},
+		{"F.Z", z, true}, {"F.Z", 0x0100, false},
+		{"F.C", cy, true}, {"F.C", 0x0100 | z, false},
+		{"F.NC", z, true}, {"F.NC", 0x0100 | cy, false},
+		{"A", 0x0100 | z, true}, {"A", 0x0200, false}, {"", 0x0100, true}, {"", cy, false},
+	} {
+		if got := phaseReturnedTrue(c.location, c.af); got != c.want {
+			t.Errorf("location %q, AF %04x: true = %v, want %v", c.location, c.af, got, c.want)
 		}
 	}
 }

@@ -1629,7 +1629,11 @@ func funcAnnotation(f *Func, ar *AllocResult) string {
 		} else {
 			sb.WriteString("?")
 		}
-		if reg := classToRegName(r.Class, r.Ty); reg != "" {
+		if r.Class == ClassFlag {
+			// A flag return names the condition that means true.
+			sb.WriteString(" = F.")
+			sb.WriteString(cmpCondCode(r.FlagCond))
+		} else if reg := classToRegName(r.Class, r.Ty); reg != "" {
 			sb.WriteString(" = ")
 			sb.WriteString(reg)
 		}
