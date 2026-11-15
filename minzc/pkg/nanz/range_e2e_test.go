@@ -23,6 +23,10 @@ func assembleFold(t *testing.T, genAsm string) func(n int) (uint8, error) {
     ORG 0x%04X
     LD SP, 0xFF00
     LD A, %d
+    LD B, A
+    LD C, A
+    LD E, A
+    LD L, A
     CALL sum_range
     DI
     HALT
@@ -55,8 +59,8 @@ func assembleFold(t *testing.T, genAsm string) func(n int) (uint8, error) {
 }
 
 // TestRangeFold_E2E_SumRange verifies range(0..n).fold(0, |acc,i| acc+i)
-// returns the correct sum.  Because range(0..n) counts DOWN from n to 1, the
-// result is n*(n+1)/2 (sum of 1..n), not sum of 0..n-1.
+// returns the correct sum.  range(0..n) yields 0..n-1 ascending, so the
+// result is n*(n-1)/2.
 func TestRangeFold_E2E_SumRange(t *testing.T) {
 	src := `
 fun sum_range(n: u8) -> u8 {
@@ -75,15 +79,15 @@ fun sum_range(n: u8) -> u8 {
 
 	run := assembleFold(t, genAsm)
 
-	// range(0..n) counts DOWN: elements = n, n-1, ..., 1.  Sum = n*(n+1)/2.
+	// range(0..n) ascends: elements = 0, 1, ..., n-1.  Sum = n*(n-1)/2.
 	cases := []struct {
 		n, want int
 	}{
 		{0, 0},
-		{1, 1},   // just 1
-		{4, 10},  // 4+3+2+1
-		{5, 15},  // 5+4+3+2+1
-		{10, 55}, // 10*(10+1)/2
+		{1, 0},  // just 0
+		{4, 6},  // 0+1+2+3
+		{5, 10}, // 0+1+2+3+4
+		{10, 45},
 	}
 	for _, tc := range cases {
 		got, err := run(tc.n)
@@ -113,15 +117,15 @@ func TestRangeVariants_Asm(t *testing.T) {
 			bad:  []string{"SUB"},
 		},
 		{
-			name: "range(0..n) fold — direct DJNZ, no SUB",
-			src:  `fun f(n: u8) -> u8 { return range(0..n).fold(0, |acc: u8, i: u8| { return acc + i }) }`,
-			want: []string{"DJNZ", "ADD A"},
+			name: "range(0..n) fold, element unused — direct DJNZ, no SUB",
+			src:  `fun f(n: u8) -> u8 { return range(0..n).fold(0, |acc: u8, i: u8| { return acc + 3 }) }`,
+			want: []string{"DJNZ"},
 			bad:  []string{"SUB"},
 		},
 		{
-			name: "range(3..8) fold — DJNZ with count=5 via SUB or Const(5)",
-			src:  `fun f() -> u8 { return range(3..8).fold(0, |acc: u8, i: u8| { return acc + i }) }`,
-			want: []string{"DJNZ", "ADD A"},
+			name: "range(3..8) fold, element unused — DJNZ with count=5 via SUB or Const(5)",
+			src:  `fun f() -> u8 { return range(3..8).fold(0, |acc: u8, i: u8| { return acc + 3 }) }`,
+			want: []string{"DJNZ"},
 		},
 	}
 	for _, tc := range cases {

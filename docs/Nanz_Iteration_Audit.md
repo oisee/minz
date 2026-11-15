@@ -26,11 +26,11 @@ claim is an audit observation; G0-L1 pins one representative program.
 |---|---|---|---|---|---|---|---|
 | `for i in lo..hi` | forward `lo..hi-1` (var width follows `hi`) | 0 iters | `[lo]` | full 255 | 256 iters (u16 bound) | `break`, `continue`, `return` | VM=VM=Z80 |
 | `for x in ptr[lo..hi]` | forward, loads `ptr[lo+i]` | 0 iters | `[ptr[lo]]` | full 255 | 256 iters (u16 len) | `break`, `continue`, `return` | VM=VM=Z80 |
-| `range(lo..hi)` source | **countdown**: `count, count-1, …, 1` where `count = hi-lo` (or `lo` for `hi..0`); element = counter, **not** `lo+i` | 0 iters | `[1]` | full 255 | **G0-9: truncated u8 counter** | none | VM=VM=Z80 |
+| `range(lo..hi)` source | **forward**: `lo, lo+1, …, hi-1` (like `for`); `range(hi..0)` yields `hi-1, …, 0` | 0 iters | `[1]` | full 255 | **G0-9: truncated u8 counter** | none | VM=VM=Z80 |
 | chain `map/filter → forEach` (memory src) | forward, stages innermost-first | no effects | 1 elem | full 255 | via u16 len | **not expressible** | VM=VM=Z80 |
 | chain `mapInPlace` | forward, stores back | no writes | 1 | full 255 | via u16 len | not expressible | VM=VM=Z80 |
 | chain `fold`/`reduce` (memory) | forward | returns `init` | `cb(init, ptr[0])` | full 255 | via u16 len | not expressible | VM=VM=Z80 |
-| chainable `range(lo..hi).fold/.forEach` | countdown (see range) | `init` / nothing | `[1]` | full 255 | G0-9 | not expressible | VM=VM=Z80 |
+| chainable `range(lo..hi).fold/.forEach` | forward (see range) | `init` / nothing | `[1]` | full 255 | G0-9 | not expressible | VM=VM=Z80 |
 | `pipe`/`trans` + `.apply()` | expands to nested `map`/`filter` calls — identical semantics per source | as chain | as chain | as chain | as chain | not expressible | VM=VM=Z80 |
 | `take`/`skip`/`enumerate`/`iter`/`collect`… | **not recognised in Nanz** (legacy `.minz` only) — silently emit invalid asm (G0-5) | — | — | — | — | — | broken |
 
@@ -42,15 +42,17 @@ in any Nanz chain — the direct motivation for ADR 0048's pull protocol.
 
 ## Semantics notes
 
-- **`range(0..n)` is reverse, `for i in 0..n` is forward.** `range(0..5)` yields
-  5,4,3,2,1 (DJNZ countdown); `for i in 0..5` yields 0,1,2,3,4. A sum agrees,
-  an order checksum does not — generator tests must be sequence-sensitive
-  (already required by ADR 0050).
-- **`range(lo..hi)` yields the countdown counter, not `lo+i`:** `range(2..7)`
-  yields 5,4,3,2,1 (count = hi−lo). Documented in the Nanz book, chapter 6,
-  and in `lowerRangeLoop`.
-- **`range(hi..0)` (literal 0 upper bound) is the "Rev" spelling** of the same
-  countdown: `range(5..0)` ≡ `range(0..5)`.
+- **`range(lo..hi)` is forward, like `for i in lo..hi`.** `range(0..5)` yields
+  0,1,2,3,4 and `range(2..7)` yields 2,3,4,5,6 (lo..hi-1; empty when lo == hi).
+  Order-sensitive tests are required (a sum cannot tell directions apart; see
+  ADR 0050). Before 2026-11 `range` yielded the DJNZ countdown (5,4,3,2,1 for
+  both `range(0..5)` and `range(2..7)`); that was changed by owner decision.
+- **Lowering:** when the element is read by a stage or callback, the chain is
+  lowered through the `for i in lo..hi` path (`lowerForRange`) so it costs the
+  same. When the element is unused, the counter-only DJNZ loop is kept.
+- **`range(hi..0)` (literal 0 upper bound) is the descending spelling:**
+  `range(5..0)` yields 4,3,2,1,0, the reverse of `range(0..5)` (element =
+  DJNZ counter − 1).
 - **Side-effect order (chains):** downstream callback effects happen once per
   surviving element, in source order, after that element's map/filter stages —
   pinned by `order_trace` in `TestG0IterChainMemSemantics`.
@@ -91,7 +93,7 @@ Recorded, not fixed here:
   Correct behaviour (0 iterations or a diagnostic) needs a lowering/parse
   decision. Test: `TestG0Finding_ReversedSliceIsEmpty` (skip).
 - **G0-4** — `range(5..3)` (lo > hi, hi ≠ 0, not the Rev spelling): count
-  `hi-lo` underflows u8 to 254 and the loop yields 254..1. Same class as G0-3.
+  `hi-lo` underflows u8 to 254. With the element read, the `for` lowering now yields an empty loop; an unused-element DJNZ loop still runs 254 times. Same class as G0-3.
   Test: `TestG0Finding_CrossedRangeBounds` (skip).
 - **G0-5** — unsupported iterator methods (`take`, `skip`, `enumerate`, `iter`,
   …) are accepted by the Nanz parser and lowered to placeholder code: the
@@ -118,13 +120,11 @@ Recorded, not fixed here:
   No lowering change: CALL fallback has no error-return channel; adding a
   panic would not be a clean compile diagnostic. Closure support or proper
   frontend rejection is deferred.
-- **G0-9** — `range(0..256)` truncates its initial countdown to u8: it yields
-  0,255,254,…,1, with sum 32640 instead of 32896. Same boundary/underflow
+- **G0-9** — `range(0..256)` with an unused element truncates the DJNZ count to u8 (the element-read form now uses the `for` path and its u16 range type). Same boundary/underflow
   class as G0-3/G0-4. Expected contract: **use a u16 counter when the count
-  may exceed 255**, yielding 256,255,…,1. Test:
-  `TestG0Finding_RangeCounterWidth` (skip) uses a u16 callback and requires
-  first=256, count=256, sum=32896 on the three-tier path. This is a finding,
-  not passing range semantics.
+  may exceed 255**, yielding 0..255. Test:
+  `TestG0Finding_RangeCounterWidth` (skip on failure) uses a u16 callback and
+  requires first=0, count=256, sum=32640 on the three-tier path.
 
 ### Legacy `.minz` pipeline (claims evidence)
 
