@@ -44,6 +44,7 @@ type Steps struct {
 	VariantSearch    VariantSearchStats
 
 	UnsignedPairComparePolicy mir2.UnsignedPairComparePolicy // resolved policy replayed by native re-codegen
+	FlagReturns               mir2.FlagReturnReport          // Z80 bool return contracts chosen in Phase 5b
 	ProfileDecisions          []hir.ProfileDecision
 	HIRLoopSites              *hir.LoopSiteMap      // optional input-HIR origins, before Grace/splitting
 	HIR                       string                // HIR structural dump (hir.Module.Dump())
@@ -108,6 +109,13 @@ type Options struct {
 	variantInlinedCallers    map[string]bool
 	variantMIRReady          func(*mir2.Module, bool) bool
 	variantBranchEquivMisses map[[32]byte]bool
+	// flagReturnPins fixes the flag-return contracts of variant trials to
+	// those of the module's first complete compile.
+	flagReturnPins map[string]mir2.CmpCond
+
+	// DisableFlagReturns keeps every bool return in A on Z80 instead of
+	// returning it in CPU flags where all call sites only branch on it.
+	DisableFlagReturns bool `json:",omitempty"`
 
 	// DisableCountedLoops is an internal differential-testing switch.
 	DisableCountedLoops bool `json:",omitempty"`
@@ -567,6 +575,13 @@ func compileMIRProductSteps(hm *hir.Module, opt Options, s Steps, splitInfo map[
 		cs := optimizePipelineContracts(m, ct, opt.ContractStrategy)
 		mir2.ApplyContracts(m, cs)
 	}
+	// Bool returns in flags are a Z80 code generation contract. Other
+	// emitters, and compiles that stop before Z80, keep the MIR untouched.
+	if !opt.DisableFlagReturns && (opt.Backend == "" || opt.Backend == "z80") && (!opt.SkipZ80Emission || NeedsZ80Asserts(hm, opt.AssertMode)) {
+		if s.FlagReturns, err = mir2.ApplyFlagReturnContracts(m, opt.flagReturnPins); err != nil {
+			return s, err
+		}
+	}
 
 	// Module-level: replace ranged-param pure functions with LUTs.
 	// Must run AFTER contract optimisation — LUT synthesis inherits the
@@ -870,6 +885,11 @@ func CompileHIRWithOptions(hm *hir.Module, opts Options) (string, error) {
 		mir2.PrepareByteLoopContracts(m)
 		cs := optimizePipelineContracts(m, ct, opts.ContractStrategy)
 		mir2.ApplyContracts(m, cs)
+	}
+	if !opts.DisableFlagReturns {
+		if _, err := mir2.ApplyFlagReturnContracts(m, nil); err != nil {
+			return "", err
+		}
 	}
 
 	// Module-level: replace ranged-param pure functions with LUTs.

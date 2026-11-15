@@ -417,3 +417,160 @@ func TestFoldFlagReturnTests(t *testing.T) {
 		}
 	}
 }
+
+// buildByteRetModule builds p(x: u8) -> bool returning cmp.<cmp> x, 100 in
+// A, and pick(x: u8) -> u8 calling it as use says:
+//
+//	br:       br_if (cmp.ne %r, 0)            yes: ret 5   no: ret 9
+//	stored:   yes: ret ext %r                   (a value use)
+//	jmpArg:   jmp @j(%r); @j(%b): br_if %b      (a block argument)
+//	addr:     br as above, plus addr_of @p
+//	asm:      br as above, plus inline asm "CALL p"
+//	pass:     pick branches on q(x), q(x) -> bool returning call p(x)
+//	passVal:  pick returns ext q(x), q returning call p(x)
+func buildByteRetModule(cmp mir2.CmpCond, name, use string) (*mir2.Module, *mir2.Func, mir2.Reg) {
+	m := &mir2.Module{}
+	p := m.AddFunc(name)
+	p.Contract.Returns = []mir2.Return{{Ty: mir2.TyBool, Class: mir2.ClassAcc}}
+	pb := mir2.NewBuilder(p)
+	pb.SwitchToNewBlock("entry")
+	px := pb.Param("x", mir2.TyU8, mir2.ClassAcc)
+	pb.Ret(pb.CmpWithSrcTy(cmp, px, pb.Const(100, mir2.TyU8, mir2.ClassGeneral), mir2.ClassFlag, false, mir2.TyU8))
+	callee := name
+	if use == "pass" || use == "passVal" {
+		q := m.AddFunc("q")
+		q.Contract.Returns = []mir2.Return{{Ty: mir2.TyBool, Class: mir2.ClassAcc}}
+		qb := mir2.NewBuilder(q)
+		qb.SwitchToNewBlock("entry")
+		qx := qb.Param("x", mir2.TyU8, mir2.ClassAcc)
+		qb.Ret(qb.Call(name, []mir2.Reg{qx}, mir2.TyBool, mir2.ClassAcc, mir2.CallAttrs{}))
+		callee = "q"
+	}
+	f := m.AddFunc("pick")
+	f.Contract.Returns = []mir2.Return{{Ty: mir2.TyU8, Class: mir2.ClassAcc}}
+	b := mir2.NewBuilder(f)
+	b.SwitchToNewBlock("entry")
+	x := b.Param("x", mir2.TyU8, mir2.ClassGeneral)
+	switch use {
+	case "addr":
+		b.AddrOf(name, mir2.ClassPointer)
+	case "asm":
+		b.Asm("    CALL "+name, nil, nil, mir2.ClassSet(0), mir2.TyVoid, mir2.ClassGeneral)
+	}
+	r := b.Call(callee, []mir2.Reg{x}, mir2.TyBool, mir2.ClassAcc, mir2.CallAttrs{})
+	yes := mir2.NoReg
+	cond := r
+	switch use {
+	case "stored", "passVal":
+		yes = b.Ext(r, mir2.TyBool, mir2.TyU8, mir2.ClassAcc)
+	case "jmpArg":
+		b.Jmp("j", r)
+		j := b.SwitchToNewBlock("j")
+		cond = b.BlockParam(j, mir2.TyBool, mir2.ClassGeneral)
+	default:
+		cond = b.CmpWithSrcTy(mir2.CmpNe, r, b.Const(0, mir2.TyBool, mir2.ClassGeneral), mir2.ClassFlag, false, mir2.TyBool)
+	}
+	b.BrIf(cond, "yes", nil, "no", nil)
+	b.SwitchToNewBlock("yes")
+	if yes == mir2.NoReg {
+		yes = b.Const(5, mir2.TyU8, mir2.ClassAcc)
+	}
+	b.Ret(yes)
+	b.SwitchToNewBlock("no")
+	b.Ret(b.Const(9, mir2.TyU8, mir2.ClassAcc))
+	return m, f, x
+}
+
+// The contract pass converts a predicate only when every call result is a
+// branch condition (or returned by another converted predicate), chooses
+// the condition the comparison leaves in the flags, and patches each call's
+// result class. Refused predicates keep their byte return.
+func TestApplyFlagReturnContracts(t *testing.T) {
+	type tc struct {
+		cmp     mir2.CmpCond
+		name    string
+		use     string
+		chosen  map[string]mir2.CmpCond
+		refused map[string]string
+	}
+	cases := []tc{
+		{mir2.CmpEq, "p", "br", map[string]mir2.CmpCond{"p": mir2.CmpEq}, nil},
+		{mir2.CmpNe, "p", "br", map[string]mir2.CmpCond{"p": mir2.CmpNe}, nil},
+		{mir2.CmpUlt, "p", "br", map[string]mir2.CmpCond{"p": mir2.CmpLt}, nil},
+		{mir2.CmpUge, "p", "br", map[string]mir2.CmpCond{"p": mir2.CmpGe}, nil},
+		{mir2.CmpUgt, "p", "br", map[string]mir2.CmpCond{"p": mir2.CmpNe}, nil},
+		{mir2.CmpUlt, "p", "stored", nil, map[string]string{"p": "result used as a value"}},
+		{mir2.CmpUlt, "p", "jmpArg", nil, map[string]string{"p": "result used as a value"}},
+		{mir2.CmpUlt, "p", "addr", nil, map[string]string{"p": "address taken"}},
+		{mir2.CmpUlt, "p", "asm", nil, map[string]string{"p": "named in inline asm"}},
+		{mir2.CmpUlt, "main", "br", nil, map[string]string{"main": "entry point"}},
+		{mir2.CmpUge, "p", "pass", map[string]mir2.CmpCond{"p": mir2.CmpGe, "q": mir2.CmpGe}, nil},
+		{mir2.CmpUge, "p", "passVal", nil, map[string]string{"p": "result used as a value", "q": "result used as a value"}},
+	}
+	for _, c := range cases {
+		t.Run(fmt.Sprintf("%s/%s/%s", c.cmp, c.name, c.use), func(t *testing.T) {
+			m, f, x := buildByteRetModule(c.cmp, c.name, c.use)
+			rep, e := mir2.ApplyFlagReturnContracts(m, nil)
+			if e != nil {
+				t.Fatal(e)
+			}
+			if len(rep.Chosen) != len(c.chosen) {
+				t.Fatalf("chosen %v, want %v (refused %v)", rep.Chosen, c.chosen, rep.Refused)
+			}
+			for name, cond := range c.chosen {
+				if rep.Chosen[name] != cond {
+					t.Fatalf("%s: chosen %v, want %v", name, rep.Chosen[name], cond)
+				}
+				ret := m.FuncByName(name).Contract.Returns[0]
+				if ret.Class != mir2.ClassFlag || ret.FlagCond != cond {
+					t.Fatalf("%s: contract %+v", name, ret)
+				}
+			}
+			for name, reason := range c.refused {
+				if rep.Refused[name] != reason {
+					t.Fatalf("%s: refused %q, want %q", name, rep.Refused[name], reason)
+				}
+				if m.FuncByName(name).Contract.Returns[0].Class == mir2.ClassFlag {
+					t.Fatalf("%s: refused but returns in flags", name)
+				}
+			}
+			for _, g := range m.Funcs {
+				for _, b := range g.Blocks {
+					for _, inst := range b.Insts {
+						_, flag := rep.Chosen[inst.Sym]
+						if inst.Op == mir2.OpCall && flag != (inst.Cls == mir2.ClassFlag) {
+							t.Fatalf("call %s in %s has class %v", inst.Sym, g.Name, inst.Cls)
+						}
+						if inst.Op == mir2.OpCmp && g == f && len(c.chosen) != 0 {
+							t.Fatal("zero test not folded")
+						}
+					}
+				}
+			}
+			if c.use == "asm" || c.name == "main" {
+				return // the template's CALL and the entry run outside this harness
+			}
+			ar, asm := compileFlagRet(t, m, true)
+			runFlagMove(t, flagMoveFunc{m: m, f: f}, c.cmp, ar.Locs[x].Name, asm)
+		})
+	}
+}
+
+// A pinned module converts exactly the pinned predicates; a pinned
+// predicate that is not eligible is an error, never a silent change.
+func TestApplyFlagReturnContractsPinned(t *testing.T) {
+	m, _, _ := buildByteRetModule(mir2.CmpUlt, "p", "br")
+	rep, e := mir2.ApplyFlagReturnContracts(m, map[string]mir2.CmpCond{})
+	if e != nil || len(rep.Chosen) != 0 || rep.Refused["p"] != "not chosen for this module" {
+		t.Fatalf("empty pin: %v %v", rep, e)
+	}
+	m, _, _ = buildByteRetModule(mir2.CmpUlt, "p", "br")
+	rep, e = mir2.ApplyFlagReturnContracts(m, map[string]mir2.CmpCond{"p": mir2.CmpNe})
+	if e != nil || rep.Chosen["p"] != mir2.CmpNe || m.FuncByName("p").Contract.Returns[0].FlagCond != mir2.CmpNe {
+		t.Fatalf("pinned condition: %v %v", rep, e)
+	}
+	m, _, _ = buildByteRetModule(mir2.CmpUlt, "p", "stored")
+	if _, e = mir2.ApplyFlagReturnContracts(m, map[string]mir2.CmpCond{"p": mir2.CmpLt}); e == nil {
+		t.Fatal("ineligible pinned predicate accepted")
+	}
+}
