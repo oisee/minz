@@ -52,6 +52,12 @@ func (g *z80cg) genWideningByteAdd(ext *Inst) bool {
 	if inPlace && dst == "HL" && !costlyWide {
 		return false
 	}
+	// The same holds into HL from another pair when the extension's own home
+	// is HL: LD L, x / LD H, 0 / ADD HL, acc is 4 bytes, 22 T against 6 bytes,
+	// 24 T through A.  With x already in A the fused form is 2 T faster.
+	if !inPlace && dst == "HL" && wide == "HL" && src != "A" {
+		return false
+	}
 	live := g.regsLiveAfterInst(add)
 	preserveA := false
 	for r := range live {

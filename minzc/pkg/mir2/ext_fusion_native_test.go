@@ -355,6 +355,8 @@ func TestFusedExtWideningAddIntoOtherPairVMZ80(t *testing.T) {
 		{"HL", "E", "IX", "BC"},
 		{"DE", "IXH", "BC", "HL"},
 		{"BC", "A", "mem", "DE"},
+		{"DE", "C", "HL", "HL"}, // ext lands in the sum's own HL: ADD HL, DE stays
+		{"BC", "A", "HL", "HL"},
 	}
 	for _, h := range cases {
 		for _, extFirst := range []bool{false, true} {
@@ -398,7 +400,8 @@ func TestFusedExtWideningAddIntoOtherPairVMZ80(t *testing.T) {
 						}
 						nf := newNativeFn(t, m, ar, "widen_add")
 						fired := strings.Contains(nf.asm, "widening byte add")
-						if want := h.s != "mem" && (!keepA || wide == "mem" || wide == "IX" || wide == "IY"); fired != want {
+						hlHome := h.s == "HL" && wide == "HL" && h.x != "A"
+						if want := h.s != "mem" && !hlHome && (!keepA || wide == "mem" || wide == "IX" || wide == "IY"); fired != want {
 							t.Fatalf("widening add fired=%v want %v:\n%s", fired, want, nf.asm)
 						}
 						vm := NewVM(m)
