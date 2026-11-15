@@ -341,48 +341,123 @@ func TestCPMLocalAddressFieldsUnchanged(t *testing.T) {
 	}
 }
 
-func TestCPMGlobalGuardFixtureRootsSurviveCoalescing(t *testing.T) {
-	type variant struct {
-		name  string
-		build func() *Module
-	}
-	var vs []variant
-	for _, ty := range []Ty{TyU8, TyU16} {
-		for _, off := range []int64{0, 1, 2, 3, 4, 65535} {
-			ty, off := ty, off
-			vs = append(vs, variant{fmt.Sprintf("%s/%d", ty, off), func() *Module { m, _ := cpmGlobalGuardFixture(off, ty); return m }})
+// cpmBranchJoinModule builds main: entry runs first, then main branches on the
+// byte global gc; each arm passes one value built by arm to the join block,
+// which gets it as its single parameter and runs join on it.
+func cpmBranchJoinModule(globals []Global, ty Ty, cls RegClass, entry func(b *Builder), arm func(b *Builder, taken bool) Reg, join func(b *Builder, v Reg)) (*Module, *Func) {
+	m := &Module{Globals: append([]Global{{Name: "gc", Ty: TyU8}}, globals...)}
+	f := m.AddFunc("main")
+	b := NewBuilder(f)
+	b.SwitchToNewBlock("entry")
+	entry(b)
+	c := b.Load(b.AddrOf("gc", ClassPointer), TyU8, ClassAcc)
+	zero := b.Const(0, TyU8, ClassGeneral)
+	ne := b.Cmp(CmpNe, c, zero, ClassFlag, false)
+	b.BrIf(ne, "then", nil, "else", nil)
+	b.SwitchToNewBlock("then")
+	b.Jmp("join", arm(b, true))
+	b.SwitchToNewBlock("else")
+	b.Jmp("join", arm(b, false))
+	j := b.SwitchToNewBlock("join")
+	join(b, b.BlockParam(j, ty, cls))
+	b.Ret()
+	return m, f
+}
+
+// cpmTwiceDefined reports a register that two op instructions define.
+func cpmTwiceDefined(f *Func, op Op) Reg {
+	seen := map[Reg]bool{}
+	for _, b := range f.Blocks {
+		for _, i := range b.Insts {
+			if i.Op != op {
+				continue
+			}
+			if seen[i.Dst] {
+				return i.Dst
+			}
+			seen[i.Dst] = true
 		}
 	}
-	for _, kind := range []string{"narrow", "metadata", "paramtype", "ambiguous"} {
-		kind := kind
-		vs = append(vs, variant{kind, func() *Module {
-			m, _ := cpmGlobalGuardFixture(1, TyU8)
-			b := m.Funcs[0].Entry()
-			switch kind {
-			case "narrow":
-				b.Insts[2] = &Inst{Op: OpMove, Dst: 3, Ty: TyU8, Src: [2]Reg{1}}
-			case "metadata":
-				b.Insts[2].SequentialBytes = true
-			case "paramtype":
-				b.Insts[2] = &Inst{Op: OpMove, Dst: 3, Ty: TyPtr, Src: [2]Reg{5}}
-				b.Params = []BlockParam{{Dst: 5, Ty: TyU16}}
-			case "ambiguous":
-				b.Insts[2].Src[0] = 5
-				b.Insts = append([]*Inst{{Op: OpConst, Dst: 5, Ty: TyPtr, Imm: 123}}, b.Insts...)
-			}
-			return m
-		}})
+	return NoReg
+}
+
+// A local offset is a constant only when that constant is the offset
+// register's sole definition: here the same register is 200 on one arm and 1
+// on the other, and the store would land 200 bytes past a 4-byte local.
+func TestCPMLocalOffsetMergedConstantsRejected(t *testing.T) {
+	build := func() (*Module, *Func, *Reg) {
+		var a Reg
+		q := new(Reg)
+		m, f := cpmBranchJoinModule(nil, TyU16, ClassGeneral,
+			func(b *Builder) {
+				a = b.Alloca(4)
+				b.Cur.Insts[0].Cls = ClassPointer
+			},
+			func(b *Builder, taken bool) Reg {
+				if taken {
+					return b.Const(200, TyU16, ClassGeneral)
+				}
+				return b.Const(1, TyU16, ClassGeneral)
+			},
+			func(b *Builder, k Reg) {
+				*q = b.PtrAdd(a, k, ClassPointer)
+				b.Store(*q, b.Const(7, TyU8, ClassAcc), TyU8)
+			})
+		return m, f, q
 	}
-	for _, v := range vs {
-		t.Run(v.name, func(t *testing.T) {
-			m := v.build()
-			before := cpmStoreRootNames(m)
-			for _, f := range m.Funcs {
-				PreallocCoalesce(f)
-			}
-			if after := cpmStoreRootNames(m); fmt.Sprint(before) != fmt.Sprint(after) {
-				t.Fatalf("roots changed by coalescing: %q -> %q", before, after)
-			}
-		})
+	check := func(stage string, m *Module, f *Func, q Reg) {
+		locals, e := cpmLocalAddresses(f)
+		if e != nil {
+			t.Fatal(stage, e)
+		}
+		if x, ok := locals[q]; ok {
+			t.Fatalf("%s: address with an undecided offset taken as local %v\n%s", stage, x, m.Dump())
+		}
+		ar := PBQPAllocate(f, ComputeLiveness(f), Z80CostTable{})
+		if e := validateCPMApplicationRuntime(m, ar); e == nil {
+			t.Fatalf("%s: store past the local accepted\n%s", stage, m.Dump())
+		}
 	}
+	m, f, q := build()
+	check("SSA", m, f, *q)
+	m, f, q = build()
+	PreallocCoalesce(f)
+	if cpmTwiceDefined(f, OpConst) == NoReg {
+		t.Fatal("fixture no longer merges the two offsets\n" + m.Dump())
+	}
+	check("coalesced", m, f, *q)
+}
+
+// A pointer that is &ga on one arm and &gb on the other has no single root,
+// so its store is neither guarded nor accepted as a direct store.
+func TestCPMStoreThroughJoinedGlobalAddressesRejected(t *testing.T) {
+	build := func() (*Module, *Func) {
+		bytes4 := &ArrayTy{Elem: TyU8, Len: 4}
+		return cpmBranchJoinModule([]Global{{Name: "ga", Ty: bytes4}, {Name: "gb", Ty: bytes4}}, TyPtr, ClassPointer,
+			func(*Builder) {},
+			func(b *Builder, taken bool) Reg {
+				if taken {
+					return b.AddrOf("ga", ClassPointer)
+				}
+				return b.AddrOf("gb", ClassPointer)
+			},
+			func(b *Builder, p Reg) { b.Store(p, b.Const(7, TyU8, ClassAcc), TyU8) })
+	}
+	check := func(stage string, m *Module, f *Func) {
+		if roots := cpmStoreRootNames(m); len(roots) != 1 || roots[0] != "" {
+			t.Fatalf("%s: store roots %q, want none\n%s", stage, roots, m.Dump())
+		}
+		ar := PBQPAllocate(f, ComputeLiveness(f), Z80CostTable{})
+		if e := validateCPMApplicationRuntime(m, ar); e == nil {
+			t.Fatalf("%s: unguarded store through a two-root pointer accepted\n%s", stage, m.Dump())
+		}
+	}
+	m, f := build()
+	check("SSA", m, f)
+	m, f = build()
+	PreallocCoalesce(f)
+	if cpmTwiceDefined(f, OpAddrOf) == NoReg {
+		t.Fatal("fixture no longer merges the two addresses\n" + m.Dump())
+	}
+	check("coalesced", m, f)
 }
