@@ -1817,10 +1817,10 @@ func (l *lowerer) lowerIf(st *IfStmt) bool {
 	envBefore := cloneMap(l.env)
 
 	// Scan branches for mutations (variables that existed before and are written).
-	thenMuts := scanMutations(st.Then, envBefore)
+	thenMuts := l.scanMutations(st.Then, envBefore)
 	elseMuts := map[string]bool{}
 	if st.Else != nil {
-		elseMuts = scanMutations(st.Else, envBefore)
+		elseMuts = l.scanMutations(st.Else, envBefore)
 	}
 
 	// Union of mutated vars (stable iteration order via sort).
@@ -1978,7 +1978,7 @@ func (l *lowerer) lowerWhileWithContinue(st *WhileStmt, continueStep Stmt) {
 	scanUsedExpr(st.Cond, envBefore, allUsed)
 	scanUsedInBlock(st.Body, envBefore, allUsed)
 	// Also include mutated vars (even if somehow not "used" in expressions).
-	muts := scanMutations(st.Body, envBefore)
+	muts := l.scanMutations(st.Body, envBefore)
 	for name := range muts {
 		allUsed[name] = true
 	}
@@ -2187,7 +2187,7 @@ func (l *lowerer) lowerForEach(st *ForEachStmt) {
 	// Collect user env vars used/mutated in the body (for block params).
 	allUsed := map[string]bool{}
 	scanUsedInBlock(st.Body, envBefore, allUsed)
-	muts := scanMutations(st.Body, envBefore)
+	muts := l.scanMutations(st.Body, envBefore)
 	for name := range muts {
 		allUsed[name] = true
 	}
@@ -2303,7 +2303,7 @@ func (l *lowerer) lowerForEach(st *ForEachStmt) {
 func (l *lowerer) lowerForEachByteCountdown(st *ForEachStmt, envBefore map[string]mir2.Reg, ptrReg, cntReg mir2.Reg, stride int64) {
 	allUsed := map[string]bool{}
 	scanUsedInBlock(st.Body, envBefore, allUsed)
-	for name := range scanMutations(st.Body, envBefore) {
+	for name := range l.scanMutations(st.Body, envBefore) {
 		allUsed[name] = true
 	}
 	delete(allUsed, st.Var)
@@ -2374,12 +2374,12 @@ func (l *lowerer) lowerSwitch(st *SwitchStmt) bool {
 	// Collect all mutations across all case bodies.
 	allMuts := map[string]bool{}
 	for _, c := range st.Cases {
-		for name := range scanMutations(c.Body, envBefore) {
+		for name := range l.scanMutations(c.Body, envBefore) {
 			allMuts[name] = true
 		}
 	}
 	if st.Default != nil {
-		for name := range scanMutations(st.Default, envBefore) {
+		for name := range l.scanMutations(st.Default, envBefore) {
 			allMuts[name] = true
 		}
 	}
@@ -4349,7 +4349,7 @@ func (l *lowerer) lowerRangeLoop(chain iterChain, elemVar string, elemTy mir2.Ty
 	syntheticBody := &Block{Body: bodyStmts}
 	allUsed := map[string]bool{}
 	scanUsedInBlock(syntheticBody, envBefore, allUsed)
-	muts := scanMutations(syntheticBody, envBefore)
+	muts := l.scanMutations(syntheticBody, envBefore)
 	for name := range muts {
 		allUsed[name] = true
 	}
