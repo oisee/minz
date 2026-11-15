@@ -282,63 +282,86 @@ type regDefinition struct {
 	position int
 }
 
+// reachableDominators returns, for every block reachable from the entry, the
+// set of labels of the blocks that dominate it, itself included. Unreachable
+// blocks have no entry. Immediate dominators come from the iterative algorithm
+// of Cooper, Harvey and Kennedy over a postorder numbering; a block's set is
+// its immediate dominator's set plus the block.
 func reachableDominators(f *Func) map[string]map[string]bool {
-	blocks := make(map[string]*Block, len(f.Blocks))
-	for _, b := range f.Blocks {
-		blocks[b.Label] = b
+	n := len(f.Blocks)
+	index := make(map[string]int, n)
+	for i, b := range f.Blocks {
+		index[b.Label] = i
 	}
-	entry := f.Blocks[0].Label
-	reachable := map[string]bool{entry: true}
-	queue := []string{entry}
-	preds := make(map[string][]string)
-	for len(queue) > 0 {
-		label := queue[0]
-		queue = queue[1:]
-		for _, next := range blocks[label].Successors() {
-			preds[next] = append(preds[next], label)
-			if !reachable[next] {
-				reachable[next] = true
-				queue = append(queue, next)
-			}
-		}
-	}
-	dom := make(map[string]map[string]bool, len(reachable))
-	for label := range reachable {
-		dom[label] = map[string]bool{label: true}
-		if label != entry {
-			for other := range reachable {
-				dom[label][other] = true
-			}
-		}
-	}
-	changed := true
-	for changed {
-		changed = false
-		for label := range reachable {
-			if label == entry {
+	entry := index[f.Blocks[0].Label]
+	preds := make([][]int, n)
+	post := make([]int, n) // postorder number; meaningful for visited blocks only
+	visited := make([]bool, n)
+	order := make([]int, 0, n) // reachable blocks in postorder, entry last
+	var walk func(i int)
+	walk = func(i int) {
+		visited[i] = true
+		for _, label := range f.Blocks[i].Successors() {
+			next, ok := index[label]
+			if !ok {
 				continue
 			}
-			next := map[string]bool{label: true}
-			for candidate := range dom[label] {
-				if candidate == label {
+			preds[next] = append(preds[next], i)
+			if !visited[next] {
+				walk(next)
+			}
+		}
+		post[i] = len(order)
+		order = append(order, i)
+	}
+	walk(entry)
+
+	idom := make([]int, n)
+	for i := range idom {
+		idom[i] = -1
+	}
+	idom[entry] = entry
+	for changed := true; changed; {
+		changed = false
+		for k := len(order) - 2; k >= 0; k-- {
+			b := order[k]
+			best := -1
+			for _, p := range preds[b] {
+				if idom[p] < 0 {
 					continue
 				}
-				all := true
-				for _, pred := range preds[label] {
-					if !dom[pred][candidate] {
-						all = false
-						break
+				if best < 0 {
+					best = p
+					continue
+				}
+				for q := p; best != q; {
+					for post[best] < post[q] {
+						best = idom[best]
+					}
+					for post[q] < post[best] {
+						q = idom[q]
 					}
 				}
-				if all {
-					next[candidate] = true
-				}
 			}
-			if len(next) != len(dom[label]) {
-				dom[label] = next
+			if best != idom[b] {
+				idom[b] = best
 				changed = true
 			}
 		}
+	}
+
+	// Reverse postorder visits an immediate dominator before the blocks it
+	// dominates, so its set is complete when it is copied.
+	dom := make(map[string]map[string]bool, len(order))
+	for k := len(order) - 1; k >= 0; k-- {
+		b := order[k]
+		above := dom[f.Blocks[idom[b]].Label]
+		set := make(map[string]bool, len(above)+1)
+		for label := range above {
+			set[label] = true
+		}
+		set[f.Blocks[b].Label] = true
+		dom[f.Blocks[b].Label] = set
 	}
 	return dom
 }
