@@ -63,7 +63,7 @@ func (g *z80cg) genInst(inst *Inst) {
 	// Keep the current destination override: recursive spill staging owns it.
 	liveAfter := g.regsLiveAfterInst(inst)
 	liveOverrides := maps.Clone(liveAfter)
-	for _, r := range inst.Uses() {
+	for _, r := range g.instReads(inst) {
 		liveOverrides[r] = true
 	}
 	delete(liveOverrides, inst.Dst)

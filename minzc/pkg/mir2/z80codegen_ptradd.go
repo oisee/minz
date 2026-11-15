@@ -54,6 +54,18 @@ func (g *z80cg) ptrAddImmediateBase(inst *Inst) (string, Reg) {
 	return sym, off
 }
 
+// instReads returns the vregs whose homes the code emitted for inst reads:
+// inst.Uses(), plus the index of a folded add when inst is its ptr_add.  That
+// index is not an operand of the ptr_add and may be dead after the add, so
+// scratch selection and relocation cleanup at the ptr_add must keep it.
+func (g *z80cg) instReads(inst *Inst) []Reg {
+	uses := inst.Uses()
+	if fold, ok := g.ptrAddFolds[inst]; ok {
+		uses = append(uses[:len(uses):len(uses)], fold.index)
+	}
+	return uses
+}
+
 // functionConstants maps every OpConst destination of f to its value.
 func functionConstants(f *Func) map[Reg]int64 {
 	out := map[Reg]int64{}
@@ -174,7 +186,7 @@ func (g *z80cg) tryPtrAddForms(inst *Inst) bool {
 	if hlFree && !involvesIndex && sym == "" {
 		return false
 	}
-	if !g.ptrAddFreeA(inst, off) {
+	if !g.ptrAddFreeA(inst) {
 		return false
 	}
 	lo, hi := lowByte(base), highByte(base)
@@ -237,9 +249,8 @@ func (g *z80cg) finishPtrAddHL(dst string) {
 // ptrAddFreeA makes A available for the byte-wise form: a live accumulator
 // (other than the result) is moved to a free scratch byte through
 // physOverride.  It reports false, emitting nothing, when no scratch byte is
-// free.  off is the offset's location: a folded index is not among inst's
-// uses, so freeScratch8 does not exclude it.
-func (g *z80cg) ptrAddFreeA(inst *Inst, off string) bool {
+// free.
+func (g *z80cg) ptrAddFreeA(inst *Inst) bool {
 	var held []Reg
 	for r := range g.regsLiveAfterInst(inst) {
 		if r == inst.Dst || g.deadConsts[r] {
@@ -257,7 +268,7 @@ func (g *z80cg) ptrAddFreeA(inst *Inst, off string) bool {
 	}
 	if len(held) == 1 {
 		scratch := g.freeScratch8(inst)
-		if scratch == "" || z80spec.Overlaps(scratch, off) || z80spec.Overlaps(off, scratch) {
+		if scratch == "" {
 			return false
 		}
 		g.emitf("    LD %s, A    ; preserve live r%d across ptr_add", scratch, held[0])

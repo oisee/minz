@@ -331,3 +331,71 @@ func TestAddressConstantRematRepair(t *testing.T) {
 		}
 	}
 }
+
+// A predicate still held in flags is turned into a byte before a ptr_add.
+// With a folded add the ptr_add reads the index i, which is not one of its
+// operands and is dead after the add: the byte must not land in a half of i.
+func TestPtrAddConstantFoldKeepsIndexAcrossPendingFlag(t *testing.T) {
+	half := func(regs emulator.Registers, name string) byte {
+		pair := map[byte]uint16{'B': regs.BC, 'C': regs.BC, 'D': regs.DE, 'E': regs.DE, 'H': regs.HL, 'L': regs.HL}[name[0]]
+		if name == "IXL" {
+			return byte(regs.IX)
+		}
+		if strings.ContainsAny(name, "BDH") {
+			return byte(pair >> 8)
+		}
+		return byte(pair)
+	}
+	for _, iLoc := range []string{"DE", "BC", "HL"} {
+		for _, cLoc := range []string{"B", "C", "D", "E", "H", "L", "IXL"} {
+			if cLoc == lowByte(iLoc) || cLoc == highByte(iLoc) {
+				continue
+			}
+			t.Run(iLoc+"/"+cLoc, func(t *testing.T) {
+				m := &Module{}
+				init := make([]byte, 64)
+				for n := range init {
+					init[n] = byte(n + 10)
+				}
+				m.AddGlobal(Global{Name: "tab", Ty: NewArray(TyU8, 64), Init: init})
+				f := m.AddFunc("pf")
+				b := NewBuilder(f)
+				b.SwitchToNewBlock("entry")
+				x := b.Param("x", TyU8, ClassAcc)
+				y := b.Param("y", TyU8, ClassGeneral)
+				i := b.Param("i", TyU16, ClassPair)
+				c := b.Cmp(CmpUlt, x, y, ClassGeneral, false)
+				base := b.AddrOf("tab", ClassPointer)
+				k := b.Const(4, TyU16, ClassPair)
+				sum := b.Add(i, k, TyU16, ClassPair)
+				p := b.PtrAdd(base, sum, ClassPointer)
+				v := b.Load(p, TyU8, ClassAcc)
+				b.Ret(v, c)
+				f.Contract.Returns = []Return{{Ty: TyU8, Class: ClassAcc}, {Ty: TyBool, Class: ClassGeneral}}
+				pLoc := "HL"
+				if iLoc == "HL" {
+					pLoc = "DE"
+				}
+				ar := &AllocResult{Locs: map[Reg]PhysLoc{x: locOf("A"), y: locOf("IXH"), i: locOf(iLoc), c: locOf(cLoc),
+					base: locOf("remat"), k: locOf("mem"), sum: locOf("IY"), p: locOf(pLoc), v: locOf("A")}}
+				nf := newNativeFn(t, m, ar, "pf")
+				vm := NewVM(m)
+				for _, xy := range [][2]uint16{{1, 2}, {2, 1}} {
+					for _, iv := range []uint16{0, 3, 17, 40} {
+						want, err := vm.CallFunc(f, []Value{{I: int64(xy[0])}, {I: int64(xy[1])}, {I: int64(iv)}})
+						if err != nil {
+							t.Fatal(err)
+						}
+						regs := emulator.Registers{BC: 0x1111, DE: 0x2222, HL: 0x3333, IX: xy[1] << 8, IY: 0x5555, A: byte(xy[0])}
+						setReg(&regs, iLoc, iv)
+						got := nf.run(regs)
+						if int64(got.A) != want[0].I || int64(half(got, cLoc)) != want[1].I {
+							t.Fatalf("x=%d y=%d i=%d: VM %v, native A=%d %s=%d\n%s",
+								xy[0], xy[1], iv, want, got.A, cLoc, half(got, cLoc), nf.asm)
+						}
+					}
+				}
+			})
+		}
+	}
+}
