@@ -2,6 +2,7 @@ package pipeline
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -213,4 +214,50 @@ fun via_asm(c: u8) -> u8 {
 		"odd":   "indirect ABI",
 		"small": "named in inline asm",
 	})
+}
+
+// A flag return sets the flags at every return site, so the word and byte
+// steps of the function do not have to preserve any: they stay INC/DEC and
+// their constant 1 needs no register.
+func TestFlagReturnNativeWordStep(t *testing.T) {
+	src := `
+fun find_gap(c: u8) -> bool {
+    var p: u16 = 0x4000 + c
+    var n: u16 = 300
+    var i: u8 = 0
+    while i < 40 {
+        if p == 0x4080 { return true }
+        if n == 265 { return p > 0x40a0 }
+        p = p + 1
+        n = n - 1
+        i = i + 1
+    }
+    return false
+}
+fun use_gap(c: u8) -> u8 {
+    if find_gap(c) { return 1 }
+    if !find_gap(c + 7) { return 2 }
+    return 3
+}
+`
+	rep := runFlagReturnNative(t, src, "find_gap", "use_gap")
+	wantFlagReturns(t, rep, map[string]mir2.CmpCond{"find_gap": mir2.CmpNe}, nil)
+	h, e := nanz.Parse(src, "flagret.nanz")
+	if e != nil {
+		t.Fatal(e)
+	}
+	steps, e := CompileHIRSteps(h, DefaultOptions())
+	if e != nil {
+		t.Fatal(e)
+	}
+	body := functionBody(steps.Assembly, "find_gap")
+	pair := `(BC|DE|HL|IX|IY)`
+	for _, want := range []string{`(?m)^\s+INC ` + pair + `\s*$`, `(?m)^\s+DEC ` + pair + `\s*$`} {
+		if !regexp.MustCompile(want).MatchString(body) {
+			t.Errorf("find_gap has no %s\n%s", want, body)
+		}
+	}
+	if m := regexp.MustCompile(`(?m)^\s+LD ` + pair + `, 1\s*$`).FindString(body); m != "" {
+		t.Errorf("find_gap loads the step constant: %q\n%s", m, body)
+	}
 }
