@@ -531,19 +531,8 @@ func (g *z80cg) emitSingleCopy(src, dst string, ty Ty) {
 		if g.emitKnownFlagCopy(dst, z80ValueWidth(ty)) {
 			return
 		}
-		// Flag → register: SBC A,A materialises carry into A (0xFF/0x00).
-		if dst == "A" {
-			g.emit("    SBC A, A")
-		} else if isPairReg(dst) {
-			// Flag → 16-bit pair: materialise + zero-extend.
-			g.emit("    SBC A, A")
-			g.emitf("    LD %s, A", lowByte(dst))
-			g.emitf("    LD %s, 0", highByte(dst))
-		} else {
-			g.emit("    SBC A, A")
-			g.emitLD8(dst, "A")
-		}
-		g.invalidate("A")
+		// Nothing is pending: F holds no known predicate.
+		g.flagReadError()
 		return
 	}
 	if dst == "F" {
