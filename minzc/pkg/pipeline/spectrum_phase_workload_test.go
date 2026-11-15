@@ -82,7 +82,9 @@ func testSpectrumPhaseCompile(t *testing.T, source string, choice uint8) (string
 	if err != nil {
 		t.Fatal(err)
 	}
-	steps, err := CompileHIRSteps(h, Options{OptSize: true, ContractOpt: true, AssertMode: "none"})
+	// The phase workload calls prepare/publish by name and reads their bool
+	// result in A (1 = true): keep the byte return for those entries.
+	steps, err := CompileHIRSteps(h, Options{OptSize: true, ContractOpt: true, AssertMode: "none", DisableFlagReturns: true})
 	if err != nil {
 		t.Fatal(err)
 	}
