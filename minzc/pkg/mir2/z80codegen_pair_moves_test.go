@@ -172,9 +172,12 @@ func TestZ80PtrAddReusesOffsetPair(t *testing.T) {
 					g.genInst(inst)
 					// With HL busy and the result elsewhere, the byte-wise form
 					// (through A, which holds no live value here) replaces the
-					// HL save; otherwise the offset pair is added directly.
+					// HL save; a sum into DE with one operand dying there swaps DE
+					// into HL around the addition; otherwise the offset pair is
+					// added directly.
 					byteWise := strings.Contains(out.String(), "ptr_add: byte-wise")
-					if !byteWise && !strings.Contains(out.String(), "ADD HL, "+off) {
+					throughEX := strings.Contains(out.String(), "ptr_add: into DE through EX DE, HL")
+					if !byteWise && !throughEX && !strings.Contains(out.String(), "ADD HL, "+off) {
 						t.Fatalf("must reuse offset pair:\n%s", out.String())
 					}
 					if byteWise && strings.Contains(out.String(), "PUSH") {
