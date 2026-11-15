@@ -185,6 +185,10 @@ func (g *z80cg) materializePendingFlagForTerm(f *Func, t Term) {
 	if p == NoReg || len(g.curBlock.Insts) == 0 {
 		return
 	}
+	// A predicate allocated to a byte was written there by its comparison.
+	if g.loc(p) != "F" {
+		return
+	}
 	uses := func(regs []Reg) bool { return slices.Contains(regs, p) }
 	switch t := t.(type) {
 	case *TermBrIf:
