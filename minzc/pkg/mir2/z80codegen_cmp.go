@@ -124,7 +124,7 @@ func (g *z80cg) freeScratch8(upcomingInst *Inst) string {
 	for r := range g.regsLiveAfterInst(upcomingInst) {
 		mark(g.loc(r))
 	}
-	for _, r := range upcomingInst.Uses() {
+	for _, r := range g.instReads(upcomingInst) {
 		mark(g.loc(r))
 	}
 	mark(g.loc(upcomingInst.Dst))
@@ -250,6 +250,9 @@ func (g *z80cg) genCmp(inst *Inst) {
 		}
 		g.cmpBranchCC[inst.Dst] = cc
 		g.pendingFlagReg = inst.Dst
+		return
+	}
+	if g.genFusedExtCmp16(inst) {
 		return
 	}
 	if g.tryAddCarryCmp(inst) {
