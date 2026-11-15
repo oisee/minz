@@ -611,12 +611,8 @@ func TestFlagProducerPending(t *testing.T) {
 				name := fmt.Sprintf("%s/%s%d/%s/%s", alloc, vr.src, vr.v, vr.cond, use)
 				t.Run(name, func(t *testing.T) {
 					fs := buildFlagSrc(vr.src, vr.cond, vr.v, use)
-					if alloc == "pbqp" && vr.src == "call" && use == "extRet" {
-						// PBQP gives the result a byte home (A), which no
-						// pickup writes a flag return into: a compile error.
-						wantFlagReturnInByteError(t, fs, true)
-						return
-					}
+					// PBQP gives a call result read by ext a byte home (A):
+					// the pickup writes the flag result there as 0/1.
 					ar, asm := compileFlagSrc(t, fs, alloc == "pbqp")
 					if testing.Verbose() {
 						t.Logf("s in %v", ar.Locs[fs.s])
@@ -628,20 +624,10 @@ func TestFlagProducerPending(t *testing.T) {
 	}
 }
 
-// wantFlagReturnInByteError checks that a call returning in flags, whose
-// result the allocator gave a byte home, is rejected rather than miscompiled.
-func wantFlagReturnInByteError(t *testing.T, fs flagSrcFunc, pbqp bool) {
-	t.Helper()
-	_, asm, e := compileFlagSrcErr(t, fs, pbqp)
-	if e == nil || !strings.Contains(e.Error(), "in flags, but") {
-		t.Fatalf("want a flag-return-in-byte-home error, got %v\n%s", e, asm)
-	}
-}
-
 // Every consumer that takes a bool source must read a comparison, a call's
 // flag result or a constant held in F by its own condition. eq/ne are zero
 // predicates, which a carry-only read gets wrong. A call result that the
-// allocator gives a byte home must be a compile error.
+// allocator gives a byte home is written there as 0/1 after the call.
 //
 // Not covered here: bool add/sub/shl/neg (the Z80 result is the byte, the VM
 // wraps to one bit, whatever the source's location) and bool sext (rejected
@@ -666,13 +652,7 @@ func TestFlagProducerConsumers(t *testing.T) {
 				name := fmt.Sprintf("%s/%s%d/%s/%s", alloc, vr.src, vr.v, vr.cond, use)
 				t.Run(name, func(t *testing.T) {
 					fs := buildFlagSrc(vr.src, vr.cond, vr.v, use)
-					ar, asm, e := compileFlagSrcErr(t, fs, alloc == "pbqp")
-					if e != nil {
-						if vr.src == "call" && ar.Locs[fs.s].Kind != mir2.LocFlag && strings.Contains(e.Error(), "in flags, but") {
-							return
-						}
-						t.Fatalf("%v\n%s", e, asm)
-					}
+					ar, asm := compileFlagSrc(t, fs, alloc == "pbqp")
 					runFlagMove(t, fs.flagMoveFunc, vr.cond, ar.Locs[fs.x].Name, asm)
 				})
 			}
@@ -682,13 +662,15 @@ func TestFlagProducerConsumers(t *testing.T) {
 
 // A second flag-returning call while the first result is live, and a flag
 // constant defined while a call result is live: one of the two results then
-// needs a byte home, which a flag return cannot be written into.
-func TestFlagReturnInByteHomeRejected(t *testing.T) {
+// needs a byte home, which the pickup writes as 0/1 right after the call.
+func TestFlagReturnInByteHome(t *testing.T) {
 	for _, use := range []string{"twoCalls", "constAfter"} {
 		for _, alloc := range []string{"pbqp", "greedy"} {
 			for _, cond := range []mir2.CmpCond{mir2.CmpEq, mir2.CmpNe, mir2.CmpUlt, mir2.CmpUge} {
 				t.Run(use+"/"+alloc+"/"+cond.String(), func(t *testing.T) {
-					wantFlagReturnInByteError(t, buildFlagSrc("call", cond, 0, use), alloc == "pbqp")
+					fs := buildFlagSrc("call", cond, 0, use)
+					ar, asm := compileFlagSrc(t, fs, alloc == "pbqp")
+					runFlagMove(t, fs.flagMoveFunc, cond, ar.Locs[fs.x].Name, asm)
 				})
 			}
 		}

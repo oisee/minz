@@ -96,6 +96,11 @@ func bytePackImplicitFlagUse(f *Func, result Reg) bool {
 			if forwarded[t.Cond] {
 				return true
 			}
+			for i, r := range t.Vals {
+				if i < len(f.Contract.Returns) && f.Contract.Returns[i].Class == ClassFlag && forwarded[r] {
+					return true
+				}
+			}
 		case *TermRet:
 			for i, r := range t.Vals {
 				if i < len(f.Contract.Returns) && f.Contract.Returns[i].Class == ClassFlag && forwarded[r] {
@@ -118,9 +123,13 @@ func wordMaskFlagsUnobserved(f *Func, result Reg) bool {
 			return false
 		}
 	}
-	for _, r := range f.Contract.Returns {
-		if r.Class == ClassFlag {
-			return false
+	// A single bool returned in flags observes no incidental flags: every
+	// return site sets them from the returned value (emitFlagReturnValue).
+	if !flagReturn(f) {
+		for _, r := range f.Contract.Returns {
+			if r.Class == ClassFlag {
+				return false
+			}
 		}
 	}
 	for _, b := range f.Blocks {

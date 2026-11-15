@@ -349,13 +349,49 @@ func (g *z80cg) genCall(inst *Inst) error {
 	// Pick up every result without letting caller restores destroy it. If a
 	// destination shares a saved pair, merge its bytes into the saved stack
 	// image so POP restores both the live half and the returned half.
+	var protected []string
+	liveAfter := g.regsLiveAfterInst(inst)
+	for r := range liveAfter {
+		if r != inst.Dst && !slices.Contains(inst.ExtraRets, r) {
+			protected = append(protected, g.loc(r))
+		}
+	}
+	savedPair := map[string]bool{}
+	for _, p := range callerSavePairs {
+		savedPair[p] = true
+	}
 	var results []parallelCopy
 	dstPhys := ""
-	flagResult := false
+	flagResult := false // a live result returned in F stays there
+	flagPickLate := ""  // byte home written after the restores
+	var flagCond CmpCond
 	if inst.Dst != NoReg && callee != nil && len(callee.Contract.Returns) > 0 {
 		ret := callee.Contract.Returns[0]
 		if ret.Class == ClassFlag {
-			flagResult = true
+			flagCond = ret.FlagCond
+			if home := g.loc(inst.Dst); !liveAfter[inst.Dst] {
+				// A dead result needs no pickup; POP AF may restore F.
+			} else if home == "F" {
+				flagResult = true
+			} else {
+				// A flag result with a byte home becomes 0/1 at once. A
+				// register home outside the saved pairs is written in
+				// place; otherwise A carries the byte through the ordinary
+				// pickup when A holds no live value right after the CALL.
+				cc := cmpCondCode(ret.FlagCond)
+				aLive := slices.ContainsFunc(protected, func(name string) bool { return z80spec.Overlaps(name, "A") })
+				if slices.Contains([]string{"A", "B", "C", "D", "E", "H", "L"}, home) && !savedPair[regToPairMap[home]] {
+					g.emitFlagResultByte(inst, cc, home)
+				} else if savedPair["AF"] || !aLive {
+					g.emitFlagResultByte(inst, cc, "A")
+					results = append(results, parallelCopy{srcName: "A", dstName: home, ty: TyU8})
+				} else {
+					// A holds a live value the callee preserves and no
+					// saved pair is restored by POP AF: every restore
+					// keeps F.
+					flagPickLate = home
+				}
+			}
 		} else {
 			dstPhys = g.loc(inst.Dst)
 			results = append(results, parallelCopy{srcName: canonicalReturnLoc(ret.Class, ret.Ty), dstName: dstPhys, ty: ret.Ty})
@@ -384,12 +420,6 @@ func (g *z80cg) genCall(inst *Inst) error {
 			results = append(results, parallelCopy{srcName: canonicalReturnLoc(cls, ty), dstName: g.loc(r), ty: ty})
 		}
 	}
-	var protected []string
-	for r := range g.regsLiveAfterInst(inst) {
-		if r != inst.Dst && !slices.Contains(inst.ExtraRets, r) {
-			protected = append(protected, g.loc(r))
-		}
-	}
 	g.pickupCallResults(results, callerSavePairs, flagResult, protected...)
 	if len(callerSaveShadowPairs) != 0 {
 		g.emit("    EXX")
@@ -412,30 +442,56 @@ func (g *z80cg) genCall(inst *Inst) error {
 		g.pendingAccReg = inst.Dst
 	}
 
-	// Flag-return ABI: if the callee returns ClassFlag, the result is in the CPU
-	// flag register (not A).  Record which condition means "true" so that a
-	// subsequent TermBrIf on inst.Dst can emit JP <cond> directly without
-	// AND A / CP 0.
-	if inst.Dst != NoReg && callee != nil {
-		if len(callee.Contract.Returns) > 0 {
-			ret := callee.Contract.Returns[0]
-			if ret.Class == ClassFlag {
-				g.callFlags[inst.Dst] = ret.FlagCond
-				// Result pickup and caller restores keep the returned flags.
-				// A result in F is the pending predicate, saved before the
-				// next flag writer. A replaced pending predicate is dead or
-				// has a byte home: it cannot share F with this live result.
-				if loc := g.loc(inst.Dst); loc == "F" {
-					g.pendingFlagReg = inst.Dst
-				} else if g.regsLiveAfterInst(inst)[inst.Dst] && g.err == nil {
-					// No pickup writes a flag return into a byte home.
-					g.err = fmt.Errorf("z80 codegen: %s: call %s returns r%d in flags, but r%d is allocated to %s", g.fn.Name, inst.Sym, inst.Dst, inst.Dst, loc)
-				}
-			}
-		}
+	// Flag-return ABI: a live result in F is the pending predicate, tested
+	// with the callee's condition (JP <cond>, no AND A / CP 0) or saved
+	// before the next flag writer. A replaced pending predicate is dead or
+	// has a byte home: it cannot share F with this live result. A result
+	// with a byte home holds 0/1; its readers test the byte.
+	if flagResult {
+		g.callFlags[inst.Dst] = flagCond
+		g.pendingFlagReg = inst.Dst
+	} else if flagPickLate != "" {
+		g.emitFlagResultByte(inst, cmpCondCode(flagCond), flagPickLate)
 	}
 
 	return nil
+}
+
+// emitFlagResultByte writes a call's flag result, true when cc holds, into
+// its byte home as 0/1. A register home is written with LD/INC around a JR,
+// which read F and change nothing else. Any other home goes through A, saved
+// when A holds a live value.
+func (g *z80cg) emitFlagResultByte(call *Inst, cc, home string) {
+	g.invalidate(home)
+	if home == "A" && (cc == "C" || cc == "NC") {
+		g.emitFlagPredicateByte(cc) // SBC A, A form, no branch
+		return
+	}
+	switch home {
+	case "A", "B", "C", "D", "E", "H", "L":
+		idx := g.trampIdx
+		g.trampIdx++
+		g.emitf("    LD %s, 0", home)
+		g.emitf("    JR %s, .flag_pick_%d", invertCC(cc), idx)
+		g.emitf("    INC %s", home)
+		g.emitf(".flag_pick_%d:", idx)
+		return
+	}
+	saveA := false
+	for r := range g.regsLiveAfterInst(call) {
+		if r != call.Dst && z80spec.Overlaps(g.loc(r), "A") {
+			saveA = true
+		}
+	}
+	if saveA {
+		g.emit("    PUSH AF")
+	}
+	g.emitFlagPredicateByte(cc)
+	g.emitLD8(home, "A")
+	if saveA {
+		g.emit("    POP AF")
+	}
+	g.invalidate("A")
 }
 
 // pickupCallResults never stores into code. Most calls need only parallel
@@ -450,6 +506,27 @@ func (g *z80cg) pickupCallResults(results []parallelCopy, saved []string, flagRe
 	for _, r := range results {
 		before = before && !savedPair[regToPairMap[r.dstName]]
 		after = after && !savedPair[regToPairMap[r.srcName]]
+	}
+	// POP AF would put the caller's flags over a flag result. Restore the
+	// saved accumulator through a pair that holds no live value instead:
+	// POP rr and LD A, r preserve every flag.
+	if flagResult && savedPair["AF"] && len(results) == 0 {
+		for _, p := range []string{"BC", "DE", "HL"} {
+			if savedPair[p] || slices.ContainsFunc(protected, func(name string) bool {
+				return z80spec.Overlaps(name, p)
+			}) {
+				continue
+			}
+			for i := len(saved) - 1; i >= 0; i-- {
+				if saved[i] == "AF" {
+					g.emitf("    POP %s", p)
+					g.emitf("    LD A, %s", highByte(p))
+					continue
+				}
+				g.emitf("    POP %s", saved[i])
+			}
+			return
+		}
 	}
 	if fallible || flagResult && savedPair["AF"] {
 		before, after = false, false

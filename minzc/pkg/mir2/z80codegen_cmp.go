@@ -337,6 +337,14 @@ func (g *z80cg) genCmp(inst *Inst) {
 		g.pendingFlagReg = inst.Dst
 		return
 	}
+	// A zero test of a flag-return call result that dies here, read while
+	// the result is the pending predicate in F: cmp.ne keeps the callee's
+	// condition and cmp.eq inverts it. No instruction is needed.
+	if cc, ok := g.flagResultZeroTest(inst); ok {
+		g.cmpBranchCC[inst.Dst] = cc
+		g.pendingFlagReg = inst.Dst
+		return
+	}
 
 	// Before emitting any flag-clobbering comparison instruction:
 	// 1. Materialize any live ClassFlag register whose carry would be overwritten.

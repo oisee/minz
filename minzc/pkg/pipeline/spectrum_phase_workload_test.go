@@ -195,3 +195,28 @@ func TestSpectrumPhaseWorkloadRefusals(t *testing.T) {
 		}
 	}
 }
+
+func TestSpectrumPhaseReturnLocation(t *testing.T) {
+	assembly := "; fun prepare(frame: u8 = A) -> bool = F.NC ; clobbers: A, F\nprepare:\n; fun prepare_all() -> bool = A ; clobbers: A\n; fun publish() -> void ; clobbers: A\n"
+	for name, want := range map[string]string{"prepare": "F.NC", "prepare_all": "A", "publish": "", "absent": ""} {
+		if got := phaseReturnLocation(assembly, name); got != want {
+			t.Errorf("%s returns in %q, want %q", name, got, want)
+		}
+	}
+	const z, cy = 0x40, 0x01
+	for _, c := range []struct {
+		location string
+		af       uint16
+		want     bool
+	}{
+		{"F.NZ", 0x0100 | z, false}, {"F.NZ", 0, true},
+		{"F.Z", z, true}, {"F.Z", 0x0100, false},
+		{"F.C", cy, true}, {"F.C", 0x0100 | z, false},
+		{"F.NC", z, true}, {"F.NC", 0x0100 | cy, false},
+		{"A", 0x0100 | z, true}, {"A", 0x0200, false}, {"", 0x0100, true}, {"", cy, false},
+	} {
+		if got := phaseReturnedTrue(c.location, c.af); got != c.want {
+			t.Errorf("location %q, AF %04x: true = %v, want %v", c.location, c.af, got, c.want)
+		}
+	}
+}
