@@ -401,6 +401,7 @@ func Allocate(f *Func, lr *LivenessResult, ct CostTable) *AllocResult {
 	// Copy coalescing: collect OpMove pairs (dst → src).
 	// When allocating dst, we try to reuse src's PhysLoc to turn the move
 	// into a no-op (codegen already skips OpMove when dst.loc == src.loc).
+	nonFlag := nonFlagDefs(f)
 	coalesceHint := make(map[Reg]Reg)
 	for _, b := range f.Blocks {
 		for _, inst := range b.Insts {
@@ -454,7 +455,7 @@ func Allocate(f *Func, lr *LivenessResult, ct CostTable) *AllocResult {
 		// neighbours, reuse that location — the OpMove becomes a no-op.
 		if hintSrc, ok := coalesceHint[r]; ok {
 			if srcLoc, allocated := result.Locs[hintSrc]; allocated {
-				if !usedByNeighbors[srcLoc] && !(srcLoc.Kind == LocFlag && crossBlock[r]) &&
+				if !usedByNeighbors[srcLoc] && !(srcLoc.Kind == LocFlag && (crossBlock[r] || nonFlag[r])) &&
 					locCompatibleFor(ct, ri.Ty, srcLoc) &&
 					ct.Cost(ri.Cls, srcLoc) < InfCost {
 					result.Locs[r] = srcLoc
@@ -471,7 +472,7 @@ func Allocate(f *Func, lr *LivenessResult, ct CostTable) *AllocResult {
 			if usedByNeighbors[loc] {
 				continue
 			}
-			if loc.Kind == LocFlag && crossBlock[r] {
+			if loc.Kind == LocFlag && (crossBlock[r] || nonFlag[r]) {
 				continue
 			}
 			if !locCompatibleFor(ct, ri.Ty, loc) {
