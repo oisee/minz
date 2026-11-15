@@ -236,3 +236,32 @@ func assertMemoryHostParserIndependentOracle(t *testing.T, runs ...[]hir.MemoryH
 		}
 	}
 }
+
+// A workload entry point has no caller in the module, so its bool result is
+// returned in flags; the target run must read it where the contract says.
+func TestMemoryHostTargetBoolResultInFlags(t *testing.T) {
+	const source = "@extern fun peek(addr:u16)->u8\n@extern fun poke(addr:u16,val:u8)->void\nfun big(addr:u16)->bool { return peek(addr) > 5 }\n"
+	parse := func() *hir.Module {
+		m, e := nanz.Parse(source, "memory-target.nanz")
+		if e != nil {
+			t.Fatal(e)
+		}
+		return m
+	}
+	m := parse()
+	w := hir.MemoryHostWorkload{Schema: "minz.memory-host-workload/v1", TargetModel: "cpm-z80-v1", MaxSteps: 10000, MaxMemory: 65536, Layout: hir.MemoryHostLayout{CodeOrigin: 0x400, StackLow: 0xe000, StackHigh: 0xeff0, ReturnPC: 0x100}, Hosts: map[string]string{"peek": hir.MemoryHostReadU8, "poke": hir.MemoryHostWriteU8}, Regions: map[string]hir.MemoryHostRegion{"data": {Address: 0x8000, Bytes: []byte{4, 7}, Writable: true}}, Calls: []hir.MemoryHostInvocation{{Function: "big", Arguments: []int64{0x8000}}, {Function: "big", Arguments: []int64{0x8001}}}}
+	raw, e := hir.RunMemoryHostBaseline(m, w)
+	if e != nil {
+		t.Fatal(e)
+	}
+	steps, e := CompileHIRSteps(parse(), Options{AssertMode: "none"})
+	if e != nil {
+		t.Fatal(e)
+	}
+	if ret := steps.MIR2Module.FuncByName("big").Contract.Returns[0]; ret.Class != mir2.ClassFlag {
+		t.Fatalf("big returns in class %v; this test needs a flag return", ret.Class)
+	}
+	if _, e := runZ80MemoryHostWorkload(steps, m, w, *raw); e != nil {
+		t.Fatal(e)
+	}
+}

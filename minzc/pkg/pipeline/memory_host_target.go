@@ -377,9 +377,20 @@ func runZ80MemoryHostWorkload(steps Steps, source *hir.Module, w hir.MemoryHostW
 				if len(f.Contract.Returns) != 1 {
 					return fail(fmt.Errorf("return ABI missing"))
 				}
+				ret := f.Contract.Returns[0]
 				v := int64(m.cpu.HL())
-				if f.Contract.Returns[0].Class == mir2.ClassAcc {
+				switch ret.Class {
+				case mir2.ClassAcc:
 					v = int64(m.cpu.A)
+				case mir2.ClassFlag:
+					truth, err := flagReturnHolds(ret.FlagCond, m.cpu.F)
+					if err != nil {
+						return fail(err)
+					}
+					v = 0
+					if truth {
+						v = 1
+					}
 				}
 				obs.Results = append(obs.Results, mir2.Value{I: v})
 			}

@@ -886,7 +886,7 @@ func CompileHIRWithOptions(hm *hir.Module, opts Options) (string, error) {
 		cs := optimizePipelineContracts(m, ct, opts.ContractStrategy)
 		mir2.ApplyContracts(m, cs)
 	}
-	if !opts.DisableFlagReturns {
+	if !opts.DisableFlagReturns && (opts.Backend == "" || opts.Backend == "z80") {
 		if _, err := mir2.ApplyFlagReturnContracts(m, nil); err != nil {
 			return "", err
 		}
@@ -1446,6 +1446,22 @@ func checkAssertZ80Result(z *emulator.RemogattoZ80, a hir.Assert,
 
 // Native MIR values use a bit-pattern representation, like VM.Value. Wide
 // pair returns occupy the corresponding main and alternate pairs.
+// flagReturnHolds reports whether the flag byte f holds true for a result
+// returned as the flag condition cond.
+func flagReturnHolds(cond mir2.CmpCond, f byte) (bool, error) {
+	switch cond {
+	case mir2.CmpEq:
+		return f&0x40 != 0, nil
+	case mir2.CmpNe:
+		return f&0x40 == 0, nil
+	case mir2.CmpLt:
+		return f&1 != 0, nil
+	case mir2.CmpGe:
+		return f&1 == 0, nil
+	}
+	return false, fmt.Errorf("unsupported return flag condition %v", cond)
+}
+
 func readAssertZ80Return(z *emulator.RemogattoZ80, ret mir2.Return) (int64, error) {
 	regs := z.GetRegisters()
 	location := mir2.ReturnLocation(ret.Class, ret.Ty)
@@ -1476,18 +1492,9 @@ func readAssertZ80Return(z *emulator.RemogattoZ80, ret mir2.Return) (int64, erro
 	case "IY":
 		value = uint64(regs.IY)
 	case "F":
-		truth := false
-		switch ret.FlagCond {
-		case mir2.CmpEq:
-			truth = regs.F&0x40 != 0
-		case mir2.CmpNe:
-			truth = regs.F&0x40 == 0
-		case mir2.CmpLt:
-			truth = regs.F&1 != 0
-		case mir2.CmpGe:
-			truth = regs.F&1 == 0
-		default:
-			return 0, fmt.Errorf("unsupported return flag condition %v", ret.FlagCond)
+		truth, err := flagReturnHolds(ret.FlagCond, regs.F)
+		if err != nil {
+			return 0, err
 		}
 		if truth {
 			value = 1
