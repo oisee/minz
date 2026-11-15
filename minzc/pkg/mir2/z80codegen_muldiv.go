@@ -1242,7 +1242,8 @@ func (g *z80cg) provablyBelow256(r Reg, width int, seen map[Reg]bool) bool {
 			case OpExt:
 				return i.SrcTy != nil && i.SrcTy.Width() <= 8
 			case OpSext:
-				return i.SrcTy != nil && i.SrcTy.Width() <= 8 && g.nonNegative(i.Src[0], width, seen)
+				// The extension is below 256 only when the byte's own sign bit is clear.
+				return i.SrcTy != nil && i.SrcTy.Width() <= 8 && g.nonNegative(i.Src[0], i.SrcTy.Width(), seen)
 			case OpConst:
 				return i.Imm >= 0 && i.Imm < 256
 			case OpMove:

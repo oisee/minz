@@ -226,3 +226,47 @@ func TestSDivPow2MultiDefAccumulatorNative(t *testing.T) {
 		}
 	}
 }
+
+// A sign extension is below 256 only when the source byte's own sign bit is
+// provably clear: an unsigned byte parameter is non-negative as a word, not as
+// the signed byte being extended.
+func TestSextOfByteBelow256NeedsClearSignBit(t *testing.T) {
+	m := &Module{}
+	f := m.AddFunc("sext_mul")
+	p, w := f.AllocReg(), f.AllocReg()
+	f.Contract.Params = []Param{{Name: "p", Reg: p, Ty: TyU8, Class: ClassGeneral}, {Name: "w", Reg: w, Ty: TyU16, Class: ClassGeneral}}
+	f.Contract.Returns = []Return{{Ty: TyI16, Class: ClassGeneral}}
+	entry := f.NewBlock("entry")
+	s, small, big, sSmall, sBig, prod := f.AllocReg(), f.AllocReg(), f.AllocReg(), f.AllocReg(), f.AllocReg(), f.AllocReg()
+	entry.Append(&Inst{Op: OpSext, Dst: s, Src: [2]Reg{p}, SrcTy: TyI8, Ty: TyI16})
+	entry.Append(&Inst{Op: OpConst, Dst: small, Ty: TyI8, Imm: 100})
+	entry.Append(&Inst{Op: OpConst, Dst: big, Ty: TyI8, Imm: 200})
+	entry.Append(&Inst{Op: OpSext, Dst: sSmall, Src: [2]Reg{small}, SrcTy: TyI8, Ty: TyI16})
+	entry.Append(&Inst{Op: OpSext, Dst: sBig, Src: [2]Reg{big}, SrcTy: TyI8, Ty: TyI16})
+	mul := &Inst{Op: OpMul, Dst: prod, Src: [2]Reg{w, s}, Ty: TyI16, Cls: ClassPointer}
+	entry.Append(mul)
+	entry.Seal(&TermRet{Vals: []Reg{prod}})
+
+	locs := map[Reg]PhysLoc{w: {Kind: LocReg, Name: "HL"}, s: {Kind: LocReg, Name: "DE"}, prod: {Kind: LocReg, Name: "HL"}}
+	var sb strings.Builder
+	g := multiDefCodegen(m, f, mul, locs, &sb, true)
+	if g.provablyBelow256(s, 16, map[Reg]bool{}) || g.provablyBelow256(sBig, 16, map[Reg]bool{}) {
+		t.Fatal("a sign extension of a byte with a possibly set sign bit was proven below 256")
+	}
+	if !g.provablyBelow256(sSmall, 16, map[Reg]bool{}) {
+		t.Fatal("a sign extension of a constant below 128 lost its proof")
+	}
+	g.genMul16(mul)
+	if g.err != nil {
+		t.Fatal(g.err)
+	}
+	asm := sb.String()
+	for _, a := range []uint16{0, 1, 3, 0x0100, 0x1234, 0xffff} {
+		for _, b := range []uint16{0, 1, 0x7f, 0xff80, 0xffc8, 0xffff} {
+			got := multiDefRun(t, asm, emulator.Registers{HL: a, DE: b})
+			if want := a * b; got.HL != want {
+				t.Fatalf("%#x * %#x = %#x, want %#x\n%s", a, b, got.HL, want, asm)
+			}
+		}
+	}
+}
