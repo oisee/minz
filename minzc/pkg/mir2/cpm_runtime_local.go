@@ -86,17 +86,14 @@ type cpmLocalAddress struct {
 // Local object addresses are admitted only for bounded entry allocations and
 // constant derived fields. No pointer arithmetic based on runtime values.
 func cpmLocalAddresses(f *Func) (map[Reg]cpmLocalAddress, error) {
-	defs := map[Reg]*Inst{}
 	entry := f.Entry()
 	if entry == nil {
 		return map[Reg]cpmLocalAddress{}, nil
 	}
+	defs := cpmFuncDefs(f)
 	total := int64(0)
 	for _, b := range f.Blocks {
 		for _, i := range b.Insts {
-			if i.Dst != NoReg {
-				defs[i.Dst] = i
-			}
 			if i.Op == OpAlloca {
 				if b != entry || !cpmCleanLocalAddress(i) || i.Imm <= 0 || i.Imm > 256 || total+i.Imm > 256 {
 					return nil, fmt.Errorf("CP/M runtime requires bounded entry-local allocations")
@@ -108,6 +105,7 @@ func cpmLocalAddresses(f *Func) (map[Reg]cpmLocalAddress, error) {
 	out := map[Reg]cpmLocalAddress{}
 	busy := map[Reg]bool{}
 	var resolve func(Reg) (cpmLocalAddress, bool)
+	var resolveInst func(*Inst) (cpmLocalAddress, bool)
 	resolve = func(r Reg) (cpmLocalAddress, bool) {
 		if x, ok := out[r]; ok {
 			return x, true
@@ -117,7 +115,13 @@ func cpmLocalAddresses(f *Func) (map[Reg]cpmLocalAddress, error) {
 		}
 		busy[r] = true
 		defer delete(busy, r)
-		i := defs[r]
+		x, ok := resolveInst(defs.sole(r))
+		if ok {
+			out[r] = x
+		}
+		return x, ok
+	}
+	resolveInst = func(i *Inst) (cpmLocalAddress, bool) {
 		if !cpmCleanLocalAddress(i) {
 			return cpmLocalAddress{}, false
 		}
@@ -125,7 +129,7 @@ func cpmLocalAddresses(f *Func) (map[Reg]cpmLocalAddress, error) {
 		ok := false
 		switch i.Op {
 		case OpAlloca:
-			x = cpmLocalAddress{r, 0, i.Imm}
+			x = cpmLocalAddress{i.Dst, 0, i.Imm}
 			ok = true
 		case OpMove:
 			x, ok = resolve(i.Src[0])
@@ -137,7 +141,7 @@ func cpmLocalAddresses(f *Func) (map[Reg]cpmLocalAddress, error) {
 				x.offset += i.Imm
 			}
 		case OpPtrAdd:
-			if off, valid := cpmLocalOffset(defs[i.Src[1]]); valid {
+			if off, valid := cpmLocalOffset(defs.sole(i.Src[1])); valid {
 				x, ok = resolve(i.Src[0])
 				if off < 0 || off >= x.size || x.offset > x.size-off {
 					ok = false
@@ -147,13 +151,22 @@ func cpmLocalAddresses(f *Func) (map[Reg]cpmLocalAddress, error) {
 			}
 		}
 		if ok && x.offset >= 0 && x.offset < x.size {
-			out[r] = x
 			return x, true
 		}
 		return cpmLocalAddress{}, false
 	}
-	for r := range defs {
-		resolve(r)
+	// A local address shares no register with another definition: such a
+	// register would not be recognised as local and would escape the checks.
+	for r, is := range defs.insts {
+		if defs.sole(r) != nil {
+			resolve(r)
+			continue
+		}
+		for _, i := range is {
+			if _, local := resolveInst(i); local {
+				return nil, fmt.Errorf("CP/M runtime local address merged with another definition")
+			}
+		}
 	}
 	return out, nil
 }
