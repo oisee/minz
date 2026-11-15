@@ -235,6 +235,14 @@ func (g *z80cg) scanBitStorePatterns(b *Block) {
 			}
 		}
 	}
+	// A register defined here may also be read in a block this one dominates.
+	// The fused load and its modified value are never computed, so their
+	// counts include those readers.
+	for r, n := range countRegUses(g.fn) {
+		if n > useCount[r] {
+			useCount[r] = n
+		}
+	}
 
 	for _, inst := range b.Insts {
 		if inst.Volatile || inst.Op != OpStore || (inst.Ty.Width() != 8 && inst.Ty.Width() != 16) {
@@ -733,6 +741,15 @@ func (g *z80cg) scanGlobalFieldPatterns(b *Block) {
 			}
 		}
 	}
+	// A register defined here may also be read in a block this one dominates.
+	// A skipped address is never loaded into its register, so its count
+	// includes those readers.
+	allUses := countRegUses(g.fn)
+	for r, n := range allUses {
+		if n > useCount[r] {
+			useCount[r] = n
+		}
+	}
 
 	// Scan Load instructions.
 	// Only mark intermediates as skip when:
@@ -870,7 +887,6 @@ func (g *z80cg) scanGlobalFieldPatterns(b *Block) {
 	// allocated pair, even when the later byte load targets C/D/etc rather than
 	// A. Do not materialize a base plus scratch offset for LD HL,sym+offset.
 	// Whole-function use counts also protect an SSA base used by another block.
-	allUses := countRegUses(g.fn)
 	for _, inst := range b.Insts {
 		if inst.Op != OpField || inst.Imm < 0 || inst.Imm > 65535 || g.globalFieldSkip[inst.Dst] || !isPairReg(g.ar.Loc(inst.Dst).Name) {
 			continue
