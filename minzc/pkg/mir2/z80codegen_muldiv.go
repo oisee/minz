@@ -2,6 +2,7 @@ package mir2
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 )
 
@@ -1124,6 +1125,79 @@ func (g *z80cg) genDivMod16(inst *Inst) {
 	g.invalidate("F")
 }
 
+// provenForEveryDefinition reports whether r has a definition and every one of
+// them satisfies the proof. Pre-allocation coalescing merges a block parameter
+// with the arguments that feed it, so one register can carry several
+// definitions — a loop accumulator is both its initial constant and its
+// update — and a fact about the register must hold for all of them.
+//
+// param judges a function parameter, inst an instruction result, and feeder a
+// different register passed into a block parameter that is r. A definition
+// with no instruction of its own (DJNZ counter, extra call result, inline-asm
+// output) proves nothing.
+func (g *z80cg) provenForEveryDefinition(r Reg, param func(Param) bool, inst func(*Inst) bool, feeder func(Reg) bool) bool {
+	defined := false
+	for _, p := range g.fn.Contract.Params {
+		if p.Reg != r {
+			continue
+		}
+		if !param(p) {
+			return false
+		}
+		defined = true
+	}
+	implicit := false
+	var feeders []Reg
+	for _, b := range g.fn.Blocks {
+		for _, i := range b.Insts {
+			for _, x := range i.ExtraRets {
+				implicit = implicit || x == r
+			}
+			if i.Asm != nil {
+				for _, x := range i.Asm.Outs {
+					implicit = implicit || x == r
+				}
+			}
+			if i.Dst != r {
+				continue
+			}
+			if !inst(i) {
+				return false
+			}
+			defined = true
+		}
+		if b.Term == nil {
+			continue
+		}
+		b.Term.ForEachEdge(func(target string, args []Reg, paramOffset int) {
+			succ := g.fn.BlockByLabel(target)
+			if succ == nil {
+				return
+			}
+			for k, bp := range succ.Params {
+				if bp.Dst != r {
+					continue
+				}
+				if k < paramOffset || k-paramOffset >= len(args) {
+					implicit = true
+				} else if a := args[k-paramOffset]; a != r && !slices.Contains(feeders, a) {
+					feeders = append(feeders, a)
+				}
+			}
+		})
+	}
+	if implicit {
+		return false
+	}
+	for _, a := range feeders {
+		if !feeder(a) {
+			return false
+		}
+		defined = true
+	}
+	return defined
+}
+
 // Only use proofs that survive same-width signed casts: narrower unsigned parameters,
 // zero extension from a narrower width, and copies of a proven value.
 func (g *z80cg) nonNegative(r Reg, width int, seen map[Reg]bool) bool {
@@ -1131,16 +1205,9 @@ func (g *z80cg) nonNegative(r Reg, width int, seen map[Reg]bool) bool {
 		return false
 	}
 	seen[r] = true
-	for _, p := range g.fn.Contract.Params {
-		if p.Reg == r {
-			return p.Ty.Width() < width && !IsSigned(p.Ty)
-		}
-	}
-	for _, b := range g.fn.Blocks {
-		for _, i := range b.Insts {
-			if i.Dst != r {
-				continue
-			}
+	return g.provenForEveryDefinition(r,
+		func(p Param) bool { return p.Ty.Width() < width && !IsSigned(p.Ty) },
+		func(i *Inst) bool {
 			switch i.Op {
 			case OpExt:
 				return i.SrcTy != nil && i.Ty != nil && i.SrcTy.Width() < i.Ty.Width() && i.SrcTy.Width() < width
@@ -1149,9 +1216,9 @@ func (g *z80cg) nonNegative(r Reg, width int, seen map[Reg]bool) bool {
 			case OpMove:
 				return g.nonNegative(i.Src[0], width, seen)
 			}
-		}
-	}
-	return false
+			return false
+		},
+		func(a Reg) bool { return g.nonNegative(a, width, seen) })
 }
 
 // provablyBelow256 reports whether r's bits above bit 7 are provably zero, so
@@ -1168,29 +1235,23 @@ func (g *z80cg) provablyBelow256(r Reg, width int, seen map[Reg]bool) bool {
 		return false
 	}
 	seen[r] = true
-	for _, p := range g.fn.Contract.Params {
-		if p.Reg == r {
-			return p.Ty.Width() < width && !IsSigned(p.Ty)
-		}
-	}
-	for _, b := range g.fn.Blocks {
-		for _, i := range b.Insts {
-			if i.Dst != r {
-				continue
-			}
+	return g.provenForEveryDefinition(r,
+		func(p Param) bool { return p.Ty.Width() < width && !IsSigned(p.Ty) },
+		func(i *Inst) bool {
 			switch i.Op {
 			case OpExt:
 				return i.SrcTy != nil && i.SrcTy.Width() <= 8
 			case OpSext:
-				return i.SrcTy != nil && i.SrcTy.Width() <= 8 && g.nonNegative(i.Src[0], width, seen)
+				// The extension is below 256 only when the byte's own sign bit is clear.
+				return i.SrcTy != nil && i.SrcTy.Width() <= 8 && g.nonNegative(i.Src[0], i.SrcTy.Width(), seen)
 			case OpConst:
 				return i.Imm >= 0 && i.Imm < 256
 			case OpMove:
 				return g.provablyBelow256(i.Src[0], width, seen)
 			}
-		}
-	}
-	return false
+			return false
+		},
+		func(a Reg) bool { return g.provablyBelow256(a, width, seen) })
 }
 
 func (g *z80cg) genPow2DivMod(inst *Inst, k int64, signed bool) {
