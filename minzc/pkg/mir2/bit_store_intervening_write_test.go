@@ -77,6 +77,30 @@ fun t() -> u16 { g = 17
 assert t() == 273 via mir2
 assert t() == 273 via z80
 `},
+		{"two read-modify-writes of one byte, interleaved", `global g: u8 = 17
+fun f(p: ^u8) -> u8 {
+    let c: u8 = p^
+    let d: u8 = p^
+    p^ = d | 8
+    p^ = c | 4
+    return p^
+}
+fun t() -> u8 { g = 17
+    return f(&g) }
+assert t() == 21 via mir2
+assert t() == 21 via z80
+`},
+		{"byte store into the high half of the word", `fun f(p: ^u16, q: ^u8) -> u16 {
+    let c: u16 = p^
+    q^ = 64
+    p^ = c | 256
+    return p^
+}
+fun init(p: ^u16) -> void { p^ = 17 as u16 }
+fun t() -> u16 { init(0x9000)
+    return f(0x9000, 0x9001) }
+assert t() == 273 via z80
+`},
 	} {
 		t.Run(c.name, func(t *testing.T) {
 			hm, err := nanz.Parse(c.source, "bit_store.nanz")
@@ -87,7 +111,7 @@ assert t() == 273 via z80
 			if _, err := pipeline.CompileHIRSteps(hm, pipeline.DefaultOptions()); err != nil {
 				t.Fatal(err)
 			}
-			if *hm.AssertStats != (hir.AssertStats{Executed: 2, Passed: 2}) {
+			if st := *hm.AssertStats; st.Executed == 0 || st != (hir.AssertStats{Executed: st.Executed, Passed: st.Executed}) {
 				t.Fatalf("assert stats = %+v", hm.AssertStats)
 			}
 		})
