@@ -106,6 +106,7 @@ func (g *z80cg) restoreLiveOutOverrides(f *Func, t Term) {
 // ── Terminators ───────────────────────────────────────────────────────────────
 
 func (g *z80cg) genTerm(f *Func, t Term) {
+	g.materializePendingFlagForTerm(f, t)
 	g.restoreLiveOutOverrides(f, t)
 	if g.shiftCarryInst != nil && g.carryFrom != g.shiftCarryInst {
 		g.err = fmt.Errorf("z80 codegen: shift carry lost before fused branch in %s", g.fn.Name)

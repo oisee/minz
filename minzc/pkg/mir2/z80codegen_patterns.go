@@ -235,6 +235,14 @@ func (g *z80cg) scanBitStorePatterns(b *Block) {
 			}
 		}
 	}
+	// A register defined here may also be read in a block this one dominates.
+	// The fused load and its modified value are never computed, so their
+	// counts include those readers.
+	for r, n := range countRegUses(g.fn) {
+		if n > useCount[r] {
+			useCount[r] = n
+		}
+	}
 
 	for _, inst := range b.Insts {
 		if inst.Volatile || inst.Op != OpStore || (inst.Ty.Width() != 8 && inst.Ty.Width() != 16) {
@@ -326,10 +334,52 @@ func (g *z80cg) scanBitStorePatterns(b *Block) {
 		if !matched || !bitMemOpAddressable(bitMemOpHome(g.loc(inst.Src[0])), pat.byteOffset) {
 			continue
 		}
+		if !bitStoreMemoryUnchanged(b, defInst[loadReg], valInst, inst) {
+			continue
+		}
 		g.bitStorePat[valReg] = pat
 		g.bitStoreSkip[loadReg] = true
 		g.bitStoreSkip[valReg] = true
 	}
+}
+
+// bitStoreMemoryUnchanged reports whether SET/RES at store reads the byte that
+// load read: load, val and store appear in this order, and nothing between
+// load and store can write memory or redefine one of their registers.
+func bitStoreMemoryUnchanged(b *Block, load, val, store *Inst) bool {
+	const (
+		wantLoad = iota
+		wantVal
+		wantStore
+	)
+	state := wantLoad
+	for _, i := range b.Insts {
+		switch {
+		case i == load:
+			if state != wantLoad {
+				return false
+			}
+			state = wantVal
+			continue
+		case state == wantLoad:
+			continue
+		case i == store:
+			return state == wantStore
+		case i == val:
+			if state != wantVal {
+				return false
+			}
+			state = wantStore
+			continue
+		}
+		if i.Volatile || !(isDSEPure(i.Op) || i.Op == OpLoad || i.Op == OpBitGet || i.Op == OpBitSet || i.Op == OpBitReset) {
+			return false
+		}
+		if i.Dst == load.Dst || i.Dst == val.Dst || i.Dst == store.Src[0] {
+			return false
+		}
+	}
+	return false
 }
 
 // scanBitCmpPatterns detects u8/u16 bit-test compares against zero:
@@ -733,6 +783,15 @@ func (g *z80cg) scanGlobalFieldPatterns(b *Block) {
 			}
 		}
 	}
+	// A register defined here may also be read in a block this one dominates.
+	// A skipped address is never loaded into its register, so its count
+	// includes those readers.
+	allUses := countRegUses(g.fn)
+	for r, n := range allUses {
+		if n > useCount[r] {
+			useCount[r] = n
+		}
+	}
 
 	// Scan Load instructions.
 	// Only mark intermediates as skip when:
@@ -870,7 +929,6 @@ func (g *z80cg) scanGlobalFieldPatterns(b *Block) {
 	// allocated pair, even when the later byte load targets C/D/etc rather than
 	// A. Do not materialize a base plus scratch offset for LD HL,sym+offset.
 	// Whole-function use counts also protect an SSA base used by another block.
-	allUses := countRegUses(g.fn)
 	for _, inst := range b.Insts {
 		if inst.Op != OpField || inst.Imm < 0 || inst.Imm > 65535 || g.globalFieldSkip[inst.Dst] || !isPairReg(g.ar.Loc(inst.Dst).Name) {
 			continue
