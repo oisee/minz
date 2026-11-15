@@ -29784,7 +29784,7 @@
     }
   ],
   "scope": "108 three-engine executions/20 saved native TRD chains; traps, not physical ROM/FDC/hardware/boot/full converter",
-  "positive_proof_sha256": "e9e0930bb5f03f78f747b7b12d0fc17c5e519ceaa08aa69db3106134373a4774",
+  "positive_proof_sha256": "3abe329ff3fa0bd91ea5618c6ba2daec9e22f8c1061792138ea185e49769c87a",
   "ruby_result_sha256": "a8ac91599be9f1335d670d228ff07841637363cda16b111e4ff2cf03abd7ea53",
   "actual_ruby_sha256": "41f621b555fc089effd711319e723494576eb47ea0282847082ec91c1cdd4c01"
 }

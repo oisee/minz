@@ -3212,13 +3212,13 @@
     "DELAYED.BIN": "943c45a8b5f5d98c18c5fd2adbceb4597ce81eb29e30cbf140df0473d52b052b",
     "ECHO.COM": "cc14298e4467410ed5276fef63ec55b5f2b132afd2eee91fbaccc22386746eab",
     "EVENTS.BIN": "7a6a96d5a438bc27488295a580245baa14f3b6a4b6c1b896274538286891fff7",
-    "FLATTEN.COM": "88802e32fe5d33f2e59cfdab694a30f37f780166d043a39ac883d48d0d54486c",
+    "FLATTEN.COM": "0aa62d606e36ce5f0f09320f0d58dd120170d453268995b6a564ff5e12823de0",
     "INPUT.MID": "0d4c0289fe42c81ea01c9715c9d382807e97549161c419c737e15f18d6abc02f",
     "NOTES.BIN": "4ecfa8a78d0146fe2f7dbcdcab711fa1ca803332044b3e4d81f684c80a37039f",
     "PAIR.COM": "6e5cd94d14ed3a0dc4995973ecea5ce7f2c70fb81fe08ea87d4f9315f4420507"
   },
-  "standalone_emulator_sha256": "ba2b3953489909ac90c184c318dba57fe52dc8cd474df4e29c2c3ce208a40e3b",
+  "standalone_emulator_sha256": "b56d3404d7d782a2138b9efac362b010cbc0d6f9a6979f9ab23e59966294799e",
   "scope": "108 executions/20 native file pairs and four separate COM processes; CALL5 traps and SP/HALT contract, not physical TPA/CCP/boot/full converter",
-  "positive_receipt_sha256": "e9e0930bb5f03f78f747b7b12d0fc17c5e519ceaa08aa69db3106134373a4774",
-  "musical_receipt_sha256": "553a8e69f73bfbb3aa8550e5392d1bb2a2076c3f2ec2faa6c861db2c91380f73"
+  "positive_receipt_sha256": "3abe329ff3fa0bd91ea5618c6ba2daec9e22f8c1061792138ea185e49769c87a",
+  "musical_receipt_sha256": "e74a89c3ff416f7cd815074666b9ffbf1bb287381fcfc32afa5eae5740242a4b"
 }
