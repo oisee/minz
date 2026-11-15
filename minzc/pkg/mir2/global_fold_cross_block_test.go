@@ -45,30 +45,32 @@ func TestGlobalFoldKeepsAddressUsedInAnotherBlock(t *testing.T) {
 			b.Store(b.AddrOf(sym, ClassPointer), b.Load(p, ty, cls), ty)
 		}
 	}
-	var cur, next Reg
+	var ptr, cur, next Reg
 	for _, c := range []struct {
 		name          string
 		gc            Ty
 		first, second func(b *Builder, p Reg)
 		sym           string
 		want          []byte
+		home          map[*Reg]string // forced register homes, when the shape depends on them
 	}{
 		{"byte load, then store", TyU8,
 			func(b *Builder, p Reg) { b.Load(p, TyU8, ClassAcc) },
 			func(b *Builder, p Reg) { b.Store(p, b.Const(0x77, TyU8, ClassAcc), TyU8) },
-			"gc", []byte{0x77}},
+			"gc", []byte{0x77}, nil},
 		{"byte store, then load", TyU8,
 			func(b *Builder, p Reg) { b.Store(p, b.Const(0x33, TyU8, ClassAcc), TyU8) },
 			storeTo("gd", TyU8, ClassAcc),
-			"gd", []byte{0x33, 0}},
+			"gd", []byte{0x33, 0}, nil},
 		{"word load, then store", TyU16,
 			func(b *Builder, p Reg) { b.Load(p, TyU16, ClassPointer) },
 			func(b *Builder, p Reg) { b.Store(p, b.Const(0x4321, TyU16, ClassPointer), TyU16) },
-			"gc", []byte{0x21, 0x43}},
-		{"word load, then load", TyU16,
-			func(b *Builder, p Reg) { b.Load(p, TyU16, ClassPointer) },
+			"gc", []byte{0x21, 0x43}, nil},
+		// The LD HL,(nn) form: the allocator would put this dead load in DE.
+		{"word load into HL, then load", TyU16,
+			func(b *Builder, p Reg) { ptr, cur = p, b.Load(p, TyU16, ClassPointer) },
 			storeTo("gd", TyU16, ClassPointer),
-			"gd", []byte{0x11, 0x22}},
+			"gd", []byte{0x11, 0x22}, map[*Reg]string{&cur: "HL", &ptr: "BC"}},
 		// gc |= 4 fused into SET 2,(HL) computes neither the loaded byte nor
 		// the modified one.
 		{"bit store, then its value", TyU8,
@@ -78,7 +80,7 @@ func TestGlobalFoldKeepsAddressUsedInAnotherBlock(t *testing.T) {
 				b.Store(p, next, TyU8)
 			},
 			func(b *Builder, p Reg) { b.Store(b.AddrOf("gd", ClassPointer), next, TyU8) },
-			"gd", []byte{0x15, 0}},
+			"gd", []byte{0x15, 0}, nil},
 		{"bit store, then its loaded byte", TyU8,
 			func(b *Builder, p Reg) {
 				cur = b.Load(p, TyU8, ClassAcc)
@@ -86,12 +88,15 @@ func TestGlobalFoldKeepsAddressUsedInAnotherBlock(t *testing.T) {
 				b.Store(p, next, TyU8)
 			},
 			func(b *Builder, p Reg) { b.Store(b.AddrOf("gd", ClassPointer), cur, TyU8) },
-			"gd", []byte{0x11, 0}},
+			"gd", []byte{0x11, 0}, nil},
 	} {
 		t.Run(c.name, func(t *testing.T) {
 			m, f := crossBlockAddrModule(c.gc, c.first, c.second)
 			PreallocCoalesce(f)
 			ar := PBQPAllocate(f, ComputeLiveness(f), Z80CostTable{})
+			for r, name := range c.home {
+				ar.Locs[*r] = PhysLoc{Kind: LocReg, Name: name}
+			}
 			asm, err := Z80Codegen(m, ar)
 			if err != nil {
 				t.Fatal(err)
