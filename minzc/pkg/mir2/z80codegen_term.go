@@ -494,16 +494,24 @@ func (g *z80cg) isFallThrough(f *Func, targetLabel string) bool {
 
 // ── DJNZ peephole ─────────────────────────────────────────────────────────────
 
-// findConstInFunc finds the Imm value of an OpConst instruction defining r.
-func findConstInFunc(f *Func, r Reg) (int64, bool) {
-	for _, b := range f.Blocks {
-		for _, inst := range b.Insts {
-			if inst.Op == OpConst && inst.Dst == r {
-				return inst.Imm, true
+// constInFunc reports the value of r when every definition of r is a constant
+// load of that one value. A register that pre-allocation coalescing merged
+// with a block parameter also carries whatever the other edges pass in, so
+// one constant load among its definitions says nothing about it.
+func (g *z80cg) constInFunc(r Reg) (int64, bool) {
+	var val int64
+	known := false
+	ok := g.provenForEveryDefinition(r,
+		func(Param) bool { return false },
+		func(i *Inst) bool {
+			if i.Op != OpConst || (known && i.Imm != val) {
+				return false
 			}
-		}
-	}
-	return 0, false
+			val, known = i.Imm, true
+			return true
+		},
+		func(Reg) bool { return false })
+	return val, ok
 }
 
 // djnzPeepholeResult holds the result of DJNZ peephole detection.
@@ -536,7 +544,7 @@ func (g *z80cg) detectDJNZPeephole(f *Func, b *Block) djnzPeepholeResult {
 		return djnzPeepholeResult{}
 	}
 	// RHS must be constant 1.
-	rhs, found := findConstInFunc(f, last.Src[1])
+	rhs, found := g.constInFunc(last.Src[1])
 	if !found || rhs != 1 {
 		return djnzPeepholeResult{}
 	}
@@ -559,7 +567,7 @@ func (g *z80cg) detectDJNZPeephole(f *Func, b *Block) djnzPeepholeResult {
 	if g.ar.Loc(cmp.Src[0]).Name != "B" {
 		return djnzPeepholeResult{}
 	}
-	zero, found2 := findConstInFunc(f, cmp.Src[1])
+	zero, found2 := g.constInFunc(cmp.Src[1])
 	if !found2 || zero != 0 {
 		return djnzPeepholeResult{}
 	}

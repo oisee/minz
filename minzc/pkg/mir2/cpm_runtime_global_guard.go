@@ -6,8 +6,9 @@ import (
 	"strings"
 )
 
-// Roots are derived from the complete SSA graph. Every pointer leaf must be a
-// module-global AddrOf; joins and cycles retain authority only with one root.
+// Roots are derived from every definition of each register: instruction
+// results and the values reaching its block parameters. Every pointer leaf must
+// be a module-global AddrOf; joins and cycles retain authority only with one root.
 func cpmGlobalStoreRoots(m *Module) map[*Inst]*Global {
 	out := map[*Inst]*Global{}
 	globals := map[string]*Global{}
@@ -16,88 +17,48 @@ func cpmGlobalStoreRoots(m *Module) map[*Inst]*Global {
 		globals[g.Name] = g
 	}
 	for _, f := range m.Funcs {
-		defs := map[Reg]*Inst{}
-		deps := map[Reg][]Reg{}
-		bad := map[Reg]bool{}
-		for _, b := range f.Blocks {
-			for _, p := range b.Params {
-				deps[p.Dst] = nil
-				if p.Ty != TyPtr {
-					bad[p.Dst] = true
-				}
-			}
-			for _, i := range b.Insts {
-				if i.Dst != NoReg {
-					defs[i.Dst] = i
-				}
-			}
-		}
-		for _, b := range f.Blocks {
-			b.Term.ForEachEdge(func(target string, args []Reg, offset int) {
-				for _, dst := range f.Blocks {
-					if dst.Label != target {
-						continue
-					}
-					for n, p := range dst.Params {
-						if offset < 0 || offset > len(dst.Params) || len(args) != len(dst.Params)-offset {
-							bad[p.Dst] = true
-						}
-						if n < offset {
-							bad[p.Dst] = true
-							continue
-						}
-						n -= offset
-						if n >= len(args) {
-							bad[p.Dst] = true
-						} else {
-							deps[p.Dst] = append(deps[p.Dst], args[n])
-						}
-					}
-				}
-			})
-		}
-		for r, i := range defs {
-			if !cpmCleanGlobalAddress(i) {
-				bad[r] = true
-				continue
-			}
-			switch i.Op {
-			case OpMove, OpField, OpAdd, OpPtrAdd:
-				deps[r] = []Reg{i.Src[0]}
-			case OpAddrOf:
-			default:
-				bad[r] = true
-			}
-		}
+		defs := cpmFuncDefs(f)
 		root := func(r Reg) *Global {
 			seen := map[Reg]bool{}
 			roots := map[string]bool{}
 			invalid := false
 			var walk func(Reg)
 			walk = func(x Reg) {
-				if seen[x] {
+				if seen[x] || invalid {
 					return
 				}
 				seen[x] = true
-				if bad[x] {
+				if defs.implicit[x] || len(defs.insts[x]) == 0 && len(defs.feeders[x]) == 0 {
 					invalid = true
 					return
 				}
-				if i := defs[x]; i != nil && i.Op == OpAddrOf && i.Ty == TyPtr {
-					if globals[i.Sym] == nil {
+				for _, p := range defs.params[x] {
+					if p.Ty != TyPtr {
 						invalid = true
-					} else {
-						roots[i.Sym] = true
+						return
 					}
-					return
 				}
-				ds, ok := deps[x]
-				if !ok || len(ds) == 0 {
-					invalid = true
-					return
+				for _, i := range defs.insts[x] {
+					if !cpmCleanGlobalAddress(i) {
+						invalid = true
+						return
+					}
+					switch i.Op {
+					case OpAddrOf:
+						if globals[i.Sym] == nil {
+							invalid = true
+							return
+						}
+						roots[i.Sym] = true
+					case OpMove, OpField, OpAdd, OpPtrAdd:
+						walk(i.Src[0])
+					default:
+						invalid = true
+						return
+					}
 				}
-				for _, d := range ds {
-					walk(d)
+				for _, a := range defs.feeders[x] {
+					walk(a)
 				}
 			}
 			walk(r)
@@ -112,7 +73,7 @@ func cpmGlobalStoreRoots(m *Module) map[*Inst]*Global {
 		for _, b := range f.Blocks {
 			for _, i := range b.Insts {
 				if i.Op == OpStore && ByteWidth(i.Ty) >= 1 && ByteWidth(i.Ty) <= 4 {
-					if def := defs[i.Src[0]]; def != nil && def.Op == OpAddrOf {
+					if def := defs.sole(i.Src[0]); def != nil && def.Op == OpAddrOf {
 						continue
 					}
 					if g := root(i.Src[0]); g != nil && !g.IsConst && g.At == nil && g.Storage == StorageNormal && ByteWidth(g.Ty) >= ByteWidth(i.Ty) {
