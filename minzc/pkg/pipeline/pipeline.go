@@ -45,6 +45,7 @@ type Steps struct {
 
 	UnsignedPairComparePolicy mir2.UnsignedPairComparePolicy // resolved policy replayed by native re-codegen
 	DisableLoopRotation       bool                           // replayed by native re-codegen
+	OptSize                   bool                           // replayed by native re-codegen (rotation is size-gated)
 	FlagReturns               mir2.FlagReturnReport          // Z80 bool return contracts chosen in Phase 5b
 	ProfileDecisions          []hir.ProfileDecision
 	HIRLoopSites              *hir.LoopSiteMap      // optional input-HIR origins, before Grace/splitting
@@ -214,6 +215,11 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 		opt.ZXApplicationEntry = true
 	}
 	var s Steps
+	// Measured profile configurations fit loop costs affine in the trip
+	// count from zero; a rotated loop's zero-trip path is not on that line.
+	// They keep test-at-top loops so evidence and product stay comparable.
+	// (Options stay untouched: they identify the measured compilation.)
+	s.DisableLoopRotation = opt.DisableLoopRotation || measuredLoopConfiguration(hm, opt)
 	if opt.ZXApplicationEntry && (hm.Target != hir.TargetZXSpectrum || opt.Runtime != "" || opt.CPMApplicationEntry || opt.Backend != "" && opt.Backend != "z80" || opt.ProfileSelection != nil || opt.SkipZ80Emission || len(hm.Asserts) > 0 || len(hm.Sandboxes) > 0) {
 		return s, fmt.Errorf("ZX application requires emitted ordinary ZX Z80 without assertion/profile workloads")
 	}
@@ -263,7 +269,7 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 		return Steps{}, fmt.Errorf("aggregate ABI: %w", err)
 	}
 	s.UnsignedPairComparePolicy = policy
-	s.DisableLoopRotation = opt.DisableLoopRotation
+	s.OptSize = opt.OptSize
 	s.Traces = make(map[string]*FuncTrace)
 
 	if !opt.variantPrepared {
@@ -642,7 +648,7 @@ func compileMIRProductSteps(hm *hir.Module, opt Options, s Steps, splitInfo map[
 			RuntimeStackBytes:         opt.RuntimeStackBytes,
 			AnnotateTStates:           opt.AnnotateTStates,
 			UnsignedPairComparePolicy: s.UnsignedPairComparePolicy,
-			DisableLoopRotation:       opt.DisableLoopRotation,
+			DisableLoopRotation:       s.DisableLoopRotation,
 			QuietValidation:           opt.quietZ80Validation,
 		})
 		if codegenErr != nil {
@@ -937,7 +943,7 @@ func CompileHIRWithOptions(hm *hir.Module, opts Options) (string, error) {
 	if err := mir2.ValidateZ80Symbols(m); err != nil {
 		return "", err
 	}
-	asm, err := mir2.Z80Codegen(m, combined, mir2.Z80CodegenOptions{UnsignedPairComparePolicy: policy, OptimizeForSize: opts.OptSize, DisableLoopRotation: opts.DisableLoopRotation})
+	asm, err := mir2.Z80Codegen(m, combined, mir2.Z80CodegenOptions{UnsignedPairComparePolicy: policy, OptimizeForSize: opts.OptSize, DisableLoopRotation: opts.DisableLoopRotation || measuredLoopConfiguration(hm, opts)})
 	if err != nil {
 		return "", err
 	}

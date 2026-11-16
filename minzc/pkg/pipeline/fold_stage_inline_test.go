@@ -59,8 +59,11 @@ func fusedLoopBody(t *testing.T, asm string) string {
 	if head < 0 {
 		t.Fatalf("no fused loop head label (_fe_head) in:\n%s", asm)
 	}
+	// A rotated loop repeats the header test at the latch and branches back
+	// to the body instead; its marker names the header block.
+	block := label[strings.LastIndex(label, "_fe_head")+1:]
 	for i := head + 1; i < len(lines); i++ {
-		if strings.Contains(lines[i], label) {
+		if strings.Contains(lines[i], label) || strings.Contains(lines[i], "; loop rotation: test of "+block+" ") {
 			return strings.Join(lines[head:i+1], "\n")
 		}
 	}

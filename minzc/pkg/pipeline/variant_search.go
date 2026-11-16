@@ -169,6 +169,16 @@ func variantHIRFunctions(m *hir.Module, o Options) map[string]bool {
 // variantSearchMaxFuncs bounds the module size searched by default.
 const variantSearchMaxFuncs = 32
 
+// measuredLoopConfiguration reports a profile-measured or replayed
+// configuration: an explicit profile selection, HIR loop-site collection, or
+// any measured HIR policy or loop lineage on the module.
+func measuredLoopConfiguration(h *hir.Module, o Options) bool {
+	return o.ProfileSelection != nil || o.CollectHIRSites || h != nil && (h.OrderedByteRWPolicy != nil || h.OrderedBytePolicy != nil ||
+		h.RegionComparePolicy != nil || h.InvariantBasePolicy != nil ||
+		h.GraceRulePolicy != nil || h.ForwardCopyPolicy != nil ||
+		h.PointerWalkPolicy != nil || h.LoopLineage != nil)
+}
+
 func variantSearchEnabled(h *hir.Module, options []Options) bool {
 	o := DefaultOptions()
 	if len(options) > 0 {
@@ -249,7 +259,9 @@ func compileVariantSearch(source *hir.Module, options ...Options) (Steps, error)
 		if final.MIR2Opt != s.MIR2Opt || final.MIR2Module == nil || s.MIR2Module == nil || final.MIR2Module.Dump() != s.MIR2Module.Dump() || !reflect.DeepEqual(final.Allocation, s.Allocation) {
 			return s, st, nil
 		}
-		final.VariantDecisions, final.VariantSearch = s.VariantDecisions, s.VariantSearch
+		// Reports describe the measured product; the recompile pins its
+		// flag-return contracts and would only report them as pinned.
+		final.VariantDecisions, final.VariantSearch, final.FlagReturns = s.VariantDecisions, s.VariantSearch, s.FlagReturns
 		return final, compiledStats, nil
 	}
 	var searchStats VariantSearchStats

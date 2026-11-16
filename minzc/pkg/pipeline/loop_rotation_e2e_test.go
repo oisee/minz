@@ -78,3 +78,22 @@ fun walk(a: u8, b: u8) -> u16 {
 		}
 	}
 }
+
+// rotatedBackEdgeTarget returns the label that the rotated copy of fn's
+// header test (MIR block label block) branches back to, which is the emitted
+// loop head after rotation, or "" when that loop was not rotated.
+func rotatedBackEdgeTarget(asm, fn, block string) string {
+	lines := strings.Split(asm, "\n")
+	for i, line := range lines {
+		if !strings.Contains(line, "; loop rotation: test of "+block+" ") {
+			continue
+		}
+		for _, next := range lines[i+1:] {
+			fields := strings.Fields(strings.SplitN(next, ";", 2)[0])
+			if len(fields) == 3 && (fields[0] == "JRS" || fields[0] == "JR" || fields[0] == "JP") && strings.HasPrefix(fields[2], "."+fn+"_") {
+				return fields[2]
+			}
+		}
+	}
+	return ""
+}
