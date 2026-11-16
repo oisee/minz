@@ -182,9 +182,9 @@ type Z80CodegenOptions struct {
 	// DisableLoopRotation keeps every loop back edge as a jump to the header
 	// test instead of repeating a small header test at the latch.
 	DisableLoopRotation bool
-	// QuietValidation suppresses the Z80-VALIDATE report for a product that
-	// is compiled again before it is emitted (variant search trials).
-	QuietValidation bool
+	// ValidationLog, when set, receives the Z80-VALIDATE report instead of
+	// stdout, for a caller that prints it only for the product it emits.
+	ValidationLog *[]string
 }
 
 // ValidateZ80Symbols rejects distinct functions/data that emit the same symbol.
@@ -443,7 +443,9 @@ func z80CodegenWithLeafWrites(m *Module, ar *AllocResult, leafWrites map[string]
 		sb.WriteByte('\n')
 		// Z80 validation: catch invalid instructions at compile time.
 		funcAsm := sb.String()[startLen:]
-		if errs := z80validate.Validate(funcAsm); len(errs) > 0 && !opt.QuietValidation {
+		if errs := z80validate.Validate(funcAsm); len(errs) > 0 && opt.ValidationLog != nil {
+			*opt.ValidationLog = append(*opt.ValidationLog, z80validate.FormatErrors(f.Name, errs))
+		} else if len(errs) > 0 {
 			z80validate.LogErrors(f.Name, errs)
 		}
 		// A rematerialised constant must never reach an operand slot: its uses

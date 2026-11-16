@@ -234,9 +234,16 @@ func compileVariantSearch(source *hir.Module, options ...Options) (Steps, error)
 	// with the caller's rotation setting (rotateSelected).
 	rotationOff := o.DisableLoopRotation
 	o.DisableLoopRotation = true
-	// The emitted product is then the final compile; it alone reports
-	// Z80-VALIDATE diagnostics.
-	o.quietZ80Validation = !rotationOff
+	// Several products are compiled; the emitted one alone reports its
+	// Z80-VALIDATE diagnostics (emitSelected).
+	o.deferZ80Validation = !rotationOff
+	emitSelected := func(s Steps) Steps {
+		for _, text := range s.z80ValidationLog {
+			fmt.Print(text)
+		}
+		s.z80ValidationLog = nil
+		return s
+	}
 	var compiledStats *mir2.GraceStats
 	compile := func() (Steps, error) {
 		compiledStats = mir2.NewGraceStats()
@@ -247,10 +254,10 @@ func compileVariantSearch(source *hir.Module, options ...Options) (Steps, error)
 		if rotationOff {
 			return s, st, nil
 		}
-		o.DisableLoopRotation, o.quietZ80Validation = false, false
+		o.DisableLoopRotation = false
 		o.variantMIRReady = nil
 		final, err := compile()
-		o.DisableLoopRotation, o.quietZ80Validation = true, true
+		o.DisableLoopRotation = true
 		if err != nil {
 			return s, st, err
 		}
@@ -296,6 +303,7 @@ func compileVariantSearch(source *hir.Module, options ...Options) (Steps, error)
 		if best, bestStats, err = rotateSelected(best, bestStats); err != nil {
 			return best, err
 		}
+		best = emitSelected(best)
 		mergeGraceStats(stats, bestStats)
 		return finishVariantSearch(source, best, mode)
 	}
@@ -519,6 +527,7 @@ func compileVariantSearch(source *hir.Module, options ...Options) (Steps, error)
 	if best, bestStats, err = rotateSelected(best, bestStats); err != nil {
 		return best, err
 	}
+	best = emitSelected(best)
 	for _, d := range decisions {
 		if tr := best.Traces[d.Function]; tr != nil {
 			tr.Variant = fmt.Sprintf("%s/%s/%d->%d", d.Model, d.Recipe, d.Before, d.After)

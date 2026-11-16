@@ -45,6 +45,7 @@ type Steps struct {
 
 	UnsignedPairComparePolicy mir2.UnsignedPairComparePolicy // resolved policy replayed by native re-codegen
 	DisableLoopRotation       bool                           // replayed by native re-codegen
+	z80ValidationLog          []string                       // deferred Z80-VALIDATE report (deferZ80Validation)
 	OptSize                   bool                           // replayed by native re-codegen (rotation is size-gated)
 	FlagReturns               mir2.FlagReturnReport          // Z80 bool return contracts chosen in Phase 5b
 	ProfileDecisions          []hir.ProfileDecision
@@ -104,8 +105,10 @@ type Options struct {
 	// FunctionVariants overrides recipes in complete-module candidate compiles.
 	FunctionVariants map[string]FunctionVariant `json:",omitempty"`
 	variantCandidate bool
-	// quietZ80Validation: this product is recompiled before it is emitted.
-	quietZ80Validation bool
+	// deferZ80Validation collects the Z80-VALIDATE report into
+	// Steps.z80ValidationLog; the variant search prints it for the product
+	// it emits.
+	deferZ80Validation bool
 	// Search-only checkpoint: false refuses a trial before native compilation.
 	variantPrepared          bool
 	variantNativeAlternative bool
@@ -638,6 +641,10 @@ func compileMIRProductSteps(hm *hir.Module, opt Options, s Steps, splitInfo map[
 			return s, err
 		}
 		var codegenErr error
+		var validationLog *[]string
+		if opt.deferZ80Validation {
+			validationLog = &s.z80ValidationLog
+		}
 		s.Assembly, codegenErr = mir2.Z80Codegen(m, combined, mir2.Z80CodegenOptions{
 			OptimizeForSize:           opt.OptSize,
 			FunctionOptions:           variantCodegenOptions(opt),
@@ -649,7 +656,7 @@ func compileMIRProductSteps(hm *hir.Module, opt Options, s Steps, splitInfo map[
 			AnnotateTStates:           opt.AnnotateTStates,
 			UnsignedPairComparePolicy: s.UnsignedPairComparePolicy,
 			DisableLoopRotation:       s.DisableLoopRotation,
-			QuietValidation:           opt.quietZ80Validation,
+			ValidationLog:             validationLog,
 		})
 		if codegenErr != nil {
 			return s, codegenErr

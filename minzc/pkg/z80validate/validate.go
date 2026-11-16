@@ -109,7 +109,13 @@ func Validate(asm string) []Error {
 
 // LogErrors logs Z80 validation errors to stdout with ±2 lines of context.
 func LogErrors(funcName string, errs []Error) {
-	fmt.Printf("[Z80-VALIDATE] %s: %d invalid instruction(s)\n", funcName, len(errs))
+	fmt.Print(FormatErrors(funcName, errs))
+}
+
+// FormatErrors returns the text LogErrors prints.
+func FormatErrors(funcName string, errs []Error) string {
+	var b strings.Builder
+	fmt.Fprintf(&b, "[Z80-VALIDATE] %s: %d invalid instruction(s)\n", funcName, len(errs))
 	// Deduplicate (MZA sometimes reports same error twice).
 	seen := make(map[string]bool)
 	for _, e := range errs {
@@ -118,8 +124,9 @@ func LogErrors(funcName string, errs []Error) {
 			continue
 		}
 		seen[key] = true
-		fmt.Printf("  line %d: >>> %s <<<\n", e.Line, e.Text)
+		fmt.Fprintf(&b, "  line %d: >>> %s <<<\n", e.Line, e.Text)
 	}
+	return b.String()
 }
 
 // LogErrorsWithContext logs errors with surrounding assembly lines for context.

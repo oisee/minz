@@ -54,10 +54,12 @@ func (g *z80cg) isLoopBackEdge(f *Func, from, to *Block) bool {
 }
 
 // rotatableHeader reports whether h may be emitted a second time at the end
-// of a latch: only register instructions from loopRotationOps, a TermBrIf or
-// TermCondRet on a condition h computes, and every value in a register (no spill slot, stack,
-// shadow or 32-bit home, whose emission would carry memory traffic, TSMC labels
-// or EXX state).
+// of a latch. It checks the MIR shape only: every instruction is one of
+// loopRotationOps without a symbol or volatile access; the terminator is a
+// TermBrIf or TermCondRet whose condition an instruction of h defines; and
+// every parameter, defined value, operand and terminator use (except
+// suppressed constants) has a register, IX/IY-half or flag home that is not a
+// spill slot. The emitted copy is checked separately by tryRotateLoop.
 func (g *z80cg) rotatableHeader(h *Block) bool {
 	var cond Reg
 	switch t := h.Term.(type) {

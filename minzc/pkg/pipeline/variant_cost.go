@@ -23,6 +23,9 @@ type variantInstruction struct {
 }
 type variantImage struct {
 	regions map[string]*variantRegions
+	// rotated lists, per function, the loop headers whose test the Z80
+	// generator repeated at the latch ("; loop rotation: test of H" marker).
+	rotated map[string]map[string]bool
 
 	binary  []byte
 	symbols map[string]int
@@ -44,10 +47,16 @@ func assembleVariant(s Steps) (*variantImage, error) {
 	if len(a.Errors) > 0 {
 		return nil, fmt.Errorf("%v", a.Errors)
 	}
-	im := &variantImage{regions: map[string]*variantRegions{}, binary: a.Binary, symbols: a.Symbols, nodes: map[int]variantInstruction{}, context: map[string][]string{}, abi: map[string]string{}}
+	im := &variantImage{regions: map[string]*variantRegions{}, binary: a.Binary, symbols: a.Symbols, nodes: map[int]variantInstruction{}, context: map[string][]string{}, abi: map[string]string{}, rotated: map[string]map[string]bool{}}
 	owners := map[int]string{}
 	owner := ""
 	for i, line := range strings.Split(asm, "\n") {
+		if rest, ok := strings.CutPrefix(strings.TrimSpace(line), "; loop rotation: test of "); ok && owner != "" {
+			if im.rotated[owner] == nil {
+				im.rotated[owner] = map[string]bool{}
+			}
+			im.rotated[owner][strings.Fields(rest)[0]] = true
+		}
 		if strings.HasPrefix(line, "; fun ") {
 			owner, _, _ = strings.Cut(strings.TrimPrefix(line, "; fun "), "(")
 			im.abi[owner] = line
@@ -224,7 +233,8 @@ type variantLoop struct {
 // rotation); the emitted back edge then targets H's in-loop successor S, and
 // H's own copy only guards entry. S runs once per trip, so a while loop of n
 // trips becomes a bottom-tested loop of n trips (Counted: n-1 back edges).
-// Only plain while-loop facts with a natural loop, a successor S whose only
+// Only loops whose emitted code carries the rotation marker for H, plain
+// while-loop facts with a natural loop, a successor S whose only
 // predecessor is H, and a nonzero trip count are translated; anything else
 // stays unscored. The map is consulted only for back-edge targets without a
 // fact of their own.
@@ -240,7 +250,7 @@ func (im *variantImage) rotatedLoopFacts(f *mir2.Func) (map[int]mir2.StaticLoop,
 	}
 	for _, l := range mir2.AnalyzeNaturalLoops(f) {
 		fact, ok := f.StaticLoops[l.Header.Label]
-		if !ok || fact.Counted || fact.Trips == 0 || l.Header.Term == nil {
+		if !ok || fact.Counted || fact.Trips == 0 || l.Header.Term == nil || !im.rotated[f.Name][l.Header.Label] {
 			continue
 		}
 		var body string
