@@ -23,6 +23,9 @@ type variantInstruction struct {
 }
 type variantImage struct {
 	regions map[string]*variantRegions
+	// rotated lists, per function, the loop headers whose test the Z80
+	// generator repeated at the latch ("; loop rotation: test of H" marker).
+	rotated map[string]map[string]bool
 
 	binary  []byte
 	symbols map[string]int
@@ -44,10 +47,16 @@ func assembleVariant(s Steps) (*variantImage, error) {
 	if len(a.Errors) > 0 {
 		return nil, fmt.Errorf("%v", a.Errors)
 	}
-	im := &variantImage{regions: map[string]*variantRegions{}, binary: a.Binary, symbols: a.Symbols, nodes: map[int]variantInstruction{}, context: map[string][]string{}, abi: map[string]string{}}
+	im := &variantImage{regions: map[string]*variantRegions{}, binary: a.Binary, symbols: a.Symbols, nodes: map[int]variantInstruction{}, context: map[string][]string{}, abi: map[string]string{}, rotated: map[string]map[string]bool{}}
 	owners := map[int]string{}
 	owner := ""
 	for i, line := range strings.Split(asm, "\n") {
+		if rest, ok := strings.CutPrefix(strings.TrimSpace(line), "; loop rotation: test of "); ok && owner != "" {
+			if im.rotated[owner] == nil {
+				im.rotated[owner] = map[string]bool{}
+			}
+			im.rotated[owner][strings.Fields(rest)[0]] = true
+		}
 		if strings.HasPrefix(line, "; fun ") {
 			owner, _, _ = strings.Cut(strings.TrimPrefix(line, "; fun "), "(")
 			im.abi[owner] = line
@@ -216,6 +225,63 @@ type variantLoop struct {
 	fact    mir2.StaticLoop
 	exits   map[int]int64
 	active  bool
+	rotated bool // head is the body of a rotated while loop (rotatedLoopFacts)
+}
+
+// rotatedLoopFacts maps code addresses to the facts of rotated loops. The Z80
+// generator may repeat a small while-loop header test H at the latch (loop
+// rotation); the emitted back edge then targets H's in-loop successor S, and
+// H's own copy only guards entry. S runs once per trip, so a while loop of n
+// trips becomes a bottom-tested loop of n trips (Counted: n-1 back edges).
+// Only loops whose emitted code carries the rotation marker for H, plain
+// while-loop facts with a natural loop, a successor S whose only
+// predecessor is H, and a nonzero trip count are translated; anything else
+// stays unscored. The map is consulted only for back-edge targets without a
+// fact of their own.
+func (im *variantImage) rotatedLoopFacts(f *mir2.Func) (map[int]mir2.StaticLoop, bool) {
+	out := map[int]mir2.StaticLoop{}
+	preds := map[string]int{}
+	for _, b := range f.Blocks {
+		if b.Term != nil {
+			for _, s := range b.Term.Successors() {
+				preds[s]++
+			}
+		}
+	}
+	for _, l := range mir2.AnalyzeNaturalLoops(f) {
+		fact, ok := f.StaticLoops[l.Header.Label]
+		if !ok || fact.Counted || fact.Trips == 0 || l.Header.Term == nil || !im.rotated[f.Name][l.Header.Label] {
+			continue
+		}
+		var body string
+		for _, s := range l.Header.Term.Successors() {
+			if l.Blocks[s] && s != l.Header.Label {
+				if body != "" && body != s {
+					body = ""
+					break
+				}
+				body = s
+			}
+		}
+		if body == "" || preds[body] != 1 {
+			continue
+		}
+		if _, own := f.StaticLoops[body]; own {
+			continue
+		}
+		rotated := fact
+		rotated.Counted = true
+		suffix := "_" + body
+		for symbol, pc := range im.symbols {
+			if strings.Contains(symbol, ".") && strings.HasSuffix(symbol, suffix) && im.nodes[pc].owner == f.Name {
+				if old, exists := out[pc]; exists && old != rotated {
+					return nil, false
+				}
+				out[pc] = rotated
+			}
+		}
+	}
+	return out, true
 }
 
 const variantCostLimit int64 = 1 << 55
@@ -337,18 +403,30 @@ func (im *variantImage) score(f *mir2.Func) (int64, bool) {
 		}
 	}
 	loops := map[int]*variantLoop{}
+	var rotatedFacts map[int]mir2.StaticLoop
 	for n := range reachable {
 		for _, e := range im.nodes[n].edges {
 			if e.to == -1 || !dominates(e.to, n) {
 				continue
 			}
 			fact, ok := facts[e.to]
+			rotated := false
 			if !ok {
-				return 0, false
+				if rotatedFacts == nil {
+					rotatedFacts, ok = im.rotatedLoopFacts(f)
+					if !ok {
+						return 0, false
+					}
+				}
+				fact, ok = rotatedFacts[e.to]
+				if !ok {
+					return 0, false
+				}
+				rotated = true
 			}
 			l := loops[e.to]
 			if l == nil {
-				l = &variantLoop{head: e.to, fact: fact, members: map[int]bool{e.to: true}}
+				l = &variantLoop{head: e.to, fact: fact, members: map[int]bool{e.to: true}, rotated: rotated}
 				loops[e.to] = l
 			}
 			var collect func(int)
@@ -515,6 +593,15 @@ func (im *variantImage) score(f *mir2.Func) (int64, bool) {
 				}
 				if outside == 1 && l.fact.Trips >= 0 {
 					controller = true
+				}
+			} else if l.rotated && l.fact.Trips > 0 {
+				// The guard of a rotated loop: the header test at its own
+				// label decides only whether a loop of known positive trips
+				// is entered, so its loop-entering arm is the exact path.
+				for _, e := range im.nodes[pc].edges {
+					if e.to == l.head {
+						controller = true
+					}
 				}
 			}
 		}

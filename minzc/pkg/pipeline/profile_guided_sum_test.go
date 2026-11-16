@@ -183,7 +183,11 @@ func TestProfileGuidedSumVMZ80(t *testing.T) {
 			if output != "" {
 				dir = filepath.Join(output, variant, fmt.Sprintf("n%d", n))
 			}
-			cycles, size := measureProfileZ80(t, h, "sum_array", Options{AssertMode: "none"}, []int64{0x4000, n}, memory, want, dir)
+			// PGO products compile without loop rotation until
+			// hir.LoopCostModel has a zero-trip entry for the original loop,
+			// so the plain "original" side is the unrotated plain compile.
+			// Profile-applied variants are unrotated by the pipeline itself.
+			cycles, size := measureProfileZ80(t, h, "sum_array", Options{AssertMode: "none", DisableLoopRotation: variant == "original"}, []int64{0x4000, n}, memory, want, dir)
 			expected := 41 + 54*int(n)
 			expectedSize := int(model.OriginalBytes)
 			if variant != "original" {

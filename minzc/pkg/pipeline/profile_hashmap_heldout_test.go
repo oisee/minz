@@ -176,8 +176,10 @@ func TestHashmapMeasuredTrainingAndUnseenWorkload(t *testing.T) {
 		// The measured candidates compile with an applied ordered-byte-rw policy,
 		// which disables variant search; the baseline uses the same configuration so
 		// its binary is the all-original candidate rather than an independently
-		// searched program.
-		baselineSteps, err := CompileHIRSteps(baselineModule, Options{AssertMode: "none", DisableVariantSearch: true})
+		// searched program. PGO products compile without loop rotation until
+		// hir.LoopCostModel has a zero-trip entry for the original loop, so the
+		// plain baseline is the unrotated plain compile.
+		baselineSteps, err := CompileHIRSteps(baselineModule, Options{AssertMode: "none", DisableVariantSearch: true, DisableLoopRotation: true})
 		if err != nil {
 			t.Fatal(err)
 		}

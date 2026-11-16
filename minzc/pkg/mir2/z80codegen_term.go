@@ -163,7 +163,7 @@ func (g *z80cg) genTerm(f *Func, t Term) {
 		g.emitParallelCopy(copies)
 		// Fall-through elimination: if the target is the very next physical block,
 		// the JR is redundant — execution falls through naturally.
-		if !g.isFallThrough(f, t.Target) {
+		if !g.isFallThrough(f, t.Target) && !g.tryRotateLoop(f, t) {
 			g.emitf("    JRS %s", blockLabel(f.Name, t.Target))
 		}
 
