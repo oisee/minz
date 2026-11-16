@@ -62,8 +62,9 @@ func TestProfileGuidedSumVMZ80(t *testing.T) {
 	// compare through A (no SBC HL) then removed 29T from the fast/equality
 	// entries and 38T from the fallback entry: pointer variant 221 B,
 	// fast 152+37*n, zero-length entry 153, equality extra 0,
-	// fallback 188+78*n T.
-	model := hir.LoopCostModel{CompilerID: context.CompilerID, SemanticsID: context.SemanticsID, Function: "sum_array", HIRSHA256: profileRun.Profile.Compatibility.HIRSHA256, TargetID: context.TargetID, EvidenceID: "sum-array-z80-acc-pressure-v14", OriginalBytes: 171, PointerBytes: 221, OriginalEntry: 41, OriginalIteration: 54, EqualEntryExtra: 0, FastEntry: 152, FastIteration: 37, FastZeroEntry: 153, FastZeroMeasured: true, FallbackEntry: 188, FallbackIteration: 78, FallbackMeasured: true}
+	// fallback 188+78*n T.  The multi-block pointer-walk changes (W-B)
+	// then removed one byte from the pointer variant: 220 B, T unchanged.
+	model := hir.LoopCostModel{CompilerID: context.CompilerID, SemanticsID: context.SemanticsID, Function: "sum_array", HIRSHA256: profileRun.Profile.Compatibility.HIRSHA256, TargetID: context.TargetID, EvidenceID: "sum-array-z80-acc-pressure-v15", OriginalBytes: 171, PointerBytes: 220, OriginalEntry: 41, OriginalIteration: 54, EqualEntryExtra: 0, FastEntry: 152, FastIteration: 37, FastZeroEntry: 153, FastZeroMeasured: true, FallbackEntry: 188, FallbackIteration: 78, FallbackMeasured: true}
 	decisions, e := hir.SelectLoopVariants(bytes.NewReader(profileJSON), input, context, model, false)
 	if e != nil {
 		t.Fatal(e)
@@ -182,7 +183,11 @@ func TestProfileGuidedSumVMZ80(t *testing.T) {
 			if output != "" {
 				dir = filepath.Join(output, variant, fmt.Sprintf("n%d", n))
 			}
-			cycles, size := measureProfileZ80(t, h, "sum_array", Options{AssertMode: "none"}, []int64{0x4000, n}, memory, want, dir)
+			// PGO products compile without loop rotation until
+			// hir.LoopCostModel has a zero-trip entry for the original loop,
+			// so the plain "original" side is the unrotated plain compile.
+			// Profile-applied variants are unrotated by the pipeline itself.
+			cycles, size := measureProfileZ80(t, h, "sum_array", Options{AssertMode: "none", DisableLoopRotation: variant == "original"}, []int64{0x4000, n}, memory, want, dir)
 			expected := 41 + 54*int(n)
 			expectedSize := int(model.OriginalBytes)
 			if variant != "original" {

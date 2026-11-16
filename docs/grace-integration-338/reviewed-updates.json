@@ -350,9 +350,9 @@
     "native_behavior": "executed-independent-vm-z80",
     "workload": "sum_array: lengths 0,1,5,16,64,255 on ramp resource; separate fresh measured 1022 u8-length/address-family cases before/after forwarding-cycle elimination",
     "independent_model": "Ramp n*(n+1)/2 modulo256; measured corpus uses independent sequential modulo256 sum of each recorded input, checked against raw MIR2 and assembled Z80",
-    "boundary": "Named sum_array entry; original main not executed. Current ordinary-options baseline 41+54*n T/171 module bytes (F6 constant rematerialisation is profitability-gated off here: sum_array neither spills nor holds a constant live across a call); guarded fast 152+37*n T (zero153 T) under the acc-pressure allocation recipe with the branch-only unsigned u16 compare through A removing 29T from fast/equality entries and 38T from fallback, guarded module221 B; fallback188+78*n T, remeasured over the 1022-row corpus by TestMeasureLoopCostModel. Profitability boundary6/7 separately executed. Older reports retain historical costs, not current evidence.",
+    "boundary": "Named sum_array entry; original main not executed. Current ordinary-options baseline 41+54*n T/171 module bytes (F6 constant rematerialisation is profitability-gated off here: sum_array neither spills nor holds a constant live across a call); guarded fast 152+37*n T (zero153 T) under the acc-pressure allocation recipe with the branch-only unsigned u16 compare through A removing 29T from fast/equality entries and 38T from fallback, guarded module220 B after the multi-block pointer walks (one byte smaller, T unchanged); fallback188+78*n T, remeasured over the 1022-row corpus by TestMeasureLoopCostModel. Profitability boundary6/7 separately executed. Older reports retain historical costs, not current evidence.",
     "evidence": {
-      "minzc/pkg/pipeline/profile_guided_sum_test.go": "614b8b56c413bb8e0403831aa631b5b5a0bc9ac475f83769f614e669248aabeb",
+      "minzc/pkg/pipeline/profile_guided_sum_test.go": "53135de1dede73b0eecbe4df883c9f08aba58df7ebddb1e9a6365d13fa3a594f",
       "reports/profile-coalesced-edge-costs/root.txt": "7685133d9d5ccb2e269f3b444ec9dfe4be6d6977348fcffe4fae6766fe9a3eb1",
       "reports/copy-fat12-optimization/validation/minz-copy-fat-cost-regression.log": "c5c82ca7bd785f30c0c0f7cc700494df2609870fadec8db408fca0327067a18c",
       "research/generator-fusion/dead-params/evidence/profile-before-evidence.json": "83bca5c1707c0b39edfa1f966ae1d4e64eb02c2793390c9b27e62b92c0b58e19",
@@ -599,7 +599,7 @@
     "boundary": "Named map entries with workload adapters; CP/M output main not executed.",
     "evidence": {
       "minzc/pkg/pipeline/hashmap_program_test.go": "42ba994ca77d964ead22448cf92b911fe21fd68c38007bec527e6558b238b4c0",
-      "minzc/pkg/pipeline/profile_hashmap_heldout_test.go": "8234b5f610cc1caeece5a7aceb47850ae9d4fb15df21e85f2edf0d178e35e1bc"
+      "minzc/pkg/pipeline/profile_hashmap_heldout_test.go": "9bf9a8779ea6d339c129b6c54bfcec5bcd833c9613690831bc75ce0a819aed1d"
     }
   },
   {
@@ -1651,7 +1651,7 @@
     "boundary": "fib255 exact repeated native register state/nonreturn; otherfib0..254, bounded arrays; no Grace gain",
     "evidence": {
       "reports/advantage-native/manifest.json": "57bd5233d9993fbc542cc3ceda33867f6ca8416965e18046b62c49e899f371f9",
-      "minzc/pkg/pipeline/original_advantage_native_test.go": "9e96934e871dc1c9d3f0c803eca91e11699676985c617be719c3b830fb05b005"
+      "minzc/pkg/pipeline/original_advantage_native_test.go": "18d130e0c8b5c3f5e77f4487ef8cc35f3c4457fa3ea89eb863d7cdbf9ab76f85"
     }
   },
   {

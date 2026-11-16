@@ -115,7 +115,7 @@ func (g *z80cg) pickScratch8(upcomingInst *Inst) string {
 // freeScratch8 reports exhaustion rather than selecting an occupied register.
 func (g *z80cg) freeScratch8(upcomingInst *Inst) string {
 	live := g.regsLiveAfterInst(upcomingInst)
-	for _, r := range upcomingInst.Uses() {
+	for _, r := range g.instReads(upcomingInst) {
 		live[r] = true
 	}
 	live[upcomingInst.Dst] = true
@@ -321,6 +321,9 @@ func (g *z80cg) genCmp(inst *Inst) {
 		}
 		g.cmpBranchCC[inst.Dst] = cc
 		g.pendingFlagReg = inst.Dst
+		return
+	}
+	if g.genFusedExtCmp16(inst) {
 		return
 	}
 	if g.tryAddCarryCmp(inst) {

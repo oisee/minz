@@ -169,6 +169,16 @@ func variantHIRFunctions(m *hir.Module, o Options) map[string]bool {
 // variantSearchMaxFuncs bounds the module size searched by default.
 const variantSearchMaxFuncs = 32
 
+// measuredLoopConfiguration reports a profile-measured or replayed
+// configuration: an explicit profile selection, HIR loop-site collection, or
+// any measured HIR policy or loop lineage on the module.
+func measuredLoopConfiguration(h *hir.Module, o Options) bool {
+	return o.ProfileSelection != nil || o.CollectHIRSites || h != nil && (h.OrderedByteRWPolicy != nil || h.OrderedBytePolicy != nil ||
+		h.RegionComparePolicy != nil || h.InvariantBasePolicy != nil ||
+		h.GraceRulePolicy != nil || h.ForwardCopyPolicy != nil ||
+		h.PointerWalkPolicy != nil || h.LoopLineage != nil)
+}
+
 func variantSearchEnabled(h *hir.Module, options []Options) bool {
 	o := DefaultOptions()
 	if len(options) > 0 {
@@ -218,11 +228,48 @@ func compileVariantSearch(source *hir.Module, options ...Options) (Steps, error)
 	o.AssertMode = "none"
 	o.GraceStats = nil
 	o.FunctionVariants = map[string]FunctionVariant{}
+	// Trials are compared without Z80 loop rotation: the static model and the
+	// no-growth gate were built for test-at-top loops, and rotation would make
+	// equal recipes incomparable. The selected recipe is compiled once more
+	// with the caller's rotation setting (rotateSelected).
+	rotationOff := o.DisableLoopRotation
+	o.DisableLoopRotation = true
+	// Several products are compiled; the emitted one alone reports its
+	// Z80-VALIDATE diagnostics (emitSelected).
+	o.deferZ80Validation = !rotationOff
+	emitSelected := func(s Steps) Steps {
+		for _, text := range s.z80ValidationLog {
+			fmt.Print(text)
+		}
+		s.z80ValidationLog = nil
+		return s
+	}
 	var compiledStats *mir2.GraceStats
 	compile := func() (Steps, error) {
 		compiledStats = mir2.NewGraceStats()
 		o.GraceStats = compiledStats
 		return CompileHIRSteps(hir.CloneModule(prepared), o)
+	}
+	rotateSelected := func(s Steps, st *mir2.GraceStats) (Steps, *mir2.GraceStats, error) {
+		if rotationOff {
+			return s, st, nil
+		}
+		o.DisableLoopRotation = false
+		o.variantMIRReady = nil
+		final, err := compile()
+		o.DisableLoopRotation = true
+		if err != nil {
+			return s, st, err
+		}
+		// Rotation changes emission only. Should the recompiled product
+		// differ in any earlier stage, keep the product that was measured.
+		if final.MIR2Opt != s.MIR2Opt || final.MIR2Module == nil || s.MIR2Module == nil || final.MIR2Module.Dump() != s.MIR2Module.Dump() || !reflect.DeepEqual(final.Allocation, s.Allocation) {
+			return s, st, nil
+		}
+		// Reports describe the measured product; the recompile pins its
+		// flag-return contracts and would only report them as pinned.
+		final.VariantDecisions, final.VariantSearch, final.FlagReturns = s.VariantDecisions, s.VariantSearch, s.FlagReturns
+		return final, compiledStats, nil
 	}
 	var searchStats VariantSearchStats
 	seenMIR := map[[32]byte]bool{}
@@ -253,6 +300,10 @@ func compileVariantSearch(source *hir.Module, options ...Options) (Steps, error)
 	o.variantInlinedCallers = nil
 	image, err := assembleVariant(best)
 	if err != nil { // Unsupported assembly cannot admit any scored candidate.
+		if best, bestStats, err = rotateSelected(best, bestStats); err != nil {
+			return best, err
+		}
+		best = emitSelected(best)
 		mergeGraceStats(stats, bestStats)
 		return finishVariantSearch(source, best, mode)
 	}
@@ -473,6 +524,10 @@ func compileVariantSearch(source *hir.Module, options ...Options) (Steps, error)
 	}
 	best.VariantDecisions = decisions
 	best.VariantSearch = searchStats
+	if best, bestStats, err = rotateSelected(best, bestStats); err != nil {
+		return best, err
+	}
+	best = emitSelected(best)
 	for _, d := range decisions {
 		if tr := best.Traces[d.Function]; tr != nil {
 			tr.Variant = fmt.Sprintf("%s/%s/%d->%d", d.Model, d.Recipe, d.Before, d.After)

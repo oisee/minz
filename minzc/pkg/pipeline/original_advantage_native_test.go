@@ -408,7 +408,12 @@ func TestOriginalAdvantageNative(t *testing.T) {
 							t.Fatal("fib255 expected budget nonreturn", v, e)
 						}
 					}
-					head, ok := image.Symbols["fib.fib_loop_head3"]
+					headLabel := "fib.fib_loop_head3"
+					// A rotated loop is re-entered at its body, not its header.
+					if target := rotatedBackEdgeTarget(s.Assembly, "fib", "loop_head3"); target != "" {
+						headLabel = "fib" + target
+					}
+					head, ok := image.Symbols[headLabel]
 					if !ok {
 						t.Fatal("fib loophead symbol")
 					}
