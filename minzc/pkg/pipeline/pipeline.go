@@ -103,6 +103,8 @@ type Options struct {
 	// FunctionVariants overrides recipes in complete-module candidate compiles.
 	FunctionVariants map[string]FunctionVariant `json:",omitempty"`
 	variantCandidate bool
+	// quietZ80Validation: this product is recompiled before it is emitted.
+	quietZ80Validation bool
 	// Search-only checkpoint: false refuses a trial before native compilation.
 	variantPrepared          bool
 	variantNativeAlternative bool
@@ -641,6 +643,7 @@ func compileMIRProductSteps(hm *hir.Module, opt Options, s Steps, splitInfo map[
 			AnnotateTStates:           opt.AnnotateTStates,
 			UnsignedPairComparePolicy: s.UnsignedPairComparePolicy,
 			DisableLoopRotation:       opt.DisableLoopRotation,
+			QuietValidation:           opt.quietZ80Validation,
 		})
 		if codegenErr != nil {
 			return s, codegenErr

@@ -157,7 +157,7 @@ func (g *z80cg) tryRotateLoop(f *Func, t *TermJmp) bool {
 	if ok {
 		total, ok = asmByteSize(text)
 	}
-	ok = ok && testBytes <= loopRotationMaxTestBytes && total <= loopRotationMaxBytes && !definesLabel(text)
+	ok = ok && testBytes <= loopRotationMaxTestBytes && total <= loopRotationMaxBytes && !definesLabel(text) && !g.jumpsUnconditionallyIntoLoop(f, latch, head, text)
 	// Size mode: the copy replaces a two-byte JR and may not cost more,
 	// including any edge trampolines it registered.
 	if ok && g.optimizeForSize && (total > 2 || len(g.trampolines) != nTramp) {
@@ -174,6 +174,35 @@ func (g *z80cg) tryRotateLoop(f *Func, t *TermJmp) bool {
 	g.sb.WriteString(fmt.Sprintf("    ; loop rotation: test of %s repeated at the back edge\n", head.Label))
 	g.sb.WriteString(text)
 	return true
+}
+
+// jumpsUnconditionallyIntoLoop reports whether the copy reaches the loop body
+// by an unconditional jump (directly or through an edge trampoline), as a
+// two-jump condition does when the body is its fall-through arm (CGT/CLE).
+// Such a copy costs the same JR per iteration that it was meant to remove.
+// The in-loop successors are those that dominate the latch.
+func (g *z80cg) jumpsUnconditionallyIntoLoop(f *Func, latch, head *Block, text string) bool {
+	into := map[string]bool{}
+	for _, s := range head.Term.Successors() {
+		if g.dom[latch.Label][s] {
+			into[blockLabel(f.Name, s)] = true
+		}
+	}
+	for _, t := range g.trampolines {
+		if into[t.target] {
+			into[t.label] = true
+		}
+	}
+	for _, line := range strings.Split(text, "\n") {
+		fields := strings.Fields(strings.SplitN(line, ";", 2)[0])
+		if len(fields) == 2 && into[fields[1]] {
+			switch strings.ToUpper(fields[0]) {
+			case "JR", "JRS", "JP":
+				return true
+			}
+		}
+	}
+	return false
 }
 
 // shareRotationTrampolines points the copy's edges at an identical trampoline

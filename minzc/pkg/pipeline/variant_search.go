@@ -218,11 +218,39 @@ func compileVariantSearch(source *hir.Module, options ...Options) (Steps, error)
 	o.AssertMode = "none"
 	o.GraceStats = nil
 	o.FunctionVariants = map[string]FunctionVariant{}
+	// Trials are compared without Z80 loop rotation: the static model and the
+	// no-growth gate were built for test-at-top loops, and rotation would make
+	// equal recipes incomparable. The selected recipe is compiled once more
+	// with the caller's rotation setting (rotateSelected).
+	rotationOff := o.DisableLoopRotation
+	o.DisableLoopRotation = true
+	// The emitted product is then the final compile; it alone reports
+	// Z80-VALIDATE diagnostics.
+	o.quietZ80Validation = !rotationOff
 	var compiledStats *mir2.GraceStats
 	compile := func() (Steps, error) {
 		compiledStats = mir2.NewGraceStats()
 		o.GraceStats = compiledStats
 		return CompileHIRSteps(hir.CloneModule(prepared), o)
+	}
+	rotateSelected := func(s Steps, st *mir2.GraceStats) (Steps, *mir2.GraceStats, error) {
+		if rotationOff {
+			return s, st, nil
+		}
+		o.DisableLoopRotation, o.quietZ80Validation = false, false
+		o.variantMIRReady = nil
+		final, err := compile()
+		o.DisableLoopRotation, o.quietZ80Validation = true, true
+		if err != nil {
+			return s, st, err
+		}
+		// Rotation changes emission only. Should the recompiled product
+		// differ in any earlier stage, keep the product that was measured.
+		if final.MIR2Opt != s.MIR2Opt || final.MIR2Module == nil || s.MIR2Module == nil || final.MIR2Module.Dump() != s.MIR2Module.Dump() || !reflect.DeepEqual(final.Allocation, s.Allocation) {
+			return s, st, nil
+		}
+		final.VariantDecisions, final.VariantSearch = s.VariantDecisions, s.VariantSearch
+		return final, compiledStats, nil
 	}
 	var searchStats VariantSearchStats
 	seenMIR := map[[32]byte]bool{}
@@ -253,6 +281,9 @@ func compileVariantSearch(source *hir.Module, options ...Options) (Steps, error)
 	o.variantInlinedCallers = nil
 	image, err := assembleVariant(best)
 	if err != nil { // Unsupported assembly cannot admit any scored candidate.
+		if best, bestStats, err = rotateSelected(best, bestStats); err != nil {
+			return best, err
+		}
 		mergeGraceStats(stats, bestStats)
 		return finishVariantSearch(source, best, mode)
 	}
@@ -473,6 +504,9 @@ func compileVariantSearch(source *hir.Module, options ...Options) (Steps, error)
 	}
 	best.VariantDecisions = decisions
 	best.VariantSearch = searchStats
+	if best, bestStats, err = rotateSelected(best, bestStats); err != nil {
+		return best, err
+	}
 	for _, d := range decisions {
 		if tr := best.Traces[d.Function]; tr != nil {
 			tr.Variant = fmt.Sprintf("%s/%s/%d->%d", d.Model, d.Recipe, d.Before, d.After)
