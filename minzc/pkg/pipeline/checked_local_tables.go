@@ -118,7 +118,13 @@ func applyCheckedLocalTables(asm string, m *mir2.Module, allocation *mir2.AllocR
 		if headerEnd >= 0 && candidateHeaderEnd >= 0 {
 			candidate = baseline[:headerEnd+1] + candidate[candidateHeaderEnd+1:]
 		}
-		asm = asm[:start] + candidate + asm[end:]
+		spliced := asm[:start] + candidate + asm[end:]
+		// Callers were narrowed against the production body's proven writes;
+		// a candidate writing anything more keeps the production body.
+		if !options.NoExactClobbers && !mir2.SpliceKeepsClobbers(f, spliced) {
+			continue
+		}
+		asm = spliced
 		if tr := traces[f.Name]; tr != nil {
 			tr.Backend = "checked-local-table"
 		}

@@ -133,6 +133,49 @@ func truncateNativeSinks(o Z80CodegenOptions, n [3]int) {
 	}
 }
 
+// SpliceKeepsClobbers reports whether asm, a complete product in which f's
+// body was replaced after Z80Codegen, still honours the clobber set f's header
+// declares. Under exact clobbers that header is what callers were narrowed
+// against; a header declaring every caller-save register constrains nothing.
+// A spliced body that cannot be proved, or writes a register the header does
+// not declare, must not be used.
+func SpliceKeepsClobbers(f *Func, asm string) bool {
+	if f == nil {
+		return false
+	}
+	label := sanitizeIdent(f.Name)
+	at := strings.Index(asm, "\n"+label+":\n")
+	if at < 0 {
+		return false
+	}
+	h := strings.LastIndex("\n"+asm[:at], "\n; fun ") // index into asm
+	if h < 0 {
+		return false
+	}
+	header, _, _ := strings.Cut(asm[h:], "\n")
+	_, clause, ok := strings.Cut(header, " ; clobbers: ")
+	if !ok {
+		return false
+	}
+	var declared z80effects.Registers
+	for _, name := range strings.Split(clause, ",") {
+		declared |= z80effects.Register(name)
+	}
+	if declared&exactClobberMask() == exactClobberMask() {
+		return true
+	}
+	writes, reason := exactWritesReason(f, asm)
+	if reason != "" {
+		return false
+	}
+	for name := range writes {
+		if declared&z80effects.Register(name) == 0 {
+			return false
+		}
+	}
+	return true
+}
+
 // emittedLeafByteWrites is the #245 proof, kept for --no-exact-clobbers:
 // one straight-line block of a few ALU/LD forms returning a byte in A.
 func emittedLeafByteWrites(f *Func, asm string) (map[string]bool, bool) {
