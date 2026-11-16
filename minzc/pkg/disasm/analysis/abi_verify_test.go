@@ -160,3 +160,24 @@ func TestVerifyABI_Match(t *testing.T) {
 		}
 	}
 }
+
+// A conservative clobber list is not a defect; an undeclared write is.
+func TestVerifyABI_ClobberOverDeclaredIsNotMismatch(t *testing.T) {
+	declared := []*DeclaredFunc{
+		{Name: "leaf", In: RegA, Out: RegA, Clobber: RegBC | RegDE | RegHL},
+		{Name: "bad", In: RegA, Out: RegA, Clobber: RegBC},
+	}
+	detected := map[uint16]*FuncRegInfo{
+		0x100: {In: RegA, Out: RegA, Clobber: RegB},
+		0x200: {In: RegA, Out: RegA, Clobber: RegB | RegH},
+	}
+	funcMap := map[string]uint16{"leaf": 0x100, "bad": 0x200}
+
+	mismatches := VerifyABI(declared, detected, funcMap)
+	if len(mismatches) != 1 || mismatches[0].FuncName != "bad" || mismatches[0].Field != "CLOBBER" || mismatches[0].Extra != RegH {
+		for _, m := range mismatches {
+			t.Errorf("got mismatch: %s", m)
+		}
+		t.Fatalf("want exactly one CLOBBER mismatch for bad with extra H, got %d", len(mismatches))
+	}
+}
