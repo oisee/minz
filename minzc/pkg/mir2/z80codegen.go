@@ -853,6 +853,9 @@ type z80cg struct {
 	// When genCmp is about to emit "LD A, imm", if pendingAccReg is still live
 	// downstream, it emits LD D,A and reroutes pendingAccReg to "D".
 	widenedByteAdds map[*Inst]bool // adjacent ext/add pairs emitted at the extension
+	fusedExt        map[Reg]string // suppressed zero-extensions → source byte location
+	ptrAddFolds     map[*Inst]ptrAddFold
+	ptrAddFoldedAdd map[*Inst]bool // adds emitted by their ptr_add (ptrAddConstantFolds)
 	pendingAccReg   Reg
 
 	// ptrAddPushHL: set by scanPtrAddBase when a ptr_add's base is in HL and
@@ -1024,6 +1027,12 @@ func computeDeadConsts(f *Func, ar *AllocResult) map[Reg]bool {
 
 	totalUses := make(map[Reg]int)
 	foldedUses := make(map[Reg]int)
+	// A constant offset folded into a ptr_add's symbol immediate is not read
+	// either (ptrAddConstantFolds): its add emits nothing.
+	ptrAddFoldK := map[*Inst]Reg{}
+	for _, fold := range ptrAddConstantFolds(f, constVal) {
+		ptrAddFoldK[fold.add] = fold.k
+	}
 
 	for _, b := range f.Blocks {
 		for _, inst := range b.Insts {
@@ -1052,6 +1061,10 @@ func computeDeadConsts(f *Func, ar *AllocResult) map[Reg]bool {
 					continue
 				}
 				totalUses[src]++
+				if k, ok := ptrAddFoldK[inst]; ok && k == src {
+					foldedUses[src]++
+					continue
+				}
 				switch inst.Op {
 				case OpCmp:
 					// Word zero tests do not read the RHS allocation. Require the
@@ -1155,6 +1168,9 @@ func computeDeadConsts(f *Func, ar *AllocResult) map[Reg]bool {
 			dead[r] = true
 		}
 	}
+	for r := range deadAddressConstants(f) {
+		dead[r] = true
+	}
 	return dead
 }
 
@@ -1208,6 +1224,7 @@ func (g *z80cg) genFunc(f *Func) {
 	g.cmpNeedsTwo = make(map[Reg]bool)
 	g.callFlags = make(map[Reg]CmpCond)
 	g.constVals = make(map[Reg]int64)
+	g.fusedExt = make(map[Reg]string)
 	// Build set of block-parameter registers: their values change per iteration
 	// (even if PreallocCoalesce merged an OpConst into the same Reg). Excluding
 	// them from constVals prevents the codegen from treating loop counters as
@@ -1219,6 +1236,11 @@ func (g *z80cg) genFunc(f *Func) {
 		}
 	}
 	g.deadConsts = computeDeadConsts(f, g.ar)
+	g.ptrAddFolds = ptrAddConstantFolds(f, functionConstants(f))
+	g.ptrAddFoldedAdd = make(map[*Inst]bool, len(g.ptrAddFolds))
+	for _, fold := range g.ptrAddFolds {
+		g.ptrAddFoldedAdd[fold.add] = true
+	}
 	// TSMC spill: scan for spill-reload pairs in non-recursive functions.
 	g.tsmcPairs = nil
 	if !isRecursive(f) && g.runtime != Z80RuntimeCPM {

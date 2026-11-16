@@ -252,6 +252,7 @@
     "TestImmediateIndexNativeWrap",
     "TestIndexedActualHistoricalENRT",
     "TestIndexedHistoricalTripleNative",
+    "TestIndexedLoopPointerWalkNative",
     "TestIndexedQuotientWeightedNative",
     "TestIndexedShapeCorpusCoverage",
     "TestIndexedSourceCloneProposalReuse",
