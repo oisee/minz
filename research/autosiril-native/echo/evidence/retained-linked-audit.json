@@ -8,8 +8,8 @@
     "max_row",
     "flattened"
   ],
-  "image_bytes": 39830,
-  "image_sha256": "0b0b149521ef2c949bbd652309ce7e47d406ec75da1d6fc765d39d4ddf5bb3c6",
+  "image_bytes": 39818,
+  "image_sha256": "718c2a42d1d5c3092f912a4a988767631c373f87b8ff54607274c832e34ce1da",
   "scope": "current compiler preserves in-process pairing/flatten image;9 whole pipelines/36 phase observations; VT text header not used by this consumer",
   "source_sha256": {
     "research/autosiril-native/linked/compose.py": "76577d6aae0d6fab45577868cc060067ae48e3398a18c48a3d7973e80ab33a2a",
