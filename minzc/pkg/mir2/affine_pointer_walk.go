@@ -574,6 +574,11 @@ func affinePointerIndexRange(l *NaturalLoop, iv LoopInduction, defs map[Reg]*Ins
 	return 0, 0, false
 }
 
+// affineLoopByteBudget is HL+DE+BC (6 bytes) plus A for one byte of loop
+// state. On the corpus every profitable walk uses at most 7; the two loops
+// that grew (init_sine, pixel_actor_attributes) need 8.
+const affineLoopByteBudget = 7
+
 // Reject partial walks before making any edits. A surviving index address
 // needs HL as scratch while the new loop-carried pointers occupy the pairs.
 //
@@ -619,17 +624,31 @@ func affinePointerProfitable(f *Func, l *NaturalLoop, iv LoopInduction, candidat
 	}
 	needed := affineNeeded(f, l, replaced, defs, counter)
 	// Persistent word state includes surviving loop parameters and invariant
-	// words needed on subsequent iterations. Rematerialised constants/addresses
-	// are excluded. Reserve BC for counters; only HL and DE budget walks/state.
+	// words needed on subsequent iterations. A constant or address computed
+	// inside the loop is rematerialised and costs nothing, but a header
+	// parameter rooted in one is not: MIR2 does not propagate trivial phis, so
+	// the allocator keeps it in a pair for the whole loop (the `256` bound of
+	// `for i in 0..256`). Reserve BC for counters; only HL and DE budget
+	// walks/state.
 	words := walks
 	state := map[Reg]bool{}
+	pinned := map[Reg]bool{}
+	loopBytes := 0
 	for _, p := range l.Header.Params {
-		if needed[p.Dst] && p.Ty.Width() == 16 {
+		if !needed[p.Dst] || p.Ty == nil {
+			continue
+		}
+		if p.Ty.Width() == 8 {
+			loopBytes++
+			continue
+		}
+		if p.Ty.Width() == 16 {
 			r := p.Dst
 			if root, ok := l.Invariant[r]; ok {
 				r = root
 			}
 			state[r] = true
+			pinned[r] = true
 		}
 	}
 	for r := range needed {
@@ -638,7 +657,7 @@ func affinePointerProfitable(f *Func, l *NaturalLoop, iv LoopInduction, candidat
 		}
 	}
 	for r := range state {
-		if x := defs[r]; x != nil && (x.Op == OpConst || x.Op == OpAddrOf) {
+		if x := defs[r]; x != nil && (x.Op == OpConst || x.Op == OpAddrOf) && !pinned[r] {
 			continue
 		}
 		words++
@@ -650,7 +669,22 @@ func affinePointerProfitable(f *Func, l *NaturalLoop, iv LoopInduction, candidat
 	// temporary in the body has no pair left and is spilled to IX/IY on every
 	// iteration, which costs more than the indexed loop it replaces. The
 	// widening byte add `state + ext(byte)` needs no pair and is not counted.
-	if counter != nil && words == 2 && affineWordTemporary(f, l, replaced, needed) {
+	temp := affineWordTemporary(f, l, replaced, needed)
+	if counter != nil && words == 2 && temp {
+		return false
+	}
+	// Byte budget: HL, DE and BC plus A for one byte. Pairs, a word
+	// temporary, the counter that replaces the index (B or BC) and the needed
+	// byte loop parameters (accumulators, a byte index without a counter)
+	// must all fit; otherwise the allocator spills loop state to IX/IY.
+	used := 2*words + loopBytes
+	if temp {
+		used += 2
+	}
+	if counter != nil {
+		used += counter.iv.Param.Ty.Width() / 8
+	}
+	if used > affineLoopByteBudget {
 		return false
 	}
 	// Setup is not amortised for a statically tiny loop. Strict ascending and
