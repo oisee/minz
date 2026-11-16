@@ -242,6 +242,12 @@ func compileVariantSearch(source *hir.Module, options ...Options) (Steps, error)
 	if err != nil {
 		return best, err
 	}
+	// Every trial keeps the bool return contracts of this first product:
+	// they are chosen once per module, never per function recipe.
+	o.flagReturnPins = map[string]mir2.CmpCond{}
+	for name, c := range best.FlagReturns.Chosen {
+		o.flagReturnPins[name] = c
+	}
 	bestStats := compiledStats
 	o.variantRawCallers = nil
 	o.variantInlinedCallers = nil

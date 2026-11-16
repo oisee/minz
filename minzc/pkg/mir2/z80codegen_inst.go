@@ -44,6 +44,11 @@ func (g *z80cg) genInst(inst *Inst) {
 
 	// Suppressed immediates do not write their allocated home. In particular,
 	// they must not evict a relocated load before its immediate consumer.
+	// The same holds for an address whose every use is a ptr_add base and
+	// for an add folded into its ptr_add (ptrAddConstantFolds).
+	if inst.Op == OpAddrOf && g.deadConsts[inst.Dst] || g.ptrAddFoldedAdd[inst] {
+		return
+	}
 	if inst.Op == OpConst && g.deadConsts[inst.Dst] && g.loc(inst.Dst) != "F" {
 		if !g.blockParamRegs[inst.Dst] {
 			g.constVals[inst.Dst] = inst.Imm
@@ -58,7 +63,7 @@ func (g *z80cg) genInst(inst *Inst) {
 	// Keep the current destination override: recursive spill staging owns it.
 	liveAfter := g.regsLiveAfterInst(inst)
 	liveOverrides := maps.Clone(liveAfter)
-	for _, r := range inst.Uses() {
+	for _, r := range g.instReads(inst) {
 		liveOverrides[r] = true
 	}
 	delete(liveOverrides, inst.Dst)
@@ -117,6 +122,8 @@ func (g *z80cg) genInst(inst *Inst) {
 		}
 		if dst == "F" {
 			// Bool constant into flag register: SCF (true) or AND A (false, clears C+sets Z).
+			// It is the pending predicate (carry) until a flag writer saves it.
+			g.materializePendingFlag(inst)
 			g.lastFlagsLhs = ""
 			g.lastFlagsRhs = ""
 			if inst.Imm != 0 {
@@ -124,6 +131,7 @@ func (g *z80cg) genInst(inst *Inst) {
 			} else {
 				g.emit("    AND A") // A=A (no change), clears C, sets Z based on A
 			}
+			g.pendingFlagReg = inst.Dst
 			return
 		}
 		if !g.deadConsts[inst.Dst] {
@@ -194,6 +202,15 @@ func (g *z80cg) genInst(inst *Inst) {
 
 	case OpMove:
 		src := g.loc(inst.Src[0])
+		// A copy of a predicate needs a byte home: F holds no byte to copy into.
+		// F holds a known predicate only while it is pending: each flag
+		// producer in F (comparison, call flag return, constant) sets it.
+		if dst == "F" || (src == "F" && inst.Src[0] != g.pendingFlagReg) {
+			if g.err == nil {
+				g.err = fmt.Errorf("z80 codegen: %s: move r%d (%s) <- r%d (%s): a flag copy needs a byte home and a pending source predicate", g.fn.Name, inst.Dst, dst, inst.Src[0], src)
+			}
+			return
+		}
 		if dst == src {
 			return // no-op
 		}
@@ -253,6 +270,9 @@ func (g *z80cg) genInst(inst *Inst) {
 	case OpOr:
 		g.lastFlagsLhs = ""
 		g.lastFlagsRhs = ""
+		if g.genFusedExtOr(inst) {
+			return
+		}
 		g.genBinOp("OR", inst)
 
 	case OpXor:
@@ -426,6 +446,9 @@ func (g *z80cg) genInst(inst *Inst) {
 	case OpShl:
 		g.lastFlagsLhs = ""
 		g.lastFlagsRhs = ""
+		if g.genFusedExtShl(inst) {
+			return
+		}
 		g.genShift("SLA", inst)
 
 	case OpShr:
@@ -441,7 +464,7 @@ func (g *z80cg) genInst(inst *Inst) {
 	case OpPackBytes:
 		g.genPackBytes(inst)
 	case OpExt:
-		if g.genWideningByteAdd(inst) {
+		if g.genWideningByteAdd(inst) || g.tryFuseExt(inst) {
 			return
 		}
 		// Zero-extend srcTy → Ty.  Primary case: u8 → u16 into HL.
@@ -1319,8 +1342,14 @@ func (g *z80cg) genInst(inst *Inst) {
 		// the base; the subsequent OpLoad emits POP HL to restore it.
 		g.lastFlagsLhs = ""
 		g.lastFlagsRhs = ""
+		if g.tryPtrAddForms(inst) {
+			return
+		}
+		// A dead address constant has no materialised home: it is named as
+		// an immediate (sym, or sym+k with a folded add whose index is offReg).
+		baseSym, offReg := g.ptrAddImmediateBase(inst)
 		base := g.loc(inst.Src[0])
-		off := g.loc(inst.Src[1])
+		off := g.loc(offReg)
 		// ADD uses HL as scratch even when the base/result live elsewhere.
 		// Preserve any unrelated live-through HL value (e.g. a loop offset).
 		preserveHL := false
@@ -1347,7 +1376,7 @@ func (g *z80cg) genInst(inst *Inst) {
 		// A byte offset is reused only via zero-extension: a pair holding a
 		// byte value has no guaranteed-zero high byte.
 		offPair := off
-		if info, ok := g.regInfo[inst.Src[1]]; ok && z80ValueWidth(info.Ty) <= 8 {
+		if info, ok := g.regInfo[offReg]; ok && z80ValueWidth(info.Ty) <= 8 {
 			offPair = ""
 		}
 		if offPair != "BC" && offPair != "DE" {
@@ -1374,7 +1403,7 @@ func (g *z80cg) genInst(inst *Inst) {
 		// Place offset into offPair BEFORE moving the base (avoids clobbering
 		// the offset when base and off share a register like DE).
 		if off != offPair {
-			if info, ok := g.regInfo[inst.Src[1]]; ok && z80ValueWidth(info.Ty) <= 8 {
+			if info, ok := g.regInfo[offReg]; ok && z80ValueWidth(info.Ty) <= 8 {
 				// Optimized ptr_add may consume a byte index directly. Its
 				// spill home is one byte, so never reload an adjacent byte.
 				g.genUnsignedExtBytes(offPair, off, 8, 16)
@@ -1387,7 +1416,9 @@ func (g *z80cg) genInst(inst *Inst) {
 		}
 
 		// Get base into HL.
-		if base != "HL" {
+		if baseSym != "" {
+			g.emitf("    LD HL, %s", baseSym)
+		} else if base != "HL" {
 			g.emitMov("HL", base, 16)
 		}
 

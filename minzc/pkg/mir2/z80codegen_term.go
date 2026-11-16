@@ -106,6 +106,7 @@ func (g *z80cg) restoreLiveOutOverrides(f *Func, t Term) {
 // ── Terminators ───────────────────────────────────────────────────────────────
 
 func (g *z80cg) genTerm(f *Func, t Term) {
+	g.materializePendingFlagForTerm(f, t)
 	g.restoreLiveOutOverrides(f, t)
 	if g.shiftCarryInst != nil && g.carryFrom != g.shiftCarryInst {
 		g.err = fmt.Errorf("z80 codegen: shift carry lost before fused branch in %s", g.fn.Name)
@@ -128,7 +129,9 @@ func (g *z80cg) genTerm(f *Func, t Term) {
 		// parallel copy resolution.  Sequential moves are incorrect when two return
 		// values share the same physical register after constant folding/PBQP
 		// (e.g. both [acc]=A), causing write-after-write clobber.
-		if len(t.Vals) == 1 && len(f.Contract.Returns) == 1 &&
+		if flagReturn(f) {
+			g.emitFlagReturnValue(f, t.Vals[0])
+		} else if len(t.Vals) == 1 && len(f.Contract.Returns) == 1 &&
 			(f.Contract.Returns[0].Ty == TyBool || (z80ValueWidth(f.Contract.Returns[0].Ty) <= 8 && collectRegInfo(f)[t.Vals[0]].Ty == TyBool)) &&
 			f.Contract.Returns[0].Class != ClassFlag && g.loc(t.Vals[0]) == "F" {
 			g.emitFlagPredicateByte(g.condCode(f, t.Vals[0]))
@@ -138,6 +141,7 @@ func (g *z80cg) genTerm(f *Func, t Term) {
 		} else {
 			g.emitParallelCopy(g.buildReturnCopies(t.Vals))
 		}
+		// INC SP keeps the flags of a flag return.
 		g.emitLocalFrameCleanup(g.localFrameDepth[g.curBlock.Label])
 		if f.Attrs.FallibleCY {
 			g.emit("    OR A")
@@ -392,9 +396,31 @@ func (g *z80cg) genTerm(f *Func, t Term) {
 		cc := g.condCode(f, t.Cond)
 		copies := g.buildBlockCopies(f, t.Then, t.ThenArgs)
 		thenLbl := g.branchLabel(f, t.Then, copies)
-		retCopies := g.buildReturnCopies(t.Vals)
 		thenFT := g.isFallThrough(f, t.Then) && !hasEffectiveBlockCopies(copies)
 		frameBytes := g.localFrameDepth[g.curBlock.Label]
+
+		if flagReturn(f) {
+			// The return path sets the result flags after the branch has
+			// read the condition; it never shares a RET cc with it.
+			switch cc {
+			case "CLE":
+				g.emitf("    JRS C, %s", thenLbl)
+				g.emitf("    JRS Z, %s", thenLbl)
+			case "CGT":
+				retLbl := fmt.Sprintf(".%s_cret%d", sanitizeIdent(f.Name), g.trampIdx)
+				g.trampIdx++
+				g.emitf("    JRS Z, %s", retLbl)
+				g.emitf("    JRS NC, %s", thenLbl)
+				g.emitf("%s:", retLbl)
+			default:
+				g.emitf("    JRS %s, %s", cc, thenLbl)
+			}
+			g.emitFlagReturnValue(f, t.Vals[0])
+			g.emitLocalFrameCleanup(frameBytes)
+			g.emit("    RET")
+			return
+		}
+		retCopies := g.buildReturnCopies(t.Vals)
 
 		switch cc {
 		case "CLE":
@@ -494,16 +520,24 @@ func (g *z80cg) isFallThrough(f *Func, targetLabel string) bool {
 
 // ── DJNZ peephole ─────────────────────────────────────────────────────────────
 
-// findConstInFunc finds the Imm value of an OpConst instruction defining r.
-func findConstInFunc(f *Func, r Reg) (int64, bool) {
-	for _, b := range f.Blocks {
-		for _, inst := range b.Insts {
-			if inst.Op == OpConst && inst.Dst == r {
-				return inst.Imm, true
+// constInFunc reports the value of r when every definition of r is a constant
+// load of that one value. A register that pre-allocation coalescing merged
+// with a block parameter also carries whatever the other edges pass in, so
+// one constant load among its definitions says nothing about it.
+func (g *z80cg) constInFunc(r Reg) (int64, bool) {
+	var val int64
+	known := false
+	ok := g.provenForEveryDefinition(r,
+		func(Param) bool { return false },
+		func(i *Inst) bool {
+			if i.Op != OpConst || (known && i.Imm != val) {
+				return false
 			}
-		}
-	}
-	return 0, false
+			val, known = i.Imm, true
+			return true
+		},
+		func(Reg) bool { return false })
+	return val, ok
 }
 
 // djnzPeepholeResult holds the result of DJNZ peephole detection.
@@ -536,7 +570,7 @@ func (g *z80cg) detectDJNZPeephole(f *Func, b *Block) djnzPeepholeResult {
 		return djnzPeepholeResult{}
 	}
 	// RHS must be constant 1.
-	rhs, found := findConstInFunc(f, last.Src[1])
+	rhs, found := g.constInFunc(last.Src[1])
 	if !found || rhs != 1 {
 		return djnzPeepholeResult{}
 	}
@@ -559,7 +593,7 @@ func (g *z80cg) detectDJNZPeephole(f *Func, b *Block) djnzPeepholeResult {
 	if g.ar.Loc(cmp.Src[0]).Name != "B" {
 		return djnzPeepholeResult{}
 	}
-	zero, found2 := findConstInFunc(f, cmp.Src[1])
+	zero, found2 := g.constInFunc(cmp.Src[1])
 	if !found2 || zero != 0 {
 		return djnzPeepholeResult{}
 	}

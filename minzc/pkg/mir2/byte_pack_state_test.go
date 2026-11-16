@@ -130,3 +130,46 @@ func TestBytePackUsesCurrentOverridesWithoutAccScratch(t *testing.T) {
 		})
 	}
 }
+
+// A single bool returned in flags observes the flags of a value only when
+// that value is the one returned; a flag slot among several returns and a
+// flag parameter keep the whole function out.
+func TestWordMaskFlagsUnobservedFlagReturn(t *testing.T) {
+	for _, tc := range []struct {
+		kind string
+		want bool
+	}{
+		{"byte-return", true},
+		{"flag-return-other", true},
+		{"flag-return-result", false},
+		{"flag-condret-result", false},
+		{"flag-slot-of-two", false},
+		{"flag-param", false},
+	} {
+		t.Run(tc.kind, func(t *testing.T) {
+			f := (&Module{}).AddFunc("step")
+			b := f.NewBlock("entry")
+			next := f.NewBlock("next")
+			b.Insts = []*Inst{{Op: OpConst, Dst: 2, Imm: 1, Ty: TyU16}, {Op: OpAdd, Dst: 3, Src: [2]Reg{1, 2}, Ty: TyU16}}
+			b.Term = &TermJmp{Target: "next"}
+			next.Term = &TermRet{Vals: []Reg{4}}
+			f.Contract.Returns = []Return{{Ty: TyBool, Class: ClassFlag}}
+			switch tc.kind {
+			case "byte-return":
+				f.Contract.Returns[0].Class = ClassAcc
+			case "flag-return-result":
+				next.Term = &TermRet{Vals: []Reg{3}}
+			case "flag-condret-result":
+				b.Term = &TermCondRet{Cond: 5, Vals: []Reg{3}, Then: "next"}
+			case "flag-slot-of-two":
+				f.Contract.Returns = []Return{{Ty: TyU8, Class: ClassAcc}, {Ty: TyBool, Class: ClassFlag}}
+				next.Term = &TermRet{Vals: []Reg{6, 4}}
+			case "flag-param":
+				f.Contract.Params = []Param{{Reg: 7, Ty: TyBool, Class: ClassFlag}}
+			}
+			if got := wordMaskFlagsUnobserved(f, 3); got != tc.want {
+				t.Fatal("unobserved", got, tc.want)
+			}
+		})
+	}
+}

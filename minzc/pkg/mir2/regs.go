@@ -231,7 +231,8 @@ const (
 	// LocRemat marks a vreg that holds no physical location at all: every use
 	// re-derives the value from the instruction that defines it.  It is only
 	// assigned to OpConst dsts whose every use the codegen serves from an
-	// immediate, so nothing ever reads or writes a home for them.
+	// immediate, and to OpAddrOf dsts whose every use is a ptr_add base (the
+	// symbol is the immediate), so nothing ever reads or writes a home for them.
 	LocRemat
 )
 
