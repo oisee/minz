@@ -15,22 +15,51 @@ var z80CodegenEmit = z80CodegenWithLeafWrites
 // refine caller saves. It emits once with the conservative ABI, proves each
 // callee's register writes from that assembly, emits again with the proven
 // sets and re-proves every narrowed callee in the final product. Unknown forms
-// retain the full ABI. Instrumented/runtime products keep the ordinary single
-// emission path.
+// retain the full ABI. Runtime products keep the ordinary single emission
+// path.
+//
+// Native-annotated products (memory host) must assemble to the same bytes as
+// the plain product. Their sinks record every emission, so the proof runs on
+// plain emissions first and only the final emission is annotated, with the
+// accepted sets; it is re-proved like any other final product.
 func Z80Codegen(m *Module, ar *AllocResult, opts ...Z80CodegenOptions) (string, error) {
-	original, err := z80CodegenEmit(m, ar, nil, opts...)
+	var o Z80CodegenOptions
+	if len(opts) > 0 {
+		o = opts[0]
+	}
+	native := o.NativeMemoryAccesses != nil || o.NativeMemoryAccessOrigins != nil || o.NativeCallFrames != nil || o.NativeCallSpills != nil
+	if o.Runtime != "" || o.RuntimeStackBytes != 0 || native && o.NoExactClobbers {
+		return z80CodegenEmit(m, ar, nil, opts...)
+	}
+	if native {
+		plain := o
+		plain.NativeMemoryAccesses, plain.NativeMemoryAccessOrigins, plain.NativeCallFrames, plain.NativeCallSpills = nil, nil, nil, nil
+		_, cache, err := exactCodegen(m, ar, plain)
+		if err != nil || cache == nil {
+			return z80CodegenEmit(m, ar, nil, o)
+		}
+		lens := nativeSinkLens(o)
+		annotated, err := z80CodegenEmit(m, ar, cache, o)
+		if err == nil && exactProductHolds(m, annotated, cache, emittedExactWrites) {
+			return annotated, nil
+		}
+		truncateNativeSinks(o, lens)
+		return z80CodegenEmit(m, ar, nil, o)
+	}
+	asm, _, err := exactCodegen(m, ar, o)
+	return asm, err
+}
+
+// exactCodegen is the two-emission proof. It returns the accepted product and
+// the clobber sets it was emitted with (nil when the original was kept).
+func exactCodegen(m *Module, ar *AllocResult, o Z80CodegenOptions) (string, map[string]map[string]bool, error) {
+	original, err := z80CodegenEmit(m, ar, nil, o)
 	if err != nil {
-		return original, err
+		return original, nil, err
 	}
 	proof, legacy := emittedExactWrites, false
-	if len(opts) > 0 {
-		o := opts[0]
-		if o.Runtime != "" || o.RuntimeStackBytes != 0 || o.NativeMemoryAccesses != nil || o.NativeMemoryAccessOrigins != nil || o.NativeCallFrames != nil || o.NativeCallSpills != nil {
-			return original, nil
-		}
-		if o.NoExactClobbers {
-			proof, legacy = emittedLeafByteWrites, true
-		}
+	if o.NoExactClobbers {
+		proof, legacy = emittedLeafByteWrites, true
 	}
 	cache := map[string]map[string]bool{}
 	for _, caller := range m.Funcs {
@@ -49,32 +78,59 @@ func Z80Codegen(m *Module, ar *AllocResult, opts ...Z80CodegenOptions) (string, 
 		}
 	}
 	if len(cache) == 0 {
-		return original, nil
+		return original, nil, nil
 	}
-	candidate, err := z80CodegenEmit(m, ar, cache, opts...)
-	if err != nil {
-		return original, nil
+	candidate, err := z80CodegenEmit(m, ar, cache, o)
+	if err != nil || !exactProductHolds(m, candidate, cache, proof) {
+		return original, nil, nil
 	}
-	// Removing caller saves must not change any proof itself. Check the final
-	// product as well, after all assembly rewrites, before accepting it: every
-	// narrowed callee must still be provable and write nothing new.
+	return candidate, cache, nil
+}
+
+// exactProductHolds re-checks a final product emitted with cache: removing
+// caller saves must not change any proof itself, so every narrowed callee must
+// still be provable and write nothing new, and each call site's argument
+// copies, measured where they were emitted, are re-measured.
+func exactProductHolds(m *Module, asm string, cache map[string]map[string]bool, proof func(*Func, string) (map[string]bool, bool)) bool {
 	for name, before := range cache {
-		after, ok := proof(m.FuncByName(name), candidate)
+		after, ok := proof(m.FuncByName(name), asm)
 		if !ok {
-			return original, nil
+			return false
 		}
 		for reg := range after {
 			if !before[reg] {
-				return original, nil
+				return false
 			}
 		}
 	}
-	// Each call site's argument copies were measured where they were emitted;
-	// re-measure them in the final product as well.
-	if !verifyExactArgSites(candidate) {
-		return original, nil
+	return verifyExactArgSites(asm)
+}
+
+func nativeSinkLens(o Z80CodegenOptions) [3]int {
+	var n [3]int
+	if o.NativeMemoryAccesses != nil {
+		n[0] = len(*o.NativeMemoryAccesses)
 	}
-	return candidate, nil
+	if o.NativeCallFrames != nil {
+		n[1] = len(*o.NativeCallFrames)
+	}
+	if o.NativeCallSpills != nil {
+		n[2] = len(*o.NativeCallSpills)
+	}
+	return n
+}
+
+// truncateNativeSinks drops the records of a refused annotated emission.
+func truncateNativeSinks(o Z80CodegenOptions, n [3]int) {
+	if o.NativeMemoryAccesses != nil {
+		*o.NativeMemoryAccesses = (*o.NativeMemoryAccesses)[:n[0]]
+	}
+	if o.NativeCallFrames != nil {
+		*o.NativeCallFrames = (*o.NativeCallFrames)[:n[1]]
+	}
+	if o.NativeCallSpills != nil {
+		*o.NativeCallSpills = (*o.NativeCallSpills)[:n[2]]
+	}
 }
 
 // emittedLeafByteWrites is the #245 proof, kept for --no-exact-clobbers:
