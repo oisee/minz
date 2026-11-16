@@ -1,0 +1,46 @@
+global g_a: u8 = 0
+global g_b: u8 = 0
+global g_n: u8 = 0
+
+fun leaf_branch() -> u8 {
+    if g_a > 100 { return g_a - 100 }
+    if g_a == 7 { return 1 }
+    return g_a + g_b
+}
+
+fun leaf_pred() -> bool {
+    if g_b == 0 { return false }
+    return g_a < g_b
+}
+
+fun leaf_loop() -> u16 {
+    var s: u16 = 0
+    var i: u8 = 0
+    while i < g_n {
+        s = s + u16(i) * 3
+        i = i + 1
+    }
+    return s
+}
+
+fun leaf_store() -> void {
+    if (g_a & 1) == 1 { g_b = g_b + 3 } else { g_b = g_b xor 0x55 }
+}
+
+fun mix(x: u8) -> u16 {
+    let a: u8 = x + 1
+    let b: u8 = x xor 0x5a
+    let c: u8 = x * 3
+    let d: u8 = x - 9
+    let p: u16 = u16(x) * 257
+    let q: u16 = u16(x) + 1000
+    g_a = x
+    g_b = b
+    g_n = x & 7
+    let r1: u8 = leaf_branch()
+    leaf_store()
+    let r2: u16 = leaf_loop()
+    var r3: u8 = 0
+    if leaf_pred() { r3 = 5 }
+    return p + q + u16(a) + u16(b xor c) + u16(d) + u16(r1) + r2 + u16(r3) + u16(g_b)
+}

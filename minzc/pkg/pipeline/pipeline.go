@@ -116,6 +116,9 @@ type Options struct {
 	// DisableFlagReturns keeps every bool return in A on Z80 instead of
 	// returning it in CPU flags where all call sites only branch on it.
 	DisableFlagReturns bool `json:",omitempty"`
+	// NoExactClobbers keeps the #245 byte-leaf caller-save proof instead of
+	// proving whole emitted bodies of parameterless callees.
+	NoExactClobbers bool `json:",omitempty"`
 
 	// DisableCountedLoops is an internal differential-testing switch.
 	DisableCountedLoops bool `json:",omitempty"`
@@ -634,6 +637,7 @@ func compileMIRProductSteps(hm *hir.Module, opt Options, s Steps, splitInfo map[
 			RuntimeStackBytes:         opt.RuntimeStackBytes,
 			AnnotateTStates:           opt.AnnotateTStates,
 			UnsignedPairComparePolicy: s.UnsignedPairComparePolicy,
+			NoExactClobbers:           opt.NoExactClobbers,
 		})
 		if codegenErr != nil {
 			return s, codegenErr
@@ -927,7 +931,7 @@ func CompileHIRWithOptions(hm *hir.Module, opts Options) (string, error) {
 	if err := mir2.ValidateZ80Symbols(m); err != nil {
 		return "", err
 	}
-	asm, err := mir2.Z80Codegen(m, combined, mir2.Z80CodegenOptions{UnsignedPairComparePolicy: policy, OptimizeForSize: opts.OptSize})
+	asm, err := mir2.Z80Codegen(m, combined, mir2.Z80CodegenOptions{UnsignedPairComparePolicy: policy, OptimizeForSize: opts.OptSize, NoExactClobbers: opts.NoExactClobbers})
 	if err != nil {
 		return "", err
 	}
