@@ -1,0 +1,21 @@
+// Repro A (task Z3): a hand-written asm operand cannot name a module global
+// portably. The compiler prefixes every symbol of an imported module with the
+// mangled name of the module that imports it, so `leaf__table` below becomes
+// `mid__leaf__table` once mid.nanz imports leaf.nanz — and the literal operand
+// inside leaf's asm body is left pointing at a label that is never emitted.
+//
+//   $ mz asm_global_main.nanz -o /tmp/a.a80 && mza /tmp/a.a80 -o /tmp/a.bin
+//   Assembly errors:
+//     line N: unknown instruction or invalid operands: LD
+//
+// Workaround used in stdlib/zx: pass the address in as a parameter
+// (nf_build_slots takes the table base in DE) or cache it in a global of the
+// importing module (zx/text.nanz keeps tx_font / tx_shift), so no asm body ever
+// spells a foreign symbol.
+
+import mid
+
+fun main() -> void {
+    let v: u8 = mid_read(0)
+    asm z80 (in v) { LD (0x4000), A }
+}

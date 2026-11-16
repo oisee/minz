@@ -15,7 +15,7 @@ import (
 	"testing"
 )
 
-// Book v7 §3.1 defines byte width; chapter6 defines n..1 range, §7.3 tuples.
+// Book v7 §3.1 defines byte width; chapter6 defines the ascending lo..hi-1 range, §7.3 tuples.
 // Expected arithmetic and tuple order are computed independently here.
 func TestOriginalEx19RemainingNativeModels(t *testing.T) {
 	const path = "../../../reports/showcase-src/2026-03-13/ex19_assert_forms.nanz"
@@ -50,7 +50,7 @@ func TestOriginalEx19RemainingNativeModels(t *testing.T) {
 			calls = append(calls, call{Entry: "abs_diff", Args: []int64{int64(x), int64(y)}, Expected: int64(hi - lo)}, call{Entry: "minmax", Args: []int64{int64(x), int64(y)}, ExpectedMulti: []int64{int64(lo), int64(hi)}}, call{Entry: "swap", Args: []int64{int64(x), int64(y)}, ExpectedMulti: []int64{int64(y), int64(x)}}, call{Entry: "lambda_0", Args: []int64{int64(x), int64(y)}, Expected: int64(byte(x + y))})
 		}
 		var sum byte
-		for i := x; i > 0; i-- {
+		for i := 0; i < x; i++ {
 			sum += byte(i)
 		}
 		calls = append(calls, call{Entry: "sum_range", Args: []int64{int64(x)}, Expected: int64(sum)})

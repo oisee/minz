@@ -1,0 +1,56 @@
+// zvdb_dump_cpm.nanz — reference dumper for the zvdb demo kernel.
+//
+// Runs the exact zvdb_kernel.zv_top_k that zvdb_demo_cpm.npm uses, for every
+// record, and prints the full ranking as
+//     sel <TAB> rank <TAB> idx <TAB> score <TAB> label
+// which is byte-for-byte the format scripts/zvdb_demo_data.py writes to
+// examples/nanz/zvdb_demo_expected.txt. That comparison is the Z80-vs-Python
+// equivalence check for the whole data set.
+//
+// Build: mz examples/nanz/zvdb_dump_cpm.nanz -t cpm -o zvdb_dump_cpm.com
+// Run:   mze zvdb_dump_cpm.nanz.com -t cpm --cpm-no-echo > dump.txt
+
+import tui.render
+import zvdb_demo_data
+import zvdb_kernel
+
+global numbuf: [u8; 6]
+
+fun emit_num(v: u16) -> void {
+    var n: u8 = zv_fmt_u16(v, &numbuf)
+    var i: u8 = 0
+    while i < n {
+        tui_putch(numbuf[i])
+        i = i + 1
+    }
+}
+
+fun emit_label(p: ^u8) -> void {
+    while p^ != 0 {
+        tui_putch(p^)
+        p = p + 1
+    }
+}
+
+fun emit_line(sel: u8, rank: u8, idx: u8, score: u16) -> void {
+    emit_num(u16(sel))
+    tui_putch(9)
+    emit_num(u16(rank))
+    tui_putch(9)
+    emit_num(u16(idx))
+    tui_putch(9)
+    emit_num(score)
+    tui_putch(9)
+    emit_label(zv_label(idx))
+    tui_putch(13)
+    tui_putch(10)
+}
+
+fun main() -> void {
+    for sel: u8 in 0..zv_n {
+        zv_top_k(sel)
+        for rank: u8 in 0..zv_rank_count() {
+            emit_line(sel, rank, zv_rank_index(rank), zv_rank_score(rank))
+        }
+    }
+}

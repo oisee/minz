@@ -157,7 +157,7 @@ those measured inputs; they do not imply byte-identical output for arbitrary C.
 
 ## Iterator fusion showcase
 
-`--suite fusion` is a separate eight-case corpus. It leaves `main`, `heldout`,
+`--suite fusion` is a separate nine-case corpus. It leaves `main`, `heldout`,
 and `all` unchanged (`all` still means main + heldout). It automatically adds
 its own idiomatic Nanz default/size/grace and hand Z80 reference rows; neither
 `--include-refs` nor `--include-nanz` is needed. The latter is rejected for
@@ -179,3 +179,8 @@ and emitted hot loop. Source and workload hashes are checked before compiling;
 all fusion rows must pass for a successful driver exit. The focused Go test
 `TestFusionBenchmarkCorpus` checks frozen identities, boundary coverage, fusion
 shape and every Nanz workload on raw MIR, final MIR and Z80.
+
+`probes/` is the register-allocation probe corpus used to compare two compiler
+builds directly; see [fusion/README.md](fusion/README.md) and
+`scripts/regalloc_probes.py`. It is not part of `run.py` and produces no rows in
+`summary.json`.

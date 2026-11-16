@@ -51,17 +51,12 @@ func (in *cpmTickInput) read() byte {
 func cpmReadByteReady(fd int, wait time.Duration) byte {
 	deadline := time.Now().Add(wait)
 	for {
-		var ready syscall.FdSet
-		if fd < 0 || fd >= len(ready.Bits)*64 {
-			return 0
-		}
-		ready.Bits[fd/64] |= 1 << uint(fd%64)
 		remaining := time.Until(deadline)
 		if remaining < 0 {
 			remaining = 0
 		}
 		tv := syscall.NsecToTimeval(remaining.Nanoseconds())
-		n, err := syscall.Select(fd+1, &ready, nil, nil, &tv)
+		n, err := cpmSelectRead(fd, &tv)
 		if err == syscall.EINTR {
 			continue
 		}

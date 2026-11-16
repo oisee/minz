@@ -1,0 +1,507 @@
+// zvdb_demo_zx.nanz — zvdb master-detail vector-similarity demo for the 48K ZX
+// Spectrum, at 51 / 42 / 32 columns (task Z4).
+//
+// Same kernel (examples/nanz/zvdb_kernel.nanz) and same data
+// (examples/nanz/zvdb_demo_data.nanz, reached through the kernel's import) as
+// the CP/M demo in zvdb_demo_cpm.nanz; only the I/O layer and the layout are
+// ported, onto stdlib/zx/text.nanz (the Z3 narrow-font window engine).
+//
+// Screen (rows are character rows of the *current* font):
+//   0    title bar            " zvdb Z80 sim  recs: 35  256-bit hyperplanes"
+//   1    full label of the selected record
+//   2    pane headers          "#   record" | "scr nearest records"
+//   3-21 master list (left) / top-K nearest other records (right), K = 19
+//   22   separator rule
+//   23   status bar            " JK/67 mv 123 w Q quit scan: 35 recs scanned"
+//
+// Keys (port $FE matrix scan, one event per physical press — see zx_getkey;
+// the matrix reports unshifted uppercase letters, so the letter keys are J, K
+// and Q — the physical keys a lowercase j, k and q would need Shift for):
+//   J or 6   next record (down; 6 is the Sinclair cursor key pair with 7)
+//   K or 7   previous record (up)
+//   CS+6 / CS+7 work too: the scan steps over the shift positions, so the
+//   emulator's and the 128K machine's cursor keys move the list
+//   1        51 columns (5 px glyphs)      2        42 columns (6 px glyphs)
+//   3        32 columns (8 px ROM font)    Q        quit
+// 'Q' blanks the screen and returns from main; the ZX epilogue the compiler
+// emits after main is `DI / HALT`, so the program halts with interrupts off —
+// re-run it rather than expecting a return to BASIC.
+//
+// Layout: split_vertical(left_w, 1) makes the two panes and paints the divider
+// rule; both panes are then re-opened over the item rows only (same x, same
+// width, so the byte ranges the split chose are unchanged) so that win_scroll
+// moves the list and not the chrome. The cursor row is highlighted with
+// win_invert_row, i.e. it is an attribute change only — a cursor move that does
+// not scroll repaints no master text at all.
+//
+// Record count: the demo does not import zvdb_demo_data directly. The compiler
+// emits an imported module's data once per importer, so importing both
+// zvdb_kernel and zvdb_demo_data would ship the 2.8 K of vectors and labels
+// twice; instead zvui_nrec is derived from the kernel's own asserted contract
+// (zvdb_kernel.nanz: `assert zv_top_count(0) == 34` for zv_n = 35), i.e.
+// zvui_nrec = zv_rank_count() + 1 after the first search.
+//
+// Interrupts: main executes DI before anything else, because the compiled
+// bodies — this module's own included — use IYH/IYL as a spill tier and a ROM
+// IM1 service routine would run with a garbage IY. mzx's --run and a BASIC
+// LOAD+RANDOMIZE USR 32768 both start with interrupts enabled, so the DI has to
+// be in the program, not in the loader. Every public zx.text call saves and
+// restores IY anyway; it is the caller's generated code that can clobber it.
+// The program halts rather than returns, so EI is never needed.
+//
+// Build:  minzc/mz examples/nanz/zvdb_demo_zx.nanz -o zvdb_demo_zx.a80
+//         minzc/mza zvdb_demo_zx.a80 -o zvdb_demo_zx.bin     (ORG $8000)
+// Run:    minzc/mzx-headless --model 48k --run zvdb_demo_zx.bin@8000 \
+//             --frames 400 --screenshot zvdb.png
+
+import zx.text
+import zvdb_kernel
+
+// ── Keys ────────────────────────────────────────────────────────────────────
+
+const KEY_1: u8 = 49
+const KEY_2: u8 = 50
+const KEY_3: u8 = 51
+const KEY_6: u8 = 54          // Sinclair cursor: 6 = next record
+const KEY_7: u8 = 55          //                   7 = previous record
+// The matrix reports the unshifted (uppercase) ASCII of the letter keys, so the
+// move/quit codes are 'J', 'K' and 'Q', not 'j', 'k' and 'q'.
+const KEY_J: u8 = 74
+const KEY_K: u8 = 75
+const KEY_Q: u8 = 81
+
+// (row * 5 + bit) -> ASCII. Every half-row is listed bit 0 first, exactly as the
+// table below is indexed, and bit 0 of a half-row is its leftmost key:
+//   row $FE: SHIFT Z X C V   row $FD: A S D F G     row $FB: Q W E R T
+//   row $F7: 1 2 3 4 5       row $EF: 0 9 8 7 6     row $DF: P O I U Y
+//   row $BF: ENTER L K J H   row $7F: SPACE SYM M N B
+global KEYTAB: [u8; 40] = [
+    0, 90, 88, 67, 86,
+    65, 83, 68, 70, 71,
+    81, 87, 69, 82, 84,
+    49, 50, 51, 52, 53,
+    48, 57, 56, 55, 54,
+    80, 79, 73, 85, 89,
+    13, 76, 75, 74, 72,
+    32, 0, 77, 78, 66,
+]
+
+fun zx_in_fe(@z80_a high: u8) -> u8 {
+    asm z80 (in high) (ret A) (clob A, F) { IN A, (0xFE) }
+}
+
+// First key currently held, 0 if none. The two shift positions are stepped over
+// rather than reported: a shift only modifies another key, and returning its
+// KEYTAB entry (0) as soon as one is seen would swallow the key it is held with
+// — which is exactly what CAPS SHIFT + 6/7, the emulator's and the 128K
+// machine's cursor keys, are.
+fun zx_scan() -> u8 {
+    var addr: u8 = 0xFE
+    var idx: u8 = 0
+    var row: u8 = 0
+    while row < 8 {
+        let bits: u8 = zx_in_fe(addr)
+        var b: u8 = 0
+        var mask: u8 = 1
+        while b < 5 {
+            if (bits & mask) == 0 {
+                if KEYTAB[idx] != 0 {
+                    return KEYTAB[idx]
+                }
+            }
+            idx = idx + 1
+            mask = mask << 1
+            b = b + 1
+        }
+        addr = (addr << 1) | 1
+        row = row + 1
+    }
+    return 0
+}
+
+global zvui_last_key: u8 = 0
+
+// One event per physical press: a key held down reports once, then nothing
+// until it is released.
+fun zx_getkey() -> u8 {
+    let k: u8 = zx_scan()
+    if k != 0 {
+        if k == zvui_last_key {
+            return 0
+        }
+        zvui_last_key = k
+        return k
+    }
+    zvui_last_key = 0
+    return 0
+}
+
+// ── Layout ──────────────────────────────────────────────────────────────────
+// Derived at run time, never as const expressions: any non-literal const
+// initialiser is emitted as 0 (reports/zvdb-demo-cpm/repro/repro-const-expr.nanz).
+
+const ROW_TITLE: u8 = 0
+const ROW_LABEL: u8 = 1
+const ROW_HEAD: u8 = 2
+const ROW_ITEMS: u8 = 3
+const N_ROWS: u8 = 19          // visible rows per pane == K nearest shown
+const ROW_SEP: u8 = 22         // ROW_ITEMS + N_ROWS
+const ROW_STATUS: u8 = 23
+const IDX_W: u8 = 3            // record index field, 0..254
+const SCORE_W: u8 = 3          // score field, 0..256
+const NUM_W: u8 = 3            // record-count field in the title/status rows
+
+// Colours (ink, paper, bright), one attribute rectangle per region: within a
+// pane every character shares an 8x8 px attribute cell with its neighbour, so a
+// per-character colour change is impossible and the highlight stays per row.
+const INK_TITLE: u8 = 0
+const PAP_TITLE: u8 = 5
+const INK_LABEL: u8 = 7
+const PAP_LABEL: u8 = 1
+const INK_HEAD_L: u8 = 6
+const PAP_HEAD_L: u8 = 1
+const INK_HEAD_R: u8 = 7
+const PAP_HEAD_R: u8 = 0
+const INK_ITEMS_L: u8 = 6
+const PAP_ITEMS_L: u8 = 1
+const INK_ITEMS_R: u8 = 7
+const PAP_ITEMS_R: u8 = 0
+
+global zvui_cur_w: u8 = 5           // active glyph width: 5, 6 or 8
+global zvui_cols: u8 = 0            // columns on the screen: 51, 42 or 32
+global zvui_left_w: u8 = 0          // master pane width, cells
+global zvui_right_x: u8 = 0         // detail pane origin, cells
+global zvui_right_w: u8 = 0         // detail pane width, cells
+global zvui_label_l_w: u8 = 0       // master label field
+global zvui_label_r_w: u8 = 0       // detail label field
+global zvui_label_w: u8 = 0         // label field on ROW_LABEL
+
+// The left pane width is a multiple of 8 px at every glyph width, so the two
+// panes never share an attribute cell and the divider gutter owns one whole
+// cell of its own (see the colour rule in stdlib/zx/text.nanz).
+fun left_w_for(w: u8) -> u8 {
+    if w == 5 {
+        return 24
+    }
+    return 16
+}
+
+fun sat_sub(a: u8, b: u8) -> u8 {
+    if a > b {
+        return a - b
+    }
+    return 0
+}
+
+fun str_len(p: ^u8) -> u8 {
+    var i: u16 = 0
+    while p[i] != 0 {
+        i = i + 1
+    }
+    if i > 255 {
+        return 255
+    }
+    return u8(i)
+}
+
+// Build the two panes and derive every width from the engine's own geometry.
+// zvui_right_x is recomputed here exactly as split_vertical does (ceil of the gutter
+// end over the glyph width) because the engine does not export it.
+fun layout() -> void {
+    zvui_cols = text_cols()
+    zvui_left_w = left_w_for(zvui_cur_w)
+    split_vertical(zvui_left_w, 1)
+    let gutter_end: u8 = zvui_left_w * zvui_cur_w + 8
+    zvui_right_x = (gutter_end + zvui_cur_w - 1) / zvui_cur_w
+    zvui_right_w = zvui_cols - zvui_right_x
+    // Re-open both panes over the item rows only, at the same x and width the
+    // split chose: identical byte ranges and keep masks, but win_scroll now
+    // moves the list instead of the chrome above it.
+    win_open(0, 0, ROW_ITEMS, zvui_left_w, N_ROWS)
+    win_open(1, zvui_right_x, ROW_ITEMS, zvui_right_w, N_ROWS)
+    win_select(0)
+    win_attr(INK_ITEMS_L, PAP_ITEMS_L, 0)
+    win_select(1)
+    win_attr(INK_ITEMS_R, PAP_ITEMS_R, 0)
+    // One cell short of the pane edge on every row, not just the last: the
+    // window layer scrolls when a print fills the window's bottom row, so a
+    // full-width row 18 would scroll the list up by one the moment it was drawn.
+    // The spare column also keeps the labels off the divider gutter.
+    zvui_label_l_w = sat_sub(sat_sub(zvui_left_w, IDX_W), 2)
+    zvui_label_r_w = sat_sub(sat_sub(zvui_right_w, SCORE_W), 2)
+    zvui_label_w = sat_sub(sat_sub(zvui_cols, 6), IDX_W)
+}
+
+// ── Output helpers ──────────────────────────────────────────────────────────
+
+global zvui_numbuf: [u8; 6]         // zv_fmt_u16 scratch
+
+fun ui_spaces(n: u8) -> void {
+    var i: u8 = 0
+    while i < n {
+        win_putch(32)
+        i = i + 1
+    }
+}
+
+// val right-aligned in a width-wide field; a value wider than the field is
+// printed unpadded rather than wrapping u8 into ~255 spaces.
+fun ui_put_num(val: u16, width: u8) -> void {
+    let n: u8 = zv_fmt_u16(val, &zvui_numbuf)
+    if n < width {
+        ui_spaces(width - n)
+    }
+    var i: u8 = 0
+    while i < n {
+        win_putch(zvui_numbuf[i])
+        i = i + 1
+    }
+}
+
+// A one-row window: the only way to colour a single screen row, because
+// win_attr paints the whole of the window it is applied to.
+fun chrome(y: u8, x: u8, w: u8, ink: u8, paper: u8) -> void {
+    win_open(2, x, y, w, 1)
+    win_attr(ink, paper, 1)
+}
+
+// [head literal][NUM_W digits][tail literal], head width clamped to the row and
+// the tail padded or truncated to whatever is left — the same shape as the CP/M
+// demo's title/status rows, so a narrower font degrades to truncated text
+// instead of wrapping.
+fun draw_head_tail(head: ^u8, tail: ^u8, num: u16) -> void {
+    var hw: u8 = str_len(head)
+    let maxw: u8 = sat_sub(zvui_cols, NUM_W)
+    if hw > maxw {
+        hw = maxw
+    }
+    win_print_padded(head, hw)
+    ui_put_num(num, NUM_W)
+    win_print_padded(tail, sat_sub(sat_sub(zvui_cols, hw), NUM_W))
+}
+
+// ── Chrome ──────────────────────────────────────────────────────────────────
+
+fun draw_title() -> void {
+    chrome(ROW_TITLE, 0, zvui_cols, INK_TITLE, PAP_TITLE)
+    draw_head_tail(c" zvdb Z80 sim  recs:", c"  256-bit hyperplanes", u16(zvui_nrec))
+}
+
+fun draw_label_line() -> void {
+    chrome(ROW_LABEL, 0, zvui_cols, INK_LABEL, PAP_LABEL)
+    win_print_padded(c"Rec ", 4)
+    ui_put_num(u16(zvui_cursor), IDX_W)
+    win_print_padded(c": ", 2)
+    win_print_padded(zv_label(zvui_cursor), zvui_label_w)
+}
+
+fun draw_head() -> void {
+    // the left half of the header row is painted across the whole row first, so
+    // the divider's attribute cell takes the header colour and not the item one
+    chrome(ROW_HEAD, 0, zvui_cols, INK_HEAD_L, PAP_HEAD_L)
+    win_print_padded(c"#   record", zvui_left_w)
+    chrome(ROW_HEAD, zvui_right_x, zvui_right_w, INK_HEAD_R, PAP_HEAD_R)
+    win_print_padded(c"scr nearest records", zvui_right_w)
+}
+
+fun draw_sep() -> void {
+    chrome(ROW_SEP, 0, zvui_cols, INK_ITEMS_L, PAP_ITEMS_L)
+    var i: u8 = 0
+    while i < zvui_cols {
+        win_putch(45)
+        i = i + 1
+    }
+}
+
+fun draw_status() -> void {
+    chrome(ROW_STATUS, 0, zvui_cols, INK_TITLE, PAP_TITLE)
+    draw_head_tail(c" JK/67 mv 123 w Q quit scan:", c" recs scanned", u16(zvui_last_scan))
+}
+
+// ── Master pane (left) ───────────────────────────────────────────────────────
+
+fun draw_master_row(row: u8) -> void {
+    win_select(0)
+    win_goto(0, row)
+    let idx: u8 = zvui_top + row
+    if idx < zvui_nrec {
+        ui_put_num(u16(idx), IDX_W)
+        win_putch(32)
+        win_print_padded(zv_label(idx), zvui_label_l_w)
+    } else {
+        ui_spaces(zvui_left_w)
+    }
+}
+
+fun draw_master_all() -> void {
+    var row: u8 = 0
+    while row < N_ROWS {
+        draw_master_row(row)
+        row = row + 1
+    }
+    win_select(0)
+    win_invert_row(zvui_cursor - zvui_top)
+}
+
+// ── Detail pane (right): top K nearest other records, best first ────────────
+
+fun draw_detail_all() -> void {
+    win_select(1)
+    let cnt: u8 = zv_rank_count()
+    var row: u8 = 0
+    while row < N_ROWS {
+        win_goto(0, row)
+        if row < cnt {
+            let idx: u8 = zv_rank_index(row)
+            ui_put_num(zv_rank_score(row), SCORE_W)
+            win_putch(32)
+            win_print_padded(zv_label(idx), zvui_label_r_w)
+        } else {
+            ui_spaces(zvui_right_w)
+        }
+        row = row + 1
+    }
+}
+
+// ── Search and redraw ───────────────────────────────────────────────────────
+
+global zvui_nrec: u8 = 0            // zv_n, derived from the kernel (see the header)
+global zvui_cursor: u8 = 0          // selected record
+global zvui_top: u8 = 0             // first visible record in the master pane
+global zvui_last_scan: u8 = 0       // records walked by the last search
+
+fun do_search() -> void {
+    zv_top_k(zvui_cursor)
+    zvui_last_scan = zvui_nrec
+}
+
+fun draw_all() -> void {
+    layout()
+    draw_master_all()
+    draw_detail_all()
+    draw_head()
+    draw_title()
+    draw_label_line()
+    draw_sep()
+    draw_status()
+}
+
+// Everything that changes on a cursor move that does not scroll: the two
+// highlighted rows are an attribute flip only, then the label line, the right
+// pane and the status line are rewritten.
+fun refresh_after_move() -> void {
+    do_search()
+    draw_label_line()
+    draw_detail_all()
+    draw_status()
+}
+
+// ── Main ────────────────────────────────────────────────────────────────────
+
+fun move_down() -> void {
+    if zvui_cursor + 1 >= zvui_nrec {
+        return
+    }
+    let old_row: u8 = zvui_cursor - zvui_top
+    zvui_cursor = zvui_cursor + 1
+    if zvui_cursor >= zvui_top + N_ROWS {
+        // the list scrolls under the header: one win_scroll plus the one new
+        // bottom row. The highlight is dropped first (an attribute flip, not a
+        // pane repaint: win_attr would also repaint the divider column through
+        // tx_paint_divider and recolour the chrome rows), because win_scroll
+        // moves the attribute cells up with the pixels and would otherwise drag
+        // the inverted row up the pane, one stale highlight per scroll.
+        zvui_top = zvui_top + 1
+        win_select(0)
+        win_invert_row(N_ROWS - 1)
+        win_scroll(0)
+        draw_master_row(N_ROWS - 1)
+        win_select(0)
+        win_invert_row(N_ROWS - 1)
+    } else {
+        win_select(0)
+        win_invert_row(old_row)
+        win_select(0)
+        win_invert_row(zvui_cursor - zvui_top)
+    }
+    refresh_after_move()
+}
+
+fun move_up() -> void {
+    if zvui_cursor == 0 {
+        return
+    }
+    // window-relative, captured before the move: win_invert_row takes a row of
+    // the pane, not a record index (passing zvui_cursor + 1 instead used to
+    // invert a row up to 24 rows further down — and past the attribute file
+    // once the list had scrolled, which is where it first showed)
+    let old_row: u8 = zvui_cursor - zvui_top
+    zvui_cursor = zvui_cursor - 1
+    if zvui_cursor < zvui_top {
+        // win_scroll only moves text up, so a scroll towards the start of the
+        // list repaints the pane instead; the highlight the repaint would leave
+        // behind is dropped first (see move_down)
+        zvui_top = zvui_cursor
+        win_select(0)
+        win_invert_row(old_row)
+        draw_master_all()
+    } else {
+        win_select(0)
+        win_invert_row(old_row)
+        win_select(0)
+        win_invert_row(zvui_cursor - zvui_top)
+    }
+    refresh_after_move()
+}
+
+fun main() -> void {
+    // Interrupts off before anything else: the compiled bodies (this module's
+    // own included) use IYH/IYL as a spill tier, so a ROM IM1 service routine
+    // would run with a garbage IY. Nothing here needs the interrupt, and the
+    // program halts rather than returns, so it is never re-enabled.
+    asm z80 (clob A, F) { DI }
+    zvui_cur_w = 5
+    // zvui_nrec from the kernel's contract: zv_top_k ranks every record but the
+    // selection, so the count it reports is zv_n - 1. That first ranking is
+    // also the one the opening screen shows, so it is not computed twice.
+    zv_top_k(0)
+    zvui_nrec = zv_rank_count() + 1
+    zvui_last_scan = zvui_nrec
+    text_set_width(zvui_cur_w)
+    draw_all()
+
+    var running: u8 = 1
+    while running != 0 {
+        let k: u8 = zx_getkey()
+        if k != 0 {
+            if (k == KEY_1) | (k == KEY_2) | (k == KEY_3) {
+                if k == KEY_1 {
+                    zvui_cur_w = 5
+                }
+                if k == KEY_2 {
+                    zvui_cur_w = 6
+                }
+                if k == KEY_3 {
+                    zvui_cur_w = 8
+                }
+                // text_set_width clears the screen and closes every window, so
+                // the whole screen is rebuilt; the cursor and the scroll
+                // position are kept, and so is the ranking — the selection has
+                // not changed, so the search is not run again
+                text_set_width(zvui_cur_w)
+                draw_all()
+            } else {
+                if (k == KEY_J) | (k == KEY_6) {
+                    move_down()
+                }
+                if (k == KEY_K) | (k == KEY_7) {
+                    move_up()
+                }
+                if k == KEY_Q {
+                    running = 0
+                }
+            }
+        }
+    }
+    tx_clear_screen()
+}

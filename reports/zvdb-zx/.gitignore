@@ -1,0 +1,5 @@
+*.a80
+*.bin
+*.sym
+keys-*.json
+scr-*/

@@ -12,6 +12,12 @@ import (
 // ── Instructions ──────────────────────────────────────────────────────────────
 
 func (g *z80cg) genInst(inst *Inst) {
+	if g.bitAccumSkip[inst] || g.genBitAccum(inst) {
+		return
+	}
+	if inst == g.addCarryInst {
+		defer g.publishAddCarry(inst, g.sb.Len())
+	}
 	if g.widenedByteAdds[inst] {
 		return
 	}
@@ -111,6 +117,8 @@ func (g *z80cg) genInst(inst *Inst) {
 		}
 		if dst == "F" {
 			// Bool constant into flag register: SCF (true) or AND A (false, clears C+sets Z).
+			// It is the pending predicate (carry) until a flag writer saves it.
+			g.materializePendingFlag(inst)
 			g.lastFlagsLhs = ""
 			g.lastFlagsRhs = ""
 			if inst.Imm != 0 {
@@ -118,6 +126,7 @@ func (g *z80cg) genInst(inst *Inst) {
 			} else {
 				g.emit("    AND A") // A=A (no change), clears C, sets Z based on A
 			}
+			g.pendingFlagReg = inst.Dst
 			return
 		}
 		if !g.deadConsts[inst.Dst] {
@@ -188,6 +197,15 @@ func (g *z80cg) genInst(inst *Inst) {
 
 	case OpMove:
 		src := g.loc(inst.Src[0])
+		// A copy of a predicate needs a byte home: F holds no byte to copy into.
+		// F holds a known predicate only while it is pending: each flag
+		// producer in F (comparison, call flag return, constant) sets it.
+		if dst == "F" || (src == "F" && inst.Src[0] != g.pendingFlagReg) {
+			if g.err == nil {
+				g.err = fmt.Errorf("z80 codegen: %s: move r%d (%s) <- r%d (%s): a flag copy needs a byte home and a pending source predicate", g.fn.Name, inst.Dst, dst, inst.Src[0], src)
+			}
+			return
+		}
 		if dst == src {
 			return // no-op
 		}
@@ -498,7 +516,7 @@ func (g *z80cg) genInst(inst *Inst) {
 		// preserve A in their own branch below and must not be saved twice.
 		_, lutLoad := g.lutLoadPat[inst.Dst]
 		loadPtr := g.loc(inst.Src[0])
-		if inst.Ty.Width() <= 8 && dst != "A" &&
+		if inst.Ty.Width() <= 8 && dst != "A" && g.accumulatorHoldsLiveValue(inst) &&
 			((loadPtr == "BC" || loadPtr == "DE") || !isSpill(dst) && (lutLoad || isIXYReg(dst))) {
 			g.emit("    EX AF, AF'      ; preserve byte-load scratch")
 			defer func() {
@@ -1627,4 +1645,33 @@ func (g *z80cg) genInst(inst *Inst) {
 	default:
 		g.comment(fmt.Sprintf("TODO: %s", inst.Op))
 	}
+}
+
+// accumulatorHoldsLiveValue reports whether A or F carries anything the
+// program still needs across inst: a value homed (or relocated) in A, a
+// pending accumulator, or a pending/live flag predicate. Byte loads that use A
+// as an encoding bridge only need to preserve AF in that case.
+func (g *z80cg) accumulatorHoldsLiveValue(inst *Inst) bool {
+	if g.fn == nil || g.curBlock == nil || g.liveness == nil {
+		return true // no liveness: preserve as before
+	}
+	if g.pendingAccReg != NoReg || g.pendingFlagReg != NoReg {
+		return true
+	}
+	for r := range g.regsLiveAfterInst(inst) {
+		if loc := g.loc(r); loc == "A" || loc == "AF" || loc == "F" {
+			return true
+		}
+	}
+	for _, r := range inst.Uses() {
+		if loc := g.loc(r); loc == "A" || loc == "F" {
+			return true
+		}
+	}
+	for _, loc := range g.physOverride {
+		if loc == "A" {
+			return true
+		}
+	}
+	return false
 }

@@ -1,0 +1,14 @@
+// Repro C (task Z3): an array size must be a literal. A const name is parsed
+// and then rejected, so a parameterised buffer size cannot be named:
+//   $ mz const_array_size.nanz -o /tmp/c.a80
+//   Error: Nanz parse: line N: expected token kind 2, got "N"
+// The same holds inside a const initialiser (already known: `const B = A + 5`
+// reads back 0), so stdlib/zx/text.nanz spells every window array as [u8; 4].
+
+const NWIN: u8 = 4
+
+global win_x: [u8; NWIN]
+
+fun main() -> void {
+    win_x[0] = 1
+}

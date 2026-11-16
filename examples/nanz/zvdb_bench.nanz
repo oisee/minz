@@ -1,0 +1,78 @@
+// zvdb_bench.nanz — T-state benches for the zvdb kernel (task Z1).
+//
+// Three bodies in one module, picked by the first key read, so the harness cost
+// can be subtracted. The idle body walks the same j loop as score but does no
+// kernel work (bench_topk has no inner loop, so its baseline is slightly
+// smaller); topk runs one full zvdb_top_k per iteration - the search the demo
+// runs on every cursor move - and score runs only that search's zv_score calls.
+// i / 8 keeps every selection index inside 0..31 for the 35-record data set.
+//
+//   mz examples/nanz/zvdb_bench.nanz -t cpm -o b.com
+//   printf 'i' | mze b.com -t cpm --cpm-no-echo -c     # idle
+//   printf 'k' | mze b.com -t cpm --cpm-no-echo -c     # topk
+//   printf 's' | mze b.com -t cpm --cpm-no-echo -c     # score
+//
+// Divide each total by REPS = 250; (topk - idle) / 250 is one zvdb_top_k and
+// (score - idle) / 250 is one 34-call scoring pass. Measured numbers are in
+// reports/zvdb-demo-cpm/repro/README.md.
+
+import tui.render
+import zvdb_demo_data
+import zvdb_kernel
+
+const REPS: u8 = 250
+
+global acc: u16 = 0
+
+// Same loop nest, no kernel work: the harness cost.
+fun bench_idle() -> void {
+    var i: u8 = 0
+    while i < REPS {
+        var j: u8 = 0
+        while j < zv_n {
+            if j != (i / 8) {
+                acc = acc + 1
+            }
+            j = j + 1
+        }
+        i = i + 1
+    }
+}
+
+// One full ranking pass per iteration.
+fun bench_topk() -> void {
+    var i: u8 = 0
+    while i < REPS {
+        zv_top_k(i / 8)
+        acc = acc + 1
+        i = i + 1
+    }
+}
+
+// Only the scoring half: 34 zv_score calls per iteration.
+fun bench_score() -> void {
+    var i: u8 = 0
+    while i < REPS {
+        var j: u8 = 0
+        while j < zv_n {
+            if j != (i / 8) {
+                acc = acc + zv_score(i / 8, j)
+            }
+            j = j + 1
+        }
+        i = i + 1
+    }
+}
+
+fun main() -> void {
+    var k: u8 = tui_read_key()
+    if k == 105 {
+        bench_idle()
+    }
+    if k == 107 {
+        bench_topk()
+    }
+    if k == 115 {
+        bench_score()
+    }
+}

@@ -190,6 +190,8 @@ def main():
     for case in frozen:
         hashes={r['WorkloadSHA256'] for r in results if r['Case']==Path(case['file']).stem and 'WorkloadSHA256' in r}
         assert len(hashes)==1, ('workload mismatch',case)
+    if args.suite == 'fusion':
+        headline(bench, out, frozen, results)
     failed_refs = [(r['Compiler'], r['Profile'], r['Case'], r['Status'])
                    for r in results if r['Compiler'] in refs and r['Status'] != 'PASS']
     if args.suite == 'fusion':
@@ -197,6 +199,47 @@ def main():
                        for r in results if r['Status'] != 'PASS']
     if failed_refs:
         raise SystemExit(f'reference failures: {failed_refs}')
+
+
+def headline(bench, out, frozen, results):
+    """Goal-F totals for the fusion suite, printed and saved as fusion-headline.json.
+
+    The goal-F basis is the eight frozen fusion cases. A case added later may
+    set `"headline": false` in cases/manifest.json to stay out of that basis —
+    fusion_two_ptr_xor does, because it is a register-allocation probe rather
+    than an iterator-fusion case. Both bases are always reported so a change of
+    basis is visible instead of silent."""
+    manifest = {Path(c['file']).stem: c for c in frozen}
+    totals = {(r['Compiler'], r['Profile'], r['Case']): r['TotalT']
+              for r in results if r['Status'] == 'PASS'}
+    report = []
+    bases = [('headline', [name for name, case in manifest.items() if case.get('headline', True)]),
+             ('all cases', list(manifest))]
+    for label, names in bases:
+        row = {'basis': label, 'cases': names}
+        missing = [f'nanz-idiom/default/{n}' for n in names if ('nanz-idiom', 'default', n) not in totals]
+        missing += [f'hand/asm/{n}' for n in names if ('hand', 'asm', n) not in totals]
+        missing += [f'sdcc/{n}' for n in names
+                    if not any(('sdcc', p, n) in totals for p in ('size', 'speed'))]
+        if missing:
+            row['incomplete'] = missing
+            report.append(row)
+            print(f'fusion totals [{label}]: incomplete, missing {missing}')
+            continue
+        # Best SDCC profile is chosen per case, as in the goal-F measurement.
+        row['nanz_default_t'] = sum(totals[('nanz-idiom', 'default', n)] for n in names)
+        row['best_sdcc_t'] = sum(min(totals[('sdcc', p, n)] for p in ('size', 'speed'))
+                                 for n in names)
+        row['hand_t'] = sum(totals[('hand', 'asm', n)] for n in names)
+        row['nanz_over_best_sdcc'] = round(row['nanz_default_t'] / row['best_sdcc_t'], 4)
+        row['nanz_over_hand'] = round(row['nanz_default_t'] / row['hand_t'], 4)
+        report.append(row)
+        print(f"fusion totals [{label}] ({len(names)} cases): "
+              f"nanz default {row['nanz_default_t']} T, best sdcc {row['best_sdcc_t']} T "
+              f"-> {row['nanz_over_best_sdcc']:.3f}x, hand {row['hand_t']} T "
+              f"-> {row['nanz_over_hand']:.3f}x")
+    (out/'fusion-headline.json').write_text(json.dumps(report, indent=2) + '\n')
+
 
 if __name__ == '__main__':
     main()

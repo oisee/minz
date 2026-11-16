@@ -1,0 +1,15 @@
+// collide.nanz — repro: `top = &NF5_TOP` inside zx.narrow_font.nf_build_packed
+// (stdlib/zx/narrow_font.nanz) resolves to this module's `global top` instead
+// of the function's own `var top`, so only one byte of the pointer is stored
+// and the font is built wrong.
+import zx.text
+
+global top: u8 = 0              // the colliding name
+
+fun main() -> void {
+    text_set_width(5)
+    win_open(0, 0, 0, 51, 24)
+    win_select(0)
+    win_print(c"The forest is calm and serene during the early morning.")
+    top = 1                     // never read; the aliasing alone is the defect
+}

@@ -1,0 +1,21 @@
+// Repro E (task Z3): every module that imports another module gets its own copy
+// of the imported code. main_via_wrapper pulls leaf in twice — once through
+// wrapper, once directly — so leaf_work is emitted twice and the binary grows:
+//
+//   $ mz module_dup/main_direct.nanz      -o /tmp/direct.a80    (leaf_work once)
+//   $ mz module_dup/main_via_wrapper.nanz -o /tmp/wrapped.a80   (leaf_work twice)
+//
+// Task Z3 hit this for real: examples/nanz/zx_narrow_text_bench.nanz importing
+// both zx.text and zx.narrow_font grew from 18261 to 33013 bytes (and stopped
+// fitting below $FFFF), because zx.narrow_font's builder was emitted once for
+// zx.text and once for the bench. The fix was to import only zx.text and reach
+// the builder through text_build_font().
+
+import leaf
+import wrapper
+
+fun main() -> void {
+    let a: u8 = leaf_work(1)
+    let b: u8 = wrapper_work(1)
+    asm z80 (in a) (in b) { LD (0x4000), A }
+}

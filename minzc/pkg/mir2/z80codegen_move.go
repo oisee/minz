@@ -123,9 +123,13 @@ func (g *z80cg) holdsValue(a, b string) bool {
 // valid Z80 form for loading an 8-bit value from an absolute 16-bit address.
 func (g *z80cg) emitLDA(src string) {
 	if src == "F" {
-		// F register cannot be loaded directly. Materialise carry flag.
-		g.emit("    SBC A, A") // A=0xFF if C=1, A=0x00 if C=0
-		g.invalidate("A")
+		// F holds a known predicate only while it is pending. The canonical
+		// 0/1 byte keeps the tested flags, so the predicate stays pending.
+		if g.pendingFlagReg == NoReg {
+			g.flagReadError()
+			return
+		}
+		g.emitFlagPredicateByte(g.condCode(g.fn, g.pendingFlagReg))
 		return
 	}
 	if isSpill(src) {
@@ -479,6 +483,14 @@ func (g *z80cg) genExt(inst *Inst) {
 		srcW = 8
 	}
 
+	// An index half zero-extends into BC/DE directly: LD C/E, IXH… is a legal
+	// DD/FD form (only H and L are taken by the prefix), so no byte snapshot.
+	if srcW == 8 && dstW == 16 && isIXYReg(src) && (dst == "BC" || dst == "DE") {
+		g.emitLD8(lowByte(dst), src)
+		g.emitLD8(highByte(dst), "0")
+		g.invalidate(dst)
+		return
+	}
 	if (srcW == 8 || srcW == 16 || srcW == 24) && dstW > srcW && dstW <= 32 &&
 		(dstW >= 24 || isSpill(dst) || isSpill(src) || isIXYReg(src) || strings.HasSuffix(src, "'")) {
 		g.genUnsignedExtBytes(dst, src, srcW, dstW)
@@ -753,27 +765,8 @@ func (g *z80cg) emitMov(dst, src string, widthBits int) {
 		if g.emitKnownFlagCopy(dst, widthBits) {
 			return
 		}
-		// Materialise a flag result into a register.
-		// Uses the SBC A,A trick for C-flag convention: A = 0xFF (carry set = true)
-		// or 0x00 (carry clear = false).  Works for CmpLt/CmpUlt/CmpGe/CmpUge.
-		//
-		// For Z-flag convention (CmpEq/CmpNe), the sequence is:
-		//   JR NZ, $+3 / SCF / then SBC A,A — converts Z to C, then materialise.
-		// We use the simpler carry path by default; HIR lowers bool-returning
-		// functions to carry-based comparisons where possible.
-		if dst == "A" {
-			g.emit("    SBC A, A") // A=0xFF if C=1 (true), A=0x00 if C=0 (false)
-		} else if isPairReg(dst) {
-			// Flag → 16-bit pair: materialise to A, then zero-extend.
-			// SBC A,A gives 0xFF (true) or 0x00 (false).
-			g.emit("    SBC A, A")
-			g.emitf("    LD %s, A", lowByte(dst))
-			g.emitf("    LD %s, 0", highByte(dst))
-		} else {
-			g.emit("    SBC A, A")
-			g.emitLD8(dst, "A")
-		}
-		g.invalidate("A")
+		// Nothing is pending: F holds no known predicate.
+		g.flagReadError()
 		return
 	}
 

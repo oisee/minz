@@ -1,0 +1,61 @@
+// zvdb_dump_zx.nanz — reference dumper for the zvdb kernel on the ZX Spectrum
+// build (task Z4, verification 1).
+//
+// Runs the exact zvdb_kernel.zv_top_k that examples/nanz/zvdb_demo_zx.nanz
+// uses, for every record, and copies each ranking into flat arrays so the Go
+// test (minzc/pkg/pipeline/zvdb_demo_zx_test.go) can read them straight out of
+// the in-process 48K machine and compare them with
+// examples/nanz/zvdb_demo_expected.txt — the same Z80-vs-Python equivalence
+// check zvdb_dump_cpm.nanz makes for CP/M, minus the console: a Spectrum build
+// has no stdout, so the ranking leaves through memory instead of BDOS.
+//
+// The record count is derived from the kernel rather than imported from
+// zvdb_demo_data: the compiler emits an imported module's data once per
+// importer, and importing both zvdb_kernel and zvdb_demo_data here would ship
+// the 2.8 K of vectors and labels twice (see the zvdb_demo_zx.nanz header).
+//
+// Capacity: DUMP_SEL_CAP selections x DUMP_RANK_CAP ranks, both clamped, so a
+// larger generated data module is truncated rather than running off the arrays.
+// The shipped set needs 35 x 34.
+//
+// Build:  minzc/mz examples/nanz/zvdb_dump_zx.nanz -o zvdb_dump_zx.a80
+//         minzc/mza zvdb_dump_zx.a80 -o zvdb_dump_zx.bin   (ORG $8000)
+// Run:    the Go test loads it at $8000 and steps the CPU to its HALT.
+
+import zvdb_kernel
+
+const DUMP_SEL_CAP: u8 = 40
+const DUMP_RANK_CAP: u8 = 40
+
+global dump_n: u8 = 0          // records ranked (zv_n)
+global dump_done: u8 = 0       // 0xA5 once every ranking is in place
+global dump_cnt: [u8; 40]      // ranking length per selection (zv_n - 1)
+global dump_idx: [u8; 1600]    // record index at (sel, rank)
+global dump_val: [u16; 1600]   // score at (sel, rank)
+
+fun main() -> void {
+    zv_top_k(0)
+    var n: u8 = zv_rank_count() + 1
+    if n > DUMP_SEL_CAP {
+        n = DUMP_SEL_CAP
+    }
+    dump_n = n
+    var sel: u8 = 0
+    while sel < n {
+        zv_top_k(sel)
+        var cnt: u8 = zv_rank_count()
+        if cnt > DUMP_RANK_CAP {
+            cnt = DUMP_RANK_CAP
+        }
+        dump_cnt[sel] = cnt
+        let base: u16 = u16(sel) * u16(DUMP_RANK_CAP)
+        var r: u8 = 0
+        while r < cnt {
+            dump_idx[base + u16(r)] = zv_rank_index(r)
+            dump_val[base + u16(r)] = zv_rank_score(r)
+            r = r + 1
+        }
+        sel = sel + 1
+    }
+    dump_done = 0xA5
+}

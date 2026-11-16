@@ -44,6 +44,7 @@ type Steps struct {
 	VariantSearch    VariantSearchStats
 
 	UnsignedPairComparePolicy mir2.UnsignedPairComparePolicy // resolved policy replayed by native re-codegen
+	FlagReturns               mir2.FlagReturnReport          // Z80 bool return contracts chosen in Phase 5b
 	ProfileDecisions          []hir.ProfileDecision
 	HIRLoopSites              *hir.LoopSiteMap      // optional input-HIR origins, before Grace/splitting
 	HIR                       string                // HIR structural dump (hir.Module.Dump())
@@ -108,6 +109,13 @@ type Options struct {
 	variantInlinedCallers    map[string]bool
 	variantMIRReady          func(*mir2.Module, bool) bool
 	variantBranchEquivMisses map[[32]byte]bool
+	// flagReturnPins fixes the flag-return contracts of variant trials to
+	// those of the module's first complete compile.
+	flagReturnPins map[string]mir2.CmpCond
+
+	// DisableFlagReturns keeps every bool return in A on Z80 instead of
+	// returning it in CPU flags where all call sites only branch on it.
+	DisableFlagReturns bool `json:",omitempty"`
 
 	// DisableCountedLoops is an internal differential-testing switch.
 	DisableCountedLoops bool `json:",omitempty"`
@@ -567,6 +575,13 @@ func compileMIRProductSteps(hm *hir.Module, opt Options, s Steps, splitInfo map[
 		cs := optimizePipelineContracts(m, ct, opt.ContractStrategy)
 		mir2.ApplyContracts(m, cs)
 	}
+	// Bool returns in flags are a Z80 code generation contract. Other
+	// emitters, and compiles that stop before Z80, keep the MIR untouched.
+	if !opt.DisableFlagReturns && (opt.Backend == "" || opt.Backend == "z80") && (!opt.SkipZ80Emission || NeedsZ80Asserts(hm, opt.AssertMode)) {
+		if s.FlagReturns, err = mir2.ApplyFlagReturnContracts(m, opt.flagReturnPins); err != nil {
+			return s, err
+		}
+	}
 
 	// Module-level: replace ranged-param pure functions with LUTs.
 	// Must run AFTER contract optimisation — LUT synthesis inherits the
@@ -582,6 +597,10 @@ func compileMIRProductSteps(hm *hir.Module, opt Options, s Steps, splitInfo map[
 		allocationCost := ct
 		if variantFor(opt, f.Name).SizeAllocation {
 			allocationCost = mir2.Z80CostTable{OptimizeForSize: true}
+		}
+		if z, ok := allocationCost.(mir2.Z80CostTable); ok && variantFor(opt, f.Name).AccPressure {
+			z.AccumulatorPressure = true
+			allocationCost = z
 		}
 		ar := mir2.PBQPAllocate(f, lr, allocationCost)
 		for r, loc := range ar.Locs {
@@ -866,6 +885,11 @@ func CompileHIRWithOptions(hm *hir.Module, opts Options) (string, error) {
 		mir2.PrepareByteLoopContracts(m)
 		cs := optimizePipelineContracts(m, ct, opts.ContractStrategy)
 		mir2.ApplyContracts(m, cs)
+	}
+	if !opts.DisableFlagReturns && (opts.Backend == "" || opts.Backend == "z80") {
+		if _, err := mir2.ApplyFlagReturnContracts(m, nil); err != nil {
+			return "", err
+		}
 	}
 
 	// Module-level: replace ranged-param pure functions with LUTs.
@@ -1422,6 +1446,22 @@ func checkAssertZ80Result(z *emulator.RemogattoZ80, a hir.Assert,
 
 // Native MIR values use a bit-pattern representation, like VM.Value. Wide
 // pair returns occupy the corresponding main and alternate pairs.
+// flagReturnHolds reports whether the flag byte f holds true for a result
+// returned as the flag condition cond.
+func flagReturnHolds(cond mir2.CmpCond, f byte) (bool, error) {
+	switch cond {
+	case mir2.CmpEq:
+		return f&0x40 != 0, nil
+	case mir2.CmpNe:
+		return f&0x40 == 0, nil
+	case mir2.CmpLt:
+		return f&1 != 0, nil
+	case mir2.CmpGe:
+		return f&1 == 0, nil
+	}
+	return false, fmt.Errorf("unsupported return flag condition %v", cond)
+}
+
 func readAssertZ80Return(z *emulator.RemogattoZ80, ret mir2.Return) (int64, error) {
 	regs := z.GetRegisters()
 	location := mir2.ReturnLocation(ret.Class, ret.Ty)
@@ -1452,18 +1492,9 @@ func readAssertZ80Return(z *emulator.RemogattoZ80, ret mir2.Return) (int64, erro
 	case "IY":
 		value = uint64(regs.IY)
 	case "F":
-		truth := false
-		switch ret.FlagCond {
-		case mir2.CmpEq:
-			truth = regs.F&0x40 != 0
-		case mir2.CmpNe:
-			truth = regs.F&0x40 == 0
-		case mir2.CmpLt:
-			truth = regs.F&1 != 0
-		case mir2.CmpGe:
-			truth = regs.F&1 == 0
-		default:
-			return 0, fmt.Errorf("unsupported return flag condition %v", ret.FlagCond)
+		truth, err := flagReturnHolds(ret.FlagCond, regs.F)
+		if err != nil {
+			return 0, err
 		}
 		if truth {
 			value = 1

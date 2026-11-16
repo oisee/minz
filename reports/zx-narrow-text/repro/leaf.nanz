@@ -1,0 +1,14 @@
+// leaf: an asm body that names one of its own globals with the mangled name it
+// has when leaf is compiled as a main module (or imported directly by one).
+
+global table: [u8; 4] = [1, 2, 3, 4]
+
+fun read_entry(i: u8) -> u8 {
+    asm z80 (in i) (ret A) (clob A, F, B, C, HL) {
+        LD HL, leaf__table
+        LD C, A
+        LD B, 0
+        ADD HL, BC
+        LD A, (HL)
+    }
+}

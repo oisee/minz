@@ -104,7 +104,8 @@ func (l *lowerer) staticLoopFact(st *WhileStmt) mir2.StaticLoop {
 		n--
 	}
 	body := &Block{Body: st.Body.Body[:n-1]}
-	muts := scanMutations(body, l.env)
+	// The lowerer's scan also sees captures assigned inside iterator lambdas.
+	muts := l.scanMutations(body, l.env)
 	if muts[iv.Name] {
 		return fact
 	}

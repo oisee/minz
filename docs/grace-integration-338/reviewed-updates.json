@@ -195,7 +195,7 @@
     "evidence": {
       "minzc/pkg/pipeline/original_lizp_lanz_family_native_test.go": "1952fd3f9c44cb0596e5645f1a7fcf068bfbd70b0603561175cab6a5cd07ad73",
       "reports/lizp-last-form/manifest.json": "ed61e1c78b4e34e20d14898eb40da959fbcccf42dad6a77ef3850161053768b1",
-      "docs/Nanz_Language_Book_v7.md": "e84929ca31ffb948a856dba9ba6250ea23f62a9c0df539dfb74de8f54d1b4a03"
+      "docs/Nanz_Language_Book_v7.md": "a5758b446daa399988e58aa9419a9c4b025cb001f79b3fc7b3f978f4e39ad6b3"
     }
   },
   {
@@ -350,9 +350,9 @@
     "native_behavior": "executed-independent-vm-z80",
     "workload": "sum_array: lengths 0,1,5,16,64,255 on ramp resource; separate fresh measured 1022 u8-length/address-family cases before/after forwarding-cycle elimination",
     "independent_model": "Ramp n*(n+1)/2 modulo256; measured corpus uses independent sequential modulo256 sum of each recorded input, checked against raw MIR2 and assembled Z80",
-    "boundary": "Named sum_array entry; original main not executed. Current ordinary-options baseline 41+54*n T/171 module bytes (F6 constant rematerialisation is profitability-gated off here: sum_array neither spills nor holds a constant live across a call); guarded fast 231+37*n T (zero232 T), guarded module238 B; fallback326+78*n T. Fresh before/after1022-row receipts bind binaries and compiler contexts. Profitability boundary11/12 separately executed. Older reports retain historical costs, not current evidence.",
+    "boundary": "Named sum_array entry; original main not executed. Current ordinary-options baseline 41+54*n T/171 module bytes (F6 constant rematerialisation is profitability-gated off here: sum_array neither spills nor holds a constant live across a call); guarded fast 152+37*n T (zero153 T) under the acc-pressure allocation recipe with the branch-only unsigned u16 compare through A removing 29T from fast/equality entries and 38T from fallback, guarded module221 B; fallback188+78*n T, remeasured over the 1022-row corpus by TestMeasureLoopCostModel. Profitability boundary6/7 separately executed. Older reports retain historical costs, not current evidence.",
     "evidence": {
-      "minzc/pkg/pipeline/profile_guided_sum_test.go": "388ec2182423bc6fe180b9e304b5c8f632000d560b0bbacc86a02c321d0a99d8",
+      "minzc/pkg/pipeline/profile_guided_sum_test.go": "614b8b56c413bb8e0403831aa631b5b5a0bc9ac475f83769f614e669248aabeb",
       "reports/profile-coalesced-edge-costs/root.txt": "7685133d9d5ccb2e269f3b444ec9dfe4be6d6977348fcffe4fae6766fe9a3eb1",
       "reports/copy-fat12-optimization/validation/minz-copy-fat-cost-regression.log": "c5c82ca7bd785f30c0c0f7cc700494df2609870fadec8db408fca0327067a18c",
       "research/generator-fusion/dead-params/evidence/profile-before-evidence.json": "83bca5c1707c0b39edfa1f966ae1d4e64eb02c2793390c9b27e62b92c0b58e19",
@@ -2262,15 +2262,15 @@
   },
   {
     "path": "reports/showcase-src/2026-03-13/ex19_assert_forms.nanz",
-    "source_sha256": "1f4349338f02fbe8eaa253bc9033115ebf4bcaace3d675222fcab4c140224567",
+    "source_sha256": "f261459dff6b3998f5c6fc867ab6405ba36b4708cc623f835127001a4f9db7bb",
     "native_behavior": "bounded-independent-vm-native",
     "workload": "reports/showcase-ex19-complete/workload.json; reports/showcase-manhattan/workload.json",
     "independent_model": "Book v7 named byte fields/unsigned width; host Manhattan abs differences modulo256 and named accessors",
     "boundary": "All nine source-defined entries have bounded independent raw/finalVM/native proof; generated lambda_0 raw-only because final inlining prunes it. Not all byte Cartesian inputs, and assertions retain original qualifiers.",
     "evidence": {
-      "reports/showcase-manhattan/proof/manifest.json": "288fef1a2487c78a606d5122184d641dda12285ecfd83aa94a25cbf7a22b727f",
+      "reports/showcase-manhattan/proof/manifest.json": "45c26026ecea3b119e92619e385fbfa6ef0c9be9c42b37f3e08f502a3e2f5a42",
       "docs/grace-integration-103/local-frame-integrated-original.txt": "2bd415b2b089f946d65435b2fa6e3d58f3fa15a2bee077bbcb37a2279810f75c",
-      "reports/showcase-ex19-complete/manifest.json": "64f21185fe315a1749cf4d7bae3464efb5db7580ff5174e6b3d8d64028fb5c70",
+      "reports/showcase-ex19-complete/manifest.json": "68c38a05e60a1c88dbef191eab16ada79efa11f87c2067925da539c00d3ee7e4",
       "docs/grace-integration-105/ex19-complete-root.txt": "9e7519f4d6bed0bc575b0c2cc236c17314ae13ab88fdaa85cf5fad59b03ca1c9"
     }
   },
@@ -2488,7 +2488,7 @@
     "independent_model": "2*x+1 modulo256 independent host arithmetic",
     "boundary": "Exact import consumer and local mathlib dependency; raw/final VM + assembled native return/SP/guards/image",
     "evidence": {
-      "minzc/pkg/pipeline/showcase_pipe_import_oracle_test.go": "f40b8aac4baf2649603ad2e3a44160ed83cf7479908211d12101628167daeecd"
+      "minzc/pkg/pipeline/showcase_pipe_import_oracle_test.go": "6c4f85c658d1eda5d218338c0efb56e6ecd410aea382bb972d5e0bbb1670eb13"
     }
   },
   {
@@ -2499,7 +2499,7 @@
     "independent_model": "2*10+5 equals25",
     "boundary": "Exact qualified import consumer; local mathlib, no general stdlib claim",
     "evidence": {
-      "minzc/pkg/pipeline/showcase_pipe_import_oracle_test.go": "f40b8aac4baf2649603ad2e3a44160ed83cf7479908211d12101628167daeecd"
+      "minzc/pkg/pipeline/showcase_pipe_import_oracle_test.go": "6c4f85c658d1eda5d218338c0efb56e6ecd410aea382bb972d5e0bbb1670eb13"
     }
   },
   {
@@ -2510,7 +2510,7 @@
     "independent_model": "3*3+1 equals10",
     "boundary": "Exact alias import consumer; local mathlib, no general stdlib claim",
     "evidence": {
-      "minzc/pkg/pipeline/showcase_pipe_import_oracle_test.go": "f40b8aac4baf2649603ad2e3a44160ed83cf7479908211d12101628167daeecd"
+      "minzc/pkg/pipeline/showcase_pipe_import_oracle_test.go": "6c4f85c658d1eda5d218338c0efb56e6ecd410aea382bb972d5e0bbb1670eb13"
     }
   },
   {
@@ -2541,13 +2541,13 @@
   },
   {
     "path": "reports/showcase-src/2026-03-14/ex28_pipe.nanz",
-    "source_sha256": "f1c25c6f70c1e5105813fe3a84ddef5f7b6fd54aa1915383cc2859d29c0101e4",
+    "source_sha256": "67ff2b053dfdd2565e489bd35cd968870027a927a58b4e3ee97989ededf2a4a0",
     "native_behavior": "executed-independent-vm-z80",
     "workload": "Both full sum_doubled/sum_tripled entries and both source asserts",
     "independent_model": "Independent n-to-1 range with doubled then optional +1, byte accumulation",
     "boundary": "Named pipe/trans/use/apply unchanged; only fixed original entry workloads, not additional invented parameterized pipeline",
     "evidence": {
-      "minzc/pkg/pipeline/showcase_pipe_import_oracle_test.go": "f40b8aac4baf2649603ad2e3a44160ed83cf7479908211d12101628167daeecd"
+      "minzc/pkg/pipeline/showcase_pipe_import_oracle_test.go": "6c4f85c658d1eda5d218338c0efb56e6ecd410aea382bb972d5e0bbb1670eb13"
     }
   },
   {
@@ -2558,7 +2558,7 @@
     "independent_model": "Host byte addition / 2*x / 3*x modulo256",
     "boundary": "Library file has no main/asserts; all three callable entries independently checked, no all-libraries claim",
     "evidence": {
-      "minzc/pkg/pipeline/showcase_pipe_import_oracle_test.go": "f40b8aac4baf2649603ad2e3a44160ed83cf7479908211d12101628167daeecd"
+      "minzc/pkg/pipeline/showcase_pipe_import_oracle_test.go": "6c4f85c658d1eda5d218338c0efb56e6ecd410aea382bb972d5e0bbb1670eb13"
     }
   },
   {

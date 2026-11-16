@@ -1,0 +1,5 @@
+import leaf
+
+fun mid_read(i: u8) -> u8 {
+    return read_entry(i)
+}
