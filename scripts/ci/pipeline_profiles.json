@@ -26,6 +26,7 @@
     "TestBitStorePointerHomeE2E",
     "TestBitStorePointerHomeOffsetE2E",
     "TestBitStoreWordPointerHomeE2E",
+    "TestBitTestThroughSpilledPointerKeepsHLVMZ80",
     "TestBoolExtensionSourceVMZ80",
     "TestBoolStructAddressableFieldsNative",
     "TestBoolWideExtensionSourceNative",

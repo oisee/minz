@@ -364,12 +364,18 @@ func (g *z80cg) genCmp(inst *Inst) {
 	if pat, ok := g.bitCmpPat[inst.Dst]; ok {
 		if pat.useMem {
 			ptr := g.loc(pat.ptrReg)
+			restoreHL := func() {}
 			if isSpill(ptr) {
+				// The reload borrows HL. A value living there is saved around
+				// the test; POP leaves the flags of BIT alone.
+				restoreHL = g.saveLiveScratch(inst, "HL")
 				g.emitf("    LD HL, (%s)   ; reload spilled ptr", ptr)
 				g.invalidate("HL")
 				ptr = "HL"
 			}
-			if g.emitBitMemOp("BIT", pat.bit, ptr, pat.byteOffset) {
+			ok := g.emitBitMemOp("BIT", pat.bit, ptr, pat.byteOffset)
+			restoreHL()
+			if ok {
 				g.pendingFlagReg = inst.Dst
 				return
 			}
