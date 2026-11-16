@@ -91,7 +91,7 @@ func (g *z80cg) rotatableHeader(h *Block) bool {
 			condDefined = true
 		}
 		// A suppressed constant has no home; its value is an immediate.
-		if !(x.Op == OpConst && g.deadConsts[x.Dst]) && !inReg(x.Dst) {
+		if (x.Op != OpConst || !g.deadConsts[x.Dst]) && !inReg(x.Dst) {
 			return false
 		}
 		for _, r := range x.Uses() {
@@ -173,7 +173,7 @@ func (g *z80cg) tryRotateLoop(f *Func, t *TermJmp) bool {
 		g.needsCallStack, g.needsCallIX, g.needsMul8, g.needsQuarterSquare, g.needsRotate = needs[0], needs[1], needs[2], needs[3], needs[4]
 		return false
 	}
-	g.sb.WriteString(fmt.Sprintf("    ; loop rotation: test of %s repeated at the back edge\n", head.Label))
+	fmt.Fprintf(g.sb, "    ; loop rotation: test of %s repeated at the back edge\n", head.Label)
 	g.sb.WriteString(text)
 	return true
 }

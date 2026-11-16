@@ -412,6 +412,7 @@
     "TestRegionCompareMeasuredRefusals",
     "TestRegionCompareUnknownAndEffectfulSites",
     "TestRetiredLIRConfigurationRefused",
+    "TestRotatedLoopFactsOnlyForMarkedRotation",
     "TestSMCNativeSourceCalls",
     "TestSMCSourceAdmission",
     "TestSQLiteASMInputABI",
