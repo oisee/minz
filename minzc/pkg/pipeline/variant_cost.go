@@ -50,7 +50,9 @@ func assembleVariant(s Steps) (*variantImage, error) {
 	for i, line := range strings.Split(asm, "\n") {
 		if strings.HasPrefix(line, "; fun ") {
 			owner, _, _ = strings.Cut(strings.TrimPrefix(line, "; fun "), "(")
-			im.abi[owner] = line
+			// The clobber clause follows the emitted body under exact clobbers;
+			// callers that depend on it differ in code and fail the context check.
+			im.abi[owner], _, _ = strings.Cut(line, " ; clobbers:")
 		} else if strings.HasPrefix(line, "; globals") || strings.HasPrefix(line, "; strings") || strings.HasPrefix(line, "; runtime:") {
 			owner = ""
 		}
