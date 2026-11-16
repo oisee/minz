@@ -304,13 +304,16 @@ func VerifyABI(declared []*DeclaredFunc, detected map[uint16]*FuncRegInfo, funcM
 			}
 		}
 
-		// Compare CLOBBER (strip F — almost everything clobbers F)
+		// Compare CLOBBER (strip F — almost everything clobbers F). A declared
+		// clobber the body does not write is a conservative contract, not a
+		// defect: callers only save more than needed. Only an undeclared
+		// write can break a caller.
 		declClob := df.Clobber &^ RegF
 		detClob := det.Clobber &^ RegF
 		if declClob != detClob {
 			extra := detClob &^ declClob
 			missing := declClob &^ detClob
-			if extra != 0 || missing != 0 {
+			if extra != 0 {
 				mismatches = append(mismatches, &ABIMismatch{
 					FuncName: df.Name,
 					Addr:     addr,
