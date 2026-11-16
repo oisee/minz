@@ -175,10 +175,10 @@ func TestLoopRotationRefusesForwardEdge(t *testing.T) {
 
 func TestAsmByteSize(t *testing.T) {
 	for text, want := range map[string]int{
-		"    LD A, D\n    OR E\n":                     2,
+		"    LD A, D\n    OR E\n":                      2,
 		"    LD A, H\n    OR L\n    JRS NZ, .x_body\n": 4,
 		"    SBC HL, DE    ; 15T\n":                    2,
-		"    JP Z, .far\n    CP 7\n":                  5,
+		"    JP Z, .far\n    CP 7\n":                   5,
 	} {
 		if got, ok := asmByteSize(text); !ok || got != want {
 			t.Fatalf("asmByteSize(%q) = %d, %v; want %d", text, got, ok, want)
