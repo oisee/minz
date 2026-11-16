@@ -19,7 +19,9 @@ import (
 // Rematerialisation gives such a constant LocRemat — no physical location at
 // all.  It is only ever applied to constants whose LD computeDeadConsts already
 // suppresses, because that analysis is the inventory of use sites the codegen
-// serves without touching the constant's allocation.
+// serves without touching the constant's allocation.  A link-time address
+// (addr_of) whose every use is a ptr_add base is such a constant too: the
+// ptr_add names the symbol as an immediate (deadAddressConstants).
 //
 // Soundness depends on the *final* allocation, not the trial one: a folding
 // pattern may require its other operand to be in a particular kind of location
@@ -91,12 +93,13 @@ func funcHasRematLoc(f *Func, ar *AllocResult) bool {
 	return false
 }
 
-// funcHasConstDefs reports whether f defines any constant at all, so functions
-// without constants do not pay the trial solve.
+// funcHasConstDefs reports whether f defines any constant at all (a value or
+// a link-time address), so functions without constants do not pay the trial
+// solve.
 func funcHasConstDefs(f *Func) bool {
 	for _, b := range f.Blocks {
 		for _, inst := range b.Insts {
-			if inst.Op == OpConst && inst.Dst != NoReg {
+			if (inst.Op == OpConst || inst.Op == OpAddrOf) && inst.Dst != NoReg {
 				return true
 			}
 		}
@@ -177,10 +180,12 @@ func eligibleRematConstants(f *Func, ar *AllocResult, dead map[Reg]bool) map[Reg
 			blockParam[p.Dst] = true
 		}
 	}
+	// An address constant (addr_of whose every use is a ptr_add base, see
+	// deadAddressConstants) is served from the symbol immediate the same way.
 	constDefs := make(map[Reg]int)
 	for _, b := range f.Blocks {
 		for _, inst := range b.Insts {
-			if inst.Op == OpConst && inst.Dst != NoReg {
+			if (inst.Op == OpConst || inst.Op == OpAddrOf) && inst.Dst != NoReg {
 				constDefs[inst.Dst]++
 			}
 		}

@@ -94,9 +94,9 @@
     "research/crystal-hir/export.cr": "a96d3c756cb0798120aad69427b13259f761908ea95c9cf8f6b58317249cc663",
     "research/crystal-hir/typed_export.cr": "d06f1a8e22dec408b7ada5b5482023cb69fbf32d49183bf8d344683b44b3655c"
   },
-  "reused_positive_sha256": "3abe329ff3fa0bd91ea5618c6ba2daec9e22f8c1061792138ea185e49769c87a",
-  "reused_musical_sha256": "e74a89c3ff416f7cd815074666b9ffbf1bb287381fcfc32afa5eae5740242a4b",
-  "reused_arrangement_sha256": "e84b6e50a2a0f34391ca85822214f5cef2c29a0d3e598318c6d7b5ad8d572d39",
+  "reused_positive_sha256": "b379fceddb61aae343f8642b1f53aafe7f212745cdcb5e6b009ae0015c02472d",
+  "reused_musical_sha256": "64acb0ee6c4b15646c8ee30c00dd736451c817fa1db4ce94aaed9918e95bd831",
+  "reused_arrangement_sha256": "f64051361ca9de9b19f9162307ee5695b5aaa95c3bfefb49455fe9560d3d2d40",
   "proofs": {
     "invalid": {
       "protocol": "autosiril-echo-invalid/v1",
@@ -285,11 +285,11 @@
             "input_opens": 1,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -315,7 +315,7 @@
             "ring_peak": 0,
             "sector_calls": 3,
             "stack_below_entry": 42,
-            "t_states": 82541,
+            "t_states": 78499,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -404,11 +404,11 @@
             "input_opens": 1,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -434,7 +434,7 @@
             "ring_peak": 0,
             "sector_calls": 3,
             "stack_below_entry": 42,
-            "t_states": 84627,
+            "t_states": 80437,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -523,11 +523,11 @@
             "input_opens": 1,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -553,7 +553,7 @@
             "ring_peak": 0,
             "sector_calls": 3,
             "stack_below_entry": 42,
-            "t_states": 87275,
+            "t_states": 82973,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -642,11 +642,11 @@
             "input_opens": 1,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -672,7 +672,7 @@
             "ring_peak": 0,
             "sector_calls": 3,
             "stack_below_entry": 42,
-            "t_states": 87304,
+            "t_states": 83002,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -761,11 +761,11 @@
             "input_opens": 1,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -791,7 +791,7 @@
             "ring_peak": 0,
             "sector_calls": 3,
             "stack_below_entry": 42,
-            "t_states": 87336,
+            "t_states": 83034,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -880,11 +880,11 @@
             "input_opens": 1,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -910,7 +910,7 @@
             "ring_peak": 0,
             "sector_calls": 3,
             "stack_below_entry": 42,
-            "t_states": 87368,
+            "t_states": 83066,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -999,11 +999,11 @@
             "input_opens": 1,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -1029,7 +1029,7 @@
             "ring_peak": 0,
             "sector_calls": 3,
             "stack_below_entry": 42,
-            "t_states": 87368,
+            "t_states": 83066,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -1118,11 +1118,11 @@
             "input_opens": 1,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -1148,7 +1148,7 @@
             "ring_peak": 0,
             "sector_calls": 3,
             "stack_below_entry": 42,
-            "t_states": 87930,
+            "t_states": 83612,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -1237,11 +1237,11 @@
             "input_opens": 1,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -1267,7 +1267,7 @@
             "ring_peak": 0,
             "sector_calls": 3,
             "stack_below_entry": 42,
-            "t_states": 96291,
+            "t_states": 91610,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -1356,11 +1356,11 @@
             "input_opens": 1,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -1386,7 +1386,7 @@
             "ring_peak": 0,
             "sector_calls": 3,
             "stack_below_entry": 42,
-            "t_states": 98355,
+            "t_states": 93498,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -1475,11 +1475,11 @@
             "input_opens": 1,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -1505,7 +1505,7 @@
             "ring_peak": 0,
             "sector_calls": 3,
             "stack_below_entry": 42,
-            "t_states": 84062,
+            "t_states": 80020,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -1594,11 +1594,11 @@
             "input_opens": 1,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -1624,7 +1624,7 @@
             "ring_peak": 0,
             "sector_calls": 3,
             "stack_below_entry": 42,
-            "t_states": 98583,
+            "t_states": 93726,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -1713,11 +1713,11 @@
             "input_opens": 1,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -1743,7 +1743,7 @@
             "ring_peak": 0,
             "sector_calls": 3,
             "stack_below_entry": 42,
-            "t_states": 101250,
+            "t_states": 96393,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -1868,11 +1868,11 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -1916,7 +1916,7 @@
             "ring_peak": 0,
             "sector_calls": 6,
             "stack_below_entry": 42,
-            "t_states": 182882,
+            "t_states": 173938,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -2041,11 +2041,11 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -2089,7 +2089,7 @@
             "ring_peak": 0,
             "sector_calls": 6,
             "stack_below_entry": 42,
-            "t_states": 184968,
+            "t_states": 175876,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -2214,11 +2214,11 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -2262,7 +2262,7 @@
             "ring_peak": 0,
             "sector_calls": 6,
             "stack_below_entry": 42,
-            "t_states": 187616,
+            "t_states": 178412,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -2387,11 +2387,11 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -2435,7 +2435,7 @@
             "ring_peak": 0,
             "sector_calls": 6,
             "stack_below_entry": 42,
-            "t_states": 187645,
+            "t_states": 178441,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -2560,11 +2560,11 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -2608,7 +2608,7 @@
             "ring_peak": 0,
             "sector_calls": 6,
             "stack_below_entry": 42,
-            "t_states": 187677,
+            "t_states": 178473,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -2733,11 +2733,11 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -2781,7 +2781,7 @@
             "ring_peak": 0,
             "sector_calls": 6,
             "stack_below_entry": 42,
-            "t_states": 187709,
+            "t_states": 178505,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -2906,11 +2906,11 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -2954,7 +2954,7 @@
             "ring_peak": 0,
             "sector_calls": 6,
             "stack_below_entry": 42,
-            "t_states": 187709,
+            "t_states": 178505,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -3079,11 +3079,11 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -3127,7 +3127,7 @@
             "ring_peak": 0,
             "sector_calls": 6,
             "stack_below_entry": 42,
-            "t_states": 194252,
+            "t_states": 184600,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -3252,11 +3252,11 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -3300,7 +3300,7 @@
             "ring_peak": 2,
             "sector_calls": 6,
             "stack_below_entry": 46,
-            "t_states": 286264,
+            "t_states": 273473,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -3425,11 +3425,11 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -3473,7 +3473,7 @@
             "ring_peak": 2,
             "sector_calls": 6,
             "stack_below_entry": 46,
-            "t_states": 288328,
+            "t_states": 275361,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -3598,11 +3598,11 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -3646,7 +3646,7 @@
             "ring_peak": 0,
             "sector_calls": 6,
             "stack_below_entry": 42,
-            "t_states": 183836,
+            "t_states": 174892,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -3771,11 +3771,11 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -3819,7 +3819,7 @@
             "ring_peak": 2,
             "sector_calls": 6,
             "stack_below_entry": 46,
-            "t_states": 288556,
+            "t_states": 275589,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -3944,11 +3944,11 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -3992,7 +3992,7 @@
             "ring_peak": 2,
             "sector_calls": 6,
             "stack_below_entry": 46,
-            "t_states": 291223,
+            "t_states": 278256,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -4081,11 +4081,11 @@
             "input_opens": 1,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -4111,7 +4111,7 @@
             "ring_peak": 0,
             "sector_calls": 3,
             "stack_below_entry": 42,
-            "t_states": 87433,
+            "t_states": 83131,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -4200,11 +4200,11 @@
             "input_opens": 1,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -4230,7 +4230,7 @@
             "ring_peak": 0,
             "sector_calls": 3,
             "stack_below_entry": 42,
-            "t_states": 90330,
+            "t_states": 85916,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -4319,11 +4319,11 @@
             "input_opens": 1,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -4349,7 +4349,7 @@
             "ring_peak": 0,
             "sector_calls": 3,
             "stack_below_entry": 42,
-            "t_states": 90501,
+            "t_states": 86087,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -4438,11 +4438,11 @@
             "input_opens": 1,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -4468,7 +4468,7 @@
             "ring_peak": 0,
             "sector_calls": 3,
             "stack_below_entry": 42,
-            "t_states": 90547,
+            "t_states": 86133,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -4557,11 +4557,11 @@
             "input_opens": 1,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -4587,7 +4587,7 @@
             "ring_peak": 0,
             "sector_calls": 3,
             "stack_below_entry": 42,
-            "t_states": 95001,
+            "t_states": 90108,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -5444,11 +5444,11 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -5858,7 +5858,7 @@
             "ring_peak": 0,
             "sector_calls": 67,
             "stack_below_entry": 42,
-            "t_states": 9902426,
+            "t_states": 9016301,
             "wire_sha256": "8f706bdd115df428603c9fe0f514e7581652ac856e688c154720c8c4f0c5fccd"
           },
           {
@@ -6607,11 +6607,11 @@
             "input_opens": 1,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -6967,7 +6967,7 @@
             "ring_peak": 0,
             "sector_calls": 58,
             "stack_below_entry": 42,
-            "t_states": 9605929,
+            "t_states": 8738322,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -7092,11 +7092,11 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -7140,7 +7140,7 @@
             "ring_peak": 0,
             "sector_calls": 6,
             "stack_below_entry": 42,
-            "t_states": 238682,
+            "t_states": 226948,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -7265,11 +7265,11 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -7313,7 +7313,7 @@
             "ring_peak": 0,
             "sector_calls": 6,
             "stack_below_entry": 42,
-            "t_states": 239590,
+            "t_states": 227845,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -7438,11 +7438,11 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -7486,7 +7486,7 @@
             "ring_peak": 0,
             "sector_calls": 6,
             "stack_below_entry": 42,
-            "t_states": 239623,
+            "t_states": 227878,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -7611,11 +7611,11 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -7659,7 +7659,7 @@
             "ring_peak": 0,
             "sector_calls": 6,
             "stack_below_entry": 42,
-            "t_states": 240570,
+            "t_states": 228678,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -7784,11 +7784,11 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -7832,7 +7832,7 @@
             "ring_peak": 0,
             "sector_calls": 6,
             "stack_below_entry": 42,
-            "t_states": 239833,
+            "t_states": 228088,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -7957,11 +7957,11 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -8005,7 +8005,7 @@
             "ring_peak": 0,
             "sector_calls": 6,
             "stack_below_entry": 42,
-            "t_states": 240012,
+            "t_states": 228230,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -8130,11 +8130,11 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -8178,7 +8178,7 @@
             "ring_peak": 0,
             "sector_calls": 6,
             "stack_below_entry": 42,
-            "t_states": 239688,
+            "t_states": 227943,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -8303,11 +8303,11 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -8351,7 +8351,7 @@
             "ring_peak": 0,
             "sector_calls": 6,
             "stack_below_entry": 42,
-            "t_states": 240694,
+            "t_states": 228788,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -8476,11 +8476,11 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -8524,7 +8524,7 @@
             "ring_peak": 0,
             "sector_calls": 6,
             "stack_below_entry": 42,
-            "t_states": 241220,
+            "t_states": 229202,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -8649,11 +8649,11 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -8697,7 +8697,7 @@
             "ring_peak": 0,
             "sector_calls": 6,
             "stack_below_entry": 42,
-            "t_states": 241530,
+            "t_states": 229488,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -8822,11 +8822,11 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -8870,7 +8870,7 @@
             "ring_peak": 0,
             "sector_calls": 6,
             "stack_below_entry": 42,
-            "t_states": 241714,
+            "t_states": 229695,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -8995,11 +8995,11 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -9043,7 +9043,7 @@
             "ring_peak": 2,
             "sector_calls": 6,
             "stack_below_entry": 46,
-            "t_states": 296156,
+            "t_states": 282397,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -9168,11 +9168,11 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -9216,7 +9216,7 @@
             "ring_peak": 0,
             "sector_calls": 6,
             "stack_below_entry": 42,
-            "t_states": 206135,
+            "t_states": 195761,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -9341,11 +9341,11 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -9389,7 +9389,7 @@
             "ring_peak": 0,
             "sector_calls": 6,
             "stack_below_entry": 42,
-            "t_states": 206202,
+            "t_states": 195828,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -9514,11 +9514,11 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -9562,7 +9562,7 @@
             "ring_peak": 0,
             "sector_calls": 6,
             "stack_below_entry": 42,
-            "t_states": 206482,
+            "t_states": 196108,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -9687,11 +9687,11 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -9735,7 +9735,7 @@
             "ring_peak": 0,
             "sector_calls": 6,
             "stack_below_entry": 42,
-            "t_states": 209729,
+            "t_states": 199355,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -9860,11 +9860,11 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -9908,7 +9908,7 @@
             "ring_peak": 0,
             "sector_calls": 6,
             "stack_below_entry": 42,
-            "t_states": 210916,
+            "t_states": 200478,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -10033,11 +10033,11 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -10081,7 +10081,7 @@
             "ring_peak": 0,
             "sector_calls": 6,
             "stack_below_entry": 42,
-            "t_states": 217575,
+            "t_states": 207137,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -10206,11 +10206,11 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -10254,7 +10254,7 @@
             "ring_peak": 0,
             "sector_calls": 6,
             "stack_below_entry": 42,
-            "t_states": 202046,
+            "t_states": 192154,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -10379,11 +10379,11 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -10427,7 +10427,7 @@
             "ring_peak": 0,
             "sector_calls": 6,
             "stack_below_entry": 42,
-            "t_states": 255760,
+            "t_states": 244490,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -11500,11 +11500,11 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -12022,7 +12022,7 @@
             "ring_peak": 0,
             "sector_calls": 85,
             "stack_below_entry": 42,
-            "t_states": 30987462,
+            "t_states": 30192520,
             "wire_sha256": "00521349bd23263eff309cf5d90f8dd5a25ccdf32377ed32d7c59806d2e4e8f5"
           },
           {
@@ -13035,11 +13035,11 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -13527,7 +13527,7 @@
             "ring_peak": 0,
             "sector_calls": 80,
             "stack_below_entry": 42,
-            "t_states": 30413322,
+            "t_states": 29632646,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -13748,11 +13748,11 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -13844,7 +13844,7 @@
             "ring_peak": 0,
             "sector_calls": 14,
             "stack_below_entry": 42,
-            "t_states": 3052673,
+            "t_states": 2954107,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -13969,11 +13969,11 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -14017,7 +14017,7 @@
             "ring_peak": 1,
             "sector_calls": 6,
             "stack_below_entry": 46,
-            "t_states": 275362,
+            "t_states": 262781,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -14142,11 +14142,11 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -14190,7 +14190,7 @@
             "ring_peak": 1,
             "sector_calls": 6,
             "stack_below_entry": 46,
-            "t_states": 271732,
+            "t_states": 259368,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -14315,11 +14315,11 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -14363,7 +14363,7 @@
             "ring_peak": 1,
             "sector_calls": 6,
             "stack_below_entry": 46,
-            "t_states": 271720,
+            "t_states": 259356,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -17740,11 +17740,11 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -19414,7 +19414,7 @@
             "ring_peak": 3,
             "sector_calls": 277,
             "stack_below_entry": 46,
-            "t_states": 197145948,
+            "t_states": 178874474,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -19503,11 +19503,11 @@
             "input_opens": 1,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -19533,7 +19533,7 @@
             "ring_peak": 0,
             "sector_calls": 3,
             "stack_below_entry": 42,
-            "t_states": 96197,
+            "t_states": 91516,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -19658,11 +19658,11 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -19706,7 +19706,7 @@
             "ring_peak": 2,
             "sector_calls": 6,
             "stack_below_entry": 46,
-            "t_states": 286170,
+            "t_states": 273379,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -19831,11 +19831,11 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -19879,7 +19879,7 @@
             "ring_peak": 0,
             "sector_calls": 6,
             "stack_below_entry": 42,
-            "t_states": 187773,
+            "t_states": 178569,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -20004,11 +20004,11 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -20052,7 +20052,7 @@
             "ring_peak": 0,
             "sector_calls": 6,
             "stack_below_entry": 42,
-            "t_states": 187773,
+            "t_states": 178569,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -20141,11 +20141,11 @@
             "input_opens": 1,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -20171,7 +20171,7 @@
             "ring_peak": 0,
             "sector_calls": 3,
             "stack_below_entry": 42,
-            "t_states": 90501,
+            "t_states": 86087,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -20296,11 +20296,11 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -20344,7 +20344,7 @@
             "ring_peak": 0,
             "sector_calls": 6,
             "stack_below_entry": 42,
-            "t_states": 240602,
+            "t_states": 228721,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -20469,11 +20469,11 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -20517,7 +20517,7 @@
             "ring_peak": 0,
             "sector_calls": 6,
             "stack_below_entry": 42,
-            "t_states": 240757,
+            "t_states": 228848,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -20642,11 +20642,11 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -20690,7 +20690,7 @@
             "ring_peak": 0,
             "sector_calls": 6,
             "stack_below_entry": 42,
-            "t_states": 241810,
+            "t_states": 229718,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -20815,11 +20815,11 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -20863,7 +20863,7 @@
             "ring_peak": 0,
             "sector_calls": 6,
             "stack_below_entry": 42,
-            "t_states": 208273,
+            "t_states": 197899,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -20988,11 +20988,11 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -21036,7 +21036,7 @@
             "ring_peak": 0,
             "sector_calls": 6,
             "stack_below_entry": 42,
-            "t_states": 243103,
+            "t_states": 231351,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -21161,11 +21161,11 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -21209,7 +21209,7 @@
             "ring_peak": 0,
             "sector_calls": 6,
             "stack_below_entry": 42,
-            "t_states": 258331,
+            "t_states": 246515,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -21334,11 +21334,11 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -21382,7 +21382,7 @@
             "ring_peak": 0,
             "sector_calls": 6,
             "stack_below_entry": 42,
-            "t_states": 254758,
+            "t_states": 242942,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -21433,11 +21433,11 @@
             "input_opens": 0,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [],
             "published": false,
@@ -21495,11 +21495,11 @@
             "input_opens": 0,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [],
             "published": false,
@@ -21557,18 +21557,18 @@
             "input_opens": 0,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [],
             "published": false,
             "ring_peak": 0,
             "sector_calls": 0,
             "stack_below_entry": 6,
-            "t_states": 1699,
+            "t_states": 1796,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           }
         ],
@@ -21576,7 +21576,7 @@
         "scope": "initial actual Ruby musical matrix; full malformed/IO/CPM/CI pending"
       },
       "cpm": {
-        "binary_sha256": "cc14298e4467410ed5276fef63ec55b5f2b132afd2eee91fbaccc22386746eab",
+        "binary_sha256": "9ae8367a512508ed9c1130a29235fa0afbadb95897b4ee36c9dccc64d7438710",
         "cases": [
           {
             "bdos_calls": {
@@ -21651,7 +21651,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 22,
-            "t_states": 25262
+            "t_states": 20140
           },
           {
             "bdos_calls": {
@@ -21726,7 +21726,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 22,
-            "t_states": 27348
+            "t_states": 22078
           },
           {
             "bdos_calls": {
@@ -21801,7 +21801,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 22,
-            "t_states": 29996
+            "t_states": 24614
           },
           {
             "bdos_calls": {
@@ -21876,7 +21876,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 22,
-            "t_states": 30025
+            "t_states": 24643
           },
           {
             "bdos_calls": {
@@ -21951,7 +21951,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 22,
-            "t_states": 30057
+            "t_states": 24675
           },
           {
             "bdos_calls": {
@@ -22026,7 +22026,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 22,
-            "t_states": 30089
+            "t_states": 24707
           },
           {
             "bdos_calls": {
@@ -22101,7 +22101,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 22,
-            "t_states": 30089
+            "t_states": 24707
           },
           {
             "bdos_calls": {
@@ -22176,7 +22176,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 22,
-            "t_states": 30651
+            "t_states": 25253
           },
           {
             "bdos_calls": {
@@ -22251,7 +22251,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 39012
+            "t_states": 33251
           },
           {
             "bdos_calls": {
@@ -22326,7 +22326,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 41076
+            "t_states": 35139
           },
           {
             "bdos_calls": {
@@ -22401,7 +22401,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 22,
-            "t_states": 25809
+            "t_states": 20643
           },
           {
             "bdos_calls": {
@@ -22476,7 +22476,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 43322
+            "t_states": 37369
           },
           {
             "bdos_calls": {
@@ -22551,7 +22551,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 258445
+            "t_states": 250908
           },
           {
             "bdos_calls": {
@@ -22626,7 +22626,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 280456
+            "t_states": 267752
           },
           {
             "bdos_calls": {
@@ -22701,7 +22701,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 282542
+            "t_states": 269690
           },
           {
             "bdos_calls": {
@@ -22776,7 +22776,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 285190
+            "t_states": 272226
           },
           {
             "bdos_calls": {
@@ -22851,7 +22851,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 285219
+            "t_states": 272255
           },
           {
             "bdos_calls": {
@@ -22926,7 +22926,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 285251
+            "t_states": 272287
           },
           {
             "bdos_calls": {
@@ -23001,7 +23001,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 285283
+            "t_states": 272319
           },
           {
             "bdos_calls": {
@@ -23076,7 +23076,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 285283
+            "t_states": 272319
           },
           {
             "bdos_calls": {
@@ -23154,7 +23154,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 291694
+            "t_states": 278282
           },
           {
             "bdos_calls": {
@@ -23232,7 +23232,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 2,
             "stack_below_entry": 46,
-            "t_states": 383706
+            "t_states": 367155
           },
           {
             "bdos_calls": {
@@ -23310,7 +23310,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 2,
             "stack_below_entry": 46,
-            "t_states": 385770
+            "t_states": 369043
           },
           {
             "bdos_calls": {
@@ -23385,7 +23385,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 281003
+            "t_states": 268255
           },
           {
             "bdos_calls": {
@@ -23463,7 +23463,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 2,
             "stack_below_entry": 46,
-            "t_states": 388016
+            "t_states": 371273
           },
           {
             "bdos_calls": {
@@ -23541,7 +23541,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 2,
             "stack_below_entry": 46,
-            "t_states": 546223
+            "t_states": 528328
           },
           {
             "bdos_calls": {
@@ -23616,7 +23616,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 22,
-            "t_states": 30154
+            "t_states": 24772
           },
           {
             "bdos_calls": {
@@ -23691,7 +23691,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 22,
-            "t_states": 33051
+            "t_states": 27557
           },
           {
             "bdos_calls": {
@@ -23766,7 +23766,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 22,
-            "t_states": 33222
+            "t_states": 27728
           },
           {
             "bdos_calls": {
@@ -23841,7 +23841,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 22,
-            "t_states": 33268
+            "t_states": 27774
           },
           {
             "bdos_calls": {
@@ -23916,7 +23916,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 22,
-            "t_states": 37575
+            "t_states": 31602
           },
           {
             "bdos_calls": {
@@ -23997,7 +23997,7 @@
             "physical_sha256": "a30ea62130dde2b2deabeb1779e809d36956a9c63f47c7c2597e85cec885dec1",
             "ring_peak": 0,
             "stack_below_entry": 26,
-            "t_states": 9579275
+            "t_states": 8695429
           },
           {
             "bdos_calls": {
@@ -24072,7 +24072,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 8980007
+            "t_states": 8111320
           },
           {
             "bdos_calls": {
@@ -24150,7 +24150,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 336124
+            "t_states": 320630
           },
           {
             "bdos_calls": {
@@ -24228,7 +24228,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 337032
+            "t_states": 321527
           },
           {
             "bdos_calls": {
@@ -24306,7 +24306,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 337065
+            "t_states": 321560
           },
           {
             "bdos_calls": {
@@ -24384,7 +24384,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 338012
+            "t_states": 322360
           },
           {
             "bdos_calls": {
@@ -24462,7 +24462,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 337275
+            "t_states": 321770
           },
           {
             "bdos_calls": {
@@ -24540,7 +24540,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 337454
+            "t_states": 321912
           },
           {
             "bdos_calls": {
@@ -24618,7 +24618,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 337130
+            "t_states": 321625
           },
           {
             "bdos_calls": {
@@ -24696,7 +24696,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 338136
+            "t_states": 322470
           },
           {
             "bdos_calls": {
@@ -24774,7 +24774,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 338662
+            "t_states": 322884
           },
           {
             "bdos_calls": {
@@ -24852,7 +24852,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 338972
+            "t_states": 323170
           },
           {
             "bdos_calls": {
@@ -24930,7 +24930,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 339156
+            "t_states": 323377
           },
           {
             "bdos_calls": {
@@ -25008,7 +25008,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 2,
             "stack_below_entry": 46,
-            "t_states": 393241
+            "t_states": 375722
           },
           {
             "bdos_calls": {
@@ -25086,7 +25086,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 303577
+            "t_states": 289443
           },
           {
             "bdos_calls": {
@@ -25164,7 +25164,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 303644
+            "t_states": 289510
           },
           {
             "bdos_calls": {
@@ -25242,7 +25242,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 303924
+            "t_states": 289790
           },
           {
             "bdos_calls": {
@@ -25320,7 +25320,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 307171
+            "t_states": 293037
           },
           {
             "bdos_calls": {
@@ -25398,7 +25398,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 308358
+            "t_states": 294160
           },
           {
             "bdos_calls": {
@@ -25476,7 +25476,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 315017
+            "t_states": 300819
           },
           {
             "bdos_calls": {
@@ -25554,7 +25554,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 26,
-            "t_states": 527571
+            "t_states": 512207
           },
           {
             "bdos_calls": {
@@ -25632,7 +25632,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 26,
-            "t_states": 545092
+            "t_states": 528622
           },
           {
             "bdos_calls": {
@@ -25713,7 +25713,7 @@
             "physical_sha256": "00521349bd23263eff309cf5d90f8dd5a25ccdf32377ed32d7c59806d2e4e8f5",
             "ring_peak": 0,
             "stack_below_entry": 34,
-            "t_states": 30352582
+            "t_states": 29553583
           },
           {
             "bdos_calls": {
@@ -25794,7 +25794,7 @@
             "physical_sha256": "c51bf05aedc0c5ee7e288483c079cf9c92f9959e156bba9d75b769d8cb9cd52b",
             "ring_peak": 0,
             "stack_below_entry": 34,
-            "t_states": 29721253
+            "t_states": 28936817
           },
           {
             "bdos_calls": {
@@ -25875,7 +25875,7 @@
             "physical_sha256": "ed01029b469addae1104d67c1cb668d2647f2e2d90ff08ae85d972d261353af8",
             "ring_peak": 0,
             "stack_below_entry": 34,
-            "t_states": 3064116
+            "t_states": 2961790
           },
           {
             "bdos_calls": {
@@ -25953,7 +25953,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 1,
             "stack_below_entry": 46,
-            "t_states": 372804
+            "t_states": 356463
           },
           {
             "bdos_calls": {
@@ -26031,7 +26031,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 1,
             "stack_below_entry": 46,
-            "t_states": 369174
+            "t_states": 353050
           },
           {
             "bdos_calls": {
@@ -26109,7 +26109,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 1,
             "stack_below_entry": 46,
-            "t_states": 369162
+            "t_states": 353038
           },
           {
             "bdos_calls": {
@@ -26190,7 +26190,7 @@
             "physical_sha256": "8425aa4e81817dd562c2d1f7e7da6c17737748768468490c5db2f7f50a3e8854",
             "ring_peak": 3,
             "stack_below_entry": 46,
-            "t_states": 194341249
+            "t_states": 176066015
           },
           {
             "bdos_calls": {
@@ -26265,7 +26265,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 38918
+            "t_states": 33157
           },
           {
             "bdos_calls": {
@@ -26343,7 +26343,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 2,
             "stack_below_entry": 46,
-            "t_states": 383612
+            "t_states": 367061
           },
           {
             "bdos_calls": {
@@ -26418,7 +26418,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 285347
+            "t_states": 272383
           },
           {
             "bdos_calls": {
@@ -26493,7 +26493,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 285347
+            "t_states": 272383
           },
           {
             "bdos_calls": {
@@ -26568,7 +26568,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 22,
-            "t_states": 33222
+            "t_states": 27728
           },
           {
             "bdos_calls": {
@@ -26646,7 +26646,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 338044
+            "t_states": 322403
           },
           {
             "bdos_calls": {
@@ -26724,7 +26724,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 338199
+            "t_states": 322530
           },
           {
             "bdos_calls": {
@@ -26802,7 +26802,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 339252
+            "t_states": 323400
           },
           {
             "bdos_calls": {
@@ -26880,7 +26880,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 304644
+            "t_states": 290510
           },
           {
             "bdos_calls": {
@@ -26958,7 +26958,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 340545
+            "t_states": 325033
           },
           {
             "bdos_calls": {
@@ -27036,7 +27036,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 355773
+            "t_states": 340197
           },
           {
             "bdos_calls": {
@@ -27114,7 +27114,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 352200
+            "t_states": 336624
           },
           {
             "bdos_calls": {},
@@ -27294,17 +27294,17 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 6,
-            "t_states": 1699
+            "t_states": 1796
           }
         ],
-        "code_and_bootstrap_bytes": 11915,
-        "image_bytes": 15180,
+        "code_and_bootstrap_bytes": 11702,
+        "image_bytes": 14964,
         "loaded_globals_bytes": 2997,
         "matrix_sha256": "7c7d45218cb618e6a553c19cbd7d86f2e71540d9f8d2591afdc389e207b39e80",
         "protocol": "autosiril-echo-cpm-musical/v1",
         "scope": "native CALL5 API traps with fixed stack/HALT verifier contract; not physical CP/M TPA/CCP bootstrap compatibility",
         "source_sha256": "920d396107f3c0deeb720a0d04fbc1ab420003102edba9c25d11e90dffb30c7c",
-        "static_spill_bytes": 268,
+        "static_spill_bytes": 265,
         "target_executions": 225
       },
       "scope": "explicit malformed-frame/capacity/row-overflow contracts; transport fault injection/contracts/mutants/full CI pending"
@@ -27470,11 +27470,11 @@
             "input_opens": 0,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -27488,7 +27488,7 @@
             "ring_peak": 0,
             "sector_calls": 1,
             "stack_below_entry": 12,
-            "t_states": 18001,
+            "t_states": 17962,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -27565,11 +27565,11 @@
             "input_opens": 0,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -27589,7 +27589,7 @@
             "ring_peak": 0,
             "sector_calls": 2,
             "stack_below_entry": 22,
-            "t_states": 30937,
+            "t_states": 30892,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -27678,11 +27678,11 @@
             "input_opens": 1,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -27708,7 +27708,7 @@
             "ring_peak": 0,
             "sector_calls": 3,
             "stack_below_entry": 42,
-            "t_states": 80924,
+            "t_states": 76926,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -27809,11 +27809,11 @@
             "input_opens": 1,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -27845,7 +27845,7 @@
             "ring_peak": 0,
             "sector_calls": 4,
             "stack_below_entry": 42,
-            "t_states": 116293,
+            "t_states": 111352,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -27958,11 +27958,11 @@
             "input_opens": 1,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -28000,7 +28000,7 @@
             "ring_peak": 0,
             "sector_calls": 5,
             "stack_below_entry": 42,
-            "t_states": 129229,
+            "t_states": 124282,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -28125,11 +28125,11 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -28173,7 +28173,7 @@
             "ring_peak": 0,
             "sector_calls": 6,
             "stack_below_entry": 42,
-            "t_states": 180698,
+            "t_states": 171798,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -28310,11 +28310,11 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -28364,7 +28364,7 @@
             "ring_peak": 2,
             "sector_calls": 7,
             "stack_below_entry": 46,
-            "t_states": 458892,
+            "t_states": 425840,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -28513,11 +28513,11 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -28573,7 +28573,7 @@
             "ring_peak": 2,
             "sector_calls": 8,
             "stack_below_entry": 46,
-            "t_states": 471457,
+            "t_states": 438405,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -28734,11 +28734,11 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -28800,7 +28800,7 @@
             "ring_peak": 2,
             "sector_calls": 9,
             "stack_below_entry": 46,
-            "t_states": 484339,
+            "t_states": 450774,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -28973,11 +28973,11 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -29045,7 +29045,7 @@
             "ring_peak": 2,
             "sector_calls": 10,
             "stack_below_entry": 46,
-            "t_states": 495796,
+            "t_states": 462231,
             "wire_sha256": "5e3bba9321c16b249d05d43dbfa2b2229d2d3b0d1f3b9f7dac968d0089953938"
           },
           {
@@ -29230,11 +29230,11 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -29308,7 +29308,7 @@
             "ring_peak": 2,
             "sector_calls": 11,
             "stack_below_entry": 46,
-            "t_states": 508325,
+            "t_states": 474754,
             "wire_sha256": "5e3bba9321c16b249d05d43dbfa2b2229d2d3b0d1f3b9f7dac968d0089953938"
           },
           {
@@ -29385,11 +29385,11 @@
             "input_opens": 0,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -29409,7 +29409,7 @@
             "ring_peak": 0,
             "sector_calls": 2,
             "stack_below_entry": 42,
-            "t_states": 63724,
+            "t_states": 60310,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -29486,11 +29486,11 @@
             "input_opens": 0,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -29510,7 +29510,7 @@
             "ring_peak": 0,
             "sector_calls": 2,
             "stack_below_entry": 42,
-            "t_states": 84030,
+            "t_states": 77894,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -29587,11 +29587,11 @@
             "input_opens": 0,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -29611,7 +29611,7 @@
             "ring_peak": 0,
             "sector_calls": 2,
             "stack_below_entry": 42,
-            "t_states": 44358,
+            "t_states": 42899,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -29700,11 +29700,11 @@
             "input_opens": 1,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -29730,7 +29730,7 @@
             "ring_peak": 0,
             "sector_calls": 3,
             "stack_below_entry": 42,
-            "t_states": 90456,
+            "t_states": 86138,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -29819,11 +29819,11 @@
             "input_opens": 1,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -29849,7 +29849,7 @@
             "ring_peak": 0,
             "sector_calls": 3,
             "stack_below_entry": 42,
-            "t_states": 103385,
+            "t_states": 98528,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -29926,11 +29926,11 @@
             "input_opens": 0,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -29950,7 +29950,7 @@
             "ring_peak": 0,
             "sector_calls": 2,
             "stack_below_entry": 42,
-            "t_states": 44460,
+            "t_states": 43001,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -30063,11 +30063,11 @@
             "input_opens": 1,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -30105,7 +30105,7 @@
             "ring_peak": 0,
             "sector_calls": 5,
             "stack_below_entry": 42,
-            "t_states": 162016,
+            "t_states": 153700,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -30218,11 +30218,11 @@
             "input_opens": 1,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -30260,7 +30260,7 @@
             "ring_peak": 0,
             "sector_calls": 5,
             "stack_below_entry": 42,
-            "t_states": 198221,
+            "t_states": 185542,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -30337,11 +30337,11 @@
             "input_opens": 0,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -30361,7 +30361,7 @@
             "ring_peak": 0,
             "sector_calls": 2,
             "stack_below_entry": 42,
-            "t_states": 63116,
+            "t_states": 59432,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -30486,11 +30486,11 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -30534,7 +30534,7 @@
             "ring_peak": 0,
             "sector_calls": 6,
             "stack_below_entry": 42,
-            "t_states": 201136,
+            "t_states": 191036,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -30659,11 +30659,11 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -30707,7 +30707,7 @@
             "ring_peak": 2,
             "sector_calls": 6,
             "stack_below_entry": 46,
-            "t_states": 292826,
+            "t_states": 279859,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -30784,11 +30784,11 @@
             "input_opens": 0,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -30808,7 +30808,7 @@
             "ring_peak": 0,
             "sector_calls": 2,
             "stack_below_entry": 42,
-            "t_states": 63218,
+            "t_states": 59534,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -30885,11 +30885,11 @@
             "input_opens": 0,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -30909,7 +30909,7 @@
             "ring_peak": 0,
             "sector_calls": 2,
             "stack_below_entry": 42,
-            "t_states": 83538,
+            "t_states": 77031,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -30974,11 +30974,11 @@
             "input_opens": 0,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -30992,7 +30992,7 @@
             "ring_peak": 0,
             "sector_calls": 1,
             "stack_below_entry": 12,
-            "t_states": 18089,
+            "t_states": 18050,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -31057,11 +31057,11 @@
             "input_opens": 0,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -31075,7 +31075,7 @@
             "ring_peak": 0,
             "sector_calls": 1,
             "stack_below_entry": 12,
-            "t_states": 18649,
+            "t_states": 18604,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -31152,11 +31152,11 @@
             "input_opens": 0,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -31176,7 +31176,7 @@
             "ring_peak": 0,
             "sector_calls": 2,
             "stack_below_entry": 42,
-            "t_states": 66568,
+            "t_states": 62570,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -31253,11 +31253,11 @@
             "input_opens": 0,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -31277,7 +31277,7 @@
             "ring_peak": 0,
             "sector_calls": 2,
             "stack_below_entry": 42,
-            "t_states": 66617,
+            "t_states": 62619,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -31402,11 +31402,11 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -31450,7 +31450,7 @@
             "ring_peak": 0,
             "sector_calls": 6,
             "stack_below_entry": 42,
-            "t_states": 187965,
+            "t_states": 178761,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -31743,11 +31743,11 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -31875,7 +31875,7 @@
             "ring_peak": 0,
             "sector_calls": 20,
             "stack_below_entry": 42,
-            "t_states": 4347387,
+            "t_states": 3924825,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -32060,11 +32060,11 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -32138,7 +32138,7 @@
             "ring_peak": 2,
             "sector_calls": 11,
             "stack_below_entry": 46,
-            "t_states": 508243,
+            "t_states": 474672,
             "wire_sha256": "5e3bba9321c16b249d05d43dbfa2b2229d2d3b0d1f3b9f7dac968d0089953938"
           },
           {
@@ -32263,11 +32263,11 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -32311,7 +32311,7 @@
             "ring_peak": 0,
             "sector_calls": 6,
             "stack_below_entry": 42,
-            "t_states": 187965,
+            "t_states": 178761,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -32376,11 +32376,11 @@
             "input_opens": 0,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -32394,7 +32394,7 @@
             "ring_peak": 0,
             "sector_calls": 1,
             "stack_below_entry": 12,
-            "t_states": 18776,
+            "t_states": 18731,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -32579,11 +32579,11 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -32657,7 +32657,7 @@
             "ring_peak": 2,
             "sector_calls": 11,
             "stack_below_entry": 46,
-            "t_states": 919875,
+            "t_states": 843638,
             "wire_sha256": "5e3bba9321c16b249d05d43dbfa2b2229d2d3b0d1f3b9f7dac968d0089953938"
           },
           {
@@ -32866,11 +32866,11 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -32956,7 +32956,7 @@
             "ring_peak": 2,
             "sector_calls": 13,
             "stack_below_entry": 46,
-            "t_states": 975901,
+            "t_states": 896382,
             "wire_sha256": "5e3bba9321c16b249d05d43dbfa2b2229d2d3b0d1f3b9f7dac968d0089953938"
           },
           {
@@ -33309,11 +33309,11 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -33471,7 +33471,7 @@
             "ring_peak": 2,
             "sector_calls": 25,
             "stack_below_entry": 46,
-            "t_states": 4636709,
+            "t_states": 4192888,
             "wire_sha256": "5e3bba9321c16b249d05d43dbfa2b2229d2d3b0d1f3b9f7dac968d0089953938"
           },
           {
@@ -38372,11 +38372,11 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -40808,7 +40808,7 @@
             "ring_peak": 13,
             "sector_calls": 404,
             "stack_below_entry": 46,
-            "t_states": 379554795,
+            "t_states": 345200983,
             "wire_sha256": "2b115c050b50dfa0b3cececdc84dfb4144eaae6daa37c67600b2df9058093b25"
           },
           {
@@ -45649,11 +45649,11 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -48055,7 +48055,7 @@
             "ring_peak": 13,
             "sector_calls": 399,
             "stack_below_entry": 46,
-            "t_states": 379467034,
+            "t_states": 345122861,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -48672,11 +48672,11 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -48966,7 +48966,7 @@
             "ring_peak": 6,
             "sector_calls": 47,
             "stack_below_entry": 46,
-            "t_states": 8513924,
+            "t_states": 7745521,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -51683,11 +51683,11 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -53027,7 +53027,7 @@
             "ring_peak": 13,
             "sector_calls": 222,
             "stack_below_entry": 46,
-            "t_states": 191998890,
+            "t_states": 174448868,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -57880,11 +57880,11 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -60292,7 +60292,7 @@
             "ring_peak": 13,
             "sector_calls": 400,
             "stack_below_entry": 46,
-            "t_states": 379505444,
+            "t_states": 345152151,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -65157,11 +65157,11 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -67575,7 +67575,7 @@
             "ring_peak": 13,
             "sector_calls": 401,
             "stack_below_entry": 46,
-            "t_states": 379518009,
+            "t_states": 345164716,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -72452,11 +72452,11 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -74876,7 +74876,7 @@
             "ring_peak": 13,
             "sector_calls": 402,
             "stack_below_entry": 46,
-            "t_states": 379530891,
+            "t_states": 345177085,
             "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
@@ -79765,11 +79765,11 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -82195,7 +82195,7 @@
             "ring_peak": 13,
             "sector_calls": 403,
             "stack_below_entry": 46,
-            "t_states": 379542348,
+            "t_states": 345188542,
             "wire_sha256": "2b115c050b50dfa0b3cececdc84dfb4144eaae6daa37c67600b2df9058093b25"
           },
           {
@@ -87096,11 +87096,11 @@
             "input_opens": 2,
             "native": {
               "bounce_bank_reserved_bytes": 16384,
-              "code_and_stub_bytes": 15064,
+              "code_and_stub_bytes": 14603,
               "external_fixed_reserved_bytes": 2048,
-              "image_bytes": 16323,
+              "image_bytes": 15831,
               "loaded_globals_bytes": 905,
-              "static_spill_bytes": 354
+              "static_spill_bytes": 323
             },
             "operations": [
               {
@@ -89532,7 +89532,7 @@
             "ring_peak": 13,
             "sector_calls": 404,
             "stack_below_entry": 46,
-            "t_states": 379554877,
+            "t_states": 345201065,
             "wire_sha256": "2b115c050b50dfa0b3cececdc84dfb4144eaae6daa37c67600b2df9058093b25"
           }
         ],
@@ -89540,7 +89540,7 @@
         "scope": "initial actual Ruby musical matrix; full malformed/IO/CPM/CI pending"
       },
       "cpm": {
-        "binary_sha256": "cc14298e4467410ed5276fef63ec55b5f2b132afd2eee91fbaccc22386746eab",
+        "binary_sha256": "9ae8367a512508ed9c1130a29235fa0afbadb95897b4ee36c9dccc64d7438710",
         "cases": [
           {
             "bdos_calls": {
@@ -89609,7 +89609,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 6,
-            "t_states": 19234
+            "t_states": 14156
           },
           {
             "bdos_calls": {
@@ -89684,7 +89684,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 22,
-            "t_states": 22267
+            "t_states": 17189
           },
           {
             "bdos_calls": {
@@ -89759,7 +89759,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 257680
+            "t_states": 250143
           },
           {
             "bdos_calls": {
@@ -89834,7 +89834,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 272946
+            "t_states": 260286
           },
           {
             "bdos_calls": {
@@ -89909,7 +89909,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 277461
+            "t_states": 264801
           },
           {
             "bdos_calls": {
@@ -89987,7 +89987,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 285467
+            "t_states": 272503
           },
           {
             "bdos_calls": {
@@ -90068,7 +90068,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 2,
             "stack_below_entry": 46,
-            "t_states": 678603
+            "t_states": 647919
           },
           {
             "bdos_calls": {
@@ -90149,7 +90149,7 @@
             "physical_sha256": "f4a3f060d57137943783a01e8ee9ea8bb7e4cbedebf4351e4b2cc617b50a00f7",
             "ring_peak": 2,
             "stack_below_entry": 46,
-            "t_states": 679054
+            "t_states": 648370
           },
           {
             "bdos_calls": {
@@ -90230,7 +90230,7 @@
             "physical_sha256": "f4a3f060d57137943783a01e8ee9ea8bb7e4cbedebf4351e4b2cc617b50a00f7",
             "ring_peak": 2,
             "stack_below_entry": 46,
-            "t_states": 679054
+            "t_states": 648370
           },
           {
             "bdos_calls": {
@@ -90308,7 +90308,7 @@
             "physical_sha256": "daef7ce9d0e61a8502a8e86810534c4d618e5141a551d06db16788a53c3f8785",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 285467
+            "t_states": 272503
           },
           {
             "bdos_calls": {
@@ -90383,7 +90383,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 0,
             "stack_below_entry": 24,
-            "t_states": 3219072
+            "t_states": 2906235
           },
           {
             "bdos_calls": {
@@ -90464,7 +90464,7 @@
             "physical_sha256": "c784a74bba531e480e20731eeec5d132fed7f1790f898f2c0d8b5932aff5fd57",
             "ring_peak": 13,
             "stack_below_entry": 46,
-            "t_states": 162214916
+            "t_states": 147192382
           },
           {
             "bdos_calls": {
@@ -90545,7 +90545,7 @@
             "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "ring_peak": 5,
             "stack_below_entry": 46,
-            "t_states": 7483105
+            "t_states": 6777934
           },
           {
             "bdos_calls": {
@@ -90626,7 +90626,7 @@
             "physical_sha256": "7d923161cd1bde0b8a0048008bd3cafac306eb152f347e1ece615f875cfae9d5",
             "ring_peak": 13,
             "stack_below_entry": 46,
-            "t_states": 188623183
+            "t_states": 171168510
           },
           {
             "bdos_calls": {
@@ -90707,17 +90707,17 @@
             "physical_sha256": "fd7738e37b8b53c494351a069150e223541337632dd7ce4c68fdc829ccc16760",
             "ring_peak": 13,
             "stack_below_entry": 46,
-            "t_states": 375321438
+            "t_states": 340978293
           }
         ],
-        "code_and_bootstrap_bytes": 11915,
-        "image_bytes": 15180,
+        "code_and_bootstrap_bytes": 11702,
+        "image_bytes": 14964,
         "loaded_globals_bytes": 2997,
         "matrix_sha256": "cd5a31502251590bd20c59c2856d65f03b349ed1397dadcf2d00e6008d7f3989",
         "protocol": "autosiril-echo-cpm-musical/v1",
         "scope": "native CALL5 API traps with fixed stack/HALT verifier contract; not physical CP/M TPA/CCP bootstrap compatibility",
         "source_sha256": "920d396107f3c0deeb720a0d04fbc1ab420003102edba9c25d11e90dffb30c7c",
-        "static_spill_bytes": 268,
+        "static_spill_bytes": 265,
         "target_executions": 45
       },
       "scope": "sector/BDOS traps and exact publication/free-space/prefix contracts; chunk controls/native mutants/full CI pending"
@@ -91040,11 +91040,11 @@
               "input_opens": 1,
               "native": {
                 "bounce_bank_reserved_bytes": 16384,
-                "code_and_stub_bytes": 15126,
+                "code_and_stub_bytes": 14665,
                 "external_fixed_reserved_bytes": 2048,
-                "image_bytes": 16390,
+                "image_bytes": 15898,
                 "loaded_globals_bytes": 906,
-                "static_spill_bytes": 358
+                "static_spill_bytes": 327
               },
               "operations": [
                 {
@@ -91064,7 +91064,7 @@
               "ring_peak": 0,
               "sector_calls": 2,
               "stack_below_entry": 42,
-              "t_states": 1813631,
+              "t_states": 1809633,
               "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
             }
           ]
@@ -91148,11 +91148,11 @@
               "input_opens": 1,
               "native": {
                 "bounce_bank_reserved_bytes": 16384,
-                "code_and_stub_bytes": 15126,
+                "code_and_stub_bytes": 14665,
                 "external_fixed_reserved_bytes": 2048,
-                "image_bytes": 16390,
+                "image_bytes": 15898,
                 "loaded_globals_bytes": 906,
-                "static_spill_bytes": 358
+                "static_spill_bytes": 327
               },
               "operations": [
                 {
@@ -91172,7 +91172,7 @@
               "ring_peak": 0,
               "sector_calls": 2,
               "stack_below_entry": 42,
-              "t_states": 69261,
+              "t_states": 65263,
               "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
             }
           ]
@@ -91256,11 +91256,11 @@
               "input_opens": 1,
               "native": {
                 "bounce_bank_reserved_bytes": 16384,
-                "code_and_stub_bytes": 15126,
+                "code_and_stub_bytes": 14665,
                 "external_fixed_reserved_bytes": 2048,
-                "image_bytes": 16390,
+                "image_bytes": 15898,
                 "loaded_globals_bytes": 906,
-                "static_spill_bytes": 358
+                "static_spill_bytes": 327
               },
               "operations": [
                 {
@@ -91280,7 +91280,7 @@
               "ring_peak": 0,
               "sector_calls": 2,
               "stack_below_entry": 42,
-              "t_states": 69310,
+              "t_states": 65312,
               "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
             }
           ]
@@ -91364,11 +91364,11 @@
               "input_opens": 1,
               "native": {
                 "bounce_bank_reserved_bytes": 16384,
-                "code_and_stub_bytes": 15126,
+                "code_and_stub_bytes": 14665,
                 "external_fixed_reserved_bytes": 2048,
-                "image_bytes": 16390,
+                "image_bytes": 15898,
                 "loaded_globals_bytes": 906,
-                "static_spill_bytes": 358
+                "static_spill_bytes": 327
               },
               "operations": [
                 {
@@ -91388,7 +91388,7 @@
               "ring_peak": 0,
               "sector_calls": 2,
               "stack_below_entry": 42,
-              "t_states": 69266,
+              "t_states": 65268,
               "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
             }
           ]
@@ -91580,11 +91580,11 @@
               "input_opens": 2,
               "native": {
                 "bounce_bank_reserved_bytes": 16384,
-                "code_and_stub_bytes": 15152,
+                "code_and_stub_bytes": 14691,
                 "external_fixed_reserved_bytes": 2048,
-                "image_bytes": 16417,
+                "image_bytes": 15925,
                 "loaded_globals_bytes": 907,
-                "static_spill_bytes": 358
+                "static_spill_bytes": 327
               },
               "operations": [
                 {
@@ -91658,7 +91658,7 @@
               "ring_peak": 2,
               "sector_calls": 11,
               "stack_below_entry": 46,
-              "t_states": 510406,
+              "t_states": 476835,
               "wire_sha256": "5e3bba9321c16b249d05d43dbfa2b2229d2d3b0d1f3b9f7dac968d0089953938"
             }
           ]
@@ -91742,11 +91742,11 @@
               "input_opens": 1,
               "native": {
                 "bounce_bank_reserved_bytes": 16384,
-                "code_and_stub_bytes": 15084,
+                "code_and_stub_bytes": 14623,
                 "external_fixed_reserved_bytes": 2048,
-                "image_bytes": 16344,
+                "image_bytes": 15852,
                 "loaded_globals_bytes": 906,
-                "static_spill_bytes": 354
+                "static_spill_bytes": 323
               },
               "operations": [
                 {
@@ -91766,7 +91766,7 @@
               "ring_peak": 0,
               "sector_calls": 2,
               "stack_below_entry": 42,
-              "t_states": 67058,
+              "t_states": 63060,
               "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
             }
           ]
@@ -91850,11 +91850,11 @@
               "input_opens": 1,
               "native": {
                 "bounce_bank_reserved_bytes": 16384,
-                "code_and_stub_bytes": 15084,
+                "code_and_stub_bytes": 14623,
                 "external_fixed_reserved_bytes": 2048,
-                "image_bytes": 16344,
+                "image_bytes": 15852,
                 "loaded_globals_bytes": 906,
-                "static_spill_bytes": 354
+                "static_spill_bytes": 323
               },
               "operations": [
                 {
@@ -91874,7 +91874,7 @@
               "ring_peak": 0,
               "sector_calls": 2,
               "stack_below_entry": 42,
-              "t_states": 67120,
+              "t_states": 63122,
               "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
             }
           ]
@@ -91958,11 +91958,11 @@
               "input_opens": 1,
               "native": {
                 "bounce_bank_reserved_bytes": 16384,
-                "code_and_stub_bytes": 15084,
+                "code_and_stub_bytes": 14623,
                 "external_fixed_reserved_bytes": 2048,
-                "image_bytes": 16344,
+                "image_bytes": 15852,
                 "loaded_globals_bytes": 906,
-                "static_spill_bytes": 354
+                "static_spill_bytes": 323
               },
               "operations": [
                 {
@@ -91982,7 +91982,7 @@
               "ring_peak": 0,
               "sector_calls": 2,
               "stack_below_entry": 42,
-              "t_states": 67192,
+              "t_states": 63194,
               "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
             }
           ]
@@ -92102,11 +92102,11 @@
               "input_opens": 2,
               "native": {
                 "bounce_bank_reserved_bytes": 16384,
-                "code_and_stub_bytes": 15127,
+                "code_and_stub_bytes": 14666,
                 "external_fixed_reserved_bytes": 2048,
-                "image_bytes": 16391,
+                "image_bytes": 15899,
                 "loaded_globals_bytes": 906,
-                "static_spill_bytes": 358
+                "static_spill_bytes": 327
               },
               "operations": [
                 {
@@ -92144,7 +92144,7 @@
               "ring_peak": 0,
               "sector_calls": 5,
               "stack_below_entry": 42,
-              "t_states": 1916577,
+              "t_states": 1907677,
               "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
             }
           ]
@@ -92264,11 +92264,11 @@
               "input_opens": 2,
               "native": {
                 "bounce_bank_reserved_bytes": 16384,
-                "code_and_stub_bytes": 15127,
+                "code_and_stub_bytes": 14666,
                 "external_fixed_reserved_bytes": 2048,
-                "image_bytes": 16391,
+                "image_bytes": 15899,
                 "loaded_globals_bytes": 906,
-                "static_spill_bytes": 358
+                "static_spill_bytes": 327
               },
               "operations": [
                 {
@@ -92306,7 +92306,7 @@
               "ring_peak": 0,
               "sector_calls": 5,
               "stack_below_entry": 42,
-              "t_states": 169138,
+              "t_states": 160238,
               "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
             }
           ]
@@ -92426,11 +92426,11 @@
               "input_opens": 2,
               "native": {
                 "bounce_bank_reserved_bytes": 16384,
-                "code_and_stub_bytes": 15127,
+                "code_and_stub_bytes": 14666,
                 "external_fixed_reserved_bytes": 2048,
-                "image_bytes": 16391,
+                "image_bytes": 15899,
                 "loaded_globals_bytes": 906,
-                "static_spill_bytes": 358
+                "static_spill_bytes": 327
               },
               "operations": [
                 {
@@ -92468,7 +92468,7 @@
               "ring_peak": 0,
               "sector_calls": 5,
               "stack_below_entry": 42,
-              "t_states": 169187,
+              "t_states": 160287,
               "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
             }
           ]
@@ -92588,11 +92588,11 @@
               "input_opens": 2,
               "native": {
                 "bounce_bank_reserved_bytes": 16384,
-                "code_and_stub_bytes": 15127,
+                "code_and_stub_bytes": 14666,
                 "external_fixed_reserved_bytes": 2048,
-                "image_bytes": 16391,
+                "image_bytes": 15899,
                 "loaded_globals_bytes": 906,
-                "static_spill_bytes": 358
+                "static_spill_bytes": 327
               },
               "operations": [
                 {
@@ -92630,7 +92630,7 @@
               "ring_peak": 0,
               "sector_calls": 5,
               "stack_below_entry": 42,
-              "t_states": 169143,
+              "t_states": 160243,
               "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
             }
           ]
@@ -92822,11 +92822,11 @@
               "input_opens": 2,
               "native": {
                 "bounce_bank_reserved_bytes": 16384,
-                "code_and_stub_bytes": 15153,
+                "code_and_stub_bytes": 14692,
                 "external_fixed_reserved_bytes": 2048,
-                "image_bytes": 16418,
+                "image_bytes": 15926,
                 "loaded_globals_bytes": 907,
-                "static_spill_bytes": 358
+                "static_spill_bytes": 327
               },
               "operations": [
                 {
@@ -92900,7 +92900,7 @@
               "ring_peak": 2,
               "sector_calls": 11,
               "stack_below_entry": 46,
-              "t_states": 510421,
+              "t_states": 476850,
               "wire_sha256": "5e3bba9321c16b249d05d43dbfa2b2229d2d3b0d1f3b9f7dac968d0089953938"
             }
           ]
@@ -93020,11 +93020,11 @@
               "input_opens": 2,
               "native": {
                 "bounce_bank_reserved_bytes": 16384,
-                "code_and_stub_bytes": 15085,
+                "code_and_stub_bytes": 14624,
                 "external_fixed_reserved_bytes": 2048,
-                "image_bytes": 16345,
+                "image_bytes": 15853,
                 "loaded_globals_bytes": 906,
-                "static_spill_bytes": 354
+                "static_spill_bytes": 323
               },
               "operations": [
                 {
@@ -93062,7 +93062,7 @@
               "ring_peak": 0,
               "sector_calls": 5,
               "stack_below_entry": 42,
-              "t_states": 166876,
+              "t_states": 157976,
               "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
             }
           ]
@@ -93182,11 +93182,11 @@
               "input_opens": 2,
               "native": {
                 "bounce_bank_reserved_bytes": 16384,
-                "code_and_stub_bytes": 15085,
+                "code_and_stub_bytes": 14624,
                 "external_fixed_reserved_bytes": 2048,
-                "image_bytes": 16345,
+                "image_bytes": 15853,
                 "loaded_globals_bytes": 906,
-                "static_spill_bytes": 354
+                "static_spill_bytes": 323
               },
               "operations": [
                 {
@@ -93224,7 +93224,7 @@
               "ring_peak": 0,
               "sector_calls": 5,
               "stack_below_entry": 42,
-              "t_states": 166938,
+              "t_states": 158038,
               "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
             }
           ]
@@ -93344,11 +93344,11 @@
               "input_opens": 2,
               "native": {
                 "bounce_bank_reserved_bytes": 16384,
-                "code_and_stub_bytes": 15085,
+                "code_and_stub_bytes": 14624,
                 "external_fixed_reserved_bytes": 2048,
-                "image_bytes": 16345,
+                "image_bytes": 15853,
                 "loaded_globals_bytes": 906,
-                "static_spill_bytes": 354
+                "static_spill_bytes": 323
               },
               "operations": [
                 {
@@ -93386,7 +93386,7 @@
               "ring_peak": 0,
               "sector_calls": 5,
               "stack_below_entry": 42,
-              "t_states": 167010,
+              "t_states": 158110,
               "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
             }
           ]
@@ -93542,11 +93542,11 @@
               "input_opens": 2,
               "native": {
                 "bounce_bank_reserved_bytes": 16384,
-                "code_and_stub_bytes": 15065,
+                "code_and_stub_bytes": 14604,
                 "external_fixed_reserved_bytes": 2048,
-                "image_bytes": 16324,
+                "image_bytes": 15832,
                 "loaded_globals_bytes": 905,
-                "static_spill_bytes": 354
+                "static_spill_bytes": 323
               },
               "operations": [
                 {
@@ -93602,7 +93602,7 @@
               "ring_peak": 15,
               "sector_calls": 8,
               "stack_below_entry": 46,
-              "t_states": 2218213,
+              "t_states": 2036902,
               "wire_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
             }
           ]
@@ -93794,11 +93794,11 @@
               "input_opens": 2,
               "native": {
                 "bounce_bank_reserved_bytes": 16384,
-                "code_and_stub_bytes": 15621,
+                "code_and_stub_bytes": 15128,
                 "external_fixed_reserved_bytes": 2048,
-                "image_bytes": 17148,
+                "image_bytes": 16624,
                 "loaded_globals_bytes": 1165,
-                "static_spill_bytes": 362
+                "static_spill_bytes": 331
               },
               "operations": [
                 {
@@ -93872,7 +93872,7 @@
               "ring_peak": 2,
               "sector_calls": 11,
               "stack_below_entry": 46,
-              "t_states": 765429,
+              "t_states": 707456,
               "wire_sha256": "5e3bba9321c16b249d05d43dbfa2b2229d2d3b0d1f3b9f7dac968d0089953938"
             },
             {
@@ -94261,11 +94261,11 @@
               "input_opens": 2,
               "native": {
                 "bounce_bank_reserved_bytes": 16384,
-                "code_and_stub_bytes": 15621,
+                "code_and_stub_bytes": 15128,
                 "external_fixed_reserved_bytes": 2048,
-                "image_bytes": 17148,
+                "image_bytes": 16624,
                 "loaded_globals_bytes": 1165,
-                "static_spill_bytes": 362
+                "static_spill_bytes": 331
               },
               "operations": [
                 {
@@ -94441,7 +94441,7 @@
               "ring_peak": 65,
               "sector_calls": 28,
               "stack_below_entry": 46,
-              "t_states": 34347865,
+              "t_states": 31420231,
               "wire_sha256": "f9d358c9456d6d4c9c65faffd8bfaa510fd458acfde2b032d0d87a7844de2757"
             }
           ]
@@ -94633,11 +94633,11 @@
               "input_opens": 2,
               "native": {
                 "bounce_bank_reserved_bytes": 16384,
-                "code_and_stub_bytes": 15621,
+                "code_and_stub_bytes": 15128,
                 "external_fixed_reserved_bytes": 2048,
-                "image_bytes": 17148,
+                "image_bytes": 16624,
                 "loaded_globals_bytes": 1165,
-                "static_spill_bytes": 362
+                "static_spill_bytes": 331
               },
               "operations": [
                 {
@@ -94711,7 +94711,7 @@
               "ring_peak": 2,
               "sector_calls": 11,
               "stack_below_entry": 46,
-              "t_states": 593183,
+              "t_states": 535210,
               "wire_sha256": "5e3bba9321c16b249d05d43dbfa2b2229d2d3b0d1f3b9f7dac968d0089953938"
             },
             {
@@ -95100,11 +95100,11 @@
               "input_opens": 2,
               "native": {
                 "bounce_bank_reserved_bytes": 16384,
-                "code_and_stub_bytes": 15621,
+                "code_and_stub_bytes": 15128,
                 "external_fixed_reserved_bytes": 2048,
-                "image_bytes": 17148,
+                "image_bytes": 16624,
                 "loaded_globals_bytes": 1165,
-                "static_spill_bytes": 362
+                "static_spill_bytes": 331
               },
               "operations": [
                 {
@@ -95280,7 +95280,7 @@
               "ring_peak": 65,
               "sector_calls": 28,
               "stack_below_entry": 46,
-              "t_states": 30682179,
+              "t_states": 27754545,
               "wire_sha256": "f9d358c9456d6d4c9c65faffd8bfaa510fd458acfde2b032d0d87a7844de2757"
             }
           ]
@@ -95360,7 +95360,7 @@
               "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
               "ring_peak": 0,
               "stack_below_entry": 22,
-              "t_states": 1766469
+              "t_states": 1761391
             }
           ]
         },
@@ -95439,7 +95439,7 @@
               "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
               "ring_peak": 0,
               "stack_below_entry": 22,
-              "t_states": 22099
+              "t_states": 17021
             }
           ]
         },
@@ -95518,7 +95518,7 @@
               "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
               "ring_peak": 0,
               "stack_below_entry": 22,
-              "t_states": 22148
+              "t_states": 17070
             }
           ]
         },
@@ -95597,7 +95597,7 @@
               "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
               "ring_peak": 0,
               "stack_below_entry": 22,
-              "t_states": 22104
+              "t_states": 17026
             }
           ]
         },
@@ -95685,7 +95685,7 @@
               "physical_sha256": "f4a3f060d57137943783a01e8ee9ea8bb7e4cbedebf4351e4b2cc617b50a00f7",
               "ring_peak": 2,
               "stack_below_entry": 46,
-              "t_states": 681375
+              "t_states": 650691
             }
           ]
         },
@@ -95764,7 +95764,7 @@
               "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
               "ring_peak": 0,
               "stack_below_entry": 8,
-              "t_states": 19875
+              "t_states": 14797
             }
           ]
         },
@@ -95843,7 +95843,7 @@
               "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
               "ring_peak": 0,
               "stack_below_entry": 8,
-              "t_states": 19937
+              "t_states": 14859
             }
           ]
         },
@@ -95922,7 +95922,7 @@
               "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
               "ring_peak": 0,
               "stack_below_entry": 8,
-              "t_states": 19999
+              "t_states": 14921
             }
           ]
         },
@@ -96001,7 +96001,7 @@
               "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
               "ring_peak": 0,
               "stack_below_entry": 8,
-              "t_states": 20097
+              "t_states": 15019
             }
           ]
         },
@@ -96083,7 +96083,7 @@
               "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
               "ring_peak": 0,
               "stack_below_entry": 24,
-              "t_states": 2024928
+              "t_states": 2012268
             }
           ]
         },
@@ -96165,7 +96165,7 @@
               "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
               "ring_peak": 0,
               "stack_below_entry": 24,
-              "t_states": 277489
+              "t_states": 264829
             }
           ]
         },
@@ -96247,7 +96247,7 @@
               "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
               "ring_peak": 0,
               "stack_below_entry": 24,
-              "t_states": 277538
+              "t_states": 264878
             }
           ]
         },
@@ -96329,7 +96329,7 @@
               "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
               "ring_peak": 0,
               "stack_below_entry": 24,
-              "t_states": 277494
+              "t_states": 264834
             }
           ]
         },
@@ -96417,7 +96417,7 @@
               "physical_sha256": "f4a3f060d57137943783a01e8ee9ea8bb7e4cbedebf4351e4b2cc617b50a00f7",
               "ring_peak": 2,
               "stack_below_entry": 46,
-              "t_states": 681390
+              "t_states": 650706
             }
           ]
         },
@@ -96499,7 +96499,7 @@
               "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
               "ring_peak": 0,
               "stack_below_entry": 24,
-              "t_states": 275123
+              "t_states": 262463
             }
           ]
         },
@@ -96581,7 +96581,7 @@
               "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
               "ring_peak": 0,
               "stack_below_entry": 24,
-              "t_states": 275185
+              "t_states": 262525
             }
           ]
         },
@@ -96663,7 +96663,7 @@
               "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
               "ring_peak": 0,
               "stack_below_entry": 24,
-              "t_states": 275237
+              "t_states": 262577
             }
           ]
         },
@@ -96745,7 +96745,7 @@
               "physical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
               "ring_peak": 0,
               "stack_below_entry": 24,
-              "t_states": 275335
+              "t_states": 262675
             }
           ]
         },
@@ -96833,7 +96833,7 @@
               "physical_sha256": "20d4c1f337e1f5438e04721fc888c4fc8e5b93ff3d1661b16c16b874b387043c",
               "ring_peak": 7,
               "stack_below_entry": 46,
-              "t_states": 1106392
+              "t_states": 1023937
             }
           ]
         },
@@ -96921,7 +96921,7 @@
               "physical_sha256": "f4a3f060d57137943783a01e8ee9ea8bb7e4cbedebf4351e4b2cc617b50a00f7",
               "ring_peak": 2,
               "stack_below_entry": 46,
-              "t_states": 1466052
+              "t_states": 1360104
             },
             {
               "bdos_calls": {
@@ -97002,7 +97002,7 @@
               "physical_sha256": "58d7554f0c4dc43b447dc0d0ead1376744719cfb61301f1ab2f65065953e70dd",
               "ring_peak": 65,
               "stack_below_entry": 46,
-              "t_states": 34772686
+              "t_states": 31802967
             }
           ]
         },
@@ -97090,7 +97090,7 @@
               "physical_sha256": "f4a3f060d57137943783a01e8ee9ea8bb7e4cbedebf4351e4b2cc617b50a00f7",
               "ring_peak": 2,
               "stack_below_entry": 46,
-              "t_states": 937184
+              "t_states": 831236
             },
             {
               "bdos_calls": {
@@ -97171,7 +97171,7 @@
               "physical_sha256": "58d7554f0c4dc43b447dc0d0ead1376744719cfb61301f1ab2f65065953e70dd",
               "ring_peak": 65,
               "stack_below_entry": 46,
-              "t_states": 30806176
+              "t_states": 27836457
             }
           ]
         },
@@ -97259,7 +97259,7 @@
               "physical_sha256": "f4a3f060d57137943783a01e8ee9ea8bb7e4cbedebf4351e4b2cc617b50a00f7",
               "ring_peak": 2,
               "stack_below_entry": 46,
-              "t_states": 679026
+              "t_states": 648342
             }
           ]
         },
@@ -97347,7 +97347,7 @@
               "physical_sha256": "f4a3f060d57137943783a01e8ee9ea8bb7e4cbedebf4351e4b2cc617b50a00f7",
               "ring_peak": 2,
               "stack_below_entry": 46,
-              "t_states": 679026
+              "t_states": 648342
             }
           ]
         },
@@ -97435,7 +97435,7 @@
               "physical_sha256": "f4a3f060d57137943783a01e8ee9ea8bb7e4cbedebf4351e4b2cc617b50a00f7",
               "ring_peak": 2,
               "stack_below_entry": 46,
-              "t_states": 679026
+              "t_states": 648342
             }
           ]
         }
