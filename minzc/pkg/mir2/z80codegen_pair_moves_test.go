@@ -170,12 +170,22 @@ func TestZ80PtrAddReusesOffsetPair(t *testing.T) {
 					g.curBlock.Term = &TermRet{Vals: live}
 					g.liveness = ComputeLiveness(g.fn)
 					g.genInst(inst)
-					if !strings.Contains(out.String(), "ADD HL, "+off) {
+					// With HL busy and the result elsewhere, the byte-wise form
+					// (through A, which holds no live value here) replaces the
+					// HL save; a sum into DE with one operand dying there swaps DE
+					// into HL around the addition; otherwise the offset pair is
+					// added directly.
+					byteWise := strings.Contains(out.String(), "ptr_add: byte-wise")
+					throughEX := strings.Contains(out.String(), "ptr_add: into DE through EX DE, HL")
+					if !byteWise && !throughEX && !strings.Contains(out.String(), "ADD HL, "+off) {
 						t.Fatalf("must reuse offset pair:\n%s", out.String())
+					}
+					if byteWise && strings.Contains(out.String(), "PUSH") {
+						t.Fatalf("byte-wise form must not touch the stack:\n%s", out.String())
 					}
 					initial := emulator.Registers{BC: 0x1234, DE: 0x5678, HL: 0x9abc, A: 0x67}
 					r := runPairMove(t, out.String(), initial)
-					if pairValue(r, dst) != pairValue(initial, base)+pairValue(initial, off) || r.A != initial.A {
+					if pairValue(r, dst) != pairValue(initial, base)+pairValue(initial, off) || !byteWise && r.A != initial.A {
 						t.Fatalf("bad sum %+v\n%s", r, out.String())
 					}
 					for _, pair := range []string{"HL", "BC", "DE"} {
