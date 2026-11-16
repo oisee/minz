@@ -44,6 +44,7 @@ type Steps struct {
 	VariantSearch    VariantSearchStats
 
 	UnsignedPairComparePolicy mir2.UnsignedPairComparePolicy // resolved policy replayed by native re-codegen
+	DisableLoopRotation       bool                           // replayed by native re-codegen
 	FlagReturns               mir2.FlagReturnReport          // Z80 bool return contracts chosen in Phase 5b
 	ProfileDecisions          []hir.ProfileDecision
 	HIRLoopSites              *hir.LoopSiteMap      // optional input-HIR origins, before Grace/splitting
@@ -116,6 +117,10 @@ type Options struct {
 	// DisableFlagReturns keeps every bool return in A on Z80 instead of
 	// returning it in CPU flags where all call sites only branch on it.
 	DisableFlagReturns bool `json:",omitempty"`
+
+	// DisableLoopRotation keeps every Z80 loop back edge a jump to the header
+	// test (--no-loop-rotation) instead of repeating a small test at the latch.
+	DisableLoopRotation bool `json:",omitempty"`
 
 	// DisableCountedLoops is an internal differential-testing switch.
 	DisableCountedLoops bool `json:",omitempty"`
@@ -256,6 +261,7 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 		return Steps{}, fmt.Errorf("aggregate ABI: %w", err)
 	}
 	s.UnsignedPairComparePolicy = policy
+	s.DisableLoopRotation = opt.DisableLoopRotation
 	s.Traces = make(map[string]*FuncTrace)
 
 	if !opt.variantPrepared {
@@ -634,6 +640,7 @@ func compileMIRProductSteps(hm *hir.Module, opt Options, s Steps, splitInfo map[
 			RuntimeStackBytes:         opt.RuntimeStackBytes,
 			AnnotateTStates:           opt.AnnotateTStates,
 			UnsignedPairComparePolicy: s.UnsignedPairComparePolicy,
+			DisableLoopRotation:       opt.DisableLoopRotation,
 		})
 		if codegenErr != nil {
 			return s, codegenErr
@@ -927,7 +934,7 @@ func CompileHIRWithOptions(hm *hir.Module, opts Options) (string, error) {
 	if err := mir2.ValidateZ80Symbols(m); err != nil {
 		return "", err
 	}
-	asm, err := mir2.Z80Codegen(m, combined, mir2.Z80CodegenOptions{UnsignedPairComparePolicy: policy, OptimizeForSize: opts.OptSize})
+	asm, err := mir2.Z80Codegen(m, combined, mir2.Z80CodegenOptions{UnsignedPairComparePolicy: policy, OptimizeForSize: opts.OptSize, DisableLoopRotation: opts.DisableLoopRotation})
 	if err != nil {
 		return "", err
 	}

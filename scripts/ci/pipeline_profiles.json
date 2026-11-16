@@ -302,6 +302,7 @@
     "TestLizpTokenizerIndependentOracleControls",
     "TestLocalArrayLoopPointerWidthVMZ80",
     "TestLocalIntegerBindingWidths",
+    "TestLoopRotationWhileLoopsVMZ80",
     "TestMIRGraceAssemblyAPIUsesSameNativePipeline",
     "TestMaskedByteMultiplyRepro",
     "TestMaskedBytePredicatesVMZ80",
