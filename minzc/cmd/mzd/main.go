@@ -205,6 +205,18 @@ func runDisasm(cmd *cobra.Command, args []string) error {
 		if err != nil {
 			return fmt.Errorf("invalid --org address %q: %w", orgAddr, err)
 		}
+	} else if verifyABI != "" {
+		// The declared functions are located by assembling the .a80, so the
+		// binary must be analysed at the origin that assembly used.
+		src, err := os.ReadFile(verifyABI)
+		if err != nil {
+			return fmt.Errorf("failed to read %s: %w", verifyABI, err)
+		}
+		res, _ := z80asm.NewAssembler().AssembleString(string(src))
+		if res == nil || len(res.Errors) > 0 {
+			return fmt.Errorf("cannot take the origin from %s (assembly failed); pass --org", verifyABI)
+		}
+		org = uint16(res.Origin)
 	} else {
 		// Auto-detect from file extension
 		ext := strings.ToLower(filepath.Ext(inputFile))
@@ -457,10 +469,21 @@ func runAnalyzed(inputFile string, data []byte, org uint16) error {
 
 		mismatches := analysis.VerifyABI(declared, a.FuncRegs, funcMap)
 
+		// VerifyABI skips functions without register analysis; count only
+		// the ones it really compared.
+		checked := 0
+		for _, addr := range funcMap {
+			if _, ok := a.FuncRegs[addr]; ok {
+				checked++
+			}
+		}
+		if checked == 0 && len(declared) > 0 {
+			return fmt.Errorf("ABI verify: none of %d declared functions was found in the analysed binary (origin $%04X); check --org", len(declared), org)
+		}
 		if len(mismatches) == 0 {
-			fmt.Fprintf(os.Stderr, "ABI verify: %d/%d functions matched, all OK\n", len(funcMap), len(declared))
+			fmt.Fprintf(os.Stderr, "ABI verify: %d/%d functions matched, all OK\n", checked, len(declared))
 		} else {
-			fmt.Fprintf(os.Stderr, "ABI verify: %d/%d functions checked, %d mismatches:\n", len(funcMap), len(declared), len(mismatches))
+			fmt.Fprintf(os.Stderr, "ABI verify: %d/%d functions checked, %d mismatches:\n", checked, len(declared), len(mismatches))
 			for _, m := range mismatches {
 				fmt.Fprintf(os.Stderr, "  %s\n", m)
 			}
