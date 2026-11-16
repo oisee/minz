@@ -1651,7 +1651,7 @@
     "boundary": "fib255 exact repeated native register state/nonreturn; otherfib0..254, bounded arrays; no Grace gain",
     "evidence": {
       "reports/advantage-native/manifest.json": "57bd5233d9993fbc542cc3ceda33867f6ca8416965e18046b62c49e899f371f9",
-      "minzc/pkg/pipeline/original_advantage_native_test.go": "9e96934e871dc1c9d3f0c803eca91e11699676985c617be719c3b830fb05b005"
+      "minzc/pkg/pipeline/original_advantage_native_test.go": "18d130e0c8b5c3f5e77f4487ef8cc35f3c4457fa3ea89eb863d7cdbf9ab76f85"
     }
   },
   {
