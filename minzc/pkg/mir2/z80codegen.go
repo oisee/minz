@@ -182,6 +182,10 @@ type Z80CodegenOptions struct {
 	// NoExactClobbers keeps the #245 straight-line byte-leaf proof instead of
 	// proving whole emitted bodies of parameterless callees (--no-exact-clobbers).
 	NoExactClobbers bool
+	// FullABI names functions whose bodies may still be replaced after
+	// codegen (checked local tables). They keep the conservative clobber set,
+	// so their callers save for any body the replacement may write.
+	FullABI map[string]bool
 }
 
 // ValidateZ80Symbols rejects distinct functions/data that emit the same symbol.

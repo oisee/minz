@@ -67,7 +67,14 @@ func readCheckedLocalTableSnapshot(options Options) ([]byte, error) {
 	return data, nil
 }
 
-func applyCheckedLocalTables(asm string, m *mir2.Module, allocation *mir2.AllocResult, options Options, traces map[string]*FuncTrace) (string, error) {
+type checkedLocalCandidate struct {
+	f    *mir2.Func
+	text string
+}
+
+// checkedLocalTableCandidates emits every table hit from MIR and allocation
+// alone, before (and independently of) Z80 codegen.
+func checkedLocalTableCandidates(m *mir2.Module, allocation *mir2.AllocResult, options Options) ([]checkedLocalCandidate, error) {
 	var table vir.RegAllocTable
 	table.Init()
 	// Load once, not through the environment/global research table singleton.
@@ -75,11 +82,12 @@ func applyCheckedLocalTables(asm string, m *mir2.Module, allocation *mir2.AllocR
 	// are normal misses and preserve the complete baseline assembly.
 	data, err := readCheckedLocalTableSnapshot(options)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	if err := table.LoadJSON(data); err != nil {
-		return "", fmt.Errorf("checked local table: %w", err)
+		return nil, fmt.Errorf("checked local table: %w", err)
 	}
+	var out []checkedLocalCandidate
 	for _, f := range m.Funcs {
 		problem, err := vir.PrepareLocalTableProblem(f, allocation)
 		if err != nil {
@@ -89,6 +97,38 @@ func applyCheckedLocalTables(asm string, m *mir2.Module, allocation *mir2.AllocR
 		if err != nil {
 			continue
 		}
+		out = append(out, checkedLocalCandidate{f, candidate})
+	}
+	return out, nil
+}
+
+// checkedLocalTableFullABI names the functions a checked table may replace
+// after codegen. Under exact clobbers they keep the full ABI, so callers
+// save conservatively and the replacement body stays legal.
+func checkedLocalTableFullABI(m *mir2.Module, allocation *mir2.AllocResult, options Options) (map[string]bool, error) {
+	// Without OptSize/Z80 the tables are refused after codegen; report that
+	// refusal there, not a table read error here.
+	if options.CheckedLocalTablePath == "" || options.NoExactClobbers || !options.OptSize || options.Backend != "" && options.Backend != "z80" {
+		return nil, nil
+	}
+	candidates, err := checkedLocalTableCandidates(m, allocation, options)
+	if err != nil {
+		return nil, err
+	}
+	full := map[string]bool{}
+	for _, c := range candidates {
+		full[c.f.Name] = true
+	}
+	return full, nil
+}
+
+func applyCheckedLocalTables(asm string, m *mir2.Module, allocation *mir2.AllocResult, options Options, traces map[string]*FuncTrace) (string, error) {
+	candidates, err := checkedLocalTableCandidates(m, allocation, options)
+	if err != nil {
+		return "", err
+	}
+	for _, c := range candidates {
+		f, candidate := c.f, c.text
 		start, end, ok := checkedFunctionSpan(asm, f.Name)
 		if !ok {
 			continue

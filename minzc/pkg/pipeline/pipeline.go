@@ -626,8 +626,13 @@ func compileMIRProductSteps(hm *hir.Module, opt Options, s Steps, splitInfo map[
 		if err := mir2.ValidateZ80IndirectCalls(m); err != nil {
 			return s, err
 		}
+		fullABI, err := checkedLocalTableFullABI(m, combined, opt)
+		if err != nil {
+			return s, err
+		}
 		var codegenErr error
 		s.Assembly, codegenErr = mir2.Z80Codegen(m, combined, mir2.Z80CodegenOptions{
+			FullABI:                   fullABI,
 			OptimizeForSize:           opt.OptSize,
 			FunctionOptions:           variantCodegenOptions(opt),
 			CalledMain:                opt.Backend == "ez80" || opt.CPMApplicationEntry || opt.Runtime == mir2.Z80RuntimeAgonZ80,
@@ -931,7 +936,11 @@ func CompileHIRWithOptions(hm *hir.Module, opts Options) (string, error) {
 	if err := mir2.ValidateZ80Symbols(m); err != nil {
 		return "", err
 	}
-	asm, err := mir2.Z80Codegen(m, combined, mir2.Z80CodegenOptions{UnsignedPairComparePolicy: policy, OptimizeForSize: opts.OptSize, NoExactClobbers: opts.NoExactClobbers})
+	fullABI, err := checkedLocalTableFullABI(m, combined, opts)
+	if err != nil {
+		return "", err
+	}
+	asm, err := mir2.Z80Codegen(m, combined, mir2.Z80CodegenOptions{UnsignedPairComparePolicy: policy, OptimizeForSize: opts.OptSize, NoExactClobbers: opts.NoExactClobbers, FullABI: fullABI})
 	if err != nil {
 		return "", err
 	}

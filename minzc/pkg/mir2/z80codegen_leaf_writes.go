@@ -68,7 +68,7 @@ func exactCodegen(m *Module, ar *AllocResult, o Z80CodegenOptions) (string, map[
 				// The #245 proof covers argument-free sites only; exact sets
 				// also serve sites with arguments, whose copies are measured.
 				if x.Op == OpCall && (len(x.Args) == 0 || !legacy) && len(x.ExtraRets) == 0 {
-					if f := m.FuncByName(x.Sym); f != nil {
+					if f := m.FuncByName(x.Sym); f != nil && (legacy || !o.FullABI[f.Name]) {
 						if writes, ok := proof(f, original); ok {
 							cache[f.Name] = writes
 						}
