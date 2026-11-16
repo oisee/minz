@@ -123,6 +123,9 @@ type Options struct {
 	// DisableFlagReturns keeps every bool return in A on Z80 instead of
 	// returning it in CPU flags where all call sites only branch on it.
 	DisableFlagReturns bool `json:",omitempty"`
+	// NoExactClobbers keeps the #245 byte-leaf caller-save proof instead of
+	// proving whole emitted bodies of parameterless callees.
+	NoExactClobbers bool `json:",omitempty"`
 
 	// DisableLoopRotation keeps every Z80 loop back edge a jump to the header
 	// test (--no-loop-rotation) instead of repeating a small test at the latch.
@@ -640,12 +643,17 @@ func compileMIRProductSteps(hm *hir.Module, opt Options, s Steps, splitInfo map[
 		if err := mir2.ValidateZ80IndirectCalls(m); err != nil {
 			return s, err
 		}
+		fullABI, err := checkedLocalTableFullABI(m, combined, opt)
+		if err != nil {
+			return s, err
+		}
 		var codegenErr error
 		var validationLog *[]string
 		if opt.deferZ80Validation {
 			validationLog = &s.z80ValidationLog
 		}
 		s.Assembly, codegenErr = mir2.Z80Codegen(m, combined, mir2.Z80CodegenOptions{
+			FullABI:                   fullABI,
 			OptimizeForSize:           opt.OptSize,
 			FunctionOptions:           variantCodegenOptions(opt),
 			CalledMain:                opt.Backend == "ez80" || opt.CPMApplicationEntry || opt.Runtime == mir2.Z80RuntimeAgonZ80,
@@ -655,6 +663,7 @@ func compileMIRProductSteps(hm *hir.Module, opt Options, s Steps, splitInfo map[
 			RuntimeStackBytes:         opt.RuntimeStackBytes,
 			AnnotateTStates:           opt.AnnotateTStates,
 			UnsignedPairComparePolicy: s.UnsignedPairComparePolicy,
+			NoExactClobbers:           opt.NoExactClobbers,
 			DisableLoopRotation:       s.DisableLoopRotation,
 			ValidationLog:             validationLog,
 		})
@@ -950,7 +959,11 @@ func CompileHIRWithOptions(hm *hir.Module, opts Options) (string, error) {
 	if err := mir2.ValidateZ80Symbols(m); err != nil {
 		return "", err
 	}
-	asm, err := mir2.Z80Codegen(m, combined, mir2.Z80CodegenOptions{UnsignedPairComparePolicy: policy, OptimizeForSize: opts.OptSize, DisableLoopRotation: opts.DisableLoopRotation || measuredLoopConfiguration(hm, opts)})
+	fullABI, err := checkedLocalTableFullABI(m, combined, opts)
+	if err != nil {
+		return "", err
+	}
+	asm, err := mir2.Z80Codegen(m, combined, mir2.Z80CodegenOptions{UnsignedPairComparePolicy: policy, OptimizeForSize: opts.OptSize, NoExactClobbers: opts.NoExactClobbers, FullABI: fullABI, DisableLoopRotation: opts.DisableLoopRotation || measuredLoopConfiguration(hm, opts)})
 	if err != nil {
 		return "", err
 	}

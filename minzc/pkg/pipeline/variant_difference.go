@@ -43,7 +43,7 @@ func (a *variantImage) nonIncreasingPaths(b *variantImage, name string) bool {
 	}
 	// This proof has an ordinary byte result in A and no memory effects. Other
 	// result/flag conventions need their own symbolic output model.
-	if !strings.Contains(a.abi[name], "-> u8 = A ;") || !strings.Contains(b.abi[name], "-> u8 = A ;") {
+	if !strings.HasSuffix(a.abi[name], "-> u8 = A") || !strings.HasSuffix(b.abi[name], "-> u8 = A") {
 		return false
 	}
 	liveA, ok := a.symbolicLiveness(name)

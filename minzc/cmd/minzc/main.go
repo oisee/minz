@@ -92,6 +92,7 @@ var (
 	useGrace                      bool // --grace: run all Grace MIR2 passes
 	noGrace                       bool // --no-grace: disable MIR and HIR Grace
 	noFlagReturn                  bool // --no-flag-return: keep every bool return in A
+	noExactClobbers               bool // --no-exact-clobbers: keep the #245 byte-leaf caller-save proof
 	noLoopRotation                bool // --no-loop-rotation: keep loop back edges as jumps to the header test
 	useHIRGrace                   bool // --hir-grace: run structural Grace rules before HIR lowering
 
@@ -291,6 +292,7 @@ func init() {
 	rootCmd.Flags().BoolVar(&useGrace, "grace", true, "run Grace MIR2 optimizations (disable with --grace=false)")
 	rootCmd.Flags().BoolVar(&noGrace, "no-grace", false, "disable both MIR and HIR Grace optimizations")
 	rootCmd.Flags().BoolVar(&noFlagReturn, "no-flag-return", false, "keep every bool return in A instead of returning it in Z80 flags")
+	rootCmd.Flags().BoolVar(&noExactClobbers, "no-exact-clobbers", false, "do not narrow caller saves from the emitted bodies of parameterless callees (keep the straight-line byte-leaf proof)")
 	rootCmd.Flags().BoolVar(&noLoopRotation, "no-loop-rotation", false, "keep Z80 loop back edges as jumps to the header test instead of repeating a small test at the latch")
 	rootCmd.Flags().BoolVar(&fuseGenerators, "fuse-generators", false, "fuse admitted immediate single-use generators (experimental ADR 0050)")
 	rootCmd.Flags().BoolVar(&fuseByteWords, "fuse-byte-words", false, "fuse consecutive little-endian byte accesses with sequential fault semantics (experimental)")
@@ -1129,6 +1131,7 @@ func compileViaHIR(sourceFile string) error {
 		UseGrace:                useGrace && !noGrace,
 		UseHIRGrace:             useHIRGrace && !noGrace,
 		DisableFlagReturns:      noFlagReturn,
+		NoExactClobbers:         noExactClobbers,
 		DisableLoopRotation:     noLoopRotation,
 		Backend:                 backend,
 		AssertMode:              am,
