@@ -150,8 +150,14 @@ func TestExactWritesRejectUnprovenBodies(t *testing.T) {
 	x := b.Param("x", TyU8, ClassAcc)
 	b.Ret(x)
 	p.Contract.Returns = []Return{{Ty: TyU8, Class: ClassAcc}}
-	if _, reason := exactWritesReason(p, body); reason != "params" {
+	// Parameters are accepted (the call site measures its copies); a
+	// pinned parameter is not.
+	if _, reason := exactWritesReason(p, body); reason != "" {
 		t.Errorf("param leaf: reason %q", reason)
+	}
+	p.Contract.Params[0].ClassHard = true
+	if _, reason := exactWritesReason(p, body); reason != "pinned param" {
+		t.Errorf("pinned param leaf: reason %q", reason)
 	}
 	m4 := &Module{}
 	c := exactLeaf(m4, "leaf", nil)

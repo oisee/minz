@@ -1,6 +1,7 @@
 package mir2
 
 import (
+	"slices"
 	"strings"
 
 	"github.com/minz/minzc/pkg/z80effects"
@@ -21,21 +22,23 @@ func Z80Codegen(m *Module, ar *AllocResult, opts ...Z80CodegenOptions) (string, 
 	if err != nil {
 		return original, err
 	}
-	proof := emittedExactWrites
+	proof, legacy := emittedExactWrites, false
 	if len(opts) > 0 {
 		o := opts[0]
 		if o.Runtime != "" || o.RuntimeStackBytes != 0 || o.NativeMemoryAccesses != nil || o.NativeMemoryAccessOrigins != nil || o.NativeCallFrames != nil || o.NativeCallSpills != nil {
 			return original, nil
 		}
 		if o.NoExactClobbers {
-			proof = emittedLeafByteWrites
+			proof, legacy = emittedLeafByteWrites, true
 		}
 	}
 	cache := map[string]map[string]bool{}
 	for _, caller := range m.Funcs {
 		for _, b := range caller.Blocks {
 			for _, x := range b.Insts {
-				if x.Op == OpCall && len(x.Args) == 0 && len(x.ExtraRets) == 0 {
+				// The #245 proof covers argument-free sites only; exact sets
+				// also serve sites with arguments, whose copies are measured.
+				if x.Op == OpCall && (len(x.Args) == 0 || !legacy) && len(x.ExtraRets) == 0 {
 					if f := m.FuncByName(x.Sym); f != nil {
 						if writes, ok := proof(f, original); ok {
 							cache[f.Name] = writes
@@ -65,6 +68,11 @@ func Z80Codegen(m *Module, ar *AllocResult, opts ...Z80CodegenOptions) (string, 
 				return original, nil
 			}
 		}
+	}
+	// Each call site's argument copies were measured where they were emitted;
+	// re-measure them in the final product as well.
+	if !verifyExactArgSites(candidate) {
+		return original, nil
 	}
 	return candidate, nil
 }
@@ -166,9 +174,10 @@ func emittedExactWrites(f *Func, asm string) (map[string]bool, bool) {
 // when no proof is possible and the caller must assume the full ABI.
 //
 // The MIR side keeps out everything whose emitted body does not show all of
-// its effects or whose call site adds writes: parameters (the caller's
-// argument shuffle writes registers too), calls of any kind, inline asm, SMC
-// patch slots, fallible CY, volatile accesses and struct/wide results.
+// its effects: calls of any kind, inline asm and pinned parameters, SMC patch
+// slots, fallible CY, volatile accesses and struct/wide results. Parameters
+// are accepted: the caller's argument copies write registers too, and each
+// call site measures those from its own emitted copies (genCall).
 //
 // Memory stores are accepted. A store can change a register only by
 // rewriting code that runs later; the compiler emits such stores only for SMC
@@ -188,8 +197,8 @@ func exactWritesReason(f *Func, asm string) (map[string]bool, string) {
 		return nil, "fallible"
 	case f.Attrs.IsRecursive || isRecursive(f):
 		return nil, "recursive"
-	case len(f.Contract.Params) != 0:
-		return nil, "params"
+	case slices.ContainsFunc(f.Contract.Params, func(p Param) bool { return p.ClassHard }):
+		return nil, "pinned param"
 	case len(f.Contract.Returns) > 1:
 		return nil, "multi-return"
 	case len(f.Contract.StructReturnBuffers) != 0:
@@ -227,9 +236,21 @@ func emittedBody(label, asm string) ([]bodyInsn, map[string]int, string) {
 	if start < 0 {
 		return nil, nil, "no emitted body"
 	}
+	insns, labels, reason := parseInsns(asm[start+len(label)+3:])
+	if reason == "" {
+		if _, own := labels[label]; !own {
+			labels[label] = 0
+		}
+	}
+	return insns, labels, reason
+}
+
+// parseInsns reads indented instructions and local labels up to the first
+// top-level label or directive.
+func parseInsns(text string) ([]bodyInsn, map[string]int, string) {
 	var insns []bodyInsn
-	labels := map[string]int{label: 0}
-	for _, line := range strings.Split(asm[start+len(label)+3:], "\n") {
+	labels := map[string]int{}
+	for _, line := range strings.Split(text, "\n") {
 		code := strings.TrimRight(strings.SplitN(line, ";", 2)[0], " \t\r")
 		if strings.TrimSpace(code) == "" {
 			continue
@@ -282,6 +303,31 @@ func bodyWrites(label, asm string) (map[string]bool, string) {
 	if len(insns) == 0 {
 		return nil, "empty body"
 	}
+	written, reason := walkWrites(insns, labels, false)
+	if reason != "" {
+		return nil, reason
+	}
+	return writeNames(written), ""
+}
+
+// fragmentWrites measures straight-line emitted code that is entered at its
+// first line and left by falling off its last one, such as a call's argument
+// copies. The rules are bodyWrites' with two changes: a path must leave at
+// the entry stack depth instead of returning, and SP must not be read at all
+// (an SP-relative offset would see the caller saves pushed before the
+// fragment, whose count the measurement decides).
+func fragmentWrites(text string) (z80effects.Registers, string) {
+	insns, labels, reason := parseInsns(text)
+	if reason != "" {
+		return 0, reason
+	}
+	if len(insns) == 0 {
+		return 0, ""
+	}
+	return walkWrites(insns, labels, true)
+}
+
+func walkWrites(insns []bodyInsn, labels map[string]int, fragment bool) (z80effects.Registers, string) {
 	main := exactClobberMask()
 	alt := map[z80effects.Registers]z80effects.Registers{
 		z80effects.AAlt: z80effects.A, z80effects.FAlt: z80effects.F, z80effects.BAlt: z80effects.B, z80effects.CAlt: z80effects.C,
@@ -299,6 +345,12 @@ func bodyWrites(label, asm string) (map[string]bool, string) {
 	work := []int{0}
 	visit := func(i, d int) string {
 		if i >= len(insns) {
+			if fragment && d == 0 {
+				return ""
+			}
+			if fragment {
+				return "leaves with pushed bytes"
+			}
 			return "falls off the body"
 		}
 		if depth[i] == -1 {
@@ -317,32 +369,32 @@ func bodyWrites(label, asm string) (map[string]bool, string) {
 		e := in.effect
 		switch in.op {
 		case "CALL", "RST":
-			return nil, "calls " + in.target
+			return 0, "calls " + in.target
 		case "IN", "OUT", "INI", "INIR", "IND", "INDR", "OUTI", "OTIR", "OUTD", "OTDR":
-			return nil, "port I/O"
+			return 0, "port I/O"
 		case "HALT", "DI", "EI", "IM", "RETI", "RETN":
-			return nil, "interrupt state " + in.op
+			return 0, "interrupt state " + in.op
 		}
 		if !e.Known {
-			return nil, "unknown " + in.op
+			return 0, "unknown " + in.op
 		}
 		if e.PortRead || e.PortWrite {
-			return nil, "port I/O"
+			return 0, "port I/O"
 		}
 		if e.INT != z80effects.INTUnchanged || e.ReadsINT || e.Flow == z80effects.Wait {
-			return nil, "interrupt state " + in.op
+			return 0, "interrupt state " + in.op
 		}
 		if e.Writes&^(main|altAll|z80effects.SP) != 0 {
-			return nil, "writes I/R " + in.op
+			return 0, "writes I/R " + in.op
 		}
 		if e.MemoryWrite && in.op != "PUSH" {
-			// A store into this body's own code is SMC (see exactWritesReason).
+			// A store into this code is SMC (see exactWritesReason).
 			if strings.Contains(in.operands, "$") {
-				return nil, "store into code " + in.operands
+				return 0, "store into code " + in.operands
 			}
 			for _, word := range strings.FieldsFunc(in.operands, func(c rune) bool { return strings.ContainsRune(" \t(),+-*", c) }) {
 				if _, ok := labels[word]; ok {
-					return nil, "store into code " + in.operands
+					return 0, "store into code " + in.operands
 				}
 			}
 		}
@@ -352,18 +404,21 @@ func bodyWrites(label, asm string) (map[string]bool, string) {
 			next = d + 2
 		case in.op == "POP":
 			if d < 2 {
-				return nil, "POP below entry stack"
+				return 0, "POP below entry stack"
 			}
 			next = d - 2
 		case in.op == "RET":
+			if fragment {
+				return 0, "returns"
+			}
 		case in.op == "EX" && strings.Contains(in.operands, "(SP)"):
-			if d < 2 { // would swap the return address
-				return nil, "EX (SP) at entry stack"
+			if d < 2 { // would swap the return address or a caller save
+				return 0, "EX (SP) at entry stack"
 			}
 		default:
-			// Reading SP (ADD HL, SP) is harmless; any other change is not.
-			if e.Writes&z80effects.SP != 0 || e.ReplacesSP || e.StackDelta != 0 {
-				return nil, "SP write " + in.op
+			// Reading SP (ADD HL, SP) is harmless in a body; any change is not.
+			if e.Writes&z80effects.SP != 0 || e.ReplacesSP || e.StackDelta != 0 || (fragment && e.Reads&z80effects.SP != 0) {
+				return 0, "SP access " + in.op
 			}
 		}
 		written |= e.Writes & main
@@ -376,7 +431,7 @@ func bodyWrites(label, asm string) (map[string]bool, string) {
 		switch e.Flow {
 		case z80effects.Return:
 			if d != 0 {
-				return nil, "RET with pushed bytes"
+				return 0, "RET with pushed bytes"
 			}
 			if e.Conditional {
 				r = visit(i+1, d)
@@ -384,7 +439,7 @@ func bodyWrites(label, asm string) (map[string]bool, string) {
 		case z80effects.Jump, z80effects.ConditionalJump:
 			t, ok := labels[in.target]
 			if !ok {
-				return nil, "jumps out to " + in.target
+				return 0, "jumps out to " + in.target
 			}
 			r = visit(t, next)
 			if r == "" && e.Flow == z80effects.ConditionalJump {
@@ -393,11 +448,11 @@ func bodyWrites(label, asm string) (map[string]bool, string) {
 		case z80effects.Fallthrough:
 			r = visit(i+1, next)
 		default:
-			return nil, "flow " + in.op
+			return 0, "flow " + in.op
 		}
 		if r != "" {
-			return nil, r
+			return 0, r
 		}
 	}
-	return writeNames(written), ""
+	return written, ""
 }
