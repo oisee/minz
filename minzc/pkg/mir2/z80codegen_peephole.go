@@ -101,6 +101,7 @@ func foldCondCall(lines []string) []string {
 	}
 
 	out := make([]string, 0, len(lines))
+	var code []string // branchCodeLines(lines), computed on first use
 	i := 0
 	for i < len(lines) {
 		trimmed := strings.TrimSpace(lines[i])
@@ -154,11 +155,10 @@ func foldCondCall(lines []string) []string {
 		incoming := false
 		for _, declaration := range intermediateLabels {
 			label := strings.TrimSuffix(strings.TrimSpace(declaration), ":")
-			for _, candidate := range lines {
-				text := strings.TrimSpace(strings.SplitN(candidate, ";", 2)[0])
-				if strings.HasSuffix(text, ":") {
-					continue
-				}
+			if code == nil {
+				code = branchCodeLines(lines)
+			}
+			for _, text := range code {
 				if strings.Contains(text, label) {
 					incoming = true
 					break
@@ -222,6 +222,26 @@ func foldCondCall(lines []string) []string {
 		continue
 	}
 	return out
+}
+
+// branchCodeLines returns the code text (comment stripped, trimmed) of every
+// line of lines that is not a label declaration, in order: the lines in which
+// foldCondCall looks for references to a label. lines is not modified while
+// foldCondCall runs, so the list is computed once.
+func branchCodeLines(lines []string) []string {
+	code := make([]string, 0, len(lines))
+	for _, candidate := range lines {
+		text := candidate
+		if at := strings.IndexByte(text, ';'); at >= 0 {
+			text = text[:at]
+		}
+		text = strings.TrimSpace(text)
+		if strings.HasSuffix(text, ":") {
+			continue
+		}
+		code = append(code, text)
+	}
+	return code
 }
 
 // foldRLCASled is a size-only transformation. A CALL costs three bytes

@@ -160,6 +160,10 @@ type Z80FunctionOptions struct {
 
 type Z80CodegenOptions struct {
 	FunctionOptions map[string]Z80FunctionOptions
+	// validateMemo, when set, memoises z80validate.Validate by function text
+	// across the emissions of one Z80Codegen call. Validate is a pure function
+	// of the text; most functions emit the same text in every emission.
+	validateMemo map[string][]z80validate.Error
 	// CalledMain emits RET for a void main invoked by a platform wrapper.
 	CalledMain bool
 	// CPMApplicationEntry owns a resident stack and returns to the CP/M caller.
@@ -450,7 +454,7 @@ func z80CodegenWithLeafWrites(m *Module, ar *AllocResult, leafWrites map[string]
 		sb.WriteByte('\n')
 		// Z80 validation: catch invalid instructions at compile time.
 		funcAsm := sb.String()[startLen:]
-		if errs := z80validate.Validate(funcAsm); len(errs) > 0 && opt.ValidationLog != nil {
+		if errs := validateFunctionAsm(funcAsm, opt.validateMemo); len(errs) > 0 && opt.ValidationLog != nil {
 			*opt.ValidationLog = append(*opt.ValidationLog, z80validate.FormatErrors(f.Name, errs))
 		} else if len(errs) > 0 {
 			z80validate.LogErrors(f.Name, errs)
@@ -698,6 +702,20 @@ func z80CodegenWithLeafWrites(m *Module, ar *AllocResult, leafWrites map[string]
 		}
 	}
 	return result, nil
+}
+
+// validateFunctionAsm is z80validate.Validate, answered from memo when the
+// same text was validated before (memo may be nil).
+func validateFunctionAsm(asm string, memo map[string][]z80validate.Error) []z80validate.Error {
+	if memo == nil {
+		return z80validate.Validate(asm)
+	}
+	errs, ok := memo[asm]
+	if !ok {
+		errs = z80validate.Validate(asm)
+		memo[asm] = errs
+	}
+	return errs
 }
 
 // ── Internal codegen state ────────────────────────────────────────────────────

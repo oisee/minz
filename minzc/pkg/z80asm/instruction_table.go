@@ -2,7 +2,9 @@ package z80asm
 
 import (
 	"fmt"
+	"slices"
 	"strings"
+	"sync"
 )
 
 // OpType defines the type of operand for table-driven encoding
@@ -1532,14 +1534,20 @@ var ixiyInstructions = []InstructionPattern{
 
 // GetInstructionPatterns returns all patterns for a given mnemonic
 func GetInstructionPatterns(mnemonic string) []InstructionPattern {
-	mnemonic = strings.ToUpper(mnemonic)
-	var patterns []InstructionPattern
-	
-	for _, pattern := range instructionTable {
-		if pattern.Mnemonic == mnemonic {
-			patterns = append(patterns, pattern)
+	patternIndexOnce.Do(func() {
+		patternIndex = map[string][]InstructionPattern{}
+		for _, pattern := range instructionTable {
+			patternIndex[pattern.Mnemonic] = append(patternIndex[pattern.Mnemonic], pattern)
 		}
-	}
-	
-	return patterns
+	})
+	// A fresh slice in table order, as the linear scan returned.
+	return slices.Clone(patternIndex[strings.ToUpper(mnemonic)])
 }
+
+// patternIndex groups instructionTable by mnemonic, keeping table order. The
+// table is complete once package initialisation has run; the index is built on
+// the first lookup, which comes after it.
+var (
+	patternIndexOnce sync.Once
+	patternIndex     map[string][]InstructionPattern
+)
