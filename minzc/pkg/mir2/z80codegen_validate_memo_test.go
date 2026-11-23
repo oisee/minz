@@ -1,65 +1,81 @@
 package mir2
 
 import (
+	"crypto/sha256"
 	"reflect"
 	"testing"
 
 	"github.com/minz/minzc/pkg/z80validate"
 )
 
-// The memo answers only the exact text it validated; any other text, however
-// close, is validated afresh.
-func TestValidateFunctionAsmMemoKeyedByText(t *testing.T) {
+// The cache answers only the exact text it validated; any other text, however
+// close, is validated afresh. A nil cache validates directly.
+func TestValidationCacheKeyedByText(t *testing.T) {
 	valid := "f:\n    LD A, B\n    RET\n"
 	invalid := "f:\n    LD HL, (DE)\n    RET\n"
-	for _, asm := range []string{valid, invalid} {
-		want := z80validate.Validate(asm)
-		if got := validateFunctionAsm(asm, nil); !reflect.DeepEqual(got, want) {
-			t.Fatalf("nil memo: %v, want %v", got, want)
-		}
-		memo := map[string][]z80validate.Error{}
-		if got := validateFunctionAsm(asm, memo); !reflect.DeepEqual(got, want) {
-			t.Fatalf("first lookup: %v, want %v", got, want)
-		}
-		if got, ok := memo[asm]; !ok || !reflect.DeepEqual(got, want) {
-			t.Fatalf("not memoised: %v %v", got, ok)
-		}
-	}
 	if len(z80validate.Validate(invalid)) == 0 {
 		t.Fatal("control: invalid text validated clean")
 	}
-	// A seeded answer is returned for its own text only.
-	memo := map[string][]z80validate.Error{valid: z80validate.Validate(invalid)}
-	if got := validateFunctionAsm(valid, memo); len(got) == 0 {
-		t.Fatal("memo not consulted for identical text")
+	for _, asm := range []string{valid, invalid} {
+		want := z80validate.Validate(asm)
+		var none *validationCache
+		if got := none.validate(asm); !reflect.DeepEqual(got, want) {
+			t.Fatalf("nil cache: %v, want %v", got, want)
+		}
+		c := &validationCache{}
+		if got := c.validate(asm); !reflect.DeepEqual(got, want) {
+			t.Fatalf("first lookup: %v, want %v", got, want)
+		}
+		if got, ok := c.m[sha256.Sum256([]byte(asm))]; !ok || !reflect.DeepEqual(got, want) {
+			t.Fatalf("not memoised: %v %v", got, ok)
+		}
 	}
-	if got := validateFunctionAsm(valid+"\n", memo); len(got) != 0 {
-		t.Fatalf("memo answered different text: %v", got)
+	// A seeded answer is returned for its own text only.
+	c := &validationCache{m: map[[sha256.Size]byte][]z80validate.Error{
+		sha256.Sum256([]byte(valid)): z80validate.Validate(invalid),
+	}}
+	if got := c.validate(valid); len(got) == 0 {
+		t.Fatal("cache not consulted for identical text")
+	}
+	if got := c.validate(valid + "\n"); len(got) != 0 {
+		t.Fatalf("cache answered different text: %v", got)
 	}
 }
 
-// Every emission of one Z80Codegen call shares a memo, and the product is
-// the same as an emission validated without it.
-func TestZ80CodegenSharesValidateMemo(t *testing.T) {
+// A full cache starts afresh instead of growing without bound.
+func TestValidationCacheBounded(t *testing.T) {
+	c := &validationCache{m: map[[sha256.Size]byte][]z80validate.Error{}}
+	for i := 0; i < validationCacheLimit; i++ {
+		c.m[[sha256.Size]byte{byte(i), byte(i >> 8), byte(i >> 16), 1}] = nil
+	}
+	c.validate("f:\n    RET\n")
+	if len(c.m) != 1 {
+		t.Fatalf("cache holds %d texts after reaching the limit", len(c.m))
+	}
+}
+
+// Z80Codegen validates through the shared cache in every emission, and the
+// product equals an emission validated without it.
+func TestZ80CodegenUsesValidationCache(t *testing.T) {
 	s := buildExactSite(t, "C", "B", []string{"D", "E", "H", "L"}, false)
 	saved := z80CodegenEmit
 	defer func() { z80CodegenEmit = saved }()
-	var memos []map[string][]z80validate.Error
-	var caches []map[string]map[string]bool
+	var caches []*validationCache
+	var clobbers []map[string]map[string]bool
 	z80CodegenEmit = func(m *Module, ar *AllocResult, cache map[string]map[string]bool, opts ...Z80CodegenOptions) (string, error) {
-		memos = append(memos, opts[0].validateMemo)
-		caches = append(caches, cache)
+		caches = append(caches, opts[0].validation)
+		clobbers = append(clobbers, cache)
 		return z80CodegenWithLeafWrites(m, ar, cache, opts...)
 	}
 	asm, err := Z80Codegen(s.m, s.ar)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(memos) != 2 || memos[0] == nil || reflect.ValueOf(memos[0]).Pointer() != reflect.ValueOf(memos[1]).Pointer() {
-		t.Fatalf("emissions do not share one memo: %d emissions", len(memos))
+	if len(caches) != 2 || caches[0] != sharedValidation || caches[1] != sharedValidation {
+		t.Fatalf("emissions do not use the shared cache: %v", caches)
 	}
-	plain, err := z80CodegenWithLeafWrites(s.m, s.ar, caches[1])
+	plain, err := z80CodegenWithLeafWrites(s.m, s.ar, clobbers[1])
 	if err != nil || plain != asm {
-		t.Fatalf("memoised product differs from plain emission (err %v)\n%s\n---\n%s", err, asm, plain)
+		t.Fatalf("cached product differs from plain emission (err %v)\n%s\n---\n%s", err, asm, plain)
 	}
 }

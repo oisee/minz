@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/minz/minzc/pkg/z80effects"
-	"github.com/minz/minzc/pkg/z80validate"
 )
 
 // z80CodegenEmit is the single emission used by Z80Codegen. Tests replace it
@@ -34,7 +33,7 @@ func Z80Codegen(m *Module, ar *AllocResult, opts ...Z80CodegenOptions) (string, 
 	}
 	// Every emission below validates each function; most functions emit the
 	// same text each time.
-	o.validateMemo = map[string][]z80validate.Error{}
+	o.validation = sharedValidation
 	if native {
 		plain := o
 		plain.NativeMemoryAccesses, plain.NativeMemoryAccessOrigins, plain.NativeCallFrames, plain.NativeCallSpills = nil, nil, nil, nil
