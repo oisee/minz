@@ -135,6 +135,8 @@
     "TestErrorABIRejectsUnimplementedBackend",
     "TestErrorABIRejectsUnsupportedBeforeLowering",
     "TestErrorIntrinsicArgumentsRejectedByBothAPIs",
+    "TestExactClobbersMultiBlockLeavesNative",
+    "TestExactClobbersParamCalleesNative",
     "TestExternPeekPokeZ80Contract",
     "TestExternStubSharedLabels",
     "TestFAT12BytePackingRetainsNativeAccessesAndWrap",

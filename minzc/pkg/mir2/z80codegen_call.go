@@ -275,7 +275,30 @@ func (g *z80cg) genCall(inst *Inst) error {
 	var callerSavePairs []string
 	var callerSaveShadowPairs []string
 	var callerSaveHomes []callSpillHome
-	if inst != g.tailCallInst {
+	argsEmitted := false
+	if exact, ok := g.exactCallClobbers(inst, callee, indirect); ok {
+		callerSaveHomes = g.callerSaveSpillHomes(inst)
+		g.pushCallSpillHomes(callerSaveHomes)
+		var argText, marker string
+		callerSavePairs, callerSaveShadowPairs, argText, marker = g.exactCallerSaves(inst, callee, exact)
+		argsEmitted = len(inst.Args) > 0
+		if len(callerSaveShadowPairs) != 0 {
+			g.emit("    EXX")
+			for _, pair := range callerSaveShadowPairs {
+				g.emitf("    PUSH %s", pair)
+			}
+			g.emit("    EXX")
+		}
+		for _, pair := range callerSavePairs {
+			g.emitf("    PUSH %s", pair)
+		}
+		// The copies were emitted (with every emission hook) into their own
+		// buffer before the saves were chosen; place them after the saves.
+		if marker != "" {
+			g.emit(marker)
+		}
+		g.sb.WriteString(argText)
+	} else if inst != g.tailCallInst {
 		callerSaveHomes = g.callerSaveSpillHomes(inst)
 		g.pushCallSpillHomes(callerSaveHomes)
 		callerSavePairs = g.callerSavePairs(inst, callee)
@@ -307,7 +330,7 @@ func (g *z80cg) genCall(inst *Inst) error {
 		// if IX is an argument slot, the stack trampoline consumes the target.
 		g.pushWord(g.loc(inst.Src[0]))
 	}
-	if len(inst.Args) > 0 && callee != nil {
+	if len(inst.Args) > 0 && callee != nil && !argsEmitted {
 		g.emitCallArgsForInst(inst.Args, callee, inst)
 	}
 	if indirect && !stackIndirect {
@@ -1025,14 +1048,19 @@ func (g *z80cg) callerSavePairs(inst *Inst, callee *Func) []string {
 		}
 	}
 
+	return savePairsFor(g.callSaveLive(inst), clobberedRegs)
+}
+
+// callSaveLive returns the register homes of the values live after a call,
+// other than its results.
+func (g *z80cg) callSaveLive(inst *Inst) map[Reg]string {
 	// Compute which virtual regs are live AFTER this call instruction.
 	// A reg is live-across-call if it's used by any instruction after the call
 	// in the same block, or by the block's terminator, or by a successor block
 	// using backward CFG liveness and instruction uses/definitions.
 	liveAfter := g.regsLiveAfterInst(inst)
 
-	// Collect physical regs that are (a) clobbered by callee and (b) hold a
-	// value that is live after the call. Exclude result definitions only.
+	// Exclude result definitions only.
 	excluded := make(map[Reg]bool)
 	if inst.Dst != NoReg {
 		excluded[inst.Dst] = true
@@ -1040,8 +1068,7 @@ func (g *z80cg) callerSavePairs(inst *Inst, callee *Func) []string {
 	for _, er := range inst.ExtraRets {
 		excluded[er] = true
 	}
-
-	livePhys := make(map[string]bool)
+	live := map[Reg]string{}
 	for r := range liveAfter {
 		if excluded[r] {
 			continue
@@ -1057,6 +1084,16 @@ func (g *z80cg) callerSavePairs(inst *Inst, callee *Func) []string {
 		if isSpill(locName) {
 			continue // spilled to memory — not a register
 		}
+		live[r] = locName
+	}
+	return live
+}
+
+// savePairsFor returns, in stable order, the pushable pairs holding a live
+// home that overlaps a clobbered register.
+func savePairsFor(live map[Reg]string, clobberedRegs map[string]bool) []string {
+	livePhys := make(map[string]bool)
+	for _, locName := range live {
 		for name := range clobberedRegs {
 			if z80spec.Overlaps(name, locName) {
 				livePhys[locName] = true

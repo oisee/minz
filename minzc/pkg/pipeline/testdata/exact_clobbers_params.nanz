@@ -1,0 +1,44 @@
+global g_t: u8 = 0
+
+fun p_branch(a: u8, b: u8) -> u8 {
+    if a > b { return a - b }
+    if a == 7 { return b }
+    return a + b + g_t
+}
+
+fun p_pred(a: u8) -> bool {
+    if a == 0 { return false }
+    return (a & 3) == 1
+}
+
+fun p_loop(n: u8, base: u16) -> u16 {
+    var s: u16 = base
+    var i: u8 = 0
+    while i < (n & 7) {
+        s = s + u16(i) * 5
+        i = i + 1
+    }
+    return s
+}
+
+fun p_store(v: u8, w: u8) -> void {
+    if (v & 1) == 1 { g_t = g_t + w } else { g_t = g_t xor v }
+}
+
+fun mix2(x: u8) -> u16 {
+    let a: u8 = x + 1
+    let b: u8 = x xor 0x5a
+    let c: u8 = x * 3
+    let d: u8 = x - 9
+    let e: u8 = x + 77
+    let p: u16 = u16(x) * 257
+    let q: u16 = u16(x) + 1000
+    g_t = x & 15
+    let r1: u8 = p_branch(a, c)
+    p_store(b, d)
+    let r2: u16 = p_loop(e, q)
+    var r3: u8 = 0
+    if p_pred(c) { r3 = 9 }
+    let r4: u8 = p_branch(d, b)
+    return p + q + u16(a) + u16(b xor c) + u16(d) + u16(e) + u16(r1) + r2 + u16(r3) + u16(r4) + u16(g_t)
+}

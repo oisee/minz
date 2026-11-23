@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/minz/minzc/pkg/hir"
+	"github.com/minz/minzc/pkg/mir2"
 	"github.com/minz/minzc/pkg/vir"
 	"github.com/minz/minzc/pkg/z80asm"
 )
@@ -181,6 +182,7 @@ func MeasureConditionalLayoutWorkload(factory func() (*hir.Module, error), funct
 		return fail(err)
 	}
 	assemblies := []string{steps.Assembly}
+	kept := orders[:0:0]
 	for _, order := range orders {
 		candidate, e := problem.EmitLayout(order)
 		if e != nil {
@@ -193,7 +195,14 @@ func MeasureConditionalLayoutWorkload(factory func() (*hir.Module, error), funct
 			return fail(fmt.Errorf("missing ABI header"))
 		}
 		candidate = steps.Assembly[start:start+headerEnd+1] + candidate[candidateEnd+1:]
-		assemblies = append(assemblies, steps.Assembly[:start]+candidate+steps.Assembly[end:])
+		spliced := steps.Assembly[:start] + candidate + steps.Assembly[end:]
+		// Callers were narrowed against the production body's proven writes;
+		// a layout writing anything more is not a candidate.
+		if !options.NoExactClobbers && !mir2.SpliceKeepsClobbers(steps.MIR2Module.FuncByName(function), spliced) {
+			continue
+		}
+		assemblies = append(assemblies, spliced)
+		kept = append(kept, order)
 	}
 	compiledBytes, err := snapshot(input)
 	if err != nil {
@@ -224,7 +233,7 @@ func MeasureConditionalLayoutWorkload(factory func() (*hir.Module, error), funct
 		}
 		candidate := ConditionalLayoutCandidate{Assembly: assembly, Binary: bin.Binary, Run: run}
 		if i > 0 {
-			candidate.Order = append([]int(nil), orders[i-1]...)
+			candidate.Order = append([]int(nil), kept[i-1]...)
 		}
 		evidence.Candidates = append(evidence.Candidates, candidate)
 		best := evidence.Candidates[evidence.Selected]
