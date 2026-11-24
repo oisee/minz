@@ -41,7 +41,9 @@ func TestMeasureLoopCostModel(t *testing.T) {
 	// Current instruction costs were independently reconciled against the saved
 	// ASM delta; every row must satisfy these costs, not just the fitted samples.
 	// The branch-only unsigned u16 compare through A (no SBC HL) removed 29T
-	// from the fast/equality entries and 38T from the fallback entry.
+	// from the fast/equality entries and 38T from the fallback entry. The
+	// down-counter pointer walk (#317) then took 4T off the fallback entry and
+	// 4T off each fallback element.
 	for _, row := range evidence.Rows {
 		wantOriginal := 41 + 54*row.N
 		wantPointer := 152 + 37*row.N
@@ -49,7 +51,7 @@ func TestMeasureLoopCostModel(t *testing.T) {
 			wantPointer = 153
 		}
 		if row.Path == "fallback" || row.Path == "wrap" {
-			wantPointer = 188 + 78*row.N
+			wantPointer = 184 + 74*row.N
 		}
 		if row.Original != wantOriginal || row.Pointer != wantPointer {
 			t.Fatalf("independent ASM cost disagrees: %+v want %d/%d", row, wantOriginal, wantPointer)
@@ -58,7 +60,7 @@ func TestMeasureLoopCostModel(t *testing.T) {
 			t.Fatal("execution binaries not bound to evidence")
 		}
 	}
-	if model.OriginalEntry != 41 || model.OriginalIteration != 54 || model.FastEntry != 152 || model.FastIteration != 37 || model.FastZeroEntry != 153 || !model.FastZeroMeasured || model.EqualEntryExtra != 0 || model.FallbackEntry != 188 || model.FallbackIteration != 78 || !model.FallbackMeasured {
+	if model.OriginalEntry != 41 || model.OriginalIteration != 54 || model.FastEntry != 152 || model.FastIteration != 37 || model.FastZeroEntry != 153 || !model.FastZeroMeasured || model.EqualEntryExtra != 0 || model.FallbackEntry != 184 || model.FallbackIteration != 74 || !model.FallbackMeasured {
 		t.Fatalf("unexpected measured coefficients: %+v", model)
 	}
 	if len(evidence.Rows) != 1022 || model.OriginalBytes != uint64(len(evidence.OriginalBinary)) || model.PointerBytes != uint64(len(evidence.PointerBinary)) {
