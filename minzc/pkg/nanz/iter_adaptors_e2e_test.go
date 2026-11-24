@@ -980,8 +980,8 @@ assert local_old() == 16
 	}
 }
 
-// Review item (report only): a u8 count with a non-head take and a body large
-// enough that the DJNZ back edge may leave its range (backend, pre-existing).
+// A u8 count with a non-head take and a body large enough that the DJNZ back
+// edge leaves its 8-bit range; the backend routes it through a trampoline.
 func TestIterByteCountLargeBody(t *testing.T) {
 	body := `
 fun big(n: u8, k: u8) -> u16 { init()
@@ -1043,9 +1043,6 @@ fun bigs(n: u8) -> u16 { init()
 		a.add(fmt.Sprintf("zbig(%d)", n), int(zh))
 	}
 	if err := g0RunAsserts(t, iterPrelude+body+"\n"+a.b.String()); err != nil {
-		if strings.Contains(err.Error(), "DJNZ") {
-			t.Skipf("pre-existing backend bug: DJNZ target out of range for a large u8-count loop body: %v", err)
-		}
 		t.Fatal(err)
 	}
 }
