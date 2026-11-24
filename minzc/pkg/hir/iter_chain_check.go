@@ -1,6 +1,10 @@
 package hir
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/minz/minzc/pkg/mir2"
+)
 
 // IsIterChainMethod reports whether name is an iterator chain method
 // (map, filter, skip, take, zip, forEach, mapInPlace, fold, reduce, count, sum).
@@ -62,14 +66,16 @@ func CheckIterChains(m *Module) error {
 		if err := ck.leftovers(f.Body); err != nil {
 			return err
 		}
-		for _, u := range ck.uses {
-			callbacks[u.fn] = true
+		for _, fn := range ck.inlined {
+			callbacks[fn] = true
 		}
 		uses[f] = ck.uses
 	}
 	// A callback inlined into an outer callback's body may not capture that
 	// outer callback's parameter: inlining renames the parameter, and the
-	// inner callback's own body would then name an undefined variable.
+	// inner callback's own body would then name an undefined variable. Only
+	// forEach callbacks inlined as statements count; a callback that must be
+	// called (early return, asm) keeps its parameter and is fine.
 	for _, f := range m.Funcs {
 		if !callbacks[f.Name] {
 			continue
@@ -105,6 +111,7 @@ type chainChecker struct {
 	l        *lowerer
 	consumed map[*CallExpr]bool
 	uses     []chainCallbackUse
+	inlined  []string // forEach callbacks inlined as statement bodies
 }
 
 func (ck *chainChecker) errorf(s Stmt, format string, args ...any) error {
@@ -164,7 +171,9 @@ func walkChainBlocks(b *Block, visit func(Stmt)) {
 
 func (ck *chainChecker) isChainCall(e Expr) (*CallExpr, bool) {
 	c, ok := e.(*CallExpr)
-	if !ok || ck.l.hirFuncNames[c.Fn] || !isIterChainMethod(c.Fn) {
+	// Only method-syntax calls are checked: the functional spellings
+	// (forEach(src, cb, n), fold(...), a plain sum(...)) keep their meaning.
+	if !ok || !c.Method || !ck.l.isChainCall(c) {
 		return nil, false
 	}
 	return c, true
@@ -176,34 +185,36 @@ func (ck *chainChecker) block(b *Block) error {
 		if err != nil {
 			return
 		}
+		var e Expr
+		value := true // only fold/reduce/count/sum may be a value
 		switch st := s.(type) {
 		case *ExprStmt:
-			if c, ok := ck.isChainCall(st.Expr); ok && isIterTerminal(c.Fn) {
-				err = ck.root(s, c)
-			}
+			e, value = st.Expr, false
 		case *VarDeclStmt:
-			if c, ok := ck.isChainCall(st.Init); ok && isValueIterTerminal(c.Fn) {
-				err = ck.root(s, c)
-			}
+			e = st.Init
 		case *ReturnStmt:
-			if c, ok := ck.isChainCall(st.Val); ok && isValueIterTerminal(c.Fn) && len(st.Vals) == 0 {
-				err = ck.root(s, c)
+			if len(st.Vals) == 0 {
+				e = st.Val
 			}
 		case *AssignStmt:
-			if c, ok := ck.isChainCall(st.Val); ok && isValueIterTerminal(c.Fn) {
-				err = ck.root(s, c)
-			}
+			e = st.Val
 		case *StoreStmt:
-			if c, ok := ck.isChainCall(st.Val); ok && isValueIterTerminal(c.Fn) {
-				err = ck.root(s, c)
-			}
+			e = st.Val
 		}
+		c, isCall := e.(*CallExpr)
+		if !isCall || !ck.l.isChainCall(c) || !isIterTerminal(c.Fn) || value && !isValueIterTerminal(c.Fn) {
+			return
+		}
+		// A functional terminal (fold(src, ...) with no method syntax) keeps
+		// origin/main's meaning: lowered when recognised, never diagnosed for
+		// itself; its method-syntax stages count as consumed when it is.
+		err = ck.root(s, c, !c.Method)
 	})
 	return err
 }
 
 // root validates one chain in a lowered position and marks its calls consumed.
-func (ck *chainChecker) root(s Stmt, call *CallExpr) error {
+func (ck *chainChecker) root(s Stmt, call *CallExpr, functional bool) error {
 	use := func(fn string) {
 		if fn != "" {
 			ck.uses = append(ck.uses, chainCallbackUse{fn: fn, stmt: s})
@@ -218,16 +229,28 @@ func (ck *chainChecker) root(s Stmt, call *CallExpr) error {
 		for _, st := range c.stages {
 			use(st.fn)
 		}
+		if c.term == "forEach" {
+			ck.inlinedForEach(c.cb)
+		}
 	} else {
 		chain, ok := ck.l.recognizeIterChain(call)
 		if !ok {
+			if functional {
+				return nil
+			}
 			return ck.errorf(s, "unsupported iterator chain .%s(...): %s", call.Fn, oldChainShape(call.Fn))
 		}
 		use(chain.cbName)
 		for _, st := range chain.stages {
 			use(st.fn)
 		}
-		if !chain.isRange {
+		if !chain.mutate && !chain.isFold {
+			ck.inlinedForEach(chain.cbName)
+		}
+		if err := oldChainElemErr(chain); err != "" && !functional {
+			return ck.errorf(s, "unsupported iterator chain .%s(...): %s", call.Fn, err)
+		}
+		if !chain.isRange && !functional {
 			if chain.len == nil {
 				return ck.errorf(s, ".%s on a memory source needs the element count as its last argument", call.Fn)
 			}
@@ -243,8 +266,8 @@ func (ck *chainChecker) root(s Stmt, call *CallExpr) error {
 	ck.consumed[call] = true
 	e := call.Args[0]
 	for {
-		c, ok := ck.isChainCall(e)
-		if !ok || len(c.Args) == 0 {
+		c, ok := e.(*CallExpr)
+		if !ok || !ck.l.isChainCall(c) || len(c.Args) == 0 {
 			break
 		}
 		ck.consumed[c] = true
@@ -292,4 +315,35 @@ func (ck *chainChecker) leftovers(b *Block) error {
 		})
 	})
 	return err
+}
+
+// inlinedForEach records a forEach callback that the lowering inlines as
+// statements (the same test lowerFusedForEach and lowerRangeForEach use).
+func (ck *chainChecker) inlinedForEach(fn string) {
+	if f := ck.l.hirFuncs[fn]; f != nil && f.Body != nil && !iterCallbackNeedsCall(f.Body) {
+		ck.inlined = append(ck.inlined, fn)
+	}
+}
+
+// oldChainElemErr rejects struct elements in an original chain: a struct
+// element parameter (typed or from the hint), and a non-scalar parameter over
+// a struct array. On origin/main every such shape loaded the wrong bytes or
+// emitted invalid assembly. A scalar parameter walking a struct or nested
+// array as bytes or words, and an unread array parameter, worked there and
+// are kept.
+func oldChainElemErr(chain iterChain) string {
+	if _, isStruct := mir2.BaseOf(chain.elemTy).(*mir2.StructTy); isStruct {
+		return fmt.Sprintf("struct elements (%s) are not supported; take a pointer and index it in a for loop", chain.elemTy)
+	}
+	if mir2.IsPointer(chain.elemTy) {
+		if _, isStruct := mir2.BaseOf(mir2.PointerElem(chain.elemTy)).(*mir2.StructTy); isStruct {
+			return fmt.Sprintf("struct pointer elements (%s) are not supported", chain.elemTy)
+		}
+	}
+	if d := typedElemTy(chain.ptr); d != nil && !chain.isRange {
+		if _, isStruct := mir2.BaseOf(d).(*mir2.StructTy); isStruct && !mir2.IsInt(mir2.BaseOf(chain.elemTy)) && chain.elemTy != mir2.TyBool {
+			return fmt.Sprintf("the source's elements are %s; walk them with a u8/u16 parameter or index them in a for loop", d)
+		}
+	}
+	return ""
 }

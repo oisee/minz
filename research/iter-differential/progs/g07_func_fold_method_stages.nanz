@@ -1,0 +1,10 @@
+global data: [u8; 5] = [1, 2, 3, 4, 5]
+global hits: u8 = 0
+fun keep(x: u8) -> bool { return x > 2 }
+fun mapper(x: u8) -> u8 { hits = hits + 1
+  return x + 1 }
+fun callback(acc: u8, x: u8) -> u8 { return acc + x }
+fun t() -> u8 { hits = 0
+  let s = fold(data.filter(keep).map(mapper), 0, callback, 5)
+  return s + hits * 16 }
+assert t() == 63

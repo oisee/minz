@@ -391,7 +391,7 @@ func graceHasBindings(b *Block) bool {
 				case *LetInExpr:
 					found = true
 				case *CallExpr:
-					if graceMayInlineCallback(x.Fn) {
+					if graceMayInlineCallback(x.Fn) || x.Method && isNewIterChainMethod(x.Fn) {
 						found = true
 					}
 				}
@@ -476,8 +476,7 @@ func (g *hirGraceGraph) hoist(label string) *graceHoist {
 // These lowering intrinsics may inline callbacks into the caller environment.
 func graceMayInlineCallback(fn string) bool {
 	switch fn {
-	case "forEach", "mapInPlace", "fold", "reduce", "map", "filter",
-		"skip", "take", "zip", "count", "sum": // chain lowering binds loop state in the caller env
+	case "forEach", "mapInPlace", "fold", "reduce", "map", "filter":
 		return true
 	}
 	return false

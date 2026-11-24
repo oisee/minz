@@ -458,6 +458,10 @@ type CallExpr struct {
 	Fn   string
 	Args []Expr
 	Ty   mir2.Ty // return type; TyVoid for void calls
+	// Method: the frontend saw receiver.Fn(args) (method syntax). Only such
+	// calls can be the iterator chain methods skip/take/zip/count/sum, and
+	// only they are checked by CheckIterChains; a plain sum(...) is a call.
+	Method bool `json:",omitempty"`
 }
 
 func (*CallExpr) hirExpr()          {}

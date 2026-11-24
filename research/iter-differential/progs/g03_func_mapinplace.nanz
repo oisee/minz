@@ -1,0 +1,5 @@
+global a: [u8; 6] = [200, 100, 3, 4, 7, 9]
+fun inc(x: u8) -> u8 { return x + 1 }
+fun t() -> u16 { mapInPlace(a, inc, 6)
+  return u16(a[0]) + u16(a[5]) }
+assert t() == 211

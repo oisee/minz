@@ -1,0 +1,22 @@
+global buf: [u8; 4]
+global res: u16 = 0
+fun helpers() -> void {
+  asm {
+    RET
+  sum:
+    LD HL, 1234
+    RET
+  count:
+    LD HL, 77
+    RET
+  zip:
+    LD HL, 9
+    RET
+  }
+}
+fun run() {
+  let r: u16 = sum(buf, 4)
+  res = r }
+fun t() -> u16 { run()
+  return res }
+assert t() == 1234 via z80

@@ -1,0 +1,4 @@
+global gi: [i8; 6] = [-4, 6, -100, 127, -1, 3]
+fun t() -> i8 { gi.mapInPlace(|x: i8| x / 2, 6)
+  return gi[0] }
+assert t() == -2

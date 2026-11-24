@@ -1,0 +1,8 @@
+global a: [u8; 6] = [200, 100, 3, 4, 7, 9]
+fun sum(p: ^u8, n: u8) -> u16 { var s: u16 = 0
+  var i: u8 = 0
+  while i < n { s = s + u16(p[i])
+    i = i + 1 }
+  return s }
+fun t() -> u16 { return sum(&a[0], 6) }
+assert t() == 323

@@ -1,0 +1,2 @@
+fun t() -> u16 { return range(0..10).fold(u16(0), |s: u16, i: u8| s * 3 + u16(i)) }
+assert t() == 14757

@@ -1,0 +1,7 @@
+global data: [u8; 5] = [1, 2, 3, 4, 5]
+global h: u16 = 0
+fun step(x: u8) { h = h * 10 + u16(x) }
+fun t() -> u16 { h = 0
+  forEach(map(data.filter(|x: u8| x > 1), |x: u8| x + 1), step, 5)
+  return h }
+assert t() == 3456

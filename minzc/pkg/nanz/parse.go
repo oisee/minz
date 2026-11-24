@@ -751,6 +751,11 @@ func (p *parser) inferChainElemTy(base hir.Expr) mir2.Ty {
 	}
 	// Default: the source's element type — an array's element or a
 	// pointer's pointee, never the array or pointer type itself.
+	if vr, ok := base.(*hir.VarRefExpr); ok {
+		if st := p.varPtrElem[vr.Name]; st != nil {
+			return st // ^Struct variable: the struct (rejected as a chain element)
+		}
+	}
 	ty := p.exprTy(base)
 	switch t := mir2.BaseOf(ty).(type) {
 	case *mir2.ArrayTy:
@@ -760,6 +765,51 @@ func (p *parser) inferChainElemTy(base hir.Expr) mir2.Ty {
 		return mir2.PointerElem(ty)
 	}
 	if ty != nil {
+		return ty
+	}
+	return mir2.TyU8
+}
+
+// foldAccHint is the type of an untyped fold/reduce accumulator parameter:
+// the init expression's type when the init is typed; for an untyped literal
+// (or before the init is parsed) the hint origin/main gave every untyped
+// parameter (mainChainHint: a pointer source's pointer type, a map's result
+// type, ...), and u16 where that hint was no usable value type (an array or
+// a chain method origin/main did not know, which failed to compile there).
+func (p *parser) foldAccHint(base, init hir.Expr) mir2.Ty {
+	if init != nil {
+		if lit, isLit := init.(*hir.IntLitExpr); !isLit || !lit.Untyped {
+			if ty := p.exprTy(init); ty != nil && mir2.IsInt(mir2.BaseOf(ty)) {
+				return ty
+			}
+		}
+	}
+	if h := p.mainChainHint(base); h != nil && (mir2.IsInt(mir2.BaseOf(h)) || mir2.IsPointer(h)) {
+		return h
+	}
+	return mir2.TyU16
+}
+
+// mainChainHint is the lambda hint as origin/main computed it before the
+// element-type hint: a map's callback return type, a filter's source, else
+// the source expression's own type (a pointer or an array, not its element).
+func (p *parser) mainChainHint(base hir.Expr) mir2.Ty {
+	if call, ok := base.(*hir.CallExpr); ok {
+		switch call.Fn {
+		case "map":
+			if len(call.Args) >= 2 {
+				if ty := p.callbackReturnTy(call.Args[1]); ty != nil && ty != mir2.TyVoid {
+					return ty
+				}
+				return call.Args[1].ExprTy()
+			}
+		case "filter":
+			if len(call.Args) >= 1 {
+				return p.mainChainHint(call.Args[0])
+			}
+		}
+	}
+	if ty := p.exprTy(base); ty != nil {
 		return ty
 	}
 	return mir2.TyU8
@@ -5270,9 +5320,10 @@ func (p *parser) parsePostfixNoBrack(base hir.Expr) (hir.Expr, error) {
 				// Wrap base in nested map/filter calls (innermost first)
 				for _, step := range steps {
 					base = &hir.CallExpr{
-						Fn:   step.kind,
-						Args: []hir.Expr{base, &hir.VarRefExpr{Name: step.fn, Ty: mir2.TyU8}},
-						Ty:   mir2.TyVoid,
+						Fn:     step.kind,
+						Args:   []hir.Expr{base, &hir.VarRefExpr{Name: step.fn, Ty: mir2.TyU8}},
+						Ty:     mir2.TyVoid,
+						Method: true,
 					}
 				}
 				continue
@@ -6426,9 +6477,10 @@ func (p *parser) parsePostfix(base hir.Expr) (hir.Expr, error) {
 				}
 				for _, step := range steps {
 					base = &hir.CallExpr{
-						Fn:   step.kind,
-						Args: []hir.Expr{base, &hir.VarRefExpr{Name: step.fn, Ty: mir2.TyU8}},
-						Ty:   mir2.TyVoid,
+						Fn:     step.kind,
+						Args:   []hir.Expr{base, &hir.VarRefExpr{Name: step.fn, Ty: mir2.TyU8}},
+						Ty:     mir2.TyVoid,
+						Method: true,
 					}
 				}
 				continue
@@ -6441,16 +6493,20 @@ func (p *parser) parsePostfix(base hir.Expr) (hir.Expr, error) {
 				// Set lambda type hint for iterator chain methods
 				savedHint, savedHints := p.lambdaHintTy, p.lambdaHintTys
 				switch fieldTok.val {
-				case "map", "filter", "forEach", "fold", "reduce":
-					p.lambdaHintTy, p.lambdaHintTys = p.inferChainElemTy(base), nil
+				case "map", "filter", "forEach", "fold", "reduce", "mapInPlace":
+					elem := p.inferChainElemTy(base)
+					p.lambdaHintTy, p.lambdaHintTys = elem, nil
 					// After zip, an untyped second element parameter takes
-					// other's element type (the accumulator comes first in fold).
-					if zt := p.inferZipElemTy(base); zt != nil {
-						if fieldTok.val == "fold" || fieldTok.val == "reduce" {
-							p.lambdaHintTys = []mir2.Ty{p.lambdaHintTy, p.lambdaHintTy, zt}
-						} else {
-							p.lambdaHintTys = []mir2.Ty{p.lambdaHintTy, zt}
+					// other's element type. A fold's accumulator comes first
+					// and takes its own hint (foldAccHint).
+					zt := p.inferZipElemTy(base)
+					if fieldTok.val == "fold" || fieldTok.val == "reduce" {
+						p.lambdaHintTys = []mir2.Ty{p.foldAccHint(base, nil), elem}
+						if zt != nil {
+							p.lambdaHintTys = append(p.lambdaHintTys, zt)
 						}
+					} else if zt != nil {
+						p.lambdaHintTys = []mir2.Ty{elem, zt}
 					}
 				}
 				for !p.l.is(tokRParen) && !p.l.is(tokEOF) {
@@ -6459,13 +6515,11 @@ func (p *parser) parsePostfix(base hir.Expr) (hir.Expr, error) {
 						return nil, err
 					}
 					args = append(args, a)
-					// A zip fold's untyped accumulator takes the init's type.
-					if len(args) == 2 && len(p.lambdaHintTys) == 3 && (fieldTok.val == "fold" || fieldTok.val == "reduce") {
-						if lit, isLit := a.(*hir.IntLitExpr); !isLit || !lit.Untyped {
-							if ty := p.exprTy(a); ty != nil && mir2.IsInt(ty) {
-								p.lambdaHintTys = []mir2.Ty{ty, p.lambdaHintTys[1], p.lambdaHintTys[2]}
-							}
-						}
+					// The init is parsed: the accumulator hint can use its type.
+					if len(args) == 2 && len(p.lambdaHintTys) >= 2 && (fieldTok.val == "fold" || fieldTok.val == "reduce") {
+						tys := append([]mir2.Ty{}, p.lambdaHintTys...)
+						tys[0] = p.foldAccHint(base, a)
+						p.lambdaHintTys = tys
 					}
 					if p.l.is(tokComma) {
 						p.l.next()
@@ -6524,6 +6578,7 @@ func (p *parser) parsePostfix(base hir.Expr) (hir.Expr, error) {
 				}
 				call := &hir.CallExpr{Fn: callName, Args: args, Ty: callRetTy}
 				if callName == fieldTok.val {
+					call.Method = true
 					if (callName == "count" || callName == "sum") && p.isChainMethodName(callName) {
 						call.Ty = mir2.TyU16 // iterator terminal: u16 count / wrapping sum
 					}

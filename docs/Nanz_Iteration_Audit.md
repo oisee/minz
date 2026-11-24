@@ -131,6 +131,20 @@ Recorded, not fixed here:
   callback may not use the outer callback's parameter (bind it to a local).
   An original `fold` assigned to a global or memory target used to drop the
   store; it now goes through the same temporary.
+  Review round 2: `skip`/`take`/`zip`/`count`/`sum` are chain methods only in
+  method syntax (`x.sum(n)`, marked on the HIR call as `CallExpr.Method`); a
+  plain `sum(buf, 4)` is a call, as on origin/main (it may name an asm
+  label), and `CheckIterChains` checks only method-syntax calls, so the
+  functional spellings (`forEach(src, cb, n)`, `fold(...)`) and every other
+  frontend behave as before. An untyped fold accumulator takes the init's
+  type (an untyped literal init keeps origin/main's hint: a pointer source's
+  pointer type, a map's result type; u16 where main had none). `mapInPlace`
+  gets the element-type hint and must store the type it loads. Struct
+  elements are rejected in the original chains too (every such shape loaded
+  wrong bytes or emitted invalid assembly on origin/main); a scalar parameter
+  walking a struct or nested array as bytes/words, and an unread array
+  parameter, keep working. A global initialiser `global s: u16 = a.sum()`
+  gives 0 silently, like any call in a global initialiser on origin/main.
   A user function named like a chain method (`fun sum(...)`) keeps plain
   UFCS meaning. Test: `TestG0Finding_UnsupportedMethodRejected` (no longer
   skips: each spelling must be a source-line error or run correctly) and
@@ -157,6 +171,9 @@ Recorded, not fixed here:
   may exceed 255**, yielding 0..255. Test:
   `TestG0Finding_RangeCounterWidth` (skip on failure) uses a u16 callback and
   requires first=0, count=256, sum=32640 on the three-tier path.
+  The terminals `count()`/`sum()` on a range inherit it:
+  `range(0..300).count()` runs 44 times (`TestIterRangeCountWide`, skipped,
+  expects 300).
 
 ### Legacy `.minz` pipeline (claims evidence)
 

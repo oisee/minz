@@ -1,0 +1,4 @@
+global a: [u8; 6] = [200, 100, 3, 4, 7, 9]
+fun t() -> u16 { let p: ^u8 = &a[0]
+  return p.fold(u16(0), |s: u16, x: u8| s + u16(x), 6) }
+assert t() == 323

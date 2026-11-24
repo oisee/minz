@@ -13,10 +13,13 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/minz/minzc/pkg/c89"
+	"github.com/minz/minzc/pkg/emulator"
 	"github.com/minz/minzc/pkg/hir"
 	"github.com/minz/minzc/pkg/mir2"
 	"github.com/minz/minzc/pkg/nanz"
 	"github.com/minz/minzc/pkg/pipeline"
+	"github.com/minz/minzc/pkg/z80asm"
 )
 
 const iterN = 260 // array length; n up to 256 is exercised
@@ -1054,4 +1057,348 @@ func iterDiagLine(body string) int {
 		return 13
 	}
 	return 13 + strings.Count(body, "\n")
+}
+
+// ── Review round 2 ─────────────────────────────────────────────────────────
+
+// F1: an untyped fold accumulator takes the init's type; with an untyped
+// literal init it keeps origin/main's hint (a pointer source's pointer type,
+// a map's result type), u16 where main had none. Element parameters take the
+// element type. Z80 is the tier that truncated.
+func TestIterUntypedFoldAccumulator(t *testing.T) {
+	src := `
+global a: [u8; 4]
+global b: [u8; 4]
+fun init() {
+    a[0] = 200
+    a[1] = 100
+    a[2] = 3
+    a[3] = 4
+    b[0] = 1
+    b[1] = 1
+    b[2] = 1
+    b[3] = 1
+}
+fun arr_typed() -> u16 { init()
+    let base: u16 = 1000
+    return a.fold(base, |acc, x| acc + u16(x)) }
+fun zip_typed() -> u16 { init()
+    let base: u16 = 1000
+    return a.zip(b).fold(base, |acc, x, y| acc + u16(x) + u16(y)) }
+fun skip_typed() -> u16 { init()
+    let base: u16 = 1000
+    return a.skip(0).fold(base, |acc, x| acc + u16(x)) }
+fun ptr_typed() -> u16 { init()
+    let p: ^u8 = &a[0]
+    let base: u16 = 1000
+    return p.fold(base, |acc, x: u8| acc + u16(x), 4) }
+fun ptr_literal() -> u16 { init()
+    let p: ^u8 = &a[0]
+    return p.fold(0, |acc, x: u8| acc + u16(x), 4) }
+fun arr_literal() -> u16 { init()
+    return a.fold(0, |acc, x| acc + u16(x)) }
+fun map_literal() -> u8 { init()
+    return a.map(|x: u8| x + 1).fold(0, |acc, x| acc + x, 4) }
+fun expr_init() -> u16 { init()
+    return a.fold(u16(a[2]) * 100, |acc, x| acc + u16(x), 4) }
+assert arr_typed() == 1307
+assert zip_typed() == 1311
+assert skip_typed() == 1307
+assert ptr_typed() == 1307
+assert ptr_literal() == 307
+assert arr_literal() == 307
+assert map_literal() == 55
+assert expr_init() == 607
+`
+	if err := g0RunAsserts(t, src); err != nil {
+		t.Fatal(err)
+	}
+}
+
+// F3: the new names are chain methods only in method syntax. A plain call to
+// an assembly label named sum/count/take stays a call (main's behaviour).
+func TestIterPlainCallsToChainNames(t *testing.T) {
+	src := `
+global buf: [u8; 4]
+fun helpers() -> void {
+    asm {
+        RET
+    sum:
+        LD HL, 1234
+        RET
+    count:
+        LD HL, 77
+        RET
+    take:
+        LD HL, 5
+        RET
+    }
+}
+global res: u16 = 0
+global h: u16 = 0
+fun run() {
+    buf[0] = 1
+    buf[1] = 2
+    let r: u16 = sum(buf, 4)
+    let c: u16 = count(5)
+    let k: u16 = take(7, 9)
+    res = r
+    h = c + k
+}
+`
+	m, err := nanz.Parse(src, "plain_names")
+	if err != nil {
+		t.Fatal(err)
+	}
+	steps, err := pipeline.CompileHIRSteps(m, pipeline.DefaultOptions())
+	if err != nil {
+		t.Fatalf("plain calls to labels named like chain methods must compile: %v", err)
+	}
+	for _, name := range []string{"sum", "count", "take"} {
+		if !strings.Contains(steps.Assembly, "CALL "+name) {
+			t.Errorf("want CALL %s in the assembly (a plain call, not a fused loop)", name)
+		}
+	}
+	got := iterRunZ80Word(t, steps.Assembly, "run", "res")
+	if got != 1234 {
+		t.Fatalf("Z80 sum(buf, 4) = %d, want 1234 from the assembly label", got)
+	}
+}
+
+// F3, other frontends: a C program with functions named like chain methods.
+func TestIterChainNamesInC(t *testing.T) {
+	src := `
+unsigned short sum(unsigned char *p, unsigned char n) { unsigned short s = 0; while (n) { s += *p++; n--; } return s; }
+unsigned char count(unsigned char x) { return x + 1; }
+unsigned char take(unsigned char a, unsigned char b) { return a * b; }
+unsigned char skip(unsigned char a) { return a - 1; }
+unsigned char zip(unsigned char a, unsigned char b) { return a ^ b; }
+unsigned char map(unsigned char a, unsigned char b) { return a + b; }
+unsigned char filter(unsigned char a) { return a > 3; }
+unsigned short fold(unsigned short a, unsigned char b, unsigned char c, unsigned char d) { return a + b + c + d; }
+unsigned char buf[4] = {1, 2, 3, 4};
+unsigned short f(void) { return sum(buf, 4) + count(5) + take(2, 3) + skip(9) + zip(6, 3) + map(1, 2) + filter(7) + fold(100, 1, 2, 3); }
+// assert f() == 145 via mir2
+// assert f() == 145 via z80
+`
+	m, err := c89.CompileWithOpts(src, "names.c", c89.CompileOpts{NoLibc: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	raw := hir.LowerModule(m)
+	if err := pipeline.RunAssertsMIR2(m, raw); err != nil {
+		t.Fatalf("raw MIR2 VM: %v", err)
+	}
+	m2, _ := c89.CompileWithOpts(src, "names.c", c89.CompileOpts{NoLibc: true})
+	steps, err := pipeline.CompileHIRSteps(m2, pipeline.DefaultOptions())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := pipeline.RunAssertsMIR2(m2, steps.MIR2Module); err != nil {
+		t.Fatalf("optimised MIR2 VM: %v", err)
+	}
+	if err := pipeline.RunAssertsZ80(m2, steps.MIR2Module, steps.Allocation, steps.Assembly); err != nil {
+		t.Fatalf("z80: %v", err)
+	}
+}
+
+// F4: the nested-capture rule applies only to an inlined outer callback; an
+// outer callback with an early return is called and keeps its parameter.
+// F9: a new chain and an original fold of different widths in one inlined
+// callback body each keep their own accumulator type.
+func TestIterNestedCallbacks(t *testing.T) {
+	src := `
+global a: [u8; 4] = [10, 20, 30, 40]
+global b: [u8; 4] = [1, 25, 35, 2]
+global c3: [u8; 3]
+global h: u16 = 0
+global r: u16 = 0
+fun called_outer() -> u16 {
+    c3[0] = 1
+    c3[1] = 2
+    c3[2] = 3
+    h = 0
+    c3.forEach(|x: u8| {
+        if x == 3 { return }
+        c3.filter(|y: u8| y > x).forEach(|y: u8| { h = h + u16(y) }, 3)
+    }, 3)
+    return h }
+fun mixed1() -> u16 {
+    r = 0
+    a.forEach(|x: u8| {
+        let v: u8 = x
+        let c: u16 = b.filter(|y: u8| y > v).count(4)
+        let s: u8 = a.fold(u8(0), |acc: u8, y: u8| acc + y, 4)
+        r = r + c * 1000 + u16(s)
+    }, 4)
+    return r }
+fun mixed2() -> u16 {
+    r = 0
+    a.forEach(|x: u8| {
+        let v: u8 = x
+        let s: u8 = a.fold(u8(200), |acc: u8, y: u8| acc + y, 4)
+        let c: u16 = b.filter(|y: u8| y > v).sum(4)
+        r = r + c * 100 + u16(s)
+    }, 4)
+    return r }
+assert called_outer() == 8
+assert mixed1() == 5400
+assert mixed2() == 15676
+`
+	if err := g0RunAsserts(t, src); err != nil {
+		t.Fatal(err)
+	}
+}
+
+// F5: mapInPlace gets the element-type hint like the other methods.
+func TestIterMapInPlaceHint(t *testing.T) {
+	src := `
+global gi: [i8; 2]
+global gu: [u16; 3]
+fun neg() -> i8 {
+    gi[0] = -4
+    gi[1] = 6
+    gi.mapInPlace(|x| x / 2)
+    return gi[0] }
+fun wide_explicit() -> u16 {
+    gu[0] = 1000
+    gu[1] = 2000
+    gu[2] = 3000
+    gu.mapInPlace(|x| x + 5, 3)
+    return gu[0] + gu[1] + gu[2] }
+fun wide_implicit() -> u16 {
+    gu[0] = 1000
+    gu[1] = 2000
+    gu[2] = 3000
+    gu.mapInPlace(|x| x + 5)
+    return gu[0] + gu[1] + gu[2] }
+assert neg() == -2
+assert wide_explicit() == 6015
+assert wide_implicit() == 6015
+`
+	if err := g0RunAsserts(t, src); err != nil {
+		t.Fatal(err)
+	}
+}
+
+// F2, F6, F7, F8: shapes that must be compile errors, never a panic or wrong
+// code; and the struct/array shapes that worked on origin/main keep working.
+func TestIterRound2Diagnostics(t *testing.T) {
+	head := `
+struct P { a: u8, b: u8 }
+global ps: [P; 3]
+global mm: [[u8; 2]; 3]
+global a: [u8; 6]
+global h: u16 = 0
+fun f() -> u16 {
+`
+	cases := []struct{ body, want string }{
+		{"a.filter(|x: i8| x > 2).mapInPlace(|x: u8| x * 10)\n return 0", ".mapInPlace stores back"},
+		{"a.skip(1).map(|x: u8| u16(x)).mapInPlace(|x: u16| x, 6)\n return 0", ".mapInPlace stores back"},
+		{"return ps.map(|x: u16| x).sum()", "the source's elements are P"},
+		{"return mm.filter(|x: u16| x > 0).count()", "the source's elements are [2]u8"},
+		{"return a.zip(ps).map(|x: u8, y: u16| y).sum(3)", "other's elements are P"},
+		{"ps.forEach(|p: P| { h = h + u16(p.a) }, 3)\n return 0", "struct elements (P)"},
+		{"let q: ^P = &ps[0]\n q.forEach(|p| { h = h + u16(p.a) }, 3)\n return 0", "struct elements (P)"},
+		{"ps.forEach(|p: ^P| { h = h + u16(p.a) }, 3)\n return 0", "the source's elements are P"},
+		{"ps.mapInPlace(|p: P| p, 3)\n return 0", "struct elements (P)"},
+		{"let v: u8 = 7\n return a.zip(v).count()", "other must be an array or a pointer"},
+		{"let v: u8 = 7\n return v.sum(3)", "the source must be an array or a pointer"},
+		{"return true.sum(3)", "the source must be an array or a pointer"},
+	}
+	for _, tc := range cases {
+		t.Run(strings.SplitN(tc.body, "\n", 2)[0], func(t *testing.T) {
+			m, err := nanz.Parse(head+" "+tc.body+"\n}\n", "round2")
+			if err == nil {
+				_, err = pipeline.CompileHIRSteps(m, pipeline.DefaultOptions())
+			}
+			if err == nil || !strings.Contains(err.Error(), tc.want) {
+				t.Fatalf("got %v; want an error containing %q", err, tc.want)
+			}
+		})
+	}
+	keep := `
+struct P { a: u8, b: u8 }
+global ps: [P; 3]
+global mm: [[u8; 2]; 3]
+global h: u16 = 0
+fun init() {
+    ps[0].a = 1
+    ps[0].b = 2
+    ps[1].a = 3
+    ps[1].b = 4
+    ps[2].a = 5
+    ps[2].b = 6
+    mm[0][0] = 1
+    mm[0][1] = 2
+    mm[1][0] = 3
+    mm[1][1] = 4
+    mm[2][0] = 5
+    mm[2][1] = 6
+    h = 0
+}
+fun bytes() -> u16 { init()
+    ps.forEach(|x: u8| { h = h + u16(x) }, 6)
+    return h }
+fun words() -> u16 { init()
+    ps.forEach(|x: u16| { h = h + x }, 3)
+    return h }
+fun rows() -> u16 { init()
+    mm.forEach(|r: [u8; 2]| { h = h + 1 }, 3)
+    return h }
+fun nested_bytes() -> u16 { init()
+    mm.forEach(|x: u8| { h = h + u16(x) }, 6)
+    return h }
+assert bytes() == 21
+assert words() == 3081
+assert rows() == 3
+assert nested_bytes() == 21
+`
+	if err := g0RunAsserts(t, keep); err != nil {
+		t.Fatal(err)
+	}
+}
+
+// Report only: range(0..300) keeps the u8 DJNZ counter (audit G0-9 class);
+// the new terminals inherit it.
+func TestIterRangeCountWide(t *testing.T) {
+	src := `
+fun c() -> u16 { return range(0..300).count() }
+assert c() == 300
+`
+	if err := g0RunAsserts(t, src); err != nil {
+		t.Skipf("G0-9: range(0..300) runs a u8 counter (44 iterations); count() inherits it: %v", err)
+	}
+}
+
+// iterRunZ80Word assembles asm, calls fn on the emulator and returns the u16
+// global named sym afterwards.
+func iterRunZ80Word(t *testing.T, asm, fn, sym string) int {
+	t.Helper()
+	boot := fmt.Sprintf(`
+    ORG 0x8000
+    LD SP, 0xFF00
+    CALL %s
+    LD HL, (%s)
+    LD (0xFE00), HL
+    DI
+    HALT
+`, fn, sym)
+	as := z80asm.NewAssembler()
+	res, err := as.AssembleString(boot + "\n" + asm)
+	if err != nil {
+		t.Fatalf("assemble: %v", err)
+	}
+	if len(res.Errors) > 0 {
+		t.Fatalf("assemble errors: %v", res.Errors)
+	}
+	z80 := emulator.NewRemogattoZ80()
+	if err := z80.LoadMemory(0x8000, res.Binary); err != nil {
+		t.Fatalf("load: %v", err)
+	}
+	z80.SetPC(0x8000)
+	if err := z80.Run(); err != nil {
+		t.Fatalf("run: %v", err)
+	}
+	return int(z80.GetMemory(0xFE00)) | int(z80.GetMemory(0xFE01))<<8
 }

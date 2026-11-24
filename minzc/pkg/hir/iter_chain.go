@@ -49,6 +49,17 @@ func isNewIterChainMethod(name string) bool {
 	return false
 }
 
+// isChainCall reports whether call is an iterator chain method here: a chain
+// method name that is no module function, and for the methods added with
+// this file (skip, take, zip, count, sum) written with method syntax — a
+// plain sum(buf, 4) may call an assembly label of that name.
+func (l *lowerer) isChainCall(call *CallExpr) bool {
+	if call == nil || l.hirFuncNames[call.Fn] || !isIterChainMethod(call.Fn) {
+		return false
+	}
+	return call.Method || !isNewIterChainMethod(call.Fn)
+}
+
 func isIterTerminal(name string) bool {
 	switch name {
 	case "forEach", "mapInPlace", "fold", "reduce", "count", "sum":
@@ -101,12 +112,13 @@ func (l *lowerer) usesNewChainMethods(call *CallExpr) bool {
 		return false
 	}
 	if call.Fn == "count" || call.Fn == "sum" {
-		return true
+		return call.Method
 	}
 	// A memory terminal without its count over a sized array takes the
-	// declared array length (forEach/mapInPlace(cb), fold/reduce(init, cb)).
-	short := len(call.Args) == 2 && (call.Fn == "forEach" || call.Fn == "mapInPlace") ||
-		len(call.Args) == 3 && (call.Fn == "fold" || call.Fn == "reduce")
+	// declared array length (forEach/mapInPlace(cb), fold/reduce(init, cb)) —
+	// method syntax only; the functional spellings keep their meaning.
+	short := call.Method && (len(call.Args) == 2 && (call.Fn == "forEach" || call.Fn == "mapInPlace") ||
+		len(call.Args) == 3 && (call.Fn == "fold" || call.Fn == "reduce"))
 	e := call.Args[0]
 	for {
 		inner, ok := e.(*CallExpr)
@@ -115,7 +127,10 @@ func (l *lowerer) usesNewChainMethods(call *CallExpr) bool {
 		}
 		switch inner.Fn {
 		case "skip", "take", "zip":
-			return true
+			if inner.Method {
+				return true
+			}
+			return short && sizedArrayLen(e) > 0
 		case "map", "filter":
 			e = inner.Args[0]
 		default:
@@ -157,6 +172,16 @@ func chainLitTy(k Expr) mir2.Ty {
 		return ty
 	}
 	return nil
+}
+
+// isMemorySource: an array or pointer value (the legacy untyped ptr
+// included). Scalars and bools are not sources.
+func isMemorySource(e Expr) bool {
+	ty := mir2.BaseOf(e.ExprTy())
+	if _, isArray := ty.(*mir2.ArrayTy); isArray {
+		return true
+	}
+	return mir2.IsPointer(ty)
 }
 
 // loadableElem reports whether ty is an element type the fused loop can load
@@ -242,7 +267,7 @@ func (l *lowerer) recognizeChain(call *CallExpr) (*chainSpec, error) {
 	src := args[0]
 	for {
 		inner, ok := src.(*CallExpr)
-		if !ok || l.hirFuncNames[inner.Fn] || !isIterChainMethod(inner.Fn) {
+		if !ok || !l.isChainCall(inner) {
 			break
 		}
 		if c.zip != nil {
@@ -275,7 +300,7 @@ func (l *lowerer) recognizeChain(call *CallExpr) (*chainSpec, error) {
 			if _, isRange := c.zip.(*RangeSourceExpr); isRange {
 				return nil, fmt.Errorf(".zip(other): other must be a memory source (array or pointer), not a range")
 			}
-			if oc, ok := c.zip.(*CallExpr); ok && !l.hirFuncNames[oc.Fn] && isIterChainMethod(oc.Fn) {
+			if oc, ok := c.zip.(*CallExpr); ok && l.isChainCall(oc) {
 				return nil, fmt.Errorf(".zip(other): other must be a plain memory source, not an iterator chain")
 			}
 		default:
@@ -301,6 +326,12 @@ func (l *lowerer) recognizeChain(call *CallExpr) (*chainSpec, error) {
 		c.rangeLo, c.rangeHi, c.rangeRev = rs.Lo, rs.Hi, rs.Rev
 	} else {
 		c.src = src
+		if !isMemorySource(src) {
+			return nil, fmt.Errorf(".%s: the source must be an array or a pointer, got %s", c.term, src.ExprTy())
+		}
+		if c.zip != nil && !isMemorySource(c.zip) {
+			return nil, fmt.Errorf(".zip(other): other must be an array or a pointer, got %s", c.zip.ExprTy())
+		}
 		if hasLen {
 			c.n = lenArg
 		} else if n := sizedArrayLen(src); n > 0 {
@@ -414,6 +445,14 @@ func (l *lowerer) typeChain(c *chainSpec) error {
 	if !loadableElem(c.elemTy) {
 		return fmt.Errorf("element type %s is not supported in a fused chain (u8, i8, bool, u16, i16)", c.elemTy)
 	}
+	if d := typedElemTy(c.src); d != nil && !loadableElem(d) {
+		return fmt.Errorf("the source's elements are %s; a fused chain walks u8, i8, bool, u16 or i16 elements", d)
+	}
+	if c.zip != nil {
+		if d := typedElemTy(c.zip); d != nil && !loadableElem(d) {
+			return fmt.Errorf(".zip: other's elements are %s; a fused chain walks u8, i8, bool, u16 or i16 elements", d)
+		}
+	}
 	if d := typedElemTy(c.src); d != nil && mir2.ByteWidth(d) != mir2.ByteWidth(c.elemTy) {
 		return fmt.Errorf("the source's elements are %s but the first callback takes %s", d, c.elemTy)
 	}
@@ -489,6 +528,14 @@ func (l *lowerer) typeChain(c *chainSpec) error {
 		}
 		if !mir2.IsInt(mir2.BaseOf(cur)) || cur.Width() > 16 {
 			return fmt.Errorf(".sum needs u8 or u16 elements, got %s", cur)
+		}
+	}
+	if c.term == "mapInPlace" {
+		// It stores the callback's result where the element was loaded: every
+		// stage and the callback must keep the loaded element type.
+		f := l.hirFuncs[c.cb]
+		if !l.keepsElemTy(c) || f != nil && f.RetTy != c.elemTy {
+			return fmt.Errorf(".mapInPlace stores back the element type it loads (%s); every map, filter and the mapInPlace callback must take and return %s", c.elemTy, c.elemTy)
 		}
 	}
 	return nil
@@ -1003,16 +1050,6 @@ func (l *lowerer) chainOffsetPtr(base, start Expr, elemTy mir2.Ty) Expr {
 	return &VarRefExpr{Name: name, Ty: ptrTy}
 }
 
-// foldChainAccTy returns the accumulator type of the value chain that
-// tryLowerFold just lowered from expr, in the shape the original callers use.
-func (l *lowerer) foldChainAccTy(expr Expr) iterChain {
-	if l.lastChainAccTy != nil {
-		return iterChain{foldAccTy: l.lastChainAccTy}
-	}
-	chain, _ := l.recognizeIterChain(expr)
-	return chain
-}
-
 // countVarRefs counts references to name in stmts, nested blocks included.
 func countVarRefs(stmts []Stmt, name string) int {
 	n := 0
@@ -1045,11 +1082,10 @@ func (l *lowerer) lowerChainAssign(target, val Expr) (terminated, ok bool) {
 			}
 		}
 	}
-	reg, lowered := l.tryLowerFold(call)
+	reg, accTy, lowered := l.tryLowerFold(call)
 	if !lowered {
 		return false, false
 	}
-	accTy := l.foldChainAccTy(call).foldAccTy
 	tmp := l.fresh("__chain_val")
 	l.bind(tmp, reg, accTy)
 	return l.lowerStmt(&AssignStmt{Target: target, Val: &VarRefExpr{Name: tmp, Ty: accTy}}), true
@@ -1061,11 +1097,10 @@ func (l *lowerer) lowerChainStore(st *StoreStmt) (terminated, ok bool) {
 	if !isCall || !isValueIterTerminal(call.Fn) {
 		return false, false
 	}
-	reg, lowered := l.tryLowerFold(call)
+	reg, accTy, lowered := l.tryLowerFold(call)
 	if !lowered {
 		return false, false
 	}
-	accTy := l.foldChainAccTy(call).foldAccTy
 	tmp := l.fresh("__chain_val")
 	l.bind(tmp, reg, accTy)
 	cp := *st

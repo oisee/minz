@@ -1,0 +1,3 @@
+global a: [u8; 6] = [200, 100, 3, 4, 7, 9]
+fun t() -> u16 { return a.fold(u16(a[2]) * 100, |acc, x: u8| acc + u16(x), 6) }
+assert t() == 623

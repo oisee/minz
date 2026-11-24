@@ -1,0 +1,6 @@
+global a: [u8; 6] = [200, 100, 3, 4, 7, 9]
+global last: u8 = 0
+fun note(x: u8) { asm { LD (last), A } }
+fun t() -> u8 { a.forEach(note, 6)
+  return last }
+assert t() == 9 via z80

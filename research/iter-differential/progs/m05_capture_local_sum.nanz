@@ -1,0 +1,5 @@
+global a: [u8; 6] = [200, 100, 3, 4, 7, 9]
+fun t() -> u16 { var tot: u16 = 0
+  a.forEach(|x: u8| { tot = tot + u16(x) }, 6)
+  return tot }
+assert t() == 323

@@ -1,0 +1,13 @@
+struct P { a: u8, b: u8 }
+global ps: [P; 3]
+global h: u16 = 0
+fun t() -> u16 { ps[0].a = 1
+  ps[0].b = 2
+  ps[1].a = 3
+  ps[1].b = 4
+  ps[2].a = 5
+  ps[2].b = 6
+  h = 0
+  ps.forEach(|x: u8| { h = h + u16(x) }, 6)
+  return h }
+assert t() == 21

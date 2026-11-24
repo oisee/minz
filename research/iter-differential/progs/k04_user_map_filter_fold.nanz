@@ -1,0 +1,5 @@
+fun map(x: u8, y: u8) -> u8 { return x + y }
+fun filter(x: u8) -> u8 { return x * 2 }
+fun fold(a: u8, b: u8, c: u8) -> u8 { return a + b + c }
+fun t() -> u16 { return u16(map(1, 2)) + u16(filter(4)) + u16(fold(1, 2, 3)) }
+assert t() == 17

@@ -1,0 +1,7 @@
+global a: [u8; 6] = [200, 100, 3, 4, 7, 9]
+global h: u16 = 0
+fun step(x: u8) { h = h * 31 + u16(x) }
+fun t() -> u16 { h = 0
+  forEach(a, step, 6)
+  return h }
+assert t() == 55199
