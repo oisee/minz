@@ -13,6 +13,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/minz/minzc/pkg/hir"
+	"github.com/minz/minzc/pkg/mir2"
 	"github.com/minz/minzc/pkg/nanz"
 	"github.com/minz/minzc/pkg/pipeline"
 )
@@ -603,6 +605,10 @@ fun f(x: u8) -> bool { return x > 1 }
 fun step(x: u8) { }
 fun add16(a: u16, x: u8) -> u16 { return a + u16(x) }
 global ptr: ^u8
+global w16: [u16; 8]
+struct P { x: u8, y: u8 }
+global ps: [P; 3]
+global mm: [[u8; 3]; 2]
 fun h(n: u8) -> u16 {
 `
 	cases := []struct{ body, want string }{
@@ -628,6 +634,18 @@ fun h(n: u8) -> u16 {
 		{"return ptr.fold(u16(0), add16)", `needs the element count`},
 		{"src.zip(oth).mapInPlace(|x: u8| x, n)\n return 0", `.mapInPlace does not support .zip`},
 		{"src.filter(f).skip(1).mapInPlace(|x: u8| x, n)\n return 0", `.mapInPlace supports .skip only directly on the source`},
+		{"let k: i8 = 2\n return src.skip(k).count(n)", `k must be a u8 or u16 value`},
+		{"let k: i8 = 2\n return src.filter(f).take(k).count(n)", `k must be a u8 or u16 value`},
+		{"return src.skip(true).count(n)", `k must be a u8 or u16 value`},
+		{"let x: i8 = 0\n return src.sum(x)", `element count must be a u8 or u16 value`},
+		{"return src.sum(true)", `element count must be a u8 or u16 value`},
+		{"let x: i16 = 4\n return src.count(x)", `element count must be a u8 or u16`},
+		{"return w16.zip(src).map(|x: u8, y: u8| y).sum()", `the source's elements are u16 but the first callback takes u8`},
+		{"return src.zip(w16).map(|x: u8, y: u8| y).sum()", `other's elements are u16`},
+		{"return w16.map(|x: u8| x).sum()", `the source's elements are u16`},
+		{"return ps.count()", `element type P is not supported`},
+		{"return mm.count()", `element type [3]u8 is not supported`},
+		{"return mm.count(2)", `element type [3]u8 is not supported`},
 	}
 	for _, tc := range cases {
 		t.Run(strings.SplitN(tc.body, "\n", 2)[0], func(t *testing.T) {
@@ -639,7 +657,7 @@ fun h(n: u8) -> u16 {
 			if err == nil {
 				t.Fatalf("compiled; want error containing %q", tc.want)
 			}
-			if !strings.Contains(err.Error(), tc.want) || !strings.Contains(err.Error(), "line 9") {
+			if !strings.Contains(err.Error(), tc.want) || !strings.Contains(err.Error(), fmt.Sprintf("line %d", iterDiagLine(tc.body))) {
 				t.Fatalf("error %q; want it to contain %q and the source line", err, tc.want)
 			}
 		})
@@ -713,4 +731,330 @@ fun m_all() -> u16 { setup()
 	if err := g0RunAsserts(t, src+asserts.String()); err != nil {
 		t.Fatal(err)
 	}
+}
+
+// Review round 1, item 1: head skip/take before a type-changing map must not
+// hand the chain to the original single-variable builders.
+func TestIterHeadStageTypeChangingMap(t *testing.T) {
+	body := `
+fun f_take(n: u16, k: u16) -> u16 { init()
+    return src.take(k).map(|x: u8| u16(x) * 100).fold(u16(0), |s: u16, x: u16| s * 3 + x, n) }
+fun f_skip(n: u16, k: u16) -> u16 { init()
+    return src.skip(k).map(|x: u8| u16(x) * 3 + 191).fold(u16(0), |s: u16, x: u16| s * 3 + x, n) }
+fun f_skipfilt(n: u16, k: u16) -> u16 { init()
+    return src.skip(k).filter(odd).map(|x: u8| u16(x) * 3 + 191).fold(u16(0), |s: u16, x: u16| s * 3 + x, n) }
+fun e_skip(n: u16, k: u16) -> u16 { init()
+    src.skip(k).map(|x: u8| u16(x) * 100).forEach(|x: u16| { h = h * 3 + x }, n)
+    return h }
+fun e_take8(n: u8, k: u8) -> u16 { init()
+    src.take(k).map(|x: u8| u16(x) * 100).forEach(|x: u16| { h = h * 3 + x }, n)
+    return h }
+`
+	xs := iterSrc()
+	mix3 := func(ys []int) int {
+		var v uint16
+		for _, y := range ys {
+			v = v*3 + uint16(y)
+		}
+		return int(v)
+	}
+	m100 := iterOp{kind: "map", f: func(x int) int { return (x * 100) & 0xFFFF }}
+	m3 := iterOp{kind: "map", f: func(x int) int { return (x*3 + 191) & 0xFFFF }}
+	var a iterAsserts
+	for _, n := range []int{0, 1, 4, 255, 256} {
+		for _, k := range []int{0, 1, 3, 256} {
+			args := fmt.Sprintf("(%d, %d)", n, k)
+			take, skip := iterOp{kind: "take", k: k}, iterOp{kind: "skip", k: k}
+			a.add("f_take"+args, mix3(iterRef(xs[:n], []iterOp{take, m100})))
+			a.add("f_skip"+args, mix3(iterRef(xs[:n], []iterOp{skip, m3})))
+			a.add("f_skipfilt"+args, mix3(iterRef(xs[:n], []iterOp{skip, {kind: "filter", p: iterOdd}, m3})))
+			a.add("e_skip"+args, mix3(iterRef(xs[:n], []iterOp{skip, m100})))
+			if n <= 255 && k <= 255 {
+				a.add("e_take8"+args, mix3(iterRef(xs[:n], []iterOp{take, m100})))
+			}
+		}
+	}
+	runIterModule(t, body, &a)
+}
+
+// Item 2: untyped lambda parameters take the source's element type (array
+// element, pointer pointee; after zip, other's element type), on array and
+// pointer sources, new and original methods.
+func TestIterUntypedLambdas(t *testing.T) {
+	src := `
+global a: [u8; 4] = [1, 2, 3, 4]
+global w: [u16; 4] = [1000, 2000, 3000, 4000]
+global h: u16 = 0
+fun arr_count() -> u16 { return a.filter(|x| x > 1).count() }
+fun arr_take() -> u16 { return a.filter(|x| x > 1).take(9).fold(u16(0), |s: u16, x: u8| s * 3 + u16(x), 4) }
+fun ptr_count() -> u16 {
+    let p: ^u8 = &a[0]
+    return p.filter(|x| x > 1).count(4) }
+fun ptr16_sum() -> u16 {
+    let p: ^u16 = &w[0]
+    return p.filter(|x| x > 1500).sum(4) }
+fun zip_map() -> u16 { return a.zip(w).map(|x, y| y + u16(x)).sum() }
+fun zip_filter() -> u16 { return a.zip(w).filter(|x, y| y > 2500).count() }
+fun zip_fold() -> u16 { return a.zip(w).fold(u16(0), |s, x, y| s + y + u16(x)) }
+fun zip_each() -> u16 {
+    h = 0
+    a.zip(w).forEach(|x, y| { h = h + y / 1000 * u16(x) })
+    return h }
+fun old_fold() -> u16 { return a.filter(|x| x > 1).fold(u16(0), |s: u16, x: u8| s + u16(x), 4) }
+assert arr_count() == 3
+assert arr_take() == 31
+assert ptr_count() == 3
+assert ptr16_sum() == 9000
+assert zip_map() == 10010
+assert zip_filter() == 2
+assert zip_fold() == 10010
+assert zip_each() == 30
+assert old_fold() == 9
+`
+	if err := g0RunAsserts(t, src); err != nil {
+		t.Fatal(err)
+	}
+}
+
+// Item 3: with an implicit count, zip walks the shorter of the two declared
+// lengths (partner shorter or wider than the source); an explicit count is
+// the caller's.
+func TestIterZipImplicitLength(t *testing.T) {
+	src := `
+global a: [u8; 4] = [1, 2, 3, 4]
+global w: [u16; 3] = [1000, 2000, 3000]
+global after: u16 = 7777
+global b: [u8; 6] = [10, 20, 30, 40, 50, 60]
+fun short_wide() -> u16 { return a.zip(w).map(|x: u8, y: u16| y).sum() }
+fun wide_short() -> u16 { return w.zip(a).map(|x: u16, y: u8| x + u16(y)).sum() }
+fun longer() -> u16 { return a.zip(b).map(|x: u8, y: u8| x + y).sum() }
+fun explicit2() -> u16 { return a.zip(w).map(|x: u8, y: u16| y).sum(2) }
+assert short_wide() == 6000
+assert wide_short() == 6006
+assert longer() == 110
+assert explicit2() == 3000
+`
+	if err := g0RunAsserts(t, src); err != nil {
+		t.Fatal(err)
+	}
+}
+
+// Item 4: take stops right after the k-th accepted element; the next source
+// element is never loaded. The explicit count exceeds the 5-byte object and
+// the second match is its last byte, so a further load is out of bounds on
+// the MIR2 VM.
+func TestIterTakeDoesNotReadPastDemand(t *testing.T) {
+	src := `
+global a: [u8; 5] = [0, 9, 0, 0, 7]
+fun f() -> u16 { return a.filter(|x: u8| x > 0).take(2).sum(1000) }
+fun fz() -> u16 { return a.zip(a).filter(|x: u8, y: u8| x > 0).take(2).count(1000) }
+fun fk(k: u8) -> u16 { return a.filter(|x: u8| x > 0).take(k).sum(1000) }
+fun e() -> u16 {
+    var t: u16 = 0
+    a.filter(|x: u8| x > 0).take(2).forEach(|x: u8| { t = t * 10 + u16(x) }, 1000)
+    return t }
+fun z0() -> u16 { return a.filter(|x: u8| x > 0).take(0).count(1000) }
+assert f() == 16
+assert fz() == 2
+assert fk(2) == 16
+assert fk(1) == 9
+assert fk(0) == 0
+assert e() == 97
+assert z0() == 0
+`
+	if err := g0RunAsserts(t, src); err != nil {
+		t.Fatal(err)
+	}
+	// The VM heap places function-name tags after the globals, so a read past
+	// a[4] is not out of bounds there: watch the loads instead, on the raw and
+	// the optimised MIR2.
+	parse := func() *hir.Module {
+		m, err := nanz.Parse(src, "take_demand")
+		if err != nil {
+			t.Fatal(err)
+		}
+		return m
+	}
+	steps, err := pipeline.CompileHIRSteps(parse(), pipeline.DefaultOptions())
+	if err != nil {
+		t.Fatal(err)
+	}
+	for tier, m := range map[string]*mir2.Module{"raw": hir.LowerModule(parse()), "optimised": steps.MIR2Module} {
+		for _, fn := range []string{"f", "fz", "e"} {
+			vm := mir2.NewVM(m)
+			base := vm.GlobalAddr("a")
+			vm.CheckDataAccess = func(inst *mir2.Inst, addr int64) error {
+				if inst.Op == mir2.OpLoad && addr >= base+5 && addr < base+64 {
+					return fmt.Errorf("load of a[%d] after take(2) was satisfied", addr-base)
+				}
+				return nil
+			}
+			if _, err := vm.Call(fn, nil); err != nil {
+				t.Errorf("%s MIR2 %s(): %v", tier, fn, err)
+			}
+		}
+	}
+}
+
+// Item 6: chain arguments are evaluated once, in source order: source,
+// zip's argument, stage arguments, then the terminal's count.
+func TestIterEvaluationOrder(t *testing.T) {
+	src := `
+global a: [u8; 5] = [1, 2, 3, 4, 5]
+global b: [u8; 5] = [10, 20, 30, 40, 50]
+global h: u16 = 0
+global ss: u16 = 0
+fun gs() -> ^u8 { h = h * 10 + 1
+    return &a[0] }
+fun go() -> ^u8 { h = h * 10 + 2
+    return &b[0] }
+fun gk() -> u8 { h = h * 10 + 3
+    return 1 }
+fun gn() -> u8 { h = h * 10 + 4
+    return 4 }
+fun head_skip() -> u16 { h = 0
+    ss = gs().skip(gk()).sum(gn())
+    return h * 100 + ss }
+fun mid_take() -> u16 { h = 0
+    ss = gs().filter(|x: u8| x > 1).take(gk()).sum(gn())
+    return h * 100 + ss }
+fun zip_head_skip() -> u16 { h = 0
+    ss = gs().zip(go()).skip(gk()).map(|x: u8, y: u8| x + y).sum(gn())
+    return h * 10 + ss / 11 }
+fun zip_mid_take() -> u16 { h = 0
+    ss = gs().zip(go()).filter(|x: u8, y: u8| x > 1).take(gk()).map(|x: u8, y: u8| x + y).sum(gn())
+    return h * 10 + ss / 11 }
+assert head_skip() == 13409
+assert mid_take() == 13402
+assert zip_head_skip() == 12349
+assert zip_mid_take() == 12342
+`
+	if err := g0RunAsserts(t, src); err != nil {
+		t.Fatal(err)
+	}
+}
+
+// Item 7 and 9: a value chain stored through a pointer, into an array element
+// or a global — new methods and the original fold (whose global store used to
+// be dropped).
+func TestIterValueChainTargets(t *testing.T) {
+	src := `
+global a: [u8; 5] = [0, 9, 0, 0, 7]
+global out: [u16; 2]
+global r: u16 = 0
+fun add16(s: u16, x: u8) -> u16 { return s + u16(x) }
+fun store_new() -> u16 {
+    let p: ^u16 = &out[1]
+    p^ = a.filter(|x: u8| x > 0).count(5)
+    return out[1] }
+fun store_old() -> u16 {
+    let p: ^u16 = &out[0]
+    p^ = a.fold(u16(0), add16, 5)
+    return out[0] }
+fun index_old() -> u16 {
+    out[1] = a.fold(u16(0), add16, 5)
+    return out[1] }
+fun set_global() { r = a.fold(u16(0), add16, 5) }
+fun global_old() -> u16 {
+    r = 1
+    set_global()
+    return r }
+fun set_global_new() { r = a.skip(1).sum(5) }
+fun global_new() -> u16 {
+    r = 1
+    set_global_new()
+    return r }
+fun local_old() -> u16 {
+    var v: u16 = 3
+    v = a.fold(u16(0), add16, 5)
+    return v }
+assert store_new() == 2
+assert store_old() == 16
+assert index_old() == 16
+assert global_old() == 16
+assert global_new() == 16
+assert local_old() == 16
+`
+	if err := g0RunAsserts(t, src); err != nil {
+		t.Fatal(err)
+	}
+}
+
+// Review item (report only): a u8 count with a non-head take and a body large
+// enough that the DJNZ back edge may leave its range (backend, pre-existing).
+func TestIterByteCountLargeBody(t *testing.T) {
+	body := `
+fun big(n: u8, k: u8) -> u16 { init()
+    src.filter(odd).take(k).forEach(|x: u8| {
+        h = h * 31 + u16(x)
+        h = h xor (u16(x) * 7)
+        h = h + u16(x) * 3 + 1
+        h = h * 5 + u16(x xor 0x55)
+        h = h - u16(x) * 9
+        h = h xor (h / 3)
+    }, n)
+    return h }
+fun zbig(n: u8) -> u16 { init()
+    src.zip(oth).filter(|x: u8, y: u8| (x + y) % 3 != 0).take(7).forEach(|x: u8, y: u8| { h = h * 7 + u16(x) * 3 + u16(y) }, n)
+    return h }
+fun bigs(n: u8) -> u16 { init()
+    src.skip(2).forEach(|x: u8| {
+        h = h * 31 + u16(x)
+        h = h xor (u16(x) * 7)
+        h = h + u16(x) * 3 + 1
+        h = h * 5 + u16(x xor 0x55)
+        h = h - u16(x) * 9
+        h = h xor (h / 3)
+    }, n)
+    return h }
+`
+	step := func(h uint16, x int) uint16 {
+		h = h*31 + uint16(x)
+		h ^= uint16(x) * 7
+		h = h + uint16(x)*3 + 1
+		h = h*5 + uint16(x^0x55)
+		h -= uint16(x) * 9
+		h ^= h / 3
+		return h
+	}
+	run := func(ys []int) int {
+		var h uint16
+		for _, y := range ys {
+			h = step(h, y)
+		}
+		return int(h)
+	}
+	xs := iterSrc()
+	var a iterAsserts
+	for _, n := range []int{0, 1, 17, 255} {
+		for _, k := range []int{0, 2, 255} {
+			a.add(fmt.Sprintf("big(%d, %d)", n, k), run(iterRef(xs[:n], []iterOp{{kind: "filter", p: iterOdd}, {kind: "take", k: k}})))
+		}
+		a.add(fmt.Sprintf("bigs(%d)", n), run(iterRef(xs[:n], []iterOp{{kind: "skip", k: 2}})))
+		ys := iterOth()
+		var zh uint16
+		taken := 0
+		for i := 0; i < n && taken < 7; i++ {
+			if (xs[i]+ys[i])&0xFF%3 != 0 {
+				zh = zh*7 + uint16(xs[i])*3 + uint16(ys[i])
+				taken++
+			}
+		}
+		a.add(fmt.Sprintf("zbig(%d)", n), int(zh))
+	}
+	if err := g0RunAsserts(t, iterPrelude+body+"\n"+a.b.String()); err != nil {
+		if strings.Contains(err.Error(), "DJNZ") {
+			t.Skipf("pre-existing backend bug: DJNZ target out of range for a large u8-count loop body: %v", err)
+		}
+		t.Fatal(err)
+	}
+}
+
+// iterDiagLine is the source line of the chain in a TestIterChainDiagnostics
+// body: the body starts on line 13; a trailing "return 0" follows the chain.
+func iterDiagLine(body string) int {
+	if strings.HasSuffix(body, "return 0") {
+		return 13
+	}
+	return 13 + strings.Count(body, "\n")
 }

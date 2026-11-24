@@ -1178,6 +1178,17 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 			_, aggregate := mir2.BaseOf(st.Ty).(*mir2.StructTy)
 			_, array := mir2.BaseOf(st.Ty).(*mir2.ArrayTy)
 			if !aggregate && !array {
+				// A value chain initialiser is lowered first, into a temporary.
+				if call, isCall := st.Init.(*CallExpr); isCall && isValueIterTerminal(call.Fn) {
+					if reg, ok := l.tryLowerFold(call); ok {
+						accTy := l.foldChainAccTy(call).foldAccTy
+						tmp := l.fresh("__chain_val")
+						l.bind(tmp, reg, accTy)
+						cp := *st
+						cp.Init = &VarRefExpr{Name: tmp, Ty: accTy}
+						return l.lowerStmt(&cp)
+					}
+				}
 				// Own addressable storage even when declared inside a loop.
 				// The environment carries its address through CFG edges.
 				cell := &mir2.StructTy{Fields: []mir2.StructField{{Name: "value", Ty: st.Ty}}}
@@ -1337,12 +1348,11 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 			}
 		}
 		// A value chain using skip/take/zip/count/sum: lower it, then assign
-		// its result through the ordinary path (globals, memory targets).
-		if call, ok := st.Val.(*CallExpr); ok && isValueIterTerminal(call.Fn) && l.usesNewChainMethods(call) {
-			reg, accTy, _ := l.tryLowerChain(call)
-			tmp := l.fresh("__chain_val")
-			l.bind(tmp, reg, accTy)
-			return l.lowerStmt(&AssignStmt{Target: st.Target, Val: &VarRefExpr{Name: tmp, Ty: accTy}})
+		// its result through the ordinary path (globals, memory targets). An
+		// original fold chain takes the same path unless the target is a plain
+		// register local: binding a global's name in env dropped the store.
+		if done, ok := l.lowerChainAssign(st.Target, st.Val); ok {
+			return done
 		}
 		// Check for fold/reduce: x = fold(ptr, init, cb, n)
 		if foldReg, ok := l.tryLowerFold(st.Val); ok {
@@ -1549,6 +1559,9 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 		return false
 
 	case *StoreStmt:
+		if done, ok := l.lowerChainStore(st); ok {
+			return done // p^ = chain: lowered through a temporary
+		}
 		// When the target is an IndexExpr we need the *address* (TyPtr),
 		// not the loaded value.  lowerExpr(IndexExpr) would emit a Load
 		// and return the element value (TyU8/etc), causing PBQP to

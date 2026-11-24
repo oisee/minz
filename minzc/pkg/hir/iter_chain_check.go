@@ -44,6 +44,8 @@ func CheckIterChains(m *Module) error {
 				m.MethodCallLines[bad], bad.Fn, bad.Fn)
 		}
 	}
+	callbacks := map[string]bool{}         // functions inlined as chain callbacks
+	uses := map[*Func][]chainCallbackUse{} // callbacks of the chains inside each function
 	for _, f := range m.Funcs {
 		if f.Body == nil {
 			continue
@@ -60,8 +62,41 @@ func CheckIterChains(m *Module) error {
 		if err := ck.leftovers(f.Body); err != nil {
 			return err
 		}
+		for _, u := range ck.uses {
+			callbacks[u.fn] = true
+		}
+		uses[f] = ck.uses
+	}
+	// A callback inlined into an outer callback's body may not capture that
+	// outer callback's parameter: inlining renames the parameter, and the
+	// inner callback's own body would then name an undefined variable.
+	for _, f := range m.Funcs {
+		if !callbacks[f.Name] {
+			continue
+		}
+		params := map[string]bool{}
+		for _, p := range f.Params {
+			params[p.Name] = true
+		}
+		for _, u := range uses[f] {
+			inner := funcs[u.fn]
+			if inner == nil {
+				continue
+			}
+			for _, c := range inner.Captures {
+				if params[c.Name] {
+					ck := &chainChecker{m: m, fn: f}
+					return ck.errorf(u.stmt, "a callback inside another callback may not use the outer callback's parameter %q; bind it to a local first (let v = %s)", c.Name, c.Name)
+				}
+			}
+		}
 	}
 	return nil
+}
+
+type chainCallbackUse struct {
+	fn   string
+	stmt Stmt
 }
 
 type chainChecker struct {
@@ -69,7 +104,7 @@ type chainChecker struct {
 	fn       *Func
 	l        *lowerer
 	consumed map[*CallExpr]bool
-	last     Stmt
+	uses     []chainCallbackUse
 }
 
 func (ck *chainChecker) errorf(s Stmt, format string, args ...any) error {
@@ -144,20 +179,23 @@ func (ck *chainChecker) block(b *Block) error {
 		switch st := s.(type) {
 		case *ExprStmt:
 			if c, ok := ck.isChainCall(st.Expr); ok && isIterTerminal(c.Fn) {
-				err = ck.root(s, c, false)
+				err = ck.root(s, c)
 			}
 		case *VarDeclStmt:
 			if c, ok := ck.isChainCall(st.Init); ok && isValueIterTerminal(c.Fn) {
-				err = ck.root(s, c, false)
+				err = ck.root(s, c)
 			}
 		case *ReturnStmt:
 			if c, ok := ck.isChainCall(st.Val); ok && isValueIterTerminal(c.Fn) && len(st.Vals) == 0 {
-				err = ck.root(s, c, false)
+				err = ck.root(s, c)
 			}
 		case *AssignStmt:
 			if c, ok := ck.isChainCall(st.Val); ok && isValueIterTerminal(c.Fn) {
-				_, toVar := st.Target.(*VarRefExpr)
-				err = ck.root(s, c, !toVar)
+				err = ck.root(s, c)
+			}
+		case *StoreStmt:
+			if c, ok := ck.isChainCall(st.Val); ok && isValueIterTerminal(c.Fn) {
+				err = ck.root(s, c)
 			}
 		}
 	})
@@ -165,18 +203,29 @@ func (ck *chainChecker) block(b *Block) error {
 }
 
 // root validates one chain in a lowered position and marks its calls consumed.
-func (ck *chainChecker) root(s Stmt, call *CallExpr, memoryTarget bool) error {
+func (ck *chainChecker) root(s Stmt, call *CallExpr) error {
+	use := func(fn string) {
+		if fn != "" {
+			ck.uses = append(ck.uses, chainCallbackUse{fn: fn, stmt: s})
+		}
+	}
 	if ck.l.usesNewChainMethods(call) {
-		if _, err := ck.l.recognizeChain(call); err != nil {
+		c, err := ck.l.recognizeChain(call)
+		if err != nil {
 			return ck.errorf(s, "unsupported iterator chain: %v", err)
 		}
-	} else {
-		if memoryTarget {
-			return ck.errorf(s, "assign the result of .%s(...) to a variable first (let v = ...); a .%s chain cannot store directly into memory", call.Fn, call.Fn)
+		use(c.cb)
+		for _, st := range c.stages {
+			use(st.fn)
 		}
+	} else {
 		chain, ok := ck.l.recognizeIterChain(call)
 		if !ok {
 			return ck.errorf(s, "unsupported iterator chain .%s(...): %s", call.Fn, oldChainShape(call.Fn))
+		}
+		use(chain.cbName)
+		for _, st := range chain.stages {
+			use(st.fn)
 		}
 		if !chain.isRange {
 			if chain.len == nil {

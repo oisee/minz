@@ -34,8 +34,8 @@ claim is an audit observation; G0-L1 pins one representative program.
 | chain `fold`/`reduce` (memory) | forward | returns `init` | `cb(init, ptr[0])` | full 255 | via u16 len | not expressible | VM=VM=Z80 |
 | chainable `range(lo..hi).fold/.forEach` | forward (see range) | `init` / nothing | `[1]` | full 255 | G0-9 | not expressible | VM=VM=Z80 |
 | `pipe`/`trans` + `.apply()` | expands to nested `map`/`filter` calls — identical semantics per source | as chain | as chain | as chain | as chain | not expressible | VM=VM=Z80 |
-| chain `skip(k)`/`take(k)` stages (memory or range src) | forward; `skip` drops the first k elements reaching it, `take` passes the first k reaching it (counts survivors after a `filter`) | no effects / `init` | as stage | full 255 | via u16 len | **`take`: loop stops**; nothing runs for the element after the k-th accepted (ADR 0050) | VM=VM=Z80 |
-| chain `src.zip(other)` (memory only) | forward; source element i pairs with `other[i]` by **source position**, also after a `filter` | no effects / `init` | 1 pair | full 255 | via u16 len | via `take` | VM=VM=Z80 |
+| chain `skip(k)`/`take(k)` stages (memory or range src) | forward; `skip` drops the first k elements reaching it, `take` passes the first k reaching it (counts survivors after a `filter`) | no effects / `init` | as stage | full 255 | via u16 len | **`take`: loop stops** right after the k-th accepted element; on a memory source the next element is not even loaded (ADR 0050) | VM=VM=Z80 |
+| chain `src.zip(other)` (memory only) | forward; source element i pairs with `other[i]` by **source position**, also after a `filter`; with an implicit count (sized global arrays) the shorter declared length | no effects / `init` | 1 pair | full 255 | via u16 len | via `take` | VM=VM=Z80 |
 | terminals `count(n)` / `sum(n)` (`count()`/`sum()` on range) | forward; u16 result, `sum` zero-extends and wraps mod 65536 | 0 | 1 / `x` | full 255 | via u16 len | via `take` | VM=VM=Z80 |
 | `enumerate`/`iter`/`collect`/`min`/`max`/`takeWhile`… | **rejected**: compile error `unknown method .name(...)` with source line (G0-5 resolved) | — | — | — | — | — | error |
 
@@ -121,6 +121,16 @@ Recorded, not fixed here:
     whose declared length is then used) → `unsupported iterator chain: …`;
   - a chain method outside a lowered position (a stage without terminal, a
     value terminal inside a larger expression) → an error naming the rule.
+  Further rules of the new chain path (review round 1): `k` and `n` must be
+  u8 or u16 (or a non-negative literal) — signed and bool counts are
+  rejected; element types must be u8, i8, bool, u16 or i16, and must match
+  the byte width the source (or `other`) declares; the chain's arguments are
+  evaluated once in source order (source, `zip` argument, stage arguments,
+  terminal arguments); a value chain may be the whole right-hand side of an
+  assignment to any target, including `p^ = …`; a callback inside another
+  callback may not use the outer callback's parameter (bind it to a local).
+  An original `fold` assigned to a global or memory target used to drop the
+  store; it now goes through the same temporary.
   A user function named like a chain method (`fun sum(...)`) keeps plain
   UFCS meaning. Test: `TestG0Finding_UnsupportedMethodRejected` (no longer
   skips: each spelling must be a source-line error or run correctly) and

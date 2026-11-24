@@ -136,24 +136,46 @@ func sizedArrayLen(e Expr) int {
 	return 0
 }
 
+// chainLitTy returns the type of a skip/take count or an element count: u8
+// or u16 only (an untyped literal takes the narrowest of the two), nil for a
+// signed, bool, wider or negative value — those would count differently at
+// the head (bounds) and mid-chain (counters).
 func chainLitTy(k Expr) mir2.Ty {
 	if lit, ok := k.(*IntLitExpr); ok {
-		if lit.Ty != nil && lit.Ty.Width() > 8 && !lit.Untyped {
-			return lit.Ty
+		if lit.Val < 0 || lit.Val > 0xFFFF {
+			return nil
 		}
-		if lit.Val > 255 || lit.Val < 0 {
-			return mir2.TyU16
-		}
-		if lit.Ty == nil || lit.Untyped {
+		if lit.Untyped || lit.Ty == nil {
+			if lit.Val > 255 {
+				return mir2.TyU16
+			}
 			return mir2.TyU8
 		}
-		return lit.Ty
 	}
-	ty := mir2.BaseOf(k.ExprTy())
-	if !mir2.IsInt(ty) {
+	switch ty := mir2.BaseOf(k.ExprTy()); ty {
+	case mir2.TyU8, mir2.TyU16:
+		return ty
+	}
+	return nil
+}
+
+// loadableElem reports whether ty is an element type the fused loop can load
+// and pass to a callback: u8, i8, bool, u16 or i16.
+func loadableElem(ty mir2.Ty) bool {
+	switch mir2.BaseOf(ty) {
+	case mir2.TyU8, mir2.TyI8, mir2.TyBool, mir2.TyU16, mir2.TyI16:
+		return true
+	}
+	return false
+}
+
+// typedElemTy is declaredElemTy for sources whose type really names the
+// element (arrays and typed pointers); nil for the legacy untyped pointer.
+func typedElemTy(e Expr) mir2.Ty {
+	if e == nil || e.ExprTy() == mir2.TyPtr {
 		return nil
 	}
-	return ty
+	return declaredElemTy(e)
 }
 
 // declaredElemTy returns the element type of a memory source when its static
@@ -241,8 +263,8 @@ func (l *lowerer) recognizeChain(call *CallExpr) (*chainSpec, error) {
 				return nil, fmt.Errorf(".%s(k) takes exactly one argument", inner.Fn)
 			}
 			kTy := chainLitTy(inner.Args[1])
-			if kTy == nil || kTy.Width() > 16 {
-				return nil, fmt.Errorf(".%s(k): k must be a u8 or u16 value", inner.Fn)
+			if kTy == nil {
+				return nil, fmt.Errorf(".%s(k): k must be a u8 or u16 value or a non-negative integer literal, got %s", inner.Fn, inner.Args[1].ExprTy())
 			}
 			rev = append(rev, chainStage{kind: inner.Fn, k: inner.Args[1], kTy: kTy})
 		case "zip":
@@ -282,6 +304,13 @@ func (l *lowerer) recognizeChain(call *CallExpr) (*chainSpec, error) {
 		if hasLen {
 			c.n = lenArg
 		} else if n := sizedArrayLen(src); n > 0 {
+			// Implicit count: the declared length, and with zip the shorter
+			// of the two declared lengths (other may be a plain pointer).
+			if c.zip != nil {
+				if m := sizedArrayLen(c.zip); m > 0 && m < n {
+					n = m
+				}
+			}
 			ty := mir2.Ty(mir2.TyU8)
 			if n > 255 {
 				ty = mir2.TyU16
@@ -290,8 +319,8 @@ func (l *lowerer) recognizeChain(call *CallExpr) (*chainSpec, error) {
 		} else {
 			return nil, fmt.Errorf(".%s on a memory source needs the element count as its last argument", c.term)
 		}
-		if !mir2.IsInt(mir2.BaseOf(c.n.ExprTy())) || c.n.ExprTy().Width() > 16 {
-			return nil, fmt.Errorf(".%s: the element count must be a u8 or u16 value", c.term)
+		if chainLitTy(c.n) == nil {
+			return nil, fmt.Errorf(".%s: the element count must be a u8 or u16 value or a non-negative integer literal, got %s", c.term, c.n.ExprTy())
 		}
 	}
 
@@ -379,6 +408,24 @@ func (l *lowerer) typeChain(c *chainSpec) error {
 		}
 	}
 
+	// Element types must be scalars the loop can load, and agree in size with
+	// what the source's own type declares (a u16 array walked with a u8
+	// callback parameter would step bytes while the count is in elements).
+	if !loadableElem(c.elemTy) {
+		return fmt.Errorf("element type %s is not supported in a fused chain (u8, i8, bool, u16, i16)", c.elemTy)
+	}
+	if d := typedElemTy(c.src); d != nil && mir2.ByteWidth(d) != mir2.ByteWidth(c.elemTy) {
+		return fmt.Errorf("the source's elements are %s but the first callback takes %s", d, c.elemTy)
+	}
+	if c.zip != nil {
+		if !loadableElem(c.zipTy) {
+			return fmt.Errorf(".zip: element type %s is not supported in a fused chain (u8, i8, bool, u16, i16)", c.zipTy)
+		}
+		if d := typedElemTy(c.zip); d != nil && mir2.ByteWidth(d) != mir2.ByteWidth(c.zipTy) {
+			return fmt.Errorf(".zip: other's elements are %s but the callback's second element parameter is %s", d, c.zipTy)
+		}
+	}
+
 	paired := c.zip != nil
 	cur := c.elemTy
 	want := func(what, fn string, extra int) error {
@@ -410,6 +457,9 @@ func (l *lowerer) typeChain(c *chainSpec) error {
 			if f := l.hirFuncs[s.fn]; f != nil {
 				if f.RetTy == nil || f.RetTy == mir2.TyVoid {
 					return fmt.Errorf(".map callback %s must return a value", s.fn)
+				}
+				if !loadableElem(f.RetTy) {
+					return fmt.Errorf(".map callback %s returns %s; fused chain elements are u8, i8, bool, u16 or i16", s.fn, f.RetTy)
 				}
 				cur = f.RetTy
 			}
@@ -621,7 +671,111 @@ func (l *lowerer) tryLowerChain(expr Expr) (mir2.Reg, mir2.Ty, bool) {
 	return l.lowerChain(c), c.accTy, true
 }
 
+// isOrderFreeArg: evaluating e has no effect and cannot observe one, so
+// where it is evaluated relative to the other chain arguments is invisible.
+func isOrderFreeArg(e Expr) bool {
+	switch x := e.(type) {
+	case nil, *IntLitExpr, *BoolLitExpr, *VarRefExpr:
+		return true
+	case *AddrOfExpr:
+		return x.X == nil
+	case *CastExpr:
+		return isOrderFreeArg(x.X)
+	}
+	return false
+}
+
+// isConstArg: an order-free argument that reads no variable.
+func isConstArg(e Expr) bool {
+	switch x := e.(type) {
+	case nil, *IntLitExpr, *BoolLitExpr:
+		return true
+	case *AddrOfExpr:
+		return x.X == nil
+	case *CastExpr:
+		return isConstArg(x.X)
+	case *VarRefExpr:
+		_, isArray := mir2.BaseOf(x.Ty).(*mir2.ArrayTy)
+		return isArray // an array's address is a constant
+	}
+	return false
+}
+
+// chainArgsInSourceOrder evaluates the chain's arguments once, in source
+// order — the source (or range bounds), zip's argument, the stage arguments
+// left to right, then the terminal's init and count — into temporaries, when
+// any of them could observe the order. Otherwise the order is unobservable
+// and nothing is emitted here.
+func (l *lowerer) chainArgsInSourceOrder(c *chainSpec) {
+	slots := []*Expr{}
+	if c.isRange {
+		slots = append(slots, &c.rangeLo, &c.rangeHi)
+	} else {
+		slots = append(slots, &c.src)
+	}
+	if c.zip != nil {
+		slots = append(slots, &c.zip)
+	}
+	for i := range c.stages {
+		if c.stages[i].kind == "skip" || c.stages[i].kind == "take" {
+			slots = append(slots, &c.stages[i].k)
+		}
+	}
+	if c.init != nil {
+		slots = append(slots, &c.init)
+	}
+	if c.n != nil {
+		slots = append(slots, &c.n)
+	}
+	free := true
+	for _, p := range slots {
+		free = free && isOrderFreeArg(*p)
+	}
+	if free {
+		return
+	}
+	for _, p := range slots {
+		if isConstArg(*p) {
+			continue // literals, global and array addresses are constants
+		}
+		ty := (*p).ExprTy()
+		name := l.fresh("__iter_arg")
+		l.bind(name, l.lowerExpr(*p), ty)
+		*p = &VarRefExpr{Name: name, Ty: ty}
+	}
+}
+
+// keepsElemTy reports whether every callback sees and every map produces the
+// source element type — the condition for the original single-variable
+// builders.
+func (l *lowerer) keepsElemTy(c *chainSpec) bool {
+	same := func(fn string, idx int) bool {
+		f := l.hirFuncs[fn]
+		return f == nil || len(f.Params) <= idx || f.Params[idx].Ty == c.elemTy
+	}
+	for _, s := range c.stages {
+		switch s.kind {
+		case "map":
+			if f := l.hirFuncs[s.fn]; !same(s.fn, 0) || f != nil && f.RetTy != c.elemTy {
+				return false
+			}
+		case "filter":
+			if !same(s.fn, 0) {
+				return false
+			}
+		}
+	}
+	switch c.term {
+	case "forEach", "mapInPlace":
+		return same(c.cb, 0)
+	case "fold", "reduce":
+		return same(c.cb, 1)
+	}
+	return true
+}
+
 func (l *lowerer) lowerChain(c *chainSpec) mir2.Reg {
+	l.chainArgsInSourceOrder(c)
 	// Every skip/take count is evaluated exactly once, before the loop.
 	for i := range c.stages {
 		s := &c.stages[i]
@@ -674,6 +828,28 @@ func (l *lowerer) lowerChain(c *chainSpec) mir2.Reg {
 				})
 			}
 		}
+		// take(0) runs nothing: with the stop test at the end of each element,
+		// a zero count must empty the loop before it starts.
+		for i := range c.stages {
+			s := &c.stages[i]
+			if s.kind != "take" || s.head {
+				continue
+			}
+			if lit, isLit := s.kRef.(*IntLitExpr); isLit && lit.Val != 0 {
+				continue
+			}
+			if lenName == "" {
+				lenName = l.fresh("__iter_len")
+				l.lowerStmt(&VarDeclStmt{Name: lenName, Ty: nTy, Init: c.n})
+			}
+			lr := &VarRefExpr{Name: lenName, Ty: nTy}
+			zero := &AssignStmt{Target: lr, Val: chainLit(0, nTy)}
+			if _, isLit := s.kRef.(*IntLitExpr); isLit {
+				l.lowerStmt(zero)
+			} else {
+				l.lowerStmt(&IfStmt{Cond: &BinExpr{Op: "==", L: s.kRef, R: chainLit(0, s.kTy), Ty: mir2.TyBool}, Then: &Block{Body: []Stmt{zero}}})
+			}
+		}
 		if lenName != "" {
 			length = &VarRefExpr{Name: lenName, Ty: nTy}
 		}
@@ -684,7 +860,7 @@ func (l *lowerer) lowerChain(c *chainSpec) mir2.Reg {
 
 	// Only head skip/take and no zip: the original builders produce exactly
 	// the loop of the hand-hoisted spelling (ptr + k, adjusted count).
-	headOnly := !c.isRange && c.zip == nil
+	headOnly := !c.isRange && c.zip == nil && l.keepsElemTy(c)
 	for _, s := range c.stages {
 		if (s.kind == "skip" || s.kind == "take") && !s.head {
 			headOnly = false
@@ -731,14 +907,21 @@ func (l *lowerer) lowerChain(c *chainSpec) mir2.Reg {
 	e := chainElem{v: elemVar, ty: c.elemTy}
 	var prologue, epilogue []Stmt
 	var zload Expr
-	// take: stop before anything runs for the element after the k-th accepted.
+	// take: stop as soon as the k-th accepted element has been processed, so
+	// the next source element is never requested (ADR 0050). A memory loop
+	// tests at the end of each element (take(0) emptied the count above); a
+	// range loop has nothing to request and tests before each element.
+	var stops []Stmt
 	for _, s := range c.stages {
 		if s.kind == "take" && !s.head {
-			prologue = append(prologue, &IfStmt{
+			stops = append(stops, &IfStmt{
 				Cond: &BinExpr{Op: "==", L: &VarRefExpr{Name: s.cnt, Ty: s.kTy}, R: s.kRef, Ty: mir2.TyBool},
 				Then: &Block{Body: []Stmt{&BreakStmt{}}},
 			})
 		}
+	}
+	if c.isRange {
+		prologue = append(prologue, stops...)
 	}
 	if c.zip != nil {
 		ptrTy := l.m.PointerType()
@@ -777,6 +960,9 @@ func (l *lowerer) lowerChain(c *chainSpec) mir2.Reg {
 		}
 	}
 	body := append(append(prologue, stages...), epilogue...)
+	if !c.isRange {
+		body = append(body, stops...)
+	}
 
 	if c.isRange {
 		rc := iterChain{isRange: true, rangeLo: c.rangeLo, rangeHi: c.rangeHi, rangeRev: c.rangeRev, isFold: acc != ""}
@@ -838,4 +1024,51 @@ func countVarRefs(stmts []Stmt, name string) int {
 		})
 	})
 	return n
+}
+
+// lowerChainAssign lowers `target = chain` (AssignStmt) for a value chain
+// whose result cannot simply be bound to a register local: any chain using
+// the new methods, and an original fold chain assigned to a global, a cell
+// (address-taken) local or a memory target. The chain is lowered into a
+// temporary which the ordinary assignment path then stores. ok is false when
+// the statement is left to the caller (not a value chain, or an original
+// fold into a plain register local, whose lowering stays as it was).
+func (l *lowerer) lowerChainAssign(target, val Expr) (terminated, ok bool) {
+	call, isCall := val.(*CallExpr)
+	if !isCall || !isValueIterTerminal(call.Fn) {
+		return false, false
+	}
+	if !l.usesNewChainMethods(call) {
+		if tgt, isVar := target.(*VarRefExpr); isVar && !l.localCells[tgt.Name] && !l.localArrays[tgt.Name] {
+			if _, local := l.env[tgt.Name]; local {
+				return false, false
+			}
+		}
+	}
+	reg, lowered := l.tryLowerFold(call)
+	if !lowered {
+		return false, false
+	}
+	accTy := l.foldChainAccTy(call).foldAccTy
+	tmp := l.fresh("__chain_val")
+	l.bind(tmp, reg, accTy)
+	return l.lowerStmt(&AssignStmt{Target: target, Val: &VarRefExpr{Name: tmp, Ty: accTy}}), true
+}
+
+// lowerChainStore lowers `p^ = chain` (StoreStmt) through a temporary.
+func (l *lowerer) lowerChainStore(st *StoreStmt) (terminated, ok bool) {
+	call, isCall := st.Val.(*CallExpr)
+	if !isCall || !isValueIterTerminal(call.Fn) {
+		return false, false
+	}
+	reg, lowered := l.tryLowerFold(call)
+	if !lowered {
+		return false, false
+	}
+	accTy := l.foldChainAccTy(call).foldAccTy
+	tmp := l.fresh("__chain_val")
+	l.bind(tmp, reg, accTy)
+	cp := *st
+	cp.Val = &VarRefExpr{Name: tmp, Ty: accTy}
+	return l.lowerStmt(&cp), true
 }

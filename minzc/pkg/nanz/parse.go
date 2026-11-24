@@ -599,6 +599,7 @@ type parser struct {
 	funcAliases     map[string]string     // local name → mangled name (for unqualified imports)
 	pipes           map[string][]pipeStep // pipe/trans name → stages
 	lambdaHintTy    mir2.Ty               // type hint for untyped lambda params (set by chain context)
+	lambdaHintTys   []mir2.Ty             // positional hints overriding lambdaHintTy (zip pairs)
 	metaFuncs       map[string]string     // @name → full Nanz source of metafunction
 	metaExpandDepth int                   // guard recursive statement-position expansion
 	// ADT (algebraic data types) — enums with payload variants
@@ -748,12 +749,43 @@ func (p *parser) inferChainElemTy(base hir.Expr) mir2.Ty {
 			}
 		}
 	}
-	// Default: base expression's type
+	// Default: the source's element type — an array's element or a
+	// pointer's pointee, never the array or pointer type itself.
 	ty := p.exprTy(base)
+	switch t := mir2.BaseOf(ty).(type) {
+	case *mir2.ArrayTy:
+		return t.Elem
+	}
+	if ty != nil && mir2.IsPointer(ty) {
+		return mir2.PointerElem(ty)
+	}
 	if ty != nil {
 		return ty
 	}
 	return mir2.TyU8
+}
+
+// inferZipElemTy returns the element type of the second callback parameter
+// when the chain at base still carries zip pairs (src.zip(other) followed by
+// filter/skip/take only), nil otherwise.
+func (p *parser) inferZipElemTy(base hir.Expr) mir2.Ty {
+	for {
+		call, ok := base.(*hir.CallExpr)
+		if !ok || len(call.Args) == 0 || !p.isChainMethodName(call.Fn) {
+			return nil
+		}
+		switch call.Fn {
+		case "filter", "skip", "take":
+			base = call.Args[0]
+		case "zip":
+			if len(call.Args) != 2 {
+				return nil
+			}
+			return p.inferChainElemTy(call.Args[1])
+		default:
+			return nil
+		}
+	}
 }
 
 // opToFuncName maps an operator token kind to a mangled function name.
@@ -6407,10 +6439,19 @@ func (p *parser) parsePostfix(base hir.Expr) (hir.Expr, error) {
 				p.l.next()
 				args := []hir.Expr{base}
 				// Set lambda type hint for iterator chain methods
-				savedHint := p.lambdaHintTy
+				savedHint, savedHints := p.lambdaHintTy, p.lambdaHintTys
 				switch fieldTok.val {
 				case "map", "filter", "forEach", "fold", "reduce":
-					p.lambdaHintTy = p.inferChainElemTy(base)
+					p.lambdaHintTy, p.lambdaHintTys = p.inferChainElemTy(base), nil
+					// After zip, an untyped second element parameter takes
+					// other's element type (the accumulator comes first in fold).
+					if zt := p.inferZipElemTy(base); zt != nil {
+						if fieldTok.val == "fold" || fieldTok.val == "reduce" {
+							p.lambdaHintTys = []mir2.Ty{p.lambdaHintTy, p.lambdaHintTy, zt}
+						} else {
+							p.lambdaHintTys = []mir2.Ty{p.lambdaHintTy, zt}
+						}
+					}
 				}
 				for !p.l.is(tokRParen) && !p.l.is(tokEOF) {
 					a, err := p.parseExpr()
@@ -6418,11 +6459,19 @@ func (p *parser) parsePostfix(base hir.Expr) (hir.Expr, error) {
 						return nil, err
 					}
 					args = append(args, a)
+					// A zip fold's untyped accumulator takes the init's type.
+					if len(args) == 2 && len(p.lambdaHintTys) == 3 && (fieldTok.val == "fold" || fieldTok.val == "reduce") {
+						if lit, isLit := a.(*hir.IntLitExpr); !isLit || !lit.Untyped {
+							if ty := p.exprTy(a); ty != nil && mir2.IsInt(ty) {
+								p.lambdaHintTys = []mir2.Ty{ty, p.lambdaHintTys[1], p.lambdaHintTys[2]}
+							}
+						}
+					}
 					if p.l.is(tokComma) {
 						p.l.next()
 					}
 				}
-				p.lambdaHintTy = savedHint
+				p.lambdaHintTy, p.lambdaHintTys = savedHint, savedHints
 				if _, err := p.l.eat(tokRParen); err != nil {
 					return nil, err
 				}
@@ -7274,6 +7323,9 @@ func (p *parser) parseLambda() (hir.Expr, error) {
 		pty := mir2.Ty(mir2.TyU8) // default type
 		if p.lambdaHintTy != nil {
 			pty = p.lambdaHintTy
+		}
+		if i := len(params); i < len(p.lambdaHintTys) && p.lambdaHintTys[i] != nil {
+			pty = p.lambdaHintTys[i]
 		}
 		if p.l.is(tokColon) {
 			p.l.next()
