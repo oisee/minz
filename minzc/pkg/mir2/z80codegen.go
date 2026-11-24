@@ -1,11 +1,13 @@
 package mir2
 
 import (
+	"crypto/sha256"
 	"fmt"
 	"github.com/minz/minzc/pkg/z80effects"
 	"github.com/minz/minzc/pkg/z80validate"
 	"sort"
 	"strings"
+	"sync"
 )
 
 func emitDBLine(sb *strings.Builder, data []byte) {
@@ -160,6 +162,10 @@ type Z80FunctionOptions struct {
 
 type Z80CodegenOptions struct {
 	FunctionOptions map[string]Z80FunctionOptions
+	// validation, when set, memoises z80validate.Validate by function text.
+	// Validate is a pure function of the text; most functions emit the same
+	// text in every emission of a module and in most variant-search trials.
+	validation *validationCache
 	// CalledMain emits RET for a void main invoked by a platform wrapper.
 	CalledMain bool
 	// CPMApplicationEntry owns a resident stack and returns to the CP/M caller.
@@ -450,7 +456,7 @@ func z80CodegenWithLeafWrites(m *Module, ar *AllocResult, leafWrites map[string]
 		sb.WriteByte('\n')
 		// Z80 validation: catch invalid instructions at compile time.
 		funcAsm := sb.String()[startLen:]
-		if errs := z80validate.Validate(funcAsm); len(errs) > 0 && opt.ValidationLog != nil {
+		if errs := opt.validation.validate(funcAsm); len(errs) > 0 && opt.ValidationLog != nil {
 			*opt.ValidationLog = append(*opt.ValidationLog, z80validate.FormatErrors(f.Name, errs))
 		} else if len(errs) > 0 {
 			z80validate.LogErrors(f.Name, errs)
@@ -698,6 +704,41 @@ func z80CodegenWithLeafWrites(m *Module, ar *AllocResult, leafWrites map[string]
 		}
 	}
 	return result, nil
+}
+
+// validationCache memoises z80validate.Validate by the SHA-256 of the text.
+// Callers only read the returned errors. It is safe for concurrent use and
+// starts afresh once it holds validationCacheLimit texts.
+type validationCache struct {
+	mu sync.Mutex
+	m  map[[sha256.Size]byte][]z80validate.Error
+}
+
+const validationCacheLimit = 1 << 16
+
+// sharedValidation serves every Z80Codegen call of the process.
+var sharedValidation = &validationCache{}
+
+// validate is z80validate.Validate(asm); a nil cache validates directly.
+func (c *validationCache) validate(asm string) []z80validate.Error {
+	if c == nil {
+		return z80validate.Validate(asm)
+	}
+	key := sha256.Sum256([]byte(asm))
+	c.mu.Lock()
+	errs, ok := c.m[key]
+	c.mu.Unlock()
+	if ok {
+		return errs
+	}
+	errs = z80validate.Validate(asm)
+	c.mu.Lock()
+	if c.m == nil || len(c.m) >= validationCacheLimit {
+		c.m = map[[sha256.Size]byte][]z80validate.Error{}
+	}
+	c.m[key] = errs
+	c.mu.Unlock()
+	return errs
 }
 
 // ── Internal codegen state ────────────────────────────────────────────────────

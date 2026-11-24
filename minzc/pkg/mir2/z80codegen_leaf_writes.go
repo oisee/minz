@@ -31,6 +31,9 @@ func Z80Codegen(m *Module, ar *AllocResult, opts ...Z80CodegenOptions) (string, 
 	if o.Runtime != "" || o.RuntimeStackBytes != 0 || native && o.NoExactClobbers {
 		return z80CodegenEmit(m, ar, nil, opts...)
 	}
+	// Every emission below validates each function; most functions emit the
+	// same text each time.
+	o.validation = sharedValidation
 	if native {
 		plain := o
 		plain.NativeMemoryAccesses, plain.NativeMemoryAccessOrigins, plain.NativeCallFrames, plain.NativeCallSpills = nil, nil, nil, nil

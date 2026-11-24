@@ -349,7 +349,9 @@ func incomingEdgeCost(f *Func, choice *ContractChoice, m *Module, cs ContractSet
 		if !hasCaller {
 			callerChoice = currentChoice(caller)
 		}
-		ri := collectRegInfo(caller)
+		// Register info is needed only at call sites of f; most callers have
+		// none, and collecting it walks the whole caller.
+		var ri map[Reg]RegInfo
 
 		// For caller's own params, use the caller's chosen class (not the
 		// raw contract which hasn't been Apply'd yet).
@@ -364,6 +366,9 @@ func incomingEdgeCost(f *Func, choice *ContractChoice, m *Module, cs ContractSet
 			for _, inst := range b.Insts {
 				if inst.Op != OpCall || inst.Sym != f.Name {
 					continue
+				}
+				if ri == nil {
+					ri = collectRegInfo(caller)
 				}
 				for ai, arg := range inst.Args {
 					if ai >= len(choice.ParamClasses) {

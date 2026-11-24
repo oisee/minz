@@ -171,6 +171,39 @@ func TestFoldCondCall_NoFoldWhenMismatch(t *testing.T) {
 	}
 }
 
+// The incoming-branch check scans the code text of every line, computed once
+// per call: a reference in code (before or after the guard, with or without a
+// trailing comment) blocks the fold; a label declaration or a comment naming
+// the label does not.
+func TestFoldCondCall_IncomingReferenceScan(t *testing.T) {
+	guard := []string{"    JRS NC, .join", ".then:", "    CALL process", ".join:", "    RET"}
+	folded := func(lines []string) bool {
+		for _, line := range foldCondCall(lines) {
+			if strings.Contains(line, "CALL C, process") {
+				return true
+			}
+		}
+		return false
+	}
+	for _, tc := range []struct {
+		name   string
+		before []string
+		after  []string
+		fold   bool
+	}{
+		{"none", nil, nil, true},
+		{"comment only", []string{"    ; jumps to .then elsewhere"}, []string{"    LD A, B ; see .then"}, true},
+		{"jump before", []string{"    JP .then"}, nil, false},
+		{"jump after with comment", nil, []string{"    JR .then ; loop"}, false},
+		{"second guard", nil, []string{"    JRS Z, .join", ".then:", "    CALL process", ".join:", "    DJNZ .then"}, false},
+	} {
+		lines := append(append(append([]string{"foo:"}, tc.before...), guard...), tc.after...)
+		if got := folded(lines); got != tc.fold {
+			t.Errorf("%s: folded=%v, want %v\n%s", tc.name, got, tc.fold, strings.Join(foldCondCall(lines), "\n"))
+		}
+	}
+}
+
 func TestElimJumpToNextLabel(t *testing.T) {
 	for _, tc := range []struct {
 		src    string
