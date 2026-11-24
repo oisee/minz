@@ -145,7 +145,7 @@ fun same_two()->u16{return 7}`
 // parser state/event oracle; only the executable reference moved.
 func assertCurrentMemoryHostParserReference(t *testing.T, target *MemoryHostTargetEvidence) {
 	t.Helper()
-	if target.TotalTStates != 1255341 || len(target.Binary) != 2226 || target.BinarySHA256 != "0da41545c3af393eaed0f59a6e81b1b07750c3fd9597f07a21bdaf50876484e9" {
+	if target.TotalTStates != 1183294 || len(target.Binary) != 2211 || target.BinarySHA256 != "87f0abf895a70e2e114080a376c01852a854c0e95a43732d9d49cb9fa156d604" {
 		t.Fatal("current parser target drift", target.TotalTStates, len(target.Binary), target.BinarySHA256)
 	}
 	if fmt.Sprintf("%x", sha256.Sum256(target.Binary)) != target.BinarySHA256 {

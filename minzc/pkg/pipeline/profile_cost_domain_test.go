@@ -82,23 +82,33 @@ func TestSumProfileCostFullU8Domain(t *testing.T) {
 				cycles, _ := measureProfileZ80(t, h, "sum_array", Options{AssertMode: "none"}, []int64{base, int64(n)}, mem, want, "")
 				measured = append(measured, cycles)
 			}
-			if measured[0] != 41+54*n {
+			// This test compiles with default options, so the original loop is
+			// rotated (#319): the test moves to the latch, one element costs
+			// 49 T instead of 54 T, and only the zero-trip entry keeps 41 T.
+			// (MeasureLoopCostModel compiles unrotated and still sees 41+54n.)
+			expectedOriginal := 40 + 49*n
+			if n == 0 {
+				expectedOriginal = 41
+			}
+			if measured[0] != expectedOriginal {
 				t.Fatalf("original model n=%d got=%d", n, measured[0])
 			}
-			// Clean origin/main 76e8070d4 measures a 231-T positive-trip entry.
-			expectedFast := 231 + 37*n
+			// Clean origin/main 76e8070d4 measured a 231-T positive-trip entry
+			// (232 T at n=0, +7 T on the last admitted base). The acc-pressure
+			// allocation (#304) was the first change to move it; re-measured
+			// on b5fda602b the entry is 152 T (153 T at n=0) with no extra on
+			// the last base.
+			expectedFast := 152 + 37*n
 			if n == 0 {
-				expectedFast = 232
-			}
-			if path == "last-fast" {
-				expectedFast += 7
+				expectedFast = 153
 			}
 			// The guard-fallback trip was 258+178n through P28. O4+ (2b70eaa74)
 			// dropped the per-element cost to 94 T while raising the entry to
 			// 363 T (+21 T at n=1), and S1 (3e25f1cfa) lowered it further to a
 			// 326-T entry with 78 T per element, which is cheaper than the old
 			// model for every n ≥ 1. N1a (2520ce6c3) leaves it unchanged.
-			expectedFallback := 326 + 78*n
+			// Re-measured on b5fda602b: a 183-T entry and 69 T per element.
+			expectedFallback := 183 + 69*n
 			if (path == "fast" || path == "last-fast") && measured[1] != expectedFast {
 				t.Fatalf("fast model n=%d got=%d", n, measured[1])
 			}
