@@ -109,8 +109,6 @@ type Module struct {
 	SourceUnits         map[string]string         `json:"-"`          // hashes of actual frontend inputs, including loop-free units
 	SourceUnitsComplete bool                      `json:"-"`          // frontend recorded its transitive source dependencies
 	SourceLocations     map[Stmt]SourceLocation   `json:"-"`          // optional frontend origins; not semantic evidence
-	MethodCallLines     map[*CallExpr]int         `json:"-"`          // frontend x.name(...) calls naming no declared function → line (CheckIterChains)
-	MethodSyntax        map[*CallExpr]bool        `json:"-"`          // frontend x.name(...) calls named like chain methods (CheckIterChains checks only these)
 	AssertStats         *AssertStats              // optional invocation-local execution accounting
 	Name                string
 	Target              uint8 // platform target (TargetCPM, TargetZXSpectrum, etc.)
@@ -123,6 +121,11 @@ type Module struct {
 	Warnings            []string          // use-before-init and other diagnostic warnings
 	Asserts             []Assert          // top-level compile-time assertions (each gets fresh VM)
 	Sandboxes           []Sandbox         // grouped assertions (shared VM per sandbox)
+
+	// Frontend diagnostic side tables for CheckIterChains; not semantics, so
+	// excluded from the HIR fingerprints.
+	MethodCallLines map[*CallExpr]int  `json:"-" fingerprint:"-"` // x.name(...) calls naming no declared function → line
+	MethodSyntax    map[*CallExpr]bool `json:"-" fingerprint:"-"` // x.name(...) calls named like chain methods
 }
 
 // FuncByName returns the first HIR function with the given name, or nil.

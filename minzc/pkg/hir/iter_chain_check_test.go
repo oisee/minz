@@ -77,3 +77,21 @@ func TestCallMethodMarkFingerprint(t *testing.T) {
 		t.Fatalf("a set Method must change the fingerprint: %s", marked)
 	}
 }
+
+// The frontend's method-call side tables are diagnostics, not semantics: a
+// module's fingerprint is the same with or without them.
+func TestMethodSideTablesNotFingerprinted(t *testing.T) {
+	call := &CallExpr{Fn: "sum"}
+	fp := func(m Module) string {
+		var b bytes.Buffer
+		if err := fingerprintValue(&b, reflect.ValueOf(m), map[uintptr]bool{}); err != nil {
+			t.Fatal(err)
+		}
+		return b.String()
+	}
+	plain := fp(Module{Name: "m"})
+	with := fp(Module{Name: "m", MethodCallLines: map[*CallExpr]int{call: 3}, MethodSyntax: map[*CallExpr]bool{call: true}})
+	if plain != with || strings.Contains(plain, "MethodCallLines") || strings.Contains(plain, "MethodSyntax") {
+		t.Fatal("method side tables leak into the module fingerprint")
+	}
+}
