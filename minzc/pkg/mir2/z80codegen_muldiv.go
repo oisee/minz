@@ -239,6 +239,10 @@ func (g *z80cg) genMul16(inst *Inst) {
 		}
 		return false
 	}
+	// Two unsigned byte operands (NarrowWideningByteMul) need no widening.
+	if g.genMul16Bytes(inst, pairLive) {
+		return
+	}
 	// Multiplication is commutative. Keep a resident variable operand in HL:
 	// moving the other operand there would destroy it (DE * HL -> DE * DE).
 	// A constant RHS has no physical load: its allocated HL is only a nominal
@@ -690,17 +694,93 @@ func (g *z80cg) blockInNaturalLoop() bool {
 //	OR A           ; 4
 //	SBC HL, BC     ; 15  HL = sq[s] - sq[|a-b|] = a*b
 func (g *z80cg) genMul16QuarterSquare(inst *Inst, pairLive func(string) bool) {
-	dst := g.loc(inst.Dst)
 	g.comment(fmt.Sprintf("mul16 %s * %s → HL (quarter-square %s)", g.loc(inst.Src[0]), g.loc(inst.Src[1]), quarterSquareTableLabel))
-	// AF and DE are saved like the shift-and-add path does: A may hold a
-	// pending accumulator the live set does not describe. A pair carrying the
-	// result is never saved — the restore would overwrite it.
+	g.emitByteProduct(inst, pairLive, func() {
+		// Stage the operand bytes into A and C.
+		g.stageMulBytes(inst.Src[0], inst.Src[1], "C")
+
+		posLbl := fmt.Sprintf(".%s_qsq_%d_pos", sanitizeIdent(g.fn.Name), int(inst.Dst))
+		g.emit("    LD B, A") // B = a
+		g.emit("    ADD A, C")
+		g.emit("    LD L, A")
+		g.emit("    LD H, 0")
+		g.emit("    RL H") // H = bit 8 of a+b
+		g.emit("    ADD HL, HL")
+		g.emitf("    LD DE, %s", quarterSquareTableLabel)
+		g.emit("    ADD HL, DE") // HL = &sq[a+b]
+		g.emit("    LD E, (HL)")
+		g.emit("    INC HL")
+		g.emit("    LD D, (HL)") // DE = sq[a+b]
+		g.emit("    LD A, B")
+		g.emit("    SUB C")
+		g.emitf("    JRS NC, %s", posLbl)
+		g.emit("    NEG") // A = |a-b|
+		g.emitf("%s:", posLbl)
+		g.emit("    LD L, A")
+		g.emit("    LD H, 0")
+		g.emit("    ADD HL, HL") // HL = 2*|a-b|
+		g.emitf("    LD BC, %s", quarterSquareTableLabel)
+		g.emit("    ADD HL, BC") // HL = &sq[|a-b|]
+		g.emit("    LD C, (HL)")
+		g.emit("    INC HL")
+		g.emit("    LD B, (HL)") // BC = sq[|a-b|]
+		g.emit("    EX DE, HL")  // HL = sq[a+b]
+		g.emit("    OR A")
+		g.emit("    SBC HL, BC") // HL = a*b
+		g.needsQuarterSquare = true
+	})
+}
+
+// mulAccumulate returns the add that consumes inst's product as
+// `acc + product` in place in HL, when the multiply may accumulate into HL
+// itself instead of giving the product a home: the add is the next
+// instruction, the product has no other reader, acc and the sum both live in
+// HL, nothing observes the add's flags, and no other fusion owns the add.
+func (g *z80cg) mulAccumulate(inst *Inst) *Inst {
+	if g.curBlock == nil || g.curInstIdx < 0 || g.curInstIdx+1 >= len(g.curBlock.Insts) || g.curBlock.Insts[g.curInstIdx] != inst || g.pendingFlagReg != NoReg {
+		return nil
+	}
+	add := g.curBlock.Insts[g.curInstIdx+1]
+	if add.Op != OpAdd || add.Ty == nil || add.Ty.Width() != 16 || add.ClsHard || g.fusedExtSkipped(add) {
+		return nil
+	}
+	acc := NoReg
+	if add.Src[0] == inst.Dst {
+		acc = add.Src[1]
+	} else if add.Src[1] == inst.Dst {
+		acc = add.Src[0]
+	}
+	if acc == NoReg || acc == inst.Dst || g.loc(acc) != "HL" || g.loc(add.Dst) != "HL" {
+		return nil
+	}
+	if _, isConst := g.constVals[acc]; isConst || g.deadConsts[acc] {
+		return nil
+	}
+	if countRegUses(g.fn)[inst.Dst] != 1 || !wordMaskFlagsUnobserved(g.fn, add.Dst) {
+		return nil
+	}
+	return add
+}
+
+// emitByteProduct frames a byte-product body that leaves inst's product in
+// HL and clobbers A, F, BC, DE and HL. AF and DE are saved like the
+// shift-and-add path does: A may hold a pending accumulator the live set
+// does not describe. A pair carrying the result is never saved — the restore
+// would overwrite it. When the product feeds `acc + product` in HL
+// (mulAccumulate), acc is saved instead, added back from the stack, and the
+// add is not emitted again.
+func (g *z80cg) emitByteProduct(inst *Inst, pairLive func(string) bool, body func()) {
+	add := g.mulAccumulate(inst)
+	dst := g.loc(inst.Dst)
+	if add != nil {
+		dst = "HL"
+	}
 	g.emit("    PUSH AF")
 	savedDE := dst != "DE" && dst != "D" && dst != "E"
 	if savedDE {
 		g.emit("    PUSH DE")
 	}
-	savedHL := dst != "HL" && dst != "H" && dst != "L" && pairLive("HL")
+	savedHL := add == nil && dst != "HL" && dst != "H" && dst != "L" && pairLive("HL")
 	if savedHL {
 		g.emit("    PUSH HL")
 	}
@@ -708,75 +788,19 @@ func (g *z80cg) genMul16QuarterSquare(inst *Inst, pairLive func(string) bool) {
 	if savedBC {
 		g.emit("    PUSH BC")
 	}
-
-	// Stage the operand bytes into A and C. The core is symmetric in its
-	// operands, so assignment only has to avoid a load destroying the other
-	// operand: a spill takes A (LD A,(nn) is the only direct byte load, and a
-	// spill staged into C would have to borrow A), and a value already in A
-	// keeps it. After that, the order decides which load runs first: C first
-	// when its load reads or borrows A, A first when A's load would read C.
-	x, y := inst.Src[0], inst.Src[1]
-	lx, ly := g.loc(x), g.loc(y)
-	if isSpill(ly) != isSpill(lx) && isSpill(ly) {
-		x, y = y, x
-		lx, ly = ly, lx
-	} else if !isSpill(lx) && !isSpill(ly) && ly == "A" && lx != "A" {
-		x, y = y, x
-		lx, ly = ly, lx
+	if add != nil {
+		g.emit("    PUSH HL") // acc
 	}
-	loadByte := func(dstReg string, src Reg) {
-		if cv, ok := g.constVals[src]; ok {
-			g.emitf("    LD %s, %d", dstReg, cv&0xFF)
-			return
+	body()
+	if add != nil {
+		g.comment("multiply-accumulate: acc + product")
+		g.emit("    POP DE")
+		g.emit("    ADD HL, DE")
+		if g.widenedByteAdds == nil {
+			g.widenedByteAdds = map[*Inst]bool{}
 		}
-		loc := g.loc(src)
-		if isSpill(loc) {
-			g.loadSpill8(dstReg, loc)
-		} else {
-			g.emitLD8(dstReg, loc)
-		}
+		g.widenedByteAdds[add] = true
 	}
-	switch {
-	case ly == "A" || (isSpill(ly) && lx != "A"):
-		// C's load reads A (LD C, A) or borrows it (spill): run it before A
-		// is staged.
-		loadByte("C", y)
-		loadByte("A", x)
-	default:
-		// A's load would read C when lx is C, so A runs first anyway.
-		loadByte("A", x)
-		loadByte("C", y)
-	}
-
-	posLbl := fmt.Sprintf(".%s_qsq_%d_pos", sanitizeIdent(g.fn.Name), int(inst.Dst))
-	g.emit("    LD B, A") // B = a
-	g.emit("    ADD A, C")
-	g.emit("    LD L, A")
-	g.emit("    LD H, 0")
-	g.emit("    RL H") // H = bit 8 of a+b
-	g.emit("    ADD HL, HL")
-	g.emitf("    LD DE, %s", quarterSquareTableLabel)
-	g.emit("    ADD HL, DE") // HL = &sq[a+b]
-	g.emit("    LD E, (HL)")
-	g.emit("    INC HL")
-	g.emit("    LD D, (HL)") // DE = sq[a+b]
-	g.emit("    LD A, B")
-	g.emit("    SUB C")
-	g.emitf("    JRS NC, %s", posLbl)
-	g.emit("    NEG") // A = |a-b|
-	g.emitf("%s:", posLbl)
-	g.emit("    LD L, A")
-	g.emit("    LD H, 0")
-	g.emit("    ADD HL, HL") // HL = 2*|a-b|
-	g.emitf("    LD BC, %s", quarterSquareTableLabel)
-	g.emit("    ADD HL, BC") // HL = &sq[|a-b|]
-	g.emit("    LD C, (HL)")
-	g.emit("    INC HL")
-	g.emit("    LD B, (HL)") // BC = sq[|a-b|]
-	g.emit("    EX DE, HL")  // HL = sq[a+b]
-	g.emit("    OR A")
-	g.emit("    SBC HL, BC") // HL = a*b
-	g.needsQuarterSquare = true
 
 	// Move the product to dst, then restore the saved pairs.
 	if dst == "HL" {
@@ -805,9 +829,131 @@ func (g *z80cg) genMul16QuarterSquare(inst *Inst, pairLive func(string) bool) {
 	g.invalidate("BC")
 	g.invalidate("DE")
 	g.invalidate(dst)
-	if savedHL {
+	if savedHL || add != nil {
 		g.invalidate("HL")
 	}
+	if add != nil {
+		g.lastFlagsLhs, g.lastFlagsRhs = "", ""
+	}
+}
+
+// stageMulBytes loads the low bytes of two multiply operands into A and
+// other (a primary register other than A). Multiplication is commutative, so
+// the assignment only has to avoid a load destroying the other operand: a
+// spill takes A (LD A,(nn) is the only direct byte load, and a spill staged
+// into other has to borrow A), and a value already in A keeps it. After that,
+// the order decides which load runs first: other first when its load reads or
+// borrows A, A first when A's load would read other.
+func (g *z80cg) stageMulBytes(x, y Reg, other string) {
+	lx, ly := g.loc(x), g.loc(y)
+	if isSpill(ly) != isSpill(lx) && isSpill(ly) {
+		x, y = y, x
+		lx, ly = ly, lx
+	} else if !isSpill(lx) && !isSpill(ly) && ly == "A" && lx != "A" {
+		x, y = y, x
+		lx, ly = ly, lx
+	}
+	loadByte := func(dstReg string, src Reg) {
+		if cv, ok := g.constVals[src]; ok {
+			g.emitf("    LD %s, %d", dstReg, cv&0xFF)
+			return
+		}
+		loc := g.loc(src)
+		if isSpill(loc) {
+			g.loadSpill8(dstReg, loc)
+		} else {
+			g.emitLD8(dstReg, loc)
+		}
+	}
+	switch {
+	case ly == "A" || (isSpill(ly) && lx != "A"):
+		// other's load reads A (LD other, A) or borrows it (spill): run it
+		// before A is staged.
+		loadByte(other, y)
+		loadByte("A", x)
+	default:
+		// A's load would read other when lx is other, so A runs first anyway.
+		loadByte("A", x)
+		loadByte(other, y)
+	}
+}
+
+// mulByteOperand reports whether r is an unsigned byte in every definition
+// and lives where its byte can be loaded directly: a primary or index-half
+// register, or a spill slot (byte slots hold it at offset 0, word slots are
+// little-endian). Such an operand of a word multiply is implicitly
+// zero-extended (see NarrowWideningByteMul).
+func (g *z80cg) mulByteOperand(r Reg) bool {
+	if _, isConst := g.constVals[r]; isConst {
+		return false
+	}
+	switch loc := g.loc(r); loc {
+	case "A", "B", "C", "D", "E", "H", "L", "IXH", "IXL", "IYH", "IYL":
+	default:
+		if !isSpill(loc) {
+			return false
+		}
+	}
+	isU8 := func(t Ty) bool { return t != nil && t.Width() == 8 && !IsSigned(t) }
+	seen := map[Reg]bool{}
+	var proven func(Reg) bool
+	proven = func(a Reg) bool {
+		// A loop-carried byte reaches itself through its block parameter. The
+		// cycle adds no definition of its own, so it may be assumed: the
+		// claim is only that every definition reached carries a u8 type.
+		if seen[a] {
+			return true
+		}
+		seen[a] = true
+		return g.provenForEveryDefinition(a,
+			func(p Param) bool { return isU8(p.Ty) },
+			func(i *Inst) bool { return isU8(i.Ty) },
+			proven)
+	}
+	return proven(r)
+}
+
+// genMul16Bytes multiplies two unsigned byte operands into a word: through
+// the quarter-square table when that path is admissible, otherwise with an
+// eight-iteration left-shift multiply (H = multiplier, DE = multiplicand):
+//
+//	LD H, A / LD D, 0 / LD L, D / LD B, 8
+//	lp: ADD HL, HL     ; next multiplier bit → CY, partial product doubles
+//	    JRS NC, sk
+//	    ADD HL, DE
+//	sk: DJNZ lp
+//
+// After k iterations the partial product is below 2^(8+k), so the additions
+// never carry into the multiplier bits still waiting in H. Reports false when
+// either operand is not a loadable unsigned byte, leaving genMul16's general
+// paths in charge.
+func (g *z80cg) genMul16Bytes(inst *Inst, pairLive func(string) bool) bool {
+	if inst.Ty == nil || inst.Ty.Width() != 16 || !g.mulByteOperand(inst.Src[0]) || !g.mulByteOperand(inst.Src[1]) {
+		return false
+	}
+	// The operands are proven bytes and not constants (mulByteOperand), so
+	// only the size and loop conditions of mul16QuarterSquareAdmissible apply.
+	if !g.optimizeForSize && g.blockInNaturalLoop() {
+		g.genMul16QuarterSquare(inst, pairLive)
+		return true
+	}
+	g.comment(fmt.Sprintf("mul16 %s * %s → HL (bytes, 8-iter shift-and-add)", g.loc(inst.Src[0]), g.loc(inst.Src[1])))
+	g.emitByteProduct(inst, pairLive, func() {
+		g.stageMulBytes(inst.Src[0], inst.Src[1], "E")
+		loopLbl := fmt.Sprintf(".%s_m16b_%d_lp", sanitizeIdent(g.fn.Name), int(inst.Dst))
+		skipLbl := fmt.Sprintf(".%s_m16b_%d_sk", sanitizeIdent(g.fn.Name), int(inst.Dst))
+		g.emit("    LD H, A") // H = multiplier, L = 0
+		g.emit("    LD D, 0") // DE = multiplicand
+		g.emit("    LD L, D")
+		g.emit("    LD B, 8")
+		g.emitf("%s:", loopLbl)
+		g.emit("    ADD HL, HL")
+		g.emitf("    JRS NC, %s", skipLbl)
+		g.emit("    ADD HL, DE")
+		g.emitf("%s:", skipLbl)
+		g.emitf("    DJNZ %s", loopLbl)
+	})
+	return true
 }
 
 // mul16QuarterSquareAdmissible reports whether inst may take the quarter-square
@@ -1249,7 +1395,9 @@ func (g *z80cg) provablyBelow256(r Reg, width int, seen map[Reg]bool) bool {
 			case OpMove:
 				return g.provablyBelow256(i.Src[0], width, seen)
 			}
-			return false
+			// Any other unsigned byte result: its value is 0..255 and a wider
+			// operation zero-extends it implicitly.
+			return i.Ty != nil && i.Ty.Width() == 8 && !IsSigned(i.Ty) && width > 8
 		},
 		func(a Reg) bool { return g.provablyBelow256(a, width, seen) })
 }
@@ -1516,8 +1664,54 @@ func (g *z80cg) saveWrittenScratch(inst *Inst) func() {
 
 // These helpers emit only ordinary scalar Z80 instructions. Unknown operations
 // conservatively write all registers, so adding a sequence cannot omit a save.
+//
+// A pair the sequence saves and restores itself (PUSH rr ... POP rr) carries
+// no lasting write: at the POP its bytes are as written as they were at the
+// PUSH. That is tracked only in straight-line code that leaves SP to PUSH and
+// POP: a label, branch, call or return, or any other instruction naming SP,
+// turns every POP back into a plain write.
 func scratchSequenceWrites(asm string) map[string]bool {
 	writes := make(map[string]bool)
+	straight := true
+	for _, line := range strings.Split(asm, "\n") {
+		line = strings.TrimSpace(strings.SplitN(line, ";", 2)[0])
+		fields := strings.Fields(line)
+		if len(fields) == 0 {
+			continue
+		}
+		if strings.HasSuffix(line, ":") {
+			straight = false
+			break
+		}
+		switch fields[0] {
+		case "JP", "JR", "JRS", "DJNZ", "CALL", "RET", "RETI", "RETN", "RST", "HALT":
+			straight = false
+		}
+		for _, arg := range strings.Split(strings.TrimPrefix(line, fields[0]), ",") {
+			switch strings.ToUpper(strings.TrimSpace(arg)) {
+			case "SP", "(SP)", "[SP]":
+				straight = false
+			}
+		}
+		if !straight {
+			break
+		}
+	}
+	type saved struct {
+		pair string
+		keys []string
+		was  []bool
+	}
+	var stack []saved
+	pairKeys := func(r string) []string {
+		if r == "AF" {
+			return []string{"A"}
+		}
+		if isPairReg(r) {
+			return []string{highByte(r), lowByte(r)}
+		}
+		return nil
+	}
 	mark := func(r string) {
 		if r == "AF" {
 			writes["A"] = true
@@ -1539,6 +1733,31 @@ func scratchSequenceWrites(asm string) map[string]bool {
 		args := strings.Split(strings.TrimSpace(strings.TrimPrefix(line, op)), ",")
 		for i := range args {
 			args[i] = strings.TrimSpace(args[i])
+		}
+		switch op {
+		case "PUSH":
+			if straight {
+				keys := pairKeys(args[0])
+				was := make([]bool, len(keys))
+				for k, key := range keys {
+					was[k] = writes[key]
+				}
+				stack = append(stack, saved{args[0], keys, was})
+			}
+			continue
+		case "POP":
+			if straight && len(stack) > 0 {
+				top := stack[len(stack)-1]
+				stack = stack[:len(stack)-1]
+				if top.pair == args[0] && top.keys != nil {
+					for k, key := range top.keys {
+						writes[key] = top.was[k]
+					}
+					continue
+				}
+			}
+			mark(args[0])
+			continue
 		}
 		switch op {
 		case "LD", "POP", "INC", "DEC", "SLA", "SRA", "SRL", "RL", "RR", "RLC", "RRC":

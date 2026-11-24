@@ -544,6 +544,7 @@
     "TestWideGlobalInitializerNativeAndVM",
     "TestWideShiftSourcePhysicalPlacement",
     "TestWidemathMemoryObserverContracts",
+    "TestWideningByteMulPipelineNative",
     "TestWideningByteSumCAndNanzVMZ80",
     "TestWordCompareBranchVMZ80",
     "TestZ80ByteSpillSlotWordCompareE2E",
