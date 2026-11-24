@@ -677,9 +677,9 @@ fun main() -> void {
 // recogniser does not support used to compile without a diagnostic and emit
 // invalid instructions (LD A, ?) plus CALLs to undefined labels. Now every
 // spelling below either compiles to a correct program or is rejected with a
-// source-line compile error. take/skip are chain stages; this spelling has no
-// element count, which is an error unless the source's declared array size
-// supplies it. enumerate/iter/collect/min/max/takeWhile name no function.
+// source-line compile error. take/skip are chain stages; the terminal has no
+// element count, so the global array's declared length (8) supplies it.
+// enumerate/iter/collect/min/max/takeWhile name no function.
 func TestG0Finding_UnsupportedMethodRejected(t *testing.T) {
 	for _, method := range []string{"take", "skip", "enumerate", "iter", "collect", "min", "max", "takeWhile"} {
 		t.Run(method, func(t *testing.T) {
@@ -700,13 +700,16 @@ fun main() -> u8 {
 			if err == nil {
 				_, err = pipeline.CompileHIRSteps(m, pipeline.DefaultOptions())
 			}
+			want := map[string]int{"take": 6, "skip": 30}[method] // take(3): 1+2+3; skip(3): 4+...+8
 			if err != nil {
+				if want != 0 {
+					t.Fatalf(".%s(3) over a sized array must compile (declared length 8): %v", method, err)
+				}
 				if !strings.Contains(err.Error(), "line 10") {
 					t.Fatalf("rejected without the source line: %v", err)
 				}
 				return // A clean compile error is the correct rejection.
 			}
-			want := map[string]int{"take": 6, "skip": 30}[method] // take(3): 1+2+3; skip(3): 4+...+8
 			if want == 0 {
 				t.Fatalf(".%s(3) compiled; want a compile error", method)
 			}

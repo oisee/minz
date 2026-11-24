@@ -602,6 +602,7 @@ global oth: [u8; 8]
 fun f(x: u8) -> bool { return x > 1 }
 fun step(x: u8) { }
 fun add16(a: u16, x: u8) -> u16 { return a + u16(x) }
+global ptr: ^u8
 fun h(n: u8) -> u16 {
 `
 	cases := []struct{ body, want string }{
@@ -622,9 +623,9 @@ fun h(n: u8) -> u16 {
 		{"return src.zip(oth).sum(n)", `.sum after .zip`},
 		{"return src.zip(oth).fold(u16(0), add16, n)", `two element parameters`},
 		{"src.zip(oth).forEach(step, n)\n return 0", `two element parameters`},
-		{"return src.skip(2).count()", `needs the element count`},
-		{"src.forEach(step)\n return 0", `unsupported iterator chain .forEach`},
-		{"return src.fold(u16(0), add16)", `needs the element count`},
+		{"return ptr.skip(2).count()", `needs the element count`},
+		{"ptr.forEach(step)\n return 0", `unsupported iterator chain .forEach`},
+		{"return ptr.fold(u16(0), add16)", `needs the element count`},
 		{"src.zip(oth).mapInPlace(|x: u8| x, n)\n return 0", `.mapInPlace does not support .zip`},
 		{"src.filter(f).skip(1).mapInPlace(|x: u8| x, n)\n return 0", `.mapInPlace supports .skip only directly on the source`},
 	}
@@ -638,7 +639,7 @@ fun h(n: u8) -> u16 {
 			if err == nil {
 				t.Fatalf("compiled; want error containing %q", tc.want)
 			}
-			if !strings.Contains(err.Error(), tc.want) || !strings.Contains(err.Error(), "line 8") {
+			if !strings.Contains(err.Error(), tc.want) || !strings.Contains(err.Error(), "line 9") {
 				t.Fatalf("error %q; want it to contain %q and the source line", err, tc.want)
 			}
 		})
@@ -661,6 +662,55 @@ fun main() -> u16 {
 assert main() == 1820
 `
 	if err := g0RunAsserts(t, src); err != nil {
+		t.Fatal(err)
+	}
+}
+
+// A memory terminal without its count over a sized global array uses the
+// declared length.
+func TestIterSizedArrayLength(t *testing.T) {
+	src := `
+global a: [u8; 8]
+global acc: u16 = 0
+fun setup() {
+    for i in 0..8 { a[i] = i + 1 }
+    acc = 0
+}
+fun e_all() -> u16 { setup()
+    a.forEach(|x: u8| { acc = acc * 10 + u16(x) })
+    return acc }
+fun e_take() -> u16 { setup()
+    a.take(3).forEach(|x: u8| { acc = acc * 10 + u16(x) })
+    return acc }
+fun e_skip() -> u16 { setup()
+    a.filter(|x: u8| x > 2).skip(2).forEach(|x: u8| { acc = acc * 10 + u16(x) })
+    return acc }
+fun f_all() -> u16 { setup()
+    return a.fold(u16(0), |s: u16, x: u8| s * 3 + u16(x)) }
+fun c_all() -> u16 { setup()
+    return a.filter(|x: u8| x > 5).count() }
+fun s_all() -> u16 { setup()
+    return a.skip(6).sum() }
+fun m_all() -> u16 { setup()
+    a.mapInPlace(|x: u8| x * 2)
+    return a.fold(u16(0), |s: u16, x: u8| s * 3 + u16(x)) }
+`
+	var asserts strings.Builder
+	mix3 := func(xs ...int) int {
+		v := 0
+		for _, x := range xs {
+			v = (v*3 + x) & 0xFFFF
+		}
+		return v
+	}
+	fmt.Fprintf(&asserts, "assert e_all() == %d\n", 12345678&0xFFFF)
+	fmt.Fprintf(&asserts, "assert e_take() == 123\n")
+	fmt.Fprintf(&asserts, "assert e_skip() == 5678\n")
+	fmt.Fprintf(&asserts, "assert f_all() == %d\n", mix3(1, 2, 3, 4, 5, 6, 7, 8))
+	fmt.Fprintf(&asserts, "assert c_all() == 3\n")
+	fmt.Fprintf(&asserts, "assert s_all() == 15\n")
+	fmt.Fprintf(&asserts, "assert m_all() == %d\n", mix3(2, 4, 6, 8, 10, 12, 14, 16))
+	if err := g0RunAsserts(t, src+asserts.String()); err != nil {
 		t.Fatal(err)
 	}
 }

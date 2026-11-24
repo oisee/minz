@@ -924,7 +924,9 @@ Nanz supports a composable iterator chain syntax on arrays and pointers. The cru
 | `ptr.sum(n)` | Wrapping u16 sum of the elements reaching the end |
 
 On a memory source the last argument `n` is the number of **source** elements;
-`range(lo..hi)` sources take no `n` (`range(0..10).sum()`). Anything else —
+it may be left out when the source is a sized global array (`global a: [u8; 8]`
+→ `a.take(3).forEach(step)` walks at most 8). `range(lo..hi)` sources take no
+`n` (`range(0..10).sum()`). Anything else —
 `enumerate`, `iter`, `collect`, `min`, `max`, `takeWhile`, `chain` — is a
 compile error (`unknown method .name(...)`), unless you declare a function of
 that name, which `x.name(...)` then calls (UFCS).

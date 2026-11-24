@@ -103,11 +103,15 @@ func (l *lowerer) usesNewChainMethods(call *CallExpr) bool {
 	if call.Fn == "count" || call.Fn == "sum" {
 		return true
 	}
+	// A memory terminal without its count over a sized array takes the
+	// declared array length (forEach/mapInPlace(cb), fold/reduce(init, cb)).
+	short := len(call.Args) == 2 && (call.Fn == "forEach" || call.Fn == "mapInPlace") ||
+		len(call.Args) == 3 && (call.Fn == "fold" || call.Fn == "reduce")
 	e := call.Args[0]
 	for {
 		inner, ok := e.(*CallExpr)
 		if !ok || l.hirFuncNames[inner.Fn] || len(inner.Args) == 0 {
-			return false
+			return short && sizedArrayLen(e) > 0
 		}
 		switch inner.Fn {
 		case "skip", "take", "zip":
@@ -115,9 +119,21 @@ func (l *lowerer) usesNewChainMethods(call *CallExpr) bool {
 		case "map", "filter":
 			e = inner.Args[0]
 		default:
-			return false
+			return short && sizedArrayLen(e) > 0
 		}
 	}
+}
+
+// sizedArrayLen returns the declared length of a sized array source (a
+// global `[T; N]`), 0 otherwise.
+func sizedArrayLen(e Expr) int {
+	if e == nil {
+		return 0
+	}
+	if at, ok := mir2.BaseOf(e.ExprTy()).(*mir2.ArrayTy); ok && at.Len > 0 {
+		return at.Len
+	}
+	return 0
 }
 
 func chainLitTy(k Expr) mir2.Ty {
@@ -265,6 +281,12 @@ func (l *lowerer) recognizeChain(call *CallExpr) (*chainSpec, error) {
 		c.src = src
 		if hasLen {
 			c.n = lenArg
+		} else if n := sizedArrayLen(src); n > 0 {
+			ty := mir2.Ty(mir2.TyU8)
+			if n > 255 {
+				ty = mir2.TyU16
+			}
+			c.n = &IntLitExpr{Val: int64(n), Ty: ty}
 		} else {
 			return nil, fmt.Errorf(".%s on a memory source needs the element count as its last argument", c.term)
 		}

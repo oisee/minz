@@ -117,7 +117,8 @@ Recorded, not fixed here:
     `zip` anywhere but directly on a memory source or twice, a callback
     whose element arity does not match the paired/single state, `sum` on
     pairs, `mapInPlace` with `zip` or a non-head `skip`/`take`, a memory
-    terminal without its count) → `unsupported iterator chain: …`;
+    terminal without its count — unless the source is a sized global array,
+    whose declared length is then used) → `unsupported iterator chain: …`;
   - a chain method outside a lowered position (a stage without terminal, a
     value terminal inside a larger expression) → an error naming the rule.
   A user function named like a chain method (`fun sum(...)`) keeps plain
