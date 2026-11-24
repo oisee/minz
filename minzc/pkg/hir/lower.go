@@ -319,6 +319,9 @@ type loopCtx struct {
 }
 
 type lowerer struct {
+	lastChainAccTy      mir2.Ty         // accumulator type of the value chain tryLowerFold just lowered (new chain methods)
+	lazyLoads           map[string]Expr // chain zip element → its load, lowered at the single use
+	zipInStmt           bool            // chain build inlined a forEach statement body reading the zip element
 	disableCountedLoops bool
 	permitCountedLoops  bool
 	loopCostIndex       int
@@ -1220,7 +1223,7 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 		if st.Init != nil {
 			// Check for fold/reduce: let result = fold(ptr, init, cb, n)
 			if foldReg, ok := l.tryLowerFold(st.Init); ok {
-				chain, _ := l.recognizeIterChain(st.Init)
+				chain := l.foldChainAccTy(st.Init)
 				l.bind(st.Name, l.coerceLocalInteger(foldReg, chain.foldAccTy, st.Ty), st.Ty)
 				return false
 			}
@@ -1333,10 +1336,18 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 				defer func() { l.literalStorePointers = previous }()
 			}
 		}
+		// A value chain using skip/take/zip/count/sum: lower it, then assign
+		// its result through the ordinary path (globals, memory targets).
+		if call, ok := st.Val.(*CallExpr); ok && isValueIterTerminal(call.Fn) && l.usesNewChainMethods(call) {
+			reg, accTy, _ := l.tryLowerChain(call)
+			tmp := l.fresh("__chain_val")
+			l.bind(tmp, reg, accTy)
+			return l.lowerStmt(&AssignStmt{Target: st.Target, Val: &VarRefExpr{Name: tmp, Ty: accTy}})
+		}
 		// Check for fold/reduce: x = fold(ptr, init, cb, n)
 		if foldReg, ok := l.tryLowerFold(st.Val); ok {
 			if tgt, ok2 := st.Target.(*VarRefExpr); ok2 {
-				chain, _ := l.recognizeIterChain(st.Val)
+				chain := l.foldChainAccTy(st.Val)
 				l.env[tgt.Name] = l.coerceLocalInteger(foldReg, chain.foldAccTy, tgt.Ty)
 				l.envTy[tgt.Name] = tgt.Ty
 				return false
@@ -1448,7 +1459,7 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 		} else if st.Val != nil {
 			// Check for fold/reduce: return fold(ptr, init, cb, n)
 			if foldReg, ok := l.tryLowerFold(st.Val); ok {
-				chain, _ := l.recognizeIterChain(st.Val)
+				chain := l.foldChainAccTy(st.Val)
 				if len(l.bld.F.Contract.Returns) > 0 {
 					foldReg = l.coerceLocalInteger(foldReg, chain.foldAccTy, l.bld.F.Contract.Returns[0].Ty)
 				}
@@ -2558,6 +2569,9 @@ func (l *lowerer) lowerExpr(e Expr) mir2.Reg {
 		return l.bld.Const(v, mir2.TyBool, mir2.ClassGeneral)
 
 	case *VarRefExpr:
+		if load, lazy := l.lazyLoads[ex.Name]; lazy {
+			return l.lowerExpr(load) // zip element read at its single use
+		}
 		r, ok := l.env[ex.Name]
 		if !ok {
 			// Check if it's a function alias (let f = |x| ...).
@@ -3735,6 +3749,9 @@ func iterBlockNeedsCall(b *Block) bool {
 // ForEachStmt (avoiding CALL overhead for lambda callbacks).
 // Returns true if the pattern was recognized and lowered.
 func (l *lowerer) tryLowerIterChain(expr Expr) bool {
+	if _, _, ok := l.tryLowerChain(expr); ok {
+		return true
+	}
 	chain, ok := l.recognizeIterChain(expr)
 	if !ok {
 		return false
@@ -3758,6 +3775,13 @@ func (l *lowerer) tryLowerIterChain(expr Expr) bool {
 // tryLowerFold recognizes a fold/reduce call and returns the result register.
 // Returns (reg, true) on success; (NoReg, false) if expr is not a fold chain.
 func (l *lowerer) tryLowerFold(expr Expr) (mir2.Reg, bool) {
+	if call, isCall := expr.(*CallExpr); isCall && isValueIterTerminal(call.Fn) {
+		if reg, accTy, ok := l.tryLowerChain(expr); ok {
+			l.lastChainAccTy = accTy
+			return reg, true
+		}
+	}
+	l.lastChainAccTy = nil
 	chain, ok := l.recognizeIterChain(expr)
 	if !ok || !chain.isFold {
 		return mir2.NoReg, false

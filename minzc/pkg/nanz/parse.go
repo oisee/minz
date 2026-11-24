@@ -535,7 +535,17 @@ type nanzADTCtor struct {
 	adtName string  // back-reference to parent ADT name
 }
 
+// methodCallSite is one `receiver.name(args)` call left undispatched to a
+// struct/interface method; checked once every function signature is known.
+type methodCallSite struct {
+	call  *hir.CallExpr
+	name  string
+	line  int
+	local bool // name was a local variable or callable binding at the call
+}
+
 type parser struct {
+	methodCalls      []methodCallSite
 	literalTypeErr   error   // delayed diagnostic after forward signatures are known
 	typeContext      *parser // visible caller types/methods for generated declarations
 	metaBindingCount int     // deterministic private bindings for structured emit
@@ -729,6 +739,11 @@ func (p *parser) inferChainElemTy(base hir.Expr) mir2.Ty {
 		case "filter":
 			// filter doesn't change element type — recurse into source
 			if len(call.Args) >= 1 {
+				return p.inferChainElemTy(call.Args[0])
+			}
+		case "skip", "take", "zip":
+			// skip/take/zip keep the (first) element type of their source.
+			if len(call.Args) >= 1 && p.isChainMethodName(call.Fn) {
 				return p.inferChainElemTy(call.Args[0])
 			}
 		}
@@ -1271,8 +1286,42 @@ func (p *parser) parseModule() (*hir.Module, error) {
 		}
 	}
 
+	p.recordMethodCallLines(m)
+
 	m.Warnings = p.warnings
 	return m, nil
+}
+
+// isChainMethodName reports whether name is an iterator chain method here:
+// a user or imported function of that name makes `x.name(...)` plain UFCS.
+func (p *parser) isChainMethodName(name string) bool {
+	return hir.IsIterChainMethod(name) && !p.isKnownFunc(name) && !p.fwdFuncNames[name]
+}
+
+// recordMethodCallLines hands hir.CheckIterChains every `x.name(args)`
+// whose name is neither a declared or imported function (UFCS) nor a local
+// callable binding. CheckIterChains accepts the iterator chain methods among
+// them and rejects the rest: lowering would otherwise emit a CALL to an
+// undefined label (audit finding G0-5). Plain calls `name(args)` are not
+// recorded: they may name assembly or runtime symbols the frontend never sees.
+func (p *parser) recordMethodCallLines(m *hir.Module) {
+	for _, site := range p.methodCalls {
+		if site.call.Fn != site.name || site.local {
+			continue
+		}
+		if p.isKnownFunc(site.name) || p.fwdFuncNames[site.name] {
+			if site.name == "count" || site.name == "sum" {
+				if ty, ok := p.funcSigs[site.name]; ok && site.call.Ty == mir2.TyU16 && ty != mir2.TyU16 {
+					site.call.Ty = ty
+				}
+			}
+			continue
+		}
+		if m.MethodCallLines == nil {
+			m.MethodCallLines = map[*hir.CallExpr]int{}
+		}
+		m.MethodCallLines[site.call] = site.line
+	}
 }
 
 // Preserve nil (unknown clobbers) versus an explicitly empty preservation contract.
@@ -1859,6 +1908,12 @@ func (p *parser) parseImport() error {
 	}
 	for node, origin := range imported.SourceLocations {
 		p.module.SourceLocations[node] = origin
+	}
+	for call, line := range imported.MethodCallLines {
+		if p.module.MethodCallLines == nil {
+			p.module.MethodCallLines = map[*hir.CallExpr]int{}
+		}
+		p.module.MethodCallLines[call] = line
 	}
 	// Merge imported module into current module.
 	if err := hir.MergeImportedStrings(p.module, imported); err != nil {
@@ -6418,7 +6473,16 @@ func (p *parser) parsePostfix(base hir.Expr) (hir.Expr, error) {
 						}
 					}
 				}
-				base = &hir.CallExpr{Fn: callName, Args: args, Ty: callRetTy}
+				call := &hir.CallExpr{Fn: callName, Args: args, Ty: callRetTy}
+				if callName == fieldTok.val {
+					if (callName == "count" || callName == "sum") && p.isChainMethodName(callName) {
+						call.Ty = mir2.TyU16 // iterator terminal: u16 count / wrapping sum
+					}
+					_, localVar := p.varTypes[callName]
+					_, localCallable := p.varCallables[callName]
+					p.methodCalls = append(p.methodCalls, methodCallSite{call: call, name: callName, line: fieldTok.line, local: localVar || localCallable})
+				}
+				base = call
 			} else {
 				base = p.makeFieldExpr(base, fieldTok.val)
 			}

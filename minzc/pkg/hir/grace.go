@@ -476,7 +476,8 @@ func (g *hirGraceGraph) hoist(label string) *graceHoist {
 // These lowering intrinsics may inline callbacks into the caller environment.
 func graceMayInlineCallback(fn string) bool {
 	switch fn {
-	case "forEach", "mapInPlace", "fold", "reduce", "map", "filter":
+	case "forEach", "mapInPlace", "fold", "reduce", "map", "filter",
+		"skip", "take", "zip", "count", "sum": // chain lowering binds loop state in the caller env
 		return true
 	}
 	return false

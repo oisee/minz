@@ -109,6 +109,7 @@ type Module struct {
 	SourceUnits         map[string]string         `json:"-"`          // hashes of actual frontend inputs, including loop-free units
 	SourceUnitsComplete bool                      `json:"-"`          // frontend recorded its transitive source dependencies
 	SourceLocations     map[Stmt]SourceLocation   `json:"-"`          // optional frontend origins; not semantic evidence
+	MethodCallLines     map[*CallExpr]int         `json:"-"`          // frontend x.name(...) calls naming no declared function → line (CheckIterChains)
 	AssertStats         *AssertStats              // optional invocation-local execution accounting
 	Name                string
 	Target              uint8 // platform target (TargetCPM, TargetZXSpectrum, etc.)
