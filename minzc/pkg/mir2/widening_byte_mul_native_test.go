@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/minz/minzc/pkg/emulator"
+	"github.com/minz/minzc/pkg/z80asm"
 )
 
 // wbmLoop builds the fusion_dot_product shape before NarrowWideningByteMul:
@@ -566,6 +567,175 @@ func TestScratchSequenceWritesBalancedPushPop(t *testing.T) {
 			if w[r] {
 				t.Errorf("%q: %s is restored, not written (%v)", tc.asm, r, w)
 			}
+		}
+	}
+}
+
+// wbmFlagFixture is a straight-line multiply-accumulate whose add may be
+// followed by an inline-asm block reading the carry the add leaves:
+//
+//	%p  = mul %a, %b : u16       (a in C, b in E: the narrowed byte operands)
+//	%s  = add %acc, %p : u16     (acc and s in HL)
+//	%cy = asm "LD A, 0 / ADC A, 0"   -- observer only
+//	ret %s, %cy
+//
+// The inline asm is exactly an observer wordMaskFlagsUnobserved refuses
+// (OpAsm). The fused multiply-accumulate ends with POP AF, which would hand
+// the asm the pre-multiply carry instead of the add's.
+func wbmFlagFixture(observe bool) (*Module, *Func, *Block, map[Reg]PhysLoc) {
+	m := &Module{}
+	f := m.AddFunc("wbm_flags")
+	a, b, acc, p, s, cy := f.AllocReg(), f.AllocReg(), f.AllocReg(), f.AllocReg(), f.AllocReg(), f.AllocReg()
+	f.Contract.Params = []Param{
+		{Name: "a", Reg: a, Ty: TyU8, Class: ClassGeneral},
+		{Name: "b", Reg: b, Ty: TyU8, Class: ClassGeneral},
+		{Name: "acc", Reg: acc, Ty: TyU16, Class: ClassGeneral},
+	}
+	blk := f.NewBlock("entry")
+	blk.Append(&Inst{Op: OpMul, Dst: p, Src: [2]Reg{a, b}, Ty: TyU16, Cls: ClassPointer})
+	blk.Append(&Inst{Op: OpAdd, Dst: s, Src: [2]Reg{acc, p}, Ty: TyU16, Cls: ClassPointer})
+	vals := []Reg{s}
+	f.Contract.Returns = []Return{{Ty: TyU16, Class: ClassGeneral}}
+	if observe {
+		f.Attrs.HasAsm = true
+		blk.Append(&Inst{Op: OpAsm, Dst: cy, Ty: TyU8, Cls: ClassAcc, Asm: &AsmExtra{Template: "LD A, 0\nADC A, 0", Outs: []Reg{cy}, Clobbers: ClassSet(0)}})
+		vals = append(vals, cy)
+		f.Contract.Returns = append(f.Contract.Returns, Return{Ty: TyU8, Class: ClassAcc})
+	}
+	blk.Seal(&TermRet{Vals: vals})
+	locs := map[Reg]PhysLoc{
+		a: {Kind: LocReg, Name: "C"}, b: {Kind: LocReg, Name: "E"},
+		acc: {Kind: LocReg, Name: "HL"}, p: {Kind: LocReg, Name: "IX"},
+		s: {Kind: LocReg, Name: "HL"}, cy: {Kind: LocReg, Name: "A"},
+	}
+	return m, f, blk, locs
+}
+
+// wbmEmitInsts emits every instruction of blk in order (no terminator).
+func wbmEmitInsts(t *testing.T, m *Module, f *Func, blk *Block, locs map[Reg]PhysLoc) (string, *z80cg) {
+	t.Helper()
+	var sb strings.Builder
+	g := &z80cg{mod: m, fn: f, ar: &AllocResult{Locs: locs}, sb: &sb, curBlock: blk, liveness: ComputeLiveness(f), regInfo: collectRegInfo(f), constVals: map[Reg]int64{}, holdsPhys: map[string]string{}, physOverride: map[Reg]string{}, pendingAccReg: NoReg, pendingFlagReg: NoReg, deadConsts: map[Reg]bool{}}
+	for i, inst := range blk.Insts {
+		g.curInstIdx = i
+		g.genInst(inst)
+		if g.err != nil {
+			t.Fatal(g.err)
+		}
+	}
+	return sb.String(), g
+}
+
+// An add whose flags are observed must not be fused into the multiply: the
+// asm reads the add's carry. The twin without the observer still fuses.
+func TestWideningByteMulAccumulateRefusesObservedFlags(t *testing.T) {
+	for _, observe := range []bool{true, false} {
+		m, f, blk, locs := wbmFlagFixture(observe)
+		asm, g := wbmEmitInsts(t, m, f, blk, locs)
+		fused := strings.Contains(asm, "multiply-accumulate")
+		if fused == observe || g.widenedByteAdds[blk.Insts[1]] == observe {
+			t.Fatalf("observe=%v: fused=%v\n%s", observe, fused, asm)
+		}
+		bin, err := z80asm.NewAssembler().AssembleString("ORG 0x8000\nwbm_flags:\n" + asm + "\nRET\n")
+		if err != nil {
+			t.Fatal(err, asm)
+		}
+		if len(bin.Errors) != 0 {
+			t.Fatal(bin.Errors, asm)
+		}
+		run := func(regs emulator.Registers) emulator.Registers {
+			z := emulator.NewRemogattoZ80()
+			if err := z.LoadMemory(0x8000, bin.Binary); err != nil {
+				t.Fatal(err)
+			}
+			regs.PC, regs.SP = 0x8000, 0xeff0
+			z.Memory()[0xeff0], z.Memory()[0xeff1] = 0, 0x70
+			z.SetRegisters(regs)
+			for n := 0; n < 4000 && z.GetPC() != 0x7000; n++ {
+				z.Step()
+			}
+			if z.GetPC() != 0x7000 {
+				t.Fatal("fragment did not return", asm)
+			}
+			return z.GetRegisters()
+		}
+		for x := 0; x < 256; x += 3 {
+			for y := 0; y < 256; y += 5 {
+				for _, acc := range []uint16{0, 0x00ff, 0x8000, 0xff00, 0xfffe, 0xffff} {
+					for _, carryIn := range []uint8{0, 1} {
+						regs := emulator.Registers{BC: 0x1200 | uint16(x), DE: 0x3400 | uint16(y), HL: acc, IX: 0x9abc, IY: 0xcdef, A: 0x77, F: carryIn}
+						got := run(regs)
+						sum := uint32(acc) + uint32(x*y)
+						if got.HL != uint16(sum) {
+							t.Fatalf("observe=%v %d*%d+%#x: HL=%#x want %#x\n%s", observe, x, y, acc, got.HL, uint16(sum), asm)
+						}
+						if observe {
+							wantCY := uint8(0)
+							if sum > 0xffff {
+								wantCY = 1
+							}
+							if got.A != wantCY {
+								t.Fatalf("%d*%d+%#x carry-in %d: asm saw carry %d, want the add's %d\n%s", x, y, acc, carryIn, got.A, wantCY, asm)
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+// A byte source with any signed definition is not an unsigned byte, even
+// when its other definitions and the extension's source type say u8.
+func TestNarrowWideningByteMulRefusesSignedDefinition(t *testing.T) {
+	for _, signed := range []bool{true, false} {
+		_, f, _, _, a, _, _ := wbmLoop(t, false, true, TyU8, OpExt)
+		// A second definition of a in the entry block, before the loop.
+		ty := TyU8
+		if signed {
+			ty = TyI8
+		}
+		entry := f.BlockByLabel("entry")
+		entry.Insts = append([]*Inst{{Op: OpConst, Dst: a, Ty: ty, Imm: 0x80}}, entry.Insts...)
+		got := NarrowWideningByteMul(f)
+		if signed && got != 0 {
+			t.Fatal("a byte with an i8 definition must not be narrowed")
+		}
+		if !signed && got != 1 {
+			t.Fatalf("twin with a u8 definition: rewrote %d, want 1", got)
+		}
+	}
+}
+
+// provablyBelow256 accepts an unsigned byte definition of any opcode, never a
+// signed one — directly and through a loop-carried block parameter.
+func TestProvablyBelow256ByteDefinitionSignedness(t *testing.T) {
+	for _, ty := range []Ty{TyU8, TyI8} {
+		f := (&Module{}).AddFunc("below")
+		ptr := f.AllocReg()
+		f.Contract.Params = []Param{{Name: "p", Reg: ptr, Ty: TyPtr, Class: ClassPointer}}
+		entry, head, body, exit := f.NewBlock("entry"), f.NewBlock("head"), f.NewBlock("body"), f.NewBlock("exit")
+		x, v, one, next, cond := f.AllocReg(), f.AllocReg(), f.AllocReg(), f.AllocReg(), f.AllocReg()
+		entry.Append(&Inst{Op: OpLoad, Dst: x, Src: [2]Reg{ptr}, Ty: ty})
+		entry.Seal(&TermJmp{Target: "head", Args: []Reg{x}})
+		head.Params = []BlockParam{{Dst: v, Ty: ty, Class: ClassGeneral}}
+		head.Append(&Inst{Op: OpCmp, Cond: CmpNe, Dst: cond, Src: [2]Reg{v, x}, Ty: TyBool, Cls: ClassFlag})
+		head.Seal(&TermBrIf{Cond: cond, Then: "body", Else: "exit"})
+		body.Append(&Inst{Op: OpConst, Dst: one, Ty: ty, Imm: 1})
+		body.Append(&Inst{Op: OpAdd, Dst: next, Src: [2]Reg{v, one}, Ty: ty})
+		body.Seal(&TermJmp{Target: "head", Args: []Reg{next}})
+		exit.Seal(&TermRet{})
+		g := &z80cg{fn: f}
+		want := ty == TyU8
+		if got := g.provablyBelow256(x, 16, map[Reg]bool{}); got != want {
+			t.Fatalf("%s load: provablyBelow256 = %v, want %v", ty, got, want)
+		}
+		if got := g.provablyBelow256(next, 16, map[Reg]bool{}); got != want {
+			t.Fatalf("%s add: provablyBelow256 = %v, want %v", ty, got, want)
+		}
+		// The block parameter is fed by the load and by the loop's add.
+		if got := g.provablyBelow256(v, 16, map[Reg]bool{}); got != want {
+			t.Fatalf("%s loop-carried parameter: provablyBelow256 = %v, want %v", ty, got, want)
 		}
 	}
 }
