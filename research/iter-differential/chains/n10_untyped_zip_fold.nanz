@@ -1,0 +1,5 @@
+global a: [u8; 4] = [200, 100, 3, 4]
+global b: [u8; 4] = [1, 1, 1, 1]
+fun t() -> u16 { let base: u16 = 1000
+  return a.zip(b).fold(base, |acc, x, y| acc + u16(x) + u16(y)) }
+assert t() == 1311

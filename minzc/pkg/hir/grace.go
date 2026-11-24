@@ -391,7 +391,7 @@ func graceHasBindings(b *Block) bool {
 				case *LetInExpr:
 					found = true
 				case *CallExpr:
-					if graceMayInlineCallback(x.Fn) {
+					if graceMayInlineCallback(x.Fn) || x.Method && isNewIterChainMethod(x.Fn) {
 						found = true
 					}
 				}

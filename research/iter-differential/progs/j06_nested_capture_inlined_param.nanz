@@ -1,0 +1,8 @@
+global c3: [u8; 3] = [1, 2, 3]
+global h: u16 = 0
+fun t() -> u16 { h = 0
+  c3.forEach(|x: u8| {
+    c3.filter(|y: u8| y > x).forEach(|y: u8| { h = h + u16(y) }, 3)
+  }, 3)
+  return h }
+assert t() == 8

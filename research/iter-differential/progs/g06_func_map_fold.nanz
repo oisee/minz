@@ -1,0 +1,5 @@
+global a: [u8; 6] = [200, 100, 3, 4, 7, 9]
+fun dbl(x: u8) -> u8 { return x * 2 }
+fun add16(s: u16, x: u8) -> u16 { return s + u16(x) }
+fun t() -> u16 { return fold(map(a, dbl), u16(0), add16, 6) }
+assert t() == 390

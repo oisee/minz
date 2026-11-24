@@ -1,0 +1,4 @@
+fun newc(m: u8) -> u16 {
+    return range(0..m).filter(|x: u8| x > 2).skip(1).count()
+}
+assert newc(8) == 4

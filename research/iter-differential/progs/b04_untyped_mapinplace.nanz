@@ -1,0 +1,4 @@
+global a: [u8; 6] = [200, 100, 3, 4, 7, 9]
+fun t() -> u16 { a.mapInPlace(|x| x + 1, 6)
+  return u16(a[0]) + u16(a[5]) }
+assert t() == 211

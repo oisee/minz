@@ -1,0 +1,7 @@
+global a: [u8; 5] = [0, 9, 0, 0, 7]
+global r: u16 = 0
+global out: [u16; 2]
+fun st() -> u16 { r = a.filter(|x: u8| x > 0).take(1).sum(5)
+  out[1] = a.count(5)
+  return r * 10 + out[1] }
+assert st() == 95

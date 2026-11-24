@@ -1,0 +1,4 @@
+global a: [u8; 6] = [200, 100, 3, 4, 7, 9]
+fun sum6(p: ^u8) -> u16 { return p.fold(u16(0), |s: u16, x: u8| s + u16(x), 6) }
+fun t() -> u16 { return sum6(&a[0]) }
+assert t() == 323

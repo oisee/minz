@@ -1,0 +1,181 @@
+{
+  "note": "unfrozen probe; measure.go -compiler nanz -profile default -workload ../workloads/<case>.json; frozen idiomatic compiled by the same binary",
+  "compiler_commit": "ea8d383c3",
+  "rows": [
+    {
+      "case": "fusion_dot_product",
+      "workload": "workloads/fusion_dot_product.json",
+      "workload_file_sha256": "2412bf1b449bd48bde2524363a46966d0562652488ba54ccd69ce412c7767e6b",
+      "chain": {
+        "file": "nanz-chain/fusion_dot_product.nanz",
+        "status": "PASS",
+        "samples": 60,
+        "mismatches": 0,
+        "TotalT": 1966390,
+        "ProgramBytes": 1645,
+        "source_sha256": "7b1d0765f258ae9287c209464c555b6cf872694c3efc5b07eb738a44ff7d371b",
+        "measure_samples_sha256": "e51513d5bd9e0a87bff6bb620f9d7802182de4d29cd33ac3911197f07effc515"
+      },
+      "frozen_idiomatic": {
+        "file": "nanz-idiomatic/fusion_dot_product.nanz",
+        "status": "PASS",
+        "samples": 60,
+        "mismatches": 0,
+        "TotalT": 1966390,
+        "ProgramBytes": 1645,
+        "source_sha256": "70b3abe8b73fef1544a15655f9f619a4dd9f1e37cdf40bda810653591bca1a0a",
+        "measure_samples_sha256": "e51513d5bd9e0a87bff6bb620f9d7802182de4d29cd33ac3911197f07effc515"
+      }
+    },
+    {
+      "case": "fusion_dot_product",
+      "workload": "workloads/fusion_dot_product.json",
+      "workload_file_sha256": "2412bf1b449bd48bde2524363a46966d0562652488ba54ccd69ce412c7767e6b",
+      "chain": {
+        "file": "nanz-chain/fusion_dot_product_mapsum.nanz",
+        "status": "PASS",
+        "samples": 60,
+        "mismatches": 0,
+        "TotalT": 1966390,
+        "ProgramBytes": 1645,
+        "source_sha256": "0acb1ed2d2ae24710e41b3adbfc9367ce7e13173656c637ed7bf7a35937c976f",
+        "measure_samples_sha256": "e51513d5bd9e0a87bff6bb620f9d7802182de4d29cd33ac3911197f07effc515"
+      },
+      "frozen_idiomatic": {
+        "file": "nanz-idiomatic/fusion_dot_product.nanz",
+        "status": "PASS",
+        "samples": 60,
+        "mismatches": 0,
+        "TotalT": 1966390,
+        "ProgramBytes": 1645,
+        "source_sha256": "70b3abe8b73fef1544a15655f9f619a4dd9f1e37cdf40bda810653591bca1a0a",
+        "measure_samples_sha256": "e51513d5bd9e0a87bff6bb620f9d7802182de4d29cd33ac3911197f07effc515"
+      }
+    },
+    {
+      "case": "fusion_filter_count",
+      "workload": "workloads/fusion_filter_count.json",
+      "workload_file_sha256": "17c1a6614da22ec9505dbb7bb62899efbbe3bd12872887064cd3c808984519ce",
+      "chain": {
+        "file": "nanz-chain/fusion_filter_count.nanz",
+        "status": "PASS",
+        "samples": 180,
+        "mismatches": 0,
+        "TotalT": 955435,
+        "ProgramBytes": 301,
+        "source_sha256": "33c911f72fd295f74b8d0a3da353f1fc231c6fb005ea0a8c19d8403e8776405d",
+        "measure_samples_sha256": "808892330df818596bec63b05d9e1b98adc2901e331ab382c8166d2d842e8cbc"
+      },
+      "frozen_idiomatic": {
+        "file": "nanz-idiomatic/fusion_filter_count.nanz",
+        "status": "PASS",
+        "samples": 180,
+        "mismatches": 0,
+        "TotalT": 956330,
+        "ProgramBytes": 309,
+        "source_sha256": "a5b1369ad1a828d9bb7d5150d98e97fda98cba839b383a40265a6d56da2633db",
+        "measure_samples_sha256": "808892330df818596bec63b05d9e1b98adc2901e331ab382c8166d2d842e8cbc"
+      }
+    },
+    {
+      "case": "fusion_map_store",
+      "workload": "workloads/fusion_map_store.json",
+      "workload_file_sha256": "3c6b50b052d361bfdc639d0852c5a3b7d4cc53de5816411014d17898db206f6f",
+      "chain": {
+        "file": "nanz-chain/fusion_map_store.nanz",
+        "status": "PASS",
+        "samples": 60,
+        "mismatches": 0,
+        "TotalT": 316095,
+        "ProgramBytes": 550,
+        "source_sha256": "3c7cbcd53be54ed429c585af1864fc7f57b8b7012d5c0e913277a945afafa053",
+        "measure_samples_sha256": "1e42ccdf59362b0552a74fe1561efa5167ca1023a68ed3d953fa9d03d0775ca9"
+      },
+      "frozen_idiomatic": {
+        "file": "nanz-idiomatic/fusion_map_store.nanz",
+        "status": "PASS",
+        "samples": 60,
+        "mismatches": 0,
+        "TotalT": 316095,
+        "ProgramBytes": 550,
+        "source_sha256": "3c7cbcd53be54ed429c585af1864fc7f57b8b7012d5c0e913277a945afafa053",
+        "measure_samples_sha256": "1e42ccdf59362b0552a74fe1561efa5167ca1023a68ed3d953fa9d03d0775ca9"
+      }
+    },
+    {
+      "case": "fusion_two_ptr_xor",
+      "workload": "workloads/fusion_two_ptr_xor.json",
+      "workload_file_sha256": "23d5d490834e4276b4fc646dd72d5f1ad5c814ad9c676579012f1105a194ffd6",
+      "chain": {
+        "file": "nanz-chain/fusion_two_ptr_xor.nanz",
+        "status": "PASS",
+        "samples": 60,
+        "mismatches": 0,
+        "TotalT": 596263,
+        "ProgramBytes": 583,
+        "source_sha256": "379df3e6237704c7e4e6c7aec978933ab61238a65c48886ddefa3d9da54387a8",
+        "measure_samples_sha256": "e73c6d58afc542fa8cacdf5a06fc93dfae26643c039a1c18dd8815a3b285d9ca"
+      },
+      "frozen_idiomatic": {
+        "file": "nanz-idiomatic/fusion_two_ptr_xor.nanz",
+        "status": "PASS",
+        "samples": 60,
+        "mismatches": 0,
+        "TotalT": 626115,
+        "ProgramBytes": 577,
+        "source_sha256": "1d20e1f1f74b2ae19d21787c52d263e6f98ca8ff08dfc5e7759358b54fe23cd3",
+        "measure_samples_sha256": "e73c6d58afc542fa8cacdf5a06fc93dfae26643c039a1c18dd8815a3b285d9ca"
+      }
+    },
+    {
+      "case": "fusion_two_ptr_xor",
+      "workload": "workloads/fusion_two_ptr_xor.json",
+      "workload_file_sha256": "23d5d490834e4276b4fc646dd72d5f1ad5c814ad9c676579012f1105a194ffd6",
+      "chain": {
+        "file": "nanz-chain/fusion_two_ptr_xor_fold.nanz",
+        "status": "PASS",
+        "samples": 60,
+        "mismatches": 0,
+        "TotalT": 596263,
+        "ProgramBytes": 583,
+        "source_sha256": "6d889e7c7b101fafa9d990e4393a1e2258520cc4a0b4e31ba2b2dee2c39df1af",
+        "measure_samples_sha256": "e73c6d58afc542fa8cacdf5a06fc93dfae26643c039a1c18dd8815a3b285d9ca"
+      },
+      "frozen_idiomatic": {
+        "file": "nanz-idiomatic/fusion_two_ptr_xor.nanz",
+        "status": "PASS",
+        "samples": 60,
+        "mismatches": 0,
+        "TotalT": 626115,
+        "ProgramBytes": 577,
+        "source_sha256": "1d20e1f1f74b2ae19d21787c52d263e6f98ca8ff08dfc5e7759358b54fe23cd3",
+        "measure_samples_sha256": "e73c6d58afc542fa8cacdf5a06fc93dfae26643c039a1c18dd8815a3b285d9ca"
+      }
+    },
+    {
+      "case": "fusion_window_sum",
+      "workload": "workloads/fusion_window_sum.json",
+      "workload_file_sha256": "67a02381ac61acc882d6eeced353795fa5e225396e2bd4e46eefbe8453f454c8",
+      "chain": {
+        "file": "nanz-chain/fusion_window_sum.nanz",
+        "status": "PASS",
+        "samples": 180,
+        "mismatches": 0,
+        "TotalT": 360558,
+        "ProgramBytes": 342,
+        "source_sha256": "a8ee2b36cc86bd5d1a8d31b1533f583fa258b7a1363ddcb104059baca075c2f8",
+        "measure_samples_sha256": "00564a639bf25cf4ed3395086f4933c957f6ef0149d8014a69111f8467b04d8c"
+      },
+      "frozen_idiomatic": {
+        "file": "nanz-idiomatic/fusion_window_sum.nanz",
+        "status": "PASS",
+        "samples": 180,
+        "mismatches": 0,
+        "TotalT": 364588,
+        "ProgramBytes": 357,
+        "source_sha256": "b720507774759867d27040145087eb8af1687242987263cbd7b089547a40101e",
+        "measure_samples_sha256": "00564a639bf25cf4ed3395086f4933c957f6ef0149d8014a69111f8467b04d8c"
+      }
+    }
+  ]
+}

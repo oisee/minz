@@ -673,13 +673,15 @@ fun main() -> void {
 	}
 }
 
-// TestG0Finding_UnsupportedMethodRejected: take/skip/enumerate/iter/collect
-// are NOT part of the Nanz iterator chain (they exist only in the retired
-// .minz frontend). Using them today compiles without a diagnostic and emits
-// invalid instructions (LD A, ?) plus undefined labels that break the whole
-// module's assembly.
+// TestG0Finding_UnsupportedMethodRejected (G0-5, resolved): a chain method the
+// recogniser does not support used to compile without a diagnostic and emit
+// invalid instructions (LD A, ?) plus CALLs to undefined labels. Now every
+// spelling below either compiles to a correct program or is rejected with a
+// source-line compile error. take/skip are chain stages; the terminal has no
+// element count, so the global array's declared length (8) supplies it.
+// enumerate/iter/collect/min/max/takeWhile name no function.
 func TestG0Finding_UnsupportedMethodRejected(t *testing.T) {
-	for _, method := range []string{"take", "skip", "enumerate", "iter"} {
+	for _, method := range []string{"take", "skip", "enumerate", "iter", "collect", "min", "max", "takeWhile"} {
 		t.Run(method, func(t *testing.T) {
 			src := `
 global src8: [u8; 8]
@@ -695,27 +697,25 @@ fun main() -> u8 {
 }
 `
 			m, err := nanz.Parse(src, "g0_unsupported")
-			if err != nil {
-				return // A clean parse diagnostic also rejects unsupported syntax.
+			if err == nil {
+				_, err = pipeline.CompileHIRSteps(m, pipeline.DefaultOptions())
 			}
-			steps, err := pipeline.CompileHIRSteps(m, pipeline.DefaultOptions())
+			want := map[string]int{"take": 6, "skip": 30}[method] // take(3): 1+2+3; skip(3): 4+...+8
 			if err != nil {
+				if want != 0 {
+					t.Fatalf(".%s(3) over a sized array must compile (declared length 8): %v", method, err)
+				}
+				if !strings.Contains(err.Error(), "line 10") {
+					t.Fatalf("rejected without the source line: %v", err)
+				}
 				return // A clean compile error is the correct rejection.
 			}
-			if !strings.Contains(steps.Assembly, "?") && !g0HasUndefinedIteratorCall(steps.Assembly, method, "forEach") {
-				want := 6 // take(3): 1+2+3
-				if method == "skip" {
-					want = 30 // 4+5+6+7+8
-				}
-				if method == "iter" || method == "enumerate" {
-					want = 36
-				}
-				if err := g0RunAsserts(t, src+fmt.Sprintf("\nassert main() == %d\n", want)); err != nil {
-					t.Fatal(err)
-				}
-				return
+			if want == 0 {
+				t.Fatalf(".%s(3) compiled; want a compile error", method)
 			}
-			t.Skip("G0 finding G0-5: unsupported iterator method ." + method + "() emits invalid assembly instead of a compile error")
+			if err := g0RunAsserts(t, src+fmt.Sprintf("\nassert main() == %d\n", want)); err != nil {
+				t.Fatal(err)
+			}
 		})
 	}
 }

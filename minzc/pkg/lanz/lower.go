@@ -3,6 +3,7 @@ package lanz
 import (
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/minz/minzc/pkg/hir"
 	"github.com/minz/minzc/pkg/mir2"
@@ -820,6 +821,10 @@ func (c *compiler) compileCall(n Node) (hir.Expr, error) {
 		return nil, fmt.Errorf("line %d: call: missing function name", n.Line)
 	}
 	fn := n.List[start].Atom
+	// (.sum src n), (.take src k), ...: an iterator chain method, the Lanz
+	// spelling of Nanz method syntax src.sum(n). A plain (sum ...) is a call.
+	method := strings.HasPrefix(fn, ".") && len(fn) > 1
+	fn = strings.TrimPrefix(fn, ".")
 	var args []hir.Expr
 	for _, a := range n.List[start+1:] {
 		expr, err := c.compileExpr(a)
@@ -832,8 +837,10 @@ func (c *compiler) compileCall(n Node) (hir.Expr, error) {
 	retTy := mir2.Ty(mir2.TyVoid)
 	if f, ok := c.funcs[fn]; ok {
 		retTy = f.RetTy
+	} else if method && (fn == "count" || fn == "sum") {
+		retTy = mir2.TyU16
 	}
-	return &hir.CallExpr{Fn: fn, Args: args, Ty: retTy}, nil
+	return &hir.CallExpr{Fn: fn, Args: args, Ty: retTy, Method: method}, nil
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────

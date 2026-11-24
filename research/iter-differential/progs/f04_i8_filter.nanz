@@ -1,0 +1,3 @@
+global gi: [i8; 6] = [-4, 6, -100, 127, -1, 3]
+fun t() -> u16 { return gi.filter(|x: i8| x < 0).fold(u16(0), |s: u16, x: i8| s + 1, 6) }
+assert t() == 3

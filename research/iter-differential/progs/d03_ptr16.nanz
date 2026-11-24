@@ -1,0 +1,4 @@
+global w: [u16; 6] = [1000, 2000, 40000, 7, 65535, 2]
+fun t() -> u16 { let p: ^u16 = &w[0]
+  return p.fold(u16(0), |s: u16, x: u16| s + x, 6) }
+assert t() == 43008

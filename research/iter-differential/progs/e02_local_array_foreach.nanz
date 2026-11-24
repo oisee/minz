@@ -1,0 +1,6 @@
+global h: u16 = 0
+fun t() -> u16 { let arr: [u8; 4] = [5, 6, 7, 8]
+  h = 0
+  arr.forEach(|x: u8| { h = h * 10 + u16(x) }, 4)
+  return h }
+assert t() == 5678

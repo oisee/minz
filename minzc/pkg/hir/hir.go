@@ -121,6 +121,11 @@ type Module struct {
 	Warnings            []string          // use-before-init and other diagnostic warnings
 	Asserts             []Assert          // top-level compile-time assertions (each gets fresh VM)
 	Sandboxes           []Sandbox         // grouped assertions (shared VM per sandbox)
+
+	// Frontend diagnostic side tables for CheckIterChains; not semantics, so
+	// excluded from the HIR fingerprints.
+	MethodCallLines map[*CallExpr]int  `json:"-" fingerprint:"-"` // x.name(...) calls naming no declared function → line
+	MethodSyntax    map[*CallExpr]bool `json:"-" fingerprint:"-"` // x.name(...) calls named like chain methods
 }
 
 // FuncByName returns the first HIR function with the given name, or nil.
@@ -457,6 +462,13 @@ type CallExpr struct {
 	Fn   string
 	Args []Expr
 	Ty   mir2.Ty // return type; TyVoid for void calls
+	// Method marks the method-syntax calls whose meaning depends on it: the
+	// chain methods skip/take/zip/count/sum (a plain sum(...) is a call) and
+	// a memory terminal written without its count (see MethodMarked). Text
+	// forms spell it (call @.sum, (.sum ...), src.sum(n)). It is false on
+	// every call of a program valid without it, and then omitted from the
+	// HIR fingerprints, so their identities are unchanged.
+	Method bool `json:",omitempty" fingerprint:"omitzero"`
 }
 
 func (*CallExpr) hirExpr()          {}

@@ -319,6 +319,9 @@ type loopCtx struct {
 }
 
 type lowerer struct {
+	lazyLoads           map[string]Expr    // chain zip element → its load, lowered at the single use
+	zipInStmt           bool               // chain build inlined a forEach statement body reading the zip element
+	chainArrays         map[string]mir2.Ty // array-typed sources by name (local array decls, array globals), built on first use
 	disableCountedLoops bool
 	permitCountedLoops  bool
 	loopCostIndex       int
@@ -1175,6 +1178,16 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 			_, aggregate := mir2.BaseOf(st.Ty).(*mir2.StructTy)
 			_, array := mir2.BaseOf(st.Ty).(*mir2.ArrayTy)
 			if !aggregate && !array {
+				// A value chain initialiser is lowered first, into a temporary.
+				if call, isCall := st.Init.(*CallExpr); isCall && isValueIterTerminal(call.Fn) {
+					if reg, accTy, ok := l.tryLowerFold(call); ok {
+						tmp := l.fresh("__chain_val")
+						l.bind(tmp, reg, accTy)
+						cp := *st
+						cp.Init = &VarRefExpr{Name: tmp, Ty: accTy}
+						return l.lowerStmt(&cp)
+					}
+				}
 				// Own addressable storage even when declared inside a loop.
 				// The environment carries its address through CFG edges.
 				cell := &mir2.StructTy{Fields: []mir2.StructField{{Name: "value", Ty: st.Ty}}}
@@ -1219,9 +1232,8 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 		var r mir2.Reg
 		if st.Init != nil {
 			// Check for fold/reduce: let result = fold(ptr, init, cb, n)
-			if foldReg, ok := l.tryLowerFold(st.Init); ok {
-				chain, _ := l.recognizeIterChain(st.Init)
-				l.bind(st.Name, l.coerceLocalInteger(foldReg, chain.foldAccTy, st.Ty), st.Ty)
+			if foldReg, accTy, ok := l.tryLowerFold(st.Init); ok {
+				l.bind(st.Name, l.coerceLocalInteger(foldReg, accTy, st.Ty), st.Ty)
 				return false
 			}
 			r = l.lowerExpr(st.Init)
@@ -1333,11 +1345,17 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 				defer func() { l.literalStorePointers = previous }()
 			}
 		}
+		// A value chain using skip/take/zip/count/sum: lower it, then assign
+		// its result through the ordinary path (globals, memory targets). An
+		// original fold chain takes the same path unless the target is a plain
+		// register local: binding a global's name in env dropped the store.
+		if done, ok := l.lowerChainAssign(st.Target, st.Val); ok {
+			return done
+		}
 		// Check for fold/reduce: x = fold(ptr, init, cb, n)
-		if foldReg, ok := l.tryLowerFold(st.Val); ok {
+		if foldReg, accTy, ok := l.tryLowerFold(st.Val); ok {
 			if tgt, ok2 := st.Target.(*VarRefExpr); ok2 {
-				chain, _ := l.recognizeIterChain(st.Val)
-				l.env[tgt.Name] = l.coerceLocalInteger(foldReg, chain.foldAccTy, tgt.Ty)
+				l.env[tgt.Name] = l.coerceLocalInteger(foldReg, accTy, tgt.Ty)
 				l.envTy[tgt.Name] = tgt.Ty
 				return false
 			}
@@ -1447,10 +1465,9 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 			l.bld.Ret(regs...)
 		} else if st.Val != nil {
 			// Check for fold/reduce: return fold(ptr, init, cb, n)
-			if foldReg, ok := l.tryLowerFold(st.Val); ok {
-				chain, _ := l.recognizeIterChain(st.Val)
+			if foldReg, accTy, ok := l.tryLowerFold(st.Val); ok {
 				if len(l.bld.F.Contract.Returns) > 0 {
-					foldReg = l.coerceLocalInteger(foldReg, chain.foldAccTy, l.bld.F.Contract.Returns[0].Ty)
+					foldReg = l.coerceLocalInteger(foldReg, accTy, l.bld.F.Contract.Returns[0].Ty)
 				}
 				l.bld.Ret(foldReg)
 			} else {
@@ -1538,6 +1555,9 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 		return false
 
 	case *StoreStmt:
+		if done, ok := l.lowerChainStore(st); ok {
+			return done // p^ = chain: lowered through a temporary
+		}
 		// When the target is an IndexExpr we need the *address* (TyPtr),
 		// not the loaded value.  lowerExpr(IndexExpr) would emit a Load
 		// and return the element value (TyU8/etc), causing PBQP to
@@ -2562,6 +2582,9 @@ func (l *lowerer) lowerExpr(e Expr) mir2.Reg {
 		return l.bld.Const(v, mir2.TyBool, mir2.ClassGeneral)
 
 	case *VarRefExpr:
+		if load, lazy := l.lazyLoads[ex.Name]; lazy {
+			return l.lowerExpr(load) // zip element read at its single use
+		}
 		r, ok := l.env[ex.Name]
 		if !ok {
 			// Check if it's a function alias (let f = |x| ...).
@@ -3739,6 +3762,9 @@ func iterBlockNeedsCall(b *Block) bool {
 // ForEachStmt (avoiding CALL overhead for lambda callbacks).
 // Returns true if the pattern was recognized and lowered.
 func (l *lowerer) tryLowerIterChain(expr Expr) bool {
+	if _, _, ok := l.tryLowerChain(expr); ok {
+		return true
+	}
 	chain, ok := l.recognizeIterChain(expr)
 	if !ok {
 		return false
@@ -3759,17 +3785,25 @@ func (l *lowerer) tryLowerIterChain(expr Expr) bool {
 	return true
 }
 
-// tryLowerFold recognizes a fold/reduce call and returns the result register.
-// Returns (reg, true) on success; (NoReg, false) if expr is not a fold chain.
-func (l *lowerer) tryLowerFold(expr Expr) (mir2.Reg, bool) {
+// tryLowerFold recognizes a value chain (fold/reduce, and count/sum with the
+// new chain methods) and returns the result register and its accumulator
+// type. Returns (NoReg, nil, false) if expr is not such a chain. The type is
+// returned, not parked in the lowerer: a chain inside an inlined callback of
+// another chain must not overwrite the outer chain's type.
+func (l *lowerer) tryLowerFold(expr Expr) (mir2.Reg, mir2.Ty, bool) {
+	if call, isCall := expr.(*CallExpr); isCall && isValueIterTerminal(call.Fn) {
+		if reg, accTy, ok := l.tryLowerChain(expr); ok {
+			return reg, accTy, true
+		}
+	}
 	chain, ok := l.recognizeIterChain(expr)
 	if !ok || !chain.isFold {
-		return mir2.NoReg, false
+		return mir2.NoReg, nil, false
 	}
 	if chain.isRange {
-		return l.lowerRangeFold(chain), true
+		return l.lowerRangeFold(chain), chain.foldAccTy, true
 	}
-	return l.lowerFusedFold(chain), true
+	return l.lowerFusedFold(chain), chain.foldAccTy, true
 }
 
 // recognizeIterChain matches forEach(src,cb,n) and mapInPlace(src,cb,n)
@@ -4465,7 +4499,7 @@ func renameExpr(e Expr, from, to string) Expr {
 		for i, a := range ex.Args {
 			args[i] = renameExpr(a, from, to)
 		}
-		return &CallExpr{Fn: ex.Fn, Args: args, Ty: ex.Ty}
+		return &CallExpr{Fn: ex.Fn, Args: args, Ty: ex.Ty, Method: ex.Method}
 	case *CallIndirectExpr:
 		args := make([]Expr, len(ex.Args))
 		for i, a := range ex.Args {

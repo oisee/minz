@@ -86,7 +86,7 @@ func AnalyzeFacts(m *Module) *Facts {
 				}
 			case *CallExpr:
 				calls[x.Fn] = true
-				if graceMayInlineCallback(x.Fn) {
+				if graceMayInlineCallback(x.Fn) || x.Method && isNewIterChainMethod(x.Fn) {
 					ff.Direct |= UnknownEffect
 				}
 			case *CallIndirectExpr:

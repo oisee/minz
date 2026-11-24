@@ -1,0 +1,7 @@
+struct V { x: u8, y: u8 }
+impl V { fun sum(self) -> u16 { return u16(self.x) + u16(self.y) } }
+global v: V
+fun t() -> u16 { v.x = 3
+  v.y = 4
+  return v.sum() }
+assert t() == 7

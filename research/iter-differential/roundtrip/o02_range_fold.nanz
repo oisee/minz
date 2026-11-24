@@ -1,0 +1,4 @@
+fun oldc(m: u8) -> u16 {
+    return range(0..m).filter(|x: u8| x > 2).fold(u16(0), |s: u16, x: u8| s + u16(x))
+}
+assert oldc(8) == 25

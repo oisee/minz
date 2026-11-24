@@ -12,8 +12,10 @@ expansion and manual cursor contract scenarios are pinned on raw MIR2 VM
 assembled Z80 in the three test files under `minzc/pkg/nanz`:
 `iteration_audit_e2e_test.go`, `iterator_claims_legacy_test.go`, and
 `generator_contract_e2e_test.go`. `TestG0IterChainAsmCallback` and legacy
-execution tests are **Z80-only**. G0-5 and G0-L1 currently pin invalid
-assembly/rejection; clean acceptance must execute and check semantics.
+execution tests are **Z80-only**. G0-L1 currently pins invalid
+assembly/rejection (G0-5 is resolved, see below); clean acceptance must execute
+and check semantics. The chain methods `skip`/`take`/`zip`/`count`/`sum` are
+pinned on all three tiers in `iter_adaptors_e2e_test.go`.
 G0-7 is fixed (P17): the test now parses and evaluates on all three tiers. Skipped findings stop at the first
 observed failure, so a skip does not establish results on later tiers.
 The callback `break` panic and exact `$F018` index address below are
@@ -32,13 +34,18 @@ claim is an audit observation; G0-L1 pins one representative program.
 | chain `fold`/`reduce` (memory) | forward | returns `init` | `cb(init, ptr[0])` | full 255 | via u16 len | not expressible | VM=VM=Z80 |
 | chainable `range(lo..hi).fold/.forEach` | forward (see range) | `init` / nothing | `[1]` | full 255 | G0-9 | not expressible | VM=VM=Z80 |
 | `pipe`/`trans` + `.apply()` | expands to nested `map`/`filter` calls — identical semantics per source | as chain | as chain | as chain | as chain | not expressible | VM=VM=Z80 |
-| `take`/`skip`/`enumerate`/`iter`/`collect`… | **not recognised in Nanz** (legacy `.minz` only) — silently emit invalid asm (G0-5) | — | — | — | — | — | broken |
+| chain `skip(k)`/`take(k)` stages (memory or range src) | forward; `skip` drops the first k elements reaching it, `take` passes the first k reaching it (counts survivors after a `filter`) | no effects / `init` | as stage | full 255 | via u16 len | **`take`: loop stops** right after the k-th accepted element; on a memory source the next element is not even loaded (ADR 0050) | VM=VM=Z80 |
+| chain `src.zip(other)` (memory only) | forward; source element i pairs with `other[i]` by **source position**, also after a `filter`; with an implicit count (sized global arrays) the shorter declared length | no effects / `init` | 1 pair | full 255 | via u16 len | via `take` | VM=VM=Z80 |
+| terminals `count(n)` / `sum(n)` (`count()`/`sum()` on range) | forward; u16 result, `sum` zero-extends and wraps mod 65536 | 0 | 1 / `x` | full 255 | via u16 len | via `take` | VM=VM=Z80 |
+| `enumerate`/`iter`/`collect`/`min`/`max`/`takeWhile`… | **rejected**: compile error `unknown method .name(...)` with source line (G0-5 resolved) | — | — | — | — | — | error |
 
 "Early exit not expressible": iterator-chain callbacks are separate functions — a
 `break` in a callback body is a compile-time panic (`BreakStmt outside loop`), and
 `return` in a callback means "end this element's body", never "stop consuming"
-(pinned by `TestG0IterChainCallbackReturn`). There is no `take`-style early stop
-in any Nanz chain — the direct motivation for ADR 0048's pull protocol.
+(pinned by `TestG0IterChainCallbackReturn`). The only early stop in a chain is
+the `take(k)` stage (added 2026-11, `iter_adaptors_e2e_test.go`); predicate
+stops (`takeWhile`, `find`) remain inexpressible — the direct motivation for
+ADR 0048's pull protocol.
 
 ## Semantics notes
 
@@ -95,15 +102,54 @@ Recorded, not fixed here:
 - **G0-4** — `range(5..3)` (lo > hi, hi ≠ 0, not the Rev spelling): count
   `hi-lo` underflows u8 to 254. With the element read, the `for` lowering now yields an empty loop; an unused-element DJNZ loop still runs 254 times. Same class as G0-3.
   Test: `TestG0Finding_CrossedRangeBounds` (skip).
-- **G0-5** — unsupported iterator methods (`take`, `skip`, `enumerate`, `iter`,
-  …) are accepted by the Nanz parser and lowered to placeholder code: the
-  module compiles with **no error**, but Z80 validation reports
-  `LD A, ?` invalid instructions and undefined labels — one such call anywhere
-  breaks the whole module's assembly. Correct behaviour: a source-level
-  diagnostic, or full support with correct values. Test:
-  `TestG0Finding_UnsupportedMethodRejected` (skip on invalid assembly; clean
-  acceptance checks take(3)=6, skip(3)=30, iter/enumerate traversal sum=36
-  on input [1..8]).
+- **G0-5 (resolved 2026-11)** — unsupported iterator methods used to be
+  accepted by the Nanz parser and lowered to placeholder code (`LD A, ?`,
+  CALLs to undefined labels). Now `skip`, `take`, `zip`, `count` and `sum`
+  are chain methods (fused, three-tier tests in `iter_adaptors_e2e_test.go`),
+  and `hir.CheckIterChains` (run first in `pipeline.CompileHIRSteps`) turns
+  everything else into a compile error with the source line:
+  - `x.name(args)` where no function `name` is declared or imported and
+    `name` is not a chain method (`enumerate`, `iter`, `collect`, `min`,
+    `max`, `takeWhile`, …) → `unknown method .name(...)`. Only method-call
+    syntax is checked; a plain call `name(args)` may still name an assembly
+    or runtime label.
+  - a chain the recogniser refuses (wrong arity, a non-callable callback,
+    `zip` anywhere but directly on a memory source or twice, a callback
+    whose element arity does not match the paired/single state, `sum` on
+    pairs, `mapInPlace` with `zip` or a non-head `skip`/`take`, a memory
+    terminal without its count — unless the source is a sized global array,
+    whose declared length is then used) → `unsupported iterator chain: …`;
+  - a chain method outside a lowered position (a stage without terminal, a
+    value terminal inside a larger expression) → an error naming the rule.
+  Further rules of the new chain path (review round 1): `k` and `n` must be
+  u8 or u16 (or a non-negative literal) — signed and bool counts are
+  rejected; element types must be u8, i8, bool, u16 or i16, and must match
+  the byte width the source (or `other`) declares; the chain's arguments are
+  evaluated once in source order (source, `zip` argument, stage arguments,
+  terminal arguments); a value chain may be the whole right-hand side of an
+  assignment to any target, including `p^ = …`; a callback inside another
+  callback may not use the outer callback's parameter (bind it to a local).
+  An original `fold` assigned to a global or memory target used to drop the
+  store; it now goes through the same temporary.
+  Review round 2: `skip`/`take`/`zip`/`count`/`sum` are chain methods only in
+  method syntax (`x.sum(n)`, marked on the HIR call as `CallExpr.Method`); a
+  plain `sum(buf, 4)` is a call, as on origin/main (it may name an asm
+  label), and `CheckIterChains` checks only method-syntax calls, so the
+  functional spellings (`forEach(src, cb, n)`, `fold(...)`) and every other
+  frontend behave as before. An untyped fold accumulator takes the init's
+  type (an untyped literal init keeps origin/main's hint: a pointer source's
+  pointer type, a map's result type; u16 where main had none). `mapInPlace`
+  gets the element-type hint and must store the type it loads. Struct
+  elements are rejected in the original chains too (every such shape loaded
+  wrong bytes or emitted invalid assembly on origin/main); a scalar parameter
+  walking a struct or nested array as bytes/words, and an unread array
+  parameter, keep working. A global initialiser `global s: u16 = a.sum()`
+  gives 0 silently, like any call in a global initialiser on origin/main.
+  A user function named like a chain method (`fun sum(...)`) keeps plain
+  UFCS meaning. Test: `TestG0Finding_UnsupportedMethodRejected` (no longer
+  skips: each spelling must be a source-line error or run correctly) and
+  `TestIterChainDiagnostics`. Ten `examples/e2e_iterators/*.minz` files that
+  used to "compile" into undefined labels now get the diagnostic.
 - **G0-6 (withdrawn):** u16 overflow truncates consistently to 24464 on all tiers.
 - **G0-7 (fixed by P17)** — a scalar `return` stopped after its first
   parenthesised operand (`return (a * 3) + x`, `return (b+b)-(a+a)`), so the
@@ -125,6 +171,9 @@ Recorded, not fixed here:
   may exceed 255**, yielding 0..255. Test:
   `TestG0Finding_RangeCounterWidth` (skip on failure) uses a u16 callback and
   requires first=0, count=256, sum=32640 on the three-tier path.
+  The terminals `count()`/`sum()` on a range inherit it:
+  `range(0..300).count()` runs 44 times (`TestIterRangeCountWide`, skipped,
+  expects 300).
 
 ### Legacy `.minz` pipeline (claims evidence)
 

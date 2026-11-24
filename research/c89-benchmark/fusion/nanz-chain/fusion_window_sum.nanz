@@ -1,0 +1,7 @@
+global source: [u8; 256]
+global n: u16
+global result: u16
+global limit: u16
+fun execute() {
+    result = source.skip(4).take(limit).sum(n)
+}

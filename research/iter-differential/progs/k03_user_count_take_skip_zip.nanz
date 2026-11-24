@@ -1,0 +1,8 @@
+global a: [u8; 6] = [200, 100, 3, 4, 7, 9]
+fun count(p: ^u8) -> u16 { return 1000 }
+fun take(p: ^u8, k: u8) -> u8 { return p^ + k }
+fun skip(p: ^u8, k: u8) -> u8 { return p[k] }
+fun zip(x: u8, y: u8) -> u8 { return x xor y }
+fun t() -> u16 { let p: ^u8 = &a[0]
+  return p.count() + u16(p.take(1)) + u16(p.skip(2)) + u16(zip(5, 3)) }
+assert t() == 1210

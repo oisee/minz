@@ -1,0 +1,6 @@
+global gi: [i8; 6] = [-4, 6, -100, 127, -1, 3]
+global hs: i16 = 0
+fun t() -> i16 { hs = 0
+  gi.forEach(|x| { hs = hs + i16(x) }, 6)
+  return hs }
+assert t() == 31

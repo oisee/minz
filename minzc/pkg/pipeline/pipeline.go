@@ -198,6 +198,12 @@ func DefaultOptions() Options {
 // CompileHIRSteps runs the full HIR→MIR2→Z80 pipeline and returns all intermediate outputs.
 func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 	// Runtime and ABI admission below inspect fields and traverse bodies.
+	// Unsupported iterator chains and unknown methods are source errors, not
+	// CALLs to undefined labels. Checked before Verify: an unknown method's
+	// call has no type, and Verify would report only that.
+	if err := hir.CheckIterChains(hm); err != nil {
+		return Steps{}, err
+	}
 	if err := hir.Verify(hm); err != nil {
 		return Steps{}, err
 	}

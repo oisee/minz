@@ -1,0 +1,8 @@
+global a: [u8; 6] = [200, 100, 3, 4, 7, 9]
+global r: u16 = 0
+fun add16(s: u16, x: u8) -> u16 { return s + u16(x) }
+fun set() { r = a.fold(u16(0), add16, 6) }
+fun t() -> u16 { r = 1
+  set()
+  return r }
+assert t() == 323

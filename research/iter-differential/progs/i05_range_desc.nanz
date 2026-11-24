@@ -1,0 +1,5 @@
+global h: u16 = 0
+fun t() -> u16 { h = 0
+  range(5..0).forEach(|i: u8| { h = h * 10 + u16(i) })
+  return h }
+assert t() == 43210

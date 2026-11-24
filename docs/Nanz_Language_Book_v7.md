@@ -913,13 +913,23 @@ Nanz supports a composable iterator chain syntax on arrays and pointers. The cru
 |--------|---------|
 | `ptr.map(λ)` | Transform each element |
 | `ptr.filter(λ)` | Keep elements where λ is true |
-| `ptr.forEach(λ, n)` | Execute λ for each of n elements |
-| `ptr.fold(init, λ)` | Reduce n elements to a single value |
-| `ptr.reduce(λ)` | Reduce with first element as init |
-| `ptr.take(k)` | Keep first k elements |
-| `ptr.skip(k)` | Skip first k elements |
-| `ptr.enumerate()` | Add element index |
-| `ptr.chain(other)` | Concatenate two iterators |
+| `ptr.skip(k)` | Drop the first k elements that reach this stage |
+| `ptr.take(k)` | Pass the first k elements that reach this stage, then stop the loop |
+| `ptr.zip(other)` | Pair element i with `other[i]`; later callbacks take `\|x, y\|` |
+| `ptr.forEach(λ, n)` | Execute λ for each of n source elements |
+| `ptr.mapInPlace(λ, n)` | Store λ(x) back into each element |
+| `ptr.fold(init, λ, n)` | Reduce n source elements to a single value |
+| `ptr.reduce(init, λ, n)` | Same as `fold` |
+| `ptr.count(n)` | Number of elements reaching the end, as u16 |
+| `ptr.sum(n)` | Wrapping u16 sum of the elements reaching the end |
+
+On a memory source the last argument `n` is the number of **source** elements;
+it may be left out when the source is a sized global array (`global a: [u8; 8]`
+→ `a.take(3).forEach(step)` walks at most 8). `range(lo..hi)` sources take no
+`n` (`range(0..10).sum()`). Anything else —
+`enumerate`, `iter`, `collect`, `min`, `max`, `takeWhile`, `chain` — is a
+compile error (`unknown method .name(...)`), unless you declare a function of
+that name, which `x.name(...)` then calls (UFCS).
 
 ### 5.2 Fusion
 
@@ -968,8 +978,63 @@ arr.forEach(|x: u8| { sum = sum + x }, n)
 
 This is **zero-cost closure capture** — `sum` is a CPU register throughout the loop.
 
-### 5.4 E2E Verification
+### 5.4 skip, take, zip, count, sum
 
+`skip(k)` and `take(k)` count the elements that *reach* them, so after a
+`filter` they count survivors. `take` stops the whole loop right after the k-th
+accepted element: no stage or callback runs for any later source element, and a
+memory source's next element is not read. `k` and `n` are u8 or u16.
+
+```nanz
+// [0, 0, 7, 8, 9]: pos runs for 0, 0, 7, 8 — never for 9
+buf.filter(pos).take(2).forEach(emit, 5)      // emits 7, 8
+```
+
+Directly on the source (before any `map` or `filter`) `skip`/`take` cost
+nothing per element: they move the start pointer and clamp the count before the
+loop. `k` is evaluated once.
+
+```nanz
+let total: u16 = source.skip(4).take(limit).sum(n)   // elements 4 .. 4+limit-1, clamped to n
+```
+
+`zip(other)` walks a second buffer in lockstep with the source position — a
+`filter` after it keeps or drops whole pairs. A `map(|x, y| ...)` turns the pair
+back into one element, and may change its type:
+
+```nanz
+let dot: u16 = source.zip(other).map(|x: u8, y: u8| u16(x) * u16(y)).sum(n)
+let hits: u16 = source.zip(other).filter(|x: u8, y: u8| x > y).count(n)
+```
+
+`count` and `sum` are terminals returning u16; `sum` zero-extends each element
+and wraps modulo 65536. Use them as a statement or as the whole right-hand side
+of `let`, an assignment or `return`.
+
+Measured on the frozen fusion workloads (default profile, all samples pass;
+T-states are summed over all samples of a case;
+numbers from `research/c89-benchmark/fusion/nanz-chain/measured-default.json`),
+against the hand-written spellings in `fusion/nanz-idiomatic/` compiled by the
+same compiler:
+
+| Case | Chain spelling | T-states | Bytes | Hand spelling T-states | Bytes | ΔT |
+|---|---|---:|---:|---:|---:|---:|
+| fusion_dot_product | `fusion_dot_product.nanz` | 1966390 | 1645 | 1966390 | 1645 | +0.0% |
+| fusion_dot_product | `fusion_dot_product_mapsum.nanz` | 1966390 | 1645 | 1966390 | 1645 | +0.0% |
+| fusion_filter_count | `fusion_filter_count.nanz` | 955435 | 301 | 956330 | 309 | -0.1% |
+| fusion_map_store | `fusion_map_store.nanz` | 316095 | 550 | 316095 | 550 | +0.0% |
+| fusion_two_ptr_xor | `fusion_two_ptr_xor.nanz` | 596263 | 583 | 626115 | 577 | -4.8% |
+| fusion_two_ptr_xor | `fusion_two_ptr_xor_fold.nanz` | 596263 | 583 | 626115 | 577 | -4.8% |
+| fusion_window_sum | `fusion_window_sum.nanz` | 360558 | 342 | 364588 | 357 | -1.1% |
+
+Every chain spelling is at least as fast as its hand spelling. The two-pointer
+XOR chain is 4.8 % faster than the hand-written `while` loop but 6 bytes
+larger (583 against 577).
+
+### 5.5 E2E Verification (historical)
+
+This table describes the retired MIR1 pipeline and was not re-measured; see
+`docs/Nanz_Iteration_Audit.md` for the current pinned semantics.
 All 11 iterator chain combinations are verified end-to-end:
 
 | Chain | Binary | T-states |

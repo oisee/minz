@@ -1,0 +1,7 @@
+global w: [u16; 6] = [1000, 2000, 40000, 7, 65535, 2]
+global h: u16 = 0
+fun t() -> u16 { let p: ^u16 = &w[0]
+  h = 0
+  p.forEach(|x| { h = h + x }, 6)
+  return h }
+assert t() == 43008

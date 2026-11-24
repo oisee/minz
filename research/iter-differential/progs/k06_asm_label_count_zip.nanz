@@ -1,0 +1,18 @@
+global res: u16 = 0
+fun helpers() -> void {
+  asm {
+    RET
+  sum:
+    LD HL, 1234
+    RET
+  count:
+    LD HL, 77
+    RET
+  zip:
+    LD HL, 9
+    RET
+  }
+}
+fun t() -> u16 { let c: u16 = count(5)
+  let z: u16 = zip(1, 2)
+  return c }

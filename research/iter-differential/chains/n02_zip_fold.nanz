@@ -1,0 +1,4 @@
+global a: [u8; 5] = [1, 2, 3, 4, 5]
+global b: [u8; 5] = [10, 20, 30, 40, 50]
+fun t() -> u16 { return a.zip(b).fold(u16(0), |s: u16, x: u8, y: u8| s * 3 + u16(x) * u16(y), 5) }
+assert t() == 3430

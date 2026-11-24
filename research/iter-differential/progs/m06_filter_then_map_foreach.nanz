@@ -1,0 +1,6 @@
+global a: [u8; 6] = [200, 100, 3, 4, 7, 9]
+global h: u16 = 0
+fun t() -> u16 { h = 0
+  a.filter(|x: u8| x < 100).map(|x: u8| x + 1).forEach(|x: u8| { h = h * 7 + u16(x) }, 6)
+  return h }
+assert t() == 1683

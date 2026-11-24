@@ -1,0 +1,4 @@
+global a: [u8; 6] = [200, 100, 3, 4, 7, 9]
+fun t(n: u8) -> u16 { return a.fold(u16(0), |s: u16, x: u8| s + u16(x), n) }
+assert t(3) == 303
+assert t(0) == 0

@@ -1,0 +1,7 @@
+global a: [u8; 6] = [200, 100, 3, 4, 7, 9]
+global h: u16 = 0
+fun t() -> u16 { let p: ^u8 = &a[0]
+  h = 0
+  p.forEach(|x| { h = h + u16(x) }, 6)
+  return h }
+assert t() == 323

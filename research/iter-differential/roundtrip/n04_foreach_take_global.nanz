@@ -1,0 +1,10 @@
+global a: [u8; 8]
+global h: u16 = 0
+fun step(x: u8) -> void { h = h + u16(x) }
+fun newc() -> u16 {
+    for i in 0..8 { a[i] = i + 1 }
+    h = 0
+    a.filter(|x: u8| x > 4).take(2).forEach(step, 8)
+    return h
+}
+assert newc() == 11

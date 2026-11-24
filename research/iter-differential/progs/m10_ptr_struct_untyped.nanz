@@ -1,0 +1,11 @@
+struct P { a: u8, b: u8 }
+global ps: [P; 3]
+global h: u16 = 0
+fun t() -> u16 { ps[0].a = 1
+  ps[1].a = 3
+  ps[2].a = 5
+  h = 0
+  let q: ^P = &ps[0]
+  q.forEach(|p| { h = h + u16(p.a) }, 3)
+  return h }
+assert t() == 9

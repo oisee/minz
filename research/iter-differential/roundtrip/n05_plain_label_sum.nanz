@@ -1,0 +1,18 @@
+global buf: [u8; 4]
+fun helpers() -> void {
+    asm {
+        RET
+    sum:
+        LD HL, 1234
+        RET
+    }
+}
+fun f() -> u16 {
+    let r: u16 = sum(buf, 4)
+    return r
+}
+fun g() -> u16 {
+    for i in 0..4 { buf[i] = i + 1 }
+    return buf.sum(4)
+}
+assert g() == 10

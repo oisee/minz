@@ -1,0 +1,7 @@
+global a: [u8; 8]
+fun init() -> void { for i in 0..8 { a[i] = i + 1 } }
+fun oldc() -> u16 {
+    init()
+    return a.filter(|x: u8| x > 2).fold(u16(0), |s: u16, x: u8| s + u16(x), 8)
+}
+assert oldc() == 33

@@ -1,0 +1,3 @@
+@extern(0x0010) fun sum(x: u8) -> u8
+fun t() -> u8 { return 1 }
+assert t() == 1

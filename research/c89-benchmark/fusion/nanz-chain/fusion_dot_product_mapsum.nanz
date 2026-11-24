@@ -1,0 +1,7 @@
+global source: [u8; 256]
+global n: u16
+global result: u16
+global other: [u8; 256]
+fun execute() {
+    result = source.zip(other).map(|x: u8, y: u8| u16(x) * u16(y)).sum(n)
+}

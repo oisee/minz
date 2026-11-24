@@ -535,7 +535,17 @@ type nanzADTCtor struct {
 	adtName string  // back-reference to parent ADT name
 }
 
+// methodCallSite is one `receiver.name(args)` call left undispatched to a
+// struct/interface method; checked once every function signature is known.
+type methodCallSite struct {
+	call  *hir.CallExpr
+	name  string
+	line  int
+	local bool // name was a local variable or callable binding at the call
+}
+
 type parser struct {
+	methodCalls      []methodCallSite
 	literalTypeErr   error   // delayed diagnostic after forward signatures are known
 	typeContext      *parser // visible caller types/methods for generated declarations
 	metaBindingCount int     // deterministic private bindings for structured emit
@@ -589,6 +599,7 @@ type parser struct {
 	funcAliases     map[string]string     // local name → mangled name (for unqualified imports)
 	pipes           map[string][]pipeStep // pipe/trans name → stages
 	lambdaHintTy    mir2.Ty               // type hint for untyped lambda params (set by chain context)
+	lambdaHintTys   []mir2.Ty             // positional hints overriding lambdaHintTy (zip pairs)
 	metaFuncs       map[string]string     // @name → full Nanz source of metafunction
 	metaExpandDepth int                   // guard recursive statement-position expansion
 	// ADT (algebraic data types) — enums with payload variants
@@ -731,14 +742,100 @@ func (p *parser) inferChainElemTy(base hir.Expr) mir2.Ty {
 			if len(call.Args) >= 1 {
 				return p.inferChainElemTy(call.Args[0])
 			}
+		case "skip", "take", "zip":
+			// skip/take/zip keep the (first) element type of their source.
+			if len(call.Args) >= 1 && p.isChainMethodName(call.Fn) {
+				return p.inferChainElemTy(call.Args[0])
+			}
 		}
 	}
-	// Default: base expression's type
+	// Default: the source's element type — an array's element or a
+	// pointer's pointee, never the array or pointer type itself.
+	if vr, ok := base.(*hir.VarRefExpr); ok {
+		if st := p.varPtrElem[vr.Name]; st != nil {
+			return st // ^Struct variable: the struct (rejected as a chain element)
+		}
+	}
 	ty := p.exprTy(base)
+	switch t := mir2.BaseOf(ty).(type) {
+	case *mir2.ArrayTy:
+		return t.Elem
+	}
+	if ty != nil && mir2.IsPointer(ty) {
+		return mir2.PointerElem(ty)
+	}
 	if ty != nil {
 		return ty
 	}
 	return mir2.TyU8
+}
+
+// foldAccHint is the type of an untyped fold/reduce accumulator parameter:
+// the init expression's type when the init is typed; for an untyped literal
+// (or before the init is parsed) the hint origin/main gave every untyped
+// parameter (mainChainHint: a pointer source's pointer type, a map's result
+// type, ...), and u16 where that hint was no usable value type (an array or
+// a chain method origin/main did not know, which failed to compile there).
+func (p *parser) foldAccHint(base, init hir.Expr) mir2.Ty {
+	if init != nil {
+		if lit, isLit := init.(*hir.IntLitExpr); !isLit || !lit.Untyped {
+			if ty := p.exprTy(init); ty != nil && mir2.IsInt(mir2.BaseOf(ty)) {
+				return ty
+			}
+		}
+	}
+	if h := p.mainChainHint(base); h != nil && (mir2.IsInt(mir2.BaseOf(h)) || mir2.IsPointer(h)) {
+		return h
+	}
+	return mir2.TyU16
+}
+
+// mainChainHint is the lambda hint as origin/main computed it before the
+// element-type hint: a map's callback return type, a filter's source, else
+// the source expression's own type (a pointer or an array, not its element).
+func (p *parser) mainChainHint(base hir.Expr) mir2.Ty {
+	if call, ok := base.(*hir.CallExpr); ok {
+		switch call.Fn {
+		case "map":
+			if len(call.Args) >= 2 {
+				if ty := p.callbackReturnTy(call.Args[1]); ty != nil && ty != mir2.TyVoid {
+					return ty
+				}
+				return call.Args[1].ExprTy()
+			}
+		case "filter":
+			if len(call.Args) >= 1 {
+				return p.mainChainHint(call.Args[0])
+			}
+		}
+	}
+	if ty := p.exprTy(base); ty != nil {
+		return ty
+	}
+	return mir2.TyU8
+}
+
+// inferZipElemTy returns the element type of the second callback parameter
+// when the chain at base still carries zip pairs (src.zip(other) followed by
+// filter/skip/take only), nil otherwise.
+func (p *parser) inferZipElemTy(base hir.Expr) mir2.Ty {
+	for {
+		call, ok := base.(*hir.CallExpr)
+		if !ok || len(call.Args) == 0 || !p.isChainMethodName(call.Fn) {
+			return nil
+		}
+		switch call.Fn {
+		case "filter", "skip", "take":
+			base = call.Args[0]
+		case "zip":
+			if len(call.Args) != 2 {
+				return nil
+			}
+			return p.inferChainElemTy(call.Args[1])
+		default:
+			return nil
+		}
+	}
 }
 
 // opToFuncName maps an operator token kind to a mangled function name.
@@ -1271,8 +1368,42 @@ func (p *parser) parseModule() (*hir.Module, error) {
 		}
 	}
 
+	p.recordMethodCallLines(m)
+
 	m.Warnings = p.warnings
 	return m, nil
+}
+
+// isChainMethodName reports whether name is an iterator chain method here:
+// a user or imported function of that name makes `x.name(...)` plain UFCS.
+func (p *parser) isChainMethodName(name string) bool {
+	return hir.IsIterChainMethod(name) && !p.isKnownFunc(name) && !p.fwdFuncNames[name]
+}
+
+// recordMethodCallLines hands hir.CheckIterChains every `x.name(args)`
+// whose name is neither a declared or imported function (UFCS) nor a local
+// callable binding. CheckIterChains accepts the iterator chain methods among
+// them and rejects the rest: lowering would otherwise emit a CALL to an
+// undefined label (audit finding G0-5). Plain calls `name(args)` are not
+// recorded: they may name assembly or runtime symbols the frontend never sees.
+func (p *parser) recordMethodCallLines(m *hir.Module) {
+	for _, site := range p.methodCalls {
+		if site.call.Fn != site.name || site.local {
+			continue
+		}
+		if p.isKnownFunc(site.name) || p.fwdFuncNames[site.name] {
+			if site.name == "count" || site.name == "sum" {
+				if ty, ok := p.funcSigs[site.name]; ok && site.call.Ty == mir2.TyU16 && ty != mir2.TyU16 {
+					site.call.Ty = ty
+				}
+			}
+			continue
+		}
+		if m.MethodCallLines == nil {
+			m.MethodCallLines = map[*hir.CallExpr]int{}
+		}
+		m.MethodCallLines[site.call] = site.line
+	}
 }
 
 // Preserve nil (unknown clobbers) versus an explicitly empty preservation contract.
@@ -1859,6 +1990,18 @@ func (p *parser) parseImport() error {
 	}
 	for node, origin := range imported.SourceLocations {
 		p.module.SourceLocations[node] = origin
+	}
+	for call, line := range imported.MethodCallLines {
+		if p.module.MethodCallLines == nil {
+			p.module.MethodCallLines = map[*hir.CallExpr]int{}
+		}
+		p.module.MethodCallLines[call] = line
+	}
+	for call := range imported.MethodSyntax {
+		if p.module.MethodSyntax == nil {
+			p.module.MethodSyntax = map[*hir.CallExpr]bool{}
+		}
+		p.module.MethodSyntax[call] = true
 	}
 	// Merge imported module into current module.
 	if err := hir.MergeImportedStrings(p.module, imported); err != nil {
@@ -5187,6 +5330,10 @@ func (p *parser) parsePostfixNoBrack(base hir.Expr) (hir.Expr, error) {
 						Args: []hir.Expr{base, &hir.VarRefExpr{Name: step.fn, Ty: mir2.TyU8}},
 						Ty:   mir2.TyVoid,
 					}
+					if p.module.MethodSyntax == nil {
+						p.module.MethodSyntax = map[*hir.CallExpr]bool{}
+					}
+					p.module.MethodSyntax[base.(*hir.CallExpr)] = true
 				}
 				continue
 			}
@@ -6343,6 +6490,10 @@ func (p *parser) parsePostfix(base hir.Expr) (hir.Expr, error) {
 						Args: []hir.Expr{base, &hir.VarRefExpr{Name: step.fn, Ty: mir2.TyU8}},
 						Ty:   mir2.TyVoid,
 					}
+					if p.module.MethodSyntax == nil {
+						p.module.MethodSyntax = map[*hir.CallExpr]bool{}
+					}
+					p.module.MethodSyntax[base.(*hir.CallExpr)] = true
 				}
 				continue
 			}
@@ -6352,10 +6503,23 @@ func (p *parser) parsePostfix(base hir.Expr) (hir.Expr, error) {
 				p.l.next()
 				args := []hir.Expr{base}
 				// Set lambda type hint for iterator chain methods
-				savedHint := p.lambdaHintTy
+				savedHint, savedHints := p.lambdaHintTy, p.lambdaHintTys
 				switch fieldTok.val {
-				case "map", "filter", "forEach", "fold", "reduce":
-					p.lambdaHintTy = p.inferChainElemTy(base)
+				case "map", "filter", "forEach", "fold", "reduce", "mapInPlace":
+					elem := p.inferChainElemTy(base)
+					p.lambdaHintTy, p.lambdaHintTys = elem, nil
+					// After zip, an untyped second element parameter takes
+					// other's element type. A fold's accumulator comes first
+					// and takes its own hint (foldAccHint).
+					zt := p.inferZipElemTy(base)
+					if fieldTok.val == "fold" || fieldTok.val == "reduce" {
+						p.lambdaHintTys = []mir2.Ty{p.foldAccHint(base, nil), elem}
+						if zt != nil {
+							p.lambdaHintTys = append(p.lambdaHintTys, zt)
+						}
+					} else if zt != nil {
+						p.lambdaHintTys = []mir2.Ty{elem, zt}
+					}
 				}
 				for !p.l.is(tokRParen) && !p.l.is(tokEOF) {
 					a, err := p.parseExpr()
@@ -6363,11 +6527,17 @@ func (p *parser) parsePostfix(base hir.Expr) (hir.Expr, error) {
 						return nil, err
 					}
 					args = append(args, a)
+					// The init is parsed: the accumulator hint can use its type.
+					if len(args) == 2 && len(p.lambdaHintTys) >= 2 && (fieldTok.val == "fold" || fieldTok.val == "reduce") {
+						tys := append([]mir2.Ty{}, p.lambdaHintTys...)
+						tys[0] = p.foldAccHint(base, a)
+						p.lambdaHintTys = tys
+					}
 					if p.l.is(tokComma) {
 						p.l.next()
 					}
 				}
-				p.lambdaHintTy = savedHint
+				p.lambdaHintTy, p.lambdaHintTys = savedHint, savedHints
 				if _, err := p.l.eat(tokRParen); err != nil {
 					return nil, err
 				}
@@ -6418,7 +6588,28 @@ func (p *parser) parsePostfix(base hir.Expr) (hir.Expr, error) {
 						}
 					}
 				}
-				base = &hir.CallExpr{Fn: callName, Args: args, Ty: callRetTy}
+				call := &hir.CallExpr{Fn: callName, Args: args, Ty: callRetTy}
+				if callName == fieldTok.val {
+					// The node carries the mark only where it changes the meaning
+					// (hir.MethodMarked); every method-syntax call named like a
+					// chain method is recorded for CheckIterChains. UFCS to a
+					// declared function is neither.
+					if p.isChainMethodName(callName) {
+						call.Method = true
+						call.Method = hir.MethodMarked(call)
+						if p.module.MethodSyntax == nil {
+							p.module.MethodSyntax = map[*hir.CallExpr]bool{}
+						}
+						p.module.MethodSyntax[call] = true
+					}
+					if (callName == "count" || callName == "sum") && p.isChainMethodName(callName) {
+						call.Ty = mir2.TyU16 // iterator terminal: u16 count / wrapping sum
+					}
+					_, localVar := p.varTypes[callName]
+					_, localCallable := p.varCallables[callName]
+					p.methodCalls = append(p.methodCalls, methodCallSite{call: call, name: callName, line: fieldTok.line, local: localVar || localCallable})
+				}
+				base = call
 			} else {
 				base = p.makeFieldExpr(base, fieldTok.val)
 			}
@@ -7210,6 +7401,9 @@ func (p *parser) parseLambda() (hir.Expr, error) {
 		pty := mir2.Ty(mir2.TyU8) // default type
 		if p.lambdaHintTy != nil {
 			pty = p.lambdaHintTy
+		}
+		if i := len(params); i < len(p.lambdaHintTys) && p.lambdaHintTys[i] != nil {
+			pty = p.lambdaHintTys[i]
 		}
 		if p.l.is(tokColon) {
 			p.l.next()
