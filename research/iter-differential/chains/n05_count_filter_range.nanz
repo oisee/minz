@@ -1,0 +1,4 @@
+fun t(m: u8) -> u16 { return range(0..m).filter(|i: u8| (i & 1) == 1).count() }
+fun s(m: u8) -> u16 { return range(0..m).skip(2).sum() }
+assert t(10) == 5
+assert s(6) == 14

@@ -25,17 +25,34 @@ func IsIterChainMethod(name string) bool { return isIterChainMethod(name) }
 // It also rejects the frontend's unresolved method calls (Module.
 // MethodCallLines) that name neither a module function nor a chain
 // method — `src.min(n)` with no `fun min` (audit finding G0-5).
-func CheckIterChains(m *Module) error {
+//
+// It runs before Verify (an unknown method's call has no type, and Verify
+// would only report that), so it must not trip over HIR that Verify exists to
+// reject: a nil module, function, body, statement or expression is skipped,
+// and any panic on such malformed input is swallowed — the error is left to
+// Verify, which runs next.
+func CheckIterChains(m *Module) (err error) {
+	if m == nil {
+		return nil
+	}
+	defer func() {
+		if recover() != nil {
+			err = nil // malformed HIR: Verify reports it
+		}
+	}()
 	names := make(map[string]bool, len(m.Funcs))
 	funcs := make(map[string]*Func, len(m.Funcs))
 	for _, f := range m.Funcs {
+		if f == nil {
+			continue
+		}
 		names[f.Name] = true
 		funcs[f.Name] = f
 	}
 	if len(m.MethodCallLines) > 0 {
 		var bad *CallExpr
 		for call := range m.MethodCallLines {
-			if names[call.Fn] || isIterChainMethod(call.Fn) {
+			if call == nil || names[call.Fn] || isIterChainMethod(call.Fn) {
 				continue
 			}
 			if bad == nil || m.MethodCallLines[call] < m.MethodCallLines[bad] ||
@@ -51,12 +68,19 @@ func CheckIterChains(m *Module) error {
 	callbacks := map[string]bool{}         // functions inlined as chain callbacks
 	uses := map[*Func][]chainCallbackUse{} // callbacks of the chains inside each function
 	for _, f := range m.Funcs {
-		if f.Body == nil {
+		if f == nil || f.Body == nil {
 			continue
 		}
+		arrays := map[string]mir2.Ty{}
+		for _, g := range m.Globals {
+			if at, isArray := mir2.BaseOf(g.Ty).(*mir2.ArrayTy); isArray {
+				arrays[g.Name] = at
+			}
+		}
+		collectLocalArrays(f.Body, arrays)
 		ck := &chainChecker{
 			m: m, fn: f,
-			l:        &lowerer{hirFuncNames: names, hirFuncs: funcs, fnAliases: map[string]string{}},
+			l:        &lowerer{hirFuncNames: names, hirFuncs: funcs, fnAliases: map[string]string{}, chainArrays: arrays},
 			consumed: map[*CallExpr]bool{},
 		}
 		ck.collectAliases(f.Body)
@@ -77,7 +101,7 @@ func CheckIterChains(m *Module) error {
 	// forEach callbacks inlined as statements count; a callback that must be
 	// called (early return, asm) keeps its parameter and is fine.
 	for _, f := range m.Funcs {
-		if !callbacks[f.Name] {
+		if f == nil || !callbacks[f.Name] {
 			continue
 		}
 		params := map[string]bool{}
@@ -145,6 +169,9 @@ func walkChainBlocks(b *Block, visit func(Stmt)) {
 		return
 	}
 	for _, s := range b.Body {
+		if nilHIR(s) {
+			continue
+		}
 		visit(s)
 		switch st := s.(type) {
 		case *Block:
@@ -173,7 +200,7 @@ func (ck *chainChecker) isChainCall(e Expr) (*CallExpr, bool) {
 	c, ok := e.(*CallExpr)
 	// Only method-syntax calls are checked: the functional spellings
 	// (forEach(src, cb, n), fold(...), a plain sum(...)) keep their meaning.
-	if !ok || !c.Method || !ck.l.isChainCall(c) {
+	if !ok || !ck.methodSyntax(c) || !ck.l.isChainCall(c) {
 		return nil, false
 	}
 	return c, true
@@ -208,7 +235,7 @@ func (ck *chainChecker) block(b *Block) error {
 		// A functional terminal (fold(src, ...) with no method syntax) keeps
 		// origin/main's meaning: lowered when recognised, never diagnosed for
 		// itself; its method-syntax stages count as consumed when it is.
-		err = ck.root(s, c, !c.Method)
+		err = ck.root(s, c, !ck.methodSyntax(c))
 	})
 	return err
 }
@@ -346,4 +373,11 @@ func oldChainElemErr(chain iterChain) string {
 		}
 	}
 	return ""
+}
+
+// methodSyntax: the frontend saw receiver.name(...) for this call — the node's
+// semantic mark, or the module's record of method-syntax calls (the mark is
+// set only where it changes the meaning; see MethodMarked).
+func (ck *chainChecker) methodSyntax(c *CallExpr) bool {
+	return c.Method || ck.m.MethodSyntax[c]
 }

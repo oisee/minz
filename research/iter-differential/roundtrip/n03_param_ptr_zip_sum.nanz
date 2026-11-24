@@ -1,0 +1,9 @@
+global a: [u8; 8]
+fun total(p: ^u8, q: ^u8, n: u8) -> u16 {
+    return p.zip(q).map(|x: u8, y: u8| x + y).take(4).sum(n)
+}
+fun newc() -> u16 {
+    for i in 0..8 { a[i] = i + 1 }
+    return total(&a[0], &a[0], 8)
+}
+assert newc() == 20

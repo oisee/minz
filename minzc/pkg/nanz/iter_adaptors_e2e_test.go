@@ -16,6 +16,8 @@ import (
 	"github.com/minz/minzc/pkg/c89"
 	"github.com/minz/minzc/pkg/emulator"
 	"github.com/minz/minzc/pkg/hir"
+	"github.com/minz/minzc/pkg/lanz"
+	"github.com/minz/minzc/pkg/lizp"
 	"github.com/minz/minzc/pkg/mir2"
 	"github.com/minz/minzc/pkg/nanz"
 	"github.com/minz/minzc/pkg/pipeline"
@@ -1401,4 +1403,167 @@ func iterRunZ80Word(t *testing.T, asm, fn, sym string) int {
 		t.Fatalf("run: %v", err)
 	}
 	return int(z80.GetMemory(0xFE00)) | int(z80.GetMemory(0xFE01))<<8
+}
+
+// ── Review round 3 ─────────────────────────────────────────────────────────
+
+// The method mark has a spelling in every text form of HIR: the HIR dump
+// (call @.sum), Lanz/Lizp ((.sum ...)) and Nanz printed from HIR
+// (src.sum(n)). A new-method chain survives the round trip with the same
+// asserts on all tiers and the same final assembly; a plain call to a label
+// named sum stays a plain call.
+func TestIterChainTextRoundTrip(t *testing.T) {
+	src := `
+global a: [u8; 8]
+global h: u16 = 0
+fun init() -> void { for i in 0..8 { a[i] = i + 1 } }
+fun step(x: u8) -> void { h = h + u16(x) }
+fun newc() -> u16 {
+    init()
+    return a.filter(|x: u8| x > 2).take(3).sum(8)
+}
+fun each() -> u16 {
+    init()
+    h = 0
+    a.filter(|x: u8| x > 4).take(2).forEach(step, 8)
+    return h
+}
+fun sized() -> u16 {
+    init()
+    h = 0
+    a.forEach(step)
+    return h
+}
+assert newc() == 12
+assert each() == 11
+assert sized() == 36
+`
+	orig, err := nanz.Parse(src, "rt")
+	if err != nil {
+		t.Fatal(err)
+	}
+	direct, _ := nanz.Parse(src, "rt")
+	steps, err := pipeline.CompileHIRSteps(direct, pipeline.DefaultOptions())
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, want := range []string{"call @.sum(call @.take(", "call @.take(", "call @.forEach((a:[8]u8), addr @step:ptr)"} {
+		if !strings.Contains(steps.HIR, want) {
+			t.Fatalf("HIR dump lacks the method mark %q:\n%s", want, steps.HIR)
+		}
+	}
+	reread := map[string]func() (*hir.Module, error){
+		"hir": func() (*hir.Module, error) { return hir.ParseHIR(steps.HIR, "rt") },
+		"nanz": func() (*hir.Module, error) {
+			m, err := hir.ParseHIR(steps.HIR, "rt")
+			if err != nil {
+				return nil, err
+			}
+			return nanz.Parse(nanz.Print(m), "rt")
+		},
+	}
+	// Nanz printed from HIR spells a function reference as &step, which the
+	// Nanz parser does not read back (also on origin/main): that format is
+	// checked on the lambda-only part below.
+	lambdaSrc := `
+global a: [u8; 8]
+fun init() -> void { for i in 0..8 { a[i] = i + 1 } }
+fun newc() -> u16 {
+    init()
+    return a.filter(|x: u8| x > 2).take(3).sum(8)
+}
+assert newc() == 12
+`
+	lorig, _ := nanz.Parse(lambdaSrc, "rtl")
+	ldirect, _ := nanz.Parse(lambdaSrc, "rtl")
+	lsteps, err := pipeline.CompileHIRSteps(ldirect, pipeline.DefaultOptions())
+	if err != nil {
+		t.Fatal(err)
+	}
+	reread["nanz"] = func() (*hir.Module, error) {
+		m, err := hir.ParseHIR(lsteps.HIR, "rtl")
+		if err != nil {
+			return nil, err
+		}
+		return nanz.Parse(nanz.Print(m), "rtl")
+	}
+	for format, read := range reread {
+		orig, steps := orig, steps
+		if format == "nanz" {
+			orig, steps = lorig, lsteps
+		}
+		t.Run(format, func(t *testing.T) {
+			m, err := read()
+			if err != nil {
+				t.Fatal(err)
+			}
+			m.Asserts = orig.Asserts
+			if err := pipeline.RunAssertsMIR2(m, hir.LowerModule(m)); err != nil {
+				t.Fatalf("raw MIR2 VM: %v", err)
+			}
+			m2, _ := read()
+			m2.Asserts = orig.Asserts
+			s2, err := pipeline.CompileHIRSteps(m2, pipeline.DefaultOptions())
+			if err != nil {
+				t.Fatal(err)
+			}
+			if err := pipeline.RunAssertsMIR2(m2, s2.MIR2Module); err != nil {
+				t.Fatalf("optimised MIR2 VM: %v", err)
+			}
+			if err := pipeline.RunAssertsZ80(m2, s2.MIR2Module, s2.Allocation, s2.Assembly); err != nil {
+				t.Fatalf("z80: %v", err)
+			}
+			if s2.Assembly != steps.Assembly {
+				t.Fatalf("%s round trip changed the assembly", format)
+			}
+		})
+	}
+	// Lanz (and Lizp, which shares its reader): the source spelling.
+	for name, compile := range map[string]func(string, string) (*hir.Module, error){"lanz": lanz.Compile, "lizp": lizp.Compile} {
+		t.Run(name+"-source", func(t *testing.T) {
+			lsrc := `
+(global a (u8 8) (array 1 2 3 4 5 6 7 8))
+(fun gt2 ((x u8)) bool (return (> x 2)))
+(fun newc () u16 (return (.sum (.take (filter a gt2) 3) 8)))
+(fun plain ((p u8) (q u8)) u16 (return (cast (+ p q) u16)))
+(fun calls () u16 (return (plain 3 4)))
+(assert newc == 12)
+(assert calls == 7)
+`
+			m, err := compile(lsrc, "l")
+			if err != nil {
+				t.Fatal(err)
+			}
+			if err := pipeline.RunAssertsMIR2(m, hir.LowerModule(m)); err != nil {
+				t.Fatalf("raw MIR2 VM: %v", err)
+			}
+			m2, _ := compile(lsrc, "l")
+			s2, err := pipeline.CompileHIRSteps(m2, pipeline.DefaultOptions())
+			if err != nil {
+				t.Fatal(err)
+			}
+			if err := pipeline.RunAssertsZ80(m2, s2.MIR2Module, s2.Allocation, s2.Assembly); err != nil {
+				t.Fatalf("z80: %v", err)
+			}
+			if dumped := lanz.Dump(m2); !strings.Contains(dumped, "(.sum (.take") {
+				t.Fatalf("lanz dump lacks the method mark:\n%s", dumped)
+			}
+		})
+	}
+	// A plain call to a function or label named sum is spelled without the
+	// mark in every format and reads back as a plain call.
+	plain := &hir.Module{Funcs: []*hir.Func{{Name: "f", RetTy: mir2.TyU16, Body: hir.Blk(&hir.ReturnStmt{Val: &hir.CallExpr{Fn: "sum", Args: []hir.Expr{&hir.IntLitExpr{Val: 4, Ty: mir2.TyU8}}, Ty: mir2.TyU16}})}}}
+	if d := plain.Dump(); !strings.Contains(d, "call @sum(") || strings.Contains(d, "@.sum") {
+		t.Fatalf("plain call dump: %s", d)
+	}
+	back, err := hir.ParseHIR(plain.Dump(), "plain")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if c := back.Funcs[0].Body.Body[0].(*hir.ReturnStmt).Val.(*hir.CallExpr); c.Method {
+		t.Fatal("a plain call read back as a method call")
+	}
+	if d := lanz.Dump(plain); !strings.Contains(d, "(sum 4)") {
+		t.Fatalf("plain call lanz dump: %s", d)
+	}
 }

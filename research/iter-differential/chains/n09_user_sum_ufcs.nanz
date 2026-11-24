@@ -1,0 +1,6 @@
+global a: [u8; 3] = [1, 2, 3]
+fun sum(p: ^u8, n: u8) -> u16 { return 99 }
+fun t() -> u16 { let p: ^u8 = &a[0]
+  let f: u16 = a.filter(|x: u8| x > 1).fold(u16(0), |s: u16, x: u8| s + u16(x), 3)
+  return p.sum(3) + f }
+assert t() == 104

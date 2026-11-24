@@ -143,6 +143,9 @@ func fingerprintValue(w *bytes.Buffer, v reflect.Value, active map[uintptr]bool)
 		return err
 	case reflect.Struct:
 		for i := 0; i < v.NumField(); i++ {
+			if v.Type().Field(i).Tag.Get("fingerprint") == "omitzero" && v.Field(i).IsZero() {
+				continue // a field added later: absent when unset, so older identities hold
+			}
 			fmt.Fprintf(w, "%q=", v.Type().Field(i).Name)
 			if err := fingerprintValue(w, v.Field(i), active); err != nil {
 				return err

@@ -1,0 +1,4 @@
+global a: [u8; 4] = [1, 2, 3, 4]
+global w: [u16; 3] = [1000, 2000, 3000]
+fun t() -> u16 { return a.zip(w).map(|x: u8, y: u16| y + u16(x)).sum() }
+assert t() == 6006

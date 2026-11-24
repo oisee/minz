@@ -1161,6 +1161,8 @@ func (p *hirParser) parseCallExpr(s string) (Expr, error) {
 	}
 	fname := s[:paren]
 	rest := s[paren+1:]
+	method := strings.HasPrefix(fname, ".") // call @.sum(...): method syntax (dumpMethodMark)
+	fname = strings.TrimPrefix(fname, ".")
 
 	// Find matching ')' for arg list
 	closeIdx := findMatchingParen(rest, 0) - 1
@@ -1194,7 +1196,7 @@ func (p *hirParser) parseCallExpr(s string) (Expr, error) {
 			args = append(args, e)
 		}
 	}
-	return &CallExpr{Fn: fname, Args: args, Ty: ty}, nil
+	return &CallExpr{Fn: fname, Args: args, Ty: ty, Method: method}, nil
 }
 
 // findCloseParen finds the index of ')' that closes the first '(' implied before s.

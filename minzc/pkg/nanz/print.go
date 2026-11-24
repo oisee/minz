@@ -429,6 +429,19 @@ func (p *printer) expr(e hir.Expr) {
 		p.write(e.Op)
 		p.exprParen(e.X)
 	case *hir.CallExpr:
+		if hir.MethodMarked(e) && len(e.Args) > 0 {
+			// Iterator chain method: only method syntax means it.
+			p.exprParen(e.Args[0])
+			p.writef(".%s(", e.Fn)
+			for i, a := range e.Args[1:] {
+				if i > 0 {
+					p.write(", ")
+				}
+				p.expr(a)
+			}
+			p.write(")")
+			break
+		}
 		p.write(e.Fn)
 		p.write("(")
 		for i, a := range e.Args {

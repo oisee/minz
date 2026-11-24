@@ -1,0 +1,11 @@
+global a: [u8; 6] = [1, 2, 3, 4, 5, 6]
+global h: u16 = 0
+fun t() -> u16 { h = 0
+  a.forEach(|x: u8| { h = h * 10 + u16(x) })
+  return h }
+fun u() -> u16 { return a.fold(u16(0), |s: u16, x: u8| s + u16(x)) }
+fun v() -> u16 { a.take(2).mapInPlace(|x: u8| x + 10)
+  return u16(a[0]) * 100 + u16(a[2]) }
+assert t() == 57920
+assert u() == 21
+assert v() == 1103

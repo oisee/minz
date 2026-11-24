@@ -1,4 +1,5 @@
-// Command tier3 runs the asserts of Nanz (.nanz) or C (.c) programs on the
+// Command tier3 runs the asserts of Nanz (.nanz), C (.c), Lanz (.lanz) or
+// Lizp (.lizp) programs on the
 // raw MIR2 VM, the optimised MIR2 VM and the assembled Z80 program, and
 // prints one line per file: "<file>: OK" or the first failure of each tier.
 // It uses only APIs present on origin/main, so the same source builds
@@ -12,6 +13,8 @@ import (
 
 	"github.com/minz/minzc/pkg/c89"
 	"github.com/minz/minzc/pkg/hir"
+	"github.com/minz/minzc/pkg/lanz"
+	"github.com/minz/minzc/pkg/lizp"
 	"github.com/minz/minzc/pkg/nanz"
 	"github.com/minz/minzc/pkg/pipeline"
 )
@@ -37,6 +40,12 @@ func run(f string) (res string) {
 	parse := func() (*hir.Module, error) {
 		if strings.HasSuffix(f, ".c") {
 			return c89.CompileWithOpts(string(b), f, c89.CompileOpts{NoLibc: true})
+		}
+		if strings.HasSuffix(f, ".lanz") {
+			return lanz.Compile(string(b), f)
+		}
+		if strings.HasSuffix(f, ".lizp") {
+			return lizp.Compile(string(b), f)
 		}
 		return nanz.Parse(string(b), f)
 	}

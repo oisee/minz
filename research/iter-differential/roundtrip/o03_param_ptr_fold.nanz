@@ -1,0 +1,9 @@
+global a: [u8; 8]
+fun total(p: ^u8, n: u8) -> u16 {
+    return p.filter(|x: u8| x > 2).fold(u16(0), |s: u16, x: u8| s + u16(x), n)
+}
+fun oldc() -> u16 {
+    for i in 0..8 { a[i] = i + 1 }
+    return total(&a[0], 8)
+}
+assert oldc() == 33

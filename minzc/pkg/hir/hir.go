@@ -110,6 +110,7 @@ type Module struct {
 	SourceUnitsComplete bool                      `json:"-"`          // frontend recorded its transitive source dependencies
 	SourceLocations     map[Stmt]SourceLocation   `json:"-"`          // optional frontend origins; not semantic evidence
 	MethodCallLines     map[*CallExpr]int         `json:"-"`          // frontend x.name(...) calls naming no declared function → line (CheckIterChains)
+	MethodSyntax        map[*CallExpr]bool        `json:"-"`          // frontend x.name(...) calls named like chain methods (CheckIterChains checks only these)
 	AssertStats         *AssertStats              // optional invocation-local execution accounting
 	Name                string
 	Target              uint8 // platform target (TargetCPM, TargetZXSpectrum, etc.)
@@ -458,10 +459,13 @@ type CallExpr struct {
 	Fn   string
 	Args []Expr
 	Ty   mir2.Ty // return type; TyVoid for void calls
-	// Method: the frontend saw receiver.Fn(args) (method syntax). Only such
-	// calls can be the iterator chain methods skip/take/zip/count/sum, and
-	// only they are checked by CheckIterChains; a plain sum(...) is a call.
-	Method bool `json:",omitempty"`
+	// Method marks the method-syntax calls whose meaning depends on it: the
+	// chain methods skip/take/zip/count/sum (a plain sum(...) is a call) and
+	// a memory terminal written without its count (see MethodMarked). Text
+	// forms spell it (call @.sum, (.sum ...), src.sum(n)). It is false on
+	// every call of a program valid without it, and then omitted from the
+	// HIR fingerprints, so their identities are unchanged.
+	Method bool `json:",omitempty" fingerprint:"omitzero"`
 }
 
 func (*CallExpr) hirExpr()          {}

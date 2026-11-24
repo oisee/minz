@@ -267,6 +267,11 @@ func dumpExpr(e Expr) string {
 		for i, a := range ex.Args {
 			args[i] = dumpExpr(a)
 		}
+		if dumpMethodMark(ex) {
+			// "@." cannot start a function or label name: a plain call to a
+			// label named sum stays "call @sum(...)".
+			return fmt.Sprintf("call @.%s(%s):%s", ex.Fn, strings.Join(args, ", "), ex.Ty)
+		}
 		return fmt.Sprintf("call @%s(%s):%s", ex.Fn, strings.Join(args, ", "), ex.Ty)
 
 	case *FieldExpr:

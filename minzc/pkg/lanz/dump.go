@@ -238,6 +238,9 @@ func dumpExpr(sb *strings.Builder, e hir.Expr) {
 		sb.WriteByte(')')
 	case *hir.CallExpr:
 		sb.WriteByte('(')
+		if hir.MethodMarked(e) {
+			sb.WriteByte('.') // (.sum src n): iterator chain method, not a call to "sum"
+		}
 		sb.WriteString(e.Fn)
 		for _, a := range e.Args {
 			sb.WriteByte(' ')

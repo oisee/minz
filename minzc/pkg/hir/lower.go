@@ -319,8 +319,9 @@ type loopCtx struct {
 }
 
 type lowerer struct {
-	lazyLoads           map[string]Expr // chain zip element → its load, lowered at the single use
-	zipInStmt           bool            // chain build inlined a forEach statement body reading the zip element
+	lazyLoads           map[string]Expr    // chain zip element → its load, lowered at the single use
+	zipInStmt           bool               // chain build inlined a forEach statement body reading the zip element
+	chainArrays         map[string]mir2.Ty // array-typed sources by name (local array decls, array globals), built on first use
 	disableCountedLoops bool
 	permitCountedLoops  bool
 	loopCostIndex       int

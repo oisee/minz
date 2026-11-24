@@ -1997,6 +1997,12 @@ func (p *parser) parseImport() error {
 		}
 		p.module.MethodCallLines[call] = line
 	}
+	for call := range imported.MethodSyntax {
+		if p.module.MethodSyntax == nil {
+			p.module.MethodSyntax = map[*hir.CallExpr]bool{}
+		}
+		p.module.MethodSyntax[call] = true
+	}
 	// Merge imported module into current module.
 	if err := hir.MergeImportedStrings(p.module, imported); err != nil {
 		return err
@@ -5320,11 +5326,14 @@ func (p *parser) parsePostfixNoBrack(base hir.Expr) (hir.Expr, error) {
 				// Wrap base in nested map/filter calls (innermost first)
 				for _, step := range steps {
 					base = &hir.CallExpr{
-						Fn:     step.kind,
-						Args:   []hir.Expr{base, &hir.VarRefExpr{Name: step.fn, Ty: mir2.TyU8}},
-						Ty:     mir2.TyVoid,
-						Method: true,
+						Fn:   step.kind,
+						Args: []hir.Expr{base, &hir.VarRefExpr{Name: step.fn, Ty: mir2.TyU8}},
+						Ty:   mir2.TyVoid,
 					}
+					if p.module.MethodSyntax == nil {
+						p.module.MethodSyntax = map[*hir.CallExpr]bool{}
+					}
+					p.module.MethodSyntax[base.(*hir.CallExpr)] = true
 				}
 				continue
 			}
@@ -6477,11 +6486,14 @@ func (p *parser) parsePostfix(base hir.Expr) (hir.Expr, error) {
 				}
 				for _, step := range steps {
 					base = &hir.CallExpr{
-						Fn:     step.kind,
-						Args:   []hir.Expr{base, &hir.VarRefExpr{Name: step.fn, Ty: mir2.TyU8}},
-						Ty:     mir2.TyVoid,
-						Method: true,
+						Fn:   step.kind,
+						Args: []hir.Expr{base, &hir.VarRefExpr{Name: step.fn, Ty: mir2.TyU8}},
+						Ty:   mir2.TyVoid,
 					}
+					if p.module.MethodSyntax == nil {
+						p.module.MethodSyntax = map[*hir.CallExpr]bool{}
+					}
+					p.module.MethodSyntax[base.(*hir.CallExpr)] = true
 				}
 				continue
 			}
@@ -6578,7 +6590,18 @@ func (p *parser) parsePostfix(base hir.Expr) (hir.Expr, error) {
 				}
 				call := &hir.CallExpr{Fn: callName, Args: args, Ty: callRetTy}
 				if callName == fieldTok.val {
-					call.Method = true
+					// The node carries the mark only where it changes the meaning
+					// (hir.MethodMarked); every method-syntax call named like a
+					// chain method is recorded for CheckIterChains. UFCS to a
+					// declared function is neither.
+					if p.isChainMethodName(callName) {
+						call.Method = true
+						call.Method = hir.MethodMarked(call)
+						if p.module.MethodSyntax == nil {
+							p.module.MethodSyntax = map[*hir.CallExpr]bool{}
+						}
+						p.module.MethodSyntax[call] = true
+					}
 					if (callName == "count" || callName == "sum") && p.isChainMethodName(callName) {
 						call.Ty = mir2.TyU16 // iterator terminal: u16 count / wrapping sum
 					}

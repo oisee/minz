@@ -123,18 +123,18 @@ func (l *lowerer) usesNewChainMethods(call *CallExpr) bool {
 	for {
 		inner, ok := e.(*CallExpr)
 		if !ok || l.hirFuncNames[inner.Fn] || len(inner.Args) == 0 {
-			return short && sizedArrayLen(e) > 0
+			return short && sizedArrayLen(l.retypeArraySource(e)) > 0
 		}
 		switch inner.Fn {
 		case "skip", "take", "zip":
 			if inner.Method {
 				return true
 			}
-			return short && sizedArrayLen(e) > 0
+			return short && sizedArrayLen(l.retypeArraySource(e)) > 0
 		case "map", "filter":
 			e = inner.Args[0]
 		default:
-			return short && sizedArrayLen(e) > 0
+			return short && sizedArrayLen(l.retypeArraySource(e)) > 0
 		}
 	}
 }
@@ -325,7 +325,11 @@ func (l *lowerer) recognizeChain(call *CallExpr) (*chainSpec, error) {
 		c.isRange = true
 		c.rangeLo, c.rangeHi, c.rangeRev = rs.Lo, rs.Hi, rs.Rev
 	} else {
+		src = l.retypeArraySource(src)
 		c.src = src
+		if c.zip != nil {
+			c.zip = l.retypeArraySource(c.zip)
+		}
 		if !isMemorySource(src) {
 			return nil, fmt.Errorf(".%s: the source must be an array or a pointer, got %s", c.term, src.ExprTy())
 		}
@@ -1106,4 +1110,78 @@ func (l *lowerer) lowerChainStore(st *StoreStmt) (terminated, ok bool) {
 	cp := *st
 	cp.Val = &VarRefExpr{Name: tmp, Ty: accTy}
 	return l.lowerStmt(&cp), true
+}
+
+// MethodMarked reports whether a text form of HIR must spell call's method
+// mark: the mark changes the call's meaning only for the methods added with
+// this file (skip, take, zip, count, sum) and for an original memory
+// terminal written without its count (forEach/mapInPlace(cb),
+// fold/reduce(init, cb)), which takes a sized array's length. Neither form
+// compiled on origin/main, so text dumps of every program valid there are
+// unchanged. A range terminal is never marked.
+func MethodMarked(call *CallExpr) bool { return dumpMethodMark(call) }
+
+func dumpMethodMark(call *CallExpr) bool {
+	if call == nil || !call.Method {
+		return false
+	}
+	if isNewIterChainMethod(call.Fn) {
+		return true
+	}
+	short := len(call.Args) == 2 && (call.Fn == "forEach" || call.Fn == "mapInPlace") ||
+		len(call.Args) == 3 && (call.Fn == "fold" || call.Fn == "reduce")
+	if !short {
+		return false
+	}
+	e := call.Args[0]
+	for {
+		inner, ok := e.(*CallExpr)
+		if !ok || (inner.Fn != "map" && inner.Fn != "filter") || len(inner.Args) == 0 {
+			break
+		}
+		e = inner.Args[0]
+	}
+	_, isRange := e.(*RangeSourceExpr)
+	return !isRange
+}
+
+// retypeArraySource gives a variable naming an array its array type when the
+// reference itself does not carry it: Nanz types a local array's reference
+// as its element, Lanz every global's. The declaration (a local
+// `let arr: [T; N]` in the function being lowered, or an array global)
+// supplies the type, so such sources walk, size and check like Nanz globals.
+func (l *lowerer) retypeArraySource(e Expr) Expr {
+	vr, ok := e.(*VarRefExpr)
+	if !ok {
+		return e
+	}
+	if _, isArray := mir2.BaseOf(vr.Ty).(*mir2.ArrayTy); isArray || vr.Ty != nil && mir2.IsPointer(vr.Ty) {
+		return e
+	}
+	if l.chainArrays == nil {
+		l.chainArrays = map[string]mir2.Ty{}
+		if l.m != nil {
+			for _, g := range l.m.Globals {
+				if at, isArray := mir2.BaseOf(g.Ty).(*mir2.ArrayTy); isArray {
+					l.chainArrays[g.Name] = at
+				}
+			}
+		}
+		if l.hf != nil {
+			collectLocalArrays(l.hf.Body, l.chainArrays)
+		}
+	}
+	if ty, found := l.chainArrays[vr.Name]; found {
+		return &VarRefExpr{Name: vr.Name, Ty: ty}
+	}
+	return e
+}
+
+// collectLocalArrays records `let name: [T; N]` declarations (flow-insensitive).
+func collectLocalArrays(b *Block, into map[string]mir2.Ty) {
+	walkChainBlocks(b, func(s Stmt) {
+		if d, ok := s.(*VarDeclStmt); ok && d.ArrayLen > 0 && d.Ty != nil {
+			into[d.Name] = &mir2.ArrayTy{Elem: d.Ty, Len: d.ArrayLen}
+		}
+	})
 }
