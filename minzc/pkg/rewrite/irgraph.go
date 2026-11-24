@@ -24,6 +24,15 @@ type IRGraph interface {
 	LayoutNext(label string) string
 }
 
+// IRBlockLister is an optional fast path for IRGraph implementations whose
+// Block lookup is not constant time. BlockList returns one IRBlock per entry
+// of Blocks(), in the same order; entry i must behave exactly like
+// Block(Blocks()[i]) whenever that label occurs only once. Grace uses it to
+// index the graph once per match query instead of calling Block per probe.
+type IRBlockLister interface {
+	BlockList() []IRBlock
+}
+
 // IRBlock is a read-only view of a basic block.
 type IRBlock interface {
 	// Label returns the block's unique identifier.

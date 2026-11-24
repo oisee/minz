@@ -12,6 +12,27 @@ type CustomActionFunc func(graph rewrite.IRGraphMut, bindings BlockBindings) boo
 type PredicateRegistry struct {
 	predicates map[string]PredicateFunc
 	actions    map[string]CustomActionFunc
+
+	// generation advances every time ApplyRules runs a rule's actions (before
+	// and after them). Between two equal readings no Grace action has run,
+	// so a custom predicate may reuse whole-graph facts it computed at that
+	// generation. It does not see mutations made outside ApplyRules.
+	generation uint64
+}
+
+// Generation returns the registry's mutation generation (see the field).
+// Custom predicates key per-function caches on it.
+func (r *PredicateRegistry) Generation() uint64 {
+	if r == nil {
+		return 0
+	}
+	return r.generation
+}
+
+func (r *PredicateRegistry) bumpGeneration() {
+	if r != nil {
+		r.generation++
+	}
 }
 
 // NewPredicateRegistry creates an empty registry.
@@ -33,23 +54,23 @@ func (r *PredicateRegistry) RegisterAction(name string, fn CustomActionFunc) {
 }
 
 // checkPredicates evaluates all WHERE predicates against bindings.
-func checkPredicates(graph rewrite.IRGraph, preds []Predicate, bindings BlockBindings, reg *PredicateRegistry) bool {
+func checkPredicates(v *matchView, preds []Predicate, bindings BlockBindings, reg *PredicateRegistry) bool {
 	for _, p := range preds {
-		if !checkPredicate(graph, p, bindings, reg) {
+		if !checkPredicate(v, p, bindings, reg) {
 			return false
 		}
 	}
 	return true
 }
 
-func checkPredicate(graph rewrite.IRGraph, p Predicate, bindings BlockBindings, reg *PredicateRegistry) bool {
+func checkPredicate(v *matchView, p Predicate, bindings BlockBindings, reg *PredicateRegistry) bool {
 	switch p.Kind {
 	case PredPredCount:
 		label, ok := bindings[p.Var]
 		if !ok {
 			return false
 		}
-		count := len(graph.Predecessors(label))
+		count := len(v.predecessors(label))
 		return cmpInt(count, p.Op, p.Value)
 
 	case PredFieldCmp:
@@ -57,7 +78,7 @@ func checkPredicate(graph rewrite.IRGraph, p Predicate, bindings BlockBindings, 
 		if !ok {
 			return false
 		}
-		b := graph.Block(label)
+		b := v.blockOf(label)
 		if b == nil {
 			return false
 		}
@@ -69,7 +90,7 @@ func checkPredicate(graph rewrite.IRGraph, p Predicate, bindings BlockBindings, 
 		if !ok {
 			return false
 		}
-		b := graph.Block(label)
+		b := v.blockOf(label)
 		if b == nil {
 			return false
 		}
@@ -80,7 +101,7 @@ func checkPredicate(graph rewrite.IRGraph, p Predicate, bindings BlockBindings, 
 		if !ok {
 			return false
 		}
-		b := graph.Block(label)
+		b := v.blockOf(label)
 		if b == nil {
 			return false
 		}
@@ -97,7 +118,7 @@ func checkPredicate(graph rewrite.IRGraph, p Predicate, bindings BlockBindings, 
 		if !ok {
 			return false
 		}
-		count := len(graph.Predecessors(label))
+		count := len(v.predecessors(label))
 		return cmpInt(count, p.Op, p.Value)
 
 	case PredDominates:
@@ -108,16 +129,7 @@ func checkPredicate(graph rewrite.IRGraph, p Predicate, bindings BlockBindings, 
 		if !okA || !okB {
 			return false
 		}
-		blocks := graph.Blocks()
-		idxA, idxB := -1, -1
-		for i, l := range blocks {
-			if l == labelA {
-				idxA = i
-			}
-			if l == labelB {
-				idxB = i
-			}
-		}
+		idxA, idxB := v.layoutIndex(labelA), v.layoutIndex(labelB)
 		return idxA >= 0 && idxB >= 0 && idxA < idxB
 
 	case PredTermKind:
@@ -125,7 +137,7 @@ func checkPredicate(graph rewrite.IRGraph, p Predicate, bindings BlockBindings, 
 		if !ok {
 			return false
 		}
-		b := graph.Block(label)
+		b := v.blockOf(label)
 		if b == nil {
 			return false
 		}
@@ -139,7 +151,7 @@ func checkPredicate(graph rewrite.IRGraph, p Predicate, bindings BlockBindings, 
 		if !ok {
 			return false
 		}
-		return fn(graph, bindings, p.CustomArgs)
+		return fn(v.graph, bindings, p.CustomArgs)
 	}
 
 	return true

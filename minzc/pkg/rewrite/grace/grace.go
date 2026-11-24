@@ -134,7 +134,12 @@ func ApplyRules(graph rewrite.IRGraphMut, rules []GraceRule, preds *PredicateReg
 			if bindings == nil {
 				continue
 			}
-			if applyActions(graph, rule.Actions, bindings, preds) {
+			// Actions mutate the graph: advance the generation on both
+			// sides so no predicate cache survives into the next query.
+			preds.bumpGeneration()
+			applied := applyActions(graph, rule.Actions, bindings, preds)
+			preds.bumpGeneration()
+			if applied {
 				result.Applied++
 				result.ByRule[rule.Name]++
 				fired = true
