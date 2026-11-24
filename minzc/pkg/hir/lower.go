@@ -2207,6 +2207,10 @@ func (l *lowerer) lowerForEach(st *ForEachStmt) {
 	mutated := sortedKeys(allUsed, envBefore)
 
 	headLabel := l.fresh("fe_head")
+	// An unknown-trip fact, as for a while loop: without it the variant search
+	// sees a loop-free function and never scores or varies the chain's loop.
+	l.recordStaticLoop(headLabel, mir2.StaticLoop{ID: l.loopCostIndex, Condition: "foreach " + dumpExpr(st.Len), Trips: -1})
+	l.loopCostIndex++
 	bodyLabel := l.fresh("fe_body")
 	contLabel := l.fresh("fe_cont") // continue trampoline: advance ptr/cnt → head
 	exitLabel := l.fresh("fe_exit")
