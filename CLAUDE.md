@@ -9,7 +9,7 @@ This file provides guidance to Claude Code when working with the MinZ compiler r
 ### 1. Register Allocator & Loop Codegen Correctness
 **Status (2026-10-20):** The correctness sprint #205–#215 is merged; direct-call fuzz is blocking in CI (#210). On `605c7e8a2` (after #215), the manager recorded 20000/20000 direct-call seeds (0–19999), 4000/4000 signed seeds (0–3999), and 1000/1000 folded seeds. After #209, assert_matrix recorded 0 unexpected control passes, exit 0. These supplied results were not rerun for this documentation update and do not prove arbitrary program correctness.
 
-P20–P22 fixed in #218–#220 (2026-10-21); on `3124c9b81` direct-call 0–19999 = 20000/20000, `--signed` 0–3999 = 4000/4000, assert_matrix controls 0 unexpected passes. Remaining findings: G0-3/4/5/8/9 plus G0-L1..L4. See the [current handover](docs/project/HANDOVER-2026-10-20-CORRECTNESS-AND-G1.md) for fixes, scope and repro pointers.
+P20–P22 fixed in #218–#220 (2026-10-21); on `3124c9b81` direct-call 0–19999 = 20000/20000, `--signed` 0–3999 = 4000/4000, assert_matrix controls 0 unexpected passes. G0-5 was resolved in #326 and G0-4/G0-9 in #327 (2026-11), which also fixed assignment to a local that shadows a global (it stored to the global; every frontend). Remaining findings: G0-3/8 plus G0-L1..L4. See the [current handover](docs/project/HANDOVER-2026-10-20-CORRECTNESS-AND-G1.md) for fixes, scope and repro pointers.
 
 ### 2. Iterator Chain Fusion (historical MIR1 status)
 The former “11/11 E2E” and enumerate/reduce bug descriptions applied to the retired MIR1 pipeline, not the current Nanz production path. The old B-counter conflict and A-overwrite explanations were refuted by the [G0 iteration audit](docs/Nanz_Iteration_Audit.md) (#205); current legacy findings concern callback linking/ABI and array initialization. The audit records current Nanz semantics and remaining findings.
@@ -17,11 +17,11 @@ The former “11/11 E2E” and enumerate/reduce bug descriptions applied to the 
 Scalar `gen`/`yield` with caller-owned pull frames is implemented in G1 (#216). Demand-preserving generator fusion is planned for G2 under [ADR 0050](docs/adr/0050-nanz-generator-fusion.md), with pull fallback; see the [generator design](reports/2026-10-18-nanz-generators-design.md).
 
 ### 3. MIR2 Open Bugs
-**Status:** 8 tracked bugs (4 fixed, 4 open — 1 blocking 🔴). See **[docs/Open_Bugs_RCA.md](docs/Open_Bugs_RCA.md)** for full RCA.
-- 🔴 **BUG-008** Arena codegen: impossible `LD IXL, (IX+d)` + self-pointer loss (blocks struct methods)
-- 🟡 **BUG-001** GCD parallel-copy bloat + `$0000` ROM spills (PBQP affinity / spill relocation)
-- 🟡 **BUG-006** Zero-size struct globals not emitted (undefined symbol at link time)
-- 🟡 **BUG-007** Spurious adapter LD when caller/callee share PFCCO convention
+**Status (BUG-001…008; 006 and 008 re-checked 2026-11-25):** 6 fixed, 2 open, none of the eight blocking. See **[docs/Open_Bugs_RCA.md](docs/Open_Bugs_RCA.md)** for full RCA and for BUG-009…014, which this list does not cover (BUG-014, Tetris v2 black screen, is still marked 🔴 open there and was not re-examined).
+- 🟡 **BUG-001** GCD parallel-copy bloat + `$0000` ROM spills (PBQP affinity / spill relocation) — not re-examined
+- 🟡 **BUG-007** Spurious adapter LD when caller/callee share PFCCO convention — not re-examined
+- ✅ **BUG-008** Arena codegen (`LD IXL, (IX+d)`, self-pointer loss) — fixed 2026-03-16 (`3ffd5b6b9`); the arena example passes on Z80
+- ✅ **BUG-006** Zero-size struct globals — label emitted on Z80; on the MIR2 VM the address of such a global is still 0
 - ✅ **BUG-002** forEach constant rematerialization — fixed 2026-03-12
 - ✅ **BUG-003** `ptr[i]` in while loop — fixed 2026-03-12
 - ✅ **BUG-004** Non-zero-lo LUT pipeline ordering — fixed 2026-03-12
