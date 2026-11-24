@@ -1,6 +1,6 @@
 {
   "note": "unfrozen probe; measure.go -compiler nanz -profile default -workload ../workloads/<case>.json; frozen idiomatic compiled by the same binary",
-  "compiler_commit": "f8ab314d0",
+  "compiler_commit": "db91f3fe6",
   "rows": [
     {
       "case": "fusion_dot_product",
@@ -61,8 +61,8 @@
         "status": "PASS",
         "samples": 180,
         "mismatches": 0,
-        "TotalT": 1457755,
-        "ProgramBytes": 307,
+        "TotalT": 955435,
+        "ProgramBytes": 301,
         "source_sha256": "33c911f72fd295f74b8d0a3da353f1fc231c6fb005ea0a8c19d8403e8776405d",
         "measure_samples_sha256": "808892330df818596bec63b05d9e1b98adc2901e331ab382c8166d2d842e8cbc"
       },
@@ -71,8 +71,8 @@
         "status": "PASS",
         "samples": 180,
         "mismatches": 0,
-        "TotalT": 1458650,
-        "ProgramBytes": 315,
+        "TotalT": 956330,
+        "ProgramBytes": 309,
         "source_sha256": "a5b1369ad1a828d9bb7d5150d98e97fda98cba839b383a40265a6d56da2633db",
         "measure_samples_sha256": "808892330df818596bec63b05d9e1b98adc2901e331ab382c8166d2d842e8cbc"
       }
@@ -111,8 +111,8 @@
         "status": "PASS",
         "samples": 60,
         "mismatches": 0,
-        "TotalT": 638303,
-        "ProgramBytes": 585,
+        "TotalT": 596263,
+        "ProgramBytes": 583,
         "source_sha256": "379df3e6237704c7e4e6c7aec978933ab61238a65c48886ddefa3d9da54387a8",
         "measure_samples_sha256": "e73c6d58afc542fa8cacdf5a06fc93dfae26643c039a1c18dd8815a3b285d9ca"
       },
@@ -136,8 +136,8 @@
         "status": "PASS",
         "samples": 60,
         "mismatches": 0,
-        "TotalT": 638303,
-        "ProgramBytes": 585,
+        "TotalT": 596263,
+        "ProgramBytes": 583,
         "source_sha256": "6d889e7c7b101fafa9d990e4393a1e2258520cc4a0b4e31ba2b2dee2c39df1af",
         "measure_samples_sha256": "e73c6d58afc542fa8cacdf5a06fc93dfae26643c039a1c18dd8815a3b285d9ca"
       },
@@ -171,8 +171,8 @@
         "status": "PASS",
         "samples": 180,
         "mismatches": 0,
-        "TotalT": 365848,
-        "ProgramBytes": 359,
+        "TotalT": 364588,
+        "ProgramBytes": 357,
         "source_sha256": "b720507774759867d27040145087eb8af1687242987263cbd7b089547a40101e",
         "measure_samples_sha256": "00564a639bf25cf4ed3395086f4933c957f6ef0149d8014a69111f8467b04d8c"
       }

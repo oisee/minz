@@ -981,8 +981,9 @@ This is **zero-cost closure capture** — `sum` is a CPU register throughout the
 ### 5.4 skip, take, zip, count, sum
 
 `skip(k)` and `take(k)` count the elements that *reach* them, so after a
-`filter` they count survivors. `take` stops the whole loop: no stage or callback
-runs for any later source element.
+`filter` they count survivors. `take` stops the whole loop right after the k-th
+accepted element: no stage or callback runs for any later source element, and a
+memory source's next element is not read. `k` and `n` are u8 or u16.
 
 ```nanz
 // [0, 0, 7, 8, 9]: pos runs for 0, 0, 7, 8 — never for 9
@@ -1020,18 +1021,15 @@ same compiler:
 |---|---|---:|---:|---:|---:|---:|
 | fusion_dot_product | `fusion_dot_product.nanz` | 2922800 | 1676 | 2922800 | 1676 | +0.0% |
 | fusion_dot_product | `fusion_dot_product_mapsum.nanz` | 2922800 | 1676 | 2922800 | 1676 | +0.0% |
-| fusion_filter_count | `fusion_filter_count.nanz` | 1457755 | 307 | 1458650 | 315 | -0.1% |
+| fusion_filter_count | `fusion_filter_count.nanz` | 955435 | 301 | 956330 | 309 | -0.1% |
 | fusion_map_store | `fusion_map_store.nanz` | 316095 | 550 | 316095 | 550 | +0.0% |
-| fusion_two_ptr_xor | `fusion_two_ptr_xor.nanz` | 638303 | 585 | 626115 | 577 | +1.9% |
-| fusion_two_ptr_xor | `fusion_two_ptr_xor_fold.nanz` | 638303 | 585 | 626115 | 577 | +1.9% |
-| fusion_window_sum | `fusion_window_sum.nanz` | 360558 | 342 | 365848 | 359 | -1.4% |
+| fusion_two_ptr_xor | `fusion_two_ptr_xor.nanz` | 596263 | 583 | 626115 | 577 | -4.8% |
+| fusion_two_ptr_xor | `fusion_two_ptr_xor_fold.nanz` | 596263 | 583 | 626115 | 577 | -4.8% |
+| fusion_window_sum | `fusion_window_sum.nanz` | 360558 | 342 | 364588 | 357 | -1.1% |
 
-The two-pointer XOR chain is 1.9 % slower than its hand-written `while` loop:
-the loop body is the same shape, but the register allocator puts the zip
-pointer in IY, so each second byte passes through `EX AF,AF'` and `IXH`,
-and the u16 count is loaded through IX in the prologue (12188 T more over the
-60 workload samples). That is a code-generation weakness, not a property of the
-chain.
+Every chain spelling is at least as fast as its hand spelling. The two-pointer
+XOR chain is 4.8 % faster than the hand-written `while` loop but 6 bytes
+larger (583 against 577).
 
 ### 5.5 E2E Verification (historical)
 
