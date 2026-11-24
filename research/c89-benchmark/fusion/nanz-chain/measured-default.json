@@ -1,6 +1,6 @@
 {
   "note": "unfrozen probe; measure.go -compiler nanz -profile default -workload ../workloads/<case>.json; frozen idiomatic compiled by the same binary",
-  "compiler_commit": "db91f3fe6",
+  "compiler_commit": "ea8d383c3",
   "rows": [
     {
       "case": "fusion_dot_product",
@@ -11,8 +11,8 @@
         "status": "PASS",
         "samples": 60,
         "mismatches": 0,
-        "TotalT": 2922800,
-        "ProgramBytes": 1676,
+        "TotalT": 1966390,
+        "ProgramBytes": 1645,
         "source_sha256": "7b1d0765f258ae9287c209464c555b6cf872694c3efc5b07eb738a44ff7d371b",
         "measure_samples_sha256": "e51513d5bd9e0a87bff6bb620f9d7802182de4d29cd33ac3911197f07effc515"
       },
@@ -21,8 +21,8 @@
         "status": "PASS",
         "samples": 60,
         "mismatches": 0,
-        "TotalT": 2922800,
-        "ProgramBytes": 1676,
+        "TotalT": 1966390,
+        "ProgramBytes": 1645,
         "source_sha256": "70b3abe8b73fef1544a15655f9f619a4dd9f1e37cdf40bda810653591bca1a0a",
         "measure_samples_sha256": "e51513d5bd9e0a87bff6bb620f9d7802182de4d29cd33ac3911197f07effc515"
       }
@@ -36,8 +36,8 @@
         "status": "PASS",
         "samples": 60,
         "mismatches": 0,
-        "TotalT": 2922800,
-        "ProgramBytes": 1676,
+        "TotalT": 1966390,
+        "ProgramBytes": 1645,
         "source_sha256": "0acb1ed2d2ae24710e41b3adbfc9367ce7e13173656c637ed7bf7a35937c976f",
         "measure_samples_sha256": "e51513d5bd9e0a87bff6bb620f9d7802182de4d29cd33ac3911197f07effc515"
       },
@@ -46,8 +46,8 @@
         "status": "PASS",
         "samples": 60,
         "mismatches": 0,
-        "TotalT": 2922800,
-        "ProgramBytes": 1676,
+        "TotalT": 1966390,
+        "ProgramBytes": 1645,
         "source_sha256": "70b3abe8b73fef1544a15655f9f619a4dd9f1e37cdf40bda810653591bca1a0a",
         "measure_samples_sha256": "e51513d5bd9e0a87bff6bb620f9d7802182de4d29cd33ac3911197f07effc515"
       }

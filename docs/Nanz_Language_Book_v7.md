@@ -1019,8 +1019,8 @@ same compiler:
 
 | Case | Chain spelling | T-states | Bytes | Hand spelling T-states | Bytes | ΔT |
 |---|---|---:|---:|---:|---:|---:|
-| fusion_dot_product | `fusion_dot_product.nanz` | 2922800 | 1676 | 2922800 | 1676 | +0.0% |
-| fusion_dot_product | `fusion_dot_product_mapsum.nanz` | 2922800 | 1676 | 2922800 | 1676 | +0.0% |
+| fusion_dot_product | `fusion_dot_product.nanz` | 1966390 | 1645 | 1966390 | 1645 | +0.0% |
+| fusion_dot_product | `fusion_dot_product_mapsum.nanz` | 1966390 | 1645 | 1966390 | 1645 | +0.0% |
 | fusion_filter_count | `fusion_filter_count.nanz` | 955435 | 301 | 956330 | 309 | -0.1% |
 | fusion_map_store | `fusion_map_store.nanz` | 316095 | 550 | 316095 | 550 | +0.0% |
 | fusion_two_ptr_xor | `fusion_two_ptr_xor.nanz` | 596263 | 583 | 626115 | 577 | -4.8% |
