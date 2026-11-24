@@ -456,7 +456,23 @@ func z80CodegenWithLeafWrites(m *Module, ar *AllocResult, leafWrites map[string]
 		sb.WriteByte('\n')
 		// Z80 validation: catch invalid instructions at compile time.
 		funcAsm := sb.String()[startLen:]
-		if errs := opt.validation.validate(funcAsm); len(errs) > 0 && opt.ValidationLog != nil {
+		errs := opt.validation.validate(funcAsm)
+		// A DJNZ whose loop body outgrew the 8-bit displacement cannot be
+		// promoted to a long branch by the assembler. Route it through an
+		// adjacent trampoline and validate what will actually be assembled.
+		for round := 0; round < 8; round++ {
+			relaxed, changed := relaxFarDJNZ(funcAsm, errs, sanitizeIdent(f.Name), &cg.trampIdx)
+			if !changed {
+				break
+			}
+			head := sb.String()[:startLen]
+			sb.Reset()
+			sb.WriteString(head)
+			sb.WriteString(relaxed)
+			funcAsm = relaxed
+			errs = opt.validation.validate(funcAsm)
+		}
+		if len(errs) > 0 && opt.ValidationLog != nil {
 			*opt.ValidationLog = append(*opt.ValidationLog, z80validate.FormatErrors(f.Name, errs))
 		} else if len(errs) > 0 {
 			z80validate.LogErrors(f.Name, errs)
