@@ -1,0 +1,7 @@
+global source: [u8; 256]
+global n: u16
+global result: u16
+global other: [u8; 256]
+fun execute() {
+    result = source.zip(other).fold(u16(0), |s: u16, x: u8, y: u8| s + u16(x xor y), n)
+}
