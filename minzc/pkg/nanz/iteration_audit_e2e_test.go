@@ -287,8 +287,8 @@ assert n255_cnt() == 255
 }
 
 // TestG0Finding_CrossedRangeBounds: range(5..3) has hi < lo with hi != 0, so
-// it is not the Rev spelling; count = hi-lo underflows u8 to 254 and the loop
-// runs 254 iterations (254..1). It should be rejected or empty.
+// it is not the Rev spelling. It is empty, like `for i in 5..3` (G0-4,
+// resolved: the count hi-lo used to underflow u8 to 254 iterations).
 func TestG0Finding_CrossedRangeBounds(t *testing.T) {
 	src := `
 global n16: u16 = 0
@@ -307,7 +307,7 @@ fun crossed() -> u16 {
 assert crossed() == 0
 `
 	if err := g0RunAsserts(t, src); err != nil {
-		t.Skip("G0 finding G0-4: range(5..3) count underflows u8 and iterates 254 times: ", err)
+		t.Fatal("G0-4: range(5..3) must be empty: ", err)
 	}
 }
 
@@ -775,8 +775,8 @@ assert consumer() == 12
 	}
 }
 
-// G0-9: counts above 255 require a u16 countdown, yielding 256..1,
-// not a truncated first element 0 followed by 255..1.
+// G0-9 (resolved): a count above 255 takes the for lowering and its u16
+// range type, yielding 0..255.
 func TestG0Finding_RangeCounterWidth(t *testing.T) {
 	src := `
 global total: u16 = 0
@@ -799,7 +799,7 @@ fun wide_range() -> u16 {
 assert wide_range() == 32640
 `
 	if err := g0RunAsserts(t, src); err != nil {
-		t.Skip("G0 finding G0-9: range count 256 truncates to u8; expected u16 counter yielding 0..255: ", err)
+		t.Fatal("G0-9: range(0..256) must yield 0..255: ", err)
 	}
 }
 

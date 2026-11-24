@@ -435,6 +435,15 @@ func (l *lowerer) findGlobal(name string) (mir2.Global, bool) {
 	return mir2.Global{}, false
 }
 
+// visibleGlobal is findGlobal for a name written in a function body: a local
+// or parameter of that name shadows the global, as it does for value reads.
+func (l *lowerer) visibleGlobal(name string) (mir2.Global, bool) {
+	if _, local := l.env[name]; local {
+		return mir2.Global{}, false
+	}
+	return l.findGlobal(name)
+}
+
 // globalAddr emits AddrOf for a global variable name.
 func (l *lowerer) globalAddr(name string) mir2.Reg {
 	r := l.bld.AddrOf(name, mir2.ClassPointer)
@@ -453,7 +462,7 @@ func (l *lowerer) lowerExprAddr(ex Expr) mir2.Reg {
 		if reg, ok := l.env[e.Name]; ok && (l.localCells[e.Name] || l.localArrays[e.Name]) {
 			return reg
 		}
-		if _, ok := l.findGlobal(e.Name); ok {
+		if _, ok := l.visibleGlobal(e.Name); ok {
 			return l.globalAddr(e.Name)
 		}
 		// Local pointer variable (e.g. param `self: ^Acc`): the register value IS the address.
@@ -568,7 +577,7 @@ func (l *lowerer) lowerBitAssign(tgt *BitExpr, val Expr) {
 	switch base := tgt.X.(type) {
 	case *VarRefExpr:
 		next := merge(l.lowerExpr(base))
-		if g, found := l.findGlobal(base.Name); found {
+		if g, found := l.visibleGlobal(base.Name); found {
 			addr := l.globalAddr(base.Name)
 			l.bld.Store(addr, next, g.Ty)
 			return
@@ -1377,7 +1386,7 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 				// Emit a fresh AddrOf per field so each AddrOf has useCount==1 —
 				// that allows the HL-chain optimizer in z80codegen to fire:
 				//   LD HL,sym ; LD (HL),n ; INC HL ; LD (HL),n ; ...
-				if _, found := l.findGlobal(tgt.Name); found {
+				if _, found := l.visibleGlobal(tgt.Name); found {
 					name := tgt.Name
 					l.emitStructLitFields(lit, func() mir2.Reg { return l.globalAddr(name) }, l.volatileObject(tgt))
 					return false
@@ -1393,7 +1402,7 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 		if ty, ok := mir2.BaseOf(st.Target.ExprTy()).(*mir2.StructTy); ok {
 			var dest mir2.Reg
 			if tgt, ok := st.Target.(*VarRefExpr); ok {
-				if _, global := l.findGlobal(tgt.Name); global {
+				if _, global := l.visibleGlobal(tgt.Name); global {
 					dest = l.globalAddr(tgt.Name)
 				} else {
 					dest = l.env[tgt.Name]
@@ -1411,7 +1420,7 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 		switch tgt := st.Target.(type) {
 		case *VarRefExpr:
 			// Global variable: store through pointer.
-			if g, found := l.findGlobal(tgt.Name); found {
+			if g, found := l.visibleGlobal(tgt.Name); found {
 				addr := l.globalAddr(tgt.Name)
 				l.storeMemory(addr, val, g.Ty, tgt.Volatile || g.Volatile)
 				return false
@@ -2948,7 +2957,7 @@ func (l *lowerer) lowerIndexAddr(ex *IndexExpr) mir2.Reg {
 	// DAG; immediate Field alone is not cheaper for those native addresses.
 	globalArray := false
 	if ref, ok := ex.Base.(*VarRefExpr); ok {
-		if global, found := l.findGlobal(ref.Name); found {
+		if global, found := l.visibleGlobal(ref.Name); found {
 			_, globalArray = mir2.BaseOf(global.Ty).(*mir2.ArrayTy)
 		}
 	}
@@ -2972,7 +2981,7 @@ func (l *lowerer) lowerIndexAddr(ex *IndexExpr) mir2.Reg {
 	hostGlobal := false
 	if l.target == TargetMZV {
 		if ref, ok := ex.Base.(*VarRefExpr); ok {
-			if g, found := l.findGlobal(ref.Name); found {
+			if g, found := l.visibleGlobal(ref.Name); found {
 				_, hostGlobal = mir2.BaseOf(g.Ty).(*mir2.ArrayTy)
 			}
 		}
@@ -3699,6 +3708,34 @@ type iterChain struct {
 	rangeRev bool // true when range(hi..lo): B starts at lo, counts down to 0 (DJNZ direct)
 }
 
+// inlineFunc returns the callback to inline into a fused loop body. Inlining
+// renames only the callback's parameters; every other name is resolved where
+// the body is lowered, in the enclosing function, where locals shadow globals.
+// That is the capture a lambda wants, but a named function's free names are
+// module globals: when one of them is shadowed by a local of the enclosing
+// function, the callback is returned without a body, so each inlining site
+// takes its "emit a call" branch.
+func (l *lowerer) inlineFunc(name string) *Func {
+	f := l.hirFuncs[name]
+	if f == nil || f.Body == nil || len(f.Captures) > 0 || strings.HasPrefix(name, "lambda_") {
+		return f
+	}
+	used := map[string]bool{}
+	scanUsedInBlock(f.Body, l.env, used)
+	for written := range l.scanMutations(f.Body, l.env) {
+		used[written] = true
+	}
+	for _, p := range f.Params {
+		delete(used, p.Name)
+	}
+	if len(used) == 0 {
+		return f
+	}
+	called := *f
+	called.Body = nil
+	return &called
+}
+
 // iterCallbackNeedsCall reports whether an iterator-chain callback must run as
 // a real CALL instead of being inlined into the fused loop body. Inlined asm
 // blocks keep the standalone-function ABI (parameters in fixed registers) that
@@ -3991,7 +4028,7 @@ func (l *lowerer) lowerFusedForEach(chain iterChain) {
 
 	// Apply each stage (map / filter).
 	for _, stage := range chain.stages {
-		fn := l.hirFuncs[stage.fn]
+		fn := l.inlineFunc(stage.fn)
 		paramName := elemVar // fallback if func not found
 		if fn != nil && len(fn.Params) > 0 {
 			paramName = fn.Params[0].Name
@@ -4044,7 +4081,7 @@ func (l *lowerer) lowerFusedForEach(chain iterChain) {
 	// Inline the terminal callback.
 	// For mapInPlace: the callback is a value-transform (like map); assign result to elemVar.
 	// For forEach: the callback is a side-effect action; emit inline stmts.
-	cbFn := l.hirFuncs[chain.cbName]
+	cbFn := l.inlineFunc(chain.cbName)
 	if chain.mutate {
 		// mapInPlace: apply callback as a transform, result stored back by lowerForEach.
 		var rhs Expr
@@ -4125,7 +4162,7 @@ func (l *lowerer) lowerFusedFold(chain iterChain) mir2.Reg {
 
 	// 2. Build the loop body: __fold_acc__ = cb(__fold_acc__, __iter_elem__)
 	var bodyExpr Expr
-	cbFn := l.hirFuncs[chain.cbName]
+	cbFn := l.inlineFunc(chain.cbName)
 	if cbFn != nil && cbFn.Body != nil && len(cbFn.Params) >= 2 {
 		if ret := extractReturnExpr(cbFn.Body); ret != nil {
 			accParamName := cbFn.Params[0].Name
@@ -4183,7 +4220,7 @@ func (l *lowerer) lowerFusedFold(chain iterChain) mir2.Reg {
 func (l *lowerer) lowerRangeForEach(chain iterChain) {
 	const elemVar = "__iter_elem__"
 	elemTy := chain.elemTy
-	cbFn := l.hirFuncs[chain.cbName]
+	cbFn := l.inlineFunc(chain.cbName)
 
 	// Build the loop body by inlining the callback (same as lowerFusedForEach
 	// but without a Load — the element IS the counter).
@@ -4217,7 +4254,7 @@ func (l *lowerer) lowerRangeForEach(chain iterChain) {
 // otherwise. Shared by the forEach and fold stage builders so both terminals
 // inline the same callbacks.
 func (l *lowerer) stageValueExpr(stage iterStage, elemVar string, elemTy mir2.Ty) Expr {
-	if fn := l.hirFuncs[stage.fn]; fn != nil && len(fn.Params) == 1 {
+	if fn := l.inlineFunc(stage.fn); fn != nil && len(fn.Params) == 1 {
 		if ret := extractReturnExpr(fn.Body); ret != nil {
 			return renameExpr(ret, fn.Params[0].Name, elemVar)
 		}
@@ -4259,7 +4296,7 @@ func (l *lowerer) lowerRangeFold(chain iterChain) mir2.Reg {
 
 	// Build the loop body: __fold_acc__ = cb(__fold_acc__, __iter_elem__)
 	var bodyExpr Expr
-	cbFn := l.hirFuncs[chain.cbName]
+	cbFn := l.inlineFunc(chain.cbName)
 	if cbFn != nil && cbFn.Body != nil && len(cbFn.Params) >= 2 {
 		if ret := extractReturnExpr(cbFn.Body); ret != nil {
 			bodyExpr = renameExpr(ret, cbFn.Params[0].Name, accVar)
@@ -4342,13 +4379,31 @@ func (l *lowerer) lowerRangeLoop(chain iterChain, elemVar string, elemTy mir2.Ty
 	elemUsed := map[string]bool{}
 	scanUsedInBlock(&Block{Body: bodyStmts}, usedProbe, elemUsed)
 	needIdx := elemUsed[elemVar]
-	if needIdx && !chain.rangeRev {
+	ity := RangeType(chain.rangeLo, chain.rangeHi)
+	byteCount := rangeCountFitsDJNZ(chain, ity)
+	if !chain.rangeRev && (needIdx || !byteCount) {
 		idx := l.fresh("iter_idx")
 		defer l.saveLexicalName(elemVar)()
-		ity := RangeType(chain.rangeLo, chain.rangeHi)
 		decl := &VarDeclStmt{Name: elemVar, Ty: elemTy, Init: &VarRefExpr{Name: idx, Ty: ity}}
 		l.lowerForRange(&ForRangeStmt{
 			Var: idx, Start: chain.rangeLo, End: chain.rangeHi,
+			Body: &Block{Body: append([]Stmt{decl}, bodyStmts...)},
+		})
+		return
+	}
+	if chain.rangeRev && !byteCount {
+		// range(n..0) with a count wider than a byte: count idx up over 0..n
+		// and derive the element n-1-idx, with n evaluated once.
+		idx, n := l.fresh("iter_idx"), l.fresh("iter_n")
+		defer l.saveLexicalName(elemVar)()
+		defer l.saveLexicalName(n)()
+		l.lowerStmt(&VarDeclStmt{Name: n, Ty: ity, Init: chain.rangeLo})
+		nRef := &VarRefExpr{Name: n, Ty: ity}
+		elem := &BinExpr{Op: "-", Ty: ity, R: &VarRefExpr{Name: idx, Ty: ity},
+			L: &BinExpr{Op: "-", L: nRef, R: &IntLitExpr{Val: 1, Ty: ity}, Ty: ity}}
+		decl := &VarDeclStmt{Name: elemVar, Ty: elemTy, Init: elem}
+		l.lowerForRange(&ForRangeStmt{
+			Var: idx, Start: &IntLitExpr{Val: 0, Ty: ity}, End: nRef,
 			Body: &Block{Body: append([]Stmt{decl}, bodyStmts...)},
 		})
 		return
@@ -4459,6 +4514,25 @@ func (l *lowerer) lowerRangeLoop(chain iterChain, elemVar string, elemTy mir2.Ty
 	delete(exitEnv, elemVar)
 	delete(exitEnv, cntVar)
 	l.env = exitEnv
+}
+
+// rangeCountFitsDJNZ reports whether the trip count of a range source is a
+// byte that cannot underflow, so the B-counted loop is exact: range(0..hi) and
+// range(n..0) over a u8 domain, or literal bounds lo <= hi. Everything else
+// (a wider domain, variable crossed bounds) takes the `for` lowering.
+func rangeCountFitsDJNZ(chain iterChain, ity mir2.Ty) bool {
+	if ity != mir2.TyU8 {
+		return false
+	}
+	if chain.rangeRev {
+		return true
+	}
+	lo, loLit := chain.rangeLo.(*IntLitExpr)
+	hi, hiLit := chain.rangeHi.(*IntLitExpr)
+	if loLit && lo.Val == 0 {
+		return true
+	}
+	return loLit && hiLit && lo.Val <= hi.Val
 }
 
 // extractReturnExpr extracts a single-return expression only when it is the
@@ -5067,7 +5141,7 @@ func (l *lowerer) volatileAddress(e Expr) bool {
 		}
 		return x.X != nil && l.volatileAddress(x.X)
 	case *VarRefExpr:
-		if g, ok := l.findGlobal(x.Name); ok && g.Volatile {
+		if g, ok := l.visibleGlobal(x.Name); ok && g.Volatile {
 			switch g.Ty.(type) {
 			case *mir2.ArrayTy, *mir2.StructTy:
 				return true

@@ -572,7 +572,7 @@ func renameParamsExpr(x Expr, f *Func, skip int, e chainElem) Expr {
 
 // chainValue is the value of a map/filter callback on the current element.
 func (l *lowerer) chainValue(fn string, e chainElem, ty mir2.Ty) Expr {
-	if f := l.hirFuncs[fn]; f != nil && len(f.Params) >= 1 {
+	if f := l.inlineFunc(fn); f != nil && len(f.Params) >= 1 {
 		if ret := extractReturnExpr(f.Body); ret != nil {
 			return renameParamsExpr(ret, f, 0, e)
 		}
@@ -672,7 +672,7 @@ func (l *lowerer) chainTerminal(c *chainSpec, e chainElem, acc string) []Stmt {
 		x = chainCast(x, mir2.TyU16)
 		return []Stmt{&AssignStmt{Target: accRef, Val: &BinExpr{Op: "+", L: accRef, R: x, Ty: mir2.TyU16}}}
 	case "fold", "reduce":
-		f := l.hirFuncs[c.cb]
+		f := l.inlineFunc(c.cb)
 		var val Expr
 		if f != nil && len(f.Params) >= 2 {
 			if ret := extractReturnExpr(f.Body); ret != nil {
@@ -685,7 +685,7 @@ func (l *lowerer) chainTerminal(c *chainSpec, e chainElem, acc string) []Stmt {
 		}
 		return []Stmt{&AssignStmt{Target: accRef, Val: val}}
 	case "forEach":
-		f := l.hirFuncs[c.cb]
+		f := l.inlineFunc(c.cb)
 		if f == nil || f.Body == nil || iterCallbackNeedsCall(f.Body) || len(f.Params) < 1 {
 			return []Stmt{&ExprStmt{Expr: &CallExpr{Fn: c.cb, Args: e.args(), Ty: mir2.TyVoid}}}
 		}

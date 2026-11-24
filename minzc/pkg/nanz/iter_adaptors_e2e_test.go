@@ -1361,15 +1361,14 @@ assert nested_bytes() == 21
 	}
 }
 
-// Report only: range(0..300) keeps the u8 DJNZ counter (audit G0-9 class);
-// the new terminals inherit it.
+// A range count wider than a byte (audit G0-9, resolved) under a new terminal.
 func TestIterRangeCountWide(t *testing.T) {
 	src := `
 fun c() -> u16 { return range(0..300).count() }
 assert c() == 300
 `
 	if err := g0RunAsserts(t, src); err != nil {
-		t.Skipf("G0-9: range(0..300) runs a u8 counter (44 iterations); count() inherits it: %v", err)
+		t.Fatal(err)
 	}
 }
 

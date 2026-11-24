@@ -28,11 +28,11 @@ claim is an audit observation; G0-L1 pins one representative program.
 |---|---|---|---|---|---|---|---|
 | `for i in lo..hi` | forward `lo..hi-1` (var width follows `hi`) | 0 iters | `[lo]` | full 255 | 256 iters (u16 bound) | `break`, `continue`, `return` | VM=VM=Z80 |
 | `for x in ptr[lo..hi]` | forward, loads `ptr[lo+i]` | 0 iters | `[ptr[lo]]` | full 255 | 256 iters (u16 len) | `break`, `continue`, `return` | VM=VM=Z80 |
-| `range(lo..hi)` source | **forward**: `lo, lo+1, …, hi-1` (like `for`); `range(hi..0)` yields `hi-1, …, 0` | 0 iters | `[1]` | full 255 | **G0-9: truncated u8 counter** | none | VM=VM=Z80 |
+| `range(lo..hi)` source | **forward**: `lo, lo+1, …, hi-1` (like `for`); `range(hi..0)` yields `hi-1, …, 0` | 0 iters | `[1]` | full 255 | u16 range type (G0-9 resolved) | none | VM=VM=Z80 |
 | chain `map/filter → forEach` (memory src) | forward, stages innermost-first | no effects | 1 elem | full 255 | via u16 len | **not expressible** | VM=VM=Z80 |
 | chain `mapInPlace` | forward, stores back | no writes | 1 | full 255 | via u16 len | not expressible | VM=VM=Z80 |
 | chain `fold`/`reduce` (memory) | forward | returns `init` | `cb(init, ptr[0])` | full 255 | via u16 len | not expressible | VM=VM=Z80 |
-| chainable `range(lo..hi).fold/.forEach` | forward (see range) | `init` / nothing | `[1]` | full 255 | G0-9 | not expressible | VM=VM=Z80 |
+| chainable `range(lo..hi).fold/.forEach` | forward (see range) | `init` / nothing | `[1]` | full 255 | as range | not expressible | VM=VM=Z80 |
 | `pipe`/`trans` + `.apply()` | expands to nested `map`/`filter` calls — identical semantics per source | as chain | as chain | as chain | as chain | not expressible | VM=VM=Z80 |
 | chain `skip(k)`/`take(k)` stages (memory or range src) | forward; `skip` drops the first k elements reaching it, `take` passes the first k reaching it (counts survivors after a `filter`) | no effects / `init` | as stage | full 255 | via u16 len | **`take`: loop stops** right after the k-th accepted element; on a memory source the next element is not even loaded (ADR 0050) | VM=VM=Z80 |
 | chain `src.zip(other)` (memory only) | forward; source element i pairs with `other[i]` by **source position**, also after a `filter`; with an implicit count (sized global arrays) the shorter declared length | no effects / `init` | 1 pair | full 255 | via u16 len | via `take` | VM=VM=Z80 |
@@ -99,9 +99,13 @@ Recorded, not fixed here:
   underflows to 254; the loop runs 254 iterations reading past the source.
   Correct behaviour (0 iterations or a diagnostic) needs a lowering/parse
   decision. Test: `TestG0Finding_ReversedSliceIsEmpty` (skip).
-- **G0-4** — `range(5..3)` (lo > hi, hi ≠ 0, not the Rev spelling): count
-  `hi-lo` underflows u8 to 254. With the element read, the `for` lowering now yields an empty loop; an unused-element DJNZ loop still runs 254 times. Same class as G0-3.
-  Test: `TestG0Finding_CrossedRangeBounds` (skip).
+- **G0-4 (resolved 2026-11)** — `range(5..3)` (lo > hi, hi ≠ 0, not the Rev
+  spelling) is empty, like `for i in 5..3`. The unused-element loop used to
+  count `hi-lo` in a byte, which underflowed to 254 iterations; it now counts
+  in B only when the count is a byte that cannot underflow (`range(0..hi)` or
+  `range(n..0)` over a u8 domain, or literal bounds lo ≤ hi) and takes the
+  `for` lowering otherwise. Test: `TestG0Finding_CrossedRangeBounds`,
+  `TestRangeChainCountWidthAndBounds`.
 - **G0-5 (resolved 2026-11)** — unsupported iterator methods used to be
   accepted by the Nanz parser and lowered to placeholder code (`LD A, ?`,
   CALLs to undefined labels). Now `skip`, `take`, `zip`, `count` and `sum`
@@ -166,14 +170,20 @@ Recorded, not fixed here:
   No lowering change: CALL fallback has no error-return channel; adding a
   panic would not be a clean compile diagnostic. Closure support or proper
   frontend rejection is deferred.
-- **G0-9** — `range(0..256)` with an unused element truncates the DJNZ count to u8 (the element-read form now uses the `for` path and its u16 range type). Same boundary/underflow
-  class as G0-3/G0-4. Expected contract: **use a u16 counter when the count
-  may exceed 255**, yielding 0..255. Test:
-  `TestG0Finding_RangeCounterWidth` (skip on failure) uses a u16 callback and
-  requires first=0, count=256, sum=32640 on the three-tier path.
-  The terminals `count()`/`sum()` on a range inherit it:
-  `range(0..300).count()` runs 44 times (`TestIterRangeCountWide`, skipped,
-  expects 300).
+- **G0-9 (resolved 2026-11)** — a range whose count does not fit a byte
+  (`range(0..256)`, `range(0..300)`, a u16 bound, `range(n..0)` with a u16
+  `n`) with an unused element used to truncate the DJNZ count to u8
+  (`range(0..300)` ran 44 times). Such ranges now take the `for` lowering and
+  its u16 range type; the descending spelling counts an index up and derives
+  the element `n-1-idx`. Tests: `TestG0Finding_RangeCounterWidth`,
+  `TestIterRangeCountWide`, `TestRangeChainCountWidthAndBounds`.
+- **G0-10 (resolved 2026-11)** — a *named* function inlined as a chain
+  callback resolved its free names in the enclosing function, so a caller
+  local named like a global replaced the global (`let g = 100` in the caller,
+  `fun addg(x) { return x + g }` as the callback: 621 instead of 51). A named
+  callback whose body mentions a name bound in the enclosing function is now
+  called instead of inlined; a lambda still captures. Test:
+  `TestNamedChainCallbackSeesGlobals`.
 
 ### Legacy `.minz` pipeline (claims evidence)
 
