@@ -609,6 +609,15 @@ func compileMIRProductSteps(hm *hir.Module, opt Options, s Steps, splitInfo map[
 	// synthetic Sub instruction.
 	mir2.LUTGen(m)
 
+	// A word multiply of two zero-extended bytes reads the bytes directly, so
+	// the extensions need no 16-bit homes. Z80 only, like flag returns: other
+	// emitters keep the MIR untouched.
+	if (opt.Backend == "" || opt.Backend == "z80") && (!opt.SkipZ80Emission || NeedsZ80Asserts(hm, opt.AssertMode)) {
+		for _, f := range m.Funcs {
+			mir2.NarrowWideningByteMul(f)
+		}
+	}
+
 	// Register allocation: per-function PBQP, combined result for codegen.
 	combined := &mir2.AllocResult{Locs: make(map[mir2.Reg]mir2.PhysLoc)}
 	for _, f := range m.Funcs {
@@ -927,6 +936,13 @@ func CompileHIRWithOptions(hm *hir.Module, opts Options) (string, error) {
 	// Module-level: replace ranged-param pure functions with LUTs.
 	// Must run AFTER contract optimisation (see above).
 	mir2.LUTGen(m)
+
+	// Word multiplies of zero-extended bytes read the bytes (see above).
+	if opts.Backend == "" || opts.Backend == "z80" {
+		for _, f := range m.Funcs {
+			mir2.NarrowWideningByteMul(f)
+		}
+	}
 
 	// Register allocation: per-function PBQP, combined result for codegen.
 	combined := &mir2.AllocResult{Locs: make(map[mir2.Reg]mir2.PhysLoc)}
