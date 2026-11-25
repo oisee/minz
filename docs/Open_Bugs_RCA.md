@@ -126,7 +126,7 @@ and inherited the class from the hoisted instruction without checking width.
 
 ---
 
-## BUG-006 🟡 Zero-size struct globals (`struct Dog {}`) not emitted
+## BUG-006 ✅ FIXED (Z80) Zero-size struct globals (`struct Dog {}`) not emitted
 
 **Symptom:** `global g_dog: Dog` where `Dog` has no fields emits no bytes.
 Subsequent `LD HL, g_dog` references an undefined symbol, causing MZA to fail.
@@ -140,6 +140,12 @@ operations remain valid.
 (or `DEFS 0`) so the symbol exists in the symbol table without consuming bytes.
 
 **Priority:** Medium.  Affects interface/polymorphism examples with marker types.
+
+**Status (re-checked 2026-11-25 on `d19f20c70`):** fixed on the Z80 path. The
+label is emitted (`g_dog:` with no bytes), the program assembles, and
+`&g_dog != 0` holds on the emulator. Remaining difference: on the MIR2 VM the
+address of a zero-size global is 0, so the same comparison gives the opposite
+answer there (`... via mir2` fails, `... via z80` passes).
 
 ---
 
@@ -190,7 +196,13 @@ will cause incorrect results in larger programs with dynamic call chains.
 
 ---
 
-## BUG-008 🔴 Arena codegen: impossible `LD IXL, (IX+d)` + self-pointer loss
+## BUG-008 ✅ FIXED Arena codegen: impossible `LD IXL, (IX+d)` + self-pointer loss
+
+**Status:** fixed by `3ffd5b6b9` (2026-03-16, "eliminate all DD prefix conflict
+instructions"). Re-checked 2026-11-25 on `d19f20c70`:
+`examples/nanz/08_arena_allocator.nanz` assembles and its 11 asserts pass with
+`--asserts-force z80`; the output contains no `LD IXL, (IX+d)`. The text below
+is the original analysis.
 
 **Symptom:** `Arena_alloc` generates `LD IXL, (IX+0)` and `LD IXH, (IX+1)` —
 instructions that cannot be encoded on Z80.  MZA correctly rejects them.
@@ -242,8 +254,8 @@ fun Arena.alloc(self: ^Arena, n: u16) -> u16 {
 accesses another field will hit the same pattern.  Blocks non-trivial struct
 methods on Z80.
 
-**Priority:** 🔴 Blocking.  Arena and all struct-with-pointer-receiver methods
-broken on Z80 path.
+**Priority (at discovery):** 🔴 Blocking.  Arena and all
+struct-with-pointer-receiver methods were broken on the Z80 path.
 
 **Discovered:** 2026-03-14, during arena allocator Z80 code review.
 See Report #071 for full analysis.
@@ -384,9 +396,9 @@ fill_cell loop counter preservation.
 | BUG-003 ptr[i] in while loop | HIR/codegen (PtrAdd) | ~~🔴~~ | Medium | ✅ Fixed (37b934d) |
 | BUG-004 Non-zero-lo LUT | Pipeline ordering | 🟡 | Small | ✅ Fixed 2026-03-12 |
 | BUG-005 SubSwapNeg u16 guard | condret.go | 🟡 | Trivial | ✅ Fixed 2026-03-12 |
-| BUG-006 Zero-size struct global | Global emitter | 🟡 | Small | Open |
+| BUG-006 Zero-size struct global | Global emitter | 🟡 | Small | ✅ Fixed on Z80 (re-checked 2026-11-25); VM address is 0 |
 | BUG-007 Spurious adapter LD | Codegen (PFCCO+RA) | 🟡 | Medium | Open |
-| BUG-008 Arena IXL,(IX+d) | Allocator+Codegen | 🔴 | Medium | Open |
+| BUG-008 Arena IXL,(IX+d) | Allocator+Codegen | ~~🔴~~ | Medium | ✅ Fixed 2026-03-16 (3ffd5b6b9) |
 | BUG-009 Array load [N]T | HIR lowerer | 🔴 | Trivial | ✅ Fixed 2026-03-15 |
 | BUG-010 Caller-save missing | Codegen | 🔴 | Medium | ✅ Fixed (temp) 2026-03-15 |
 | BUG-011 Dead const u16 cmp | Codegen (DCE) | 🔴 | Small | ✅ Fixed 2026-03-15 |
