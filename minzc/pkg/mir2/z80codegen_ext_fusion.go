@@ -76,7 +76,7 @@ func (g *z80cg) tryFuseExt(ext *Inst) bool {
 		use = inst
 		break
 	}
-	if use == nil || countRegUses(g.fn)[ext.Dst] != 1 || g.fusedExtSkipped(use) {
+	if use == nil || g.fnUseCounts()[ext.Dst] != 1 || g.fusedExtSkipped(use) {
 		return false
 	}
 	ok := false

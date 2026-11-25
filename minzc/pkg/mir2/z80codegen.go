@@ -832,6 +832,11 @@ type z80cg struct {
 	// physOverride relocations can be undone for values a successor reads.
 	liveness *LivenessResult
 
+	// useCounts caches countRegUses(fn) for the duration of one genFunc call
+	// (see fnUseCounts). useCountsOn is set only inside genFunc.
+	useCounts   map[Reg]int
+	useCountsOn bool
+
 	// trampolines: small glue blocks emitted after main function body that
 	// perform block-argument parallel copies then jump to the real target.
 	// Needed for BrIf edges where the non-fall-through path requires copies.
@@ -1276,6 +1281,8 @@ func (g *z80cg) genFunc(f *Func) {
 		return
 	}
 	g.fn = f
+	g.useCounts, g.useCountsOn = nil, true
+	defer func() { g.useCounts, g.useCountsOn = nil, false }()
 	g.regInfo = collectRegInfo(f)
 	g.spillWidths = make(map[string]int, len(g.regInfo))
 	for r, info := range g.regInfo {
@@ -1604,6 +1611,24 @@ func (g *z80cg) genBlock(f *Func, b *Block) {
 			g.fnWorstT = g.blockT
 		}
 	}
+}
+
+// fnUseCounts returns countRegUses(g.fn). Inside genFunc the function is
+// read-only — emission never edits instructions, terminators, parameters or
+// the block list (the same assumption that lets genFunc compute g.liveness
+// once) — so the counts are computed once per genFunc and shared by every
+// block's pattern pre-scans and emit-time single-use checks. genFunc resets
+// the cache on entry and disables it on return; outside that window (unit
+// tests driving a hand-built z80cg) every call recounts. Callers must treat
+// the map as read-only.
+func (g *z80cg) fnUseCounts() map[Reg]int {
+	if !g.useCountsOn {
+		return countRegUses(g.fn)
+	}
+	if g.useCounts == nil {
+		g.useCounts = countRegUses(g.fn)
+	}
+	return g.useCounts
 }
 
 // enterBlockState resets the per-position emission state to what holds at the
