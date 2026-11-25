@@ -104,15 +104,20 @@ func refCheckPreds(graph rewrite.IRGraph, preds []Predicate, b BlockBindings, re
 	return true
 }
 
-func refFindMatch(graph rewrite.IRGraph, rule *GraceRule, reg *PredicateRegistry) BlockBindings {
-	var bms, edges []MatchClause
+func refClauses(rule *GraceRule) (bms, edges []MatchClause) {
 	for _, m := range rule.Match {
-		if m.Kind == MatchBlock {
+		switch m.Kind {
+		case MatchBlock:
 			bms = append(bms, m)
-		} else if m.Kind == MatchEdge {
+		case MatchEdge:
 			edges = append(edges, m)
 		}
 	}
+	return bms, edges
+}
+
+func refFindMatch(graph rewrite.IRGraph, rule *GraceRule, reg *PredicateRegistry) BlockBindings {
+	bms, edges := refClauses(rule)
 	blocks := graph.Blocks()
 	if len(bms) == 2 {
 		for _, l0 := range blocks {
@@ -173,14 +178,7 @@ func refFindMatch(graph rewrite.IRGraph, rule *GraceRule, reg *PredicateRegistry
 // refFindAll is the original FindAllMatches: every binding, by backtracking
 // over all block variables in layout order.
 func refFindAll(graph rewrite.IRGraph, rule *GraceRule, reg *PredicateRegistry) []BlockBindings {
-	var bms, edges []MatchClause
-	for _, m := range rule.Match {
-		if m.Kind == MatchBlock {
-			bms = append(bms, m)
-		} else if m.Kind == MatchEdge {
-			edges = append(edges, m)
-		}
-	}
+	bms, edges := refClauses(rule)
 	if len(bms) == 0 {
 		return nil
 	}

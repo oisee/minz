@@ -68,15 +68,15 @@ type Predicate struct {
 type PredicateKind int
 
 const (
-	PredNone       PredicateKind = iota
-	PredPredCount                // pred-count var op value
-	PredFieldCmp                 // var.field op value (inst_count, param_count)
-	PredNoParms                  // no-params var
-	PredAllPure                  // all-pure var
-	PredUseCount                 // use-count var op value
-	PredDominates                // dominates var var2
-	PredTermKind                 // term-kind var "kind"
-	PredCustom                   // custom predicate name
+	PredNone      PredicateKind = iota
+	PredPredCount               // pred-count var op value
+	PredFieldCmp                // var.field op value (inst_count, param_count)
+	PredNoParms                 // no-params var
+	PredAllPure                 // all-pure var
+	PredUseCount                // use-count var op value
+	PredDominates               // dominates var var2
+	PredTermKind                // term-kind var "kind"
+	PredCustom                  // custom predicate name
 )
 
 // Action is a rewrite step to execute when a rule matches.
