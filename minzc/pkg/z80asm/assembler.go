@@ -72,6 +72,7 @@ type Assembler struct {
 	// Multi-pass convergence for span-dependent optimization (JJ instruction)
 	instructionSizes map[int]int // Line number -> instruction size from previous pass
 	sizeChanged      bool        // True if any instruction size changed this pass
+	exprDepth        int         // Nesting of EvaluateExpression calls; 1 = a whole operand
 
 	// JRS context: set per-instruction so encodeJRRel can reserve 3 bytes in pass 1
 	currentFromJRS bool
