@@ -1259,7 +1259,7 @@ func (g *z80cg) regsLiveAfterInst(target *Inst) map[Reg]bool {
 	if g.curBlock == nil {
 		return live
 	}
-	lr := ComputeLiveness(g.fn)
+	lr := g.fnLiveness()
 	if out := lr.LiveOutOf(g.fn, g.curBlock); out != nil {
 		for _, r := range out.Slice() {
 			live[r] = true

@@ -25,6 +25,17 @@ func (g *funcGraph) Blocks() []string {
 	return labels
 }
 
+// BlockList implements rewrite.IRBlockLister: one adapter per block in layout
+// order, so Grace can index the function once per query instead of calling
+// the linear Block lookup per probe.
+func (g *funcGraph) BlockList() []rewrite.IRBlock {
+	list := make([]rewrite.IRBlock, len(g.f.Blocks))
+	for i, b := range g.f.Blocks {
+		list[i] = &blockAdapter{b: b}
+	}
+	return list
+}
+
 func (g *funcGraph) Block(label string) rewrite.IRBlock {
 	for _, b := range g.f.Blocks {
 		if b.Label == label {

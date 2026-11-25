@@ -12,7 +12,7 @@ func (g *z80cg) genWideningByteAdd(ext *Inst) bool {
 		return false
 	}
 	i := g.curInstIdx + 1
-	if i >= len(g.curBlock.Insts) || countRegUses(g.fn)[ext.Dst] != 1 {
+	if i >= len(g.curBlock.Insts) || g.fnUseCounts()[ext.Dst] != 1 {
 		return false
 	}
 	add := g.curBlock.Insts[i]

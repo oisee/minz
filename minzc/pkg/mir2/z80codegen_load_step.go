@@ -10,7 +10,7 @@ import "github.com/minz/minzc/pkg/z80spec"
 // on whether sinks are. The constant must already be suppressed, and no value
 // may need the new home in between.
 func (g *z80cg) preferByteLoadStepHome(load *Inst) {
-	if load.Op != OpLoad || load.Ty != TyU8 || load.ClsHard || g.curBlock == nil || countRegUses(g.fn)[load.Dst] != 1 {
+	if load.Op != OpLoad || load.Ty != TyU8 || load.ClsHard || g.curBlock == nil || g.fnUseCounts()[load.Dst] != 1 {
 		return
 	}
 	n := g.curInstIdx + 1

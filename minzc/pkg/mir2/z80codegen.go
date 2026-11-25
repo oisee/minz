@@ -832,6 +832,12 @@ type z80cg struct {
 	// physOverride relocations can be undone for values a successor reads.
 	liveness *LivenessResult
 
+	// useCounts caches countRegUses(fn) for the duration of one genFunc call
+	// (see fnUseCounts). useCountsOn is set only inside genFunc; while it is
+	// set, fnLiveness also shares liveness instead of recomputing it.
+	useCounts   map[Reg]int
+	useCountsOn bool
+
 	// trampolines: small glue blocks emitted after main function body that
 	// perform block-argument parallel copies then jump to the real target.
 	// Needed for BrIf edges where the non-fall-through path requires copies.
@@ -1276,6 +1282,9 @@ func (g *z80cg) genFunc(f *Func) {
 		return
 	}
 	g.fn = f
+	g.liveness = nil
+	g.setFnCaches(true)
+	defer g.setFnCaches(false)
 	g.regInfo = collectRegInfo(f)
 	g.spillWidths = make(map[string]int, len(g.regInfo))
 	for r, info := range g.regInfo {
@@ -1498,22 +1507,6 @@ func (g *z80cg) genFunc(f *Func) {
 		slabel := funcAsm[pos:end]
 		if !emittedSpills[slabel] {
 			emittedSpills[slabel] = true
-			// Determine width from context: 16-bit reg pair load → DW, else DB
-			// Look for "LD rr, (label)" patterns (BC/DE/HL/IX/IY)
-			is16 := false
-			for _, pat := range []string{
-				"LD BC, (" + slabel, "LD DE, (" + slabel, "LD HL, (" + slabel,
-				"LD IX, (" + slabel, "LD IY, (" + slabel,
-				"(" + slabel + "), HL", "(" + slabel + "), DE",
-				"(" + slabel + "), BC", "(" + slabel + "), IX",
-				"(" + slabel + "), IY",
-			} {
-				if strings.Contains(funcAsm, pat) {
-					is16 = true
-					break
-				}
-			}
-			_ = is16
 			missingSpills = append(missingSpills, slabel)
 		}
 		idx = end
@@ -1604,6 +1597,42 @@ func (g *z80cg) genBlock(f *Func, b *Block) {
 			g.fnWorstT = g.blockT
 		}
 	}
+}
+
+// fnUseCounts returns countRegUses(g.fn). Inside genFunc the function is
+// read-only — emission never edits instructions, terminators, parameters or
+// the block list (the same assumption that lets genFunc compute g.liveness
+// once) — so the counts are computed once per genFunc and shared by every
+// block's pattern pre-scans and emit-time single-use checks. genFunc resets
+// the cache on entry and disables it on return; outside that window (unit
+// tests driving a hand-built z80cg) every call recounts. Callers must treat
+// the map as read-only.
+func (g *z80cg) fnUseCounts() map[Reg]int {
+	if !g.useCountsOn {
+		return countRegUses(g.fn)
+	}
+	if g.useCounts == nil {
+		g.useCounts = countRegUses(g.fn)
+	}
+	return g.useCounts
+}
+
+// setFnCaches opens (on) or closes the window in which fnUseCounts and
+// fnLiveness may share whole-function facts. Either way the counts start
+// empty, so a window never inherits counts from an earlier one.
+func (g *z80cg) setFnCaches(on bool) {
+	g.useCounts, g.useCountsOn = nil, on
+}
+
+// fnLiveness returns ComputeLiveness(g.fn). Inside genFunc that is
+// g.liveness, which genFunc computes once for the function it emits (the
+// function is read-only during emission, see fnUseCounts); outside genFunc
+// every call recomputes. The result is shared: callers only read it.
+func (g *z80cg) fnLiveness() *LivenessResult {
+	if g.useCountsOn && g.liveness != nil {
+		return g.liveness
+	}
+	return ComputeLiveness(g.fn)
 }
 
 // enterBlockState resets the per-position emission state to what holds at the

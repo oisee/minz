@@ -238,7 +238,7 @@ func (g *z80cg) scanBitStorePatterns(b *Block) {
 	// A register defined here may also be read in a block this one dominates.
 	// The fused load and its modified value are never computed, so their
 	// counts include those readers.
-	for r, n := range countRegUses(g.fn) {
+	for r, n := range g.fnUseCounts() {
 		if n > useCount[r] {
 			useCount[r] = n
 		}
@@ -401,7 +401,7 @@ func (g *z80cg) scanBitCmpPatterns(b *Block) {
 	defInst := make(map[Reg]*Inst, len(b.Insts))
 	// Definitions may be used in successor blocks; skipping a load requires
 	// a function-wide single-use proof, not merely a count in this block.
-	useCount := countRegUses(g.fn)
+	useCount := g.fnUseCounts()
 	for _, inst := range b.Insts {
 		if inst.Dst != NoReg {
 			defInst[inst.Dst] = inst
@@ -786,7 +786,7 @@ func (g *z80cg) scanGlobalFieldPatterns(b *Block) {
 	// A register defined here may also be read in a block this one dominates.
 	// A skipped address is never loaded into its register, so its count
 	// includes those readers.
-	allUses := countRegUses(g.fn)
+	allUses := g.fnUseCounts()
 	for r, n := range allUses {
 		if n > useCount[r] {
 			useCount[r] = n
@@ -1068,7 +1068,7 @@ func (g *z80cg) scanGlobalFieldPatterns(b *Block) {
 		// The DE/BC extension requires the address to have one use across
 		// the whole function, including direct successor and terminator uses.
 		if dst != "HL" {
-			if g.fn == nil || countRegUses(g.fn)[addrReg] != 1 {
+			if g.fn == nil || g.fnUseCounts()[addrReg] != 1 {
 				continue
 			}
 			storage := false
@@ -1096,7 +1096,7 @@ func (g *z80cg) scanGlobalFieldPatterns(b *Block) {
 func (g *z80cg) scanPtrAddBase(b *Block) {
 	g.ptrAddPushHL = NoReg
 
-	uses := countRegUses(g.fn)
+	uses := g.fnUseCounts()
 	for idx, inst := range b.Insts {
 		if inst.Op != OpPtrAdd || idx+1 >= len(b.Insts) {
 			continue
@@ -1186,7 +1186,7 @@ func (g *z80cg) scanShiftCarryPattern(b *Block) {
 			cmp, ci = i, n
 		}
 	}
-	uses := countRegUses(g.fn)
+	uses := g.fnUseCounts()
 	if cmp == nil || uses[cmp.Dst] != 1 || (cmp.Cond != CmpEq && cmp.Cond != CmpNe) {
 		return
 	}

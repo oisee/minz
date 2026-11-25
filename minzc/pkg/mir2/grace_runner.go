@@ -337,6 +337,32 @@ func loadAllRules() ([]grace.GraceRule, error) {
 func buildRegistry(f *Func) *grace.PredicateRegistry {
 	reg := grace.NewPredicateRegistry()
 
+	// Whole-function facts shared by the per-block predicates below. They are
+	// recomputed whenever the registry generation moves, i.e. after every
+	// Grace action (Grace bumps it before and after a rule's actions), and
+	// are otherwise valid: predicates only read f, and nothing else mutates f
+	// while ApplyRules is matching. Callers must not mutate f between two
+	// queries that share this registry outside ApplyRules (none do: each
+	// Run* entry point builds a fresh registry). The maps are read-only.
+	var (
+		usesValid, liveArgsValid bool
+		usesGen, liveArgsGen     uint64
+		usesCache                map[Reg]int
+		liveArgsCache            map[Reg]bool
+	)
+	predUses := func() map[Reg]int {
+		if g := reg.Generation(); !usesValid || usesGen != g {
+			usesCache, usesGen, usesValid = countRegUses(f), g, true
+		}
+		return usesCache
+	}
+	predLiveBlockArgs := func() map[Reg]bool {
+		if g := reg.Generation(); !liveArgsValid || liveArgsGen != g {
+			liveArgsCache, liveArgsGen, liveArgsValid = liveBlockArguments(f), g, true
+		}
+		return liveArgsCache
+	}
+
 	// ── Custom Predicates ───────────────────────────────────────────────
 
 	// no-carry-clobber: check that hoisted instrs don't clobber carry
@@ -380,7 +406,7 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 		if blk == nil || blk == f.Blocks[0] { // skip entry block
 			return false
 		}
-		needed := liveBlockArguments(f)
+		needed := predLiveBlockArgs()
 		for _, p := range blk.Params {
 			if !needed[p.Dst] {
 				return true
@@ -396,7 +422,7 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 		if blk == nil {
 			return false
 		}
-		uses := countRegUses(f)
+		uses := predUses()
 		for _, inst := range blk.Insts {
 			if inst.Dst != NoReg && uses[inst.Dst] == 0 && isDSEPure(inst.Op) {
 				return true
@@ -791,7 +817,7 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 		if blk == nil {
 			return false
 		}
-		uses := countRegUses(f)
+		uses := predUses()
 		for _, inst := range blk.Insts {
 			if inst.Op == OpCmp && !inst.FlagsOnly {
 				// LHS is Src[0]. If it has only 1 use (this CMP), it's dead after.

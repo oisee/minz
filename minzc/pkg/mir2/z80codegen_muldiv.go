@@ -756,7 +756,7 @@ func (g *z80cg) mulAccumulate(inst *Inst) *Inst {
 	if _, isConst := g.constVals[acc]; isConst || g.deadConsts[acc] {
 		return nil
 	}
-	if countRegUses(g.fn)[inst.Dst] != 1 || !wordMaskFlagsUnobserved(g.fn, add.Dst) {
+	if g.fnUseCounts()[inst.Dst] != 1 || !wordMaskFlagsUnobserved(g.fn, add.Dst) {
 		return nil
 	}
 	return add

@@ -68,15 +68,15 @@ type Predicate struct {
 type PredicateKind int
 
 const (
-	PredNone       PredicateKind = iota
-	PredPredCount                // pred-count var op value
-	PredFieldCmp                 // var.field op value (inst_count, param_count)
-	PredNoParms                  // no-params var
-	PredAllPure                  // all-pure var
-	PredUseCount                 // use-count var op value
-	PredDominates                // dominates var var2
-	PredTermKind                 // term-kind var "kind"
-	PredCustom                   // custom predicate name
+	PredNone      PredicateKind = iota
+	PredPredCount               // pred-count var op value
+	PredFieldCmp                // var.field op value (inst_count, param_count)
+	PredNoParms                 // no-params var
+	PredAllPure                 // all-pure var
+	PredUseCount                // use-count var op value
+	PredDominates               // dominates var var2
+	PredTermKind                // term-kind var "kind"
+	PredCustom                  // custom predicate name
 )
 
 // Action is a rewrite step to execute when a rule matches.
@@ -134,7 +134,12 @@ func ApplyRules(graph rewrite.IRGraphMut, rules []GraceRule, preds *PredicateReg
 			if bindings == nil {
 				continue
 			}
-			if applyActions(graph, rule.Actions, bindings, preds) {
+			// Actions mutate the graph: advance the generation on both
+			// sides so no predicate cache survives into the next query.
+			preds.bumpGeneration()
+			applied := applyActions(graph, rule.Actions, bindings, preds)
+			preds.bumpGeneration()
+			if applied {
 				result.Applied++
 				result.ByRule[rule.Name]++
 				fired = true
