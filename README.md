@@ -58,11 +58,29 @@ The project is active research: examples and targets have different levels of ma
 
 [Practical C on Z80: real libraries and honest diagnostics](reports/2026-10-16-system-c-hardening.md): unchanged inih/heatshrink sources, VM/Z80 validation, and fixes found by real system code.
 
+### Benchmark against SDCC 4.6 (2026-11-25)
+
+MinZ at `9daf7a8ba` against SDCC 4.6.0 on the frozen benchmark in `research/c89-benchmark` (220 rows, all pass). Ratio = geometric mean of MinZ / SDCC over the cases both sides have; below 1 means MinZ needs fewer T-states or bytes.
+
+| MinZ side | vs SDCC | cases | T-states | bytes |
+|---|---|--:|--:|--:|
+| C source, default profile | speed | 26 | 0.629 | 0.981 |
+| C source, default profile | size | 26 | 0.598 | 0.983 |
+| C source, size profile | size | 26 | 0.659 | 0.926 |
+| idiomatic Nanz, default (fusion cases only) | speed | 9 | 0.511 | 1.117 |
+| hand-written Z80 (fusion cases only) | speed | 9 | 0.392 | 0.951 |
+
+The 26 cases are small single kernels chosen by this project, so this is not a claim that MinZ beats SDCC in general. Per case the results go both ways: SDCC is faster than MinZ's default profile on 5 cases (up to 1.635×) and smaller than MinZ's size profile on 9. [Report 139: method, per-case tables, where SDCC wins](reports/2026-11-25-139-SDCC-46-Benchmark.md) · [raw rows and scripts](reports/c89-benchmark-2026-11-25/README.md).
+
+### Historical benchmark reports (2026-10-16, SDCC 4.2/4.5)
+
+The reports below measured older compiler trees against SDCC 4.2 and 4.5. Their numbers and their "SDCC wins" statements describe those trees, not the current one.
+
 [Direct word stores on Z80](reports/2026-10-16-c89-direct-word-store.md): unchanged C/Nanz abs_diff reaches 27 bytes / 220,904 T. All six C families improve; measured PFCCO interactions and remaining losses are recorded. Integration and required checks are tracked in [PR #181](https://github.com/oisee/minz/pull/181).
 
 [C89/Nanz optimization completion audit](reports/2026-10-16-c89-optimization-completion-audit.md): frozen inputs, exact final compiler tree, primary and heldout VM/Z80 evidence, remaining losses and integration criteria.
 
-[Current full C/Nanz Z80 benchmark — all sources and ASM](reports/2026-10-16-c89-nanz-full-benchmark.md): all 69 builds, MinZ C and idiomatic Nanz, SDCC 4.2/4.5 Size and Speed, sccz80. Every result links to its source, generated ASM and measurements; optimization milestones and remaining losses are retained.
+[Full C/Nanz Z80 benchmark of 2026-10-16 — all sources and ASM](reports/2026-10-16-c89-nanz-full-benchmark.md): all 69 builds, MinZ C and idiomatic Nanz, SDCC 4.2/4.5 Size and Speed, sccz80. Every result links to its source, generated ASM and measurements; optimization milestones and remaining losses are retained.
 
 [Copy and packed-data optimization](reports/2026-10-16-copy-fat12-results.md): bounded pointer walks and bit-mask facts improve unchanged C and Nanz. Copy now measures 182 bytes / 301,600 Z80 T-states; additional workloads retain both gains and SDCC losses.
 
