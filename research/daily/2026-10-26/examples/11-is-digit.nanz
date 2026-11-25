@@ -1,0 +1,17 @@
+global text: [u8; 8] = [49, 50, 120, 51, 32, 52, 53, 33]
+
+fun is_digit(c: u8) -> bool {
+    return c >= 48 && c <= 57
+}
+
+fun count_digits() -> u8 {
+    var n: u8 = 0
+    var i: u8 = 0
+    while i < 8 {
+        if is_digit(text[i]) { n = n + 1 }
+        i = i + 1
+    }
+    return n
+}
+
+assert count_digits() == 5 via z80

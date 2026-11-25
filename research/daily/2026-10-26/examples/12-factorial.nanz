@@ -1,0 +1,10 @@
+fun factorial(n: u8) -> u16 {
+    var acc: u16 = 1
+    var i: u8 = 0
+    while i < n {
+        acc = acc * ((i + 1) as u16)
+        i = i + 1
+    }
+    return acc
+}
+assert factorial(7) == 5040 via z80
