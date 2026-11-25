@@ -81,15 +81,29 @@ func (a *Assembler) handleORG(line *Line) error {
 		return fmt.Errorf("invalid ORG address: %w", err)
 	}
 
-	// Track first ORG for multi-section code (useful for entry point fallback)
+	// Track first ORG for multi-section code (useful for entry point fallback).
+	// It also sets the image origin, unless bytes were already placed at the
+	// default origin. Only the first ORG may do that: testing the origin
+	// against its default value let a second ORG move the origin whenever
+	// the first one happened to name the default address.
 	if a.pass == 1 && !a.hasFirstOrg {
 		a.firstOrg = addr
 		a.hasFirstOrg = true
+		if a.currentAddr == a.origin {
+			a.origin = addr
+		}
 	}
 
 	a.currentAddr = addr
-	if a.pass == 1 && a.origin == 0x8000 { // Default origin
-		a.origin = addr
+	// The raw image is one contiguous block starting at the origin, so the
+	// byte for address X must sit at offset X-origin. An ORG that moves
+	// forward past the bytes emitted so far leaves a gap: fill it with zeros,
+	// or every later label would point past its data. (An ORG that moves
+	// backward keeps appending, as before.)
+	if a.pass > 1 && len(a.output) > 0 {
+		if gap := addr - (a.origin + len(a.output)); gap > 0 {
+			a.output = append(a.output, make([]byte, gap)...)
+		}
 	}
 
 	return nil

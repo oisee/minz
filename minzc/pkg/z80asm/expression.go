@@ -10,6 +10,8 @@ import (
 // EvaluateExpression evaluates arithmetic expressions in assembly operands
 func (a *Assembler) EvaluateExpression(expr string) (int, error) {
 	expr = strings.TrimSpace(expr)
+	a.exprDepth++
+	defer func() { a.exprDepth-- }()
 	
 	// Check for combined operators first (longest patterns)
 	// ^^H and ^^L - alignment followed by byte extraction
@@ -67,6 +69,13 @@ func (a *Assembler) EvaluateExpression(expr string) (int, error) {
 		return val & 0xFF, nil // Low byte
 	}
 	
+	// A sub-expression wrapped in one pair of parentheses is its contents.
+	// A whole operand in parentheses is left alone: there "(nn)" is a memory
+	// reference, which the instruction matcher decides, not this evaluator.
+	if inner, ok := stripGroup(expr); ok && a.exprDepth > 1 {
+		return a.EvaluateExpression(inner)
+	}
+
 	// Check for current address symbol first
 	if expr == "$" {
 		return a.currentAddr, nil
@@ -171,7 +180,7 @@ func (a *Assembler) evaluateArithmeticExpression(expr string) (int, error) {
 	// 6. ~ (unary NOT) — checked last so it binds tighter than binary ops
 
 	// Handle | (bitwise OR)
-	if idx := strings.LastIndex(expr, "|"); idx > 0 {
+	if idx := lastTopLevel(expr, "|"); idx > 0 {
 		left := expr[:idx]
 		right := expr[idx+1:]
 		leftVal, err := a.EvaluateExpression(left)
@@ -186,7 +195,7 @@ func (a *Assembler) evaluateArithmeticExpression(expr string) (int, error) {
 	}
 
 	// Handle & (bitwise AND)
-	if idx := strings.LastIndex(expr, "&"); idx > 0 {
+	if idx := lastTopLevel(expr, "&"); idx > 0 {
 		left := expr[:idx]
 		right := expr[idx+1:]
 		leftVal, err := a.EvaluateExpression(left)
@@ -201,7 +210,7 @@ func (a *Assembler) evaluateArithmeticExpression(expr string) (int, error) {
 	}
 
 	// Handle >> (right shift) — check before single-char operators
-	if idx := strings.LastIndex(expr, ">>"); idx > 0 {
+	if idx := lastTopLevel(expr, ">>"); idx > 0 {
 		left := expr[:idx]
 		right := expr[idx+2:]
 		leftVal, err := a.EvaluateExpression(left)
@@ -219,7 +228,7 @@ func (a *Assembler) evaluateArithmeticExpression(expr string) (int, error) {
 	}
 
 	// Handle << (left shift)
-	if idx := strings.LastIndex(expr, "<<"); idx > 0 {
+	if idx := lastTopLevel(expr, "<<"); idx > 0 {
 		left := expr[:idx]
 		right := expr[idx+2:]
 		leftVal, err := a.EvaluateExpression(left)
@@ -237,7 +246,7 @@ func (a *Assembler) evaluateArithmeticExpression(expr string) (int, error) {
 	}
 
 	// Handle addition
-	if idx := strings.LastIndex(expr, "+"); idx > 0 {
+	if idx := lastTopLevel(expr, "+"); idx > 0 {
 		left := expr[:idx]
 		right := expr[idx+1:]
 		leftVal, err := a.EvaluateExpression(left)
@@ -252,7 +261,7 @@ func (a *Assembler) evaluateArithmeticExpression(expr string) (int, error) {
 	}
 
 	// Handle subtraction (but not negative numbers)
-	if idx := strings.LastIndex(expr, "-"); idx > 0 {
+	if idx := lastTopLevel(expr, "-"); idx > 0 {
 		left := expr[:idx]
 		right := expr[idx+1:]
 		leftVal, err := a.EvaluateExpression(left)
@@ -267,7 +276,7 @@ func (a *Assembler) evaluateArithmeticExpression(expr string) (int, error) {
 	}
 
 	// Handle multiplication
-	if idx := strings.Index(expr, "*"); idx > 0 {
+	if idx := firstTopLevel(expr, "*"); idx > 0 {
 		left := expr[:idx]
 		right := expr[idx+1:]
 		leftVal, err := a.EvaluateExpression(left)
@@ -282,7 +291,7 @@ func (a *Assembler) evaluateArithmeticExpression(expr string) (int, error) {
 	}
 
 	// Handle division
-	if idx := strings.Index(expr, "/"); idx > 0 {
+	if idx := firstTopLevel(expr, "/"); idx > 0 {
 		left := expr[:idx]
 		right := expr[idx+1:]
 		leftVal, err := a.EvaluateExpression(left)
@@ -300,7 +309,7 @@ func (a *Assembler) evaluateArithmeticExpression(expr string) (int, error) {
 	}
 
 	// Handle modulo
-	if idx := strings.Index(expr, "%"); idx > 0 {
+	if idx := firstTopLevel(expr, "%"); idx > 0 {
 		// Make sure it's not a binary prefix %
 		left := strings.TrimSpace(expr[:idx])
 		if left != "" {
@@ -428,4 +437,59 @@ func (a *Assembler) parseImmediate(s string) (int, error) {
 		val, err := strconv.ParseUint(s, 10, 32)
 		return int(val), err
 	}
+}
+// stripGroup returns the contents of expr when one pair of parentheses
+// encloses all of it: "(1+2)" yes, "(1)+(2)" no.
+func stripGroup(expr string) (string, bool) {
+	if len(expr) < 2 || expr[0] != '(' || expr[len(expr)-1] != ')' {
+		return "", false
+	}
+	depth := 0
+	for i := 0; i < len(expr); i++ {
+		switch expr[i] {
+		case '(':
+			depth++
+		case ')':
+			depth--
+			if depth == 0 && i != len(expr)-1 {
+				return "", false
+			}
+		}
+	}
+	return expr[1 : len(expr)-1], depth == 0
+}
+
+// topLevelIndexes lists the positions of op in expr outside parentheses.
+func topLevelIndexes(expr, op string) []int {
+	var found []int
+	depth := 0
+	for i := 0; i < len(expr); i++ {
+		switch expr[i] {
+		case '(':
+			depth++
+		case ')':
+			depth--
+		default:
+			if depth == 0 && strings.HasPrefix(expr[i:], op) {
+				found = append(found, i)
+			}
+		}
+	}
+	return found
+}
+
+// lastTopLevel is strings.LastIndex restricted to text outside parentheses.
+func lastTopLevel(expr, op string) int {
+	if found := topLevelIndexes(expr, op); len(found) > 0 {
+		return found[len(found)-1]
+	}
+	return -1
+}
+
+// firstTopLevel is strings.Index restricted to text outside parentheses.
+func firstTopLevel(expr, op string) int {
+	if found := topLevelIndexes(expr, op); len(found) > 0 {
+		return found[0]
+	}
+	return -1
 }
