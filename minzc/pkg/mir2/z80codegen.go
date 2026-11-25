@@ -1509,22 +1509,6 @@ func (g *z80cg) genFunc(f *Func) {
 		slabel := funcAsm[pos:end]
 		if !emittedSpills[slabel] {
 			emittedSpills[slabel] = true
-			// Determine width from context: 16-bit reg pair load → DW, else DB
-			// Look for "LD rr, (label)" patterns (BC/DE/HL/IX/IY)
-			is16 := false
-			for _, pat := range []string{
-				"LD BC, (" + slabel, "LD DE, (" + slabel, "LD HL, (" + slabel,
-				"LD IX, (" + slabel, "LD IY, (" + slabel,
-				"(" + slabel + "), HL", "(" + slabel + "), DE",
-				"(" + slabel + "), BC", "(" + slabel + "), IX",
-				"(" + slabel + "), IY",
-			} {
-				if strings.Contains(funcAsm, pat) {
-					is16 = true
-					break
-				}
-			}
-			_ = is16
 			missingSpills = append(missingSpills, slabel)
 		}
 		idx = end
