@@ -11,13 +11,15 @@ This file provides guidance to Claude Code when working with the MinZ compiler r
 
 P20–P22 fixed in #218–#220 (2026-10-21); on `3124c9b81` direct-call 0–19999 = 20000/20000, `--signed` 0–3999 = 4000/4000, assert_matrix controls 0 unexpected passes. G0-5 was resolved in #326 and G0-4/G0-9 in #327 (2026-11), which also fixed assignment to a local that shadows a global (it stored to the global; every frontend). Remaining findings: G0-3/8 plus G0-L1..L4. See the [current handover](docs/project/HANDOVER-2026-10-20-CORRECTNESS-AND-G1.md) for fixes, scope and repro pointers.
 
+**Update (2026-11-25, from merged PR descriptions; not rerun for this update):** silent wrong-code fixes merged since October include flag-held predicates (#307, #313), range proofs and CP/M store analyses that must hold for every definition of a coalesced register (#309, #310; `factorial(7)` returned 1456 instead of 5040), per-block folds whose skipped register has readers in other blocks (#311), bit-store fusion across intervening memory writes (#312), `BIT n,(HL)` through a spilled pointer (#316), and assignment to a local that shadows a global (#327). The per-PR gate those PRs report is direct-call fuzz seeds 0–2999 = 3000/3000 and `--signed` 0–999 = 1000/1000 (e.g. #309, #315, #317) — smaller than the October 20000-seed runs above. G0-10 (named chain callback saw a caller local instead of a global) is also resolved, per the [iteration audit](docs/Nanz_Iteration_Audit.md).
+
 ### 2. Iterator Chain Fusion (historical MIR1 status)
 The former “11/11 E2E” and enumerate/reduce bug descriptions applied to the retired MIR1 pipeline, not the current Nanz production path. The old B-counter conflict and A-overwrite explanations were refuted by the [G0 iteration audit](docs/Nanz_Iteration_Audit.md) (#205); current legacy findings concern callback linking/ABI and array initialization. The audit records current Nanz semantics and remaining findings.
 
 Scalar `gen`/`yield` with caller-owned pull frames is implemented in G1 (#216). Demand-preserving generator fusion is planned for G2 under [ADR 0050](docs/adr/0050-nanz-generator-fusion.md), with pull fallback; see the [generator design](reports/2026-10-18-nanz-generators-design.md).
 
 ### 3. MIR2 Open Bugs
-**Status (BUG-001…008; 006 and 008 re-checked 2026-11-25):** 6 fixed, 2 open, none of the eight blocking. See **[docs/Open_Bugs_RCA.md](docs/Open_Bugs_RCA.md)** for full RCA and for BUG-009…014, which this list does not cover (BUG-014, Tetris v2 black screen, is still marked 🔴 open there and was not re-examined).
+**Status (BUG-001…008; 006 and 008 re-checked 2026-11-25):** 6 fixed, 2 open, none of the eight blocking. See **[docs/Open_Bugs_RCA.md](docs/Open_Bugs_RCA.md)** for full RCA and for BUG-009…014, which this list does not cover (BUG-014, Tetris v2 black screen, is still marked 🔴 open there and was not re-examined). Wrong-code fixes found since October are tracked by PR, not as BUG-nnn (see §1).
 - 🟡 **BUG-001** GCD parallel-copy bloat + `$0000` ROM spills (PBQP affinity / spill relocation) — not re-examined
 - 🟡 **BUG-007** Spurious adapter LD when caller/callee share PFCCO convention — not re-examined
 - ✅ **BUG-008** Arena codegen (`LD IXL, (IX+d)`, self-pointer loss) — fixed 2026-03-16 (`3ffd5b6b9`); the arena example passes on Z80
@@ -86,6 +88,19 @@ trusted until it is fixed or removed.
 
 ### 7. LSP / DAP / Developer Tooling
 **Status:** Not started. Planned after core language stability.
+
+### 9. Parity with SDCC 4.6
+**Status (2026-11-25):** On the frozen C benchmark (`research/c89-benchmark`, 26 cases: 12 main, 5 heldout, 9 fusion), MinZ at `9daf7a8ba` against SDCC 4.6.0 (#16555); 220 rows, all PASS. Ratio = geometric mean of MinZ / SDCC over the cases both sides have; below 1 means MinZ needs less. Source: [`reports/c89-benchmark-2026-11-25/geomean.txt`](reports/c89-benchmark-2026-11-25/geomean.txt); per-case tables in [Report 139](reports/2026-11-25-139-SDCC-46-Benchmark.md).
+
+| MinZ side | vs SDCC | cases | T-states | bytes |
+|---|---|--:|--:|--:|
+| C source, default profile | speed | 26 | 0.629 | 0.981 |
+| C source, default profile | size | 26 | 0.598 | 0.983 |
+| C source, size profile | size | 26 | 0.659 | 0.926 |
+| idiomatic Nanz, default (fusion cases only) | speed | 9 | 0.511 | 1.117 |
+| hand-written Z80 (fusion cases only) | speed | 9 | 0.392 | 0.951 |
+
+The 26 cases are a small set chosen by this project; no general superiority is claimed. SDCC is faster than MinZ C default on 5 cases (`checksum16`, `fusion_map_filter_sum`, `fusion_map_store`, `fusion_two_ptr_xor`, `in_interval`; worst 1.635× on `fusion_two_ptr_xor`) and smaller than MinZ C size on 9. Next: those losses, and an independent case set before any broader claim.
 
 ---
 
@@ -156,6 +171,8 @@ trusted until it is fixed or removed.
 - Types: `u8`, `u16`, `i8`, `i16`, `bool`, `void`
 - Functions: `fun`/`fn` declaration, multiple returns, nested functions
 - Control flow: `if`/`else`, `while`, `for i in 0..n`
+- `range(lo..hi)` iterates forward (`lo … hi-1`) in every chain stage, like `for i in lo..hi`; `range(n..0)` yields `n-1 … 0` (#306, 2026-11-14)
+- `bool` result returned in Z80 flags when every caller only branches on it (`-> bool = F.NZ` in the ABI comment; `--no-flag-return` keeps A) (#314, 2026-11-15)
 - Structs: declaration and field access
 - Enums: `enum State { IDLE, RUNNING }` with values, `State.IDLE` dot syntax
 - Type aliases: `type PlayerID = u8` — structural, zero-cost
@@ -168,6 +185,8 @@ trusted until it is fixed or removed.
 - **Ruby interpolation**: `"Hello #{name}!"` ✅
 - **UFCS**: `obj.method()` via zero-cost interfaces ✅
 - **Lambdas**: zero-cost non-capturing and capturing lambdas ✅; open defect: a capturing iterator callback with an early return (G0-8, see the [iteration audit](docs/Nanz_Iteration_Audit.md)).
+- **Nested `forEach` with captured updates**: a `range(..).forEach` lambda inside an outer loop that assigns a captured variable keeps its updates (#305, 2026-11-15) ✅
+- **Chain methods `skip`, `take`, `zip`, `count`, `sum`** on memory and range chains, with `map`/`filter`/`forEach`/`mapInPlace`/`fold`; unsupported chain shapes are compile errors with a source line (G0-5) (#326, 2026-11-24) ✅. Not done: local arrays do not supply a missing count (see #326).
 - **TRUE SMC**: Self-modifying code optimization ✅
 - **CTIE**: Compile-Time Interface Execution (trait monomorphization) ✅
 - **@extern FFI**: Call external ROM/BIOS functions ✅
@@ -576,30 +595,36 @@ fun main() {
 
 ---
 
-## 📊 Current Metrics (snapshot 2026-10-20)
+## 📊 Current Metrics (snapshot 2026-11-25)
 
-The fuzz/assert results below are manager-supplied, bounded measurements; see the [handover](docs/project/HANDOVER-2026-10-20-CORRECTNESS-AND-G1.md) for provenance and commands. Other retained corpus, tool and feature counts below are historical claims from the previous table, not re-measured in this update; they are not current acceptance evidence.
+Every row names its date and source. Fuzz/assert rows are bounded measurements reported by the named PR or handover, not rerun for this update. Rows marked "historical, not re-measured" are kept from earlier tables; where no file supporting them was found, the source column says so. None of them is current acceptance evidence.
 
-| Metric | Value |
-|--------|-------|
-| Direct-call fuzz | **20000/20000**, seeds 0–19999 on `605c7e8a2` (manager result, 2026-10-20; #215 baseline) |
-| Signed direct-call fuzz | **4000/4000**, seeds 0–3999, `--signed`, same baseline/source |
-| Folded fuzz | **1000/1000**, same baseline/source; mostly constant-folded, not parameterized Z80 coverage |
-| Assert matrix | **0 unexpected control passes; exit 0**, manager result after #209, 2026-10-20 |
-| Nanz examples | **35/35** (historical, 2026-03, not re-measured). [Report #110](reports/2026-03-24-110-Reliability-Sprint-35-of-35.md) |
-| Core examples | 71/73 (97%) |
-| All examples | 131/173 (75%) — failures in agon, cpm, feature_tests, zvdb, zx_demos |
-| Stdlib modules | 12 documented (real), ~35-40 of 55 files compile |
-| Z80 emulator coverage | 100% (1335/1335 FUSE) |
-| Peephole patterns | 67 (asm) + MIR passes + 500 GPU-proven peephole rules |
-| GPU mul tables | 254 mul8 (A×K→A) + 254 mul16 (HL×K→HL) + 13 u32 ops |
-| Scalar op overload | `fun *(a: u8, b: u8) -> u16` — widening arithmetic via operator syntax |
-| Production backends | 1 (Z80) + 1 partial (C) + 1 QBE (correctness oracle) + 8 experimental |
-| LIR backend | Retired by #85 / ADR 0044; no current production corpus metric |
-| VIR offline oracle | No current correctness/performance metric; earlier corpus/speed claims retracted (§5) |
-| MIR backend tests | 9/11 pass, 2 known bugs (ADR-0006) (historical, not re-measured) |
-| Frontends | 8 (Nanz, C89, PL/M, Lanz, Lizp, Pascal, ABAP, **Frill**) — all route through HIR→MIR2→Z80 |
-| Frill (.frl) | ML-style functional: 38 features — let, if/then/else, pipe \|>, compose >>, match+guards, ADT, lambda, currying, tuples, type classes, QTT linearity (!/~), while, for, mutation, peek/poke, property testing. 1000+ compile-time checks. See [Frill Guide](docs/Frill_Language_Guide.md) |
+| Metric | Value | Date | Source |
+|--------|-------|------|--------|
+| SDCC 4.6 parity, C default | **0.629** T / 0.981 bytes vs SDCC speed; 0.598 T / 0.983 bytes vs SDCC size; 26 cases on `9daf7a8ba` (geometric mean of MinZ/SDCC; below 1 = MinZ needs less) | 2026-11-25 | [`reports/c89-benchmark-2026-11-25/geomean.txt`](reports/c89-benchmark-2026-11-25/geomean.txt), keys `('minz','default','speed')`, `('minz','default','size')`; [Report 139](reports/2026-11-25-139-SDCC-46-Benchmark.md) |
+| SDCC 4.6 parity, C size profile | 0.659 T / **0.926** bytes vs SDCC size, 26 cases | 2026-11-25 | same file, key `('minz','size','size')` |
+| SDCC 4.6 parity, idiomatic Nanz | 0.511 T / 1.117 bytes vs SDCC speed, 9 fusion cases only | 2026-11-25 | same file, key `('nanz-idiom','default','speed')` |
+| SDCC 4.6 parity, hand-written Z80 | 0.392 T / 0.951 bytes vs SDCC speed, 9 fusion cases only | 2026-11-25 | same file, key `('hand','asm','speed')` |
+| SDCC 4.6, cases where SDCC is better | faster than MinZ C default on 5 of 26; smaller than MinZ C size on 9 of 26 | 2026-11-25 | [`reports/c89-benchmark-2026-11-25/tables.md`](reports/c89-benchmark-2026-11-25/tables.md), section `sdcc-wins` |
+| Direct-call fuzz, per-PR gate | 3000/3000 seeds 0–2999; `--signed` 1000/1000 seeds 0–999 | 2026-11-16 | PR descriptions of #315 and #317 (also #309, #314) |
+| Direct-call fuzz | **20000/20000**, seeds 0–19999 on `605c7e8a2` (manager result; #215 baseline) | 2026-10-20 | [handover](docs/project/HANDOVER-2026-10-20-CORRECTNESS-AND-G1.md) |
+| Signed direct-call fuzz | **4000/4000**, seeds 0–3999, `--signed`, same baseline | 2026-10-20 | same handover |
+| Folded fuzz | **1000/1000**, same baseline; mostly constant-folded, not parameterized Z80 coverage | 2026-10-20 | same handover |
+| Assert matrix | **0 unexpected control passes; exit 0**, manager result after #209 | 2026-10-20 | same handover |
+| Nanz examples | **35/35** | 2026-03-24 (historical, not re-measured) | [Report #110](reports/2026-03-24-110-Reliability-Sprint-35-of-35.md) |
+| Core examples | 71/73 (97%) | 2026-03-04 (historical, not re-measured) | [Report 025](reports/2026-03-04-025-Honest_Assessment_Code_Verified.md) |
+| All examples | 131/173 (75%) — failures in agon, cpm, feature_tests, zvdb, zx_demos | 2026-03-04 (historical, not re-measured) | [Report 025](reports/2026-03-04-025-Honest_Assessment_Code_Verified.md) |
+| Stdlib modules | 12 documented (real), ~35-40 of 55 files compile | historical, not re-measured | no supporting file found |
+| Z80 emulator coverage | 100% (1335/1335 FUSE) | 2026-03-09 (historical, not re-measured) | [Report 043](reports/2026-03-09-043-E2E_Overview_Architecture_And_Roadmap.md) |
+| Peephole patterns | 67 (asm) + MIR passes + 500 GPU-proven peephole rules | historical, not re-measured | no supporting file found |
+| GPU mul tables | 254 mul8 (A×K→A) + 254 mul16 (HL×K→HL) + 13 u32 ops | historical, not re-measured | tables in `pkg/vir`; production use not re-verified (see GPU section) |
+| Scalar op overload | `fun *(a: u8, b: u8) -> u16` — widening arithmetic via operator syntax | historical, not re-measured | feature description, see GPU-Optimal Arithmetic section |
+| Production backends | 1 (Z80) + 1 partial (C) + 1 QBE (correctness oracle) + 8 experimental | historical, not re-measured | no supporting file found |
+| LIR backend | Retired by #85 / ADR 0044; no current production corpus metric | 2026-10-13 | PR #85, [ADR 0044](docs/adr/0044-lir-retirement-and-rule-migration.md) |
+| VIR offline oracle | No current correctness/performance metric; earlier corpus/speed claims retracted (§5) | 2026-08-21 | [ADR 0043](docs/adr/0043-vir-demoted-to-offline-oracle.md) |
+| MIR backend tests | 9/11 pass, 2 known bugs | historical, not re-measured | none: the earlier "(ADR-0006)" reference points at `docs/adr/0006-ez80-adl-address-widening.md`, which is about eZ80 address widening |
+| Frontends | 8 (Nanz, C89, PL/M, Lanz, Lizp, Pascal, ABAP, **Frill**) — all route through HIR→MIR2→Z80 | 2026-03-28 (historical, not re-measured) | [Eight Languages, One Binary](docs/Eight_Languages_One_Binary.md) |
+| Frill (.frl) | ML-style functional: 38 features — let, if/then/else, pipe \|>, compose >>, match+guards, ADT, lambda, currying, tuples, type classes, QTT linearity (!/~), while, for, mutation, peek/poke, property testing. 1000+ compile-time checks. See [Frill Guide](docs/Frill_Language_Guide.md) | 2026-03-23 (historical, not re-measured) | [session report](reports/2026-03-23-session-frill-ez80-z3.md) (38 features); "1000+ checks": no supporting file found |
 
 > **Note on C frontend:** C17 conformant (freestanding) + C23 extensions. First Z80 compiler
 > with C11/C17. Use for benchmarking against SDCC. Recommend **Nanz** as primary language.
@@ -612,15 +637,18 @@ The fuzz/assert results below are manager-supplied, bounded measurements; see th
 > `via mir2` = MIR2 VM (fast, u16 arithmetic). `via z80` = full Z80 compile+emulate.
 > Exceptions: pointer tests → z80 only. u8 overflow → z80 only (mir2 does u16).
 > Test files: `examples/c89/` (legacy C89) and `examples/c/` (C99+, new tests go here).
-| C89 corpus | 350/350 asserts, 38 files in `examples/c89/` (MIR2) |
-| C99+ corpus | 174/174 asserts, 13 files in `examples/c/` (MIR2) — C99/C11/C23 |
-| C total | **524/524** asserts across 51 test files |
-| C conformance | **C17** (freestanding) + C23 extensions (#embed, nullptr, bool) |
-| ABAP examples | 8 programs (hello, fibonacci, fizzbuzz, guessing, bubblesort, forms, oop, sysinfo) |
-| E2E Z80 tests | 24 (fibonacci, flag-return, div8, div16, mod8, divmod-combined + 6502) |
-| Parser | Participle (native Go, zero deps) |
-| Toolchain binaries | 10 working (mz, mza, mze, mzx, mzd, mzn, mzlsp, mzrun, mztap, mzv) + vir-oracle (offline) + mzv1 (MIR1) + mzr (broken) |
-| Go test packages | Not measured in this update; prior package count removed |
+
+| Metric | Value | Date | Source |
+|--------|-------|------|--------|
+| C89 corpus | 350/350 asserts, 38 files in `examples/c89/` (MIR2) | historical, not re-measured | no supporting file found |
+| C99+ corpus | 174/174 asserts, 13 files in `examples/c/` (MIR2) — C99/C11/C23 | historical, not re-measured | no supporting file found |
+| C total | **524/524** asserts across 51 test files | historical, not re-measured | no supporting file found; [Report 119](reports/2026-08-21-119-Language-and-Codegen-Audit.md) (2026-08-21) notes that ~96% of these asserts run `via mir2`, so it is a MIR2-VM figure, not a Z80 one |
+| C conformance | **C17** (freestanding) + C23 extensions (#embed, nullptr, bool) | historical, not re-measured | contradicted: the [C standards audit](reports/2026-10-16-c-standards-objc-audit.md) (2026-10-16) lists full C17/C23 conformance among claims to drop |
+| ABAP examples | 8 programs (hello, fibonacci, fizzbuzz, guessing, bubblesort, forms, oop, sysinfo) | historical, not re-measured | no supporting file found |
+| E2E Z80 tests | 24 (fibonacci, flag-return, div8, div16, mod8, divmod-combined + 6502) | historical, not re-measured | no supporting file found |
+| Parser | Participle (native Go, zero deps) | historical, not re-measured | — |
+| Toolchain binaries | 10 working (mz, mza, mze, mzx, mzd, mzn, mzlsp, mzrun, mztap, mzv) + vir-oracle (offline) + mzv1 (MIR1) + mzr (broken) | historical, not re-measured | `minzc/Makefile` target `all` (working status not re-checked) |
+| Go test packages | Not measured in this update; prior package count removed | — | — |
 
 ---
 
