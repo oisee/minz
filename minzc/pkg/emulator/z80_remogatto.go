@@ -71,6 +71,7 @@ type Memory struct {
 	romEnd     uint16
 	smcTracker func(addr uint16, oldVal, newVal byte) // Optional SMC tracking
 	profiler   *Profiler                              // Optional profiler hooks
+	pager      *pager                                 // Optional banked RAM (see paging.go)
 }
 
 // NewMemory creates ROM-protected memory. Timing is disabled until its CPU is
@@ -116,6 +117,9 @@ func (m *Memory) writeByte(address uint16, value byte) {
 
 	oldVal := m.data[address]
 	m.data[address] = value
+	if m.pager != nil {
+		m.mirror(address, value)
+	}
 
 	// Track SMC if handler is set
 	if m.smcTracker != nil && oldVal != value {
@@ -173,6 +177,10 @@ type Ports struct {
 	output  *[]byte
 
 	profiler *Profiler // Optional profiler hooks
+
+	// Banked RAM ports ($7FFD, $1FFD); nil for the flat map
+	pager    *pager
+	pagedMem *Memory
 
 	// Console port mapping
 	consolePort byte
@@ -267,6 +275,10 @@ func (p *Ports) WritePort(address uint16, b byte) {
 func (p *Ports) writePort(address uint16, b byte) {
 	if p.profiler != nil {
 		p.profiler.OnIOWrite(address)
+	}
+
+	if p.pager != nil && p.pager.writePagingPort(p.pagedMem, address, b) {
+		return
 	}
 
 	// Console port output
