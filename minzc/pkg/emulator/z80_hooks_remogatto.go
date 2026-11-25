@@ -17,8 +17,15 @@ type RemogattoZ80WithScreen struct {
 }
 
 // NewRemogattoZ80WithScreen creates a Z80 emulator with 100% coverage and screen support
+// NewMachineHook, when set, configures every machine built by
+// NewRemogattoZ80WithScreen before it is returned (mze uses it for --model).
+var NewMachineHook func(*RemogattoZ80)
+
 func NewRemogattoZ80WithScreen() *RemogattoZ80WithScreen {
 	remogatto := NewRemogattoZ80()
+	if NewMachineHook != nil {
+		NewMachineHook(remogatto)
+	}
 
 	z80 := &RemogattoZ80WithScreen{
 		RemogattoZ80: remogatto,
