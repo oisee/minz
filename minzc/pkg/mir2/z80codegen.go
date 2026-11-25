@@ -836,6 +836,10 @@ type z80cg struct {
 	// (see fnUseCounts). useCountsOn is set only inside genFunc.
 	useCounts   map[Reg]int
 	useCountsOn bool
+	// liveAfterLR caches ComputeLiveness(fn) for regsLiveAfterInst during
+	// one genFunc call (see fnLiveness); valid under the same conditions as
+	// useCounts and reset/disabled together with it.
+	liveAfterLR *LivenessResult
 
 	// trampolines: small glue blocks emitted after main function body that
 	// perform block-argument parallel copies then jump to the real target.
@@ -1281,8 +1285,8 @@ func (g *z80cg) genFunc(f *Func) {
 		return
 	}
 	g.fn = f
-	g.useCounts, g.useCountsOn = nil, true
-	defer func() { g.useCounts, g.useCountsOn = nil, false }()
+	g.useCounts, g.liveAfterLR, g.useCountsOn = nil, nil, true
+	defer func() { g.useCounts, g.liveAfterLR, g.useCountsOn = nil, nil, false }()
 	g.regInfo = collectRegInfo(f)
 	g.spillWidths = make(map[string]int, len(g.regInfo))
 	for r, info := range g.regInfo {
@@ -1629,6 +1633,19 @@ func (g *z80cg) fnUseCounts() map[Reg]int {
 		g.useCounts = countRegUses(g.fn)
 	}
 	return g.useCounts
+}
+
+// fnLiveness returns ComputeLiveness(g.fn), computed once per genFunc (the
+// function is read-only during emission, see fnUseCounts) and recomputed on
+// every call outside genFunc. The result is shared: callers only read it.
+func (g *z80cg) fnLiveness() *LivenessResult {
+	if !g.useCountsOn {
+		return ComputeLiveness(g.fn)
+	}
+	if g.liveAfterLR == nil {
+		g.liveAfterLR = ComputeLiveness(g.fn)
+	}
+	return g.liveAfterLR
 }
 
 // enterBlockState resets the per-position emission state to what holds at the
