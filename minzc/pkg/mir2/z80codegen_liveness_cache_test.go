@@ -53,7 +53,7 @@ func TestRegsLiveAfterInstCacheEndsWithGenFunc(t *testing.T) {
 	if !strings.Contains(before, "PUSH AF") {
 		t.Fatalf("expected a caller save of live r1:\n%s", before)
 	}
-	if g.useCountsOn || g.liveAfterLR != nil {
+	if g.useCountsOn {
 		t.Fatal("liveness cache still active after genFunc returned")
 	}
 	// Leave a populated cache behind, as if emission had been interrupted.

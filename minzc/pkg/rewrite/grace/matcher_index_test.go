@@ -21,7 +21,12 @@ func (g listerGraph) BlockList() []rewrite.IRBlock {
 	return list
 }
 
-// ── Reference matcher: the pre-index algorithm, kept verbatim in spirit ──
+// ── Reference matcher: the pre-index algorithm ──
+//
+// It follows the original code shape by shape, because the shapes differ in
+// one observable way: the two-block loop excludes l1 == l0 by label, while
+// the backtracker excludes labels found in the bindings map (so a rule that
+// names one variable twice behaves differently in the two).
 
 func refEdgeExists(graph rewrite.IRGraph, from, to, kind string) bool {
 	fromBlock := graph.Block(from)
@@ -109,6 +114,28 @@ func refFindMatch(graph rewrite.IRGraph, rule *GraceRule, reg *PredicateRegistry
 		}
 	}
 	blocks := graph.Blocks()
+	if len(bms) == 2 {
+		for _, l0 := range blocks {
+			b0 := graph.Block(l0)
+			if b0 == nil || !matchBlockClause(bms[0], b0) {
+				continue
+			}
+			for _, l1 := range blocks {
+				if l0 == l1 {
+					continue
+				}
+				b1 := graph.Block(l1)
+				if b1 == nil || !matchBlockClause(bms[1], b1) {
+					continue
+				}
+				b := BlockBindings{bms[0].Var: l0, bms[1].Var: l1}
+				if refCheckEdges(graph, edges, b) && refCheckPreds(graph, rule.Where, b, reg) {
+					return b
+				}
+			}
+		}
+		return nil
+	}
 	bindings := BlockBindings{}
 	var rec func(depth int) bool
 	rec = func(depth int) bool {
@@ -143,6 +170,58 @@ func refFindMatch(graph rewrite.IRGraph, rule *GraceRule, reg *PredicateRegistry
 	return bindings
 }
 
+// refFindAll is the original FindAllMatches: every binding, by backtracking
+// over all block variables in layout order.
+func refFindAll(graph rewrite.IRGraph, rule *GraceRule, reg *PredicateRegistry) []BlockBindings {
+	var bms, edges []MatchClause
+	for _, m := range rule.Match {
+		if m.Kind == MatchBlock {
+			bms = append(bms, m)
+		} else if m.Kind == MatchEdge {
+			edges = append(edges, m)
+		}
+	}
+	if len(bms) == 0 {
+		return nil
+	}
+	blocks := graph.Blocks()
+	var results []BlockBindings
+	bindings := BlockBindings{}
+	var rec func(depth int)
+	rec = func(depth int) {
+		if depth == len(bms) {
+			if refCheckEdges(graph, edges, bindings) && refCheckPreds(graph, rule.Where, bindings, reg) {
+				found := BlockBindings{}
+				for k, l := range bindings {
+					found[k] = l
+				}
+				results = append(results, found)
+			}
+			return
+		}
+		for _, l := range blocks {
+			used := false
+			for _, v := range bindings {
+				if v == l {
+					used = true
+				}
+			}
+			if used {
+				continue
+			}
+			b := graph.Block(l)
+			if b == nil || !matchBlockClause(bms[depth], b) {
+				continue
+			}
+			bindings[bms[depth].Var] = l
+			rec(depth + 1)
+			delete(bindings, bms[depth].Var)
+		}
+	}
+	rec(0)
+	return results
+}
+
 func randomGraph(r *rand.Rand) *mockGraph {
 	n := 1 + r.Intn(12)
 	label := func(i int) string { return fmt.Sprintf("b%d", i) }
@@ -174,12 +253,24 @@ var randomRules = []string{
 	`(grace r5 0 (match (block ?c (term-kind "br_if")) (block ?e) (edge ?c ?e "else")) (where (inst-count ?e < 2) (probe ?c ?e)) (action))`,
 	`(grace r6 0 (match (block ?x) (block ?y)) (where (dominates ?x ?y) (probe ?x ?y)) (action))`,
 	`(grace r7 0 (match (block ?a) (block ?b) (block ?c) (edge ?a ?b "succ") (edge ?b ?c "succ")) (where (probe ?a ?b ?c)) (action))`,
+	// Shapes the index must not mishandle: an unknown edge kind written in
+	// reverse, a self edge next to a real one, an edge to an unbound
+	// variable, one variable named twice, opposite then/else edges, two edge
+	// clauses on one pair, and a three-block rule with a reverse edge.
+	`(grace x1 0 (match (block ?a) (block ?b) (edge ?b ?a "weird")) (where (probe ?a ?b)) (action))`,
+	`(grace x2 0 (match (block ?a) (block ?b) (edge ?a ?a "succ") (edge ?a ?b "succ")) (where (probe ?a ?b)) (action))`,
+	`(grace x3 0 (match (block ?a) (block ?b) (edge ?a ?z "succ")) (where (probe ?a ?b)) (action))`,
+	`(grace x4 0 (match (block ?a) (block ?a) (edge ?a ?a "succ")) (where (probe ?a)) (action))`,
+	`(grace x5 0 (match (block ?a) (block ?b) (edge ?b ?a "then") (edge ?a ?b "else")) (where (probe ?a ?b)) (action))`,
+	`(grace x6 0 (match (block ?a (term-kind "ret")) (block ?b) (edge ?b ?a "back") (edge ?b ?a "succ")) (where (pred-count ?a > 0) (probe ?a ?b)) (action))`,
+	`(grace x7 0 (match (block ?a) (block ?b) (block ?c) (edge ?c ?a "succ")) (where (probe ?a ?b ?c)) (action))`,
 }
 
 // TestIndexedMatcherAgreesWithReference checks, on random graphs (including
 // duplicate labels and edges to missing blocks), that the indexed matcher
 // returns the same first match as the original exhaustive enumeration and
-// calls the custom predicate on exactly the same bindings in the same order.
+// calls the custom predicate on exactly the same bindings in the same order,
+// and that FindAllMatches agrees with its original in the same two respects.
 func TestIndexedMatcherAgreesWithReference(t *testing.T) {
 	r := rand.New(rand.NewSource(338))
 	var rules []GraceRule
@@ -195,6 +286,13 @@ func TestIndexedMatcherAgreesWithReference(t *testing.T) {
 		seed := r.Int63()
 		for ri := range rules {
 			for _, graph := range []rewrite.IRGraph{g, listerGraph{g}} {
+				var all []BlockBindings
+				allOf := func(find func(rewrite.IRGraph, *GraceRule, *PredicateRegistry) []BlockBindings) func(rewrite.IRGraph, *GraceRule, *PredicateRegistry) BlockBindings {
+					return func(g rewrite.IRGraph, rule *GraceRule, reg *PredicateRegistry) BlockBindings {
+						all = find(g, rule, reg)
+						return nil
+					}
+				}
 				run := func(find func(rewrite.IRGraph, *GraceRule, *PredicateRegistry) BlockBindings) (BlockBindings, []string) {
 					var log []string
 					reg := NewPredicateRegistry()
@@ -218,6 +316,13 @@ func TestIndexedMatcherAgreesWithReference(t *testing.T) {
 				if !reflect.DeepEqual(want, got) || !reflect.DeepEqual(wantLog, gotLog) {
 					t.Fatalf("iter %d rule %s: indexed matcher diverged\nwant %v %v\ngot  %v %v\ngraph %+v",
 						iter, rules[ri].Name, want, wantLog, got, gotLog, g.blocks)
+				}
+				_, wantLog = run(allOf(refFindAll))
+				wantAll := all
+				_, gotLog = run(allOf(FindAllMatches))
+				if !reflect.DeepEqual(wantAll, all) || !reflect.DeepEqual(wantLog, gotLog) {
+					t.Fatalf("iter %d rule %s: FindAllMatches diverged\nwant %v %v\ngot  %v %v\ngraph %+v",
+						iter, rules[ri].Name, wantAll, wantLog, all, gotLog, g.blocks)
 				}
 			}
 		}

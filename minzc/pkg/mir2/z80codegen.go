@@ -833,13 +833,10 @@ type z80cg struct {
 	liveness *LivenessResult
 
 	// useCounts caches countRegUses(fn) for the duration of one genFunc call
-	// (see fnUseCounts). useCountsOn is set only inside genFunc.
+	// (see fnUseCounts). useCountsOn is set only inside genFunc; while it is
+	// set, fnLiveness also shares liveness instead of recomputing it.
 	useCounts   map[Reg]int
 	useCountsOn bool
-	// liveAfterLR caches ComputeLiveness(fn) for regsLiveAfterInst during
-	// one genFunc call (see fnLiveness); valid under the same conditions as
-	// useCounts and reset/disabled together with it.
-	liveAfterLR *LivenessResult
 
 	// trampolines: small glue blocks emitted after main function body that
 	// perform block-argument parallel copies then jump to the real target.
@@ -1285,8 +1282,9 @@ func (g *z80cg) genFunc(f *Func) {
 		return
 	}
 	g.fn = f
-	g.useCounts, g.liveAfterLR, g.useCountsOn = nil, nil, true
-	defer func() { g.useCounts, g.liveAfterLR, g.useCountsOn = nil, nil, false }()
+	g.liveness = nil
+	g.setFnCaches(true)
+	defer g.setFnCaches(false)
 	g.regInfo = collectRegInfo(f)
 	g.spillWidths = make(map[string]int, len(g.regInfo))
 	for r, info := range g.regInfo {
@@ -1619,17 +1617,22 @@ func (g *z80cg) fnUseCounts() map[Reg]int {
 	return g.useCounts
 }
 
-// fnLiveness returns ComputeLiveness(g.fn), computed once per genFunc (the
-// function is read-only during emission, see fnUseCounts) and recomputed on
-// every call outside genFunc. The result is shared: callers only read it.
+// setFnCaches opens (on) or closes the window in which fnUseCounts and
+// fnLiveness may share whole-function facts. Either way the counts start
+// empty, so a window never inherits counts from an earlier one.
+func (g *z80cg) setFnCaches(on bool) {
+	g.useCounts, g.useCountsOn = nil, on
+}
+
+// fnLiveness returns ComputeLiveness(g.fn). Inside genFunc that is
+// g.liveness, which genFunc computes once for the function it emits (the
+// function is read-only during emission, see fnUseCounts); outside genFunc
+// every call recomputes. The result is shared: callers only read it.
 func (g *z80cg) fnLiveness() *LivenessResult {
-	if !g.useCountsOn {
-		return ComputeLiveness(g.fn)
+	if g.useCountsOn && g.liveness != nil {
+		return g.liveness
 	}
-	if g.liveAfterLR == nil {
-		g.liveAfterLR = ComputeLiveness(g.fn)
-	}
-	return g.liveAfterLR
+	return ComputeLiveness(g.fn)
 }
 
 // enterBlockState resets the per-position emission state to what holds at the
