@@ -72,6 +72,8 @@ MinZ at `9daf7a8ba` against SDCC 4.6.0 on the frozen benchmark in `research/c89-
 
 The 26 cases are small single kernels chosen by this project, so this is not a claim that MinZ beats SDCC in general. Per case the results go both ways: SDCC is faster than MinZ's default profile on 5 cases (up to 1.635×) and smaller than MinZ's size profile on 9. [Report 139: method, per-case tables, where SDCC wins](reports/2026-11-25-139-SDCC-46-Benchmark.md) · [raw rows and scripts](reports/c89-benchmark-2026-11-25/README.md).
 
+**llvm-z80 (2026-11-26).** The same benchmark with llvm-z80 (clang 23.1.5) as a third compiler, MinZ at `7d1119456`, 272 rows, all pass: MinZ default against llvm-z80 `-O2` is 0.874 T-states / 0.939 bytes over 26 cases; llvm-z80 `-O2` against SDCC speed is 0.719 / 1.045. llvm-z80 is faster than MinZ on 8 of the 26 cases (up to 2.26×). [Report 140](reports/2026-11-26-140-LLVM-Z80-Benchmark.md) · [raw rows](reports/c89-benchmark-2026-11-26-llvm/README.md).
+
 ### Historical benchmark reports (2026-10-16, SDCC 4.2/4.5)
 
 The reports below measured older compiler trees against SDCC 4.2 and 4.5. Their numbers and their "SDCC wins" statements describe those trees, not the current one.

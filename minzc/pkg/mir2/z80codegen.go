@@ -919,6 +919,11 @@ type z80cg struct {
 	// so the value survives in "D" (via physOverride).
 	pendingFlagReg Reg
 
+	// edgeAccFree is set by a terminator, for exactly one emitParallelCopy
+	// call, when no value read after that copy lives in physical A outside the
+	// copy list (see accDeadOutside). emitParallelCopy clears it on entry.
+	edgeAccFree bool
+
 	// pendingAccReg is a ClassAcc virtual register currently in A that may be
 	// clobbered by an upcoming "LD A, imm" in a subsequent genCmp.
 	// When genCmp is about to emit "LD A, imm", if pendingAccReg is still live

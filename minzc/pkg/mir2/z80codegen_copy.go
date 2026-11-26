@@ -97,6 +97,10 @@ func (g *z80cg) buildBlockCopies(f *Func, targetName string, args []Reg) []paral
 // Constant rematerialisations (isImm=true) are emitted AFTER all register-to-
 // register moves so they don't clobber live source registers.
 func (g *z80cg) emitParallelCopy(copies []parallelCopy) {
+	// A terminator's proof that A is dead outside this copy list applies to
+	// this call only, not to nested or later copies.
+	accFree := g.edgeAccFree
+	g.edgeAccFree = false
 	if len(copies) == 0 {
 		return
 	}
@@ -223,6 +227,18 @@ func (g *z80cg) emitParallelCopy(copies []parallelCopy) {
 	for i, c := range regCopies {
 		moves[i] = move{src: c.srcName, dst: c.dstName, ty: c.ty, done: c.srcName == c.dstName}
 	}
+	// accInOtherMove reports whether a move other than i, pending or done
+	// (including identities, which pin a value in place), touches A. Constant
+	// copies are emitted after every register move and may overwrite A.
+	accInOtherMove := func(i int) bool {
+		inA := func(loc string) bool { return loc == "A" || z80spec.Overlaps(loc, "A") }
+		for j := range moves {
+			if j != i && (inA(moves[j].src) || inA(moves[j].dst)) {
+				return true
+			}
+		}
+		return false
+	}
 
 	for {
 		// Emit any move whose dst is not a source of another pending move.
@@ -239,6 +255,18 @@ func (g *z80cg) emitParallelCopy(copies []parallelCopy) {
 				}
 			}
 			if !dstNeeded {
+				if moves[i].src == "F" && accFree && z80ValueWidth(moves[i].ty) <= 16 &&
+					!isZ80WideInt(moves[i].ty) && !accInOtherMove(i) {
+					// A is dead outside the list (accFree) and no other move of
+					// the list reads or writes it: build the predicate there
+					// without saving A.
+					if !g.emitKnownFlagCopy(moves[i].dst, z80ValueWidth(moves[i].ty), true) {
+						g.flagReadError()
+					}
+					moves[i].done = true
+					progress = true
+					break
+				}
 				g.emitSingleCopy(moves[i].src, moves[i].dst, moves[i].ty)
 				moves[i].done = true
 				progress = true
@@ -528,7 +556,9 @@ func (g *z80cg) emitSingleCopy(src, dst string, ty Ty) {
 	// F register: cannot be accessed directly. Materialise flag→register or
 	// register→flag via the same logic as emitMov.
 	if src == "F" {
-		if g.emitKnownFlagCopy(dst, z80ValueWidth(ty)) {
+		// No liveness context here: keep A. emitParallelCopy emits the
+		// proven-dead case itself before reaching this.
+		if g.emitKnownFlagCopy(dst, z80ValueWidth(ty), false) {
 			return
 		}
 		// Nothing is pending: F holds no known predicate.

@@ -3,6 +3,8 @@ package mir2
 import (
 	"fmt"
 	"slices"
+
+	"github.com/minz/minzc/pkg/z80spec"
 )
 
 // emitFlagPredicateByte writes a canonical 0/1 bool to A from the current
@@ -1179,13 +1181,25 @@ func (g *z80cg) genCmp32(inst *Inst) {
 // Comparisons can encode their result in Z, carry, or a two-flag predicate.
 // A scalar copy must use that predicate, and must preserve a live A when
 // writing another register (e.g. a short-circuit condition's block argument).
-func (g *z80cg) emitKnownFlagCopy(dst string, width int) bool {
+//
+// accDead is the caller's proof that physical A holds nothing read after the
+// copy; only then is the save omitted. Either way F leaves the copy as the
+// predicate left it (the save neither restores nor disturbs F: PUSH, POP into
+// a pair and LD keep flags), so C/NC stays valid for a later branch.
+func (g *z80cg) emitKnownFlagCopy(dst string, width int, accDead bool) bool {
 	if g.pendingFlagReg == NoReg {
 		return false
 	}
 	pair := "BC"
 	if dst == "BC" || dst == "B" || dst == "C" {
 		pair = "HL"
+	}
+	if accDead && dst != "A" {
+		g.emitFlagPredicateByte(g.condCode(g.fn, g.pendingFlagReg))
+		g.emitMov(dst, "A", width)
+		g.invalidate("A")
+		g.invalidate(dst)
+		return true
 	}
 	if dst != "A" {
 		g.emitf("    PUSH %s", pair)
@@ -1202,6 +1216,46 @@ func (g *z80cg) emitKnownFlagCopy(dst string, width int) bool {
 	g.invalidate("A")
 	g.invalidate(dst)
 	return true
+}
+
+// accDeadOutside reports whether physical A is proved to hold nothing read
+// after the current point, given live, every virtual register read after it.
+// The proof: no pending accumulator (a value held in A without a home), no
+// relocation into A, and no live register whose current or allocated home
+// overlaps A. Values allocated elsewhere are untouched by a write of A; the
+// shadow A' is not written. Without liveness the answer is false.
+func (g *z80cg) accDeadOutside(live map[Reg]bool) bool {
+	if g.fn == nil || g.curBlock == nil || g.ar == nil || g.pendingAccReg != NoReg {
+		return false
+	}
+	inA := func(loc string) bool { return loc == "A" || z80spec.Overlaps(loc, "A") }
+	for _, loc := range g.physOverride {
+		if inA(loc) {
+			return false
+		}
+	}
+	for r := range live {
+		if inA(g.loc(r)) || inA(g.ar.Loc(r).Name) {
+			return false
+		}
+	}
+	return true
+}
+
+// accDeadAfterInst proves A dead for a flag copy emitted inside inst: nothing
+// live after inst is in A and, when operandsFollow (the copy precedes the
+// code that reads inst's operands), none of inst's operands is in A either.
+func (g *z80cg) accDeadAfterInst(inst *Inst, operandsFollow bool) bool {
+	if g.curBlock == nil {
+		return false
+	}
+	live := g.regsLiveAfterInst(inst)
+	if operandsFollow {
+		for _, r := range g.instReads(inst) {
+			live[r] = true
+		}
+	}
+	return g.accDeadOutside(live)
 }
 
 // publishShiftCarry binds the predicate to the actual shift, after all its
