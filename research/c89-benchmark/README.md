@@ -62,6 +62,19 @@ selection, checked-local table or joint PFCCO option. No profile is selected aft
 looking at timing results. Jobs are independent; parallel host execution does
 not change emulated T-state counts.
 
+## llvm-z80 rows
+
+Add `--llvm-z80-root /path/to/LLVM-Z80-release` (the directory holding `bin/clang` and
+`lib/z80/z80_rt.a`) for two more rows per case: `llvm o2` and `llvm os`. Each source is
+compiled with `clang --target=z80 -std=c89 -O2|-Os -c` and linked by `ld.lld` with
+`llvm-z80/bench.ld` (code at 0x8000, data at 0xC000, no startup code) against the
+toolchain's own runtime archive, from which the linker takes only the members a case
+needs. The runner reads the linked ELF directly: allocated sections with contents are
+the image, `.bss` counts as storage, symbols come from the ELF symbol table. The clang
+version and the hashes of the runtime archive and linker script are saved in
+`toolchains.json`. Measured in
+[report 140](../../reports/2026-11-26-140-LLVM-Z80-Benchmark.md).
+
 ## Nanz and SDCC 4.5 extension
 
 Add `--include-nanz` to replay the same workloads with the separately frozen
