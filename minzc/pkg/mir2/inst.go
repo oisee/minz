@@ -36,6 +36,14 @@ type Inst struct {
 	// SequentialBytes preserves a fused low-to-high byte sequence, including
 	// partial observations/writes before a later byte fails bounds or authority.
 	SequentialBytes bool `json:",omitempty"`
+	// InBounds (OpPtrAdd only) records a C subscript of a declared, complete,
+	// static-storage array object: Src[0] is that object's address, and the
+	// source program is undefined if an element accessed through the result
+	// lies outside it (C89 3.3.6, C99 6.5.6p8). Only the C frontend sets it;
+	// code generation ignores it. A pass that rewrites the base or offset into
+	// something other than the source subscript, or turns the instruction into
+	// another opcode, clears it. Consumer: storeConfinedGlobal.
+	InBounds bool `json:",omitempty"`
 	// SequentialByteOrigins retain exact original byte callback identity.
 	// SequentialAddressDefs preserve the pure address DAG as checked metadata;
 	// neither retired values nor address proof nodes execute again.

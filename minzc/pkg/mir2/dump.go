@@ -176,7 +176,11 @@ func DumpInst(inst *Inst) string {
 		fmt.Fprintf(&sb, "ptr_bump %%r%d, +%d : ptr%s", inst.Src[0], inst.Imm, clsSuffix())
 
 	case OpPtrAdd:
-		fmt.Fprintf(&sb, "ptr_add %%r%d, %%r%d : ptr%s", inst.Src[0], inst.Src[1], clsSuffix())
+		inbounds := ""
+		if inst.InBounds {
+			inbounds = "inbounds "
+		}
+		fmt.Fprintf(&sb, "ptr_add %s%%r%d, %%r%d : ptr%s", inbounds, inst.Src[0], inst.Src[1], clsSuffix())
 
 	case OpAlloca:
 		fmt.Fprintf(&sb, "alloca %d : ptr", inst.Imm)

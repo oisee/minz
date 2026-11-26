@@ -56,6 +56,7 @@ func cpmCleanLocalAddress(i *Inst) bool {
 		p.Src[0], p.Imm = 0, 0
 	case OpPtrAdd:
 		p.Src = [2]Reg{}
+		p.InBounds = false // proof annotation; authority still comes from the base
 	default:
 		return false
 	}

@@ -507,7 +507,9 @@ func (l *lowerer) lowerExprAddr(ex Expr) mir2.Reg {
 			}
 			idx = l.bld.Mul(idx, l.bld.Const(stride, sizeTy, mir2.ClassAcc), sizeTy, mir2.ClassAcc)
 		}
-		return l.bld.PtrAdd(baseAddr, idx, mir2.ClassPointer)
+		r := l.bld.PtrAdd(baseAddr, idx, mir2.ClassPointer)
+		l.markInBounds(e)
+		return r
 	default:
 		panic(fmt.Sprintf("hir/lower: cannot take address of %T", ex))
 	}
@@ -3014,7 +3016,33 @@ func (l *lowerer) lowerIndexAddr(ex *IndexExpr) mir2.Reg {
 	if hostGlobal {
 		l.bld.Cur.Insts[len(l.bld.Cur.Insts)-1].Ty = mir2.PtrFor(32)
 	}
+	l.markInBounds(ex)
 	return r
+}
+
+// markInBounds copies a frontend's declared-object subscript claim onto the
+// ptr_add just emitted for ex. The claim is about the object the source
+// subscript named, so it is kept only while the HIR base is still a direct
+// reference to a visible global array (which lowers to its addr_of); a base
+// rewritten by an HIR pass into anything else loses it.
+func (l *lowerer) markInBounds(ex *IndexExpr) {
+	if !ex.InBounds {
+		return
+	}
+	ref, ok := ex.Base.(*VarRefExpr)
+	if !ok {
+		return
+	}
+	g, found := l.visibleGlobal(ref.Name)
+	if !found {
+		return
+	}
+	if _, array := mir2.BaseOf(g.Ty).(*mir2.ArrayTy); !array {
+		return
+	}
+	if n := len(l.bld.Cur.Insts); n > 0 && l.bld.Cur.Insts[n-1].Op == mir2.OpPtrAdd {
+		l.bld.Cur.Insts[n-1].InBounds = true
+	}
 }
 
 // lowerIndex lowers arr[i] → ptr_add(base, i * stride) → load.
@@ -4585,9 +4613,18 @@ func renameExpr(e Expr, from, to string) Expr {
 	case *DerefExpr:
 		return &DerefExpr{Ptr: renameExpr(ex.Ptr, from, to), Ty: ex.Ty, Volatile: ex.Volatile}
 	case *IndexExpr:
+		base := renameExpr(ex.Base, from, to)
+		// The declared-object claim survives only while the base still names
+		// the same object.
+		inBounds := false
+		if old, ok := ex.Base.(*VarRefExpr); ok && ex.InBounds {
+			if renamed, ok := base.(*VarRefExpr); ok && renamed.Name == old.Name {
+				inBounds = true
+			}
+		}
 		return &IndexExpr{
-			Base: renameExpr(ex.Base, from, to), Idx: renameExpr(ex.Idx, from, to),
-			ElemTy: ex.ElemTy, ElemStride: ex.ElemStride, Volatile: ex.Volatile,
+			Base: base, Idx: renameExpr(ex.Idx, from, to),
+			ElemTy: ex.ElemTy, ElemStride: ex.ElemStride, Volatile: ex.Volatile, InBounds: inBounds,
 		}
 	case *FieldExpr:
 		return &FieldExpr{X: renameExpr(ex.X, from, to), Field: ex.Field, Offset: ex.Offset, Ty: ex.Ty, Volatile: ex.Volatile}

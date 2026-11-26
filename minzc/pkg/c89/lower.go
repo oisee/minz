@@ -1595,14 +1595,17 @@ func (fl *funcLow) lowerPostfix(pf *cc.PostfixExpression) (*exprResult, error) {
 			return nil, err
 		}
 		elementType := pf.Type()
+		swapped := false
 		if pointer, ok := pf.PostfixExpression.Type().(*cc.PointerType); ok {
 			elementType = pointer.Elem()
 		} else if pointer, ok := pf.ExpressionList.Type().(*cc.PointerType); ok {
 			base, idx = idx, base
 			elementType = pointer.Elem()
+			swapped = true
 		}
 		elemTy := fl.low.storageType(elementType)
 		indexed := &hir.IndexExpr{Base: base, Idx: idx, ElemTy: elemTy, ElemStride: int(elementType.Size())}
+		indexed.InBounds = !swapped && declaredStaticArrayObject(pf.PostfixExpression, elementType)
 		if elementType.Kind() == cc.Array {
 			return wrapExpr(hir.AddrExpr(indexed)), nil
 		}
@@ -2448,4 +2451,42 @@ func parseIntToken(s string) int64 {
 		fmt.Sscanf(s, "%d", &val)
 	}
 	return val
+}
+
+// declaredStaticArrayObject reports whether e, the base of a subscript, names
+// a declared array object of complete, fixed size with static storage
+// duration (file scope or a block-scope static). Indexing such an object is
+// defined only for elements inside it (C89 3.3.6, C99 6.5.6p8), which is what
+// hir.IndexExpr.InBounds records. Everything else is refused: pointer
+// parameters and pointer variables, user pointer arithmetic, casts,
+// parenthesised or member bases (including flexible members and the struct
+// hack), automatic arrays, incomplete (extern T a[]) and variable-length
+// arrays, and objects whose element size is unknown.
+func declaredStaticArrayObject(e cc.ExpressionNode, elementType cc.Type) bool {
+	if post, ok := e.(*cc.PostfixExpression); ok {
+		if post.Case != cc.PostfixExpressionPrimary {
+			return false
+		}
+		e = post.PrimaryExpression
+	}
+	pe, ok := e.(*cc.PrimaryExpression)
+	if !ok || pe.Case != cc.PrimaryExpressionIdent {
+		return false
+	}
+	d, ok := pe.ResolvedTo().(*cc.Declarator)
+	if !ok || d == nil || d.IsParam() || d.IsTypename() || d.Type() == nil {
+		return false
+	}
+	array, ok := d.Type().(*cc.ArrayType)
+	if !ok || array.IsIncomplete() || array.IsVLA() || array.Len() <= 0 {
+		return false
+	}
+	if elementType == nil || elementType.Size() <= 0 || array.Size() != array.Len()*elementType.Size() {
+		return false
+	}
+	switch d.Linkage() {
+	case cc.External, cc.Internal:
+		return true
+	}
+	return d.IsStatic()
 }

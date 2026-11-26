@@ -149,6 +149,7 @@ func HoistInvariantAddresses(f *Func) bool {
 				indexSum.Ty = i.Ty
 				indexSum.Src = [2]Reg{base, invariantPart}
 				i.Src = [2]Reg{indexSum.Dst, variable}
+				i.InBounds = false // the base is no longer the declared object
 				changed = true
 			}
 		}
@@ -207,40 +208,14 @@ func HoistInvariantAddresses(f *Func) bool {
 	return changed
 }
 
-// loopObscuresMemory reports whether any instruction of the loop can write
-// memory, or carries effects the pass cannot reason about: every call form
-// (including memory intrinsics and conditional/indirect targets), inline
-// assembly, ports, patch slots and stack pushes. A loop containing one of
-// these may still hoist address arithmetic, which is pure, but never a load.
-func loopObscuresMemory(f *Func, loop map[string]bool) bool {
-	for _, b := range f.Blocks {
-		if !loop[b.Label] {
-			continue
-		}
-		for _, i := range b.Insts {
-			switch i.Op {
-			case OpStore, OpPatch, OpPush, OpPop,
-				OpCall, OpCallIndirect, OpCallCond,
-				OpAsm, OpIn8, OpIn16, OpOut8, OpOut16:
-				return true
-			}
-			// Sequential accesses preserve ordered partial observations; a
-			// volatile access is externally observable. Neither may move.
-			if i.Volatile || i.SequentialBytes || len(i.SequentialByteOrigins) != 0 || len(i.SequentialAddressDefs) != 0 {
-				return true
-			}
-		}
-	}
-	return false
-}
-
 // hoistInvariantGlobalLoads moves loads of loop-invariant static global
 // addresses into the loop preheader. A hoisted load executes once per loop
 // entry instead of once per iteration, and also on a zero-trip entry, so every
 // condition below is a proof, not a heuristic:
 //
-//   - nothing in the loop writes memory or has unknown effects
-//     (loopObscuresMemory), so the loaded location cannot change between the
+//   - nothing in the loop can write the loaded global or has unknown effects
+//     (loopMayWriteGlobal: every store provably stays inside a different
+//     ordinary global), so the loaded location cannot change between the
 //     preheader and any iteration that reads it;
 //   - the address is a byte range inside one ordinary module global — not an
 //     absolute (At) placement, volatile storage or a special storage class —
@@ -250,10 +225,16 @@ func loopObscuresMemory(f *Func, loop map[string]bool) bool {
 //     invariant by construction. A pointer parameter, a heap address or a
 //     loop-variant offset is never admitted.
 //
-// Two further gates are profitability, not safety, and both are measured: the
+// Three further gates are profitability, not safety, and all are measured: the
 // result must be one byte wide, and the loop must read that byte range exactly
 // once. Both exclude loops that already rematerialise the value in one direct
-// instruction, where the long live range costs more than the reload.
+// instruction, where the long live range costs more than the reload. Third,
+// the loop must contain no store at all, although loopMayWriteGlobal can prove
+// a store harmless: a storing loop is what RecognizeByteLoops later turns into
+// a fill/copy intrinsic, which reads a count or value global directly and is
+// cheaper than a hoisted register argument (admitting stores here measured
+// memset_fill 3588390T -> 3598695T, and no benchmark case faster). A loop
+// bound in such a loop is moved by affineCounterPlan instead.
 //
 // The value is re-read on every call: only the loop is escaped, never the
 // function.
@@ -262,8 +243,14 @@ func hoistInvariantGlobalLoads(f *Func, facts *NaturalLoop) bool {
 		return false
 	}
 	loop := facts.Blocks
-	if loopObscuresMemory(f, loop) {
-		return false
+	for _, b := range f.Blocks {
+		if loop[b.Label] {
+			for _, i := range b.Insts {
+				if i.Op == OpStore {
+					return false
+				}
+			}
+		}
 	}
 	instDefs := map[Reg]*Inst{}
 	home := map[*Inst]*Block{}
@@ -314,7 +301,7 @@ func hoistInvariantGlobalLoads(f *Func, facts *NaturalLoop) bool {
 				continue
 			}
 			g, base, ok := staticGlobalLoad(f, i, instDefs)
-			if !ok {
+			if !ok || loopMayWriteGlobal(f, loop, g, instDefs) {
 				continue
 			}
 			key := byteRange{g.Name, base}
@@ -360,7 +347,7 @@ func hoistInvariantGlobalLoads(f *Func, facts *NaturalLoop) bool {
 // returns that global and the offset. Such a read has no observable effect and
 // its storage always exists, so it may execute earlier than written; whether
 // the location can change in between is the caller's proof
-// (loopObscuresMemory for a loop).
+// (loopMayWriteGlobal for a loop).
 func staticGlobalLoad(f *Func, load *Inst, instDefs map[Reg]*Inst) (*Global, int, bool) {
 	if f.mod == nil || load.Op != OpLoad || load.Dst == NoReg || load.Volatile || load.SequentialBytes ||
 		len(load.SequentialByteOrigins) != 0 || len(load.SequentialAddressDefs) != 0 ||
