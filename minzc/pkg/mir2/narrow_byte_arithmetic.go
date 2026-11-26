@@ -56,6 +56,18 @@ func narrowTruncatedByteArithmetic(f *Func) bool {
 					return true
 				case OpAdd, OpSub, OpAnd, OpOr, OpXor:
 					return safe(v.Src[0], ty, depth+1) && safe(v.Src[1], ty, depth+1)
+				case OpMul:
+					// The low byte of a product depends only on the low bytes of
+					// the factors. Only a constant factor is narrowed: the byte
+					// multiply by a constant is a shift/add sequence or one __mul8
+					// call, while a variable byte product is slower than the
+					// quarter-square word form (541 vs 450 T per call measured on
+					// x*y). Two constants are left to constant folding.
+					a, b := defs[v.Src[0]], defs[v.Src[1]]
+					if a == nil || b == nil || (a.Op == OpConst) == (b.Op == OpConst) {
+						return false
+					}
+					return safe(v.Src[0], ty, depth+1) && safe(v.Src[1], ty, depth+1)
 				case OpShl, OpShr, OpSar:
 					k := defs[v.Src[1]]
 					if k == nil || k.Op != OpConst || k.ClsHard || counts[k.Dst] != 1 || k.Imm < 0 || k.Imm >= 8 {
@@ -87,6 +99,14 @@ func narrowTruncatedByteArithmetic(f *Func) bool {
 					x.SrcTy = nil
 				} else {
 					x.Src[0] = emit(v.Src[0])
+					if v.Op == OpMul && defs[v.Src[0]].Op == OpConst {
+						// The byte multiply keeps a constant in the second slot.
+						x.Src[0], x.Src[1] = emit(v.Src[1]), x.Src[0]
+						x.Dst = f.AllocReg()
+						cache[r] = x.Dst
+						out = append(out, x)
+						return x.Dst
+					}
 					// Shift counts were proved constant in [0,7], so their byte
 					// representation has exactly the same value.
 					x.Src[1] = emit(v.Src[1])
