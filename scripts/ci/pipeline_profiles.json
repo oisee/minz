@@ -356,6 +356,7 @@
     "TestNanzLiteralTypingContextsVMZ80",
     "TestNanzLiteralTypingPropertyVMZ80",
     "TestNanzNestedFieldsWithImportNativeVM",
+    "TestNarrowByteMultiplyNative",
     "TestNativeAssertReadsCompleteWideReturn",
     "TestNativeAssertUsesScalarReturnContract",
     "TestNegativeLiteralContextVMZ80",

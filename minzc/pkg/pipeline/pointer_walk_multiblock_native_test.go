@@ -200,9 +200,11 @@ void execute(void) { result = find(); }`,
 			},
 		},
 		{
-			// Walk, sum and counter would fill HL, DE and BC while the body
-			// needs a word temporary for the i16 multiply.
-			name: "map_filter_sum", kernel: "execute", shape: "indexed",
+			// The byte product (x*2 truncated to u8) is narrowed to a byte
+			// shift, so the body no longer needs a word temporary for an i16
+			// multiply and walk, sum and counter fit: counted walk. Before the
+			// narrowing of constant byte products this stayed indexed.
+			name: "map_filter_sum", kernel: "execute", shape: "counter",
 			source: `unsigned char src[256]; unsigned short n, base, result;
 void execute(void) {
     unsigned short s = 0, i; unsigned char y;
