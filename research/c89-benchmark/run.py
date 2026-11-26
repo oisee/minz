@@ -18,6 +18,7 @@ def main():
     ap.add_argument('--out', type=Path, required=True)
     ap.add_argument('--sdcc-root', type=Path, required=True)
     ap.add_argument('--z88dk-root', type=Path, help='optional; without it the sccz80 profile is skipped')
+    ap.add_argument('--llvm-z80-root', type=Path, help='optional llvm-z80 release root (bin/clang, lib/z80/z80_rt.a); adds llvm o2 and os rows')
     ap.add_argument('--go', default='go')
     ap.add_argument('--jobs', type=int, default=2)
     ap.add_argument('--sdcc45-root', type=Path)
@@ -80,6 +81,9 @@ def main():
     sdcc = args.sdcc_root.resolve() / 'usr/bin/sdcc'
     zroot = args.z88dk_root.resolve() if args.z88dk_root else None
     helper = zroot / 'lib/z80_compiler_helpers.lib' if zroot else None
+    lroot = args.llvm_z80_root.resolve() if args.llvm_z80_root else None
+    if lroot:
+        assert (lroot/'lib/z80/z80_rt.a').is_file(), 'llvm-z80 runtime archive not found'
     if zroot:
         assert helper.is_file(), 'Build official crt0_z80.lst helper archive; see README.'
         env = dict(os.environ, PATH=str(zroot/'bin')+os.pathsep+os.environ['PATH'], ZCCCFG=str(zroot/'lib/config'))
@@ -94,6 +98,9 @@ def main():
         'z88dk_commit': subprocess.check_output(['git','rev-parse','HEAD'], cwd=zroot,text=True).strip() if zroot else None,
         'zcc_version': subprocess.check_output([str(zroot/'bin/zcc'), '+z80','-h'],env=env,text=True,stderr=subprocess.STDOUT).splitlines()[0] if zroot else None,
         'helper_archive_sha256': sha(helper) if zroot else None,
+        'llvm_z80_version': subprocess.check_output([str(lroot/'bin/clang'), '--version'], text=True).strip() if lroot else None,
+        'llvm_z80_runtime_sha256': sha(lroot/'lib/z80/z80_rt.a') if lroot else None,
+        'llvm_z80_linker_script_sha256': sha(bench/'llvm-z80/bench.ld') if lroot else None,
         'runner_sha256': sha(root/'research/c89-benchmark/measure.go'),
         'driver_sha256': sha(__file__),
         'suite': args.suite,
@@ -113,6 +120,8 @@ def main():
         profiles += [('minz', 'mirgrace'), ('minz', 'hirgrace')]
     if zroot:
         profiles.append(('sccz80','o3'))
+    if lroot:
+        profiles += [('llvm', 'o2'), ('llvm', 'os')]
 
     def run_one(task):
         compiler, profile, case = task
@@ -139,6 +148,11 @@ def main():
             image,symbols=dest/'program.bin',dest/'program.map'
             commands.append([str(zroot/'bin/zcc'),'+z80','-clib=classic','-compiler=sccz80','-O3','-S','-o',str(dest/'program.asm'),str(source)])
             commands.append([str(zroot/'bin/z88dk-z80asm'),'-b','-m','-r0x8000','-I'+str(zroot/'lib'),'-o'+str(image),'-l'+str(helper),str(dest/'program.asm')])
+        elif compiler == 'llvm':
+            # The ELF carries both the image and the symbol table.
+            image = symbols = dest/'program.elf'
+            commands.append([str(lroot/'bin/clang'), '--target=z80', '-std=c89', '-O2' if profile == 'o2' else '-Os', '-c', '-o', str(dest/'program.o'), str(source)])
+            commands.append([str(lroot/'bin/ld.lld'), '-T', str(bench/'llvm-z80/bench.ld'), '-o', str(image), str(dest/'program.o'), str(lroot/'lib/z80/z80_rt.a')])
         failed = None
         with (dest/'build.log').open('w') as log:
             for cmd in commands:

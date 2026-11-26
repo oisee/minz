@@ -4,6 +4,7 @@ package main
 import (
 	"bufio"
 	"crypto/sha256"
+	"debug/elf"
 	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
@@ -456,6 +457,42 @@ func parseExternal(compiler, image, symbols string) (*program, error) {
 			v, _ := strconv.ParseInt(m[2], 16, 32)
 			p.symbols[m[1]] = int(v)
 		}
+	} else if compiler == "llvm" {
+		// The linked ELF is both image and symbol table: allocated sections
+		// with file contents are the image, allocated NOBITS sections (.bss)
+		// are storage, as SDCC's DATA area is.
+		f, e := elf.Open(image)
+		if e != nil {
+			return nil, e
+		}
+		defer f.Close()
+		for _, sec := range f.Sections {
+			if sec.Flags&elf.SHF_ALLOC == 0 || sec.Size == 0 {
+				continue
+			}
+			if sec.Type == elf.SHT_NOBITS {
+				for i := 0; i < int(sec.Size); i++ {
+					p.storage[int(sec.Addr)+i] = true
+				}
+				continue
+			}
+			data, e := sec.Data()
+			if e != nil {
+				return nil, e
+			}
+			for i, v := range data {
+				p.image[int(sec.Addr)+i] = v
+			}
+		}
+		syms, e := f.Symbols()
+		if e != nil {
+			return nil, e
+		}
+		for _, sym := range syms {
+			if sym.Name != "" && elf.ST_TYPE(sym.Info) != elf.STT_FILE && elf.ST_TYPE(sym.Info) != elf.STT_SECTION {
+				p.symbols[sym.Name] = int(sym.Value)
+			}
+		}
 	} else {
 		return nil, fmt.Errorf("unknown compiler %s", compiler)
 	}
@@ -600,7 +637,7 @@ func measure(p *program, samples []sample, sizes map[string]int, r *report) erro
 	return nil
 }
 func main() {
-	compiler := flag.String("compiler", "minz", "minz, nanz, sdcc, sccz80, hand")
+	compiler := flag.String("compiler", "minz", "minz, nanz, sdcc, sccz80, hand, llvm")
 	profile := flag.String("profile", "default", "declared build profile")
 	source := flag.String("source", "", "identical C input")
 	out := flag.String("out", "", "artifact directory")
