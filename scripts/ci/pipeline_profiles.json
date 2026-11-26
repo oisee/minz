@@ -28,6 +28,7 @@
     "TestBitStoreWordPointerHomeE2E",
     "TestBitTestThroughSpilledPointerKeepsHLVMZ80",
     "TestBoolExtensionSourceVMZ80",
+    "TestBoolJoinThreadingNativeCAndNanz",
     "TestBoolStructAddressableFieldsNative",
     "TestBoolWideExtensionSourceNative",
     "TestBrIf2PreservesLiveAccumulatorVMZ80",
