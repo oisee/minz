@@ -31,8 +31,8 @@ type affineCounter struct {
 //     bound in both forms, including zero trips;
 //   - bound has one value for the whole loop: an SSA value defined outside the
 //     loop, an invariant header parameter, or a load in the header that
-//     staticGlobalLoad admits in a loop that writes no memory and has no
-//     unknown effects (loopObscuresMemory). The header runs on every entry, so
+//     staticGlobalLoad admits in a loop that cannot write that global and has
+//     no unknown effects (loopMayWriteGlobal). The header runs on every entry, so
 //     moving that load to the preheader executes it no more often than before
 //     on the entering path; the static-global proof makes the extra read on a
 //     guarded zero-trip path unobservable.
@@ -89,10 +89,11 @@ func affineCounterPlan(f *Func, l *NaturalLoop, iv LoopInduction, replaced map[R
 		plan.init = root
 	} else {
 		load := inHeader[bound]
-		if load == nil || load.Op != OpLoad || load.ClsHard || loopObscuresMemory(f, l.Blocks) || countRegUses(f)[bound] != 1 {
+		if load == nil || load.Op != OpLoad || load.ClsHard || countRegUses(f)[bound] != 1 {
 			return nil
 		}
-		if _, _, ok := staticGlobalLoad(f, load, defs); !ok {
+		g, _, ok := staticGlobalLoad(f, load, defs)
+		if !ok || loopMayWriteGlobal(f, l.Blocks, g, defs) {
 			return nil
 		}
 		moving := map[*Inst]bool{}
@@ -152,6 +153,15 @@ func (c *affineCounter) apply(f *Func, l *NaturalLoop) {
 		l.Header.Insts = out
 		l.Preheader.Insts = append(l.Preheader.Insts, c.hoist...)
 		init = c.hoist[len(c.hoist)-1].Dst
+		// A word bound loaded only to become the counter is loaded straight
+		// into the counter's pair (LD DE,(nn)). Left in the load's pointer
+		// class it competes with the walks for HL, and a loop that also
+		// stores a word value then moved a walk into IX (measured on a store
+		// of u16(source[i]) to a global). Byte counters keep their class: the
+		// DJNZ/accumulator choice for them is made elsewhere.
+		if load := c.hoist[len(c.hoist)-1]; !load.ClsHard && ty.Width() > TyU8.Width() {
+			load.Cls = cls
+		}
 	}
 	zero := &Inst{Op: OpConst, Dst: f.AllocReg(), Ty: ty, Cls: zeroCls}
 	one := &Inst{Op: OpConst, Dst: f.AllocReg(), Imm: 1, Ty: ty, Cls: cls}

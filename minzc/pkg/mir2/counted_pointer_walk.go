@@ -185,6 +185,7 @@ func strengthReduceByteCountedPointers(f *Func) int {
 			}
 			c.x.Op = OpMove
 			c.x.Src = [2]Reg{walk}
+			c.x.InBounds = false
 			changed++
 		}
 	}
@@ -202,5 +203,6 @@ func plainCountedPointerInst(x *Inst) bool {
 	y := *x
 	y.Op, y.Dst, y.Src, y.Ty, y.Cls = 0, 0, [2]Reg{}, nil, 0
 	y.SrcLine, y.SrcFile = 0, ""
+	y.InBounds = false // a proof annotation, not an effect
 	return reflect.DeepEqual(y, Inst{})
 }

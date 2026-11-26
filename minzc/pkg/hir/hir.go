@@ -614,7 +614,14 @@ func (*ConstPtrExpr) ExprTy() mir2.Ty { return mir2.TyPtr }
 // Base must have type TyPtr (pointing to element type ElemTy).
 // ElemStride is the byte size of each element (1 for u8, 2 for u16, etc.).
 type IndexExpr struct {
-	Volatile   bool `json:",omitempty"` // observable memory access; preserve count and order
+	Volatile bool `json:",omitempty"` // observable memory access; preserve count and order
+	// InBounds marks a C subscript whose base names a declared, complete,
+	// static-storage array object: an element outside that object is
+	// undefined behaviour (C89 3.3.6, C99 6.5.6p8). Only the C frontend sets
+	// it; other frontends have made no such language rule. Lowering copies it
+	// to the ptr_add (mir2.Inst.InBounds) only while Base is still a reference
+	// to a visible global array.
+	InBounds   bool `json:",omitempty"`
 	Base       Expr // TyPtr — pointer to first element
 	Idx        Expr // TyU8 or TyU16 — index
 	ElemTy     mir2.Ty

@@ -112,6 +112,7 @@ func deduplicatePtrAddsInBlock(f *Func, b *Block, ptrKey string) int {
 		// that DSE can clean up, or just rewrite to point at keepReg).
 		dup.inst.Op = OpMove
 		dup.inst.Src = [2]Reg{keepReg, NoReg}
+		dup.inst.InBounds = false
 		replaced++
 	}
 

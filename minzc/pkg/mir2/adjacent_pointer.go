@@ -35,6 +35,7 @@ func ReuseAdjacentPointers(f *Func) int {
 						}
 						x.Op = OpField
 						x.Src = [2]Reg{old.reg}
+						x.InBounds = false
 						x.Imm = step
 						changed++
 						break

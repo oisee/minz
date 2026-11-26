@@ -267,6 +267,7 @@ func strengthReduceAffinePointers(f *Func) int {
 					return v
 				}
 				x := *defs[r]
+				x.InBounds = false // an initial walk value, not a source subscript
 				for i, s := range x.Src {
 					if s != NoReg {
 						x.Src[i] = init(s)
@@ -282,6 +283,7 @@ func strengthReduceAffinePointers(f *Func) int {
 				if walk := walkRegs[walkOf[n]]; walk != NoReg {
 					x.Op = OpMove
 					x.Src = [2]Reg{walk}
+					x.InBounds = false
 					changed++
 					continue
 				}
@@ -305,6 +307,7 @@ func strengthReduceAffinePointers(f *Func) int {
 				appendAffinePointerEdge(l.Latch.Term, l.Header.Label, bump)
 				x.Op = OpMove
 				x.Src = [2]Reg{walk}
+				x.InBounds = false
 				changed++
 			}
 			if counter != nil {
