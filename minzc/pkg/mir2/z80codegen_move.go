@@ -762,7 +762,8 @@ func (g *z80cg) emitMov(dst, src string, widthBits int) {
 	}
 
 	if src == "F" {
-		if g.emitKnownFlagCopy(dst, widthBits) {
+		// A generic move has no liveness context: keep A.
+		if g.emitKnownFlagCopy(dst, widthBits, false) {
 			return
 		}
 		// Nothing is pending: F holds no known predicate.
