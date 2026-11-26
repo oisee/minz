@@ -160,6 +160,19 @@ func (g *z80cg) genTerm(f *Func, t Term) {
 	case *TermJmp:
 		// Resolve block-argument parallel copies before the jump.
 		copies := g.buildBlockCopies(f, t.Target, t.Args)
+		// After the copy only the target runs (directly, or as a rotated
+		// header test). It reads its parameters, which are destinations of
+		// this copy, and the block's live-out set, which excludes them; A is
+		// free for the copy's scratch use when none of the latter is in A.
+		if g.liveness != nil {
+			if out := g.liveness.LiveOutOf(f, g.curBlock); out != nil {
+				live := map[Reg]bool{}
+				for _, r := range out.Slice() {
+					live[r] = true
+				}
+				g.edgeAccFree = g.accDeadOutside(live)
+			}
+		}
 		g.emitParallelCopy(copies)
 		// Fall-through elimination: if the target is the very next physical block,
 		// the JR is redundant — execution falls through naturally.

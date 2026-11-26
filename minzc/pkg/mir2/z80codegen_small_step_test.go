@@ -117,7 +117,7 @@ func TestByteSmallStepDoesNotReuseCarry(t *testing.T) {
 	}
 	g.curInstIdx = 2
 	g.genInst(cmp)
-	if !g.emitKnownFlagCopy("A", 8) {
+	if !g.emitKnownFlagCopy("A", 8, false) {
 		t.Fatal("no predicate")
 	}
 	for x := 0; x < 256; x++ {

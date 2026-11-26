@@ -513,7 +513,9 @@ func (g *z80cg) genInst(inst *Inst) {
 		// pendingFlagReg for conversions that still consume that predicate.
 		if g.loc(inst.Dst) != "F" && !g.branchOnlyCmp(inst) && inst != g.shiftCarryCmp {
 			g.pendingFlagReg = inst.Dst
-			g.emitKnownFlagCopy(g.loc(inst.Dst), 8)
+			// The comparison has read its operands; only values live
+			// after it can still be in A.
+			g.emitKnownFlagCopy(g.loc(inst.Dst), 8, g.accDeadAfterInst(inst, false))
 		}
 
 	case OpLoad:

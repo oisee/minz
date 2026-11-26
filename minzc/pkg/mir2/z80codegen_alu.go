@@ -69,7 +69,9 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 		if home == "" {
 			home = g.spillLabel(g.pendingFlagReg)
 		}
-		g.emitKnownFlagCopy(home, 8)
+		// The ALU code below reads the operands after this copy, so A is dead
+		// only if neither they nor anything live after inst sit in A.
+		g.emitKnownFlagCopy(home, 8, g.accDeadAfterInst(inst, true))
 		g.physOverride[g.pendingFlagReg] = home
 		g.pendingFlagReg = NoReg
 	}
