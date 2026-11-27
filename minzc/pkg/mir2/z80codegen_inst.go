@@ -12,7 +12,13 @@ import (
 // ── Instructions ──────────────────────────────────────────────────────────────
 
 func (g *z80cg) genInst(inst *Inst) {
-	if g.bitAccumSkip[inst] || g.genBitAccum(inst) {
+	if g.bitAccumSkip[inst] {
+		if inst.Op == OpShr {
+			g.finishBitAccumShift(inst)
+		}
+		return
+	}
+	if g.genBitAccum(inst) {
 		return
 	}
 	if inst == g.addCarryInst {

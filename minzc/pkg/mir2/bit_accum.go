@@ -137,16 +137,36 @@ func (g *z80cg) scanBitAccumPatterns(b *Block) {
 }
 
 // genBitAccum emits the fused step; it reports false when the add is not one.
+//
+// The SRL produces the shift's result at the add, but the MIR still defines
+// it at the (suppressed) shr. Until then every codegen structure — liveness,
+// pendingAccReg, physOverride — knows the value only under the name of the
+// shifted operand v, which stays live up to the shr. So v is the carrier:
+// relocating v moves the shifted byte, and finishBitAccumShift hands that
+// byte over to the shr's destination at the shr's position.
 func (g *z80cg) genBitAccum(inst *Inst) bool {
 	p, ok := g.bitAccumAt[inst]
 	if !ok {
 		return false
 	}
-	v, pair := g.loc(p.v), g.loc(p.acc)
+	// The scan matched allocated homes. A value relocated since then (a
+	// saved accumulator, a dynamic spill) returns home first: SRL/INC need
+	// registers, and the add's result is expected in its own home.
+	g.materializePendingFlag(inst)
+	v, pair := g.ar.Loc(p.shr.Dst).Name, g.ar.Loc(inst.Dst).Name
+	if at := g.loc(p.v); at != v {
+		g.emitLD8(v, at)
+		delete(g.physOverride, p.v)
+		g.invalidate(v)
+	}
+	if at := g.loc(p.acc); at != pair {
+		g.emitMov(pair, at, 16)
+		delete(g.physOverride, p.acc)
+		g.invalidate(pair)
+	}
 	idx := g.trampIdx
 	g.trampIdx++
 	skip := fmt.Sprintf(".bit_accum_%d", idx)
-	g.materializePendingFlag(inst)
 	g.emitf("    SRL %s", v)
 	g.emitf("    JRS NC, %s", skip)
 	g.emitf("    INC %s", pair)
@@ -154,4 +174,25 @@ func (g *z80cg) genBitAccum(inst *Inst) bool {
 	g.invalidate(v)
 	g.invalidate(pair)
 	return true
+}
+
+// finishBitAccumShift runs at a shr suppressed by a fused step: the shifted
+// byte, carried so far under the operand's name, becomes the shr's result in
+// the shr's allocated home (where an unfused shr would have written it).
+func (g *z80cg) finishBitAccumShift(shr *Inst) {
+	v, w := shr.Src[0], shr.Dst
+	home := g.ar.Loc(w).Name
+	if at := g.loc(v); at != home {
+		g.emitLD8(home, at)
+		g.comment(fmt.Sprintf("r%d (shifted r%d) back to its home", w, v))
+		g.invalidate(home)
+	}
+	delete(g.physOverride, v)
+	delete(g.physOverride, w)
+	if g.pendingAccReg == v {
+		g.pendingAccReg = NoReg
+		if home == "A" {
+			g.pendingAccReg = w
+		}
+	}
 }
