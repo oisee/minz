@@ -27,7 +27,9 @@ package mir2
 //     ptr_add names the symbol as an immediate (deadAddressConstants);
 //   - the add and the ptr_add must be in one block, the add's only use the
 //     ptr_add, and the base defined before the add (so the rewritten first
-//     step can sit at the add's position).
+//     step can sit at the add's position);
+//   - the base must die at the ptr_add (not read later, not live out of the
+//     block), so the first step can take the base's home.
 //
 // It runs after the affine pointer-walk, counted-pointer and adjacent-pointer
 // passes (pipeline.go), so the shapes those recognise are never reassociated
@@ -60,8 +62,10 @@ func ReassociatePointerOffsets(f *Func) int {
 		return d != nil && (d.Op == OpConst || d.Op == OpAddrOf)
 	}
 	uses := countRegUses(f)
+	lr := ComputeLiveness(f)
 	changed := 0
 	for _, b := range f.Blocks {
+		liveOut := lr.LiveOutOf(f, b)
 		pos := map[*Inst]int{}
 		for i, x := range b.Insts {
 			pos[x] = i
@@ -90,6 +94,14 @@ func ReassociatePointerOffsets(f *Func) int {
 					continue
 				}
 			}
+			// The base must die here: the gain is that the first step takes
+			// the base's own home and both steps advance it in place.  A
+			// base that stays live (above all one carried around a loop,
+			// grace_intern_checked region_eq) would keep its pair and add a
+			// second pointer temporary next to it.
+			if baseLiveAfter(b, x, base, liveOut) {
+				continue
+			}
 			if !wordMaskFlagsUnobserved(f, t) {
 				continue
 			}
@@ -106,4 +118,32 @@ func ReassociatePointerOffsets(f *Func) int {
 		}
 	}
 	return changed
+}
+
+// baseLiveAfter reports whether r is read after inst in b or live out of b.
+func baseLiveAfter(b *Block, inst *Inst, r Reg, liveOut *RegSet) bool {
+	if liveOut != nil && liveOut.Has(r) {
+		return true
+	}
+	after := false
+	for _, x := range b.Insts {
+		if after {
+			for _, u := range x.Uses() {
+				if u == r {
+					return true
+				}
+			}
+		}
+		if x == inst {
+			after = true
+		}
+	}
+	if b.Term != nil {
+		for _, u := range b.Term.termUses() {
+			if u == r {
+				return true
+			}
+		}
+	}
+	return false
 }

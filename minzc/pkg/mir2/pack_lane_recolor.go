@@ -43,6 +43,7 @@ func recolorPackLanes(f *Func, result *AllocResult, lr *LivenessResult, ct CostT
 		hard[p.Reg] = true // ABI home
 	}
 	defs := map[Reg]int{}
+	defOp := map[Reg]Op{}
 	cls := map[Reg]RegClass{}
 	for _, b := range f.Blocks {
 		for _, p := range b.Params {
@@ -51,6 +52,7 @@ func recolorPackLanes(f *Func, result *AllocResult, lr *LivenessResult, ct CostT
 		for _, x := range b.Insts {
 			if x.Dst != NoReg {
 				defs[x.Dst]++
+				defOp[x.Dst] = x.Op
 				cls[x.Dst] = x.Cls
 				hard[x.Dst] = hard[x.Dst] || x.ClsHard
 			}
@@ -91,6 +93,13 @@ func recolorPackLanes(f *Func, result *AllocResult, lr *LivenessResult, ct CostT
 	}
 	movable := func(r Reg, to PhysLoc) bool {
 		if hard[r] || defs[r] != 1 || !mainByte(result.Locs[r]) {
+			return false
+		}
+		// Only a byte load writes its destination directly, with no scratch
+		// register the interference graph does not see; an ALU or multiply
+		// result moved into a lane can take the register its own code used
+		// as scratch (i04_range_map: a ×3 lost B and used IYH, +1 byte).
+		if defOp[r] != OpLoad {
 			return false
 		}
 		if ri, ok := info[r]; !ok || ri.Ty == nil || ri.Ty.Width() != 8 || !locCompatibleFor(ct, ri.Ty, to) {

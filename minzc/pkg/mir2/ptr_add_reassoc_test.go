@@ -28,6 +28,10 @@ func TestReassociatePointerOffsetsRefusals(t *testing.T) {
 		// error ABI returns in CY, and a carry compare reads the flags of a
 		// preceding subtraction.  The rewrite drops the add's own flag
 		// result, so it must refuse in such functions.
+		// The base stays live after the ptr_add, so the first step could not
+		// take its home.
+		case "base_live":
+			b.Term = &TermRet{Vals: []Reg{6, 1}}
 		case "fallible":
 			f.Attrs.FallibleCY = true
 		case "sub_carry":
@@ -41,7 +45,7 @@ func TestReassociatePointerOffsetsRefusals(t *testing.T) {
 	if n := ReassociatePointerOffsets(build("plain")); n != 1 {
 		t.Fatalf("plain sum not reassociated: %d", n)
 	}
-	for _, kind := range []string{"constant", "addr_of", "shared", "late_base", "fallible", "sub_carry"} {
+	for _, kind := range []string{"constant", "addr_of", "shared", "late_base", "fallible", "sub_carry", "base_live"} {
 		if n := ReassociatePointerOffsets(build(kind)); n != 0 {
 			t.Fatalf("%s reassociated", kind)
 		}

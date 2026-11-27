@@ -23,8 +23,9 @@ package mir2
 //     emitCallArgsForInst loads the symbol into the parameter register as an
 //     immediate after the register-to-register argument copies.
 
-// MaterializeAddressMoves rewrites copies of single-definition address
-// constants into the constant itself and returns how many it rewrote.
+// MaterializeAddressMoves rewrites the only copy of a single-definition,
+// single-use address constant into the constant itself, when that copy is
+// used only as a direct call's argument, and returns how many it rewrote.
 func MaterializeAddressMoves(f *Func) int {
 	if f == nil {
 		return 0
@@ -48,14 +49,35 @@ func MaterializeAddressMoves(f *Func) int {
 	for _, p := range f.Contract.Params {
 		count[p.Reg] += 2
 	}
+	uses := countRegUses(f)
+	callArg := map[Reg]int{}
+	for _, b := range f.Blocks {
+		for _, x := range b.Insts {
+			if x.Op == OpCall {
+				for _, r := range x.Args {
+					callArg[r]++
+				}
+			}
+		}
+	}
 	changed := 0
 	for _, b := range f.Blocks {
 		for _, x := range b.Insts {
 			if x.Op != OpMove || x.Dst == NoReg || x.ClsHard {
 				continue
 			}
+			// Only the copy lowering makes for a call argument: a copy that
+			// feeds a block edge is a phi input whose home the coalescer
+			// pairs with the parameter (fusion_map_store, Nanz: the loop
+			// pointers swapped pairs, +2 bytes).
+			if uses[x.Dst] != 1 || callArg[x.Dst] != 1 {
+				continue
+			}
 			d := defs[x.Src[0]]
-			if d == nil || d.Op != OpAddrOf || d.Sym == "" || d.Volatile || count[x.Src[0]] != 1 {
+			// The address's only use must be this move: with several readers
+			// each copy would become its own LD rr,sym where one register
+			// value served them all (k03_user_count_take_skip_zip, +3 bytes).
+			if d == nil || d.Op != OpAddrOf || d.Sym == "" || d.Volatile || count[x.Src[0]] != 1 || uses[x.Src[0]] != 1 {
 				continue
 			}
 			x.Op = OpAddrOf
