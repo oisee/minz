@@ -1115,6 +1115,19 @@ func (fl *funcLow) lowerForLoop(is *cc.IterationStatement, isForDecl bool) ([]hi
 
 	// Init.
 	if isForDecl {
+		// The declaration's scope is the loop (C99 6.8.5p5): a name it
+		// shadows means the outer object again after the loop.
+		outerLocals, outerRenames := maps.Clone(fl.locals), maps.Clone(fl.staticRenames)
+		defer func() {
+			for name, ty := range outerLocals {
+				fl.locals[name] = ty
+				if renamed, ok := outerRenames[name]; ok {
+					fl.staticRenames[name] = renamed
+				} else {
+					delete(fl.staticRenames, name)
+				}
+			}
+		}()
 		if is.Declaration != nil {
 			s, err := fl.lowerLocalDecl(is.Declaration)
 			if err != nil {
