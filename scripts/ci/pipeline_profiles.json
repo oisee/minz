@@ -148,6 +148,7 @@
     "TestFATSequentialWordFusionNativeWrap",
     "TestFallSpeedElapsedAreaNativeVM",
     "TestFallSpeedSeededTraceNativeVM",
+    "TestFallibleCallExtraResultEvictionNative",
     "TestFallibleCallResultSnapshotNative",
     "TestFallibleSuffixHasExplicitSuccessStatusAndAPIParity",
     "TestFlagLocatedBoolStores",

@@ -3,6 +3,7 @@ package pipeline
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/minz/minzc/pkg/hir"
@@ -55,12 +56,32 @@ func runFallibleCallRepro(t *testing.T, file string, o Options) string {
 	return s.Assembly
 }
 
+// Bug A: a value relocated to a scratch byte (physOverride) by an earlier
+// instruction must be evicted before a call writes an extra result (a
+// fallible call's failed bit or error code) into that byte, exactly as it is
+// before the call's Dst writes it.
+func TestFallibleCallExtraResultEvictionNative(t *testing.T) {
+	for _, file := range []string{"nw61.nanz", "n1.nanz"} {
+		for name, o := range fallibleCallProfiles(FunctionVariant{MIRGrace: true, AccPressure: true}) {
+			t.Run(file+"/"+name, func(t *testing.T) {
+				asm := runFallibleCallRepro(t, file, o)
+				// With the forced recipe the relocated value really sits in the
+				// error code's home; the eviction must have fired.
+				if file == "nw61.nanz" && strings.HasSuffix(name, "-forced") && !strings.Contains(asm, "before destination overwrite") {
+					t.Fatal("eviction of the relocated value did not fire; the repro no longer covers bug A")
+				}
+			})
+		}
+	}
+}
+
 // Bug B: after a fallible call the result pickup reads every result from the
 // AF snapshot; the failed bit bound for A may be written into A's snapshot
 // byte only after the value and error code have been read from it.
 func TestFallibleCallResultSnapshotNative(t *testing.T) {
 	for _, file := range []string{"nw2.nanz", "nw19.nanz"} {
-		// The size allocation table makes the speed profile reach this bug too.
+		// {mir-grace, acc-pressure} would reach bug A first in these sources;
+		// with the size allocation table as well, the speed profile reaches B.
 		for name, o := range fallibleCallProfiles(FunctionVariant{MIRGrace: true, SizeAllocation: true, AccPressure: true}) {
 			t.Run(file+"/"+name, func(t *testing.T) {
 				runFallibleCallRepro(t, file, o)

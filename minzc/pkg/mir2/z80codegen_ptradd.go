@@ -68,6 +68,31 @@ func (g *z80cg) instReads(inst *Inst) []Reg {
 	return uses
 }
 
+// instWrites returns the vregs whose homes the code emitted for inst writes:
+// the destination, a call's extra results (a fallible call's failed bit and
+// error code) and inline-asm outputs. Every question "does inst write this
+// register" asked by eviction of relocated values and by scratch selection
+// goes through here, so an extra result is never treated as free space.
+func instWrites(inst *Inst) []Reg {
+	var out []Reg
+	if inst.Dst != NoReg {
+		out = append(out, inst.Dst)
+	}
+	for _, r := range inst.ExtraRets {
+		if r != NoReg {
+			out = append(out, r)
+		}
+	}
+	if inst.Asm != nil {
+		for _, r := range inst.Asm.Outs {
+			if r != NoReg {
+				out = append(out, r)
+			}
+		}
+	}
+	return out
+}
+
 // functionConstants maps every OpConst destination of f to its value.
 func functionConstants(f *Func) map[Reg]int64 {
 	out := map[Reg]int64{}
