@@ -1,6 +1,8 @@
 package pipeline
 
 import (
+	"io"
+	"os"
 	"strings"
 	"testing"
 
@@ -521,10 +523,10 @@ unsigned short f1(unsigned char a, unsigned char b) {
 	}
 }
 
-// The static model cannot score this function (an unknown-trip loop whose
-// shape it does not model); an unscorable product is never admitted, even
-// within the byte budget.
-func TestUnrollGateRefusesUnscorable(t *testing.T) {
+// The static model scores neither product of this module (T 0 -> 0); the
+// gate refuses it. (Whether the "unscored" or the "slower" clause refuses it
+// is not observable here; TestUnrollVerdict checks each clause.)
+func TestUnrollGateRefusesUnscorableModule(t *testing.T) {
 	const src = `
 unsigned char d(unsigned char a, unsigned char n) {
     unsigned char r, b, x = a, y = 1;
@@ -547,5 +549,171 @@ unsigned char d(unsigned char a, unsigned char n) {
 	}
 	if !decided.DisableLoopUnroll && !decided.unrollDeny["d"] {
 		t.Fatal("unscorable unroll admitted")
+	}
+}
+
+// The gate's trial compiles print nothing: a module with an admitted loop
+// and a high-pressure split prints exactly what the same compilation prints
+// with unrolling disabled (review: [HIR-SPLIT] lines were repeated).
+func TestUnrollGateTrialsAreQuiet(t *testing.T) {
+	const src = `// assert f0(1, 221) == 62704 via z80
+// assert f0(146, 241) == 1702 via z80
+// assert f0(159, 73) == 24228 via z80
+// assert f0(84, 244) == 3026 via z80
+// assert f0(254, 169) == 49038 via z80
+// assert f0(0, 0) == 6042 via z80
+// assert f0(255, 255) == 5348 via z80
+// assert f1(1, 221) == 206 via z80
+// assert f1(146, 241) == 47 via z80
+// assert f1(159, 73) == 16 via z80
+// assert f1(84, 244) == 25 via z80
+// assert f1(254, 169) == 91 via z80
+// assert f1(0, 0) == 55 via z80
+// assert f1(255, 255) == 136 via z80
+// assert f2(1, 221) == 60752 via z80
+// assert f2(146, 241) == 11218 via z80
+// assert f2(159, 73) == 34500 via z80
+// assert f2(84, 244) == 6336 via z80
+// assert f2(254, 169) == 29802 via z80
+// assert f2(0, 0) == 29680 via z80
+// assert f2(255, 255) == 65288 via z80
+#define c8(e) ((unsigned char)(e))
+unsigned char ga[256];
+volatile unsigned char gv;
+unsigned short f0(unsigned char a, unsigned char b) {
+  unsigned char x = a, y = b, z = (unsigned char)(a ^ 183), o, i, j, ki, kj;
+  unsigned short w = 3801, wi, wj;
+  unsigned char *p = &ga[238];
+  gv = 127;
+  { unsigned short q; for (q = 0; q < 256; q++) ga[q] = (unsigned char)(q * 167 + 26); }
+  for (o = 0; o < (unsigned char)((a & 3) + 1); o++) {
+    ga[y] = (unsigned char)((y) > (y));
+    for (i = 4; i < 12; i++) {
+      x = i;
+    }
+    x = (unsigned char)(x + i);
+  }
+  return (unsigned short)(w + x + (y << 8) + z * 3 + gv + ga[2] + ga[4] * 7 + ga[6] + ga[z] + ga[253]);
+}
+unsigned char f1(unsigned char a, unsigned char b) {
+  unsigned char x = a, y = b, z = (unsigned char)(a ^ 104), o, i, j, ki, kj;
+  unsigned short w = 23811, wi, wj;
+  unsigned char *p = &ga[100];
+  gv = 196;
+  { unsigned short q; for (q = 0; q < 256; q++) ga[q] = (unsigned char)(q * 77 + 11); }
+  o = 0; while (o < 3) {
+    o++;
+    for (i = 0; i <= 5; i++) {
+      if ((y) < ((unsigned char)((unsigned char)(i * x) | z))) {
+        if (((unsigned char)((unsigned char)((y) > (i)) >> 1)) > ((unsigned char)((unsigned char)(y * x) << 5))) {
+          x = ga[z];
+          z = (unsigned char)((unsigned char)(i | (unsigned char)(x | x)) | (((unsigned char)(i + y)) > ((unsigned char)(i ^ y)) ? x : c8(w)));
+        }
+        y = (unsigned char)((unsigned char)(z | ((ga[i]) < (ga[i]) ? 91 : c8(w))) + (unsigned char)(ga[i] * (unsigned char)(i + 143)));
+      }
+      z = (unsigned char)((unsigned char)(((unsigned char)(ga[i] << 7)) != (ga[i])) * (unsigned char)((unsigned char)(186 ^ z) ^ x));
+    }
+  }
+  return (unsigned char)(x + y * 3 + z * 7 + c8(w) + (w >> 8) + gv + ga[0] + ga[1] * 2 + ga[5] + ga[7] * 5 + ga[3] + ga[x] + ga[(unsigned char)(y + 1)] * 3 + ga[254]);
+}
+unsigned short f2(unsigned char a, unsigned char b) {
+  unsigned char x = a, y = b, z = (unsigned char)(a ^ 144), o, i, j, ki, kj;
+  unsigned short w = 10333, wi, wj;
+  unsigned char *p = &ga[213];
+  gv = 87;
+  { unsigned short q; for (q = 0; q < 256; q++) ga[q] = (unsigned char)(q * 159 + 215); }
+  for (o = 0; o < 3; o++) {
+    if ((gv) && ((unsigned char)((unsigned char)(c8(w) ^ 241) & (unsigned char)(68 ^ 92)))) {
+      x = (unsigned char)((unsigned char)((191) != (142)) * (unsigned char)((unsigned char)(z * c8(w)) ^ ga[z]));
+      y = (unsigned char)(y + x);
+    } else {
+      ga[z] = (unsigned char)((unsigned char)((unsigned char)(z * 55) ^ (unsigned char)((ga[z]) != (c8(w)))) << 6);
+      w = (unsigned short)((unsigned short)w << 8);
+    }
+    for (i = 2; i < 7; i++) {
+      x = (unsigned char)(x + ga[i]);
+      x = (unsigned char)(ga[i] >> 0);
+    }
+    x = (unsigned char)(x + i);
+    for (j = 5; j < 10; j++) {
+      ga[j] = j;
+      ga[j] = (unsigned char)((unsigned char)((j) != ((unsigned char)(z - j))) * (unsigned char)((unsigned char)(c8(w) + y) ^ (unsigned char)(x + y)));
+    }
+    x = (unsigned char)(x + j);
+  }
+  return (unsigned short)(w + x + (y << 8) + z * 3 + gv + ga[2] + ga[4] * 7 + ga[6] + ga[z] + ga[253]);
+}
+`
+	capture := func(disable bool) string {
+		h, err := c89.CompileWithOpts(src, "u5.c", c89.CompileOpts{NoLibc: true})
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !disable {
+			o := DefaultOptions()
+			o.AssertMode = "none"
+			if admitted, err := unrollAdmissions(h, o); err != nil || len(admitted) == 0 {
+				t.Fatalf("fixture must admit a loop: %v %v", admitted, err)
+			}
+		}
+		r, w, err := os.Pipe()
+		if err != nil {
+			t.Fatal(err)
+		}
+		stdout, stderr := os.Stdout, os.Stderr
+		os.Stdout, os.Stderr = w, w
+		done := make(chan string)
+		go func() {
+			b, _ := io.ReadAll(r)
+			done <- string(b)
+		}()
+		o := DefaultOptions()
+		o.AssertMode, o.DisableLoopUnroll = "none", disable
+		_, cerr := CompileHIRSteps(h, o)
+		os.Stdout, os.Stderr = stdout, stderr
+		w.Close()
+		out := <-done
+		if cerr != nil {
+			t.Fatal(cerr)
+		}
+		return out
+	}
+	without, with := capture(true), capture(false)
+	if !strings.Contains(without, "[HIR-SPLIT]") {
+		t.Fatalf("fixture no longer splits:\n%s", without)
+	}
+	if with != without {
+		t.Fatalf("output differs with unrolling enabled:\n--- disabled\n%s--- enabled\n%s", without, with)
+	}
+}
+
+// Each clause of the per-function verdict and the module image rule.
+func TestUnrollVerdict(t *testing.T) {
+	for _, c := range []struct {
+		measured       bool
+		growth, budget int
+		slow           int64
+		scored         bool
+		fast           int64
+		scoredAfter    bool
+		want           string
+	}{
+		{true, 20, 48, 100, true, 60, true, ""},
+		{false, 20, 48, 100, true, 60, true, "unmeasured"},
+		{true, 49, 48, 100, true, 60, true, "bytes"},
+		// A base the model scores and a candidate it cannot: never admitted,
+		// although the unscored candidate's 0 is below the base's T.
+		{true, 20, 48, 100, true, 0, false, "unscored"},
+		{true, 20, 48, 0, false, 60, true, "unscored"},
+		{true, 20, 48, 100, true, 100, true, "slower"},
+	} {
+		if got := unrollVerdict(c.measured, c.growth, c.budget, c.slow, c.scored, c.fast, c.scoredAfter); got != c.want {
+			t.Errorf("%+v: %q, want %q", c, got, c.want)
+		}
+	}
+	// The image may grow by the admitted functions' own growth, not by
+	// their unused budgets: 5 bytes of own growth admit 5, not 48.
+	if !unrollImageAdmits(5, 5) || unrollImageAdmits(6, 5) || unrollImageAdmits(48, 5) {
+		t.Error("image rule")
 	}
 }

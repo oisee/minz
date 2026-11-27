@@ -90,6 +90,37 @@ func ownCodeBytes(im *variantImage) (map[string]int, int) {
 	return sizes, len(im.binary)
 }
 
+// UnrollImageSlack is the image growth tolerated beyond the admitted
+// functions' own code: none. Everything else in the image (globals,
+// strings, runtime helpers and tables, padding) is unchanged unless
+// unrolling changed it, and then the change is growth unrolling caused.
+const UnrollImageSlack = 0
+
+// unrollImageAdmits is the module-level rule: the whole image grows by no
+// more than the admitted functions' own-code growth plus UnrollImageSlack.
+func unrollImageAdmits(imageGrowth, ownGrowth int) bool {
+	return imageGrowth <= ownGrowth+UnrollImageSlack
+}
+
+// unrollVerdict is the per-function rule: "" admits; otherwise the reason.
+// A function must be measurable in both products, grow its own code by at
+// most budget, be scored by the static model in BOTH products (a candidate
+// the model cannot score is never assumed faster, whatever the base scored)
+// and score strictly faster.
+func unrollVerdict(measured bool, growth, budget int, slow int64, scored bool, fast int64, scoredAfter bool) string {
+	switch {
+	case !measured:
+		return "unmeasured"
+	case growth > budget:
+		return "bytes"
+	case !scored || !scoredAfter:
+		return "unscored"
+	case fast >= slow:
+		return "slower"
+	}
+	return ""
+}
+
 // decideUnroll runs once per top-level compilation, before the variant
 // search and outside its trials, and fixes which functions may unroll
 // (Options.unrollDeny). When the lowering prefix admits no loop it returns at
@@ -101,8 +132,10 @@ func ownCodeBytes(im *variantImage) (map[string]int, int) {
 //   - the variant search's static T model scores it strictly faster.
 //
 // Second, module-level condition: the whole image may grow by at most the
-// sum of the admitted functions' budgets, so a helper or table that
-// unrolling links in counts, and one it drops buys no budget for code.
+// measured own-code growth of the admitted functions plus UnrollImageSlack.
+// Any other growth (a runtime helper or table unrolling links in, alignment
+// padding it shifts) is charged; a helper or table it drops buys no budget,
+// because it only lowers the image side.
 // Refused functions are denied and the candidate recompiled (at most once per
 // function). The final product is compiled normally, with the variant search,
 // under that decision; the decision is measured on the default recipes.
@@ -123,6 +156,10 @@ func decideUnroll(hm *hir.Module, opt Options) (Options, error) {
 	trial.AssertMode = "none"
 	trial.GraceStats = nil
 	trial.DisableVariantSearch = true
+	// Trials print nothing: the emitted product reports the module's
+	// diagnostics once ([HIR-SPLIT], [label-audit], Z80-VALIDATE).
+	trial.quietDiagnostics = true
+	trial.deferZ80Validation = true
 	trial.unrollUngated = true // the candidate keeps what lowering admits
 	baseOpt := trial
 	baseOpt.DisableLoopUnroll = true
@@ -177,17 +214,7 @@ func decideUnroll(hm *hir.Module, opt Options) (Options, error) {
 			before, inBefore := baseSizes[name]
 			slow, scored := baseImage.score(base.MIR2Module.FuncByName(name))
 			fast, scoredAfter := image.score(cand.MIR2Module.FuncByName(name))
-			reason := ""
-			switch {
-			case !inAfter || !inBefore:
-				reason = "unmeasured"
-			case after-before > budget:
-				reason = "bytes"
-			case !scored || !scoredAfter:
-				reason = "unscored"
-			case fast >= slow:
-				reason = "slower"
-			}
+			reason := unrollVerdict(inBefore && inAfter, after-before, budget, slow, scored, fast, scoredAfter)
 			if reason != "" {
 				for lowered := range cand.unrolled {
 					if unrollRoot(lowered) == name {
@@ -197,7 +224,7 @@ func decideUnroll(hm *hir.Module, opt Options) (Options, error) {
 				changed = true
 				continue
 			}
-			allowance += budget
+			allowance += after - before
 		}
 		if changed {
 			// Nothing left to measure once every admitted function is denied.
@@ -210,7 +237,7 @@ func decideUnroll(hm *hir.Module, opt Options) (Options, error) {
 			}
 			continue
 		}
-		if imageBytes-baseImageBytes > allowance {
+		if !unrollImageAdmits(imageBytes-baseImageBytes, allowance) {
 			break
 		}
 		opt.unrollDeny = deny
