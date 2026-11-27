@@ -323,6 +323,7 @@ func locIndex(locs []PhysLoc) map[PhysLoc]int {
 	}
 	return idx
 }
+
 // liveAcrossCallRegs returns the vregs whose live range covers a call, i.e. the
 // ones a callee's clobber set forces the caller to PUSH/POP.
 func liveAcrossCallRegs(f *Func, lr *LivenessResult) map[Reg]bool {

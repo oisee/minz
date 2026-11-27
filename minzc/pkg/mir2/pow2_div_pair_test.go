@@ -37,7 +37,9 @@ func TestPow2DivIntoPairInPlaceNative(t *testing.T) {
 					t.Fatal(name, err, bin.Errors)
 				}
 				z := emulator.NewRemogattoZ80()
-				z.LoadMemory(0x8000, bin.Binary)
+				if err := z.LoadMemory(0x8000, bin.Binary); err != nil {
+					t.Fatal(err)
+				}
 				for _, x := range []uint16{0, 1, 2, 3, 255, 256, 257, 0x7fff, 0x8000, 0x8001, 0xabcd, 0xfffe, 0xffff} {
 					r := emulator.Registers{A: 0x5a, BC: 0x1111, DE: 0x2222, HL: 0x3333, SP: 0xf000, PC: 0x8000}
 					switch lhs {

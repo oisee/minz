@@ -17,7 +17,9 @@ func runEntryNative(t *testing.T, asm, entry string, regs emulator.Registers, me
 		t.Fatal(err, bin.Errors, asm)
 	}
 	z := emulator.NewRemogattoZ80()
-	z.LoadMemory(0x8000, bin.Binary)
+	if err := z.LoadMemory(0x8000, bin.Binary); err != nil {
+		t.Fatal(err)
+	}
 	for sym, v := range mem {
 		z.SetMemory(uint16(bin.Symbols[sym]), v)
 	}

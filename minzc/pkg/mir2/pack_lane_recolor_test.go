@@ -46,7 +46,9 @@ func TestPackBytesCrossedLaneSwapNative(t *testing.T) {
 			t.Fatal(err, bin.Errors)
 		}
 		z := emulator.NewRemogattoZ80()
-		z.LoadMemory(0x8000, bin.Binary)
+		if err := z.LoadMemory(0x8000, bin.Binary); err != nil {
+			t.Fatal(err)
+		}
 		for x := 0; x < 256; x++ {
 			lo, hi, a := byte(x), byte(x*37+11), byte(255-x)
 			z.Unhalt()
