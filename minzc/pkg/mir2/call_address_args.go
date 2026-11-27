@@ -171,3 +171,71 @@ func callArgumentAddressConstants(f *Func, ar *AllocResult) map[Reg]string {
 	}
 	return out
 }
+
+// ForwardCallArgumentMoves removes the copy lowering places between a value
+// and the call that takes it: `s = op …; r = move s` with r used only as a
+// direct call's argument and s used only by the move becomes `r = op …`,
+// keeping the move's register class (the parameter's preference).  The value
+// is then computed in the register the call wants (fat12: the widened global
+// byte `ext` was built in HL for its [pointer] class and copied to DE).
+func ForwardCallArgumentMoves(f *Func) int {
+	if f == nil {
+		return 0
+	}
+	defs := map[Reg]int{}
+	uses := map[Reg]int{}
+	callArg := map[Reg]int{}
+	for _, b := range f.Blocks {
+		for _, p := range b.Params {
+			defs[p.Dst] += 2
+		}
+		for _, x := range b.Insts {
+			if x.Dst != NoReg {
+				defs[x.Dst]++
+			}
+			for _, r := range x.ExtraRets {
+				defs[r] += 2
+			}
+			for _, r := range x.Uses() {
+				uses[r]++
+			}
+			if x.Op == OpCall {
+				for _, r := range x.Args {
+					callArg[r]++
+				}
+			}
+		}
+		if b.Term != nil {
+			for _, r := range b.Term.termUses() {
+				uses[r]++
+			}
+		}
+	}
+	for _, p := range f.Contract.Params {
+		defs[p.Reg] += 2
+	}
+	changed := 0
+	for _, b := range f.Blocks {
+		local := map[Reg]*Inst{}
+		var keep []*Inst
+		for _, x := range b.Insts {
+			if x.Op == OpMove && x.Dst != NoReg && !x.ClsHard && defs[x.Dst] == 1 && uses[x.Dst] == 1 && callArg[x.Dst] == 1 {
+				s := x.Src[0]
+				d := local[s]
+				if d != nil && defs[s] == 1 && uses[s] == 1 && !d.ClsHard && d.Ty == x.Ty && len(d.ExtraRets) == 0 &&
+					d.Op != OpCall && d.Op != OpCallIndirect && d.Op != OpAsm && d.Op != OpMove {
+					d.Dst = x.Dst
+					d.Cls = x.Cls
+					changed++
+					continue // drop the move
+				}
+			}
+			if x.Dst != NoReg {
+				local[x.Dst] = x
+			}
+			keep = append(keep, x)
+		}
+		b.Insts = keep
+	}
+	return changed
+}

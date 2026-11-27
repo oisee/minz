@@ -537,6 +537,7 @@ func compileMIRProductSteps(hm *hir.Module, opt Options, s Steps, splitInfo map[
 		}
 		if opt.Backend == "" || opt.Backend == "z80" {
 			mir2.MaterializeAddressMoves(f)
+			mir2.ForwardCallArgumentMoves(f)
 			mir2.ReassociatePointerOffsets(f)
 			mir2.PackBytePairs(f)
 		}
@@ -901,6 +902,7 @@ func CompileHIRWithOptions(hm *hir.Module, opts Options) (string, error) {
 		}
 		if opts.Backend == "" || opts.Backend == "z80" {
 			mir2.MaterializeAddressMoves(f)
+			mir2.ForwardCallArgumentMoves(f)
 			mir2.ReassociatePointerOffsets(f)
 			mir2.PackBytePairs(f)
 		}

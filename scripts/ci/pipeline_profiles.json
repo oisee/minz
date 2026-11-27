@@ -553,6 +553,7 @@
     "TestWideGlobalInitializerNativeAndVM",
     "TestWideShiftSourcePhysicalPlacement",
     "TestWidemathMemoryObserverContracts",
+    "TestWidenedByteArgumentBuiltInPlaceNative",
     "TestWideningByteMulPipelineNative",
     "TestWideningByteSumCAndNanzVMZ80",
     "TestWordCompareBranchVMZ80",

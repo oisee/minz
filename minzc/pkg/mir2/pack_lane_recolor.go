@@ -29,6 +29,10 @@ func recolorPackLanes(f *Func, result *AllocResult, lr *LivenessResult, ct CostT
 			if x.Op == OpPackBytes && x.Dst != NoReg && x.Src[0] != x.Src[1] {
 				packs = append(packs, pack{x.Src[0], x.Src[1], x.Dst})
 			}
+			// A zero-extended byte is a pack with a zero high lane.
+			if x.Op == OpExt && x.Dst != NoReg && x.SrcTy != nil && x.SrcTy.Width() == 8 && x.Ty != nil && x.Ty.Width() == 16 {
+				packs = append(packs, pack{x.Src[0], NoReg, x.Dst})
+			}
 		}
 	}
 	if len(packs) == 0 {
@@ -134,7 +138,7 @@ func recolorPackLanes(f *Func, result *AllocResult, lr *LivenessResult, ct CostT
 		if result.Locs[p.lo] != low && movable(p.lo, low) {
 			moving[p.lo] = low
 		}
-		if result.Locs[p.hi] != high && movable(p.hi, high) {
+		if p.hi != NoReg && result.Locs[p.hi] != high && movable(p.hi, high) {
 			moving[p.hi] = high
 		}
 		// Try both lanes together first (a crossed pair can only be fixed
@@ -157,7 +161,7 @@ func recolorPackLanes(f *Func, result *AllocResult, lr *LivenessResult, ct CostT
 			continue
 		}
 		for _, r := range []Reg{p.lo, p.hi} {
-			if to, ok := moving[r]; ok {
+			if to, ok := moving[r]; ok && r != NoReg {
 				try(map[Reg]PhysLoc{r: to})
 			}
 		}

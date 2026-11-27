@@ -280,3 +280,20 @@ func TestCallArgumentAddressLoadedInPlaceNative(t *testing.T) {
 		})
 	}
 }
+
+var registerCopy = regexp.MustCompile(`^LD (A|B|C|D|E|H|L|BC|DE|HL), (A|B|C|D|E|H|L|BC|DE|HL)$`)
+
+// The widened global byte argument is loaded into the low byte of its
+// parameter pair and zero-extended there (LD E,(HL) / LD D,0): the copy
+// lowering put between the extension and the call is gone, and the byte
+// takes the low lane of the extension's pair.
+func TestWidenedByteArgumentBuiltInPlaceNative(t *testing.T) {
+	eachGlobalsMode(t, fat12Program, func(t *testing.T, language, mode, asm string) {
+		lines := asmFunction(asm, "execute")
+		for _, ln := range lines {
+			if registerCopy.MatchString(ln) {
+				t.Fatalf("argument still copied between registers (%s):\n%s", ln, strings.Join(lines, "\n"))
+			}
+		}
+	})
+}
