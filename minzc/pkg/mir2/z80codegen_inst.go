@@ -12,10 +12,11 @@ import (
 // ── Instructions ──────────────────────────────────────────────────────────────
 
 func (g *z80cg) genInst(inst *Inst) {
-	if g.bitAccumSkip[inst] {
-		if inst.Op == OpShr {
-			g.finishBitAccumShift(inst)
-		}
+	// A shr suppressed by a fused bit-accumulate step still defines its
+	// destination here; it runs the relocation/eviction prologue below like
+	// any write, so a value saved in that home is moved first.
+	finishShift := g.bitAccumSkip[inst] && inst.Op == OpShr
+	if g.bitAccumSkip[inst] && !finishShift {
 		return
 	}
 	if g.genBitAccum(inst) {
@@ -110,6 +111,10 @@ func (g *z80cg) genInst(inst *Inst) {
 		g.physOverride[r] = home
 	}
 
+	if finishShift {
+		g.finishBitAccumShift(inst)
+		return
+	}
 	if g.genWideMemory(inst) {
 		return
 	}

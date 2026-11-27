@@ -112,19 +112,63 @@ func (g *z80cg) scanBitAccumPatterns(b *Block) {
 					break
 				}
 			}
+			// Without a later shift (the last step of a count, whose shifted
+			// value is dead) the and/ext is v's only read and v dies there:
+			// its home is no longer reserved before the add, where the fused
+			// SRL reads it. Admit the shape only when every instruction
+			// between v's last read and the add emits nothing: the fused
+			// and/ext/widen themselves, or constants served from immediates
+			// (genInst returns for both before any write or A-scratch
+			// relocation). Anything else may reuse v's home or A
+			// (review x1.c under --Osize: an xor via A between them).
 			want := 2 // ext (or and) + shr
-			if shr == nil || uses[v] != want {
+			if shr == nil {
+				want = 1
+			}
+			if uses[v] != want {
 				continue
 			}
+			if shr == nil {
+				last := and
+				if ext != nil {
+					last = ext
+				}
+				quiet, seen := true, false
+				for _, i := range b.Insts[:ai] {
+					if i == last {
+						seen = true
+						continue
+					}
+					if !seen || i == and || i == ext || i == widen {
+						continue
+					}
+					if i.Op == OpConst && g.deadConsts[i.Dst] && g.loc(i.Dst) != "F" {
+						continue
+					}
+					quiet = false
+				}
+				if !seen || !quiet {
+					continue
+				}
+			}
 			vl, pl := g.loc(v), g.loc(acc)
-			if !byteReg(vl) || g.loc(shr.Dst) != vl || g.loc(add.Dst) != pl ||
+			if !byteReg(vl) || g.loc(add.Dst) != pl ||
 				(pl != "BC" && pl != "DE" && pl != "HL" && pl != "IX" && pl != "IY") ||
 				parentPair(vl) == pl {
 				continue
 			}
+			// The shr may be homed elsewhere: the shifted byte stays in v's
+			// home (v is live up to the shr, so nothing else is allocated
+			// there) and finishBitAccumShift moves it at the shr's own
+			// position. Its home is never written early.
+			if shr != nil && !byteReg(g.loc(shr.Dst)) {
+				continue
+			}
 			g.bitAccumAt[add] = bitAccum{v: v, acc: acc, shr: shr}
 			g.bitAccumSkip[and] = true
-			g.bitAccumSkip[shr] = true
+			if shr != nil {
+				g.bitAccumSkip[shr] = true
+			}
 			if ext != nil {
 				g.bitAccumSkip[ext] = true
 			}
@@ -153,7 +197,8 @@ func (g *z80cg) genBitAccum(inst *Inst) bool {
 	// saved accumulator, a dynamic spill) returns home first: SRL/INC need
 	// registers, and the add's result is expected in its own home.
 	g.materializePendingFlag(inst)
-	v, pair := g.ar.Loc(p.shr.Dst).Name, g.ar.Loc(inst.Dst).Name
+	// SRL in v's own home: v carries the shifted byte to the shr.
+	v, pair := g.ar.Loc(p.v).Name, g.ar.Loc(inst.Dst).Name
 	if at := g.loc(p.v); at != v {
 		g.emitLD8(v, at)
 		delete(g.physOverride, p.v)

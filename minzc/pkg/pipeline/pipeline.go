@@ -133,6 +133,9 @@ type Options struct {
 
 	// DisableCountedLoops is an internal differential-testing switch.
 	DisableCountedLoops bool `json:",omitempty"`
+	// disableShiftCarryPreference: the module's codegen refused the
+	// preferred homes (see compileMIRProductSteps); allocate without it.
+	disableShiftCarryPreference bool
 	// CPMApplicationEntry selects ordinary native CP/M application entry,
 	// independently of the guarded runtime and semantic bare/called harnesses.
 	CPMApplicationEntry bool            `json:",omitempty"`
@@ -632,14 +635,7 @@ func compileMIRProductSteps(hm *hir.Module, opt Options, s Steps, splitInfo map[
 	for _, f := range m.Funcs {
 		mir2.PreallocCoalesce(f) // BUG-001 fix: union block-arg/param pairs before PBQP
 		lr := mir2.ComputeLiveness(f)
-		allocationCost := ct
-		if variantFor(opt, f.Name).SizeAllocation {
-			allocationCost = mir2.Z80CostTable{OptimizeForSize: true}
-		}
-		if z, ok := allocationCost.(mir2.Z80CostTable); ok && variantFor(opt, f.Name).AccPressure {
-			z.AccumulatorPressure = true
-			allocationCost = z
-		}
+		allocationCost := allocationTable(opt, ct, f.Name)
 		ar := mir2.PBQPAllocate(f, lr, allocationCost)
 		for r, loc := range ar.Locs {
 			combined.Locs[r] = loc
@@ -686,6 +682,18 @@ func compileMIRProductSteps(hm *hir.Module, opt Options, s Steps, splitInfo map[
 			ValidationLog:             validationLog,
 		})
 		if codegenErr != nil {
+			// The shift-carry home preference can leave a relocated live-out
+			// to restore between the shift and its branch; codegen refuses
+			// that (the carry would be lost). A cost preference must never
+			// turn a compiling module into an error: compile the complete
+			// product again without it.
+			if strings.Contains(codegenErr.Error(), "shift carry lost") && !opt.OptSize && !opt.disableShiftCarryPreference {
+				retry := opt
+				retry.disableShiftCarryPreference = true
+				retry.GraceStats = nil
+				retry.variantMIRReady = nil
+				return compileMIRProductSteps(hm, retry, initialSteps, splitInfo, hir.LowerModuleWithOptions(hm, hir.LowerOptions{DisableCountedLoops: opt.DisableCountedLoops, CountedLoopPolicy: variantCountedPolicies(opt)}))
+			}
 			return s, codegenErr
 		}
 
@@ -772,6 +780,26 @@ func compileMIRProductSteps(hm *hir.Module, opt Options, s Steps, splitInfo map[
 		}
 	}
 	return s, nil
+}
+
+// allocationTable is the PBQP cost table of one function: the recipe's
+// size/accumulator variants, and the shift-carry home preference, which is
+// a speed-profile term only (the size profile keeps its allocation byte for
+// byte).
+func allocationTable(opt Options, ct mir2.CostTable, name string) mir2.CostTable {
+	allocationCost := ct
+	if variantFor(opt, name).SizeAllocation {
+		allocationCost = mir2.Z80CostTable{OptimizeForSize: true}
+	}
+	if z, ok := allocationCost.(mir2.Z80CostTable); ok && variantFor(opt, name).AccPressure {
+		z.AccumulatorPressure = true
+		allocationCost = z
+	}
+	if z, ok := allocationCost.(mir2.Z80CostTable); ok && !opt.OptSize && !opt.disableShiftCarryPreference && !z.OptimizeForSize {
+		z.ShiftCarryPreference = true
+		allocationCost = z
+	}
+	return allocationCost
 }
 
 // NeedsZ80Asserts reports whether the selected assertions need a Z80 product.
