@@ -121,3 +121,29 @@ func (g *z80cg) directStoreViaHL(inst *Inst, val string) bool {
 	}
 	return true
 }
+
+// constStoreBetterThroughHome reports whether a direct constant byte store
+// should keep the ordinary path through its address register's home: the
+// direct path (LD HL,sym / LD (HL),n, z80codegen_inst.go) must save HL when
+// a value is live there (PUSH/POP, 41 T), while an address already homed in
+// DE or BC stores with LD rr,sym / LD A,n / LD (rr),A (24 T).
+func (g *z80cg) constStoreBetterThroughHome(store *Inst, addr Reg, defs map[Reg]*Inst) bool {
+	if d := defs[store.Src[1]]; d == nil || d.Op != OpConst {
+		return false
+	}
+	if g.ar == nil || g.curBlock == nil {
+		return false
+	}
+	switch home := g.ar.Loc(addr); {
+	case home.Kind == LocReg && (home.Name == "DE" || home.Name == "BC"):
+	default:
+		return false
+	}
+	for r := range g.regsLiveAfterInst(store) {
+		switch g.ar.Loc(r).Name {
+		case "HL", "H", "L":
+			return true
+		}
+	}
+	return false
+}

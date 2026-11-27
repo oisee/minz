@@ -944,14 +944,6 @@ func (g *z80cg) genInst(inst *Inst) {
 							preserveHL = true
 						}
 					}
-					if preserveHL && g.accDeadAfterInst(inst, false) {
-						// HL is live but A is not: LD A,n / LD (sym),A (20 T)
-						// beats saving HL around LD HL,sym / LD (HL),n (41 T).
-						g.emitf("    LD A, %d", cv&0xFF)
-						g.emitNativeMemoryf(inst, 0, 1, "    LD (%s), A", lbl)
-						g.invalidate("A")
-						break
-					}
 					if preserveHL {
 						g.emit("    PUSH HL    ; preserve live HL across direct constant store")
 					}

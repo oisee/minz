@@ -890,6 +890,9 @@ func (g *z80cg) scanGlobalFieldPatterns(b *Block) {
 			if useCount[addrReg] != 1 {
 				continue
 			}
+			if g.constStoreBetterThroughHome(inst, addrReg, defInst) {
+				continue
+			}
 			fieldName, _ := g.globalStructField(addrInst.Sym, 0)
 			g.globalFieldStore[addrReg] = globalFieldInfo{
 				sym:       addrInst.Sym,

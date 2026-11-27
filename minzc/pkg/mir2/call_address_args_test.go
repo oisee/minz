@@ -69,9 +69,10 @@ func TestCallAddressArgumentIntoMemoryParamNative(t *testing.T) {
 	}
 }
 
-// Direct global byte stores choose the free register: with A live and HL
-// free, LD HL,g / LD (HL),r; with HL live and A free, LD A,n / LD (g),A for a
-// constant.  Neither saves a register any more.
+// Direct global byte stores avoid saving a register: with A live and HL
+// free, LD HL,g / LD (HL),r; a constant with HL live and the address homed
+// in DE keeps the ordinary LD DE,g / LD A,n / LD (DE),A rather than the
+// direct path's PUSH HL / LD HL,g / LD (HL),n / POP HL.
 func TestDirectByteStoreUsesFreeRegisterNative(t *testing.T) {
 	t.Run("A live", func(t *testing.T) {
 		m := &Module{Globals: []Global{{Name: "g", Ty: TyU8}}}
