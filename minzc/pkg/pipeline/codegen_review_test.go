@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/minz/minzc/pkg/c89"
+	"github.com/minz/minzc/pkg/hir"
 	"github.com/minz/minzc/pkg/mir2"
 	"github.com/minz/minzc/pkg/nanz"
 )
@@ -174,5 +175,47 @@ func TestShiftCarryPreferenceSpeedOnly(t *testing.T) {
 	sizeAlloc.FunctionVariants = map[string]FunctionVariant{"f": {SizeAllocation: true}}
 	if z := allocationTable(sizeAlloc, mir2.Z80CostTable{}, "f").(mir2.Z80CostTable); z.ShiftCarryPreference {
 		t.Error("size allocation recipe uses the preference")
+	}
+}
+
+// With the shift-carry preference this function's codegen has to restore a
+// relocated live-out between the shift and its branch, which it refuses
+// ("shift carry lost"); the pipeline then allocates without the preference.
+// The result is checked against the raw MIR VM.
+func TestShiftCarryPreferenceFallbackNative(t *testing.T) {
+	const src = `unsigned short f3(unsigned char a, unsigned char b) {
+    unsigned char x = a, y = b, z = a ^ 0x5a, r, i, j, n = b & 3;
+    unsigned short c = 0, h = 1;
+    x = (y ^ z);
+    if ((230 + x) < x) { z -= 250; }
+    y ^= ((x & 32) ? (z + y) : (z * 5));
+    y |= ((y * 2) + y);
+    x -= ((y ^ x) ^ y);
+    if (x & 128) x = (x << 1) ^ 0x1d; else x = x << 1;
+    h = h + (z + (z + y));
+    y = 41;
+    return c + h + x + (y << 3) + (unsigned short)(z * 7);
+}
+`
+	h, err := c89.CompileWithOpts(src, "carry.c", c89.CompileOpts{NoLibc: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	raw := hir.LowerModule(hir.CloneModule(h))
+	o := DefaultOptions()
+	o.AssertMode = "none"
+	s, err := CompileHIRSteps(h, o)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, a := range [][]int64{{0, 0}, {1, 2}, {28, 166}, {216, 103}, {255, 255}, {90, 3}} {
+		want, err := mir2.NewVM(raw).Call("f3", []mir2.Value{{I: a[0]}, {I: a[1]}})
+		if err != nil {
+			t.Fatal(err)
+		}
+		_, got, err := RunZ80Cycles(h, s.MIR2Module, s.Allocation, s.Assembly, "f3", a)
+		if err != nil || got != want[0].I&0xffff {
+			t.Errorf("f3%v: Z80 %d %v want %d", a, got, err, want[0].I)
+		}
 	}
 }

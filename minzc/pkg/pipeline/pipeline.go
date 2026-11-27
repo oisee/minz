@@ -133,6 +133,9 @@ type Options struct {
 
 	// DisableCountedLoops is an internal differential-testing switch.
 	DisableCountedLoops bool `json:",omitempty"`
+	// disableShiftCarryPreference: the module's codegen refused the
+	// preferred homes (see compileMIRProductSteps); allocate without it.
+	disableShiftCarryPreference bool
 	// CPMApplicationEntry selects ordinary native CP/M application entry,
 	// independently of the guarded runtime and semantic bare/called harnesses.
 	CPMApplicationEntry bool            `json:",omitempty"`
@@ -679,6 +682,18 @@ func compileMIRProductSteps(hm *hir.Module, opt Options, s Steps, splitInfo map[
 			ValidationLog:             validationLog,
 		})
 		if codegenErr != nil {
+			// The shift-carry home preference can leave a relocated live-out
+			// to restore between the shift and its branch; codegen refuses
+			// that (the carry would be lost). A cost preference must never
+			// turn a compiling module into an error: compile the complete
+			// product again without it.
+			if strings.Contains(codegenErr.Error(), "shift carry lost") && !opt.OptSize && !opt.disableShiftCarryPreference {
+				retry := opt
+				retry.disableShiftCarryPreference = true
+				retry.GraceStats = nil
+				retry.variantMIRReady = nil
+				return compileMIRProductSteps(hm, retry, initialSteps, splitInfo, hir.LowerModuleWithOptions(hm, hir.LowerOptions{DisableCountedLoops: opt.DisableCountedLoops, CountedLoopPolicy: variantCountedPolicies(opt)}))
+			}
 			return s, codegenErr
 		}
 
@@ -780,7 +795,7 @@ func allocationTable(opt Options, ct mir2.CostTable, name string) mir2.CostTable
 		z.AccumulatorPressure = true
 		allocationCost = z
 	}
-	if z, ok := allocationCost.(mir2.Z80CostTable); ok && !opt.OptSize && !z.OptimizeForSize {
+	if z, ok := allocationCost.(mir2.Z80CostTable); ok && !opt.OptSize && !opt.disableShiftCarryPreference && !z.OptimizeForSize {
 		z.ShiftCarryPreference = true
 		allocationCost = z
 	}
