@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 : "${CI_BIN:?}"
-job=${1:?matrix, judges, sweep, fuzz, or fuzz-direct}
+job=${1:?matrix, judges, sweep, fuzz, fuzz-direct, or fuzz-bytes}
 report_dir=${REPORT_DIR:-$CI_BIN/reports/$job}
 mkdir -p "$report_dir"
 chmod +x "$CI_BIN/candidate-mz" "$CI_BIN/baseline-mz"
@@ -45,10 +45,14 @@ case "$job" in
       --candidate "$CI_BIN/candidate-mz" -j "$jobs" --json "$report_dir/sweep.json" 2>&1 | tee "$report_dir/log.txt"
     status=${PIPESTATUS[0]}
     ;;
-  fuzz|fuzz-direct)
+  fuzz|fuzz-direct|fuzz-bytes)
     extra=(--fail-on backend --mode folded)
     [[ ${NIGHTLY:-false} == true ]] && extra=(--fail-on all --mode folded)
     [[ $job == fuzz-direct ]] && extra=(--fail-on all --mode direct-call)
+    # Spilled bytes, constant shifts and bit-accumulate steps: the corpus that
+    # exposes the wrong code fixed in #338 and #339, which the default grammar
+    # cannot generate.
+    [[ $job == fuzz-bytes ]] && extra=(--fail-on all --mode direct-call --byte-shifts)
     python3 scripts/fuzz_diff.py --mz "$CI_BIN/candidate-mz" --seed 0 \
       --count "${FUZZ_COUNT:-3000}" -j "$jobs" --no-reduce \
       --output "$report_dir" "${extra[@]}" 2>&1 | tee "$report_dir/log.txt"
