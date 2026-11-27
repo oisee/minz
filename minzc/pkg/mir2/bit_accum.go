@@ -112,9 +112,9 @@ func (g *z80cg) scanBitAccumPatterns(b *Block) {
 					break
 				}
 			}
-			// Without a later shift (the last step of an unrolled count, whose
-			// shifted value is dead) v must have no other read at all: the
-			// fused SRL then only clobbers a dead register.
+			// Without a later shift (the last step of a count, whose shifted
+			// value is dead) the and/ext is v's only read: SRL then shifts a
+			// byte nothing reads again, in v's own still-reserved home.
 			want := 2 // ext (or and) + shr
 			if shr == nil {
 				want = 1
@@ -128,29 +128,12 @@ func (g *z80cg) scanBitAccumPatterns(b *Block) {
 				parentPair(vl) == pl {
 				continue
 			}
-			// A shift into another byte register is completed by one copy
-			// after the fused step (v itself is dead). Nothing between the add
-			// and the shift may write that register or the accumulator pair.
-			if shr != nil && g.loc(shr.Dst) != vl {
-				wl := g.loc(shr.Dst)
-				if !byteReg(wl) || wl == "A" || parentPair(wl) == pl {
-					continue
-				}
-				clean := true
-				for _, i := range b.Insts[ai+1:] {
-					if i == shr {
-						break
-					}
-					if i.Dst == NoReg {
-						continue
-					}
-					if l := g.loc(i.Dst); l == wl || l == parentPair(wl) || l == pl || l == highByte(pl) || l == lowByte(pl) {
-						clean = false
-					}
-				}
-				if !clean {
-					continue
-				}
+			// The shr may be homed elsewhere: the shifted byte stays in v's
+			// home (v is live up to the shr, so nothing else is allocated
+			// there) and finishBitAccumShift moves it at the shr's own
+			// position. Its home is never written early.
+			if shr != nil && !byteReg(g.loc(shr.Dst)) {
+				continue
 			}
 			g.bitAccumAt[add] = bitAccum{v: v, acc: acc, shr: shr}
 			g.bitAccumSkip[and] = true
@@ -185,7 +168,8 @@ func (g *z80cg) genBitAccum(inst *Inst) bool {
 	// saved accumulator, a dynamic spill) returns home first: SRL/INC need
 	// registers, and the add's result is expected in its own home.
 	g.materializePendingFlag(inst)
-	v, pair := g.ar.Loc(p.shr.Dst).Name, g.ar.Loc(inst.Dst).Name
+	// SRL in v's own home: v carries the shifted byte to the shr.
+	v, pair := g.ar.Loc(p.v).Name, g.ar.Loc(inst.Dst).Name
 	if at := g.loc(p.v); at != v {
 		g.emitLD8(v, at)
 		delete(g.physOverride, p.v)
@@ -205,12 +189,6 @@ func (g *z80cg) genBitAccum(inst *Inst) bool {
 	g.emitf("%s:", skip)
 	g.invalidate(v)
 	g.invalidate(pair)
-	if p.shr != nil {
-		if w := g.loc(p.shr.Dst); w != v {
-			g.emitf("    LD %s, %s", w, v)
-			g.invalidate(w)
-		}
-	}
 	return true
 }
 

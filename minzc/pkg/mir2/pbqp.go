@@ -303,7 +303,7 @@ func pbqpSolve(f *Func, lr *LivenessResult, ct CostTable, remat map[Reg]bool) *A
 	applyDJNZCounterAffinityNudge(f, states, allLocs) // DJNZ counter → B (skip LD B,r, 4T)
 
 	if z, z80 := ct.(Z80CostTable); z80 {
-		if !z.OptimizeForSize {
+		if z.ShiftCarryPreference && !z.OptimizeForSize {
 			applyShiftCarryAffinityNudge(f, states, allLocs) // carry shl → A (ADD A,A, 4T)
 		}
 		applyByteMemoryCosts(f, lr, states, allLocs)

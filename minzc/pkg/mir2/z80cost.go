@@ -75,6 +75,9 @@ var Z80PhysLocs = []PhysLoc{
 type Z80CostTable struct {
 	OptimizeForSize     bool
 	AccumulatorPressure bool
+	// ShiftCarryPreference enables applyShiftCarryAffinityNudge. The
+	// pipeline sets it only for speed-profile allocation (never OptSize).
+	ShiftCarryPreference bool
 }
 
 var _ CostTable = (*Z80CostTable)(nil)

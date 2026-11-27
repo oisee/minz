@@ -107,9 +107,6 @@ func TestVariantSearchCRC8AllocationVMZ80(t *testing.T) {
 		}
 		o := DefaultOptions()
 		o.AssertMode = "none"
-		// The subject is the allocation axis on the counted inner loop; the
-		// speed profile would otherwise unroll it (TestUnrollConstantTripNative).
-		o.DisableLoopUnroll = true
 		if baseline {
 			// Pin the incumbent recipe, independently of the search under test.
 			o.FunctionVariants = map[string]FunctionVariant{"execute": {MIRGrace: true}}
@@ -197,6 +194,6 @@ func TestVariantSearchCRC8AllocationVMZ80(t *testing.T) {
 		t.Fatalf("speed allocation did not improve CRC8: %dT >= baseline %dT; decisions=%+v", totals[1], totals[0], after.VariantDecisions)
 	}
 	if !after.VariantDecisions[0].Recipe.SizeAllocation || len(images[1].binary) > len(images[0].binary) {
-		t.Fatalf("allocation winner missing or image grew: %+v", after.VariantDecisions)
+		t.Fatal("allocation winner missing or image grew")
 	}
 }
