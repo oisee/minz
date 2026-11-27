@@ -46,6 +46,7 @@ type Steps struct {
 	UnsignedPairComparePolicy mir2.UnsignedPairComparePolicy // resolved policy replayed by native re-codegen
 	DisableLoopRotation       bool                           // replayed by native re-codegen
 	z80ValidationLog          []string                       // deferred Z80-VALIDATE report (deferZ80Validation)
+	unrolled                  map[string]int                 // loops unrolled per lowered function
 	OptSize                   bool                           // replayed by native re-codegen (rotation is size-gated)
 	FlagReturns               mir2.FlagReturnReport          // Z80 bool return contracts chosen in Phase 5b
 	ProfileDecisions          []hir.ProfileDecision
@@ -133,6 +134,25 @@ type Options struct {
 
 	// DisableCountedLoops is an internal differential-testing switch.
 	DisableCountedLoops bool `json:",omitempty"`
+	// DisableLoopUnroll keeps short constant-trip loops as loops in the speed
+	// profile (the size profile never unrolls).
+	DisableLoopUnroll bool `json:",omitempty"`
+	// Unroll gate state: functions refused by the measured byte budget, and
+	// the loops the current lowering unrolled per function.
+	unrollDeny    map[string]bool
+	unrolledLoops map[string]int
+	// unrollUngated keeps every admitted unroll (tests: correctness of the
+	// unrolled code independent of the profitability gate).
+	unrollUngated bool
+	// unrollDecided marks options whose unrollDeny is already final.
+	unrollDecided bool
+	// quietDiagnostics: a measuring trial (decideUnroll) prints nothing;
+	// the product that is emitted reports [HIR-SPLIT] and [label-audit], and
+	// its Z80-VALIDATE report is deferred the same way (deferZ80Validation).
+	quietDiagnostics bool
+	// disableShiftCarryPreference: the module's codegen refused the
+	// preferred homes (see compileMIRProductSteps); allocate without it.
+	disableShiftCarryPreference bool
 	// CPMApplicationEntry selects ordinary native CP/M application entry,
 	// independently of the guarded runtime and semantic bare/called harnesses.
 	CPMApplicationEntry bool            `json:",omitempty"`
@@ -206,6 +226,18 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 	}
 	if err := hir.Verify(hm); err != nil {
 		return Steps{}, err
+	}
+	// Unrolling is decided once per module, before the variant search and
+	// outside its trials (see decideUnroll).
+	if len(opts) == 0 {
+		opts = []Options{DefaultOptions()}
+	}
+	if !opts[0].unrollDecided {
+		decided, err := decideUnroll(hm, opts[0])
+		if err != nil {
+			return Steps{}, err
+		}
+		opts = append([]Options{decided}, opts[1:]...)
 	}
 	if variantSearchEnabled(hm, opts) {
 		return compileVariantSearch(hm, opts...)
@@ -330,8 +362,10 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 	splitInfo := make(map[string]hir.SplitResult) // splitFunc → SplitResult
 	if splits := hir.SplitHighPressure(hm); len(splits) > 0 {
 		for _, sp := range splits {
-			fmt.Fprintf(os.Stderr, "[HIR-SPLIT] %s → %s (%d inputs, pressure %d)\n",
-				sp.OrigFunc, sp.SubFunc, sp.Inputs, sp.Pressure)
+			if !opt.quietDiagnostics {
+				fmt.Fprintf(os.Stderr, "[HIR-SPLIT] %s → %s (%d inputs, pressure %d)\n",
+					sp.OrigFunc, sp.SubFunc, sp.Inputs, sp.Pressure)
+			}
 			splitInfo[sp.SubFunc] = sp
 		}
 	}
@@ -340,7 +374,10 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 		return s, err
 	}
 	// Lower HIR → MIR2 (raw, before optimisation).
-	m := hir.LowerModuleWithOptions(hm, hir.LowerOptions{DisableCountedLoops: opt.DisableCountedLoops, CountedLoopPolicy: variantCountedPolicies(opt)})
+	unrolled := map[string]int{}
+	m := hir.LowerModuleWithOptions(hm, lowerOptions(hm, opt, unrolled))
+	opt.unrolledLoops = unrolled
+	s.unrolled = unrolled
 	s.MIR2Raw = m.Dump()
 	// Record call dependencies before constant folding can erase them. A global
 	// dry Grace toggle alone cannot establish a caller's axis is an identity.
@@ -465,7 +502,7 @@ func compileMIRProductSteps(hm *hir.Module, opt Options, s Steps, splitInfo map[
 		if variantFor(opt, f.Name).MIRGrace {
 			// ── Grace declarative path ──────────────────────────────
 			localGrace := mir2.NewGraceStats()
-			mir2.RunGracePassesWithOptions(f, localGrace, mir2.GracePassOptions{OptimizeForSize: opt.OptSize})
+			mir2.RunGracePassesWithOptions(f, localGrace, mir2.GracePassOptions{OptimizeForSize: opt.OptSize, ExtendedRoundBudget: opt.unrolledLoops[f.Name] > 0})
 			mergeGraceStats(opt.GraceStats, localGrace)
 			applyGraceStatsToTrace(tr, localGrace)
 			mir2.EliminateDeadBlocks(f)
@@ -473,7 +510,7 @@ func compileMIRProductSteps(hm *hir.Module, opt Options, s Steps, splitInfo map[
 				tr.BranchEquiv++
 				mir2.EliminateDeadBlocks(f)
 				localGrace = mir2.NewGraceStats()
-				mir2.RunGracePassesWithOptions(f, localGrace, mir2.GracePassOptions{OptimizeForSize: opt.OptSize})
+				mir2.RunGracePassesWithOptions(f, localGrace, mir2.GracePassOptions{OptimizeForSize: opt.OptSize, ExtendedRoundBudget: opt.unrolledLoops[f.Name] > 0})
 				mergeGraceStats(opt.GraceStats, localGrace)
 				applyGraceStatsToTrace(tr, localGrace)
 				mir2.EliminateDeadBlocks(f)
@@ -635,14 +672,7 @@ func compileMIRProductSteps(hm *hir.Module, opt Options, s Steps, splitInfo map[
 	for _, f := range m.Funcs {
 		mir2.PreallocCoalesce(f) // BUG-001 fix: union block-arg/param pairs before PBQP
 		lr := mir2.ComputeLiveness(f)
-		allocationCost := ct
-		if variantFor(opt, f.Name).SizeAllocation {
-			allocationCost = mir2.Z80CostTable{OptimizeForSize: true}
-		}
-		if z, ok := allocationCost.(mir2.Z80CostTable); ok && variantFor(opt, f.Name).AccPressure {
-			z.AccumulatorPressure = true
-			allocationCost = z
-		}
+		allocationCost := allocationTable(opt, ct, f.Name)
 		ar := mir2.PBQPAllocate(f, lr, allocationCost)
 		for r, loc := range ar.Locs {
 			combined.Locs[r] = loc
@@ -689,6 +719,18 @@ func compileMIRProductSteps(hm *hir.Module, opt Options, s Steps, splitInfo map[
 			ValidationLog:             validationLog,
 		})
 		if codegenErr != nil {
+			// The shift-carry home preference can leave a relocated live-out
+			// to restore between the shift and its branch; codegen refuses
+			// that (the carry would be lost). A cost preference must never
+			// turn a compiling module into an error: compile the complete
+			// product again without it.
+			if strings.Contains(codegenErr.Error(), "shift carry lost") && !opt.OptSize && !opt.disableShiftCarryPreference {
+				retry := opt
+				retry.disableShiftCarryPreference = true
+				retry.GraceStats = nil
+				retry.variantMIRReady = nil
+				return compileMIRProductSteps(hm, retry, initialSteps, splitInfo, hir.LowerModuleWithOptions(hm, lowerOptions(hm, opt, nil)))
+			}
 			return s, codegenErr
 		}
 
@@ -708,7 +750,7 @@ func compileMIRProductSteps(hm *hir.Module, opt Options, s Steps, splitInfo map[
 
 		// Post-assembly label audit: find referenced-but-undefined labels.
 		labelWarnings := auditLabels(s.Assembly)
-		if len(labelWarnings) > 0 {
+		if len(labelWarnings) > 0 && !opt.quietDiagnostics {
 			fmt.Fprintf(os.Stderr, "[label-audit] %d undefined labels:\n", len(labelWarnings))
 			for _, w := range labelWarnings {
 				fmt.Fprintf(os.Stderr, "  %s\n", w)
@@ -742,7 +784,7 @@ func compileMIRProductSteps(hm *hir.Module, opt Options, s Steps, splitInfo map[
 		// Mandatory size comparisons must produce complete allocated code even
 		// when a search trial's MIR was seen before.
 		baselineOpt.variantMIRReady = nil
-		baselineModule := hir.LowerModuleWithOptions(hm, hir.LowerOptions{DisableCountedLoops: opt.DisableCountedLoops, CountedLoopPolicy: variantCountedPolicies(opt)})
+		baselineModule := hir.LowerModuleWithOptions(hm, lowerOptions(hm, opt, nil))
 		baseline, err := compileMIRProductSteps(hm, baselineOpt, initialSteps, splitInfo, baselineModule)
 		if err != nil {
 			return s, err
@@ -761,7 +803,7 @@ func compileMIRProductSteps(hm *hir.Module, opt Options, s Steps, splitInfo map[
 		// This is the native size gate's mandatory comparison, not a search trial.
 		// Refusing it at a cached MIR checkpoint would yield an empty product.
 		baselineOpt.variantMIRReady = nil
-		baselineModule := hir.LowerModuleWithOptions(hm, hir.LowerOptions{DisableCountedLoops: opt.DisableCountedLoops, CountedLoopPolicy: variantCountedPolicies(opt)})
+		baselineModule := hir.LowerModuleWithOptions(hm, lowerOptions(hm, opt, nil))
 		baseline, err := compileMIRProductSteps(hm, baselineOpt, initialSteps, splitInfo, baselineModule)
 		if err != nil {
 			return s, err
@@ -775,6 +817,26 @@ func compileMIRProductSteps(hm *hir.Module, opt Options, s Steps, splitInfo map[
 		}
 	}
 	return s, nil
+}
+
+// allocationTable is the PBQP cost table of one function: the recipe's
+// size/accumulator variants, and the shift-carry home preference, which is
+// a speed-profile term only (the size profile keeps its allocation byte for
+// byte).
+func allocationTable(opt Options, ct mir2.CostTable, name string) mir2.CostTable {
+	allocationCost := ct
+	if variantFor(opt, name).SizeAllocation {
+		allocationCost = mir2.Z80CostTable{OptimizeForSize: true}
+	}
+	if z, ok := allocationCost.(mir2.Z80CostTable); ok && variantFor(opt, name).AccPressure {
+		z.AccumulatorPressure = true
+		allocationCost = z
+	}
+	if z, ok := allocationCost.(mir2.Z80CostTable); ok && !opt.OptSize && !opt.disableShiftCarryPreference && !z.OptimizeForSize {
+		z.ShiftCarryPreference = true
+		allocationCost = z
+	}
+	return allocationCost
 }
 
 // NeedsZ80Asserts reports whether the selected assertions need a Z80 product.

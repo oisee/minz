@@ -649,5 +649,5 @@ func variantRawModule(source *hir.Module, o Options) (string, error) {
 	if e := hir.ResolveCallSignatures(h); e != nil {
 		return "", e
 	}
-	return hir.LowerModuleWithOptions(h, hir.LowerOptions{FuseGenerators: o.FuseGenerators, DisableCountedLoops: o.DisableCountedLoops, CountedLoopPolicy: variantCountedPolicies(o)}).Dump(), nil
+	return hir.LowerModuleWithOptions(h, lowerOptions(h, o, nil)).Dump(), nil
 }

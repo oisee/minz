@@ -12,10 +12,11 @@ import (
 // ── Instructions ──────────────────────────────────────────────────────────────
 
 func (g *z80cg) genInst(inst *Inst) {
-	if g.bitAccumSkip[inst] {
-		if inst.Op == OpShr {
-			g.finishBitAccumShift(inst)
-		}
+	// A shr suppressed by a fused bit-accumulate step still defines its
+	// destination here; it runs the relocation/eviction prologue below like
+	// any write, so a value saved in that home is moved first.
+	finishShift := g.bitAccumSkip[inst] && inst.Op == OpShr
+	if g.bitAccumSkip[inst] && !finishShift {
 		return
 	}
 	if g.genBitAccum(inst) {
@@ -94,10 +95,19 @@ func (g *z80cg) genInst(inst *Inst) {
 	// allocated destination may reuse their byte or containing pair, even
 	// while the saved vreg is live. Evict that value before writing the
 	// destination; restoring the pair afterwards would destroy the result.
+	// Every written home counts, not only Dst: a call also writes its extra
+	// results (a fallible call's failed bit and error code) into their homes.
 	dst := g.loc(inst.Dst)
+	writes := instWrites(inst)
+	written := make([]string, 0, len(writes))
+	for _, w := range writes {
+		written = append(written, g.loc(w))
+	}
 	for _, r := range slices.Sorted(maps.Keys(g.physOverride)) {
 		loc := g.physOverride[r]
-		if r == inst.Dst || !liveAfter[r] || isSpill(loc) || !z80spec.Overlaps(dst, loc) {
+		if slices.Contains(writes, r) || !liveAfter[r] || isSpill(loc) || !slices.ContainsFunc(written, func(w string) bool {
+			return z80spec.Overlaps(w, loc)
+		}) {
 			continue
 		}
 		home := g.spillLabel(r)
@@ -110,6 +120,10 @@ func (g *z80cg) genInst(inst *Inst) {
 		g.physOverride[r] = home
 	}
 
+	if finishShift {
+		g.finishBitAccumShift(inst)
+		return
+	}
 	if g.genWideMemory(inst) {
 		return
 	}

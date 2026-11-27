@@ -228,3 +228,123 @@ func applyDJNZCounterAffinityNudge(f *Func, states map[Reg]*regState, allLocs []
 	}
 }
 
+// ShiftCarryAReward is the T-state saving of a byte one-bit left shift whose
+// carry drives the following branch when it runs in A: codegen emits
+// ADD A,A (4T, 1 byte) instead of SLA r (8T, 2 bytes). ClassGeneral charges A
+// a per-use surcharge so that ClassAcc values win A; for such a shift that
+// surcharge is wrong, and a chain of these tests (a CRC step, straight-line
+// or unrolled) is homed in C: LD C,A / SLA C / LD A,C plus an edge copy.
+const ShiftCarryAReward = 4
+
+// applyShiftCarryAffinityNudge is a bounded preference, applied only when the
+// cost table asks for it (speed allocation; never under OptSize). For the
+// source and result of every byte shl-by-one that PrepareShiftCarry left as
+// the last instruction of a block, after the zero/nonzero comparison its
+// branch consumes, it removes exactly ClassGeneral's per-use A surcharge
+// (A then costs what C costs, plus any term already present) and adds
+// ShiftCarryAReward to the other register homes. It touches only soft
+// ClassGeneral values with a finite A cost: never function parameters (their
+// homes are ABI), hard classes, or other classes. Every later term (memory,
+// accumulator pressure, asm clobbers) and interference still apply. Tests at
+// loop headers are left to the variant search's measured allocation axes.
+func applyShiftCarryAffinityNudge(f *Func, states map[Reg]*regState, allLocs []PhysLoc) {
+	if f == nil || len(f.Blocks) == 0 {
+		return
+	}
+	idxA := -1
+	for i, loc := range allLocs {
+		if loc.Kind == LocReg && loc.Name == "A" {
+			idxA = i
+		}
+	}
+	if idxA < 0 {
+		return
+	}
+	params := map[Reg]bool{}
+	for _, p := range f.Contract.Params {
+		params[p.Reg] = true
+	}
+	consts := map[Reg]int64{}
+	hard := map[Reg]bool{}
+	uses := map[Reg]int{}
+	count := func(r Reg) {
+		if r != NoReg {
+			uses[r]++
+		}
+	}
+	for _, b := range f.Blocks {
+		for _, p := range b.Params {
+			count(p.Dst)
+		}
+		for _, i := range b.Insts {
+			if i.Op == OpConst {
+				consts[i.Dst] = i.Imm
+			}
+			if i.ClsHard && i.Dst != NoReg {
+				hard[i.Dst] = true
+			}
+			count(i.Dst)
+			for _, r := range i.Src {
+				count(r)
+			}
+			for _, r := range i.Args {
+				count(r)
+			}
+		}
+		if b.Term != nil {
+			for _, r := range b.Term.termUses() {
+				count(r)
+			}
+		}
+	}
+	surcharge := costGeneral(PhysLoc{Kind: LocReg, Name: "A"}) - costGeneral(PhysLoc{Kind: LocReg, Name: "C"})
+	nudge := func(r Reg) {
+		rs, ok := states[r]
+		if !ok || params[r] || hard[r] || rs.info.Cls != ClassGeneral || rs.costs[idxA] >= InfCost {
+			return
+		}
+		for i, loc := range allLocs {
+			if i == idxA || loc.Kind != LocReg || rs.costs[i] >= InfCost {
+				continue
+			}
+			rs.costs[i] += ShiftCarryAReward
+		}
+		if cut := surcharge * uses[r]; rs.costs[idxA] > cut {
+			rs.costs[idxA] -= cut
+		} else {
+			rs.costs[idxA] = 0
+		}
+	}
+	// A test at a loop header carries its value around the back edge; there
+	// the measured allocation axes of the variant search choose the homes
+	// (and this term was measured to steer them to a worse product).
+	dom := reachableDominators(f)
+	header := map[string]bool{}
+	for _, p := range f.Blocks {
+		if p.Term == nil {
+			continue
+		}
+		for _, s := range p.Term.Successors() {
+			if dom[p.Label][s] {
+				header[s] = true
+			}
+		}
+	}
+	for _, b := range f.Blocks {
+		br, ok := b.Term.(*TermBrIf)
+		n := len(b.Insts)
+		if !ok || n < 2 || header[b.Label] {
+			continue
+		}
+		cmp, shift := b.Insts[n-2], b.Insts[n-1]
+		if cmp.Op != OpCmp || cmp.Dst != br.Cond || cmp.Cond != CmpEq && cmp.Cond != CmpNe ||
+			shift.Op != OpShl || shift.Ty == nil || shift.Ty.Width() != 8 || shift.ClsHard || shift.Volatile {
+			continue
+		}
+		if count, known := consts[shift.Src[1]]; !known || count != 1 {
+			continue
+		}
+		nudge(shift.Dst)
+		nudge(shift.Src[0])
+	}
+}

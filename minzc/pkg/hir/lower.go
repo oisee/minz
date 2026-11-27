@@ -53,6 +53,12 @@ type LowerOptions struct {
 	// CountedOrdinary refuses canonicalisation; CountedPermit bypasses only
 	// pressure/nesting profitability gates, never semantic admission.
 	CountedLoopPolicy map[string]CountedLoopPolicy
+	// UnrollLoops fully unrolls admitted short constant-trip loops (speed
+	// profile); UnrollDeny refuses it per function. Unrolled, when non-nil,
+	// receives the number of loops unrolled per function.
+	UnrollLoops bool
+	UnrollDeny  map[string]bool
+	Unrolled    map[string]int
 }
 
 // LowerModule converts a HIR module to a MIR2 module.
@@ -325,6 +331,10 @@ type lowerer struct {
 	disableCountedLoops bool
 	permitCountedLoops  bool
 	loopCostIndex       int
+	unrollLoops         bool
+	unrolled            map[string]int
+	funcAsmKnown        bool
+	funcAsm             bool
 	// Only active within one literal-address read/modify/write assignment.
 	// Memory operations retain their order; the pure address is computed once.
 	literalStorePointers map[int64]mir2.Reg
@@ -650,6 +660,8 @@ func lowerFuncWithFuncNames(m *mir2.Module, f *Func, funcNames map[string]bool, 
 		hf:                  f,
 		disableCountedLoops: opts.DisableCountedLoops || opts.CountedLoopPolicy[f.Name] == CountedOrdinary,
 		permitCountedLoops:  opts.CountedLoopPolicy[f.Name] == CountedPermit,
+		unrollLoops:         opts.UnrollLoops && !opts.UnrollDeny[f.Name],
+		unrolled:            opts.Unrolled,
 		m:                   m,
 		mf:                  mf,
 		bld:                 bld,
@@ -1999,6 +2011,9 @@ func (l *lowerer) lowerWhile(st *WhileStmt) {
 // A desugared range loop must run its increment even when the body continues.
 func (l *lowerer) lowerWhileWithContinue(st *WhileStmt, continueStep Stmt) {
 	fact := l.staticLoopFact(st)
+	if l.tryUnrollLoop(st, fact) {
+		return
+	}
 	if !l.disableCountedLoops && l.tryCountedLoop(st, fact) {
 		return
 	}
