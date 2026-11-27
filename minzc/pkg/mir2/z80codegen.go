@@ -933,6 +933,10 @@ type z80cg struct {
 	ptrAddFolds     map[*Inst]ptrAddFold
 	ptrAddFoldedAdd map[*Inst]bool // adds emitted by their ptr_add (ptrAddConstantFolds)
 	pendingAccReg   Reg
+	// accTransitFree is set by a caller that has itself proved A free (or
+	// saved it) for exactly one move: emitLD8 may then stage a spill byte in
+	// A instead of the shadow A.
+	accTransitFree bool
 
 	// ptrAddPushHL: set by scanPtrAddBase when a ptr_add's base is in HL and
 	// the base virtual is live after the instruction (needs to survive across

@@ -639,8 +639,14 @@ func (g *z80cg) emitSingleCopy(src, dst string, ty Ty) {
 		if isPairReg(src) {
 			g.storeSpill16(dst, src)
 		} else {
-			// 8-bit → spill
-			g.storeSpill8(dst, src)
+			// A byte widened into a word home (a u8 value passed to an
+			// i16/u16 block parameter): the value is the zero extension,
+			// so the high byte is 0. A byte home keeps only the byte.
+			// Both stores go through the shadow A, preserving A and F.
+			g.emitLD8(dst, src)
+			if g.spillSlotWidth(dst) != 1 {
+				g.emitLD8(highByte(dst), "0")
+			}
 		}
 	} else if isPairReg(src) && !isPairReg(dst) {
 		// Width mismatch in 16-bit context: pair→8bit truncation.
