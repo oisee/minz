@@ -188,3 +188,25 @@ func TestInIntervalBoundSunkAndComparedInA(t *testing.T) {
 		t.Fatalf("bound arithmetic not found:\n%s", b.body)
 	})
 }
+
+// The 0/1 join is returned through a no-op bool->u8 ext. Every edge builds
+// it in A (propagateClassHints pass 1b), so nothing copies it into A from
+// another register before RET.
+func TestInIntervalJoinBuiltInA(t *testing.T) {
+	reload := regexp.MustCompile(`^LD A, (B|C|D|E|H|L|IXH|IXL|IYH|IYL)$`)
+	forEachInInterval(t, func(t *testing.T, tc inIntervalCase, size bool, b inIntervalBuild) {
+		lines := strings.Split(b.body, "\n")
+		for i, line := range lines {
+			if line != "RET" {
+				continue
+			}
+			j := i - 1
+			for j >= 0 && strings.HasSuffix(lines[j], ":") {
+				j--
+			}
+			if j >= 0 && reload.MatchString(lines[j]) {
+				t.Fatalf("result copied into A before RET:\n%s", b.body)
+			}
+		}
+	})
+}

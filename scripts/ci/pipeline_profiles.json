@@ -266,6 +266,7 @@
     "TestImmediateIndexNativeWrap",
     "TestInIntervalBoundSunkAndComparedInA",
     "TestInIntervalByteConstantNotLoaded",
+    "TestInIntervalJoinBuiltInA",
     "TestIndexedActualHistoricalENRT",
     "TestIndexedHistoricalTripleNative",
     "TestIndexedLoopPointerWalkNative",
