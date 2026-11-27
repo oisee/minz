@@ -654,6 +654,11 @@ type funcLow struct {
 	continuePrelude func() ([]hir.Stmt, error) // do/for effects before continue
 	switchEnd       string                     // nearest switch break target; empty inside a loop
 	switchCases     *[]cSwitchCase             // labels collected for the active dispatch
+
+	// initDecl is the automatic object whose initializer is being lowered;
+	// initSelfRef records that the initializer names that object itself.
+	initDecl    *cc.Declarator
+	initSelfRef bool
 }
 
 func (fl *funcLow) tmpCounter() int {
@@ -802,6 +807,19 @@ func (fl *funcLow) lowerLocalDecl(d *cc.Declaration) ([]hir.Stmt, error) {
 			continue
 		}
 
+		// C99 6.2.1p7: the object is in scope in its own initializer, so the
+		// initializer may name it (reading it is undefined behaviour; taking
+		// its address or size is not). Such an initializer must see a
+		// declared object, so it becomes a declaration without initializer
+		// followed by an assignment; the value read is then unspecified.
+		// Other initializers keep the single declaration form.
+		fl.initDecl, fl.initSelfRef = decl, false
+		defer func() { fl.initDecl, fl.initSelfRef = nil, false }()
+		selfDecl := func() {
+			if fl.initSelfRef {
+				stmts = append(stmts, &hir.VarDeclStmt{Name: name, Ty: declarationTy, Volatile: decl.Type().Attributes().IsVolatile()})
+			}
+		}
 		var init hir.Expr
 		if id.Initializer != nil {
 			switch id.Initializer.Case {
@@ -811,6 +829,7 @@ func (fl *funcLow) lowerLocalDecl(d *cc.Declaration) ([]hir.Stmt, error) {
 					if err != nil {
 						return nil, err
 					}
+					selfDecl()
 					fl.drainPending(&stmts)
 					init = value
 					// _Bool normalization: any non-zero value becomes 1.
@@ -826,11 +845,20 @@ func (fl *funcLow) lowerLocalDecl(d *cc.Declaration) ([]hir.Stmt, error) {
 					if err != nil {
 						return nil, err
 					}
+					selfDecl()
 					init = lit
 				}
 			}
 		}
 
+		if fl.initSelfRef {
+			if init != nil {
+				stmts = append(stmts, &hir.AssignStmt{Target: &hir.VarRefExpr{Name: name, Ty: declarationTy}, Val: init})
+			}
+			fl.initDecl, fl.initSelfRef = nil, false
+			continue
+		}
+		fl.initDecl = nil
 		stmts = append(stmts, &hir.VarDeclStmt{Name: name, Ty: declarationTy, Init: init, Volatile: decl.Type().Attributes().IsVolatile()})
 	}
 	return stmts, nil
@@ -1483,6 +1511,9 @@ func (fl *funcLow) lowerPrimary(pe *cc.PrimaryExpression) (*exprResult, error) {
 	case cc.PrimaryExpressionIdent:
 		tok := pe.Token
 		name := tok.SrcStr()
+		if fl.initDecl != nil && pe.ResolvedTo() == fl.initDecl {
+			fl.initSelfRef = true
+		}
 		// Enum constants: check if identifier resolves to a constant value.
 		// cc/v4 may type enum constants as Int (not Enum), so check Value() for
 		// identifiers that aren't known locals, globals, or functions.
