@@ -221,7 +221,7 @@ func (g *z80cg) emitLD8(dst, src string) {
 	}
 	// Width mismatch: 8bit→pair widening (u8 result stored in pair reg).
 	if !isPairReg(src) && isPairReg(dst) {
-		g.emitf("    LD %s, %s", lowByte(dst), src)
+		g.emitLD8(lowByte(dst), src) // a spill source needs the A transit
 		g.emitf("    LD %s, 0", highByte(dst))
 		return
 	}
@@ -278,7 +278,8 @@ func isSpill(s string) bool {
 }
 
 // loadSpill8 loads an 8-bit spill value into the target register.
-// Uses A as intermediary (LD A,(nn) is the only valid 8-bit absolute load).
+// LD A,(nn) is the only 8-bit absolute load; any other target is reached
+// through the shadow A, so A and F are preserved.
 func (g *z80cg) loadSpill8(dst, src string) {
 	if dst == "A" {
 		if pair := g.tsmcPairByAddr(src); pair != nil {
@@ -297,9 +298,8 @@ func (g *z80cg) loadSpill8(dst, src string) {
 				return
 			}
 		}
-		g.emitNativeSpillf(src, 0, 1, false, "    LD A, (%s)", src)
-		g.emitLD8(dst, "A")
-		g.invalidate("A")
+		g.emitLD8(dst, src)
+		g.invalidate(dst)
 	}
 }
 
@@ -788,10 +788,11 @@ func (g *z80cg) emitMov(dst, src string, widthBits int) {
 			if pair := g.tsmcPairByAddr(src); pair != nil {
 				g.emitTSMCReload(g.tsmcReloadLabel(pair.reg, g.blockIdx, g.curInstIdx, 0), dst, 8)
 			} else {
-				g.emitNativeSpillf(src, 0, 1, false, "    LD A, (%s)", src)
-				g.emitLD8(dst, "A")
-				g.invalidate("A")
+				// Only LD A,(nn) reads absolute memory. The transit uses the
+				// shadow A: a generic move cannot know that A is dead.
+				g.emitLD8(dst, src)
 			}
+			g.invalidate(dst)
 		case isSpill(dst) && src == "A":
 			if pair := g.tsmcPairByAddr(dst); pair != nil {
 				g.emitTSMCSpill(pair, "A")
