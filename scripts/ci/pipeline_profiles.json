@@ -524,6 +524,7 @@
     "TestUnrollCopiesKeepLoopBodyQuality",
     "TestUnrollGateChargesOwnCode",
     "TestUnrollGateRefusesUnscorable",
+    "TestUnrollGateTrialsAreQuiet",
     "TestUnrollGeneratedVMOracle",
     "TestUnrollRefusedForLoopSiteCollection",
     "TestUnrollSizeProfileUnchanged",

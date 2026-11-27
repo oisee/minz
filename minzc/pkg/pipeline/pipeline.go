@@ -146,6 +146,10 @@ type Options struct {
 	unrollUngated bool
 	// unrollDecided marks options whose unrollDeny is already final.
 	unrollDecided bool
+	// quietDiagnostics: a measuring trial (decideUnroll) prints nothing;
+	// the product that is emitted reports [HIR-SPLIT] and [label-audit], and
+	// its Z80-VALIDATE report is deferred the same way (deferZ80Validation).
+	quietDiagnostics bool
 	// disableShiftCarryPreference: the module's codegen refused the
 	// preferred homes (see compileMIRProductSteps); allocate without it.
 	disableShiftCarryPreference bool
@@ -358,8 +362,10 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 	splitInfo := make(map[string]hir.SplitResult) // splitFunc → SplitResult
 	if splits := hir.SplitHighPressure(hm); len(splits) > 0 {
 		for _, sp := range splits {
-			fmt.Fprintf(os.Stderr, "[HIR-SPLIT] %s → %s (%d inputs, pressure %d)\n",
-				sp.OrigFunc, sp.SubFunc, sp.Inputs, sp.Pressure)
+			if !opt.quietDiagnostics {
+				fmt.Fprintf(os.Stderr, "[HIR-SPLIT] %s → %s (%d inputs, pressure %d)\n",
+					sp.OrigFunc, sp.SubFunc, sp.Inputs, sp.Pressure)
+			}
 			splitInfo[sp.SubFunc] = sp
 		}
 	}
@@ -741,7 +747,7 @@ func compileMIRProductSteps(hm *hir.Module, opt Options, s Steps, splitInfo map[
 
 		// Post-assembly label audit: find referenced-but-undefined labels.
 		labelWarnings := auditLabels(s.Assembly)
-		if len(labelWarnings) > 0 {
+		if len(labelWarnings) > 0 && !opt.quietDiagnostics {
 			fmt.Fprintf(os.Stderr, "[label-audit] %d undefined labels:\n", len(labelWarnings))
 			for _, w := range labelWarnings {
 				fmt.Fprintf(os.Stderr, "  %s\n", w)

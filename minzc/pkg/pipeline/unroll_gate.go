@@ -123,6 +123,10 @@ func decideUnroll(hm *hir.Module, opt Options) (Options, error) {
 	trial.AssertMode = "none"
 	trial.GraceStats = nil
 	trial.DisableVariantSearch = true
+	// Trials print nothing: the emitted product reports the module's
+	// diagnostics once ([HIR-SPLIT], [label-audit], Z80-VALIDATE).
+	trial.quietDiagnostics = true
+	trial.deferZ80Validation = true
 	trial.unrollUngated = true // the candidate keeps what lowering admits
 	baseOpt := trial
 	baseOpt.DisableLoopUnroll = true
