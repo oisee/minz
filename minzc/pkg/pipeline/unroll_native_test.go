@@ -671,7 +671,7 @@ unsigned short f2(unsigned char a, unsigned char b) {
 		o.AssertMode, o.DisableLoopUnroll = "none", disable
 		_, cerr := CompileHIRSteps(h, o)
 		os.Stdout, os.Stderr = stdout, stderr
-		w.Close()
+		_ = w.Close()
 		out := <-done
 		if cerr != nil {
 			t.Fatal(cerr)
