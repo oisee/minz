@@ -1,0 +1,141 @@
+// examples/nanz/14_error_propagation.nanz with its asserts made real.
+//
+// The example keeps its asserts in `// assert` comments, which the Nanz
+// parser ignores, so it executes 0 asserts. Its source is frozen by the
+// showcase catalog (an exhaustive native test, TestOriginalCarryErrorNative,
+// covers it), and a new file under examples/ would change the catalog's
+// corpus count, so this asserting copy lives here.
+//
+// CY flag = error signal; A = error code on error, return value on success.
+
+// ── Basic: division with error ─────────────────────────
+//
+// Z80 codegen:
+//   safe_div:
+//       LD A, C        ; b in C (PFCCO)
+//       OR A           ; b == 0?
+//       JR NZ, .ok
+//       SCF            ; CY = 1 (error!)
+//       LD A, 1        ; error code = 1
+//       RET            ; return with error
+//   .ok:
+//       ; ... division ...
+//       OR A           ; CY = 0 (success)
+//       RET
+
+fun safe_div(a: u8, b: u8) -> u8 {
+    if b == 0 { @error(1) }
+    return a / b
+}
+
+// ── Propagation: caller passes error up ────────────────
+//
+// Z80 codegen:
+//   compute:
+//       CALL safe_div
+//       RET C          ; ← @propagate: 1 BYTE! if CY=1, return immediately
+//       ; A = result, continue...
+//       ADD A, 1
+//       OR A           ; clear CY (success)
+//       RET
+
+fun compute(a: u8, b: u8) -> u8 {
+    var x: u8 = safe_div(a, b)
+    @propagate
+    return x + 1
+}
+
+// ── Bounds checking ────────────────────────────────────
+
+fun safe_add(a: u8, b: u8) -> u8 {
+    var sum: u16 = u16(a) + u16(b)
+    if sum > 255 { @error(2) }
+    return a + b
+}
+
+fun safe_sub(a: u8, b: u8) -> u8 {
+    if a < b { @error(3) }
+    return a - b
+}
+
+// ── Array bounds ───────────────────────────────────────
+
+global data: u8 = 10
+global data1: u8 = 20
+global data2: u8 = 30
+global data3: u8 = 40
+global data_len: u8 = 4
+
+fun array_get(idx: u8) -> u8 {
+    if idx >= data_len { @error(4) }
+    var p: ^u8 = &data
+    return p[idx]
+}
+
+// ── Chain: multiple fallible calls ─────────────────────
+//
+// Z80 codegen:
+//   chain:
+//       CALL safe_div
+//       RET C            ; propagate div error
+//       LD C, 5
+//       CALL safe_add
+//       RET C            ; propagate add error
+//       ; A = final result
+//       RET
+
+fun chain(a: u8, b: u8) -> u8 {
+    var x: u8 = safe_div(a, b)
+    @propagate
+    var y: u8 = safe_add(x, 5)
+    @propagate
+    return y
+}
+
+// ── Value live across fallible calls ───────────────────
+//
+// `a` and `x` stay live across the calls while the callee returns its value
+// and error code in A and its failed bit in CY.
+
+fun div_sum(a: u8, b: u8, c: u8) -> u8 {
+    var x: u8 = safe_div(a, c)
+    @propagate
+    var y: u8 = safe_div(b, c)
+    @propagate
+    return x + y + a
+}
+
+// ── Tests ──────────────────────────────────────────────
+//
+// These are real asserts (they used to sit in comments and never ran).
+// On the error path the function returns CY=1 with the error code in A,
+// so an assert on a failing call compares the error code.
+
+// safe_div: 10 / 2 = 5 (no error); 10 / 0 fails with code 1
+assert safe_div(10, 2) == 5 via z80
+assert safe_div(10, 0) == 1 via z80
+
+// safe_add: 200 + 50 = 250 (no error); 200 + 56 fails with code 2
+assert safe_add(200, 50) == 250 via z80
+assert safe_add(200, 56) == 2 via z80
+
+// safe_sub: 10 - 3 = 7 (no error); 3 - 10 fails with code 3
+assert safe_sub(10, 3) == 7 via z80
+assert safe_sub(3, 10) == 3 via z80
+
+// array_get: data1 = 20; index 4 fails with code 4
+assert array_get(1) == 20 via z80
+assert array_get(4) == 4 via z80
+
+// compute: 12 / 4 + 1 = 4; @propagate passes safe_div's code 1 up
+assert compute(12, 4) == 4 via z80
+assert compute(12, 0) == 1 via z80
+
+// chain: 10 / 2 + 5 = 10 (no error); division error 1 or add error 2 propagate
+assert chain(10, 2) == 10 via z80
+assert chain(10, 0) == 1 via z80
+assert chain(255, 1) == 2 via z80
+
+// div_sum: 20/5 + 30/5 + 20 = 30; the second call's error propagates
+assert div_sum(20, 30, 5) == 30 via z80
+assert div_sum(20, 30, 0) == 1 via z80

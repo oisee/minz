@@ -89,3 +89,18 @@ func TestFallibleCallResultSnapshotNative(t *testing.T) {
 		}
 	}
 }
+
+// examples/nanz/14_error_propagation.nanz executes no asserts (they are
+// comments); this copy runs them, success and error paths, on the Z80
+// emulator in the speed, size and HIR Grace configurations.
+func TestFallibleCallErrorPropagationAssertsNative(t *testing.T) {
+	for name, o := range map[string]Options{
+		"speed":     {ContractOpt: true, UseGrace: true, AssertMode: "z80"},
+		"size":      {ContractOpt: true, UseGrace: true, AssertMode: "z80", OptSize: true},
+		"hir-grace": {ContractOpt: true, UseGrace: true, UseHIRGrace: true, AssertMode: "z80"},
+	} {
+		t.Run(name, func(t *testing.T) {
+			runFallibleCallRepro(t, "error_propagation_asserts.nanz", o)
+		})
+	}
+}
