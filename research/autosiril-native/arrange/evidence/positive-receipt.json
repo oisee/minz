@@ -56,12 +56,12 @@
   },
   "generated_source_sha256": "c690b3c2894a27e7aa42a5f9aa1ca5a8b2ada7239540012396de7b17d5b98ae6",
   "generated_driver_sha256": "baee5ef9d3ef292d1498bbada3f8c6b67c1e0dc9386a6eb7614e65f883b0d2ac",
-  "reused_completed_fresh_upstream_sha256": "742045a1a1ac53ae1a64a423eb934345fa3eed5fc3ed9f6e2fcda2018971cc70",
-  "ruby_full_sha256": "fa65a6868daa44ec69c0accf59718f0827ac9b2f910a7ab9e789521ef0106bb2",
+  "reused_completed_fresh_upstream_sha256": "29bb515dcd19c10214b242019e3da44422d7b42b122dbd74505c4d7f87a100b5",
+  "ruby_full_sha256": "76fdbfd495a628bfefe29b7bf781bce650e93b24aeec1f7a2e5cbfb315b17369",
   "original_ruby_source_sha256": "41f621b555fc089effd711319e723494576eb47ea0282847082ec91c1cdd4c01",
   "input_disk_sha256": "acfd8eed55463f8d34011f0894e54521b5214ea0779ee88cd931d9921e82aded",
-  "upstream_native_image_sha256": "bad1e3bc5f77c7c40e3ef318831a6f6a016fd40687e8563cba8cb45f1461d1a2",
-  "arrangement_native_image_sha256": "045337a1a67cfd6035bbc9b368793ab112d3469b6e226474946c2d486868af69",
+  "upstream_native_image_sha256": "d669982ece03bf25fe996e562c7e70f4307ce4e5a058ed6abe23958a57a39990",
+  "arrangement_native_image_sha256": "5a7dbf4545ed8afe4fac4ce5decebf61de6e072a11e876f4c1a65b10595b53e5",
   "expected_wire_sha256": "c323f9032b58e233894d2f9ba56a8d93d5f9362fe023d25d18d3c3da581df0d9",
   "arrange": {
     "cases": [
@@ -2467,10 +2467,10 @@
         "lnote_count": 2097,
         "native": {
           "bounce_bank_reserved_bytes": 16384,
-          "code_and_stub_bytes": 9432,
+          "code_and_stub_bytes": 8971,
           "external_fixed_workspace_reserved_bytes": 1536,
           "external_ornament_pool_bytes": 4096,
-          "image_bytes": 10473,
+          "image_bytes": 10012,
           "loaded_globals_bytes": 839,
           "ornament_pool_writes_after_input_close": 0,
           "static_spill_bytes": 202
@@ -3665,7 +3665,7 @@
         "sector_reads": 55,
         "sector_writes": 142,
         "stack_below_entry": 54,
-        "t_states": 108462474,
+        "t_states": 108012133,
         "wire_bytes": 35823,
         "wire_sha256": "c323f9032b58e233894d2f9ba56a8d93d5f9362fe023d25d18d3c3da581df0d9"
       }
