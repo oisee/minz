@@ -895,6 +895,9 @@ type z80cg struct {
 	// Enables emitting LD (sym), HL (16T, no A clobber) instead of the
 	// byte-by-byte DE-based sequence (LD A,lo; LD (DE),A; INC DE; LD A,hi; LD (DE),A; DEC DE).
 	globalU16StoreSym map[Reg]string
+	// callAddrArgs[r] = sym: r is an address constant a call loads straight
+	// into its parameter register (call_address_args.go).
+	callAddrArgs map[Reg]string
 
 	// globalU16LoadSym[addrReg] = sym: addrReg holds the address of a u16 global load.
 	// Enables emitting LD HL, (sym) (20T, no A clobber) instead of the
@@ -1092,7 +1095,16 @@ func computeDeadConsts(f *Func, ar *AllocResult) map[Reg]bool {
 		}
 	}
 	if len(constVal) == 0 {
-		return nil
+		// Without value constants only the direct-store addresses (which need
+		// no constant table) can be dead here.
+		dead := directStoreAddressConstants(f, ar)
+		for r := range callArgumentAddressConstants(f, ar) {
+			if dead == nil {
+				dead = map[Reg]bool{}
+			}
+			dead[r] = true
+		}
+		return dead
 	}
 
 	physName := func(r Reg) string {
@@ -1251,6 +1263,12 @@ func computeDeadConsts(f *Func, ar *AllocResult) map[Reg]bool {
 	for r := range deadAddressConstants(f) {
 		dead[r] = true
 	}
+	for r := range directStoreAddressConstants(f, ar) {
+		dead[r] = true
+	}
+	for r := range callArgumentAddressConstants(f, ar) {
+		dead[r] = true
+	}
 	return dead
 }
 
@@ -1319,6 +1337,7 @@ func (g *z80cg) genFunc(f *Func) {
 		}
 	}
 	g.deadConsts = computeDeadConsts(f, g.ar)
+	g.callAddrArgs = callArgumentAddressConstants(f, g.ar)
 	g.ptrAddFolds = ptrAddConstantFolds(f, functionConstants(f))
 	g.ptrAddFoldedAdd = make(map[*Inst]bool, len(g.ptrAddFolds))
 	for _, fold := range g.ptrAddFolds {

@@ -1443,6 +1443,24 @@ func (g *z80cg) genPow2DivMod(inst *Inst, k int64, signed bool) {
 		g.invalidate(dst)
 		return
 	}
+	// Unsigned word quotient into BC or DE: shift the destination pair in
+	// place (SRL hi / RR lo per bit) instead of a round trip through HL.
+	if !signed && !wantMod && w == 16 && (dst == "BC" || dst == "DE") {
+		g.emitMov(dst, lhs, 16)
+		hi, lo := highByte(dst), lowByte(dst)
+		if k == 256 {
+			g.emitf("    LD %s, %s", lo, hi)
+			g.emitf("    LD %s, 0", hi)
+		} else {
+			for v := k; v > 1; v >>= 1 {
+				g.emitf("    SRL %s", hi)
+				g.emitf("    RR %s", lo)
+			}
+		}
+		g.invalidate(dst)
+		return
+	}
+
 	// HL is temporary unless it is the result. AF holds the original sign.
 
 	if lhs != "HL" {

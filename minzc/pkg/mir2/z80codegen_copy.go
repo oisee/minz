@@ -13,6 +13,8 @@ type parallelCopy struct {
 	ty      Ty
 	// isImm marks a constant rematerialisation: no source register, just emit
 	// LD dstName, immVal after all register-to-register copies are resolved.
+	// An immediate copy with a srcName carries a link-time address: the
+	// symbol in srcName is loaded instead of immVal (LD rr, sym).
 	isImm  bool
 	immVal int64
 }
@@ -438,7 +440,11 @@ func (g *z80cg) emitParallelCopy(copies []parallelCopy) {
 			}
 
 			firstDst := m.dst
-			g.emit("    PUSH AF")
+			// A is not in the cycle; save it only when a value outside
+			// the copy list may live there.
+			if !accFree {
+				g.emit("    PUSH AF")
+			}
 			if m.src != scratch {
 				g.emitSingleCopy(m.src, scratch, m.ty)
 			}
@@ -462,7 +468,11 @@ func (g *z80cg) emitParallelCopy(copies []parallelCopy) {
 			if firstDst != scratch {
 				g.emitSingleCopy(scratch, firstDst, m.ty)
 			}
-			g.emit("    POP AF")
+			if accFree {
+				g.invalidate("A")
+			} else {
+				g.emit("    POP AF")
+			}
 		} else {
 			// Walk backwards around a word cycle, just as for byte cycles.
 			// Saving src frees src, not dst: BC->HL, HL->DE, DE->BC
@@ -503,7 +513,15 @@ func (g *z80cg) emitParallelCopy(copies []parallelCopy) {
 	// After all register-to-register moves are resolved, emit constant assignments.
 	// Done last so they cannot clobber live source registers.
 	for _, c := range immCopies {
-		if c.dstName == "F" {
+		if c.srcName != "" && isSpill(c.dstName) {
+			// Every register copy is done; HL may hold one of them.
+			g.emit("    PUSH HL")
+			g.emitf("    LD HL, %s", sanitizeIdent(c.srcName))
+			g.emitNativeSpillf(c.dstName, 0, 2, true, "    LD (%s), HL", c.dstName)
+			g.emit("    POP HL")
+		} else if c.srcName != "" {
+			g.emitf("    LD %s, %s", c.dstName, sanitizeIdent(c.srcName))
+		} else if c.dstName == "F" {
 			// F register: use AND A (clear=0) or SCF (set=1).
 			if c.immVal == 0 {
 				g.emit("    AND A") // clears C, sets Z

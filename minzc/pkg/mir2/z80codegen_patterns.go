@@ -890,6 +890,9 @@ func (g *z80cg) scanGlobalFieldPatterns(b *Block) {
 			if useCount[addrReg] != 1 {
 				continue
 			}
+			if g.constStoreBetterThroughHome(inst, addrReg, defInst) {
+				continue
+			}
 			fieldName, _ := g.globalStructField(addrInst.Sym, 0)
 			g.globalFieldStore[addrReg] = globalFieldInfo{
 				sym:       addrInst.Sym,
@@ -1027,6 +1030,13 @@ func (g *z80cg) scanGlobalFieldPatterns(b *Block) {
 			continue
 		}
 		value := g.ar.Loc(inst.Src[1]).Name
+		// An address computeDeadConsts already proved unread (one use, this
+		// store, value in a pair) is never materialised: name the symbol.
+		if g.deadConsts[addrReg] && (value == "HL" || value == "DE" || value == "BC") {
+			g.globalU16StoreSym[addrReg] = def.Sym
+			g.globalFieldSkip[addrReg] = true
+			continue
+		}
 		if value == "HL" {
 			g.globalU16StoreSym[addrReg] = def.Sym // existing direct HL path
 			// The literal pointer has no observer: the adjacent store already

@@ -169,7 +169,10 @@ func TestFAT12BytePackingRetainsNativeAccessesAndWrap(t *testing.T) {
 	a, _ := z80asm.NewAssembler().AssembleString(selected)
 	b, _ := z80asm.NewAssembler().AssembleString(baseline)
 	t.Logf("unchanged fat12 ld_word %d exhaustive selected VM/native cases incl ffff wrap; ordered reads and denied-second prefix PASS; helper %d→%d T/%d→%d B", cases, baseT, selectedT, len(b.Binary), len(a.Binary))
-	if baseT-selectedT != 45 || len(b.Binary)-len(a.Binary) != 12 {
+	// 49 T / 13 B since the byte-lane preference (mir2 recolorPackLanes):
+	// the high byte loads straight into H, so the pack drops LD H,D
+	// (previously 45 T / 12 B).
+	if baseT-selectedT != 49 || len(b.Binary)-len(a.Binary) != 13 {
 		t.Fatal("unexpected measured delta", baseT, selectedT)
 	}
 	if dir := os.Getenv("MINZ_BYTE_PACK_ARTIFACTS"); dir != "" {

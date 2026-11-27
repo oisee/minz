@@ -64,7 +64,9 @@ func TestProfileGuidedSumVMZ80(t *testing.T) {
 	// fast 152+37*n, zero-length entry 153, equality extra 0,
 	// fallback 188+78*n T.  The multi-block pointer-walk changes (W-B)
 	// then removed one byte from the pointer variant: 220 B, T unchanged.
-	model := hir.LoopCostModel{CompilerID: context.CompilerID, SemanticsID: context.SemanticsID, Function: "sum_array", HIRSHA256: profileRun.Profile.Compatibility.HIRSHA256, TargetID: context.TargetID, EvidenceID: "sum-array-z80-acc-pressure-v15", OriginalBytes: 171, PointerBytes: 220, OriginalEntry: 41, OriginalIteration: 54, EqualEntryExtra: 0, FastEntry: 152, FastIteration: 37, FastZeroEntry: 153, FastZeroMeasured: true, FallbackEntry: 188, FallbackIteration: 78, FallbackMeasured: true}
+	// emitLDA stopped emitting LD A,A (in main's @print_u8 argument copy,
+	// outside sum_array): one byte off both modules, 170/219 B, T unchanged.
+	model := hir.LoopCostModel{CompilerID: context.CompilerID, SemanticsID: context.SemanticsID, Function: "sum_array", HIRSHA256: profileRun.Profile.Compatibility.HIRSHA256, TargetID: context.TargetID, EvidenceID: "sum-array-z80-acc-pressure-v15", OriginalBytes: 170, PointerBytes: 219, OriginalEntry: 41, OriginalIteration: 54, EqualEntryExtra: 0, FastEntry: 152, FastIteration: 37, FastZeroEntry: 153, FastZeroMeasured: true, FallbackEntry: 188, FallbackIteration: 78, FallbackMeasured: true}
 	decisions, e := hir.SelectLoopVariants(bytes.NewReader(profileJSON), input, context, model, false)
 	if e != nil {
 		t.Fatal(e)

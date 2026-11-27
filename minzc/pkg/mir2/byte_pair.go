@@ -75,6 +75,11 @@ func (g *z80cg) genPackBytes(inst *Inst) {
 		return s
 	}
 	g.comment("pack disjoint byte lanes")
+	// A byte cycle borrows A; it need not be saved when nothing live after
+	// the pack is in A (the operands are in the copy list itself).
+	if dst == "BC" || dst == "DE" || dst == "HL" {
+		g.edgeAccFree = g.accDeadAfterInst(inst, false)
+	}
 	// Parallel byte copies handle swapped halves, A, index halves and spills.
 	g.emitParallelCopy([]parallelCopy{{srcName: source(inst.Src[0]), dstName: lo, ty: TyU8}, {srcName: source(inst.Src[1]), dstName: hi, ty: TyU8}})
 	g.invalidate(dst)

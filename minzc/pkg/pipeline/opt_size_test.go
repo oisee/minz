@@ -301,6 +301,13 @@ func TestOptSizeWordStoreAddressVMZ80(t *testing.T) {
 			t.Fatal(e)
 		}
 		sizes[i] = len(im.binary)
+		// The store names its global (LD (stored),HL); its address must not
+		// be loaded into a register in either profile.  Before the direct-store
+		// address was rematerialised (mir2 directStoreAddressValues) only
+		// OptSize dropped it, and this test compared the two sizes.
+		if strings.Contains(s.Assembly, ", stored\n") {
+			t.Errorf("unused address materialised (OptSize=%v):\n%s", size, s.Assembly)
+		}
 		for _, x := range []int64{0, 1, 255, 256, 0x8000, 0xffff} {
 			vm := mir2.NewVM(s.MIR2Module)
 			got, e := vm.Call("probe", []mir2.Value{{I: x}})
@@ -311,7 +318,7 @@ func TestOptSizeWordStoreAddressVMZ80(t *testing.T) {
 			measureGraceZ80Compiled(t, h, s, "probe", []int64{x}, nil, x, 200000)
 		}
 	}
-	if sizes[1] >= sizes[0] {
-		t.Errorf("unused address retained: %v", sizes)
+	if sizes[1] > sizes[0] {
+		t.Errorf("OptSize larger than default: %v", sizes)
 	}
 }

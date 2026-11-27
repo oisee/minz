@@ -979,6 +979,14 @@ func (g *z80cg) genInst(inst *Inst) {
 								break
 							}
 						}
+						if preserveA && g.directStoreViaHL(inst, val) {
+							// A is live but HL is free: LD HL,sym / LD (HL),r
+							// (17 T) beats saving A around LD A,r / LD (sym),A.
+							g.emitf("    LD HL, %s", lbl)
+							g.emitNativeMemoryf(inst, 0, 1, "    LD (HL), %s", val)
+							g.invalidate("HL")
+							break
+						}
 						if preserveA {
 							g.emit("    PUSH AF    ; preserve live A across direct store")
 						}

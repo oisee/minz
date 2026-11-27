@@ -157,9 +157,24 @@ func constRematCandidates(f *Func, ar *AllocResult, lr *LivenessResult, ct CostT
 		blockers = indexHalfBlockers(f, ar, lr, eligible, costs, locs)
 	}
 	liveAcrossCall := liveAcrossCallRegs(f, lr)
+	// A direct-store address interferes with the value it stores; its home
+	// is contested when the trial put it where that value is cheapest
+	// (fat12's caller: the address sat in HL, the call result came back in
+	// HL and was copied to DE).  Otherwise the re-solve only re-ties the
+	// allocation: a stored constant 0 took HL from a pointer
+	// (d04_ptr_untyped_param, +3 bytes).
+	directStore := contestedDirectStores(f, ar, costs, locs)
+	// A call-argument address occupies a pair up to the call, where the
+	// argument copy has to shuffle it into the parameter register.
+	for r := range callArgumentAddressConstants(f, ar) {
+		if directStore == nil {
+			directStore = map[Reg]bool{}
+		}
+		directStore[r] = true
+	}
 	var candidates map[Reg]bool
 	for r := range eligible {
-		if !spilled && !liveAcrossCall[r] && len(blockers) == 0 {
+		if !spilled && !liveAcrossCall[r] && len(blockers) == 0 && !directStore[r] {
 			continue
 		}
 		if candidates == nil {
@@ -308,6 +323,7 @@ func locIndex(locs []PhysLoc) map[PhysLoc]int {
 	}
 	return idx
 }
+
 // liveAcrossCallRegs returns the vregs whose live range covers a call, i.e. the
 // ones a callee's clobber set forces the caller to PUSH/POP.
 func liveAcrossCallRegs(f *Func, lr *LivenessResult) map[Reg]bool {

@@ -768,6 +768,10 @@ func (g *z80cg) emitCallArgsForInst(args []Reg, callee *Func, call *Inst) {
 		// parallel copy scratch picker knows ALL live arg registers and won't
 		// clobber them when resolving cycles (e.g. B↔C using A as scratch
 		// when A holds arg0).
+		if sym, ok := g.callAddrArgs[arg]; ok && g.deadConsts[arg] && call != nil && (dstPhys == "HL" || dstPhys == "DE" || dstPhys == "BC" || dstPhys == "IX" || dstPhys == "IY" || isSpill(dstPhys)) {
+			copies = append(copies, parallelCopy{dstName: dstPhys, ty: param.Ty, isImm: true, srcName: sym})
+			continue
+		}
 		copies = append(copies, parallelCopy{srcName: srcPhys, dstName: dstPhys, ty: param.Ty})
 	}
 	if len(copies) == 0 {
