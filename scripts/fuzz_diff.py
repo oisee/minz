@@ -111,6 +111,80 @@ return result
 }}"""
 
 
+class ByteShiftGen(Gen):
+    """Opt-in byte corpus: constant shifts, many live byte variables mutated
+    across statements, and the bit-accumulate step `cnt += x & 1; ...; y = x >> 1`.
+
+    Six byte variables, a loop counter and two words are live at once, so the
+    allocator must spill bytes. Default, signed and masked seeds are unchanged.
+    """
+    BYTES = ['x0', 'x1', 'x2', 'x3', 'x4', 'x5']
+
+    def e8(s, d, vs=None):
+        r = s.r; vs = vs or s.BYTES
+        if d <= 0 or r.random() < 0.3:
+            return r.choice(vs) if r.random() < 0.8 else str(r.randrange(256))
+        c = r.random()
+        if c < 0.3:
+            return f"({s.e8(d-1, vs)} {r.choice(['>>', '<<'])} {r.randint(1, 3)})"
+        return f"({s.e8(d-1, vs)} {r.choice(['+', '-', '&', '|', 'xor'])} {s.e8(d-1, vs)})"
+
+    def bit_accum(s):
+        # The shifted byte is read only by the mask and the shift, and the
+        # middle statement leaves it alone: the shape the Z80 backend fuses.
+        r = s.r
+        v = r.choice(s.BYTES)
+        w = v if r.random() < 0.5 else r.choice(s.BYTES)
+        rest = [x for x in s.BYTES if x != v]
+        out = [f"cnt = (cnt + (({v} & 1) as u16))"]
+        if r.random() < 0.6:
+            out.append(s.byte_stmt(rest))
+        out.append(f"{w} = ({v} >> 1)")
+        return out
+
+    def byte_stmt(s, vs=None):
+        vs = vs or s.BYTES
+        x = s.r.choice(vs)
+        return f"{x} = {s.e8(2, vs)}"
+
+    def stmts(s, n, depth):
+        r = s.r; out = []
+        for _ in range(n):
+            c = r.random()
+            if c < 0.35:
+                out += s.bit_accum()
+            elif c < 0.6:
+                out.append(s.byte_stmt())
+            elif c < 0.72:
+                x = r.choice(s.BYTES)
+                out.append(f"acc = (acc {r.choice(['+', 'xor', '-'])} ({x} as u16))")
+            elif c < 0.85 and depth > 0:
+                a, b = r.sample(s.BYTES, 2)
+                th = s.stmts(r.randint(1, 3), depth - 1)
+                el = s.stmts(r.randint(0, 2), depth - 1)
+                st = f"if {a} {r.choice(['<', '>', '==', '!=', '<=', '>='])} {b} {{\n" + '\n'.join(th) + "\n}"
+                if el: st += " else {\n" + '\n'.join(el) + "\n}"
+                out.append(st)
+            elif depth > 0:
+                iv = f"lp{s.cnt}"; s.cnt += 1
+                body = s.stmts(r.randint(1, 4), depth - 1)
+                out.append(f"var {iv}: u8 = 0\nwhile {iv} < {r.randint(1, 8)} {{\n" + '\n'.join(body) + f"\n{iv} = ({iv} + 1)\n}}")
+            else:
+                out.append(s.byte_stmt())
+        return out
+
+    def program(s):
+        s.cnt = 0
+        pre = ["var x0: u8 = (a as u8)", "var x1: u8 = ((a / 256) as u8)",
+               "var x2: u8 = (b as u8)", "var x3: u8 = ((b / 256) as u8)",
+               "var x4: u8 = (c as u8)", "var x5: u8 = ((c / 256) as u8)",
+               "var acc: u16 = (a xor c)", "var cnt: u16 = 0"]
+        body = s.stmts(s.r.randint(6, 14), 2)
+        ret = ' + '.join([f"(cnt xor {s.r.randrange(256)})", "acc"] +
+                         [f"(({x} as u16) xor {i*37+1})" for i, x in enumerate(s.BYTES)])
+        return "fun f(a: u16, b: u16, c: u16) -> u16 {\n" + '\n'.join(pre + body) + f"\nreturn ({ret})\n}}"
+
+
 class SignedGen(Gen):
     """Opt-in signed corpus; the original Gen consumes exactly the same RNG."""
     def program(s):
@@ -147,7 +221,7 @@ def wrap(value, ty):
 
 # --- tiny interpreter for the generated subset ---
 import re
-def tokenize(t): return re.findall(r'[A-Za-z_]\w*|\d+|==|!=|<=|>=|[-+*/%&|(){}<>,:=]', t)
+def tokenize(t): return re.findall(r'[A-Za-z_]\w*|\d+|==|!=|<=|>=|<<|>>|[-+*/%&|(){}<>,:=]', t)
 
 class Interp:
     def __init__(s, src):
@@ -230,8 +304,12 @@ class Interp:
             return v, w
         def full():
             v, w = cast(*prim())
-            while peek() in ('+', '-', '&', '|', 'xor', '/', '%'):
+            while peek() in ('+', '-', '&', '|', 'xor', '/', '%', '<<', '>>'):
                 op = nxt(); v2, w2 = cast(*prim())
+                if op in ('<<', '>>'):
+                    # A shift keeps its left operand's width (ByteShiftGen only).
+                    v = ((v << v2) if op == '<<' else (v >> v2)) & (0xFF if w == 8 else M)
+                    continue
                 # Primitive unsigned operations use the widest operand.
                 wd = max(w, w2)
                 mask = 0xFF if wd == 8 else M
@@ -339,8 +417,8 @@ import tempfile
 from assert_matrix import run_compiler, positive
 
 
-def generated(seed, signed=False, masked_loops=False):
-    gen = MaskedLoopGen if masked_loops else SignedGen if signed else Gen
+def generated(seed, signed=False, masked_loops=False, byte_shifts=False):
+    gen = ByteShiftGen if byte_shifts else MaskedLoopGen if masked_loops else SignedGen if signed else Gen
     src = gen(seed).program()
     rr = random.Random(seed * 7 + 1)
     args = [rr.randrange(65536) if rr.random() < .6 else rr.randrange(300) for _ in range(3)]
@@ -423,8 +501,8 @@ def reduction_check(text, status, check):
     return check(text)
 
 
-def fuzz_one(seed, mz, timeout, output, reduce=True, mode="folded", signed=False, masked_loops=False):
-    src, args = generated(seed, signed, masked_loops)
+def fuzz_one(seed, mz, timeout, output, reduce=True, mode="folded", signed=False, masked_loops=False, byte_shifts=False):
+    src, args = generated(seed, signed, masked_loops, byte_shifts)
     try:
         program = with_assert(src, args, mode)
     except Exception as e:
@@ -465,13 +543,14 @@ def main():
     corpus = p.add_mutually_exclusive_group()
     corpus.add_argument('--masked-loops', action='store_true', help='opt in to masked byte predicates inside while loops; preserves default and signed seeds')
     corpus.add_argument('--signed', action='store_true', help='opt in to signed variables, negative literals and comparisons; preserves default seeds')
+    corpus.add_argument('--byte-shifts', action='store_true', help='opt in to constant byte shifts, spilled byte variables and bit-accumulate steps; preserves default seeds')
     a = p.parse_args()
     if a.timeout <= 0:
         p.error('--timeout must be positive')
     a.output.mkdir(parents=True, exist_ok=True)
     mz = str(Path(a.mz).resolve())
     with concurrent.futures.ThreadPoolExecutor(max_workers=a.j) as pool:
-        results = list(pool.map(lambda seed: fuzz_one(seed, mz, a.timeout, a.output, not a.no_reduce, a.mode, a.signed, a.masked_loops), range(a.seed, a.seed+a.count)))
+        results = list(pool.map(lambda seed: fuzz_one(seed, mz, a.timeout, a.output, not a.no_reduce, a.mode, a.signed, a.masked_loops, a.byte_shifts), range(a.seed, a.seed+a.count)))
     (a.output / 'results.json').write_text(json.dumps(results, indent=2) + '\n')
     for status in ['pass', 'MIR2 != oracle', 'Z80 != MIR2', 'assembly failure', 'compiler error', 'oracle error']:
         print(f'{status}: {sum(r["status"] == status for r in results)}')
