@@ -1,0 +1,46 @@
+// Reviewer repro n1 (fallible calls, @propagate, &global arguments).
+// Bug A: a value relocated to a scratch byte by an earlier ALU op sat in the
+// home of the call's error-code extra result; eviction ignored ExtraRets.
+// Fails on unfixed main with the recipe {mir-grace, acc-pressure}.
+assert run(0, 0) == 20
+assert run(3, 5) == 123
+assert run(15, 15) == 186
+assert run(200, 7) == 154
+assert run(9, 250) == 93
+assert run(16, 31) == 242
+global g1: u8 = 0
+global g2: u8 = 0
+global w: u16 = 0
+global buf: [u8; 16]
+global port: u8 at(0xC000)
+
+fun put(p: ^u8, i: u8, v: u8) -> u8 {
+    if i > 15 { @error(9) }
+    p[i] = v
+    g1 = v
+    return v + i
+}
+
+fun pk(p: ^u8, i: u8) -> u16 {
+    let lo: u8 = p[i & 15]
+    let hi: u8 = p[(i + 1) & 15]
+    g2 = lo
+    return u16(hi) | (u16(lo) << 8)
+}
+
+fun run(a: u8, b: u8) -> u8 {
+    var k: u8 = 0
+    while k < 16 {
+        buf[k] = k * 7 + 3
+        k = k + 1
+    }
+    var x: u8 = put(&buf, a & 15, b)
+    @propagate
+    g2 = x
+    port = b
+    var y: u8 = put(&buf, b & 15, x)
+    @propagate
+    w = pk(&buf, a) + pk(&buf, b)
+    return y + g1 + g2 + port + u8(w >> 8) + u8(w)
+}
+

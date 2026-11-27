@@ -95,10 +95,19 @@ func (g *z80cg) genInst(inst *Inst) {
 	// allocated destination may reuse their byte or containing pair, even
 	// while the saved vreg is live. Evict that value before writing the
 	// destination; restoring the pair afterwards would destroy the result.
+	// Every written home counts, not only Dst: a call also writes its extra
+	// results (a fallible call's failed bit and error code) into their homes.
 	dst := g.loc(inst.Dst)
+	writes := instWrites(inst)
+	written := make([]string, 0, len(writes))
+	for _, w := range writes {
+		written = append(written, g.loc(w))
+	}
 	for _, r := range slices.Sorted(maps.Keys(g.physOverride)) {
 		loc := g.physOverride[r]
-		if r == inst.Dst || !liveAfter[r] || isSpill(loc) || !z80spec.Overlaps(dst, loc) {
+		if slices.Contains(writes, r) || !liveAfter[r] || isSpill(loc) || !slices.ContainsFunc(written, func(w string) bool {
+			return z80spec.Overlaps(w, loc)
+		}) {
 			continue
 		}
 		home := g.spillLabel(r)

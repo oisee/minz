@@ -1,0 +1,50 @@
+// nvar2.py seed 2 (reviewer repro nw2). Bug B: pickupCallResults stored the
+// failed bit into A's snapshot byte before the value/code results were read
+// from it (`LD (IX+1),A` then `LD C,(IX+1)`). Fails on unfixed main under --Osize.
+assert run(0, 0) == 16
+assert run(3, 5) == 248
+assert run(15, 15) == 126
+assert run(200, 7) == 90
+assert run(9, 250) == 118
+assert run(16, 31) == 206
+assert run(77, 129) == 78
+global g1: u8 = 0
+global g2: u8 = 0
+global w: u16 = 0
+global buf: [u8; 16]
+global buf2: [u8; 16]
+global port: u8 = 0
+
+fun put(p: ^u8, i: u8, v: u8) -> u8 {
+    if i > 15 { @error(9) }
+    p[i & 15] = v
+    g1 = v
+    return v + i
+}
+
+fun pk(p: ^u8, i: u8) -> u16 {
+    let lo: u8 = p[i & 15]
+    let hi: u8 = p[(i + 1) & 15]
+    g2 = lo
+    return u16(hi) | (u16(lo) << 8)
+}
+
+fun run(a: u8, b: u8) -> u8 {
+    var k: u8 = 0
+    while k < 16 {
+        buf[k] = k * 7 + 3
+        buf2[k] = k * 5 + 1
+        k = k + 1
+    }
+    var x: u8 = put(&buf, (a & 14) & 15, b)
+    @propagate
+    g2 = x
+    port = b
+    var y: u8 = put(&buf2, (b & 14) & 15, x)
+    @propagate
+    w = 0
+    w = w + pk(&buf2, b)
+    w = w + pk(&buf, x)
+    return y + g1 + g2 + port + u8(w >> 8) + u8(w) + b
+}
+

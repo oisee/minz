@@ -657,12 +657,10 @@ func (g *z80cg) pickupCallResults(results []parallelCopy, saved []string, flagRe
 	if flagResult && savedPair["AF"] {
 		storeByte(snapshot["AF"], restore["AF"])
 	}
-	// Preserve the result in A in the AF snapshot until all scratch work is done.
-	for _, r := range results {
-		if r.dstName == "A" && !savedPair["AF"] {
-			storeResultByte(r, snapshot["AF"]+1)
-		}
-	}
+	// Invariant: the snapshot slots (offsets below base) stay read-only until
+	// every result has been read from them. A fallible call returns its value
+	// and its error code in A and its failed bit in F; storing failed->A into
+	// A's snapshot byte first would hand the later readers of A a 0 or 1.
 	for _, r := range results {
 		p := regToPairMap[r.dstName]
 		if savedPair[p] || p == "IX" || r.dstName == "A" {
@@ -694,6 +692,13 @@ func (g *z80cg) pickupCallResults(results []parallelCopy, saved []string, flagRe
 				g.emitf("    LD %s, (IX+%d)", lowByte(p), src)
 				g.emitf("    LD %s, (IX+%d)", highByte(p), src+1)
 			}
+		}
+	}
+	// The only write into the snapshot, after its last read: the result bound
+	// for A takes A's byte, so the AF restore below loads it.
+	for _, r := range results {
+		if r.dstName == "A" && !savedPair["AF"] {
+			storeResultByte(r, snapshot["AF"]+1)
 		}
 	}
 	// Restore returned flags (ADD IX,SP changed them) and the final A without

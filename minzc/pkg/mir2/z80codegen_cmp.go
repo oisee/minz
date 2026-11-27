@@ -120,7 +120,9 @@ func (g *z80cg) freeScratch8(upcomingInst *Inst) string {
 	for _, r := range g.instReads(upcomingInst) {
 		live[r] = true
 	}
-	live[upcomingInst.Dst] = true
+	for _, r := range instWrites(upcomingInst) {
+		live[r] = true
+	}
 	return g.freeScratch8Outside(live, nil)
 }
 
