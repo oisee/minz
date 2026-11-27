@@ -459,6 +459,9 @@ func compileMIRProductSteps(hm *hir.Module, opt Options, s Steps, splitInfo map[
 				break
 			}
 		}
+		// Branch straight on a short-circuit condition before CondRetSink and
+		// Grace see (and sink returns into) the boolean join.
+		mir2.ThreadBoolJoins(f)
 		if variantFor(opt, f.Name).MIRGrace {
 			// ── Grace declarative path ──────────────────────────────
 			localGrace := mir2.NewGraceStats()
@@ -865,6 +868,7 @@ func CompileHIRWithOptions(hm *hir.Module, opts Options) (string, error) {
 				break
 			}
 		}
+		mir2.ThreadBoolJoins(f)
 		mir2.NarrowLowByteMaskTests(f)
 		mir2.DeadStoreElim(f)
 		mir2.DeadBlockArgElim(f)
