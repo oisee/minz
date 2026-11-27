@@ -20,6 +20,49 @@ import (
 //   - bitaccum_h88: a fused bit-accumulate step whose shift is homed in
 //     another register wrote that register before the shift's position.
 var reviewRepros = map[string]string{
+	// Last count step with a dead shift: an xor through A between v's last
+	// read and the add clobbered v (wrong under --Osize before the refusal).
+	"bitaccum_dead_window": `// assert h(5, 9, 3) == 13 via z80
+// assert h(255, 200, 17) == 219 via z80
+// assert h(165, 60, 255) == 316 via z80
+// assert h(1, 2, 3) == 6 via z80
+// assert h(128, 77, 250) == 183 via z80
+// assert h(90, 129, 16) == 146 via z80
+unsigned short h(unsigned char v, unsigned char k, unsigned short c) { c += v & 1; v = v >> 1; c = (v & 1) + (c ^ k); return c; }
+`,
+	// The new shapes also fire under --Osize (review ba4.c).
+	"bitaccum_osize": `// assert p(2,6,4) == 10 via z80
+// assert p(3,6,4) == 10 via z80
+// assert p(255,2,4) == 77 via z80
+// assert q(2,6,4) == 10 via z80
+// assert q(3,6,4) == 10 via z80
+// assert q(255,2,4) == 77 via z80
+unsigned short p(unsigned char v, unsigned char k0, unsigned char sel) {
+  unsigned short c = sel;
+  unsigned char k = k0 ^ sel;
+  if (sel & 4) {
+    c += v & k; v >>= 1;
+    c += v & 1; v >>= 1;
+    k = 1;
+  } else {
+    c ^= 5;
+  }
+  return c + k * 3 + v;
+}
+unsigned short q(unsigned char v, unsigned char k0, unsigned char sel) {
+  unsigned short c = sel;
+  unsigned char k = k0 ^ sel;
+  if (sel & 4) {
+    unsigned char m;
+    m = v & k; c += m; v >>= 1;
+    m = v & 1; c += m; v >>= 1;
+    k = 1;
+  } else {
+    c ^= 5;
+  }
+  return c + k * 3 + v;
+}
+`,
 	// Straight-line CRC and population-count chains (hand-unrolled loops).
 	"handchain": `// assert crc(1, 7) == 7 via z80
 // assert crc(255, 49) == 172 via z80
@@ -217,5 +260,23 @@ func TestShiftCarryPreferenceFallbackNative(t *testing.T) {
 		if err != nil || got != want[0].I&0xffff {
 			t.Errorf("f3%v: Z80 %d %v want %d", a, got, err, want[0].I)
 		}
+	}
+}
+
+// The bit-accumulate shapes that are new in this change also apply to the
+// size profile (smaller and checked by the assertions above).
+func TestBitAccumNewShapesUnderOsize(t *testing.T) {
+	h, err := c89.CompileWithOpts(reviewRepros["bitaccum_osize"], "ba4.c", c89.CompileOpts{NoLibc: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	o := DefaultOptions()
+	o.OptSize = true
+	s, err := CompileHIRSteps(h, o)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if n := strings.Count(s.Assembly, "\n.bit_accum_"); n < 2 {
+		t.Fatalf("expected fused bit-accumulate steps under --Osize, got %d", n)
 	}
 }

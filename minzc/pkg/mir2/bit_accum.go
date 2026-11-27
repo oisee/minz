@@ -113,14 +113,43 @@ func (g *z80cg) scanBitAccumPatterns(b *Block) {
 				}
 			}
 			// Without a later shift (the last step of a count, whose shifted
-			// value is dead) the and/ext is v's only read: SRL then shifts a
-			// byte nothing reads again, in v's own still-reserved home.
+			// value is dead) the and/ext is v's only read and v dies there:
+			// its home is no longer reserved before the add, where the fused
+			// SRL reads it. Admit the shape only when every instruction
+			// between v's last read and the add emits nothing: the fused
+			// and/ext/widen themselves, or constants served from immediates
+			// (genInst returns for both before any write or A-scratch
+			// relocation). Anything else may reuse v's home or A
+			// (review x1.c under --Osize: an xor via A between them).
 			want := 2 // ext (or and) + shr
 			if shr == nil {
 				want = 1
 			}
 			if uses[v] != want {
 				continue
+			}
+			if shr == nil {
+				last := and
+				if ext != nil {
+					last = ext
+				}
+				quiet, seen := true, false
+				for _, i := range b.Insts[:ai] {
+					if i == last {
+						seen = true
+						continue
+					}
+					if !seen || i == and || i == ext || i == widen {
+						continue
+					}
+					if i.Op == OpConst && g.deadConsts[i.Dst] && g.loc(i.Dst) != "F" {
+						continue
+					}
+					quiet = false
+				}
+				if !seen || !quiet {
+					continue
+				}
 			}
 			vl, pl := g.loc(v), g.loc(acc)
 			if !byteReg(vl) || g.loc(add.Dst) != pl ||
