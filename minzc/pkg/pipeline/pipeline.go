@@ -632,20 +632,7 @@ func compileMIRProductSteps(hm *hir.Module, opt Options, s Steps, splitInfo map[
 	for _, f := range m.Funcs {
 		mir2.PreallocCoalesce(f) // BUG-001 fix: union block-arg/param pairs before PBQP
 		lr := mir2.ComputeLiveness(f)
-		allocationCost := ct
-		if variantFor(opt, f.Name).SizeAllocation {
-			allocationCost = mir2.Z80CostTable{OptimizeForSize: true}
-		}
-		if z, ok := allocationCost.(mir2.Z80CostTable); ok && variantFor(opt, f.Name).AccPressure {
-			z.AccumulatorPressure = true
-			allocationCost = z
-		}
-		// The shift-carry home preference is a speed-profile cost term only;
-		// the size profile keeps its allocation byte for byte.
-		if z, ok := allocationCost.(mir2.Z80CostTable); ok && !opt.OptSize && !z.OptimizeForSize {
-			z.ShiftCarryPreference = true
-			allocationCost = z
-		}
+		allocationCost := allocationTable(opt, ct, f.Name)
 		ar := mir2.PBQPAllocate(f, lr, allocationCost)
 		for r, loc := range ar.Locs {
 			combined.Locs[r] = loc
@@ -778,6 +765,26 @@ func compileMIRProductSteps(hm *hir.Module, opt Options, s Steps, splitInfo map[
 		}
 	}
 	return s, nil
+}
+
+// allocationTable is the PBQP cost table of one function: the recipe's
+// size/accumulator variants, and the shift-carry home preference, which is
+// a speed-profile term only (the size profile keeps its allocation byte for
+// byte).
+func allocationTable(opt Options, ct mir2.CostTable, name string) mir2.CostTable {
+	allocationCost := ct
+	if variantFor(opt, name).SizeAllocation {
+		allocationCost = mir2.Z80CostTable{OptimizeForSize: true}
+	}
+	if z, ok := allocationCost.(mir2.Z80CostTable); ok && variantFor(opt, name).AccPressure {
+		z.AccumulatorPressure = true
+		allocationCost = z
+	}
+	if z, ok := allocationCost.(mir2.Z80CostTable); ok && !opt.OptSize && !z.OptimizeForSize {
+		z.ShiftCarryPreference = true
+		allocationCost = z
+	}
+	return allocationCost
 }
 
 // NeedsZ80Asserts reports whether the selected assertions need a Z80 product.

@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/minz/minzc/pkg/c89"
+	"github.com/minz/minzc/pkg/mir2"
 	"github.com/minz/minzc/pkg/nanz"
 )
 
@@ -156,5 +157,22 @@ func TestZMachineModulesDoNotPanic(t *testing.T) {
 		if _, err := CompileHIRSteps(h, o); err == nil || !strings.Contains(err.Error(), "exceeds 16-bit address space") {
 			t.Errorf("%s: %v", path, err)
 		}
+	}
+}
+
+// The shift-carry home preference belongs to speed allocation only.
+func TestShiftCarryPreferenceSpeedOnly(t *testing.T) {
+	speed, size := DefaultOptions(), DefaultOptions()
+	size.OptSize = true
+	if z := allocationTable(speed, mir2.Z80CostTable{}, "f").(mir2.Z80CostTable); !z.ShiftCarryPreference {
+		t.Error("speed profile lacks the preference")
+	}
+	if z := allocationTable(size, mir2.Z80CostTable{}, "f").(mir2.Z80CostTable); z.ShiftCarryPreference {
+		t.Error("size profile uses the preference")
+	}
+	sizeAlloc := DefaultOptions()
+	sizeAlloc.FunctionVariants = map[string]FunctionVariant{"f": {SizeAllocation: true}}
+	if z := allocationTable(sizeAlloc, mir2.Z80CostTable{}, "f").(mir2.Z80CostTable); z.ShiftCarryPreference {
+		t.Error("size allocation recipe uses the preference")
 	}
 }

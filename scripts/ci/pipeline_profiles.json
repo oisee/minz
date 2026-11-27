@@ -440,6 +440,7 @@
     "TestShiftCarryCarryKernelsVMZ80",
     "TestShiftCarryCriticProbesVMZ80",
     "TestShiftCarryMultiplyVMZ80",
+    "TestShiftCarryPreferenceSpeedOnly",
     "TestShiftCarryProfitabilityVMZ80",
     "TestShowcaseArenaNativeStateModel",
     "TestShowcaseBufStreamNativeCapacityModel",
