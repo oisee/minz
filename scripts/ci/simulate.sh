@@ -29,7 +29,7 @@ run_gate() {
 }
 run_gate actionlint actionlint .github/workflows/*.yml
 run_gate build bash scripts/ci/build.sh
-for job in matrix judges sweep fuzz fuzz-direct; do
+for job in matrix judges sweep fuzz fuzz-direct fuzz-bytes; do
   export REPORT_DIR="$CI_BIN/reports/$job"
   run_gate "$job" bash scripts/ci/run.sh "$job"
 done
