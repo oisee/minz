@@ -523,10 +523,10 @@ unsigned short f1(unsigned char a, unsigned char b) {
 	}
 }
 
-// The static model cannot score this function (an unknown-trip loop whose
-// shape it does not model); an unscorable product is never admitted, even
-// within the byte budget.
-func TestUnrollGateRefusesUnscorable(t *testing.T) {
+// The static model scores neither product of this module (T 0 -> 0); the
+// gate refuses it. (Whether the "unscored" or the "slower" clause refuses it
+// is not observable here; TestUnrollVerdict checks each clause.)
+func TestUnrollGateRefusesUnscorableModule(t *testing.T) {
 	const src = `
 unsigned char d(unsigned char a, unsigned char n) {
     unsigned char r, b, x = a, y = 1;
@@ -684,5 +684,36 @@ unsigned short f2(unsigned char a, unsigned char b) {
 	}
 	if with != without {
 		t.Fatalf("output differs with unrolling enabled:\n--- disabled\n%s--- enabled\n%s", without, with)
+	}
+}
+
+// Each clause of the per-function verdict and the module image rule.
+func TestUnrollVerdict(t *testing.T) {
+	for _, c := range []struct {
+		measured       bool
+		growth, budget int
+		slow           int64
+		scored         bool
+		fast           int64
+		scoredAfter    bool
+		want           string
+	}{
+		{true, 20, 48, 100, true, 60, true, ""},
+		{false, 20, 48, 100, true, 60, true, "unmeasured"},
+		{true, 49, 48, 100, true, 60, true, "bytes"},
+		// A base the model scores and a candidate it cannot: never admitted,
+		// although the unscored candidate's 0 is below the base's T.
+		{true, 20, 48, 100, true, 0, false, "unscored"},
+		{true, 20, 48, 0, false, 60, true, "unscored"},
+		{true, 20, 48, 100, true, 100, true, "slower"},
+	} {
+		if got := unrollVerdict(c.measured, c.growth, c.budget, c.slow, c.scored, c.fast, c.scoredAfter); got != c.want {
+			t.Errorf("%+v: %q, want %q", c, got, c.want)
+		}
+	}
+	// The image may grow by the admitted functions' own growth, not by
+	// their unused budgets: 5 bytes of own growth admit 5, not 48.
+	if !unrollImageAdmits(5, 5) || unrollImageAdmits(6, 5) || unrollImageAdmits(48, 5) {
+		t.Error("image rule")
 	}
 }
