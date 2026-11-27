@@ -133,6 +133,16 @@ type Options struct {
 
 	// DisableCountedLoops is an internal differential-testing switch.
 	DisableCountedLoops bool `json:",omitempty"`
+	// DisableLoopUnroll keeps short constant-trip loops as loops in the speed
+	// profile (the size profile never unrolls).
+	DisableLoopUnroll bool `json:",omitempty"`
+	// Unroll gate state: functions refused by the measured byte budget, and
+	// the loops the current lowering unrolled per function.
+	unrollDeny    map[string]bool
+	unrolledLoops map[string]int
+	// unrollUngated keeps every admitted unroll (tests: correctness of the
+	// unrolled code independent of the profitability gate).
+	unrollUngated bool
 	// CPMApplicationEntry selects ordinary native CP/M application entry,
 	// independently of the guarded runtime and semantic bare/called harnesses.
 	CPMApplicationEntry bool            `json:",omitempty"`
@@ -340,7 +350,9 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 		return s, err
 	}
 	// Lower HIR → MIR2 (raw, before optimisation).
-	m := hir.LowerModuleWithOptions(hm, hir.LowerOptions{DisableCountedLoops: opt.DisableCountedLoops, CountedLoopPolicy: variantCountedPolicies(opt)})
+	unrolled := map[string]int{}
+	m := hir.LowerModuleWithOptions(hm, lowerOptions(hm, opt, unrolled))
+	opt.unrolledLoops = unrolled
 	s.MIR2Raw = m.Dump()
 	// Record call dependencies before constant folding can erase them. A global
 	// dry Grace toggle alone cannot establish a caller's axis is an identity.
@@ -361,8 +373,12 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 // Compile alternatives without executing user assertions. Only the selected
 // product owns assertion execution and its invocation-local receipt.
 func compileMIRSteps(hm *hir.Module, opt Options, s Steps, splitInfo map[string]hir.SplitResult, m *mir2.Module) (Steps, error) {
+	initial := s
 	s, err := compileMIRProductSteps(hm, opt, s, splitInfo, m)
 	if err != nil {
+		return s, err
+	}
+	if s, err = gateUnrolledProduct(hm, opt, initial, s, splitInfo, opt.unrolledLoops); err != nil {
 		return s, err
 	}
 	m = s.MIR2Module
@@ -736,7 +752,7 @@ func compileMIRProductSteps(hm *hir.Module, opt Options, s Steps, splitInfo map[
 		// Mandatory size comparisons must produce complete allocated code even
 		// when a search trial's MIR was seen before.
 		baselineOpt.variantMIRReady = nil
-		baselineModule := hir.LowerModuleWithOptions(hm, hir.LowerOptions{DisableCountedLoops: opt.DisableCountedLoops, CountedLoopPolicy: variantCountedPolicies(opt)})
+		baselineModule := hir.LowerModuleWithOptions(hm, lowerOptions(hm, opt, nil))
 		baseline, err := compileMIRProductSteps(hm, baselineOpt, initialSteps, splitInfo, baselineModule)
 		if err != nil {
 			return s, err
@@ -755,7 +771,7 @@ func compileMIRProductSteps(hm *hir.Module, opt Options, s Steps, splitInfo map[
 		// This is the native size gate's mandatory comparison, not a search trial.
 		// Refusing it at a cached MIR checkpoint would yield an empty product.
 		baselineOpt.variantMIRReady = nil
-		baselineModule := hir.LowerModuleWithOptions(hm, hir.LowerOptions{DisableCountedLoops: opt.DisableCountedLoops, CountedLoopPolicy: variantCountedPolicies(opt)})
+		baselineModule := hir.LowerModuleWithOptions(hm, lowerOptions(hm, opt, nil))
 		baseline, err := compileMIRProductSteps(hm, baselineOpt, initialSteps, splitInfo, baselineModule)
 		if err != nil {
 			return s, err
