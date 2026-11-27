@@ -58,3 +58,48 @@ unsigned char f2(unsigned char a, unsigned char b) { unsigned char x = a, y=b; i
 `
 	runCAssertsNative(t, "param_forward.c", source, 16)
 }
+
+// C99 6.2.1p7: an automatic object is in scope in its own initializer. The C
+// lowering registered a shadowing object's HIR name before lowering the
+// initializer but declared it only afterwards, so an initializer naming the
+// object failed with an internal "unknown variable" error. The inner reads in
+// f, and the non-shadowing self(...) read, are of an indeterminate value, so
+// only results that do not depend on them are asserted; sizeof and & of the
+// object are well defined. Expected values from a host C compiler.
+func TestC89SelfReferentialInitializerNative(t *testing.T) {
+	const source = `struct S { unsigned char a, b; };
+unsigned char f(unsigned char b) { unsigned char y = b; { unsigned char y = (unsigned char)(y + 1); y = (unsigned char)(y ^ 2); } return y; }
+unsigned char g(unsigned char b) { unsigned char n = b; { unsigned char n = sizeof n + 3; b += n; } return n + b; }
+unsigned char h(unsigned char b) { struct S s = {1,2}; { struct S s = { sizeof s, b }; b += s.a + s.b; } return s.b + b; }
+unsigned char k(unsigned char b) { unsigned char *p = 0; { unsigned char *p = (unsigned char*)&p; b += (p != 0); } return b + (p != 0); }
+unsigned char m(unsigned char b) { unsigned char y = b; { unsigned char y = (y = 4, y + 2); b += y; } return y + b; }
+unsigned short w(unsigned char b) { unsigned short n = sizeof n + b; return n; }
+// assert f(0)==0 via z80
+// assert g(0)==4 via z80
+// assert h(0)==4 via z80
+// assert k(0)==1 via z80
+// assert m(0)==6 via z80
+// assert w(0)==2 via z80
+// assert f(5)==5 via z80
+// assert g(5)==14 via z80
+// assert h(5)==14 via z80
+// assert k(5)==6 via z80
+// assert m(5)==16 via z80
+// assert w(5)==7 via z80
+// assert f(200)==200 via z80
+// assert g(200)==148 via z80
+// assert h(200)==148 via z80
+// assert k(200)==201 via z80
+// assert m(200)==150 via z80
+// assert w(200)==202 via z80
+// assert f(255)==255 via z80
+// assert g(255)==2 via z80
+// assert h(255)==2 via z80
+// assert k(255)==0 via z80
+// assert m(255)==4 via z80
+// assert w(255)==257 via z80
+unsigned char self(unsigned char b) { unsigned char y = y + 1; return b; }
+// assert self(7)==7 via z80
+`
+	runCAssertsNative(t, "self_init.c", source, 25)
+}

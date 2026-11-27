@@ -47,6 +47,7 @@
     "TestByteWordFusionCallbackRefusal",
     "TestByteWordFusionCompilationIdentity",
     "TestC89ControlEffectsNative",
+    "TestC89SelfReferentialInitializerNative",
     "TestCBoolStructReturnVMZ80",
     "TestCPMApplicationEntryAdmission",
     "TestCPMRecursiveLiveSpillRestoration",
