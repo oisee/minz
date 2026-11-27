@@ -88,6 +88,20 @@ existing corpora retain their seed-to-source and argument mappings. The original
 or the byte variables in `v8`. Its loop counters are also u16. Consequently,
 more original direct-call seeds cannot cover masked byte predicates in loops.
 
+Use `--byte-shifts --mode direct-call` for byte-heavy programs: six mutable
+`u8` variables carried across statements (enough to force byte spills), shifts
+by constants 1..3 (`>>`, `<<`, keeping the left operand's width), byte while
+loops, and the bit-accumulate step `cnt = (cnt + ((x & 1) as u16))`, an
+optional statement that leaves `x` alone, then `y = (x >> 1)` — the shape the
+Z80 backend fuses into SRL / JR NC / INC. For example:
+
+```sh
+python3 scripts/fuzz_diff.py --mz /tmp/main-mz --byte-shifts --mode direct-call --seed 0 --count 1000 -j 6 --output /tmp/fuzz-bytes
+```
+
+It is mutually exclusive with the other corpora, which keep their seed-to-source
+mappings; the tokenizer's new `<<`/`>>` tokens never occur in them.
+
 Run self-tests with `python3 scripts/test_judges.py`; `go test ./pkg/hir` also
 runs them, skipping when Python 3 is unavailable.
 

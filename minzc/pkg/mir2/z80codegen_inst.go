@@ -12,7 +12,13 @@ import (
 // ── Instructions ──────────────────────────────────────────────────────────────
 
 func (g *z80cg) genInst(inst *Inst) {
-	if g.bitAccumSkip[inst] || g.genBitAccum(inst) {
+	if g.bitAccumSkip[inst] {
+		if inst.Op == OpShr {
+			g.finishBitAccumShift(inst)
+		}
+		return
+	}
+	if g.genBitAccum(inst) {
 		return
 	}
 	if inst == g.addCarryInst {
@@ -218,10 +224,15 @@ func (g *z80cg) genInst(inst *Inst) {
 		// when neither logical operand lives there. Keep an unrelated live
 		// accumulator (for example the first argument of a following CALL).
 		var restore func()
-		if z80SpillBytes(inst.Ty) == 1 && dst != "A" && src != "A" && (isSpill(dst) || isSpill(src)) {
+		byteTransit := z80SpillBytes(inst.Ty) == 1 && dst != "A" && src != "A" && (isSpill(dst) || isSpill(src))
+		if byteTransit {
 			restore = g.saveAccIfLive(inst)
 		}
+		// saveAccIfLive has preserved a live A, so the move may stage its
+		// byte in A itself instead of the shadow A.
+		g.accTransitFree = byteTransit
 		g.emitMov(dst, src, 8*z80SpillBytes(inst.Ty))
+		g.accTransitFree = false
 		if restore != nil {
 			restore()
 		}
@@ -1588,10 +1599,7 @@ func (g *z80cg) genInst(inst *Inst) {
 			if g.spillSlotWidth(slotLoc) == 1 {
 				// Byte-typed slot: a word store would overwrite the
 				// neighbouring home. Keep the write inside the slot.
-				g.emit("    EX AF, AF'")
-				g.storeSpill8(slotLoc, "L")
-				g.emit("    EX AF, AF'")
-				g.invalidate("A") // The copy was made in shadow A, now exchanged out.
+				g.storeSpill8(slotLoc, "L") // preserves A and F
 			} else {
 				g.emitf("    LD (%s), HL", slotLoc)
 			}
