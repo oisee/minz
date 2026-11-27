@@ -132,6 +132,9 @@ func (g *z80cg) emitLDA(src string) {
 		g.emitFlagPredicateByte(g.condCode(g.fn, g.pendingFlagReg))
 		return
 	}
+	if src == "A" {
+		return // LD A,A changes nothing, flags included
+	}
 	if isSpill(src) {
 		g.emitNativeSpillf(src, 0, 1, false, "    LD A, (%s)", src)
 	} else if isPairReg(src) {

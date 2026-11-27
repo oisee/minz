@@ -98,3 +98,26 @@ func directStoreAddressConstants(f *Func, ar *AllocResult) map[Reg]bool {
 	}
 	return out
 }
+
+// directStoreViaHL reports whether a byte store of val (a register name) to a
+// direct global address may go through HL: val is a main byte register other
+// than H/L and nothing live after inst is in HL.
+func (g *z80cg) directStoreViaHL(inst *Inst, val string) bool {
+	switch val {
+	case "A", "B", "C", "D", "E":
+	default:
+		return false
+	}
+	for _, loc := range g.physOverride {
+		if loc == "HL" || loc == "H" || loc == "L" {
+			return false
+		}
+	}
+	for r := range g.regsLiveAfterInst(inst) {
+		switch g.loc(r) {
+		case "HL", "H", "L":
+			return false
+		}
+	}
+	return true
+}

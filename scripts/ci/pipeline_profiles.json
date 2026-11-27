@@ -57,6 +57,7 @@
     "TestCPMTUICanonicalHostileInputs",
     "TestCPMTetrisInvalidBoardStoreBeforeWrite",
     "TestCRCShapeLoopRegisterChoiceUnderOptSize",
+    "TestCallArgumentAddressLoadedInPlaceNative",
     "TestCallLiteralTokenizerProspective",
     "TestCallSpillLifecycleRefusals",
     "TestCallUnsignedArgumentWideningVMZ80",

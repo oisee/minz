@@ -196,15 +196,23 @@ func rawFunction(asm, name string) []string {
 }
 
 // pack_bytes lo, hi into a pair: the allocator gives lo the pair's low byte
-// and hi its high byte, so the two loads land in place and the pack emits no
-// copy (previously LD D,(HL) / INC HL / LD E,(HL) and a PUSH AF byte swap).
+// and hi its high byte, so the two loads land in place and the pack emits at
+// most one byte copy (previously LD D,(HL) / INC HL / LD E,(HL) and a
+// PUSH AF byte swap).  The one copy is the HL form that appears once the
+// pointer is reassociated into HL: LD C,(HL) / INC HL / LD H,(HL) / LD L,C,
+// where the high byte overwrites the dying pointer in place.
 func TestPackBytesLaneHomesNative(t *testing.T) {
 	eachGlobalsMode(t, fat12Program, func(t *testing.T, language, mode, asm string) {
 		lines := rawFunction(asm, "fat12_decode")
 		for i, ln := range lines {
 			if strings.HasPrefix(ln, "; pack disjoint byte lanes") {
-				if i+1 < len(lines) && (strings.HasPrefix(lines[i+1], "LD ") || strings.HasPrefix(lines[i+1], "PUSH")) {
-					t.Fatalf("pack still copies bytes:\n%s", strings.Join(lines, "\n"))
+				// A crossed pack is a swap inside one pair (LD D,E / LD E,A …).
+				for _, next := range lines[i+1 : min(i+5, len(lines))] {
+					for _, swap := range []string{"LD D, E", "LD E, D", "LD H, L", "LD L, H", "LD B, C", "LD C, B"} {
+						if next == swap {
+							t.Fatalf("pack still swaps bytes:\n%s", strings.Join(lines, "\n"))
+						}
+					}
 				}
 			}
 			if strings.HasPrefix(ln, "PUSH AF") {
@@ -240,4 +248,35 @@ func TestReassociatedPointerOffsetNative(t *testing.T) {
 		t.Fatalf("pointer not advanced by two consecutive ADD HL steps:\n%s", strings.Join(lines, "\n"))
 	})
 	eachGlobalsMode(t, wrapIndexProgram, func(t *testing.T, language, mode, asm string) {})
+}
+
+var addressArgument = regexp.MustCompile(`^LD (HL|DE|BC|IX|IY), values$`)
+
+// A global address used only as a call argument is loaded straight into the
+// parameter register after the other argument copies; it no longer holds a
+// pair from its definition and gets shuffled into place.
+func TestCallArgumentAddressLoadedInPlaceNative(t *testing.T) {
+	for _, p := range []globalsProgram{fat12Program, wrapIndexProgram} {
+		callee := "fat12_decode"
+		if p.name == "wrapindex" {
+			callee = "get"
+		}
+		eachGlobalsMode(t, p, func(t *testing.T, language, mode, asm string) {
+			lines := asmFunction(asm, "execute")
+			for i, ln := range lines {
+				if strings.HasPrefix(ln, "CALL "+callee) {
+					if i == 0 || !addressArgument.MatchString(lines[i-1]) {
+						t.Fatalf("address argument not loaded at the call:\n%s", strings.Join(lines, "\n"))
+					}
+					for _, prev := range lines[:i-1] {
+						if strings.Contains(prev, "values") {
+							t.Fatalf("address materialised early:\n%s", strings.Join(lines, "\n"))
+						}
+					}
+					return
+				}
+			}
+			t.Fatalf("no call to %s:\n%s", callee, strings.Join(lines, "\n"))
+		})
+	}
 }

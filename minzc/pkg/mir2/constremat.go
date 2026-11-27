@@ -160,6 +160,14 @@ func constRematCandidates(f *Func, ar *AllocResult, lr *LivenessResult, ct CostT
 	// A direct-store address always interferes with the value it stores, so
 	// its reserved home is always contested (directStoreAddressConstants).
 	directStore := directStoreAddressConstants(f, ar)
+	// A call-argument address occupies a pair up to the call, where the
+	// argument copy has to shuffle it into the parameter register.
+	for r := range callArgumentAddressConstants(f, ar) {
+		if directStore == nil {
+			directStore = map[Reg]bool{}
+		}
+		directStore[r] = true
+	}
 	var candidates map[Reg]bool
 	for r := range eligible {
 		if !spilled && !liveAcrossCall[r] && len(blockers) == 0 && !directStore[r] {
