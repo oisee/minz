@@ -264,6 +264,7 @@
     "TestImmediateIndexGlobalReadWriteNative",
     "TestImmediateIndexHostGlobalWide",
     "TestImmediateIndexNativeWrap",
+    "TestInIntervalByteConstantNotLoaded",
     "TestIndexedActualHistoricalENRT",
     "TestIndexedHistoricalTripleNative",
     "TestIndexedLoopPointerWalkNative",
