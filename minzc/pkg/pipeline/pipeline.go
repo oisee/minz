@@ -544,6 +544,7 @@ func compileMIRProductSteps(hm *hir.Module, opt Options, s Steps, splitInfo map[
 			}
 		}
 		mir2.HoistDiamondCommon(f)
+		mir2.SinkIntoSingleUseSuccessor(f)
 		if !variantFor(opt, f.Name).BitTests {
 			mir2.PrepareShiftCarry(f)
 		}

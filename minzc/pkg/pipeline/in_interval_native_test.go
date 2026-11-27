@@ -159,3 +159,32 @@ func TestInIntervalByteConstantNotLoaded(t *testing.T) {
 		}
 	})
 }
+
+// The bound is used only after the first compare succeeds: it is computed in
+// that successor alone (mir2.SinkIntoSingleUseSuccessor), and the compare
+// reads it from A where the add left it, with value read from the register it
+// was moved to (byteResultStaysInA, readsRelocatedLastUse) — no copy of the
+// bound to its home and no reload of value into A.
+func TestInIntervalBoundSunkAndComparedInA(t *testing.T) {
+	alu := regexp.MustCompile(`^(ADD A, 31|SUB 100)$`)
+	forEachInInterval(t, func(t *testing.T, tc inIntervalCase, size bool, b inIntervalBuild) {
+		lines := strings.Split(b.body, "\n")
+		branched := false
+		for i, line := range lines {
+			if strings.HasPrefix(line, "JR") || strings.HasPrefix(line, "JP") || strings.HasPrefix(line, "RET ") {
+				branched = true
+			}
+			if !alu.MatchString(line) {
+				continue
+			}
+			if !branched {
+				t.Fatalf("bound computed before the first branch:\n%s", b.body)
+			}
+			if i+1 >= len(lines) || !strings.HasPrefix(lines[i+1], "CP ") {
+				t.Fatalf("bound not compared in A right after it is computed:\n%s", b.body)
+			}
+			return
+		}
+		t.Fatalf("bound arithmetic not found:\n%s", b.body)
+	})
+}

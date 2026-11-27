@@ -323,7 +323,9 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 			} else {
 				g.emit8ALU(mnem, rhs)
 			}
-			if dst != "A" {
+			if dst != "A" && g.byteResultStaysInA(inst) {
+				g.physOverride[inst.Dst] = "A"
+			} else if dst != "A" {
 				g.emitLD8(dst, "A")
 				g.setCopy(dst, "A")
 			} else {
@@ -380,7 +382,9 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 				g.emit8ALU(mnem, rhs)
 			}
 			g.invalidate("A") // ALU result is a new value — break old lhs alias
-			if dst != "A" {
+			if dst != "A" && g.byteResultStaysInA(inst) {
+				g.physOverride[inst.Dst] = "A"
+			} else if dst != "A" {
 				g.emitLD8(dst, "A")
 				g.setCopy(dst, "A")
 			} else {

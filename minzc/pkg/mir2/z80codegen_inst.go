@@ -80,7 +80,7 @@ func (g *z80cg) genInst(inst *Inst) {
 			continue
 		}
 		loc := g.physOverride[r]
-		if g.ar.Loc(r).Name == "A" && loc != "A" && loc != "F" {
+		if g.ar.Loc(r).Name == "A" && loc != "A" && loc != "F" && !g.readsRelocatedLastUse(inst, r, loc, liveAfter) {
 			g.emitLD8("A", loc)
 			delete(g.physOverride, r)
 			g.invalidate("A")
@@ -534,6 +534,13 @@ func (g *z80cg) genInst(inst *Inst) {
 
 	case OpCmp:
 		g.genCmp(inst)
+		// A byte result kept in A for this comparison (byteResultStaysInA)
+		// dies here; A is free again for the predicate copy and edge copies.
+		for _, r := range inst.Src {
+			if g.physOverride[r] == "A" && g.ar.Loc(r).Name != "A" && !g.regsLiveAfterInst(inst)[r] {
+				delete(g.physOverride, r)
+			}
+		}
 		// ClassFlag has finite-cost byte/spill homes. A coalesced Move can
 		// disappear, so the comparison itself must publish a canonical byte
 		// when allocation chose such a home. Branch-only predicates, including
@@ -1728,4 +1735,82 @@ func (g *z80cg) accumulatorHoldsLiveValue(inst *Inst) bool {
 		}
 	}
 	return false
+}
+
+// readsRelocatedLastUse reports whether a byte comparison may read r from the
+// scratch register its A home was relocated to, instead of first copying it
+// back: r dies at the comparison (so no later code expects it in A), the
+// scratch is an ordinary byte register the comparison does not write, and
+// genCmp reads both byte operands through g.loc (CP r, or LD A,r / CP r).
+// Returning r to A would cost a load and, when the other operand was just
+// computed in A, force that operand out of A.
+func (g *z80cg) readsRelocatedLastUse(inst *Inst, r Reg, loc string, liveAfter map[Reg]bool) bool {
+	if inst.Op != OpCmp || liveAfter[r] || (inst.Src[0] != r && inst.Src[1] != r) {
+		return false
+	}
+	switch loc {
+	case "B", "C", "D", "E", "H", "L":
+	default:
+		return false
+	}
+	if g.wideComparisonOperand(inst, inst.Src[0]) || g.wideComparisonOperand(inst, inst.Src[1]) ||
+		inst.SrcTy != nil && inst.SrcTy.Width() > 8 {
+		return false
+	}
+	for _, w := range instWrites(inst) {
+		if z80spec.Overlaps(g.loc(w), loc) {
+			return false
+		}
+	}
+	return true
+}
+
+// byteResultStaysInA reports whether an 8-bit ALU result just computed in A
+// may stay there for its only use instead of being copied to its allocated
+// home: the use is the next instruction, a byte comparison (which reads both
+// operands through g.loc, so CP r with the result in A), the result is read
+// nowhere else, and no A-homed value relocated to a scratch register will be
+// copied back into A before that comparison reads it (readsRelocatedLastUse
+// holds for every such value the comparison keeps live).
+func (g *z80cg) byteResultStaysInA(inst *Inst) bool {
+	b := g.curBlock
+	i := g.curInstIdx
+	if b == nil || i < 0 || i+1 >= len(b.Insts) || b.Insts[i] != inst || inst.Dst == NoReg || inst.Ty == nil || inst.Ty.Width() != 8 {
+		return false
+	}
+	next := b.Insts[i+1]
+	if next.Op != OpCmp || next.Src[0] == next.Src[1] || (next.Src[0] != inst.Dst && next.Src[1] != inst.Dst) ||
+		g.wideComparisonOperand(next, next.Src[0]) || g.wideComparisonOperand(next, next.Src[1]) ||
+		next.SrcTy != nil && next.SrcTy.Width() > 8 || isSignedOrdering(next) {
+		return false
+	}
+	if g.fnUseCounts()[inst.Dst] != 1 || g.regsLiveAfterInst(next)[inst.Dst] {
+		return false
+	}
+	other := next.Src[0]
+	if other == inst.Dst {
+		other = next.Src[1]
+	}
+	if _, constant := g.constVals[other]; !constant {
+		loc := g.loc(other)
+		switch loc {
+		case "B", "C", "D", "E", "H", "L":
+		default:
+			return false
+		}
+	}
+	liveAfter := g.regsLiveAfterInst(next)
+	for r, loc := range g.physOverride {
+		if r == inst.Dst || g.ar.Loc(r).Name != "A" || loc == "A" || loc == "F" {
+			continue
+		}
+		read := next.Src[0] == r || next.Src[1] == r
+		if !read && !liveAfter[r] {
+			continue // dropped, not restored, at the comparison
+		}
+		if !g.readsRelocatedLastUse(next, r, loc, liveAfter) {
+			return false
+		}
+	}
+	return true
 }
