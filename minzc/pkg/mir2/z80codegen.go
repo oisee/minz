@@ -1092,7 +1092,9 @@ func computeDeadConsts(f *Func, ar *AllocResult) map[Reg]bool {
 		}
 	}
 	if len(constVal) == 0 {
-		return nil
+		// Without value constants only the direct-store addresses (which need
+		// no constant table) can be dead here.
+		return directStoreAddressConstants(f, ar)
 	}
 
 	physName := func(r Reg) string {
@@ -1249,6 +1251,9 @@ func computeDeadConsts(f *Func, ar *AllocResult) map[Reg]bool {
 		}
 	}
 	for r := range deadAddressConstants(f) {
+		dead[r] = true
+	}
+	for r := range directStoreAddressConstants(f, ar) {
 		dead[r] = true
 	}
 	return dead

@@ -132,6 +132,7 @@
     "TestDemandedBytePromotionNative",
     "TestDiamondCommonShiftVMZ80",
     "TestDiamondDivisionSpillSeedsVMZ80",
+    "TestDirectStoreAddressHoldsNoHomeNative",
     "TestDivModModuleVMZ80",
     "TestErrorABIRejectsUnimplementedBackend",
     "TestErrorABIRejectsUnsupportedBeforeLowering",

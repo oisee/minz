@@ -157,9 +157,12 @@ func constRematCandidates(f *Func, ar *AllocResult, lr *LivenessResult, ct CostT
 		blockers = indexHalfBlockers(f, ar, lr, eligible, costs, locs)
 	}
 	liveAcrossCall := liveAcrossCallRegs(f, lr)
+	// A direct-store address always interferes with the value it stores, so
+	// its reserved home is always contested (directStoreAddressConstants).
+	directStore := directStoreAddressConstants(f, ar)
 	var candidates map[Reg]bool
 	for r := range eligible {
-		if !spilled && !liveAcrossCall[r] && len(blockers) == 0 {
+		if !spilled && !liveAcrossCall[r] && len(blockers) == 0 && !directStore[r] {
 			continue
 		}
 		if candidates == nil {
