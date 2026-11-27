@@ -115,3 +115,36 @@ func TestShiftCarryNudgeOnlyWhenRequested(t *testing.T) {
 		t.Fatalf("preferred home %v, want A (plain %v)", pref.Loc(shifted2), plain.Loc(shifted))
 	}
 }
+
+// A parameter that is itself the shifted value keeps its (ABI) costs.
+func TestShiftCarryNudgeSkipsParameters(t *testing.T) {
+	f := &Func{Name: "sp"}
+	b := NewBuilder(f)
+	b.SwitchToNewBlock("entry")
+	p := b.Param("p", TyU8, ClassGeneral)
+	bit := b.BitGet(p, 7, TyU8, ClassGeneral)
+	zero := b.Const(0, TyU8, ClassGeneral)
+	k := b.Const(1, TyU8, ClassGeneral)
+	cond := b.Cmp(CmpNe, bit, zero, ClassFlag, false)
+	shifted := b.Shl(p, k, TyU8, ClassGeneral)
+	b.BrIf(cond, "a", nil, "b", nil)
+	b.SwitchToNewBlock("a")
+	b.Ret(shifted)
+	b.SwitchToNewBlock("b")
+	b.Ret(shifted)
+	before := shiftCarryStates(f, Z80PhysLocs)
+	after := shiftCarryStates(f, Z80PhysLocs)
+	applyShiftCarryAffinityNudge(f, after, Z80PhysLocs)
+	for i := range Z80PhysLocs {
+		if after[p].costs[i] != before[p].costs[i] {
+			t.Fatalf("parameter cost changed at %v", Z80PhysLocs[i])
+		}
+	}
+	changed := false
+	for i := range Z80PhysLocs {
+		changed = changed || after[shifted].costs[i] != before[shifted].costs[i]
+	}
+	if !changed {
+		t.Fatal("the shift result itself must still be nudged")
+	}
+}
