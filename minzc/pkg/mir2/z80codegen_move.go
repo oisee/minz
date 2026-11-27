@@ -234,28 +234,31 @@ func (g *z80cg) emitLD8(dst, src string) {
 	}
 	dstSpill := isSpill(dst)
 	srcSpill := isSpill(src)
+	// A spill transit stages the byte in A. It runs in the shadow A
+	// (EX AF,AF' preserves A and F) unless the caller has proved A free.
+	enter, leave := func() { g.emit("    EX AF, AF'") }, func() { g.emit("    EX AF, AF'") }
+	if g.accTransitFree {
+		enter, leave = func() {}, func() { g.invalidate("A") }
+	}
 	if srcSpill && dstSpill {
-		// Spill-to-spill: route through shadow A.
-		g.emit("    EX AF, AF'")
+		enter()
 		g.emitNativeSpillf(src, 0, 1, false, "    LD A, (%s)", src)
 		g.emitNativeSpillf(dst, 0, 1, true, "    LD (%s), A", dst)
-		g.emit("    EX AF, AF'")
+		leave()
 	} else if srcSpill && dst == "A" {
 		g.emitNativeSpillf(src, 0, 1, false, "    LD A, (%s)", src)
 	} else if srcSpill {
-		// Load spill to non-A register via shadow A.
-		g.emit("    EX AF, AF'")
+		enter()
 		g.emitNativeSpillf(src, 0, 1, false, "    LD A, (%s)", src)
 		g.emitLD8(dst, "A")
-		g.emit("    EX AF, AF'")
+		leave()
 	} else if dstSpill && src == "A" {
 		g.emitNativeSpillf(dst, 0, 1, true, "    LD (%s), A", dst)
 	} else if dstSpill {
-		// Store non-A register to spill via shadow A.
-		g.emit("    EX AF, AF'")
+		enter()
 		g.emitf("    LD A, %s", src)
 		g.emitNativeSpillf(dst, 0, 1, true, "    LD (%s), A", dst)
-		g.emit("    EX AF, AF'")
+		leave()
 	} else {
 		g.emitf("    LD %s, %s", dst, src)
 	}
