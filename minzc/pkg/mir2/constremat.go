@@ -157,9 +157,13 @@ func constRematCandidates(f *Func, ar *AllocResult, lr *LivenessResult, ct CostT
 		blockers = indexHalfBlockers(f, ar, lr, eligible, costs, locs)
 	}
 	liveAcrossCall := liveAcrossCallRegs(f, lr)
-	// A direct-store address always interferes with the value it stores, so
-	// its reserved home is always contested (directStoreAddressConstants).
-	directStore := directStoreAddressConstants(f, ar)
+	// A direct-store address interferes with the value it stores; its home
+	// is contested when the trial put it where that value is cheapest
+	// (fat12's caller: the address sat in HL, the call result came back in
+	// HL and was copied to DE).  Otherwise the re-solve only re-ties the
+	// allocation: a stored constant 0 took HL from a pointer
+	// (d04_ptr_untyped_param, +3 bytes).
+	directStore := contestedDirectStores(f, ar, costs, locs)
 	// A call-argument address occupies a pair up to the call, where the
 	// argument copy has to shuffle it into the parameter register.
 	for r := range callArgumentAddressConstants(f, ar) {

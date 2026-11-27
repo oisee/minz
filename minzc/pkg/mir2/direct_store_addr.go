@@ -27,6 +27,40 @@ package mir2
 // ar == nil the value-location condition cannot be checked and nothing is
 // returned.
 func directStoreAddressConstants(f *Func, ar *AllocResult) map[Reg]bool {
+	out := map[Reg]bool{}
+	for r := range directStoreAddressValues(f, ar) {
+		out[r] = true
+	}
+	if len(out) == 0 {
+		return nil
+	}
+	return out
+}
+
+// contestedDirectStores returns the direct-store addresses whose trial home
+// under ar is a location the stored value's cost vector prices strictly
+// below the value's own trial home.
+func contestedDirectStores(f *Func, ar *AllocResult, costs map[Reg][]int, locs []PhysLoc) map[Reg]bool {
+	idx := locIndex(locs)
+	var out map[Reg]bool
+	for addr, value := range directStoreAddressValues(f, ar) {
+		cv := costs[value]
+		i, ok1 := idx[ar.Locs[addr]]
+		j, ok2 := idx[ar.Locs[value]]
+		if !ok1 || !ok2 || i >= len(cv) || j >= len(cv) || cv[i] >= cv[j] {
+			continue
+		}
+		if out == nil {
+			out = map[Reg]bool{}
+		}
+		out[addr] = true
+	}
+	return out
+}
+
+// directStoreAddressValues maps each address directStoreAddressConstants
+// reports to the value its store writes.
+func directStoreAddressValues(f *Func, ar *AllocResult) map[Reg]Reg {
 	if f == nil || f.mod == nil || ar == nil {
 		return nil
 	}
@@ -64,7 +98,7 @@ func directStoreAddressConstants(f *Func, ar *AllocResult) map[Reg]bool {
 			}
 		}
 	}
-	var out map[Reg]bool
+	var out map[Reg]Reg
 	for _, b := range f.Blocks {
 		local := map[Reg]*Inst{}
 		for _, inst := range b.Insts {
@@ -91,9 +125,9 @@ func directStoreAddressConstants(f *Func, ar *AllocResult) map[Reg]bool {
 				continue
 			}
 			if out == nil {
-				out = map[Reg]bool{}
+				out = map[Reg]Reg{}
 			}
-			out[addr] = true
+			out[addr] = value
 		}
 	}
 	return out
