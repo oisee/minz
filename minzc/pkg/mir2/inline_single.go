@@ -7,11 +7,55 @@ type SingleCallInlineStats struct {
 	KeepCallers         map[string]bool
 	InlinedCallers      map[string]bool
 	ExportCopies        int
+	// SpeedExportCopies admits, besides the parameterless straight-line
+	// exports, a small loop-free exported leaf with parameters and branches
+	// (ExportSpeedCopyMaxInsts, ExportSpeedCopyMaxBlocks). Its copy always
+	// grows the module, so the caller must gate it on measured speed.
+	SpeedExportCopies bool
+	// SpeedCopies records each such copy: callee name -> caller name.
+	SpeedCopies map[string]string
+}
+
+// Bounds for a speed-only export copy: the copied body is at most this many
+// MIR instructions (terminators excluded, counted on the lowered MIR the
+// single-call inliner sees, before constant folding) in at most this many
+// blocks.
+const (
+	ExportSpeedCopyMaxInsts  = 16
+	ExportSpeedCopyMaxBlocks = 8
+)
+
+// acyclicBlocks reports whether f's CFG has no cycle (a loop-free leaf runs
+// each block at most once per call, so its copy executes no more often).
+func acyclicBlocks(f *Func) bool {
+	state := map[string]int{}
+	var visit func(label string) bool
+	visit = func(label string) bool {
+		switch state[label] {
+		case 1:
+			return false
+		case 2:
+			return true
+		}
+		state[label] = 1
+		if b := f.BlockByLabel(label); b != nil && b.Term != nil {
+			for _, s := range b.Term.Successors() {
+				if !visit(s) {
+					return false
+				}
+			}
+		}
+		state[label] = 2
+		return true
+	}
+	return visit(f.Entry().Label)
 }
 
 // InlineSingleCallSites removes the size limit for private single-use bodies.
 // Exported straight-line, parameterless leaf helpers may be copied, but their
 // callable definitions are retained by the ordinary export/pruning roots.
+// With SpeedExportCopies, so may a small loop-free exported leaf (see
+// SingleCallInlineStats); such copies are reported in SpeedCopies.
 func InlineSingleCallSites(m *Module, exported map[string]bool, stats ...*SingleCallInlineStats) bool {
 	counts := map[string]int{}
 	address := map[string]bool{}
@@ -68,6 +112,7 @@ func InlineSingleCallSites(m *Module, exported map[string]bool, stats ...*Single
 		return visit(start)
 	}
 	eligible := map[string]*Func{}
+	speedOnly := map[string]bool{}
 	for _, f := range m.Funcs {
 		// Absence from the pruning roots is not evidence of private linkage.
 		// Runtime helpers may be Internal yet callable by a provider's name.
@@ -108,14 +153,22 @@ func InlineSingleCallSites(m *Module, exported map[string]bool, stats ...*Single
 			if len(stats) > 0 && stats[0] != nil && stats[0].DisableExportCopies {
 				continue
 			}
-			if len(f.Blocks) != 1 || len(f.Contract.Params) != 0 {
-				safe = false
-			}
+			narrow := len(f.Blocks) == 1 && len(f.Contract.Params) == 0
+			insts := 0
 			for _, b := range f.Blocks {
+				insts += len(b.Insts)
 				for _, x := range b.Insts {
 					if x.Op == OpCall || x.Op == OpCallCond || x.Op == OpCallIndirect || x.Op == OpStore || x.Volatile {
 						safe = false
 					}
+				}
+			}
+			if !narrow {
+				if len(stats) == 0 || stats[0] == nil || !stats[0].SpeedExportCopies ||
+					len(f.Blocks) > ExportSpeedCopyMaxBlocks || insts > ExportSpeedCopyMaxInsts || len(f.StaticLoops) > 0 || !acyclicBlocks(f) {
+					safe = false
+				} else if safe {
+					speedOnly[f.Name] = true
 				}
 			}
 		}
@@ -168,6 +221,12 @@ func InlineSingleCallSites(m *Module, exported map[string]bool, stats ...*Single
 					localInlineCSE(m, caller)
 					if exported[callee.Name] && len(stats) > 0 && stats[0] != nil {
 						stats[0].ExportCopies++
+						if speedOnly[callee.Name] {
+							if stats[0].SpeedCopies == nil {
+								stats[0].SpeedCopies = map[string]string{}
+							}
+							stats[0].SpeedCopies[callee.Name] = caller.Name
+						}
 					}
 					delete(eligible, callee.Name)
 					progress = true

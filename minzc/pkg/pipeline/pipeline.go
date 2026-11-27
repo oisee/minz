@@ -441,6 +441,9 @@ func compileMIRProductSteps(hm *hir.Module, opt Options, s Steps, splitInfo map[
 	initialSteps := s
 	inlineStats := &mir2.SingleCallInlineStats{DisableExportCopies: opt.disableExportCopies || opt.Backend != "" && opt.Backend != "z80" || opt.SkipZ80Emission}
 	inlineStats.InlinedCallers = opt.variantInlinedCallers
+	// Speed profile only: a small loop-free exported leaf may be copied too,
+	// kept only when the static model shows its caller faster (below).
+	inlineStats.SpeedExportCopies = !opt.OptSize
 	inlineStats.KeepCallers = map[string]bool{}
 	for name, v := range opt.FunctionVariants {
 		inlineStats.KeepCallers[name] = v.KeepCalls
@@ -792,7 +795,12 @@ func compileMIRProductSteps(hm *hir.Module, opt Options, s Steps, splitInfo map[
 		}
 		candidateBytes, candidateErrors := Assemble(s.Assembly, "z80")
 		baselineBytes, baselineErrors := Assemble(baseline.Assembly, "z80")
-		if len(candidateErrors) != 0 || len(baselineErrors) != 0 || len(candidateBytes) > len(baselineBytes) {
+		if len(candidateErrors) != 0 || len(baselineErrors) != 0 {
+			return baseline, nil
+		}
+		if len(candidateBytes) > len(baselineBytes) &&
+			(len(inlineStats.SpeedCopies) == 0 || len(candidateBytes) > len(baselineBytes)+exportSpeedCopyMaxGrowth ||
+				!exportSpeedCopiesFaster(s, baseline, inlineStats.SpeedCopies)) {
 			return baseline, nil
 		}
 	}

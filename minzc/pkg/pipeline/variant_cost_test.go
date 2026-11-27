@@ -51,7 +51,10 @@ func TestVariantSearchScorerVMZ80(t *testing.T) {
 			if e != nil {
 				t.Fatal(e)
 			}
-			s, e := CompileHIRSteps(h, Options{DisableVariantSearch: true, AssertMode: "none", FunctionVariants: map[string]FunctionVariant{"probe": {Counted: policy}}})
+			// The permitted recipe's split helper has one call site; a
+			// speed export copy would inline it back and remove the very
+			// boundary this candidate is about (it then wins, 237214T).
+			s, e := CompileHIRSteps(h, Options{DisableVariantSearch: true, AssertMode: "none", disableExportCopies: true, FunctionVariants: map[string]FunctionVariant{"probe": {Counted: policy}}})
 			if e != nil {
 				t.Fatal(e)
 			}

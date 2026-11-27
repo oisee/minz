@@ -59,6 +59,13 @@ fun alias(p: WordPtr) -> u16 { return p[1] }`, 0x7856},
 				if elem := mir2.PointerElem(h.FuncByName(c.name).Params[0].Ty); elem != mir2.TyU16 && elem != mir2.TyI16 {
 					t.Fatalf("lost element type: %v", elem)
 				}
+				if c.name == "relay" {
+					// The fixture is about the pointer-return call ABI. Naming
+					// identity as an entry keeps that call: otherwise the
+					// speed profile copies this small loop-free export into
+					// relay (mir2 SpeedExportCopies).
+					h.FuncByName("identity").ReferencedByName = true
+				}
 				options := Options{UseHIRGrace: grace, UseGrace: grace, ContractOpt: true}
 				s, err := CompileHIRSteps(h, options)
 				if err != nil {

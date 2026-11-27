@@ -68,7 +68,11 @@ func TestVariantSearchNestedVMZ80(t *testing.T) {
 		maxT         int
 	}{
 		{"winning", variantWinningNest, []int64{93, 9}, 237, 2, 2327},
-		{"losing", variantLosingNest, []int64{108, 199}, 225, 1, 0},
+		// "losing" names the permitted recipe as compiled with its split
+		// helper called. Since speed export copies inline that helper back,
+		// the permitted (two counted loops) product wins: 226796T 86B,
+		// against 248031T 149B with one counted loop before.
+		{"losing", variantLosingNest, []int64{108, 199}, 225, 2, 0},
 		{"campaign", variantCampaignLoop, []int64{146, 182}, 198, 0, 65226},
 	} {
 		t.Run(tc.name, func(t *testing.T) {

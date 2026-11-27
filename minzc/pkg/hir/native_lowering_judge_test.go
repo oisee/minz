@@ -172,6 +172,10 @@ func TestExhaustiveJudgeNativeLoweringCases(t *testing.T) {
 	}, 0})
 	w := fn("w", []mir2.Ty{u16, u16}, u16, v("a", u16))
 	w.Body = hir.Blk(hir.If(bin("<", v("a", u16), v("b", u16), mir2.TyBool), hir.Blk(hir.Ret(bin("-", v("b", u16), v("a", u16), u16))), nil), hir.Ret(bin("-", v("a", u16), v("b", u16), u16)))
+	// h_c4 judges a value preserved across the call to w. In the speed
+	// profile a small loop-free single-call export may be copied into its
+	// caller (mir2 SpeedExportCopies); naming w as an entry keeps the call.
+	w.ReferencedByName = true
 	c4 := fn("h_c4", []mir2.Ty{u16, u16}, u16, bin("+", call("w", []hir.Expr{v("a", u16), k(1000, u16)}, u16), v("b", u16), u16))
 	fixtures = append(fixtures, fixture{"h_c4", []*hir.Func{w, c4}, 65536, func(i int) []int64 { return []int64{int64(i), 7} }, func(a []int64) int64 {
 		d := a[0] - 1000
