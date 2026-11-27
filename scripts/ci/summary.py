@@ -41,8 +41,8 @@ elif job == 'sweep' and (root / 'sweep.json').exists():
         lines += [f'{key}: {len(report[key])}']
     lines += ['', 'Changed sources (first 100; all details in the artifact):', '']
     lines += [f'- `{r["file"]}`' for r in report['output_changes'][:100]] or ['None.']
-elif job in ('fuzz', 'fuzz-direct') and (root / 'results.json').exists():
-    if job == 'fuzz-direct':
+elif job in ('fuzz', 'fuzz-direct', 'fuzz-bytes') and (root / 'results.json').exists():
+    if job in ('fuzz-direct', 'fuzz-bytes'):
         lines += ['Direct-call findings and tool errors fail the job.', '']
     counts = {}
     failures = []

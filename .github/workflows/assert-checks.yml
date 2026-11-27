@@ -71,6 +71,8 @@ jobs:
             name: Short fuzz
           - job: fuzz-direct
             name: Direct-call fuzz findings
+          - job: fuzz-bytes
+            name: Byte-shift fuzz findings
     steps:
       - uses: actions/checkout@v4
         with:
