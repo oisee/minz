@@ -2188,6 +2188,13 @@ type GracePassOptions struct {
 	DisableInvariantAddressHoist bool
 }
 
+// graceRoundBudget rule applications form one budget; at most
+// graceRoundBudgets budgets run per function.
+const (
+	graceRoundBudget  = 50
+	graceRoundBudgets = 8
+)
+
 func RunGracePassesWithOptions(f *Func, stats *GraceStats, options GracePassOptions) bool {
 	rules, err := loadAllRules()
 	if err != nil {
@@ -2197,7 +2204,22 @@ func RunGracePassesWithOptions(f *Func, stats *GraceStats, options GracePassOpti
 	reg := buildRegistry(f)
 	graph := FuncAsMutGraph(f)
 
-	result := grace.ApplyRules(graph, rules, reg, 50)
+	result := grace.ApplyRules(graph, rules, reg, graceRoundBudget)
+	// The round budget guards against rules that undo each other; it is not a
+	// profitability limit. A function with more rewrites than one budget (for
+	// example a fully unrolled loop: every copy brings its own dead
+	// conversions, one block per round) would otherwise keep the rest of them
+	// and starve the lower-priority rules. Continue in further budgets while
+	// the previous one was used up, with a fixed overall bound. A function that
+	// converges within the first budget is rewritten exactly as before.
+	for extra := 1; extra < graceRoundBudgets && result.Rounds == graceRoundBudget; extra++ {
+		more := grace.ApplyRules(graph, rules, reg, graceRoundBudget)
+		result.Applied += more.Applied
+		result.Rounds = more.Rounds
+		for name, count := range more.ByRule {
+			result.ByRule[name] += count
+		}
+	}
 
 	// Run shape-fact-driven passes after declarative Grace rules.
 

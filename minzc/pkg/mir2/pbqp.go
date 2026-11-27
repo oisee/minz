@@ -302,7 +302,10 @@ func pbqpSolve(f *Func, lr *LivenessResult, ct CostTable, remat map[Reg]bool) *A
 	applyMul16DEAffinityNudge(f, states, allLocs)     // mul16 rhs → DE (skip LD D/E setup, 8T)
 	applyDJNZCounterAffinityNudge(f, states, allLocs) // DJNZ counter → B (skip LD B,r, 4T)
 
-	if _, z80 := ct.(Z80CostTable); z80 {
+	if z, z80 := ct.(Z80CostTable); z80 {
+		if !z.OptimizeForSize {
+			applyShiftCarryAffinityNudge(f, states, allLocs) // carry shl → A (ADD A,A, 4T)
+		}
 		applyByteMemoryCosts(f, lr, states, allLocs)
 		if ct.(Z80CostTable).AccumulatorPressure {
 			applyAccumulatorPressureCosts(f, lr, states, allLocs)

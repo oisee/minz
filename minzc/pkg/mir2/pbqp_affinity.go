@@ -228,3 +228,83 @@ func applyDJNZCounterAffinityNudge(f *Func, states map[Reg]*regState, allLocs []
 	}
 }
 
+// ShiftCarryAReward is the T-state saving of a byte one-bit left shift whose
+// carry drives the following branch when it runs in A: codegen emits
+// ADD A,A (4T, 1 byte) instead of SLA r (8T, 2 bytes). ClassGeneral prices A
+// above C/D/E/H/L, so without this term a chain of such tests (a CRC or a
+// shift-and-add step, straight-line or unrolled) is homed in C and pays
+// LD C,A / SLA C / LD A,C plus an edge copy per step.
+const ShiftCarryAReward = 4
+
+// applyShiftCarryAffinityNudge prefers A for the source and result of every
+// byte shl-by-one that PrepareShiftCarry placed as the last instruction of a
+// block, after the zero/nonzero comparison its branch consumes. It lowers the
+// A cost to zero and raises the other register costs by ShiftCarryAReward;
+// the solver still weighs interference and every later cost term.
+func applyShiftCarryAffinityNudge(f *Func, states map[Reg]*regState, allLocs []PhysLoc) {
+	idxA := -1
+	for i, loc := range allLocs {
+		if loc.Kind == LocReg && loc.Name == "A" {
+			idxA = i
+		}
+	}
+	if idxA < 0 {
+		return
+	}
+	consts := map[Reg]int64{}
+	for _, b := range f.Blocks {
+		for _, i := range b.Insts {
+			if i.Op == OpConst {
+				consts[i.Dst] = i.Imm
+			}
+		}
+	}
+	nudge := func(r Reg) {
+		rs, ok := states[r]
+		if !ok || rs.costs[idxA] >= InfCost {
+			return
+		}
+		for i, loc := range allLocs {
+			if i == idxA || loc.Kind != LocReg || rs.costs[i] >= InfCost {
+				continue
+			}
+			rs.costs[i] += ShiftCarryAReward
+		}
+		// ClassGeneral's per-use A surcharge exists so ClassAcc values win A;
+		// it does not apply to a value whose own instruction is fastest in A.
+		rs.costs[idxA] = 0
+	}
+	// A test at a loop header carries its value around the back edge; there
+	// the measured allocation axes of the variant search choose the homes
+	// (and this cost term was measured to steer them to a worse product).
+	// Straight-line chains (hand-written or unrolled) have no such search.
+	dom := reachableDominators(f)
+	header := map[string]bool{}
+	for _, p := range f.Blocks {
+		if p.Term == nil {
+			continue
+		}
+		for _, s := range p.Term.Successors() {
+			if dom[p.Label][s] {
+				header[s] = true
+			}
+		}
+	}
+	for _, b := range f.Blocks {
+		br, ok := b.Term.(*TermBrIf)
+		n := len(b.Insts)
+		if !ok || n < 2 || header[b.Label] {
+			continue
+		}
+		cmp, shift := b.Insts[n-2], b.Insts[n-1]
+		if cmp.Op != OpCmp || cmp.Dst != br.Cond || cmp.Cond != CmpEq && cmp.Cond != CmpNe ||
+			shift.Op != OpShl || shift.Ty == nil || shift.Ty.Width() != 8 || shift.ClsHard || shift.Volatile {
+			continue
+		}
+		if count, known := consts[shift.Src[1]]; !known || count != 1 {
+			continue
+		}
+		nudge(shift.Dst)
+		nudge(shift.Src[0])
+	}
+}
