@@ -8,8 +8,8 @@
     "max_row",
     "flattened"
   ],
-  "image_bytes": 39616,
-  "image_sha256": "02baf14607f4e79e92cc8be4f5eb74aae26387347b36b8110f7e70bc954d20b8",
+  "image_bytes": 39610,
+  "image_sha256": "6ff07fc0201521bca5ac54006331391c9201ecc6d92861bf47e6f48f35bb7918",
   "scope": "current compiler preserves in-process pairing/flatten image;9 whole pipelines/36 phase observations; VT text header not used by this consumer",
   "source_sha256": {
     "research/autosiril-native/linked/compose.py": "76577d6aae0d6fab45577868cc060067ae48e3398a18c48a3d7973e80ab33a2a",
@@ -18,5 +18,5 @@
     "minzc/cmd/autosiril-midi-native/main.go": "c9a730bf983428930d760a634675b92af42a402367960bebf01e569ee34c85ba",
     "minzc/pkg/hir/verify.go": "238d9b7e7d713dc4fff0ab8672a80db0b914f92b213d3e39a319e601da7767a1"
   },
-  "phase_observations_sha256": "c1ba43a25e8874fe8e247e7d07df601b7956a90385f1bda794ef50e0bd45e6e6"
+  "phase_observations_sha256": "adbf9677927bebc714ad5356e79c2c98c9aaa83b0deb7b4b827bf43661b20a2c"
 }
