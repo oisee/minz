@@ -111,6 +111,17 @@ unsigned char nested(unsigned char n, unsigned char x) {
     for (r = 0; r < n; r++) for (b = 0; b < 4; b++) for (c = 0; c < 2; c++) x = x * 3 + 1;
     return x;
 }
+unsigned char tab[64];
+unsigned char wordidx(unsigned char n, unsigned short base) {
+    unsigned char r, b, s = 0;
+    for (r = 0; r < n; r++) for (b = 0; b < 4; b++) s = s + tab[base + b];
+    return s;
+}
+unsigned char byteidx(unsigned char n) {
+    unsigned char r, b, s = 0;
+    for (r = 0; r < n; r++) for (b = 0; b < 4; b++) s = s + tab[b];
+    return s;
+}
 unsigned char reads(unsigned char n) {
     unsigned char r, b, s = 0;
     for (r = 0; r < n; r++) for (b = 0; b < 3; b++) s = s + port;
@@ -175,6 +186,10 @@ func unrollC89Probes() []unrollProbe {
 		// contains it does not.
 		{"nested", 1, [][2][]int64{{{2, 5}, {mul(2, 5, 8)}}}},
 		{"reads", 1, nil},
+		// Word address arithmetic in the body is refused (policy);
+		// an index that becomes each copy's constant is not.
+		{"wordidx", 0, nil},
+		{"byteidx", 1, nil},
 	}
 }
 

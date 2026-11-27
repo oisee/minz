@@ -34,6 +34,12 @@ const (
 	// UnrollRequireNested admits only loops nested in another loop, where the
 	// saved counter overhead is multiplied by the outer trip count.
 	UnrollRequireNested = true
+	// UnrollRefuseWordAddressing refuses bodies that address memory through
+	// 16-bit arithmetic (a[base + i], *(p + k)): every copy recomputes a
+	// word address (several bytes each), so such copies do not fit the byte
+	// budget, and refusing them here saves the pipeline its two measuring
+	// compilations (the ABAP CP/M runtime's catalog loops).
+	UnrollRefuseWordAddressing = true
 )
 
 // tryUnrollLoop returns true after it has lowered st completely.
@@ -76,7 +82,7 @@ func (l *lowerer) tryUnrollLoop(st *WhileStmt, fact mir2.StaticLoop) bool {
 		n--
 	}
 	body := &Block{Body: st.Body.Body[:n]}
-	if !unrollableBlock(body) {
+	if !unrollableBlock(body) || UnrollRefuseWordAddressing && wordAddressedBlock(body) {
 		return false
 	}
 	ty := iv.Ty
@@ -207,4 +213,37 @@ func (l *lowerer) funcHasAsmOrSMC() bool {
 		visit(l.hf.Body)
 	}
 	return l.funcAsm
+}
+
+// wordAddressedBlock reports a memory access whose address or index contains
+// 16-bit arithmetic.
+func wordAddressedBlock(b *Block) bool {
+	found := false
+	wordArith := func(e Expr) bool {
+		hit := false
+		walkExpr(e, func(x Expr) {
+			if bin, ok := x.(*BinExpr); ok && bin.Ty != nil && bin.Ty.Width() >= 16 {
+				hit = true
+			}
+		})
+		return hit
+	}
+	walkGraceBlocks(b, "", func(_ string, blk *Block) {
+		for _, s := range blk.Body {
+			if st, ok := s.(*StoreStmt); ok && wordArith(st.Ptr) {
+				found = true
+			}
+			visitStmtExprs(s, func(e Expr) {
+				switch x := e.(type) {
+				case *IndexExpr:
+					found = found || wordArith(x.Idx) || wordArith(x.Base)
+				case *LoadExpr:
+					found = found || wordArith(x.Ptr)
+				case *DerefExpr:
+					found = found || wordArith(x.Ptr)
+				}
+			})
+		}
+	})
+	return found
 }
