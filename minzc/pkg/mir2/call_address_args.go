@@ -172,9 +172,10 @@ func callArgumentAddressConstants(f *Func, ar *AllocResult) map[Reg]string {
 	return out
 }
 
-// ForwardCallArgumentMoves removes the copy lowering places between a value
-// and the call that takes it: `s = op …; r = move s` with r used only as a
-// direct call's argument and s used only by the move becomes `r = op …`,
+// ForwardCallArgumentMoves removes the copy lowering places between a widened
+// byte and the call that takes it: `s = ext b; r = move s` (adjacent) with r
+// used only as a direct call's argument and s used only by the move becomes
+// `r = ext b`,
 // keeping the move's register class (the parameter's preference).  The value
 // is then computed in the register the call wants (fat12: the widened global
 // byte `ext` was built in HL for its [pointer] class and copied to DE).
@@ -222,8 +223,24 @@ func ForwardCallArgumentMoves(f *Func) int {
 			if x.Op == OpMove && x.Dst != NoReg && !x.ClsHard && defs[x.Dst] == 1 && uses[x.Dst] == 1 && callArg[x.Dst] == 1 {
 				s := x.Src[0]
 				d := local[s]
-				if d != nil && defs[s] == 1 && uses[s] == 1 && !d.ClsHard && d.Ty == x.Ty && len(d.ExtraRets) == 0 &&
-					d.Op != OpCall && d.Op != OpCallIndirect && d.Op != OpAsm && d.Op != OpMove {
+				// d must be the instruction right before the move.  Then the
+				// merged vreg lives exactly as long as the move's result did;
+				// with anything in between (a call, above all) the move is what
+				// let the value sit in one home across it and reach the
+				// argument register only at the end, and merging the two ties
+				// both to one home (tetris_playable: an `and` result kept in A
+				// across a call instead of IXH).
+				//
+				// d must also be a zero extension of a byte to a word, which
+				// the Z80 builds in any pair (LD lo,b / LD hi,0), so giving it
+				// the move's class costs nothing at the definition.  The
+				// class is an input of the contract optimiser: retargeting an
+				// ALU byte result (computed in A) to a parameter's class moved
+				// unrelated ABI choices module-wide (tetris_playable: four
+				// stage_at parameters went from IXH to A, +300 bytes).
+				adjacent := len(keep) > 0 && keep[len(keep)-1] == d
+				if d != nil && adjacent && d.Op == OpExt && d.SrcTy != nil && d.SrcTy.Width() == 8 && d.Ty != nil && d.Ty.Width() == 16 &&
+					defs[s] == 1 && uses[s] == 1 && !d.ClsHard && d.Ty == x.Ty && len(d.ExtraRets) == 0 {
 					d.Dst = x.Dst
 					d.Cls = x.Cls
 					changed++

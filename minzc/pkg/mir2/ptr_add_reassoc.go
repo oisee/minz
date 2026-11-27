@@ -98,7 +98,10 @@ func ReassociatePointerOffsets(f *Func) int {
 			add.Ty = x.Ty
 			add.Cls = x.Cls
 			add.SrcTy = nil
+			add.InBounds = false
 			x.Src = [2]Reg{t, c}
+			// Neither step is the source subscript any more (inst.go).
+			x.InBounds = false
 			changed++
 		}
 	}

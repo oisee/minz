@@ -24,6 +24,14 @@ func TestReassociatePointerOffsetsRefusals(t *testing.T) {
 			pa.Src[0] = 7
 		case "shared":
 			b.Term = &TermRet{Vals: []Reg{6, 4}}
+		// The add's flags may be observed (wordMaskFlagsUnobserved): an
+		// error ABI returns in CY, and a carry compare reads the flags of a
+		// preceding subtraction.  The rewrite drops the add's own flag
+		// result, so it must refuse in such functions.
+		case "fallible":
+			f.Attrs.FallibleCY = true
+		case "sub_carry":
+			b.Insts = append(b.Insts, &Inst{Op: OpCmp, Dst: 8, Src: [2]Reg{2, 3}, Cond: CmpSubCarry, Ty: TyBool})
 		case "late_base":
 			b.Insts = []*Inst{add, {Op: OpPtrAdd, Dst: 7, Src: [2]Reg{1, 2}, Ty: TyPtr}, pa, load}
 			pa.Src[0] = 7
@@ -33,12 +41,13 @@ func TestReassociatePointerOffsetsRefusals(t *testing.T) {
 	if n := ReassociatePointerOffsets(build("plain")); n != 1 {
 		t.Fatalf("plain sum not reassociated: %d", n)
 	}
-	for _, kind := range []string{"constant", "addr_of", "shared", "late_base"} {
+	for _, kind := range []string{"constant", "addr_of", "shared", "late_base", "fallible", "sub_carry"} {
 		if n := ReassociatePointerOffsets(build(kind)); n != 0 {
 			t.Fatalf("%s reassociated", kind)
 		}
 	}
 	f := build("plain")
+	f.Blocks[0].Insts[1].InBounds = true
 	ReassociatePointerOffsets(f)
 	if err := verifyFunc(f); err != nil {
 		t.Fatal(err)
@@ -46,5 +55,8 @@ func TestReassociatePointerOffsetsRefusals(t *testing.T) {
 	in := f.Blocks[0].Insts
 	if in[0].Op != OpPtrAdd || in[0].Src != [2]Reg{1, 2} || in[1].Src != [2]Reg{4, 3} {
 		t.Fatalf("unexpected rewrite: %+v %+v", in[0], in[1])
+	}
+	if in[0].InBounds || in[1].InBounds {
+		t.Fatal("InBounds kept on a rewritten ptr_add")
 	}
 }

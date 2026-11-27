@@ -393,6 +393,7 @@
     "TestPFCCOOriginalTokenizerRenderingConsumer",
     "TestPFCCOProspectiveHeldout",
     "TestPLMModuleEntryNative",
+    "TestPackBytesLaneHomesAllocatedNative",
     "TestPackBytesLaneHomesNative",
     "TestParenthesizedReturnOptInlineZ80",
     "TestPascalCPMAdapterNearMisses",

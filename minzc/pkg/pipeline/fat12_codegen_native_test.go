@@ -297,3 +297,59 @@ func TestWidenedByteArgumentBuiltInPlaceNative(t *testing.T) {
 		}
 	})
 }
+
+// Byte pairs packed from loads that do not come from the pointer the result
+// overwrites: their lanes are fixed by the allocator (recolorPackLanes), so
+// get2 and get4 need at most one byte copy.  Without the lane preference get2
+// loads its high byte into C and pays LD L,D / LD H,C.  get3 is only checked
+// for correctness: under Nanz --Osize its high byte is loaded into A, which
+// the lane preference does not take a value out of (A is cheaper by the
+// model), so it keeps two copies there.
+var packLanesProgram = globalsProgram{
+	name: "packlanes",
+	c: `unsigned short get2(unsigned char *p, unsigned char *q) { return *p | ((unsigned short)*q << 8); }
+unsigned short get3(unsigned char *p, unsigned char i) { return p[i] | ((unsigned short)p[i + 3] << 8); }
+unsigned short get4(unsigned char *p) { unsigned char a = p[5]; unsigned char b = p[9]; return (a | ((unsigned short)b << 8)) + 1; }
+void execute(void) { result = get2(values + n, values + 1) + get3(values, n) + get4(values + n); }`,
+	nanz: `fun get2(p: ^u8, q: ^u8) -> u16 { return u16(p[0]) | (u16(q[0]) << 8) }
+fun get3(p: ^u8, i: u8) -> u16 { return u16(p[i]) | (u16(p[i + 3]) << 8) }
+fun get4(p: ^u8) -> u16 {
+    let a: u8 = p[5]
+    let b: u8 = p[9]
+    return (u16(a) | (u16(b) << 8)) + 1
+}
+fun execute() { result = get2(&values + u16(n), &values + 1) + get3(&values, n) + get4(&values + u16(n)) }`,
+	maxN: 54,
+	want: func(v []byte, n int) uint16 {
+		w := func(lo, hi byte) uint16 { return uint16(lo) | uint16(hi)<<8 }
+		return w(v[n], v[1]) + w(v[n], v[n+3]) + w(v[n+5], v[n+9]) + 1
+	},
+}
+
+func TestPackBytesLaneHomesAllocatedNative(t *testing.T) {
+	eachGlobalsMode(t, packLanesProgram, func(t *testing.T, language, mode, asm string) {
+		packs := 0
+		for _, fn := range []string{"get2", "get4"} {
+			lines := rawFunction(asm, fn)
+			for i, ln := range lines {
+				if !strings.HasPrefix(ln, "; pack disjoint byte lanes") {
+					continue
+				}
+				packs++
+				copies := 0
+				for _, next := range lines[i+1:] {
+					if !registerCopy.MatchString(next) {
+						break
+					}
+					copies++
+				}
+				if copies > 1 || i+1 < len(lines) && strings.HasPrefix(lines[i+1], "PUSH AF") {
+					t.Fatalf("%s: pack copies %d bytes:\n%s", fn, copies, strings.Join(lines, "\n"))
+				}
+			}
+		}
+		if packs == 0 {
+			t.Fatalf("no byte pack emitted:\n%s", asm)
+		}
+	})
+}
