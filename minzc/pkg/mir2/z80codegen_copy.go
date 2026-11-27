@@ -438,7 +438,11 @@ func (g *z80cg) emitParallelCopy(copies []parallelCopy) {
 			}
 
 			firstDst := m.dst
-			g.emit("    PUSH AF")
+			// A is not in the cycle; save it only when a value outside
+			// the copy list may live there.
+			if !accFree {
+				g.emit("    PUSH AF")
+			}
 			if m.src != scratch {
 				g.emitSingleCopy(m.src, scratch, m.ty)
 			}
@@ -462,7 +466,11 @@ func (g *z80cg) emitParallelCopy(copies []parallelCopy) {
 			if firstDst != scratch {
 				g.emitSingleCopy(scratch, firstDst, m.ty)
 			}
-			g.emit("    POP AF")
+			if accFree {
+				g.invalidate("A")
+			} else {
+				g.emit("    POP AF")
+			}
 		} else {
 			// Walk backwards around a word cycle, just as for byte cycles.
 			// Saving src frees src, not dst: BC->HL, HL->DE, DE->BC

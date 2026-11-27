@@ -31,6 +31,8 @@ func coalesceAllocResult(f *Func, result *AllocResult, lr *LivenessResult, table
 	if len(result.Locs) == 0 {
 		return
 	}
+	// Byte-lane homes for pack_bytes, after every coalescing step below.
+	defer recolorPackLanes(f, result, lr, tableOrDefault(tables))
 
 	// Fresh interference graph (independent of PBQP's internal modifications).
 	ig := BuildInterferenceGraph(f, lr)

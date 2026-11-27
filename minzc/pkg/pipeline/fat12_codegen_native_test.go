@@ -176,3 +176,40 @@ func TestDirectStoreAddressHoldsNoHomeNative(t *testing.T) {
 		}
 	})
 }
+
+// rawFunction returns the trimmed lines of the function labelled name,
+// comments included.
+func rawFunction(asm, name string) []string {
+	var out []string
+	in := false
+	for _, ln := range strings.Split(asm, "\n") {
+		trimmed := strings.TrimSpace(ln)
+		if strings.HasSuffix(trimmed, ":") && !strings.HasPrefix(trimmed, ".") && !strings.HasPrefix(trimmed, ";") {
+			in = trimmed == name+":"
+			continue
+		}
+		if in && trimmed != "" {
+			out = append(out, trimmed)
+		}
+	}
+	return out
+}
+
+// pack_bytes lo, hi into a pair: the allocator gives lo the pair's low byte
+// and hi its high byte, so the two loads land in place and the pack emits no
+// copy (previously LD D,(HL) / INC HL / LD E,(HL) and a PUSH AF byte swap).
+func TestPackBytesLaneHomesNative(t *testing.T) {
+	eachGlobalsMode(t, fat12Program, func(t *testing.T, language, mode, asm string) {
+		lines := rawFunction(asm, "fat12_decode")
+		for i, ln := range lines {
+			if strings.HasPrefix(ln, "; pack disjoint byte lanes") {
+				if i+1 < len(lines) && (strings.HasPrefix(lines[i+1], "LD ") || strings.HasPrefix(lines[i+1], "PUSH")) {
+					t.Fatalf("pack still copies bytes:\n%s", strings.Join(lines, "\n"))
+				}
+			}
+			if strings.HasPrefix(ln, "PUSH AF") {
+				t.Fatalf("pack saves AF:\n%s", strings.Join(lines, "\n"))
+			}
+		}
+	})
+}
