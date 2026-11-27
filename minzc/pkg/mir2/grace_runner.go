@@ -2186,7 +2186,18 @@ func RunGracePasses(f *Func, stats *GraceStats) bool {
 type GracePassOptions struct {
 	OptimizeForSize              bool
 	DisableInvariantAddressHoist bool
+	// ExtendedRoundBudget lets a function that used up a round budget
+	// continue in further budgets (GraceExtendedRoundBudgets in all). The
+	// pipeline sets it only for functions with an unrolled loop.
+	ExtendedRoundBudget bool
 }
+
+// GraceRoundBudget rule applications form one budget. An extended function
+// runs at most GraceExtendedRoundBudgets budgets.
+const (
+	GraceRoundBudget          = 50
+	GraceExtendedRoundBudgets = 8
+)
 
 func RunGracePassesWithOptions(f *Func, stats *GraceStats, options GracePassOptions) bool {
 	rules, err := loadAllRules()
@@ -2197,7 +2208,26 @@ func RunGracePassesWithOptions(f *Func, stats *GraceStats, options GracePassOpti
 	reg := buildRegistry(f)
 	graph := FuncAsMutGraph(f)
 
-	result := grace.ApplyRules(graph, rules, reg, 50)
+	result := grace.ApplyRules(graph, rules, reg, GraceRoundBudget)
+	// The round budget guards against rules that undo each other. A fully
+	// unrolled loop brings every copy's dead conversions (DSE removes one
+	// block per round), uses up one budget and starves the lower-priority
+	// rules. For such functions only, continue in further budgets while the
+	// previous one was used up; a self-undoing rule pair then costs at most
+	// GraceExtendedRoundBudgets x GraceRoundBudget rounds. A function that
+	// converges within the first budget is rewritten exactly as before.
+	budgets := 1
+	if options.ExtendedRoundBudget {
+		budgets = GraceExtendedRoundBudgets
+	}
+	for extra := 1; extra < budgets && result.Rounds == GraceRoundBudget; extra++ {
+		more := grace.ApplyRules(graph, rules, reg, GraceRoundBudget)
+		result.Applied += more.Applied
+		result.Rounds = more.Rounds
+		for name, count := range more.ByRule {
+			result.ByRule[name] += count
+		}
+	}
 
 	// Run shape-fact-driven passes after declarative Grace rules.
 

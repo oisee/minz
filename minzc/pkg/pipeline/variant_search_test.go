@@ -86,7 +86,9 @@ func TestVariantSearchNestedVMZ80(t *testing.T) {
 			if e != nil || len(expected) != 1 || expected[0].I != tc.want {
 				t.Fatalf("raw %v %v", expected, e)
 			}
-			s, e := CompileHIRSteps(h, Options{AssertMode: "none"})
+			// The subject is the counted/ordinary choice for each loop; the
+			// inner 0..2 loop would otherwise be unrolled (742T for winning).
+			s, e := CompileHIRSteps(h, Options{AssertMode: "none", DisableLoopUnroll: true})
 			if e != nil {
 				t.Fatal(e)
 			}
