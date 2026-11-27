@@ -877,7 +877,11 @@ type z80cg struct {
 	// bitCmpSkip suppresses intermediate Load / Shr / And regs merged into that cmp.
 	// carryFrom names the exact shift whose discarded bit currently occupies C.
 	// Every emitted carry writer (including AF restores) invalidates it.
-	carryFrom          *Inst
+	carryFrom *Inst
+	// carryShadow is carryFrom while an odd number of EX AF, AF' has parked
+	// that F in F'. The matching EX AF, AF' brings the same flags back, so a
+	// save/restore through A' between a shift and its fused branch keeps C.
+	carryShadow        *Inst
 	shiftCarryInst     *Inst
 	shiftCarryCmp      *Inst
 	shiftCarryDeferred bool
@@ -1033,12 +1037,19 @@ func (g *z80cg) emitInlineAsm(s string) {
 			}
 		}
 	}
-	if g.carryFrom != nil {
+	if g.carryFrom != nil || g.carryShadow != nil {
 		for _, line := range strings.Split(s, "\n") {
 			e := z80effects.Instruction(line)
-			if !e.Known || e.FlagsWrite&1 != 0 {
-				g.carryFrom = nil
+			if isExAFAlt(line) {
+				g.carryFrom, g.carryShadow = g.carryShadow, g.carryFrom
+				continue
+			}
+			if !e.Known {
+				g.carryFrom, g.carryShadow = nil, nil
 				break
+			}
+			if e.FlagsWrite&1 != 0 {
+				g.carryFrom = nil
 			}
 		}
 	}
@@ -1678,7 +1689,7 @@ func (g *z80cg) enterBlockState(b *Block) {
 	g.curBlock = b
 	g.pendingFlagReg = NoReg
 	g.pendingAccReg = NoReg
-	g.carryFrom = nil
+	g.carryFrom, g.carryShadow = nil, nil
 
 	// If a block param is allocated to A, any compare instruction in this block
 	// would clobber it with "LD A, lhs". Mark it as pending so materializePendingAcc
@@ -1914,4 +1925,11 @@ func (g *z80cg) tailFlagReturnMismatch(f *Func, call *Inst, ret *TermRet) bool {
 		return false
 	}
 	return mine.Class != theirs.Class || mine.FlagCond != theirs.FlagCond
+}
+
+// isExAFAlt reports whether one emitted line is EX AF, AF' (the only
+// instruction that reads or writes F').
+func isExAFAlt(line string) bool {
+	code, _, _ := strings.Cut(line, ";")
+	return strings.EqualFold(strings.Join(strings.Fields(strings.ReplaceAll(code, ",", " , ")), " "), "EX AF , AF'")
 }

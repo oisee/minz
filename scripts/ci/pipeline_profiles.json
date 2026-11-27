@@ -454,6 +454,7 @@
     "TestShiftCarryPreferenceFallbackNative",
     "TestShiftCarryPreferenceSpeedOnly",
     "TestShiftCarryProfitabilityVMZ80",
+    "TestShiftCarrySurvivesAFExchangePairNative",
     "TestShowcaseArenaNativeStateModel",
     "TestShowcaseBufStreamNativeCapacityModel",
     "TestShowcaseLizpCryptoNativeByteModels",
