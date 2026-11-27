@@ -46,6 +46,7 @@ type Steps struct {
 	UnsignedPairComparePolicy mir2.UnsignedPairComparePolicy // resolved policy replayed by native re-codegen
 	DisableLoopRotation       bool                           // replayed by native re-codegen
 	z80ValidationLog          []string                       // deferred Z80-VALIDATE report (deferZ80Validation)
+	unrolled                  map[string]int                 // loops unrolled per lowered function
 	OptSize                   bool                           // replayed by native re-codegen (rotation is size-gated)
 	FlagReturns               mir2.FlagReturnReport          // Z80 bool return contracts chosen in Phase 5b
 	ProfileDecisions          []hir.ProfileDecision
@@ -133,6 +134,18 @@ type Options struct {
 
 	// DisableCountedLoops is an internal differential-testing switch.
 	DisableCountedLoops bool `json:",omitempty"`
+	// DisableLoopUnroll keeps short constant-trip loops as loops in the speed
+	// profile (the size profile never unrolls).
+	DisableLoopUnroll bool `json:",omitempty"`
+	// Unroll gate state: functions refused by the measured byte budget, and
+	// the loops the current lowering unrolled per function.
+	unrollDeny    map[string]bool
+	unrolledLoops map[string]int
+	// unrollUngated keeps every admitted unroll (tests: correctness of the
+	// unrolled code independent of the profitability gate).
+	unrollUngated bool
+	// unrollDecided marks options whose unrollDeny is already final.
+	unrollDecided bool
 	// disableShiftCarryPreference: the module's codegen refused the
 	// preferred homes (see compileMIRProductSteps); allocate without it.
 	disableShiftCarryPreference bool
@@ -209,6 +222,18 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 	}
 	if err := hir.Verify(hm); err != nil {
 		return Steps{}, err
+	}
+	// Unrolling is decided once per module, before the variant search and
+	// outside its trials (see decideUnroll).
+	if len(opts) == 0 {
+		opts = []Options{DefaultOptions()}
+	}
+	if !opts[0].unrollDecided {
+		decided, err := decideUnroll(hm, opts[0])
+		if err != nil {
+			return Steps{}, err
+		}
+		opts = append([]Options{decided}, opts[1:]...)
 	}
 	if variantSearchEnabled(hm, opts) {
 		return compileVariantSearch(hm, opts...)
@@ -343,7 +368,10 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 		return s, err
 	}
 	// Lower HIR → MIR2 (raw, before optimisation).
-	m := hir.LowerModuleWithOptions(hm, hir.LowerOptions{DisableCountedLoops: opt.DisableCountedLoops, CountedLoopPolicy: variantCountedPolicies(opt)})
+	unrolled := map[string]int{}
+	m := hir.LowerModuleWithOptions(hm, lowerOptions(hm, opt, unrolled))
+	opt.unrolledLoops = unrolled
+	s.unrolled = unrolled
 	s.MIR2Raw = m.Dump()
 	// Record call dependencies before constant folding can erase them. A global
 	// dry Grace toggle alone cannot establish a caller's axis is an identity.
@@ -468,7 +496,7 @@ func compileMIRProductSteps(hm *hir.Module, opt Options, s Steps, splitInfo map[
 		if variantFor(opt, f.Name).MIRGrace {
 			// ── Grace declarative path ──────────────────────────────
 			localGrace := mir2.NewGraceStats()
-			mir2.RunGracePassesWithOptions(f, localGrace, mir2.GracePassOptions{OptimizeForSize: opt.OptSize})
+			mir2.RunGracePassesWithOptions(f, localGrace, mir2.GracePassOptions{OptimizeForSize: opt.OptSize, ExtendedRoundBudget: opt.unrolledLoops[f.Name] > 0})
 			mergeGraceStats(opt.GraceStats, localGrace)
 			applyGraceStatsToTrace(tr, localGrace)
 			mir2.EliminateDeadBlocks(f)
@@ -476,7 +504,7 @@ func compileMIRProductSteps(hm *hir.Module, opt Options, s Steps, splitInfo map[
 				tr.BranchEquiv++
 				mir2.EliminateDeadBlocks(f)
 				localGrace = mir2.NewGraceStats()
-				mir2.RunGracePassesWithOptions(f, localGrace, mir2.GracePassOptions{OptimizeForSize: opt.OptSize})
+				mir2.RunGracePassesWithOptions(f, localGrace, mir2.GracePassOptions{OptimizeForSize: opt.OptSize, ExtendedRoundBudget: opt.unrolledLoops[f.Name] > 0})
 				mergeGraceStats(opt.GraceStats, localGrace)
 				applyGraceStatsToTrace(tr, localGrace)
 				mir2.EliminateDeadBlocks(f)
@@ -692,7 +720,7 @@ func compileMIRProductSteps(hm *hir.Module, opt Options, s Steps, splitInfo map[
 				retry.disableShiftCarryPreference = true
 				retry.GraceStats = nil
 				retry.variantMIRReady = nil
-				return compileMIRProductSteps(hm, retry, initialSteps, splitInfo, hir.LowerModuleWithOptions(hm, hir.LowerOptions{DisableCountedLoops: opt.DisableCountedLoops, CountedLoopPolicy: variantCountedPolicies(opt)}))
+				return compileMIRProductSteps(hm, retry, initialSteps, splitInfo, hir.LowerModuleWithOptions(hm, lowerOptions(hm, opt, nil)))
 			}
 			return s, codegenErr
 		}
@@ -747,7 +775,7 @@ func compileMIRProductSteps(hm *hir.Module, opt Options, s Steps, splitInfo map[
 		// Mandatory size comparisons must produce complete allocated code even
 		// when a search trial's MIR was seen before.
 		baselineOpt.variantMIRReady = nil
-		baselineModule := hir.LowerModuleWithOptions(hm, hir.LowerOptions{DisableCountedLoops: opt.DisableCountedLoops, CountedLoopPolicy: variantCountedPolicies(opt)})
+		baselineModule := hir.LowerModuleWithOptions(hm, lowerOptions(hm, opt, nil))
 		baseline, err := compileMIRProductSteps(hm, baselineOpt, initialSteps, splitInfo, baselineModule)
 		if err != nil {
 			return s, err
@@ -766,7 +794,7 @@ func compileMIRProductSteps(hm *hir.Module, opt Options, s Steps, splitInfo map[
 		// This is the native size gate's mandatory comparison, not a search trial.
 		// Refusing it at a cached MIR checkpoint would yield an empty product.
 		baselineOpt.variantMIRReady = nil
-		baselineModule := hir.LowerModuleWithOptions(hm, hir.LowerOptions{DisableCountedLoops: opt.DisableCountedLoops, CountedLoopPolicy: variantCountedPolicies(opt)})
+		baselineModule := hir.LowerModuleWithOptions(hm, lowerOptions(hm, opt, nil))
 		baseline, err := compileMIRProductSteps(hm, baselineOpt, initialSteps, splitInfo, baselineModule)
 		if err != nil {
 			return s, err
