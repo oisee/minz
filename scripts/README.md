@@ -292,7 +292,7 @@ change its final status. `CONTROLS` overrides the committed-path filter when
 simulating uncommitted changes. For a nightly simulation also set
 `NIGHTLY=true RUNS=2 FUZZ_COUNT=10000 BASE_REV=HEAD~1`. To rerun one job, set
 `CI_BIN` to the printed compiler directory, `REPORT_DIR` to a writable output
-directory, and run `bash scripts/ci/run.sh matrix` (or `judges`, `sweep`, `fuzz`, `fuzz-direct`).
+directory, and run `bash scripts/ci/run.sh matrix` (or `judges`, `sweep`, `fuzz`, `fuzz-direct`, `fuzz-bytes`).
 `MATRIX_ROOT` selects a disposable checkout; `MATRIX_GLOB` narrows a non-nightly
 matrix run for a regression fixture. PR checks set the tuple-return smoke glob.
 Release/nightly checks set `NIGHTLY=true`: the driver ignores that smoke filter
