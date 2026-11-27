@@ -303,16 +303,21 @@ func (g *z80cg) loadSpill8(dst, src string) {
 	}
 }
 
-// storeSpill8 stores an 8-bit register value to a spill address.
+// storeSpill8 stores an 8-bit register value to a spill address. LD (nn),A
+// is the only 8-bit absolute store; another source goes through the shadow A,
+// so A and F are preserved.
 func (g *z80cg) storeSpill8(dst, src string) {
-	if src != "A" {
-		g.emitLDA(src)
-	}
 	if pair := g.tsmcPairByAddr(dst); pair != nil {
+		g.emit("    EX AF, AF'")
+		if src != "A" {
+			g.emitLDA(src)
+		}
 		g.emitTSMCSpill(pair, "A")
-	} else {
-		g.emitNativeSpillf(dst, 0, 1, true, "    LD (%s), A", dst)
+		g.emit("    EX AF, AF'")
+		g.invalidate("A")
+		return
 	}
+	g.emitLD8(dst, src)
 }
 
 // spillSlotWidth reports the declared byte width of a spill label, or 0 when
@@ -800,13 +805,7 @@ func (g *z80cg) emitMov(dst, src string, widthBits int) {
 				g.emitNativeSpillf(dst, 0, 1, true, "    LD (%s), A", dst)
 			}
 		case isSpill(dst):
-			if pair := g.tsmcPairByAddr(dst); pair != nil {
-				g.emitLDA(src)
-				g.emitTSMCSpill(pair, "A")
-			} else {
-				g.emitLDA(src)
-				g.emitNativeSpillf(dst, 0, 1, true, "    LD (%s), A", dst)
-			}
+			g.storeSpill8(dst, src)
 		default:
 			// Width mismatch: 8-bit move but one operand is a register pair.
 			// DD/FD prefix conflict must be checked BEFORE width mismatch,
@@ -913,10 +912,7 @@ func (g *z80cg) emitMov(dst, src string, widthBits int) {
 			case dstByte:
 				g.emit("    PUSH HL")
 				g.loadSpill16("HL", src)
-				g.emit("    EX AF, AF'")
 				g.storeSpill8(dst, "L")
-				g.emit("    EX AF, AF'")
-				g.invalidate("A") // The copy was made in shadow A, now exchanged out.
 				g.emit("    POP HL")
 			default:
 				g.emit("    PUSH HL")
@@ -935,15 +931,14 @@ func (g *z80cg) emitMov(dst, src string, widthBits int) {
 		if isSpill(dst) {
 			if !isPairReg(src) {
 				g.emitLD8(dst, src)
-				g.emitLD8(highByte(dst), "0")
+				if g.spillSlotWidth(dst) != 1 { // a byte home has no high byte
+					g.emitLD8(highByte(dst), "0")
+				}
 				break
 			}
 			if g.spillSlotWidth(dst) == 1 {
 				// Byte home: a word store would overwrite the neighbour.
-				g.emit("    EX AF, AF'")
 				g.storeSpill8(dst, lowByte(src))
-				g.emit("    EX AF, AF'")
-				g.invalidate("A") // The copy was made in shadow A, now exchanged out.
 				break
 			}
 			g.emitNativeSpillf(dst, 0, 2, true, "    LD (%s), %s", dst, src)

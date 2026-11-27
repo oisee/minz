@@ -1594,10 +1594,7 @@ func (g *z80cg) genInst(inst *Inst) {
 			if g.spillSlotWidth(slotLoc) == 1 {
 				// Byte-typed slot: a word store would overwrite the
 				// neighbouring home. Keep the write inside the slot.
-				g.emit("    EX AF, AF'")
-				g.storeSpill8(slotLoc, "L")
-				g.emit("    EX AF, AF'")
-				g.invalidate("A") // The copy was made in shadow A, now exchanged out.
+				g.storeSpill8(slotLoc, "L") // preserves A and F
 			} else {
 				g.emitf("    LD (%s), HL", slotLoc)
 			}

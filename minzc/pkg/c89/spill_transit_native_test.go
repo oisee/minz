@@ -86,3 +86,34 @@ func TestC89SpillByteLoadPreservesAccumulatorNative(t *testing.T) {
 		}},
 	})
 }
+
+// A byte copied into a word-typed block parameter homed in a spill slot (the
+// C ternary below joins an unsigned char into an int-typed parameter) must
+// write the zero extension into both bytes of the slot without touching A.
+// It used to store the low byte through A, destroying the live y in A, and
+// left the high byte stale.
+func TestC89ByteToWordSpillCopyNative(t *testing.T) {
+	runSpillTransitCases(t, []spillTransitCase{
+		{"ternary-join", "f3", `unsigned short f3(unsigned char a, unsigned char b) {
+    unsigned char x = a, y = b, z = a ^ 0x5a, r, i, j;
+    unsigned short c = 0, h = 1;
+    for (r = 0; r < 1; r++) { for (i = 250; i < 255; i++) { y += (i << 1); } for (j = 0; j < 7; j++) { z |= (x & ((y & 1) ? x : y)); h = (h << 1) ^ 655; } }
+    return c + h + x + (y << 3) + (unsigned short)(z * 7);
+}`, [][]int64{{0}, {1}, {103}, {178}, {255}}, func(a []int64) int64 {
+			x, y, z := uint8(a[0]), uint8(a[1]), uint8(a[0])^0x5a
+			h := uint16(1)
+			for i := 250; i < 255; i++ {
+				y += uint8(i << 1)
+			}
+			for j := 0; j < 7; j++ {
+				sel := y
+				if y&1 != 0 {
+					sel = x
+				}
+				z |= x & sel
+				h = h<<1 ^ 655
+			}
+			return int64(h + uint16(x) + uint16(y)<<3 + uint16(z)*7)
+		}},
+	})
+}
