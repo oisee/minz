@@ -207,6 +207,7 @@
     "TestGraceDefaultPointerLoopNativeVM",
     "TestGraceE2E_GCD",
     "TestGraceE2E_Showcase",
+    "TestGraceParamForwardKeepsDominatedUsesNative",
     "TestGracePreservesInfiniteLoops",
     "TestGraceShowcase",
     "TestGraceTailRecursionSuccessorParameters",

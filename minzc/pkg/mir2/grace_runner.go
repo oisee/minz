@@ -1431,6 +1431,23 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 		for i, a := range jmp.Args {
 			argSourceParamIdx[i] = paramIdx[a]
 		}
+		// The trampoline's parameters are definitions that dominate its
+		// target, so a later block may read them directly (a constant-condition
+		// ternary after an if/else join leaves `jmp @join(%x)` followed by a
+		// direct use of %x). Deleting the trampoline would leave those reads
+		// undefined; forward only parameters read by its own jump alone.
+		uses := countRegUses(f)
+		for _, p := range blk.Params {
+			own := 0
+			for _, a := range jmp.Args {
+				if a == p.Dst {
+					own++
+				}
+			}
+			if uses[p.Dst] != own {
+				return false
+			}
+		}
 
 		for _, pred := range f.Blocks {
 			if t, ok := pred.Term.(*TermDJNZ); ok && t.Body == label {
