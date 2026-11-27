@@ -417,6 +417,7 @@
     "TestReadmeCPMRuntimeAdmission",
     "TestReadmeCPMSourceAssertions",
     "TestReadmeCPMWholeMain",
+    "TestReassociatedPointerOffsetNative",
     "TestRegionCompareCompiledHelperRefusals",
     "TestRegionCompareMeasuredRefusals",
     "TestRegionCompareUnknownAndEffectfulSites",

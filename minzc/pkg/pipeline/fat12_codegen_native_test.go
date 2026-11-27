@@ -213,3 +213,31 @@ func TestPackBytesLaneHomesNative(t *testing.T) {
 		}
 	})
 }
+
+// p[a + b] where both p + a and a + b wrap past 0xFFFF: reassociating the
+// address to (p + a) + b must give the same byte.
+var wrapIndexProgram = globalsProgram{
+	name: "wrapindex",
+	c: `unsigned char get(unsigned char *p, unsigned short a, unsigned short b) { return p[a + b]; }
+void execute(void) { result = get(values, (unsigned short)(0xFFF0u + n), (unsigned short)(0x20u + n)); }`,
+	nanz: `fun get(p: ^u8, a: u16, b: u16) -> u8 { return p[a + b] }
+fun execute() { result = u16(get(&values, 0xFFF0 + u16(n), 0x20 + u16(n))) }`,
+	maxN: 23,
+	want: func(values []byte, n int) uint16 { return uint16(values[0x10+2*n]) },
+}
+
+// A pointer indexed by a single-use sum is advanced one term at a time, so
+// the pointer stays in HL for two ADD HL,rr steps (fat12_decode previously
+// built cluster + cluster/2 in HL with the pointer pushed aside).
+func TestReassociatedPointerOffsetNative(t *testing.T) {
+	eachGlobalsMode(t, fat12Program, func(t *testing.T, language, mode, asm string) {
+		lines := asmFunction(asm, "fat12_decode")
+		for i := 0; i+1 < len(lines); i++ {
+			if strings.HasPrefix(lines[i], "ADD HL, ") && strings.HasPrefix(lines[i+1], "ADD HL, ") {
+				return
+			}
+		}
+		t.Fatalf("pointer not advanced by two consecutive ADD HL steps:\n%s", strings.Join(lines, "\n"))
+	})
+	eachGlobalsMode(t, wrapIndexProgram, func(t *testing.T, language, mode, asm string) {})
+}
