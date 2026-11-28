@@ -46,6 +46,9 @@ type Steps struct {
 	UnsignedPairComparePolicy mir2.UnsignedPairComparePolicy // resolved policy replayed by native re-codegen
 	DisableLoopRotation       bool                           // replayed by native re-codegen
 	z80ValidationLog          []string                       // deferred Z80-VALIDATE report (deferZ80Validation)
+	narrowCopiesKept          bool                           // the retained-export gate kept its narrow copies
+	narrowCopies              int                            // narrow export copies made in this product
+	speedCopies               map[string]string              // speed export copies made: callee -> caller
 	unrolled                  map[string]int                 // loops unrolled per lowered function
 	OptSize                   bool                           // replayed by native re-codegen (rotation is size-gated)
 	FlagReturns               mir2.FlagReturnReport          // Z80 bool return contracts chosen in Phase 5b
@@ -193,6 +196,14 @@ type Options struct {
 	// Internal baseline compilation for the affine-pointer size comparison.
 	disableAffinePointers bool
 	disableExportCopies   bool
+	// Speed-profile export copies (see export_speed_copy.go): off for the
+	// reference product, restricted to an allow-list in a per-callee trial,
+	// and with the narrow copies refused when the reference refused them.
+	// A trial (speedCopyTrial) returns its product without gating it.
+	disableSpeedCopies  bool
+	disableNarrowCopies bool
+	speedCopyAllow      map[string]bool
+	speedCopyTrial      bool
 	// Backend selects the codegen backend: "z80" (default), "ez80".
 	// When "ez80", the pipeline generates eZ80 ADL assembly instead of Z80.
 	Backend string
@@ -443,7 +454,9 @@ func compileMIRProductSteps(hm *hir.Module, opt Options, s Steps, splitInfo map[
 	inlineStats.InlinedCallers = opt.variantInlinedCallers
 	// Speed profile only: a small loop-free exported leaf may be copied too,
 	// kept only when the static model shows its caller faster (below).
-	inlineStats.SpeedExportCopies = !opt.OptSize
+	inlineStats.SpeedExportCopies = !opt.OptSize && !opt.disableSpeedCopies
+	inlineStats.SpeedCopyAllow = opt.speedCopyAllow
+	inlineStats.DisableNarrowCopies = opt.disableNarrowCopies
 	inlineStats.KeepCallers = map[string]bool{}
 	for name, v := range opt.FunctionVariants {
 		inlineStats.KeepCallers[name] = v.KeepCalls
@@ -781,7 +794,12 @@ func compileMIRProductSteps(hm *hir.Module, opt Options, s Steps, splitInfo map[
 
 	// Retained exported bodies make inlining a code-growth tradeoff. Assemble
 	// both real allocated products; never keep a larger exported-copy variant.
-	if inlineStats.ExportCopies > 0 && !opt.disableExportCopies && !opt.SkipZ80Emission && (opt.Backend == "" || opt.Backend == "z80") {
+	s.speedCopies = inlineStats.SpeedCopies
+	s.narrowCopies = inlineStats.ExportCopies - len(inlineStats.SpeedCopies)
+	if len(inlineStats.SpeedCopies) > 0 && !opt.speedCopyTrial && !opt.disableExportCopies && !opt.SkipZ80Emission && (opt.Backend == "" || opt.Backend == "z80") {
+		return selectSpeedCopies(hm, opt, s, initialSteps, splitInfo, inlineStats.SpeedCopies), nil
+	}
+	if inlineStats.ExportCopies > len(inlineStats.SpeedCopies) && !opt.speedCopyTrial && !opt.disableExportCopies && !opt.SkipZ80Emission && (opt.Backend == "" || opt.Backend == "z80") {
 		baselineOpt := opt
 		baselineOpt.disableExportCopies = true
 		baselineOpt.GraceStats = nil
@@ -795,14 +813,10 @@ func compileMIRProductSteps(hm *hir.Module, opt Options, s Steps, splitInfo map[
 		}
 		candidateBytes, candidateErrors := Assemble(s.Assembly, "z80")
 		baselineBytes, baselineErrors := Assemble(baseline.Assembly, "z80")
-		if len(candidateErrors) != 0 || len(baselineErrors) != 0 {
+		if len(candidateErrors) != 0 || len(baselineErrors) != 0 || len(candidateBytes) > len(baselineBytes) {
 			return baseline, nil
 		}
-		if len(candidateBytes) > len(baselineBytes) &&
-			(len(inlineStats.SpeedCopies) == 0 || len(candidateBytes) > len(baselineBytes)+exportSpeedCopyMaxGrowth ||
-				!exportSpeedCopiesFaster(s, baseline, inlineStats.SpeedCopies)) {
-			return baseline, nil
-		}
+		s.narrowCopiesKept = true
 	}
 
 	if opt.OptSize && !opt.disableAffinePointers && affineChanged && !opt.SkipZ80Emission && (opt.Backend == "" || opt.Backend == "z80") {

@@ -14,6 +14,12 @@ type SingleCallInlineStats struct {
 	SpeedExportCopies bool
 	// SpeedCopies records each such copy: callee name -> caller name.
 	SpeedCopies map[string]string
+	// SpeedCopyAllow, when non-nil, restricts speed copies to these callees
+	// (the pipeline's per-candidate trials).
+	SpeedCopyAllow map[string]bool
+	// DisableNarrowCopies refuses the parameterless straight-line export
+	// copies, so a trial can reproduce a reference product that refused them.
+	DisableNarrowCopies bool
 }
 
 // Bounds for a speed-only export copy: the copied body is at most this many
@@ -163,8 +169,12 @@ func InlineSingleCallSites(m *Module, exported map[string]bool, stats ...*Single
 					}
 				}
 			}
+			if narrow && len(stats) > 0 && stats[0] != nil && stats[0].DisableNarrowCopies {
+				safe = false
+			}
 			if !narrow {
 				if len(stats) == 0 || stats[0] == nil || !stats[0].SpeedExportCopies ||
+					stats[0].SpeedCopyAllow != nil && !stats[0].SpeedCopyAllow[f.Name] ||
 					len(f.Blocks) > ExportSpeedCopyMaxBlocks || insts > ExportSpeedCopyMaxInsts || len(f.StaticLoops) > 0 || !acyclicBlocks(f) {
 					safe = false
 				} else if safe {

@@ -486,6 +486,8 @@
     "TestSpectrumPhaseReturnLocation",
     "TestSpectrumPhaseWorkloadNative",
     "TestSpectrumPhaseWorkloadRefusals",
+    "TestSpeedCopyDecidedPerCandidate",
+    "TestSpeedCopyRefusalKeepsNarrowCopies",
     "TestSpilledPointerByteLoadKeepsAccumulatorVMZ80",
     "TestStructMethodPointerAndFieldScratchNative",
     "TestStructReturnCanonicalIndirectSlotsDoNotOverlap",
