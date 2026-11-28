@@ -19,11 +19,11 @@ func TestCheckedTableModuleRelocationRequiresReadmission(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	old, err := vir.PrepareLocalTableProblem(isolated.MIR2Module.FuncByName("add5"), isolated.Allocation)
+	old, err := vir.PrepareLocalTableProblem(isolated.MIR2Module.FuncByName("add3"), isolated.Allocation)
 	if err != nil {
 		t.Fatal(err)
 	}
-	current, err := vir.PrepareLocalTableProblem(joined.MIR2Module.FuncByName("add5"), joined.Allocation)
+	current, err := vir.PrepareLocalTableProblem(joined.MIR2Module.FuncByName("add3"), joined.Allocation)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -96,7 +96,7 @@ func TestCheckedTableModuleRelocationRequiresReadmission(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if selected.Traces["add5"].Backend != "checked-local-table" {
+	if selected.Traces["add3"].Backend != "checked-local-table" {
 		t.Fatal("readmitted candidate not selected")
 	}
 	var replay vir.RegAllocTable
@@ -116,7 +116,7 @@ func TestCheckedTableModuleRelocationRequiresReadmission(t *testing.T) {
 	var observations []observation
 	for x := 0; x < 256; x++ {
 		cycles := executeLocalTableFunction(t, selected.Assembly, byte(x))
-		observations = append(observations, observation{x, int(byte(x + 5)), cycles})
+		observations = append(observations, observation{x, int(byte(x + 3)), cycles})
 	}
 	if dir := os.Getenv("MINZ_TABLE_REBIND_EXPORT"); dir != "" {
 		if err := os.MkdirAll(dir, 0755); err != nil {

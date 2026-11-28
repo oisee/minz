@@ -32,7 +32,7 @@ func TestJointProfilePinnedTableCallerAndMutation(t *testing.T) {
 	if e != nil {
 		t.Fatal(e)
 	}
-	problem, e := vir.PrepareLocalTableProblem(baseline.MIR2Module.FuncByName("add5"), baseline.Allocation)
+	problem, e := vir.PrepareLocalTableProblem(baseline.MIR2Module.FuncByName("add3"), baseline.Allocation)
 	if e != nil {
 		t.Fatal(e)
 	}
@@ -78,12 +78,12 @@ func TestJointProfilePinnedTableCallerAndMutation(t *testing.T) {
 		t.Fatal("incomplete enumeration")
 	}
 	for i, c := range result.Evidence.Candidates {
-		if len(c.Run.Invocations) != 2 || c.Run.Invocations[0].Results[0].I != 30 || c.Run.Invocations[1].Results[0].I != 12 || c.Run.Globals["calls"][0] != 10 {
+		if len(c.Run.Invocations) != 2 || c.Run.Invocations[0].Results[0].I != 30 || c.Run.Invocations[1].Results[0].I != 10 || c.Run.Globals["calls"][0] != 10 {
 			t.Fatal("independent caller oracle", i, c.Run)
 		}
 		t.Logf("mask%d: %d bytes / %d T", i, c.ModuleBytes, c.TotalTStates)
 	}
-	if result.Steps.Traces["add5"].Backend != "checked-local-table" {
+	if result.Steps.Traces["add3"].Backend != "checked-local-table" {
 		t.Fatal("table lost in winner")
 	}
 	best := result.Evidence.Candidates[result.Evidence.Selected]

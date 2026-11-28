@@ -26,7 +26,7 @@ func TestModuleTableReadmissionWithoutSolver(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if selected.Traces["add5"].Backend != "checked-local-table" {
+	if selected.Traces["add3"].Backend != "checked-local-table" {
 		t.Fatal("readmitted leaf not selected")
 	}
 	for x := 0; x < 256; x++ {

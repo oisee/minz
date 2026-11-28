@@ -11,8 +11,13 @@ import (
 	"github.com/minz/minzc/pkg/z80asm"
 )
 
-const checkedTableSource = `fun add5(x: u8) -> u8 { return x + 5 }
-fun main() -> u8 { return add5(7) }`
+// The checked table must beat the ordinary pipeline for these tests to
+// exercise selection. The ordinary --Osize code for x + 3 is INC A x3 / RET
+// (4 bytes: byte steps of 1..3 become INC/DEC); the table's all-A assignment
+// emits ADD A,3 / RET (3 bytes). The former fixture x + 5 relied on a dead
+// LD r,5 that production no longer emits, so it tied and was refused.
+const checkedTableSource = `fun add3(x: u8) -> u8 { return x + 3 }
+fun main() -> u8 { return add3(7) }`
 
 func localTableFixture(t *testing.T) (Steps, string) {
 	t.Helper()
@@ -21,7 +26,7 @@ func localTableFixture(t *testing.T) (Steps, string) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	f := steps.MIR2Module.FuncByName("add5")
+	f := steps.MIR2Module.FuncByName("add3")
 	p, err := vir.PrepareLocalTableProblem(f, steps.Allocation)
 	if err != nil {
 		t.Fatal(err)
@@ -53,12 +58,12 @@ func executeLocalTableFunction(t *testing.T, asm string, x byte) int {
 	if err != nil || len(bin.Errors) > 0 {
 		t.Fatalf("assemble %v %v", err, bin.Errors)
 	}
-	addr, ok := bin.Symbols["add5"]
+	addr, ok := bin.Symbols["add3"]
 	if !ok {
-		addr, ok = bin.Symbols["ADD5"]
+		addr, ok = bin.Symbols["ADD3"]
 	}
 	if !ok {
-		t.Fatal("missing add5 label")
+		t.Fatal("missing add3 label")
 	}
 	z := emulator.NewRemogattoZ80()
 	z.MaxCycles = 1000
@@ -73,8 +78,8 @@ func executeLocalTableFunction(t *testing.T, asm string, x byte) int {
 	if err := z.Run(); err != nil {
 		t.Fatal(err)
 	}
-	if r := z.GetRegisters(); r.A != x+5 || r.SP != 0xf000 {
-		t.Fatalf("x=%d A=%d want=%d SP=%04x", x, r.A, x+5, r.SP)
+	if r := z.GetRegisters(); r.A != x+3 || r.SP != 0xf000 {
+		t.Fatalf("x=%d A=%d want=%d SP=%04x", x, r.A, x+3, r.SP)
 	}
 	return int(z.GetCycles())
 }
@@ -86,7 +91,7 @@ func TestCheckedLocalTableOrdinaryHIRSelectsSmallerNativeFunction(t *testing.T) 
 	if err != nil {
 		t.Fatal(err)
 	}
-	if selected.Traces["add5"].Backend != "checked-local-table" {
+	if selected.Traces["add3"].Backend != "checked-local-table" {
 		t.Fatal("ordinary pipeline did not select candidate")
 	}
 	bsize, err := checkedAsmSize(baseline.Assembly)
@@ -105,10 +110,10 @@ func TestCheckedLocalTableOrdinaryHIRSelectsSmallerNativeFunction(t *testing.T) 
 	if st >= bt {
 		t.Fatalf("native timing did not improve %d→%d", bt, st)
 	}
-	if baseline.MIR2Module.FuncByName("add5").Contract.Clobbers != selected.MIR2Module.FuncByName("add5").Contract.Clobbers {
+	if baseline.MIR2Module.FuncByName("add3").Contract.Clobbers != selected.MIR2Module.FuncByName("add3").Contract.Clobbers {
 		t.Fatal("caller clobber contract changed")
 	}
-	t.Logf("ordinary add5 all 256 byte inputs: module %d→%d bytes fixture %d→%d T; result/SP pass", bsize, ssize, bt, st)
+	t.Logf("ordinary add3 all 256 byte inputs: module %d→%d bytes fixture %d→%d T; result/SP pass", bsize, ssize, bt, st)
 	if dir := os.Getenv("VIR_LOCAL_PRODUCTION_EXPORT"); dir != "" {
 		for name, data := range map[string][]byte{"source.nanz": []byte(checkedTableSource), "baseline.a80": []byte(baseline.Assembly), "selected.a80": []byte(selected.Assembly)} {
 			if err := os.WriteFile(dir+"/"+name, data, 0644); err != nil {
@@ -169,7 +174,7 @@ func TestCheckedLocalTableTamperFallsBackAndProfileRefuses(t *testing.T) {
 	if _, err := CompileHIRSteps(graceMeasureParse(t, checkedTableSource), opts); err == nil {
 		t.Fatal("missing explicit input silently ignored")
 	}
-	if !reflect.DeepEqual(baseline.MIR2Module.FuncByName("add5").Blocks[0].Insts, fallback.MIR2Module.FuncByName("add5").Blocks[0].Insts) {
+	if !reflect.DeepEqual(baseline.MIR2Module.FuncByName("add3").Blocks[0].Insts, fallback.MIR2Module.FuncByName("add3").Blocks[0].Insts) {
 		t.Fatal("preparation mutated MIR")
 	}
 }

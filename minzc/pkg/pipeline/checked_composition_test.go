@@ -13,7 +13,7 @@ func TestCheckedCompositionOrdinaryNative(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	p, err := vir.PrepareLocalTableProblem(base.MIR2Module.FuncByName("add5"), base.Allocation)
+	p, err := vir.PrepareLocalTableProblem(base.MIR2Module.FuncByName("add3"), base.Allocation)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -66,7 +66,7 @@ func TestCheckedCompositionOrdinaryNative(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if selected.Traces["add5"].Backend != "checked-local-table" {
+	if selected.Traces["add3"].Backend != "checked-local-table" {
 		t.Fatal("composed candidate not selected")
 	}
 	var beforeT, afterT int
@@ -93,7 +93,7 @@ func TestCheckedCompositionMoveBridgePipelineNative(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	p, err := vir.PrepareLocalTableProblem(base.MIR2Module.FuncByName("add5"), base.Allocation)
+	p, err := vir.PrepareLocalTableProblem(base.MIR2Module.FuncByName("add3"), base.Allocation)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -146,7 +146,7 @@ func TestCheckedCompositionMoveBridgePipelineNative(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if selected.Traces["add5"].Backend != "checked-local-table" {
+	if selected.Traces["add3"].Backend != "checked-local-table" {
 		t.Fatal("composed candidate not selected")
 	}
 	var beforeT, afterT int
@@ -331,13 +331,13 @@ func TestCheckedCompositionAutomaticHeldoutNative(t *testing.T) {
 
 func checkedCompositionHeldoutOperationsNative(t *testing.T, automatic bool) {
 	t.Helper()
-	// Prepare the assignment pool only on add5; reuse it without regenerating
+	// Prepare the assignment pool only on add3; reuse it without regenerating
 	// records on the different constants/operators and live caller workload.
 	seed, err := CompileHIRSteps(graceMeasureParse(t, checkedTableSource), Options{OptSize: true, AssertMode: "none"})
 	if err != nil {
 		t.Fatal(err)
 	}
-	p, err := vir.PrepareLocalTableProblem(seed.MIR2Module.FuncByName("add5"), seed.Allocation)
+	p, err := vir.PrepareLocalTableProblem(seed.MIR2Module.FuncByName("add3"), seed.Allocation)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -413,6 +413,6 @@ func checkedCompositionHeldoutOperationsNative(t *testing.T, automatic bool) {
 		if after > before {
 			t.Fatal("heldout caller regressed", test.expression, before, after)
 		}
-		t.Logf("%s reused add5 fragments: actual caller %d -> %d T; backend=%s; all 256 inputs PASS", test.expression, before, after, selected.Traces["tweak"].Backend)
+		t.Logf("%s reused add3 fragments: actual caller %d -> %d T; backend=%s; all 256 inputs PASS", test.expression, before, after, selected.Traces["tweak"].Backend)
 	}
 }
