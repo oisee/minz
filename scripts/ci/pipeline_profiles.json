@@ -478,6 +478,7 @@
     "TestSingleCallInternalHelperVMZ80",
     "TestSingleCallNamedEntriesVMZ80",
     "TestSingleCallSiteInlineVMZ80",
+    "TestSinkKeepsSubCarryNative",
     "TestSmallStepFillNative",
     "TestSmallStructNeutralVMZ80",
     "TestSpectrumPhaseReturnLocation",

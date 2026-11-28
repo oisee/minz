@@ -69,3 +69,23 @@ func TestSinkIntoSingleUseSuccessorLoop(t *testing.T) {
 		t.Fatalf("sunk into a loop:\n%s", (&Module{Funcs: []*Func{f}}).Dump())
 	}
 }
+
+// d = sub a, b; c = cmp.sub_carry_not d, b reads the carry of the SUB just
+// before it (FusionSubCmpInBlock). Its only use is in `then`, but moving it
+// there would read the branch compare's carry instead: it must stay.
+func TestSinkKeepsCarryReadingCompare(t *testing.T) {
+	for _, cond := range []CmpCond{CmpSubCarry, CmpSubCarryNot} {
+		sub := &Inst{Op: OpSub, Dst: 3, Src: [2]Reg{1, 2}, Ty: TyU8}
+		ge := &Inst{Op: OpCmp, Dst: 4, Src: [2]Reg{3, 2}, Ty: TyBool, SrcTy: TyU8, Cond: cond}
+		k := &Inst{Op: OpConst, Dst: 5, Ty: TyU8, Imm: 7}
+		br := &Inst{Op: OpCmp, Dst: 6, Src: [2]Reg{1, 5}, Ty: TyBool, SrcTy: TyU8, Cond: CmpEq}
+		entry := &Block{Label: "entry", Insts: []*Inst{sub, ge, k, br}, Term: &TermBrIf{Cond: 6, Then: "a", Else: "b"}}
+		a := &Block{Label: "a", Insts: []*Inst{{Op: OpExt, Dst: 7, Src: [2]Reg{4}, Ty: TyU8, SrcTy: TyBool}}, Term: &TermRet{Vals: []Reg{7}}}
+		b := &Block{Label: "b", Term: &TermRet{Vals: []Reg{3}}}
+		f := &Func{Name: "f", Blocks: []*Block{entry, a, b}}
+		SinkIntoSingleUseSuccessor(f)
+		if len(entry.Insts) < 2 || entry.Insts[1] != ge {
+			t.Fatalf("%v compare moved away from its SUB:\n%s", cond, (&Module{Funcs: []*Func{f}}).Dump())
+		}
+	}
+}

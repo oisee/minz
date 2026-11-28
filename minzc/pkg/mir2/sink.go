@@ -143,11 +143,21 @@ func blockReads(b *Block, r Reg, keep []*Inst, sunk *Inst) bool {
 	return false
 }
 
+// readsPrecedingFlags reports whether inst's meaning depends on the flags
+// left by the instruction emitted before it rather than on its operands:
+// CmpSubCarry / CmpSubCarryNot (FusionSubCmpInBlock, FuseAbsDiff,
+// FuseByteAbsDiffCFG) emit nothing and read the carry of the SUB that
+// immediately precedes them. Such an instruction must not be moved away from
+// that SUB (HoistDiamondCommon, SinkIntoSingleUseSuccessor).
+func readsPrecedingFlags(inst *Inst) bool {
+	return inst.Op == OpCmp && (inst.Cond == CmpSubCarry || inst.Cond == CmpSubCarryNot)
+}
+
 func sinkTarget(f *Func, b *Block, inst *Inst, succs []string, preds map[string]int, params map[Reg]bool, defs map[Reg]int, useBlocks map[Reg]map[*Block]bool) *Block {
 	// Byte and bool results only: sinking a word computation into a block
 	// that is already short of pairs measurably added spills
 	// (examples/mzv/test_sphere.minz, march).
-	if !sinkableOps[inst.Op] || inst.Dst == NoReg || inst.Ty == nil || inst.Ty.Width() > 8 || inst.Volatile || inst.ClsHard || inst.Sym != "" ||
+	if !sinkableOps[inst.Op] || readsPrecedingFlags(inst) || inst.Dst == NoReg || inst.Ty == nil || inst.Ty.Width() > 8 || inst.Volatile || inst.ClsHard || inst.Sym != "" ||
 		inst.Asm != nil || len(inst.Args) > 0 || len(inst.ExtraRets) > 0 || inst.SequentialBytes ||
 		params[inst.Dst] || defs[inst.Dst] != 1 {
 		return nil

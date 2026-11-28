@@ -75,7 +75,7 @@ func HoistDiamondCommon(f *Func) bool {
 			continue
 		}
 		cmp := head.Insts[len(head.Insts)-1]
-		if cmp.Op != OpCmp || cmp.Dst != br.Cond || cmp.Cond == CmpSubCarry || cmp.Cond == CmpSubCarryNot {
+		if cmp.Op != OpCmp || cmp.Dst != br.Cond || readsPrecedingFlags(cmp) {
 			continue
 		}
 		a, b := f.BlockByLabel(br.Then), f.BlockByLabel(br.Else)
