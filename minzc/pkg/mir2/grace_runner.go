@@ -2485,7 +2485,42 @@ func isNarrowable(inst *Inst, f *Func) bool {
 		return false
 	}
 	// Result must only be used as u8
-	return allUsesNarrow(inst.Dst, f)
+	if !allUsesNarrow(inst.Dst, f) {
+		return false
+	}
+	// A comparison reads the whole value (allUsesNarrow admits it because
+	// its bool result is narrow). Narrowing preserves that value only for a
+	// bitwise op of zero-extended bytes, which stays in 0..255; x+x can reach
+	// 510, and a bitwise op of sign-extended bytes can be negative.
+	if usedByCompare(inst.Dst, f) && (inst.Op == OpAdd || !zeroExtendedByte(inst.Src[0], f) || !zeroExtendedByte(inst.Src[1], f)) {
+		return false
+	}
+	return true
+}
+
+// usedByCompare reports whether some OpCmp reads r.
+func usedByCompare(r Reg, f *Func) bool {
+	for _, b := range f.Blocks {
+		for _, inst := range b.Insts {
+			if inst.Op == OpCmp && (inst.Src[0] == r || inst.Src[1] == r) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// zeroExtendedByte reports whether r is defined by a zero extension of an
+// unsigned value of at most 8 bits (its value is then in 0..255).
+func zeroExtendedByte(r Reg, f *Func) bool {
+	for _, b := range f.Blocks {
+		for _, inst := range b.Insts {
+			if inst.Dst == r {
+				return inst.Op == OpExt && inst.SrcTy != nil && inst.SrcTy.Width() <= 8 && !IsSigned(inst.SrcTy)
+			}
+		}
+	}
+	return false
 }
 
 // srcOrigType traces back to find the original type of a register before extension.
