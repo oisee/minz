@@ -274,6 +274,7 @@ func (g *z80cg) genInst(inst *Inst) {
 			if rhsP != "A" { // skip NEG-trick case (rhs was in A)
 				g.lastFlagsLhs = g.loc(inst.Src[0]) // logical lhs
 				g.lastFlagsRhs = rhsP
+				g.lastFlagsSub = inst
 			}
 		}
 

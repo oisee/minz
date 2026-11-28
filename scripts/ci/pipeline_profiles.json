@@ -500,6 +500,7 @@
     "TestStructuredSpriteRuntimeBaseDiagnostics",
     "TestStructuredSpriteRuntimeBaseNativeAndVM",
     "TestStructuredSpriteWhenDiagnostics",
+    "TestSubCmpFusionComparesValuesNotLocations",
     "TestSwitchTerminationVMZ80",
     "TestSystemCFAT12ImageNativeVM",
     "TestTailRecursionAsmOperandFollowsLoopParam",
