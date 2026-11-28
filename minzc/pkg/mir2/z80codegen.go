@@ -1609,13 +1609,10 @@ func (g *z80cg) genBlock(f *Func, b *Block) {
 		limit-- // skip final DEC B; DJNZ handles it
 	}
 
-	// Pre-pass: reorder to avoid A-clobber between call arg setup instructions.
-	// Pattern: OpMove → A (ClassAcc) followed by an 8-bit ALU → nonA that uses
-	// A as scratch.  Swapping them lets the ALU use A freely, then the move
-	// loads A last (right before the call).  Safe when neither depends on the other.
-	reordered := reorderAccMoves(b.Insts[:limit], g.ar)
-
-	for instIdx, inst := range reordered {
+	// Instructions are emitted in block order: liveness, pending-A tracking
+	// and the look-ahead peepholes (curBlock.Insts[curInstIdx+1]) all index
+	// that order, so emission must not reorder them.
+	for instIdx, inst := range b.Insts[:limit] {
 		g.curInstIdx = instIdx
 		g.genInst(inst)
 	}

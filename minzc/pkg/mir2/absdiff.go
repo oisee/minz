@@ -1,106 +1,101 @@
 package mir2
 
-// FuseAbsDiff recognizes the abs_diff pattern and rewrites it for optimal Z80 codegen.
+// FuseAbsDiff lets a compare reuse the borrow of an adjacent subtraction.
 //
-// Before:
+// The only fact used is the borrow of r = sub(x, y): it is set exactly when
+// x <u y (unsigned, at the width of the sub). A compare is fused only when it
+// is that predicate or its complement on the SAME subtraction:
 //
-//	%f = cmp.ugt %a, %b      ; separate comparison
-//	%d = sub %b, %a           ; separate subtraction (reversed operands)
-//	cond_ret %f, [%d], @then  ; branch
-//	@then: neg %d; ret        ; negate
+//	cmp.ult(x, y) == x <u y  == borrow(sub x,y)  -> cmp.sub_carry(r, y)
+//	cmp.ugt(y, x) == x <u y  == borrow(sub x,y)  -> cmp.sub_carry(r, y)
+//	cmp.uge(x, y) == x >=u y == !borrow          -> cmp.sub_carry_not(r, y)
+//	cmp.ule(y, x) == x >=u y == !borrow          -> cmp.sub_carry_not(r, y)
 //
-// After:
+// cmp.ule(x, y), cmp.ugt(x, y), cmp.ult(y, x) and cmp.uge(y, x) are the borrow
+// (or its complement) of sub(y, x), a different subtraction, and differ from
+// every predicate above when x == y; they are never fused. Signed orderings
+// and equality are never fused either.
 //
-//	%d = sub %a, %b           ; sub + implicit carry (a < b)
-//	%f = cmp.sub_carry        ; reuse carry from sub
-//	cond_ret %f, [%d], @then  ; if a < b → negate
-//	@then: neg %d; ret        ; negate
+// The sub is moved before the compare when the compare came first, and in a
+// cond_ret whose Then block has this block as its only predecessor, a
+// subtraction there with the operands reversed becomes neg(r)
+// (sub(y, x) == neg(sub(x, y)) modulo 2^width). Example (abs_diff):
 //
-// The rewrite enables Sub+CmpLt flag fusion in Z80 codegen:
-// SUB C sets carry when a < b, so no separate CP instruction needed.
-// Result: 6B (SUB C; RET NC; NEG; RET) instead of 9B.
+//	%d = sub %a, %b
+//	%f = cmp.sub_carry %d, %b   ; a < b
+//	cond_ret %f, [%d], @then    ; SUB C / RET NC
+//	@then: %n = neg %d; ret %n  ; NEG / RET
 func FuseAbsDiff(f *Func) bool {
 	changed := false
 	for _, b := range f.Blocks {
-		if len(b.Insts) < 2 {
+		if fuseAbsDiffBlock(f, b) {
+			changed = true
+		}
+	}
+	return changed
+}
+
+// matchAbsDiffPair reports whether the adjacent instructions i0, i1 are a sub
+// and a compare whose result is the borrow of that sub (or its complement),
+// according to the table on FuseAbsDiff.
+func matchAbsDiffPair(i0, i1 *Inst) (sub, cmp *Inst, cond CmpCond, ok bool) {
+	switch {
+	case i0.Op == OpSub && i1.Op == OpCmp:
+		sub, cmp = i0, i1
+	case i0.Op == OpCmp && i1.Op == OpSub:
+		cmp, sub = i0, i1
+	default:
+		return nil, nil, 0, false
+	}
+	if sub.Dst == NoReg || cmp.Dst == NoReg {
+		return nil, nil, 0, false
+	}
+	x, y := sub.Src[0], sub.Src[1]
+	same := cmp.Src == [2]Reg{x, y}
+	swapped := cmp.Src == [2]Reg{y, x}
+	switch {
+	case cmp.Cond == CmpUlt && same, cmp.Cond == CmpUgt && swapped:
+		return sub, cmp, CmpSubCarry, true
+	case cmp.Cond == CmpUge && same, cmp.Cond == CmpUle && swapped:
+		return sub, cmp, CmpSubCarryNot, true
+	}
+	return nil, nil, 0, false
+}
+
+func hasAbsDiffPair(b *Block) bool {
+	for i := 0; i+1 < len(b.Insts); i++ {
+		if _, _, _, ok := matchAbsDiffPair(b.Insts[i], b.Insts[i+1]); ok {
+			return true
+		}
+	}
+	return false
+}
+
+func fuseAbsDiffBlock(f *Func, b *Block) bool {
+	changed := false
+	for i := 0; i+1 < len(b.Insts); i++ {
+		sub, cmp, cond, ok := matchAbsDiffPair(b.Insts[i], b.Insts[i+1])
+		if !ok {
 			continue
 		}
-		for i := 0; i < len(b.Insts)-1; i++ {
-			inst0 := b.Insts[i]
-			inst1 := b.Insts[i+1]
+		x, y := sub.Src[0], sub.Src[1]
+		cmp.Cond = cond
+		// Src[0] = sub result, Src[1] = y (the VM recomputes the borrow from them).
+		// Dropping x from the compare lets the allocator give the sub result x's register.
+		cmp.Src = [2]Reg{sub.Dst, y}
+		cmp.SrcTy = sub.Ty
+		b.Insts[i], b.Insts[i+1] = sub, cmp
 
-			// Pattern A: cmp.ugt(a,b) followed by sub(b,a)
-			// Pattern B: sub(a,b) followed by cmp.ult(a,b)
-			var cmpInst, subInst *Inst
-			var a, bReg Reg
-			patternA := inst0.Op == OpCmp &&
-				(inst0.Cond == CmpUgt || inst0.Cond == CmpUge) &&
-				inst1.Op == OpSub &&
-				inst1.Src[0] == inst0.Src[1] && inst1.Src[1] == inst0.Src[0]
-			patternB := inst0.Op == OpSub &&
-				inst1.Op == OpCmp &&
-				(inst1.Cond == CmpUlt || inst1.Cond == CmpUle) &&
-				inst0.Src[0] == inst1.Src[0] && inst0.Src[1] == inst1.Src[1]
-
-			if patternA {
-				cmpInst, subInst = inst0, inst1
-				a, bReg = cmpInst.Src[0], cmpInst.Src[1]
-			} else if patternB {
-				subInst, cmpInst = inst0, inst1
-				a, bReg = subInst.Src[0], subInst.Src[1]
-			} else {
-				continue
-			}
-
-			// Pattern A: swap sub operands to sub(a, b)
-			if patternA {
-				subInst.Src[0] = a
-				subInst.Src[1] = bReg
-			}
-
-			// Rewrite cmp to use CmpSubCarry — the carry flag from the sub
-			// already encodes the comparison result. No separate CP needed.
-			// CmpSubCarry means "carry set by preceding SUB" — the codegen
-			// recognizes this and emits zero instructions for the cmp.
-			cmpInst.Cond = CmpSubCarry
-			// Src[0] = sub result (a-b), Src[1] = b (needed by VM for carry check).
-			// Using sub's dst for Src[0] removes the false live range on param `a`,
-			// letting PBQP assign sub result to A (same reg as consumed param).
-			cmpInst.Src = [2]Reg{subInst.Dst, bReg}
-			cmpInst.SrcTy = subInst.Ty
-
-			// Swap instruction order: sub first, then cmp.
-			b.Insts[i] = subInst
-			b.Insts[i+1] = cmpInst
-
-			// Also check the cond_ret target block: if it contains sub(b, a)
-			// (the reverse subtraction), replace with neg(sub_dst). This turns
-			// the "compute b-a from scratch" path into "negate a-b" (2B NEG
-			// instead of 3B NEG+ADD or a full sub).
-			if cr, ok := b.Term.(*TermCondRet); ok {
-				targetLabel := cr.Then
-				for _, tb := range f.Blocks {
-					if tb.Label != targetLabel {
-						continue
-					}
-					for ti, tInst := range tb.Insts {
-						if tInst.Op == OpSub &&
-							tInst.Src[0] == bReg && tInst.Src[1] == a {
-							// sub(b, a) → neg(sub_result)
-							tb.Insts[ti] = &Inst{
-								Op:  OpNeg,
-								Dst: tInst.Dst,
-								Src: [2]Reg{subInst.Dst},
-								Ty:  tInst.Ty,
-								Cls: tInst.Cls,
-							}
-						}
+		if cr, ok := b.Term.(*TermCondRet); ok && countPredecessors(f, cr.Then) == 1 {
+			if tb := f.BlockByLabel(cr.Then); tb != nil && tb != b {
+				for ti, t := range tb.Insts {
+					if t.Op == OpSub && t.Src == [2]Reg{y, x} && t.Ty == sub.Ty {
+						tb.Insts[ti] = &Inst{Op: OpNeg, Dst: t.Dst, Src: [2]Reg{sub.Dst}, Ty: t.Ty, Cls: t.Cls}
 					}
 				}
 			}
-
-			changed = true
 		}
+		changed = true
 	}
 	return changed
 }

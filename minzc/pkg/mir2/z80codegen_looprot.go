@@ -141,7 +141,7 @@ func (g *z80cg) tryRotateLoop(f *Func, t *TermJmp) bool {
 
 	g.enterBlockState(head)
 	g.tailCallInst = nil
-	for i, x := range reorderAccMoves(head.Insts, g.ar) {
+	for i, x := range head.Insts {
 		g.curInstIdx = i
 		g.genInst(x)
 	}
