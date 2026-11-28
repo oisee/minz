@@ -162,6 +162,11 @@ func sinkTarget(f *Func, b *Block, inst *Inst, succs []string, preds map[string]
 		params[inst.Dst] || defs[inst.Dst] != 1 {
 		return nil
 	}
+	// DJNZ decrements its counter as it branches: an instruction moved past
+	// it would read the counter one step later.
+	if _, djnz := b.Term.(*TermDJNZ); djnz {
+		return nil
+	}
 	users := useBlocks[inst.Dst]
 	if len(users) != 1 || users[b] {
 		return nil
