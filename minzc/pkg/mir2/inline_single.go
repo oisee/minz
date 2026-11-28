@@ -7,18 +7,21 @@ type SingleCallInlineStats struct {
 	KeepCallers         map[string]bool
 	InlinedCallers      map[string]bool
 	ExportCopies        int
-	// SpeedExportCopies admits, besides the parameterless straight-line
-	// exports, a small loop-free exported leaf with parameters and branches
-	// (ExportSpeedCopyMaxInsts, ExportSpeedCopyMaxBlocks). Its copy always
-	// grows the module, so the caller must gate it on measured speed.
-	SpeedExportCopies bool
-	// SpeedCopies records each such copy: callee name -> caller name.
-	SpeedCopies map[string]string
-	// SpeedCopyAllow, when non-nil, restricts speed copies to these callees
-	// (the pipeline's per-candidate trials).
+	// ReportSpeedCandidates fills SpeedCandidates: the small loop-free
+	// exported leaves (ExportSpeedCopyMaxInsts, ExportSpeedCopyMaxBlocks)
+	// whose copy into their single caller passes the speed pre-filter
+	// (speedCopyCallerOK). Reporting copies nothing.
+	ReportSpeedCandidates bool
+	SpeedCandidates       map[string]string // callee -> caller
+	// SpeedCopyAllow lists the speed candidates to copy (the pipeline's
+	// decision, export_speed_copy.go). A copy always grows the module, since
+	// the callable definition is retained, so nothing else may copy them.
 	SpeedCopyAllow map[string]bool
+	// SpeedCopies records each speed copy made: callee name -> caller name.
+	SpeedCopies map[string]string
 	// DisableNarrowCopies refuses the parameterless straight-line export
-	// copies, so a trial can reproduce a reference product that refused them.
+	// copies, so a speed-copy compile reproduces a reference product whose
+	// byte gate refused them.
 	DisableNarrowCopies bool
 }
 
@@ -57,13 +60,65 @@ func acyclicBlocks(f *Func) bool {
 	return visit(f.Entry().Label)
 }
 
+// speedCopyCallerOK is the speed pre-filter, decided on the MIR before any
+// copy: the pipeline accepts a speed copy only when the static worst-path
+// model scores the caller after the copy (export_speed_copy.go), and that
+// model refuses any other call (it cannot cost a callee it does not see) and
+// any loop without a proved trip count. So the caller must contain exactly
+// one call instruction, the copied site, and every cycle of its CFG must
+// have a static loop fact with a known trip count. A caller that is itself
+// inlined into another function would carry the copy elsewhere (the model
+// would score a function that does not run), so it must not be eligible
+// for single-call inlining either (checked by the caller of this helper).
+func speedCopyCallerOK(caller *Func) bool {
+	calls := 0
+	for _, b := range caller.Blocks {
+		for _, x := range b.Insts {
+			if x.Op == OpCall || x.Op == OpCallCond || x.Op == OpCallIndirect {
+				calls++
+			}
+			if x.Op == OpAsm || x.Op == OpPatch || x.Op == OpPatchSlot || x.Op == OpLoadPatched {
+				return false
+			}
+		}
+	}
+	if calls != 1 {
+		return false
+	}
+	state := map[string]int{}
+	ok := true
+	var visit func(label string)
+	visit = func(label string) {
+		state[label] = 1
+		if b := caller.BlockByLabel(label); b != nil && b.Term != nil {
+			for _, s := range b.Term.Successors() {
+				switch state[s] {
+				case 1: // back edge: s heads a cycle
+					if fact, known := caller.StaticLoops[s]; !known || fact.Trips < 0 {
+						ok = false
+					}
+				case 0:
+					visit(s)
+				}
+			}
+		}
+		state[label] = 2
+	}
+	if len(caller.Blocks) > 0 {
+		visit(caller.Entry().Label)
+	}
+	return ok
+}
+
 // InlineSingleCallSites removes the size limit for private single-use bodies.
 // Exported straight-line, parameterless leaf helpers may be copied, but their
 // callable definitions are retained by the ordinary export/pruning roots.
-// With SpeedExportCopies, so may a small loop-free exported leaf (see
-// SingleCallInlineStats); such copies are reported in SpeedCopies.
+// A small loop-free exported leaf passing the speed pre-filter is reported in
+// SpeedCandidates and copied only when SpeedCopyAllow names it; such copies
+// are reported in SpeedCopies (see SingleCallInlineStats).
 func InlineSingleCallSites(m *Module, exported map[string]bool, stats ...*SingleCallInlineStats) bool {
 	counts := map[string]int{}
+	callerOf := map[string]*Func{}
 	address := map[string]bool{}
 	opaque := false
 	for _, g := range m.Globals {
@@ -79,6 +134,7 @@ func InlineSingleCallSites(m *Module, exported map[string]bool, stats ...*Single
 			for _, x := range b.Insts {
 				if x.Op == OpCall || x.Op == OpCallCond {
 					counts[x.Sym]++
+					callerOf[x.Sym] = f
 				}
 				if x.Op == OpAddrOf {
 					address[x.Sym] = true
@@ -118,7 +174,7 @@ func InlineSingleCallSites(m *Module, exported map[string]bool, stats ...*Single
 		return visit(start)
 	}
 	eligible := map[string]*Func{}
-	speedOnly := map[string]bool{}
+	speedShape := map[string]bool{}
 	for _, f := range m.Funcs {
 		// Absence from the pruning roots is not evidence of private linkage.
 		// Runtime helpers may be Internal yet callable by a provider's name.
@@ -173,17 +229,34 @@ func InlineSingleCallSites(m *Module, exported map[string]bool, stats ...*Single
 				safe = false
 			}
 			if !narrow {
-				if len(stats) == 0 || stats[0] == nil || !stats[0].SpeedExportCopies ||
-					stats[0].SpeedCopyAllow != nil && !stats[0].SpeedCopyAllow[f.Name] ||
+				if !safe || len(stats) == 0 || stats[0] == nil ||
 					len(f.Blocks) > ExportSpeedCopyMaxBlocks || insts > ExportSpeedCopyMaxInsts || len(f.StaticLoops) > 0 || !acyclicBlocks(f) {
 					safe = false
-				} else if safe {
-					speedOnly[f.Name] = true
+				} else {
+					speedShape[f.Name] = true
+					safe = stats[0].SpeedCopyAllow[f.Name]
 				}
 			}
 		}
 		if safe {
 			eligible[f.Name] = f
+		}
+	}
+	// The speed pre-filter needs the complete eligibility: a caller that is
+	// itself inlined would move the copy into another function.
+	for _, name := range sortedNames(speedShape) {
+		caller := callerOf[name]
+		pass := caller != nil && caller.Name != name && eligible[caller.Name] == nil && !speedShape[caller.Name] &&
+			!(stats[0].KeepCallers[caller.Name]) && speedCopyCallerOK(caller)
+		if !pass {
+			delete(eligible, name)
+			continue
+		}
+		if stats[0].ReportSpeedCandidates {
+			if stats[0].SpeedCandidates == nil {
+				stats[0].SpeedCandidates = map[string]string{}
+			}
+			stats[0].SpeedCandidates[name] = caller.Name
 		}
 	}
 	changed := false
@@ -231,7 +304,7 @@ func InlineSingleCallSites(m *Module, exported map[string]bool, stats ...*Single
 					localInlineCSE(m, caller)
 					if exported[callee.Name] && len(stats) > 0 && stats[0] != nil {
 						stats[0].ExportCopies++
-						if speedOnly[callee.Name] {
+						if speedShape[callee.Name] {
 							if stats[0].SpeedCopies == nil {
 								stats[0].SpeedCopies = map[string]string{}
 							}

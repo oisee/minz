@@ -161,6 +161,9 @@ func decideUnroll(hm *hir.Module, opt Options) (Options, error) {
 	trial.quietDiagnostics = true
 	trial.deferZ80Validation = true
 	trial.unrollUngated = true // the candidate keeps what lowering admits
+	// Measured on the reference product: speed export copies are decided
+	// later, on the product that ships.
+	trial.disableSpeedCopies = true
 	baseOpt := trial
 	baseOpt.DisableLoopUnroll = true
 	base, err := CompileHIRSteps(hir.CloneModule(hm), baseOpt)

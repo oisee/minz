@@ -23,11 +23,18 @@ func ValidateContractStrategy(opts Options) error {
 	}
 	return nil
 }
-func optimizePipelineContracts(m *mir2.Module, ct mir2.CostTable, strategy string) mir2.ContractSet {
+
+// pins fixes the parameter classes of some functions (speed export copies,
+// export_speed_copy.go); the PBQP strategy does not take them, and a product
+// it compiles keeps whatever it chose.
+func optimizePipelineContracts(m *mir2.Module, ct mir2.CostTable, strategy string, pins map[string][]mir2.RegClass) mir2.ContractSet {
 	if strategy == "pbqp" {
 		cs := mir2.OptimizeContractsPBQP(m, ct)
 		mir2.PlacePFCCOCallWordLiterals(m, cs, ct)
 		return cs
+	}
+	if len(pins) != 0 {
+		return mir2.OptimizeContractsPinned(m, ct, pins)
 	}
 	return mir2.OptimizeContracts(m, ct)
 }

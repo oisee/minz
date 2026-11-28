@@ -66,17 +66,10 @@ func TestVariantSearchNestedVMZ80(t *testing.T) {
 		want         int64
 		counted      int
 		maxT         int
-		noCopies     bool
 	}{
-		{"winning", variantWinningNest, []int64{93, 9}, 237, 2, 2327, false},
-		// "losing": the permitted recipe of the outer loop splits a helper and
-		// loses, so search keeps one counted loop (export copies off, which
-		// keeps that helper a call).
-		{"losing", variantLosingNest, []int64{108, 199}, 225, 1, 0, true},
-		// With speed export copies the split helper is inlined back and the
-		// permitted product wins: 226796T 86B (losing: 248031T 149B on main).
-		{"losing-copied", variantLosingNest, []int64{108, 199}, 225, 2, 0, false},
-		{"campaign", variantCampaignLoop, []int64{146, 182}, 198, 0, 65226, false},
+		{"winning", variantWinningNest, []int64{93, 9}, 237, 2, 2327},
+		{"losing", variantLosingNest, []int64{108, 199}, 225, 1, 0},
+		{"campaign", variantCampaignLoop, []int64{146, 182}, 198, 0, 65226},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			h, e := nanz.Parse(tc.source, "variant_nest.nanz")
@@ -95,7 +88,7 @@ func TestVariantSearchNestedVMZ80(t *testing.T) {
 			}
 			// The subject is the counted/ordinary choice for each loop; the
 			// inner 0..2 loop would otherwise be unrolled (742T for winning).
-			s, e := CompileHIRSteps(h, Options{AssertMode: "none", DisableLoopUnroll: true, disableExportCopies: tc.noCopies})
+			s, e := CompileHIRSteps(h, Options{AssertMode: "none", DisableLoopUnroll: true})
 			if e != nil {
 				t.Fatal(e)
 			}

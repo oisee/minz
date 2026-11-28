@@ -192,6 +192,19 @@ type Z80CodegenOptions struct {
 	// codegen (checked local tables). They keep the conservative clobber set,
 	// so their callers save for any body the replacement may write.
 	FullABI map[string]bool
+	// ExactClobberEntries names functions that keep the exact clobber
+	// declaration although no call site in the module asks for it: exported
+	// callees whose single call was copied into the caller (speed-profile
+	// export copies) declare what they declared while they were called.
+	ExactClobberEntries map[string]bool
+	// DeclaredClobbers fixes the clobber declaration of the named functions
+	// to a reference product's (ClobberSink of that product): a proven set
+	// within the reference set is declared as the reference set, and a nil
+	// entry declares the full ABI. Their callers then save as there.
+	DeclaredClobbers map[string]map[string]bool
+	// ClobberSink, when set, receives the exact clobber sets the product was
+	// emitted with (nil when none was accepted). Plain emissions only.
+	ClobberSink *map[string]map[string]bool
 	// DisableLoopRotation keeps every loop back edge as a jump to the header
 	// test instead of repeating a small header test at the latch.
 	DisableLoopRotation bool

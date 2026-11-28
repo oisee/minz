@@ -51,6 +51,9 @@ fun entry(i:u8)->u8 { store(&f,i) if f { return 1 } return 0 }
 					if e != nil {
 						t.Fatal(e)
 					}
+					// The call fixture is about a bool returned by a CALL; naming
+					// predicate as an entry keeps it a call (speed export copies).
+					h.FuncByName("predicate").ReferencedByName = true
 					return h
 				}
 				raw := parse()

@@ -47,8 +47,9 @@ type Steps struct {
 	DisableLoopRotation       bool                           // replayed by native re-codegen
 	z80ValidationLog          []string                       // deferred Z80-VALIDATE report (deferZ80Validation)
 	narrowCopiesKept          bool                           // the retained-export gate kept its narrow copies
-	narrowCopies              int                            // narrow export copies made in this product
+	speedCandidates           map[string]string              // speed export copy candidates (pre-filtered): callee -> caller
 	speedCopies               map[string]string              // speed export copies made: callee -> caller
+	clobberSets               map[string]map[string]bool     // exact clobber sets the Z80 product declares
 	unrolled                  map[string]int                 // loops unrolled per lowered function
 	OptSize                   bool                           // replayed by native re-codegen (rotation is size-gated)
 	FlagReturns               mir2.FlagReturnReport          // Z80 bool return contracts chosen in Phase 5b
@@ -196,14 +197,12 @@ type Options struct {
 	// Internal baseline compilation for the affine-pointer size comparison.
 	disableAffinePointers bool
 	disableExportCopies   bool
-	// Speed-profile export copies (see export_speed_copy.go): off for the
-	// reference product, restricted to an allow-list in a per-callee trial,
-	// and with the narrow copies refused when the reference refused them.
-	// A trial (speedCopyTrial) returns its product without gating it.
-	disableSpeedCopies  bool
-	disableNarrowCopies bool
-	speedCopyAllow      map[string]bool
-	speedCopyTrial      bool
+	// Speed-profile export copies (see export_speed_copy.go). A compile with
+	// a plan makes exactly the planned copies and pins the retained callees'
+	// contracts; it is never gated again. disableSpeedCopies turns the
+	// selection off (internal measurement compiles such as decideUnroll).
+	speedCopyPlan      *speedCopyPlan
+	disableSpeedCopies bool
 	// Backend selects the codegen backend: "z80" (default), "ez80".
 	// When "ez80", the pipeline generates eZ80 ADL assembly instead of Z80.
 	Backend string
@@ -409,9 +408,27 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 // Compile alternatives without executing user assertions. Only the selected
 // product owns assertion execution and its invocation-local receipt.
 func compileMIRSteps(hm *hir.Module, opt Options, s Steps, splitInfo map[string]hir.SplitResult, m *mir2.Module) (Steps, error) {
+	initial := s
 	s, err := compileMIRProductSteps(hm, opt, s, splitInfo, m)
 	if err != nil {
 		return s, err
+	}
+	// Speed export copies are decided on the product that ships; the
+	// variant search decides on its selected product (compileVariantSearch).
+	if !opt.variantCandidate && speedCopySelectionEnabled(hm, opt) {
+		s = selectSpeedCopies(s, func(plan *speedCopyPlan) (Steps, error) {
+			o := opt
+			o.speedCopyPlan = plan
+			o.GraceStats = nil
+			o.variantMIRReady = nil
+			o.quietDiagnostics = true
+			o.deferZ80Validation = true
+			c, err := compileMIRProductSteps(hm, o, initial, splitInfo, hir.LowerModuleWithOptions(hm, lowerOptions(hm, opt, nil)))
+			if !opt.deferZ80Validation {
+				c.z80ValidationLog = nil // the reference printed the module's report
+			}
+			return c, err
+		})
 	}
 	m = s.MIR2Module
 	// MIR2 VM assertion checks (skip "z80"-only asserts).
@@ -453,10 +470,13 @@ func compileMIRProductSteps(hm *hir.Module, opt Options, s Steps, splitInfo map[
 	inlineStats := &mir2.SingleCallInlineStats{DisableExportCopies: opt.disableExportCopies || opt.Backend != "" && opt.Backend != "z80" || opt.SkipZ80Emission}
 	inlineStats.InlinedCallers = opt.variantInlinedCallers
 	// Speed profile only: a small loop-free exported leaf may be copied too,
-	// kept only when the static model shows its caller faster (below).
-	inlineStats.SpeedExportCopies = !opt.OptSize && !opt.disableSpeedCopies
-	inlineStats.SpeedCopyAllow = opt.speedCopyAllow
-	inlineStats.DisableNarrowCopies = opt.disableNarrowCopies
+	// when a plan selected it (selectSpeedCopies). Every compile reports the
+	// pre-filtered candidates, which copies nothing.
+	inlineStats.ReportSpeedCandidates = !opt.OptSize
+	if plan := opt.speedCopyPlan; plan != nil {
+		inlineStats.SpeedCopyAllow = plan.allow
+		inlineStats.DisableNarrowCopies = !plan.narrow
+	}
 	inlineStats.KeepCallers = map[string]bool{}
 	for name, v := range opt.FunctionVariants {
 		inlineStats.KeepCallers[name] = v.KeepCalls
@@ -658,7 +678,11 @@ func compileMIRProductSteps(hm *hir.Module, opt Options, s Steps, splitInfo map[
 	}
 	if opt.ContractOpt {
 		mir2.PrepareByteLoopContracts(m)
-		cs := optimizePipelineContracts(m, ct, opt.ContractStrategy)
+		var pins map[string][]mir2.RegClass
+		if opt.speedCopyPlan != nil {
+			pins = opt.speedCopyPlan.pins
+		}
+		cs := optimizePipelineContracts(m, ct, opt.ContractStrategy, pins)
 		mir2.ApplyContracts(m, cs)
 	}
 	// Bool returns in flags are a Z80 code generation contract. Other
@@ -734,6 +758,9 @@ func compileMIRProductSteps(hm *hir.Module, opt Options, s Steps, splitInfo map[
 			NoExactClobbers:           opt.NoExactClobbers,
 			DisableLoopRotation:       s.DisableLoopRotation,
 			ValidationLog:             validationLog,
+			ExactClobberEntries:       opt.speedCopyPlan.exactEntries(inlineStats.SpeedCopies),
+			DeclaredClobbers:          opt.speedCopyPlan.declaredClobbers(),
+			ClobberSink:               &s.clobberSets,
 		})
 		if codegenErr != nil {
 			// The shift-carry home preference can leave a relocated live-out
@@ -795,11 +822,10 @@ func compileMIRProductSteps(hm *hir.Module, opt Options, s Steps, splitInfo map[
 	// Retained exported bodies make inlining a code-growth tradeoff. Assemble
 	// both real allocated products; never keep a larger exported-copy variant.
 	s.speedCopies = inlineStats.SpeedCopies
-	s.narrowCopies = inlineStats.ExportCopies - len(inlineStats.SpeedCopies)
-	if len(inlineStats.SpeedCopies) > 0 && !opt.speedCopyTrial && !opt.disableExportCopies && !opt.SkipZ80Emission && (opt.Backend == "" || opt.Backend == "z80") {
-		return selectSpeedCopies(hm, opt, s, initialSteps, splitInfo, inlineStats.SpeedCopies), nil
-	}
-	if inlineStats.ExportCopies > len(inlineStats.SpeedCopies) && !opt.speedCopyTrial && !opt.disableExportCopies && !opt.SkipZ80Emission && (opt.Backend == "" || opt.Backend == "z80") {
+	s.speedCandidates = inlineStats.SpeedCandidates
+	// A speed-copy plan reproduces the reference's narrow-copy decision
+	// (speedCopyPlan.narrow) instead of gating it again.
+	if inlineStats.ExportCopies > len(inlineStats.SpeedCopies) && opt.speedCopyPlan == nil && !opt.disableExportCopies && !opt.SkipZ80Emission && (opt.Backend == "" || opt.Backend == "z80") {
 		baselineOpt := opt
 		baselineOpt.disableExportCopies = true
 		baselineOpt.GraceStats = nil
@@ -814,6 +840,7 @@ func compileMIRProductSteps(hm *hir.Module, opt Options, s Steps, splitInfo map[
 		candidateBytes, candidateErrors := Assemble(s.Assembly, "z80")
 		baselineBytes, baselineErrors := Assemble(baseline.Assembly, "z80")
 		if len(candidateErrors) != 0 || len(baselineErrors) != 0 || len(candidateBytes) > len(baselineBytes) {
+			baseline.speedCandidates = s.speedCandidates
 			return baseline, nil
 		}
 		s.narrowCopiesKept = true
@@ -1025,7 +1052,7 @@ func CompileHIRWithOptions(hm *hir.Module, opts Options) (string, error) {
 	// and are not re-assigned a conflicting one (BUG-004).
 	if opts.ContractOpt {
 		mir2.PrepareByteLoopContracts(m)
-		cs := optimizePipelineContracts(m, ct, opts.ContractStrategy)
+		cs := optimizePipelineContracts(m, ct, opts.ContractStrategy, nil)
 		mir2.ApplyContracts(m, cs)
 	}
 	if !opts.DisableFlagReturns && (opts.Backend == "" || opts.Backend == "z80") {
