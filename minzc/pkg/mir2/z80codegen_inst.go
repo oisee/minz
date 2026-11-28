@@ -261,7 +261,9 @@ func (g *z80cg) genInst(inst *Inst) {
 		g.lastFlagsRhs = ""
 		cv, constant := g.constVals[inst.Src[1]]
 		byteStep := constant && byteSmallStep(g.fn, inst, cv, g.loc(inst.Src[0]), g.loc(inst.Dst))
+		subStart := g.sb.Len()
 		g.genBinOp("SUB", inst)
+		g.publishSubBorrow(inst, subStart)
 		// Record that flags were set by SUB(lhs, rhs) for the Sub+CmpLt fusion.
 		// Only track 8-bit subs; 16-bit uses SBC which sets different flags.
 		// DEC preserves carry, so its flags cannot implement a later unsigned
@@ -274,6 +276,7 @@ func (g *z80cg) genInst(inst *Inst) {
 			if rhsP != "A" { // skip NEG-trick case (rhs was in A)
 				g.lastFlagsLhs = g.loc(inst.Src[0]) // logical lhs
 				g.lastFlagsRhs = rhsP
+				g.lastFlagsSub = inst
 			}
 		}
 

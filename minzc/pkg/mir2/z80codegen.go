@@ -914,6 +914,11 @@ type z80cg struct {
 	// Used by genCmp to suppress a redundant CP when SUB already set the same flags.
 	lastFlagsLhs string // physical location of the lhs (always A at time of emission)
 	lastFlagsRhs string // physical location or immediate string of the rhs
+	// lastFlagsSub is the byte subtraction that set lastFlagsLhs/Rhs. Locations
+	// name registers, not values: a register can be reloaded between the SUB
+	// and a compare, so the fusion also requires the compare to read the same
+	// operand values (see subFlagsDescribeCmp).
+	lastFlagsSub *Inst
 
 	// curBlock is the block currently being code-generated.
 	// Set at the start of genBlock; used by materializePendingFlag for forward scans.

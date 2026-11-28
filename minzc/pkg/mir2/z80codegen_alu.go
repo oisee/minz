@@ -275,6 +275,17 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 			case "AND", "OR", "XOR":
 				g.emit8ALU(mnem, lhs)
 			case "SUB":
+				if g.subBorrowRead(inst) {
+					// NEG / ADD leaves C = (rhs != 0 && lhs >= rhs), not the
+					// borrow. lhs + ~rhs + 1 = lhs - rhs carries exactly when
+					// lhs >= rhs, so CCF leaves the borrow a later
+					// CmpSubCarry reads.
+					g.emit("    CPL")
+					g.emit("    SCF")
+					g.emit8ALU("ADC", lhs)
+					g.emit("    CCF")
+					break
+				}
 				g.emit("    NEG")
 				g.emit8ALU("ADD", lhs)
 			default:

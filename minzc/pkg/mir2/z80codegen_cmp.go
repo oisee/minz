@@ -336,12 +336,12 @@ func (g *z80cg) genCmp(inst *Inst) {
 	if g.tryUnsignedPreservePairCmp(inst) {
 		return
 	}
-	// CmpSubCarry / CmpSubCarryNot: carry flag already set by the immediately
-	// preceding SUB.  No instruction needed — carry encodes a < b (C) or a >= b (NC).
-	// The predicate is pending like any other comparison, so a later flag
-	// writer saves it and a byte read resolves its condition.
+	// CmpSubCarry / CmpSubCarryNot: carry flag set by the preceding SUB when
+	// that SUB published its borrow (genSubCarryCmp) — carry encodes a < b (C)
+	// or a >= b (NC). The predicate is pending like any other comparison, so a
+	// later flag writer saves it and a byte read resolves its condition.
 	if inst.Cond == CmpSubCarry || inst.Cond == CmpSubCarryNot {
-		g.pendingFlagReg = inst.Dst
+		g.genSubCarryCmp(inst)
 		return
 	}
 	// A zero test of a flag-return call result that dies here, read while
@@ -560,7 +560,7 @@ func (g *z80cg) genCmp(inst *Inst) {
 	// return path after the comparison.
 	subCmpFused := ((inst.Cond == CmpUlt || inst.Cond == CmpUge) ||
 		((inst.Cond == CmpLt || inst.Cond == CmpGe) && !isSignedOrdering(inst))) &&
-		g.lastFlagsLhs == lhs && g.lastFlagsRhs == rhs
+		g.lastFlagsLhs == lhs && g.lastFlagsRhs == rhs && g.subFlagsDescribeCmp(inst)
 	if subCmpFused {
 		// Flags valid from preceding SUB — skip both LD A and CP.
 		g.pendingFlagReg = inst.Dst
@@ -595,6 +595,34 @@ func (g *z80cg) genCmp(inst *Inst) {
 	g.normalizeSignedCmp(inst)
 	// CP does not modify A; aliases remain valid.
 	g.pendingFlagReg = inst.Dst
+}
+
+// subFlagsDescribeCmp reports whether the carry left by the tracked byte SUB
+// is the carry of this comparison. Equal operand locations are not enough: a
+// location is a register, and the SUB's destination or a later constant may
+// have been written into it since. The flags describe a compare only when it
+// reads the very values the SUB read: the same operands, neither of them
+// written between the SUB and the compare in this block.
+func (g *z80cg) subFlagsDescribeCmp(inst *Inst) bool {
+	sub := g.lastFlagsSub
+	if sub == nil || g.curBlock == nil || len(sub.Src) < 2 || len(inst.Src) < 2 ||
+		sub.Src[0] != inst.Src[0] || sub.Src[1] != inst.Src[1] ||
+		sub.Dst == inst.Src[0] || sub.Dst == inst.Src[1] {
+		return false
+	}
+	at := slices.Index(g.curBlock.Insts, inst)
+	from := slices.Index(g.curBlock.Insts, sub)
+	if at < 0 || from < 0 || from >= at {
+		return false
+	}
+	for _, between := range g.curBlock.Insts[from+1 : at] {
+		for _, w := range instWrites(between) {
+			if w == inst.Src[0] || w == inst.Src[1] {
+				return false
+			}
+		}
+	}
+	return true
 }
 
 // branchOnlyCmp requires an immediately consumed flag with no value uses, even
