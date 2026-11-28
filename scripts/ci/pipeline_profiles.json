@@ -501,6 +501,7 @@
     "TestStructuredSpriteRuntimeBaseNativeAndVM",
     "TestStructuredSpriteWhenDiagnostics",
     "TestSubBorrowCarryAfterNegAddNative",
+    "TestSubCarryCompareTruthTableNative",
     "TestSubCmpFusionComparesValuesNotLocations",
     "TestSwitchTerminationVMZ80",
     "TestSystemCFAT12ImageNativeVM",

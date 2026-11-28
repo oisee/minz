@@ -431,28 +431,10 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 		return false
 	})
 
-	// has-abs-diff-pattern: check if block contains cmp.ugt+sub or sub+cmp.ult
+	// has-abs-diff-pattern: a sub next to a compare that is its borrow (see FuseAbsDiff)
 	reg.RegisterPredicate("has-abs-diff-pattern", func(graph rewrite.IRGraph, bindings grace.BlockBindings, args []string) bool {
-		label := bindings[args[0]]
-		blk := f.BlockByLabel(label)
-		if blk == nil || len(blk.Insts) < 2 {
-			return false
-		}
-		for i := 0; i < len(blk.Insts)-1; i++ {
-			i0, i1 := blk.Insts[i], blk.Insts[i+1]
-			// Pattern A: cmp.ugt(a,b) + sub(b,a)
-			if i0.Op == OpCmp && (i0.Cond == CmpUgt || i0.Cond == CmpUge) &&
-				i1.Op == OpSub && i1.Src[0] == i0.Src[1] && i1.Src[1] == i0.Src[0] {
-				return true
-			}
-			// Pattern B: sub(a,b) + cmp.ult(a,b)
-			if i0.Op == OpSub && i1.Op == OpCmp &&
-				(i1.Cond == CmpUlt || i1.Cond == CmpUle) &&
-				i0.Src[0] == i1.Src[0] && i0.Src[1] == i1.Src[1] {
-				return true
-			}
-		}
-		return false
+		blk := f.BlockByLabel(bindings[args[0]])
+		return blk != nil && hasAbsDiffPair(blk)
 	})
 
 	// ── Custom Actions ──────────────────────────────────────────────────
@@ -614,76 +596,10 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 		return changed
 	})
 
-	// fuseAbsDiff: fuse abs_diff pattern
+	// fuseAbsDiff: fuse abs_diff pattern (shared with the Go pass)
 	reg.RegisterAction("fuseAbsDiff", func(graph rewrite.IRGraphMut, bindings grace.BlockBindings) bool {
-		label := bindings["b"]
-		blk := f.BlockByLabel(label)
-		if blk == nil {
-			return false
-		}
-		// Delegate to the existing implementation
-		origLen := len(blk.Insts)
-		changed := false
-		for i := 0; i < len(blk.Insts)-1; i++ {
-			inst0 := blk.Insts[i]
-			inst1 := blk.Insts[i+1]
-
-			var cmpInst, subInst *Inst
-			var a, bReg Reg
-			patternA := inst0.Op == OpCmp &&
-				(inst0.Cond == CmpUgt || inst0.Cond == CmpUge) &&
-				inst1.Op == OpSub &&
-				inst1.Src[0] == inst0.Src[1] && inst1.Src[1] == inst0.Src[0]
-			patternB := inst0.Op == OpSub &&
-				inst1.Op == OpCmp &&
-				(inst1.Cond == CmpUlt || inst1.Cond == CmpUle) &&
-				inst0.Src[0] == inst1.Src[0] && inst0.Src[1] == inst1.Src[1]
-
-			if patternA {
-				cmpInst, subInst = inst0, inst1
-				a, bReg = cmpInst.Src[0], cmpInst.Src[1]
-			} else if patternB {
-				subInst, cmpInst = inst0, inst1
-				a, bReg = subInst.Src[0], subInst.Src[1]
-			} else {
-				continue
-			}
-
-			if patternA {
-				subInst.Src[0] = a
-				subInst.Src[1] = bReg
-			}
-			cmpInst.Cond = CmpSubCarry
-			cmpInst.Src = [2]Reg{subInst.Dst, bReg}
-			cmpInst.SrcTy = subInst.Ty
-
-			blk.Insts[i] = subInst
-			blk.Insts[i+1] = cmpInst
-
-			// Check cond_ret target for reverse sub → neg
-			if cr, ok := blk.Term.(*TermCondRet); ok {
-				for _, tb := range f.Blocks {
-					if tb.Label != cr.Then {
-						continue
-					}
-					for ti, tInst := range tb.Insts {
-						if tInst.Op == OpSub &&
-							tInst.Src[0] == bReg && tInst.Src[1] == a {
-							tb.Insts[ti] = &Inst{
-								Op:  OpNeg,
-								Dst: tInst.Dst,
-								Src: [2]Reg{subInst.Dst},
-								Ty:  tInst.Ty,
-								Cls: tInst.Cls,
-							}
-						}
-					}
-				}
-			}
-			changed = true
-		}
-		_ = origLen
-		return changed
+		blk := f.BlockByLabel(bindings["b"])
+		return blk != nil && fuseAbsDiffBlock(f, blk)
 	})
 
 	// ── New Block-Level Predicates ──────────────────────────────────────
