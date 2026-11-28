@@ -60,7 +60,7 @@ func TestVariantSearchExactConfigurationVMZ80(t *testing.T) {
 					if err != nil || len(v) != 1 || v[0].I != int64(byte(x+5)) {
 						t.Fatalf("MIR x=%d: %v %v", x, v, err)
 					}
-					executeLocalTableFunction(t, got.Assembly, byte(x))
+					executeByteAddFunction(t, got.Assembly, "add5", 5, byte(x))
 				}
 			})
 		}
@@ -88,7 +88,7 @@ func TestVariantSearchImplicitDefaultsVMZ80(t *testing.T) {
 		if err != nil || len(v) != 1 || v[0].I != int64(byte(x+5)) {
 			t.Fatalf("MIR x=%d: %v %v", x, v, err)
 		}
-		executeLocalTableFunction(t, got.Assembly, byte(x))
+		executeByteAddFunction(t, got.Assembly, "add5", 5, byte(x))
 	}
 }
 

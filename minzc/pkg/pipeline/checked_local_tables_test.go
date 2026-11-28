@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"os"
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/minz/minzc/pkg/emulator"
@@ -54,16 +55,22 @@ func localTableFixture(t *testing.T) (Steps, string) {
 
 func executeLocalTableFunction(t *testing.T, asm string, x byte) int {
 	t.Helper()
+	return executeByteAddFunction(t, asm, "add3", 3, x)
+}
+
+// executeByteAddFunction calls name(x) (x in A) and requires A = x + k.
+func executeByteAddFunction(t *testing.T, asm, name string, k, x byte) int {
+	t.Helper()
 	bin, err := z80asm.NewAssembler().AssembleString(asm)
 	if err != nil || len(bin.Errors) > 0 {
 		t.Fatalf("assemble %v %v", err, bin.Errors)
 	}
-	addr, ok := bin.Symbols["add3"]
+	addr, ok := bin.Symbols[name]
 	if !ok {
-		addr, ok = bin.Symbols["ADD3"]
+		addr, ok = bin.Symbols[strings.ToUpper(name)]
 	}
 	if !ok {
-		t.Fatal("missing add3 label")
+		t.Fatal("missing " + name + " label")
 	}
 	z := emulator.NewRemogattoZ80()
 	z.MaxCycles = 1000
@@ -78,8 +85,8 @@ func executeLocalTableFunction(t *testing.T, asm string, x byte) int {
 	if err := z.Run(); err != nil {
 		t.Fatal(err)
 	}
-	if r := z.GetRegisters(); r.A != x+3 || r.SP != 0xf000 {
-		t.Fatalf("x=%d A=%d want=%d SP=%04x", x, r.A, x+3, r.SP)
+	if r := z.GetRegisters(); r.A != x+k || r.SP != 0xf000 {
+		t.Fatalf("x=%d A=%d want=%d SP=%04x", x, r.A, x+k, r.SP)
 	}
 	return int(z.GetCycles())
 }
