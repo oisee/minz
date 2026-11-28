@@ -210,3 +210,18 @@ func TestInIntervalJoinBuiltInA(t *testing.T) {
 		}
 	})
 }
+
+// Speed profile: the exported two-block leaf with one call site is copied
+// into its caller (mir2 SpeedExportCopies, kept by the static speed gate)
+// and its callable definition remains. --Osize keeps the call.
+func TestInIntervalSpeedExportCopy(t *testing.T) {
+	forEachInInterval(t, func(t *testing.T, tc inIntervalCase, size bool, b inIntervalBuild) {
+		called := strings.Contains(b.asm, "CALL in_interval")
+		if !strings.Contains(b.asm, "\nin_interval:") || len(b.body) == 0 {
+			t.Fatalf("callable in_interval lost:\n%s", b.asm)
+		}
+		if size != called {
+			t.Fatalf("size=%t but CALL present=%t:\n%s", size, called, b.asm)
+		}
+	})
+}

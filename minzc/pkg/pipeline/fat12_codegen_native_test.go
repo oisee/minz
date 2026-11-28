@@ -25,6 +25,9 @@ type globalsProgram struct {
 	c, nanz string
 	maxN    int // largest n whose reads stay inside values
 	want    func(values []byte, n int) uint16
+	// entries are named as entries (ReferencedByName) so their call stays a
+	// call: a small single-call export may otherwise get a speed copy.
+	entries []string
 }
 
 const fat12GlobalsC = "unsigned char values[64], n;\nunsigned short result;\n"
@@ -73,6 +76,9 @@ func compileGlobalsProgram(t *testing.T, p globalsProgram, language, mode string
 	}
 	if err != nil {
 		t.Fatal(err)
+	}
+	for _, name := range p.entries {
+		h.FuncByName(name).ReferencedByName = true
 	}
 	s, err := CompileHIRSteps(h, Options{ContractOpt: true, UseGrace: mode != "default", UseHIRGrace: mode != "default", OptSize: mode == "size"})
 	if err != nil {
@@ -232,6 +238,9 @@ void execute(void) { result = get(values, (unsigned short)(0xFFF0u + n), (unsign
 fun execute() { result = u16(get(&values, 0xFFF0 + u16(n), 0x20 + u16(n))) }`,
 	maxN: 23,
 	want: func(values []byte, n int) uint16 { return uint16(values[0x10+2*n]) },
+	// TestCallArgumentAddressLoadedInPlaceNative is about the arguments of
+	// the call to get.
+	entries: []string{"get"},
 }
 
 // A pointer indexed by a single-use sum is advanced one term at a time, so

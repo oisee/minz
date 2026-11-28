@@ -527,6 +527,23 @@ func compileVariantSearch(source *hir.Module, options ...Options) (Steps, error)
 	if best, bestStats, err = rotateSelected(best, bestStats); err != nil {
 		return best, err
 	}
+	// Speed export copies are decided once, on the selected product, with
+	// its recipes and rotation setting; no trial above made any.
+	if speedCopySelectionEnabled(source, o) {
+		o.variantMIRReady = nil
+		o.DisableLoopRotation = best.DisableLoopRotation
+		selected := selectSpeedCopies(best, func(plan *speedCopyPlan) (Steps, error) {
+			o.speedCopyPlan = plan
+			defer func() { o.speedCopyPlan = nil }()
+			return compile()
+		})
+		o.DisableLoopRotation = true
+		if selected.speedCopies != nil {
+			// Reports describe the searched product, as for rotation.
+			selected.VariantDecisions, selected.VariantSearch, selected.FlagReturns = best.VariantDecisions, best.VariantSearch, best.FlagReturns
+			best, bestStats = selected, compiledStats
+		}
+	}
 	best = emitSelected(best)
 	for _, d := range decisions {
 		if tr := best.Traces[d.Function]; tr != nil {

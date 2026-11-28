@@ -78,7 +78,27 @@ func OptimizeContractsGreedy(m *Module, ct CostTable) ContractSet {
 	return optimizeContractsGreedy(m, ct)
 }
 
+// OptimizeContractsPinned is OptimizeContracts with the parameter classes of
+// the functions in pins fixed: each keeps exactly the given classes, as a
+// function with a fixed ABI keeps its own, and every other choice is made
+// against them. A pin whose length differs from the function's parameter
+// count is ignored.
+func OptimizeContractsPinned(m *Module, ct CostTable, pins map[string][]RegClass) ContractSet {
+	for name, classes := range pins {
+		if f := m.FuncByName(name); f != nil && len(classes) == len(f.Contract.Params) {
+			for i := range f.Contract.Params {
+				f.Contract.Params[i].Class = classes[i]
+			}
+		}
+	}
+	return optimizeContractsGreedyPinned(m, ct, pins)
+}
+
 func optimizeContractsGreedy(m *Module, ct CostTable) ContractSet {
+	return optimizeContractsGreedyPinned(m, ct, nil)
+}
+
+func optimizeContractsGreedyPinned(m *Module, ct CostTable, pins map[string][]RegClass) ContractSet {
 	cg := BuildCallGraph(m)
 	cs := make(ContractSet, len(m.Funcs))
 
@@ -96,7 +116,8 @@ func optimizeContractsGreedy(m *Module, ct CostTable) ContractSet {
 			}
 			// Skip extern/no-body/address-taken/asm functions — their contract is fixed by the ABI.
 			// Functions with inline asm have hard register constraints that must not be changed.
-			if f.Attrs.FixedIndirectABI || f.Attrs.FallibleCY || f.Attrs.IsExtern || len(f.Blocks) == 0 || addrTaken[name] || funcHasAsm(f) {
+			pinned := pins[name] != nil && len(pins[name]) == len(f.Contract.Params)
+			if pinned || f.Attrs.FixedIndirectABI || f.Attrs.FallibleCY || f.Attrs.IsExtern || len(f.Blocks) == 0 || addrTaken[name] || funcHasAsm(f) {
 				if cs[name] == nil {
 					cs[name] = currentChoice(f)
 					changed = true

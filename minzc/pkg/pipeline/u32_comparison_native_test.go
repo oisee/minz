@@ -58,6 +58,11 @@ func TestU32ComparisonSourceNative(t *testing.T) {
 						if e != nil {
 							t.Fatal(e)
 						}
+						if helper {
+							// The helper case is about the comparison behind a CALL;
+							// naming compare as an entry keeps it a call (speed export copies).
+							h.FuncByName("compare").ReferencedByName = true
+						}
 						return h
 					}
 					raw := mir2.NewVM(hir.LowerModule(parse()))

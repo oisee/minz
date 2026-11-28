@@ -32,6 +32,7 @@ type variantImage struct {
 	nodes   map[int]variantInstruction
 	context map[string][]string
 	abi     map[string]string
+	header  map[string]string // the complete "; fun" line, clobbers included
 }
 
 var variantSpill = regexp.MustCompile(`_spill_[A-Za-z0-9_]+_r[0-9]+`)
@@ -47,7 +48,7 @@ func assembleVariant(s Steps) (*variantImage, error) {
 	if len(a.Errors) > 0 {
 		return nil, fmt.Errorf("%v", a.Errors)
 	}
-	im := &variantImage{regions: map[string]*variantRegions{}, binary: a.Binary, symbols: a.Symbols, nodes: map[int]variantInstruction{}, context: map[string][]string{}, abi: map[string]string{}, rotated: map[string]map[string]bool{}}
+	im := &variantImage{regions: map[string]*variantRegions{}, binary: a.Binary, symbols: a.Symbols, nodes: map[int]variantInstruction{}, context: map[string][]string{}, abi: map[string]string{}, header: map[string]string{}, rotated: map[string]map[string]bool{}}
 	owners := map[int]string{}
 	owner := ""
 	for i, line := range strings.Split(asm, "\n") {
@@ -62,6 +63,7 @@ func assembleVariant(s Steps) (*variantImage, error) {
 			// The clobber clause follows the emitted body under exact clobbers;
 			// callers that depend on it differ in code and fail the context check.
 			im.abi[owner], _, _ = strings.Cut(line, " ; clobbers:")
+			im.header[owner] = line
 		} else if strings.HasPrefix(line, "; globals") || strings.HasPrefix(line, "; strings") || strings.HasPrefix(line, "; runtime:") {
 			owner = ""
 		}

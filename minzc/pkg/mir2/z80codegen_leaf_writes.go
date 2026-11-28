@@ -49,7 +49,10 @@ func Z80Codegen(m *Module, ar *AllocResult, opts ...Z80CodegenOptions) (string, 
 		truncateNativeSinks(o, lens)
 		return z80CodegenEmit(m, ar, nil, o)
 	}
-	asm, _, err := exactCodegen(m, ar, o)
+	asm, cache, err := exactCodegen(m, ar, o)
+	if o.ClobberSink != nil {
+		*o.ClobberSink = cache
+	}
 	return asm, err
 }
 
@@ -80,6 +83,43 @@ func exactCodegen(m *Module, ar *AllocResult, o Z80CodegenOptions) (string, map[
 			}
 		}
 	}
+	// A retained callee whose only call site was copied into its caller
+	// declares the set it declared while it was called (see
+	// ExactClobberEntries); only its header comment depends on it.
+	if !legacy {
+		for _, name := range sortedNames(o.ExactClobberEntries) {
+			if f := m.FuncByName(name); f != nil && !o.FullABI[name] && cache[name] == nil {
+				if writes, ok := proof(f, original); ok {
+					cache[name] = writes
+				}
+			}
+		}
+	}
+	// DeclaredClobbers widens a proven set to the one a reference product
+	// declared (a superset only: declaring more than is written is safe), or
+	// drops it (nil: the full ABI), so the function's callers save exactly
+	// what they saved there.
+	for _, name := range sortedNames(declaredNames(o.DeclaredClobbers)) {
+		declared := o.DeclaredClobbers[name]
+		proven, ok := cache[name]
+		if !ok {
+			continue
+		}
+		if declared == nil {
+			delete(cache, name)
+			continue
+		}
+		within := true
+		for reg := range proven {
+			within = within && declared[reg]
+		}
+		if within {
+			cache[name] = map[string]bool{}
+			for reg := range declared {
+				cache[name][reg] = true
+			}
+		}
+	}
 	if len(cache) == 0 {
 		return original, nil, nil
 	}
@@ -88,6 +128,14 @@ func exactCodegen(m *Module, ar *AllocResult, o Z80CodegenOptions) (string, map[
 		return original, nil, nil
 	}
 	return candidate, cache, nil
+}
+
+func declaredNames(m map[string]map[string]bool) map[string]bool {
+	out := make(map[string]bool, len(m))
+	for name := range m {
+		out[name] = true
+	}
+	return out
 }
 
 // exactProductHolds re-checks a final product emitted with cache: removing
