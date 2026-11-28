@@ -71,7 +71,8 @@ func TestCheckedCompositionCLIRealPrepareReplay(t *testing.T) {
 	checkedCompositionCLIState(t)
 	d := t.TempDir()
 	source := filepath.Join(d, "source.nanz")
-	text := "fun add5(x:u8)->u8{return x+5}"
+	// x+3: the ordinary --Osize code is INC A x3 (4 bytes with RET), the table emits ADD A,3; x+5 tied once the dead LD r,5 was removed.
+	text := "fun add3(x:u8)->u8{return x+3}"
 	if err := os.WriteFile(source, []byte(text), 0644); err != nil {
 		t.Fatal(err)
 	}
@@ -84,7 +85,7 @@ func TestCheckedCompositionCLIRealPrepareReplay(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	p, err := vir.PrepareLocalTableProblem(base.MIR2Module.FuncByName("add5"), base.Allocation)
+	p, err := vir.PrepareLocalTableProblem(base.MIR2Module.FuncByName("add3"), base.Allocation)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -119,7 +120,7 @@ func TestCheckedCompositionCLIRealPrepareReplay(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if selected.Traces["add5"].Backend != "checked-local-table" {
+	if selected.Traces["add3"].Backend != "checked-local-table" {
 		t.Fatal("prepared table not selected")
 	}
 	before, err := z80asm.NewAssembler().AssembleString(base.Assembly)
@@ -139,9 +140,9 @@ func TestCheckedCompositionCLIRealPrepareReplay(t *testing.T) {
 	if len(after.Binary) >= len(before.Binary) {
 		t.Fatal("no size benefit", len(before.Binary), len(after.Binary))
 	}
-	address, ok := after.Symbols["add5"]
+	address, ok := after.Symbols["add3"]
 	if !ok {
-		address, ok = after.Symbols["ADD5"]
+		address, ok = after.Symbols["ADD3"]
 	}
 	if !ok {
 		t.Fatal("missing entry")
@@ -159,7 +160,7 @@ func TestCheckedCompositionCLIRealPrepareReplay(t *testing.T) {
 			z.Step()
 		}
 		r := z.GetRegisters()
-		if r.A != byte(x+5) || r.PC != 0xf100 || r.SP != 0xf000 {
+		if r.A != byte(x+3) || r.PC != 0xf100 || r.SP != 0xf000 {
 			t.Fatal(x, r)
 		}
 	}

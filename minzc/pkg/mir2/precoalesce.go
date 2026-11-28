@@ -81,6 +81,28 @@ func propagateClassHints(f *Func, info map[Reg]RegInfo) {
 			promoteRetVals(t.Vals)
 		}
 	}
+	// ── Pass 1b: through a byte-preserving extension into a returned value ──
+	// `%d = ext %s : bool|u8|i8 -> u8|i8` emits nothing when both share a
+	// byte register (genExt), so an A-class %d wants %s in A as well: a
+	// boolean join returned as 0/1 is then built in A on every edge instead of
+	// in another register and copied over before RET.  Only a single-use %s
+	// is upgraded; its other uses could prefer a different home.
+	uses := countRegUses(f)
+	for _, b := range f.Blocks {
+		for _, inst := range b.Insts {
+			if inst.Op != OpExt || inst.Ty == nil || inst.Ty.Width() != 8 || inst.SrcTy == nil || inst.SrcTy.Width() > 8 || uses[inst.Src[0]] != 1 {
+				continue
+			}
+			dst, ok := info[inst.Dst]
+			if !ok || dst.Cls != ClassAcc {
+				continue
+			}
+			if src, ok := info[inst.Src[0]]; ok && canUpgradeClass(src.Cls, ClassAcc) {
+				src.Cls = ClassAcc
+				info[inst.Src[0]] = src
+			}
+		}
+	}
 
 	// ── Pass 2: backward phi-web propagation ─────────────────────────────────
 	blockByLabel := make(map[string]*Block, len(f.Blocks))

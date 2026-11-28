@@ -69,8 +69,8 @@ func TestProfilePinnedCheckedTableMeasuredReplay(t *testing.T) {
 	if e != nil {
 		t.Fatal(e)
 	}
-	if len(s.ProfileDecisions) != 1 || s.ProfileDecisions[0].Variant != "original" || s.Traces["add5"].Backend != "checked-local-table" {
-		t.Fatal("Size/table replay", s.ProfileDecisions, s.Traces["add5"])
+	if len(s.ProfileDecisions) != 1 || s.ProfileDecisions[0].Variant != "original" || s.Traces["add3"].Backend != "checked-local-table" {
+		t.Fatal("Size/table replay", s.ProfileDecisions, s.Traces["add3"])
 	}
 	for x := 0; x < 256; x++ {
 		executeLocalTableFunction(t, s.Assembly, byte(x))
@@ -140,5 +140,5 @@ func TestProfilePinnedCheckedTableMeasuredReplay(t *testing.T) {
 			}
 		}
 	}
-	t.Log("1022 measured cases; Size replay retains original loop and checked add5; relocation/mutation controls and native inputs PASS")
+	t.Log("1022 measured cases; Size replay retains original loop and checked add3; relocation/mutation controls and native inputs PASS")
 }

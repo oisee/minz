@@ -1133,6 +1133,12 @@ func computeDeadConsts(f *Func, ar *AllocResult) map[Reg]bool {
 	// SrcTy when present and from the operand types otherwise.
 	regInfo := collectRegInfo(f)
 
+	blockParam := make(map[Reg]bool)
+	for _, b := range f.Blocks {
+		for _, p := range b.Params {
+			blockParam[p.Dst] = true
+		}
+	}
 	totalUses := make(map[Reg]int)
 	foldedUses := make(map[Reg]int)
 	// A constant offset folded into a ptr_add's symbol immediate is not read
@@ -1208,7 +1214,13 @@ func computeDeadConsts(f *Func, ar *AllocResult) map[Reg]bool {
 						foldedUses[src]++
 						break
 					}
-					if operand == 1 && byteSmallStep(f, inst, cv, physName(inst.Src[0]), physName(inst.Dst)) {
+					// Every 8-bit ADD/SUB whose RHS is in g.constVals is emitted
+					// as INC/DEC (small steps) or ADD A,n / SUB n (genBinOp); no
+					// byte path reads the constant's home. A constant merged
+					// with a block parameter is not in g.constVals (BUG-014), so
+					// its home is read and its load must stay.
+					if operand == 1 && (inst.Ty.Width() == 8 && !blockParam[src] ||
+						byteSmallStep(f, inst, cv, physName(inst.Src[0]), physName(inst.Dst))) {
 						foldedUses[src]++
 					}
 				case OpDiv, OpSDiv, OpMod, OpSMod:

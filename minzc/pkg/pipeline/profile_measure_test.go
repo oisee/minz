@@ -43,15 +43,18 @@ func TestMeasureLoopCostModel(t *testing.T) {
 	// The branch-only unsigned u16 compare through A (no SBC HL) removed 29T
 	// from the fast/equality entries and 38T from the fallback entry. The
 	// down-counter pointer walk (#317) then took 4T off the fallback entry and
-	// 4T off each fallback element.
+	// 4T off each fallback element. Sinking the `const 0` that only the
+	// fallback block reads (W11 part 2) took LD IXL,0 (11T) off the shared
+	// entry and turned the fallback's LD E,IXL (8T) into LD C,0 / LD E,C
+	// (11T): fast 141+37n, zero-length 142, fallback 176+74n, 2 bytes less.
 	for _, row := range evidence.Rows {
 		wantOriginal := 41 + 54*row.N
-		wantPointer := 152 + 37*row.N
+		wantPointer := 141 + 37*row.N
 		if row.N == 0 {
-			wantPointer = 153
+			wantPointer = 142
 		}
 		if row.Path == "fallback" || row.Path == "wrap" {
-			wantPointer = 184 + 74*row.N
+			wantPointer = 176 + 74*row.N
 		}
 		if row.Original != wantOriginal || row.Pointer != wantPointer {
 			t.Fatalf("independent ASM cost disagrees: %+v want %d/%d", row, wantOriginal, wantPointer)
@@ -60,7 +63,7 @@ func TestMeasureLoopCostModel(t *testing.T) {
 			t.Fatal("execution binaries not bound to evidence")
 		}
 	}
-	if model.OriginalEntry != 41 || model.OriginalIteration != 54 || model.FastEntry != 152 || model.FastIteration != 37 || model.FastZeroEntry != 153 || !model.FastZeroMeasured || model.EqualEntryExtra != 0 || model.FallbackEntry != 184 || model.FallbackIteration != 74 || !model.FallbackMeasured {
+	if model.OriginalEntry != 41 || model.OriginalIteration != 54 || model.FastEntry != 141 || model.FastIteration != 37 || model.FastZeroEntry != 142 || !model.FastZeroMeasured || model.EqualEntryExtra != 0 || model.FallbackEntry != 176 || model.FallbackIteration != 74 || !model.FallbackMeasured {
 		t.Fatalf("unexpected measured coefficients: %+v", model)
 	}
 	if len(evidence.Rows) != 1022 || model.OriginalBytes != uint64(len(evidence.OriginalBinary)) || model.PointerBytes != uint64(len(evidence.PointerBinary)) {

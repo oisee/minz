@@ -42,3 +42,26 @@ func TestComputeDeadConstsOperandPositions(t *testing.T) {
 		}
 	}
 }
+
+// genBinOp emits every 8-bit ADD/SUB of a g.constVals RHS as INC/DEC or
+// ADD A,n / SUB n, so such a constant is dead whatever its value. A constant
+// merged with a block parameter is not in g.constVals (BUG-014) and keeps its
+// load.
+func TestComputeDeadConstsByteAddSubAnyValue(t *testing.T) {
+	for _, op := range []Op{OpAdd, OpSub} {
+		for _, k := range []int64{4, 31, 100, 255} {
+			for _, param := range []bool{false, true} {
+				inst := &Inst{Op: op, Dst: 3, Src: [2]Reg{2, 1}, Ty: TyU8}
+				entry := &Block{Label: "entry", Insts: []*Inst{{Op: OpConst, Dst: 1, Ty: TyU8, Imm: k}, inst}}
+				if param {
+					entry.Params = []BlockParam{{Dst: 1, Ty: TyU8}}
+				}
+				f := &Func{Blocks: []*Block{entry}}
+				ar := &AllocResult{Locs: map[Reg]PhysLoc{1: {Kind: LocReg, Name: "D"}, 2: {Kind: LocReg, Name: "C"}, 3: {Kind: LocReg, Name: "A"}}}
+				if got := computeDeadConsts(f, ar)[1]; got == param {
+					t.Fatalf("%s k=%d block-param=%t: constant load suppressed = %t", op, k, param, got)
+				}
+			}
+		}
+	}
+}

@@ -140,6 +140,10 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 	}
 
 	if w <= 8 {
+		// Set when saveAccIfLive ran out of scratch bytes and deferred a stack
+		// restore: that restore rewrites A after this instruction, so the
+		// result must not be left in A (byteResultStaysInA).
+		accRestored := false
 		if lhs == dst && dst != "A" && dst != "F" && !isSpill(dst) {
 			if cv, ok := g.constVals[inst.Src[1]]; ok {
 				switch mnem {
@@ -307,6 +311,7 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 			// The tracked copy may alias a different SSA value that is live
 			// through a successor, even when this operand itself dies here.
 			if restore := g.saveAccIfLive(inst); restore != nil {
+				accRestored = true // the deferred stack restore rewrites A
 				defer restore()
 			}
 
@@ -323,7 +328,9 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 			} else {
 				g.emit8ALU(mnem, rhs)
 			}
-			if dst != "A" {
+			if dst != "A" && !accRestored && g.byteResultStaysInA(inst) {
+				g.physOverride[inst.Dst] = "A"
+			} else if dst != "A" {
 				g.emitLD8(dst, "A")
 				g.setCopy(dst, "A")
 			} else {
@@ -367,6 +374,7 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 				// computing n-2 requires loading n (from scratch) into A.
 				g.saveABeforeOverwrite(inst)
 				if restore := g.saveAccIfLive(inst); restore != nil {
+					accRestored = true // the deferred stack restore rewrites A
 					defer restore()
 				}
 				g.emitLDA(lhs)
@@ -380,7 +388,9 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 				g.emit8ALU(mnem, rhs)
 			}
 			g.invalidate("A") // ALU result is a new value — break old lhs alias
-			if dst != "A" {
+			if dst != "A" && !accRestored && g.byteResultStaysInA(inst) {
+				g.physOverride[inst.Dst] = "A"
+			} else if dst != "A" {
 				g.emitLD8(dst, "A")
 				g.setCopy(dst, "A")
 			} else {

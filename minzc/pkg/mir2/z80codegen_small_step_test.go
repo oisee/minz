@@ -93,8 +93,19 @@ func TestByteSmallStepPreservesFlagContracts(t *testing.T) {
 				f.Attrs.FallibleCY = true
 			}
 			ar := &AllocResult{Locs: map[Reg]PhysLoc{1: {Kind: LocReg, Name: "D"}, 2: {Kind: LocReg, Name: "A"}, 3: {Kind: LocReg, Name: "C"}}}
-			if computeDeadConsts(f, ar)[2] {
-				t.Fatal("constant suppressed across an observed flag boundary")
+			// The step must not become DEC (which keeps carry). The constant is
+			// still served as an immediate (SUB 1), so it needs no register.
+			if byteSmallStep(f, inst, 1, "D", "C") {
+				t.Fatal("INC/DEC chosen across an observed flag boundary")
+			}
+			if !computeDeadConsts(f, ar)[2] {
+				t.Fatal("immediate byte SUB constant retains a register load")
+			}
+			var out strings.Builder
+			g := &z80cg{sb: &out, fn: f, curBlock: b, curInstIdx: 1, ar: ar, constVals: map[Reg]int64{2: 1}, deadConsts: map[Reg]bool{2: true}, physOverride: map[Reg]string{}, holdsPhys: map[string]string{}}
+			g.genBinOp("SUB", inst)
+			if !strings.Contains(out.String(), "SUB 1") || strings.Contains(out.String(), "DEC") {
+				t.Fatal(out.String())
 			}
 		})
 	}

@@ -176,7 +176,7 @@
     "minzc/pkg/c89/c89.go": "40b9b9cbb80355e4a6ed42156da7e09521060c82ac6f76951b83dbeaf1dd22cc",
     "minzc/pkg/c89/global_address.go": "4cdeacbba830d7262c3d3652aea68450be74c76b7ac97e82d81f192cf066edd9",
     "minzc/pkg/c89/libc.go": "68724051158b091650b9d2e5b556b04615b3f0c5a9d5415c6bd2ec7a011809e8",
-    "minzc/pkg/c89/lower.go": "43c0122f11378868c744c74b171fcc815d10b4561f640b64d8b2021bf43bf933",
+    "minzc/pkg/c89/lower.go": "a33bada0d1172f1e04f65c7b7fbbca232fdeb1a2692fc1fdc0ee89eb79b1bc37",
     "minzc/pkg/c89/objc_lower.go": "20a0a913b6878b0d1ed1a5eccf22ede4b4102864ac30b70cec2786e3e5cabfba",
     "minzc/pkg/c89/private_symbols.go": "0c722d2d0ed5e0cccaa9e5f9d205045055469238ad4a57e96ad4b362b4741588",
     "minzc/pkg/c89/promote.go": "3c1de038453c6b7fbd83cce96b6d41c6bb7d5053fd3443c29f249cff96b5c906",
@@ -386,7 +386,7 @@
     "minzc/pkg/mir2/cpm_runtime_tui_bodies.go": "22bacbb6e39176524ec6b82f4f40e22a339f01e80093ff01f43eac01f4bb9175",
     "minzc/pkg/mir2/dead_global_load.go": "19c074be731f670120c28045eabad1b0bde238443b5409fa3ecaf5d0378b81ca",
     "minzc/pkg/mir2/deadblockarg.go": "e38f963a9443cd45314a9e8d434224a71689b24a01ba2f8368796b4d185d8638",
-    "minzc/pkg/mir2/diamond_common.go": "85ade7dbb00a6edb219256641ab8b0cd796ad62a3c9074ddcb53db43539bda50",
+    "minzc/pkg/mir2/diamond_common.go": "499f28f2189bb7060793534782840da11c7c144a2c229d7e1965a94db3d7be6b",
     "minzc/pkg/mir2/direct_store_addr.go": "8a9dba3182bfe38d9a66ab97fdc684d8710dc15e29df9ff25f6428a5ca0d9ad2",
     "minzc/pkg/mir2/dse.go": "46e3fdb3618cc6dc8dc947e948b61ba40d654ef22fcd8823d8499add7fdb11c1",
     "minzc/pkg/mir2/dump.go": "95b0ad3e8fca41170455c03b3c4fad3c023e05a1c7949008e4677f897c972451",
@@ -399,7 +399,7 @@
     "minzc/pkg/mir2/fuse_byte_load_move.go": "d997657c49c02999f62eee8a4a9346d6ceb7e51812caa97e27861b08771fdc8f",
     "minzc/pkg/mir2/global_initializers.go": "f7fd5af6958e24c58101542f312820f0704159448e5f19aa2366fc46ab75f7ab",
     "minzc/pkg/mir2/global_relocations.go": "b1965cac8a48462b5973331241ff3c3ff3d99b2304ff4394eb19d6a4244776bd",
-    "minzc/pkg/mir2/grace_runner.go": "9d606728f9e2dc6a83e14879a81d09a05854d4753784f4d43caa4e99c13f084d",
+    "minzc/pkg/mir2/grace_runner.go": "9dca69e118a87ff1257beaa05c550512710e9fa14a12c27bfbc6bfd6e809c519",
     "minzc/pkg/mir2/graph_adapter.go": "22390e5318caf27c3da2e11e15f739d78813581885b26cef529dea37f7039f49",
     "minzc/pkg/mir2/indirect_validate.go": "a0c4cc6ee1fd43af238d2c77c40f48742d7f70fc2b141cbfd99bb57177538925",
     "minzc/pkg/mir2/inline.go": "ebe50c64d385278680346830576f819823248179e1a2ef18b794ce73227225c0",
@@ -434,7 +434,7 @@
     "minzc/pkg/mir2/pbqp_memory_cost.go": "a406252a9fda7f54ea083a205f406cd2b57213f986c09cf7ca884e38b27c4082",
     "minzc/pkg/mir2/pointer_threading.go": "de91d29ab2696da3e34a806c9c762fe1ee6dd49a50eba1863321c33d1db00295",
     "minzc/pkg/mir2/pointer_walk.go": "d2279c947dcc3460fecf8c2e37e59f83e39185701fdad2f33c903e406ae4414a",
-    "minzc/pkg/mir2/precoalesce.go": "bfae4061e01fde910ac8661259967b866a59b6c51723149e7c7de16ba7c1af66",
+    "minzc/pkg/mir2/precoalesce.go": "d05bc70c0bb489f14495e7ac9d57e8719fa5f24a9413133680d2a7d686bc0359",
     "minzc/pkg/mir2/ptr_add_reassoc.go": "c7248c0e978fcb59bd432dcab0b249bdda3c9114668600e5ca6cca8eb5757719",
     "minzc/pkg/mir2/regs.go": "ab0d9c5ca1d34bda5eb3651282ee5c53f0a6d7a729b4ca25c41aa06e23b6514b",
     "minzc/pkg/mir2/renumber.go": "d73a7c4c4f7142a0951a894fd91fe73bfd5170f624615b185cb6d78bd6f0bbaf",
@@ -442,8 +442,10 @@
     "minzc/pkg/mir2/shape_facts.go": "61616684447de2ee3fc8d5ef461c08128448c6216416d6448f79f53de39f4724",
     "minzc/pkg/mir2/shift_carry.go": "4d3340b61c932aaa2ad11bf8fb72c859e4832f3a5a8d847dcd016cce724a3879",
     "minzc/pkg/mir2/single_bit.go": "42669a43801566dabc6bb3e2a4419bf95c264602a45d2ca757b620569227a3db",
+    "minzc/pkg/mir2/sink.go": "a675c5572134d2f5d880f2d30e06044d15c72ca47623f48e6e5d6ee5921da4d5",
     "minzc/pkg/mir2/smc_named.go": "e2cba47b548931b1a4ba173bcc89e5cff245569b96009503a4ffee93286c3593",
     "minzc/pkg/mir2/struct_return.go": "dbd126a5f3ddb1b1f1f7e72c8db37e0af6f2eec23fd33aa87831296c212159bf",
+    "minzc/pkg/mir2/sub_borrow_carry.go": "6d18dc7c8b482919fea175bd3a2cc41a5b82555306692e49fc0abcaefa9658fe",
     "minzc/pkg/mir2/trunc_ext_identity.go": "ebd894a0076caeb5ea2af13915c663fc5c766cf97eb8f3dd0e38e94bc4fdf854",
     "minzc/pkg/mir2/tsmc_spill.go": "a0f519190a5057913380aa8f8b9a8b01a4143da9f024a996d6d2d23038058994",
     "minzc/pkg/mir2/type_clone.go": "b81b45afecc4b841f718c02e2a298c2c63d07190227c7659b09684d85aff5854",
@@ -454,21 +456,21 @@
     "minzc/pkg/mir2/verify_calls.go": "dba263b24352989a5fd10e74ef29578de66aa275a61037ac71ab13e1f0b4fe6b",
     "minzc/pkg/mir2/vm.go": "6452cc52775c1deb546e6ebdc2964602ad33b7763cd86f1087630cc7da7e1e27",
     "minzc/pkg/mir2/widening_mul.go": "8c2f98cf5b16e194e39be6496b052165224fa2ab1b56bd4a9085527121bb8994",
-    "minzc/pkg/mir2/z80codegen.go": "d6bd7f1af8f5ed517e594e17a47bb7eff8e5682599c16448a7f4a73db1c19f7a",
-    "minzc/pkg/mir2/z80codegen_alu.go": "5a2e13b7f4a4e487d336619aab68d3e7761349c087108990d387549094cc59b0",
+    "minzc/pkg/mir2/z80codegen.go": "f1782fe45e12a60e003f033ee7f5c4249405160057da32d9ba9eebdcd1c84db2",
+    "minzc/pkg/mir2/z80codegen_alu.go": "e0a02eb86e4c7a25d7cbf94c30e12acb89bd6ed469ef8510b2bfc9e73f0ee267",
     "minzc/pkg/mir2/z80codegen_byte_loop.go": "9727af658b6c52138e150fa211b817d233cf051e00ea6199f301b1054f8178bf",
     "minzc/pkg/mir2/z80codegen_byte_loop_size.go": "642843cd14bea0d949b6a1980aca64d17e390283de35169a1a2c09256f37b749",
     "minzc/pkg/mir2/z80codegen_byte_pack.go": "1d0369bcc61efe762fb166ac8cb1d1750af34e78868a89ee1a91afd91447cad8",
     "minzc/pkg/mir2/z80codegen_call.go": "ea038807935eb8d17ad4f35fb05efa1f7a0f4e8a4d3f95f5e8d8be5aab374121",
     "minzc/pkg/mir2/z80codegen_call_spill.go": "75233a7f7b66ec01ecddd64fb8b4a860a417da6dfdf513ca46b714af1bba2eb7",
-    "minzc/pkg/mir2/z80codegen_cmp.go": "c2856103aa6598789e463f6383dd33217b190193283dd9076fdf0f4fe9db7c90",
+    "minzc/pkg/mir2/z80codegen_cmp.go": "a682c8906d0d79d788377d0f47dedc4ef44cbe616a2d396ccfcd097b399400ca",
     "minzc/pkg/mir2/z80codegen_copy.go": "f48c997e9b2dc2d272ebb6da873226f7259746104e735454a0f16aa4a75f40dd",
     "minzc/pkg/mir2/z80codegen_djnz_far.go": "e2bfd8092327403b7615f22b3965f4bb41224c10f482f354ebe15688f50b228a",
     "minzc/pkg/mir2/z80codegen_exact_call.go": "ce8bdb7c5df00d0f83e9180d4de3ed40de2a4a4919687b8414e4cef0428f50e0",
     "minzc/pkg/mir2/z80codegen_ext_fusion.go": "5e641a81b2d3cf1e7d65de3d9067c0ecc8d810d536aabebf988972ff672f7db9",
     "minzc/pkg/mir2/z80codegen_flagret.go": "22c9fda6e7a01e0b7ed451387953fe2c1953705227df9c79d5eb0ac33cbb06ce",
     "minzc/pkg/mir2/z80codegen_frame.go": "d6b64e82d0a303338e95ca590f01d295088f3a0eb93df95e0db688c70363767b",
-    "minzc/pkg/mir2/z80codegen_inst.go": "0bd5576cbd73dacfbc029aa8f5bcca401c51b1e1c2b05b3e52f0193460cde886",
+    "minzc/pkg/mir2/z80codegen_inst.go": "41e2df4b13f82b547e49533c245fd9df4b16c257ed4e5bf62d9fd60e9381667c",
     "minzc/pkg/mir2/z80codegen_leaf_writes.go": "84336e0c69bb32c66c9288ee2ed5fe6ba88f8c0164ca7691235899894959c308",
     "minzc/pkg/mir2/z80codegen_load_step.go": "2a1be434b712b335d2b89616bb7791add0719c040a9a69b4d12eb2e41e00022b",
     "minzc/pkg/mir2/z80codegen_looprot.go": "6afcc4edbe62a84fb3022eb259cd032dab22d23004057c6b978af5ef469c7cb2",
@@ -587,7 +589,7 @@
     "minzc/pkg/pipeline/memory_host_sidecar.go": "25e3d1d45ca190b3eb2080a8cd2d8dbb9cedcbb2c36989082215bdc80cafd697",
     "minzc/pkg/pipeline/memory_host_target.go": "a81c5c37e1d811c366f494f9704e7509b6869803fb62a16998810a7535f91791",
     "minzc/pkg/pipeline/memory_host_z80_memory.go": "4939112e028fe781ea98ec479ccde6ed881c3e9c5b7c7a0cc7fc6208b2662030",
-    "minzc/pkg/pipeline/pipeline.go": "0bd1b8f9644030acb53e447f0802100fbf152389a28ec6acba93c814e9be7c3e",
+    "minzc/pkg/pipeline/pipeline.go": "23bb790a2c692a6e50c66e5b062f6830103231ac32b2e5c9959fe7e4dc7b2370",
     "minzc/pkg/pipeline/profile.go": "05f6f967b9068edad120241aae2e96797bea057138da2b47616376d15114870c",
     "minzc/pkg/pipeline/profile_contract_strategies.go": "a19f17a8e0142dd161c0ff92dc3eeb425dc6dae0fd9057b603a398581bce810d",
     "minzc/pkg/pipeline/profile_forward_copy.go": "3104f5ca0df4ee87a9b81f18d18b61c0afd74f1afff1fbc65913d10669fb3f37",
@@ -768,11 +770,11 @@
     "cursor-large": 63
   },
   "guard_mutants": 6,
-  "upstream_echo_receipt_sha256": "529bc6b34086edb99cc43525c30ea40454bc5dea3590cc8b9cbdc8da766ed4b2",
+  "upstream_echo_receipt_sha256": "60cd72a34f2bb9b951816d8b95b3646cbd8b1bdb47048a25c13da07fb2856faa",
   "reused_upstream": null,
   "scope": "fifth independently linked native file stage, target downmix and NOTES timing, original Ruby oracle; private CP/M/TRD API traps, not physical ROM/FDC/hardware/boot/TPA-CCP/fullVT2VTX/MOS/eZ80",
-  "frozen_fixture_sha256": "0d7911ed01378eacf7ca1e352b6081dbff137fdd86f7dd0ec2488700c0619ba9",
-  "fresh_receipt_sha256": "89de2ff0cbc08412dbf1e84c1a89d07aa435c0788d8e6e3e5678c87f1aa98e16",
+  "frozen_fixture_sha256": "d4d2e0264631009f7d041e050d1d0086b98d012644c768fef2b923d3425d02b4",
+  "fresh_receipt_sha256": "6431955404025dbc9039f835b5c36760fe61312f68283255ab7f5997eb273411",
   "native_images": {
     "kernel": {
       "program.com": "a463cf44c87c41ca98a542ac736e4646babe2f3962b4e31e5dedd79ed9e83241"
@@ -1069,10 +1071,10 @@
       "snapshot_267_1/scorpion-z80/program.bin": "6589ceaabf70204356e1be413e52f49890e68c4d59a5ac753ea173af43412413"
     },
     "cursor-chronos": {
-      "program.com": "f0d57aea6321c0d9db22ef6c101c72f0edcb909924bf00253bc43f33e558e58e"
+      "program.com": "fa915cb158b80159aa1c3196f4b382275c14ad4c7a12ce4732806577c06ea2d0"
     },
     "cursor-large": {
-      "program.com": "f0d57aea6321c0d9db22ef6c101c72f0edcb909924bf00253bc43f33e558e58e"
+      "program.com": "fa915cb158b80159aa1c3196f4b382275c14ad4c7a12ce4732806577c06ea2d0"
     }
   }
 }

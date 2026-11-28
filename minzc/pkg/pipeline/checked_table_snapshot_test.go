@@ -20,7 +20,7 @@ func TestCheckedTablePinnedSnapshotNative(t *testing.T) {
 	if e != nil {
 		t.Fatal(e)
 	}
-	if selected.Traces["add5"].Backend != "checked-local-table" {
+	if selected.Traces["add3"].Backend != "checked-local-table" {
 		t.Fatal("candidate not selected")
 	}
 	if _, e := CompileHIRWithOptions(graceMeasureParse(t, checkedTableSource), opts); e != nil {
