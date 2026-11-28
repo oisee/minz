@@ -66,7 +66,14 @@ func TestProfileGuidedSumVMZ80(t *testing.T) {
 	// then removed one byte from the pointer variant: 220 B, T unchanged.
 	// emitLDA stopped emitting LD A,A (in main's @print_u8 argument copy,
 	// outside sum_array): one byte off both modules, 170/219 B, T unchanged.
-	model := hir.LoopCostModel{CompilerID: context.CompilerID, SemanticsID: context.SemanticsID, Function: "sum_array", HIRSHA256: profileRun.Profile.Compatibility.HIRSHA256, TargetID: context.TargetID, EvidenceID: "sum-array-z80-acc-pressure-v15", OriginalBytes: 170, PointerBytes: 219, OriginalEntry: 41, OriginalIteration: 54, EqualEntryExtra: 0, FastEntry: 152, FastIteration: 37, FastZeroEntry: 153, FastZeroMeasured: true, FallbackEntry: 188, FallbackIteration: 78, FallbackMeasured: true}
+	// W11 part 2 sinks the pointer variant's `const 0`, read only by the
+	// fallback block, into that block: LD IXL,0 (11T, 3B) leaves the shared
+	// entry and the fallback's LD E,IXL becomes LD C,0 / LD E,C (+3T, +1B).
+	// MeasureLoopCostModel over all 1022 length/address cases with these
+	// options: fast 141+37*n, zero-length entry 142, fallback 176+74*n,
+	// 170/217 B (on main it measured fallback 184+74*n; the 188+78*n here
+	// predated #317).
+	model := hir.LoopCostModel{CompilerID: context.CompilerID, SemanticsID: context.SemanticsID, Function: "sum_array", HIRSHA256: profileRun.Profile.Compatibility.HIRSHA256, TargetID: context.TargetID, EvidenceID: "sum-array-z80-acc-pressure-v16", OriginalBytes: 170, PointerBytes: 217, OriginalEntry: 41, OriginalIteration: 54, EqualEntryExtra: 0, FastEntry: 141, FastIteration: 37, FastZeroEntry: 142, FastZeroMeasured: true, FallbackEntry: 176, FallbackIteration: 74, FallbackMeasured: true}
 	decisions, e := hir.SelectLoopVariants(bytes.NewReader(profileJSON), input, context, model, false)
 	if e != nil {
 		t.Fatal(e)
@@ -236,7 +243,9 @@ func TestProfileGuidedSumVMZ80(t *testing.T) {
 	}
 	writeJSON("size-decision.json", sizeDecisions)
 	// Execute both sides of the profitability boundary, including retained original.
-	for _, n := range []int64{0, 1, 6, 7, 8} {
+	// 41+54n against 141+37n: the pointer walk wins from n = 6 (365 vs 363 T);
+	// with the former 152+37n entry it won from n = 7.
+	for _, n := range []int64{0, 1, 5, 6, 7, 8} {
 		one := workload
 		one.Calls = []hir.ProfileInvocation{{Function: "sum_array", Arguments: []hir.ProfileArgument{{Resource: "array"}, literal(n)}}}
 		run, e := hir.RunLoopProfile(parse(), one)
@@ -254,7 +263,7 @@ func TestProfileGuidedSumVMZ80(t *testing.T) {
 				t.Fatal(e)
 			}
 			expectedVariant := "original"
-			if n >= 7 && !size {
+			if n >= 6 && !size {
 				expectedVariant = "pointer-walk"
 			}
 			if d[0].Variant != expectedVariant {

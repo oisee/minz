@@ -97,10 +97,12 @@ func TestSumProfileCostFullU8Domain(t *testing.T) {
 			// (232 T at n=0, +7 T on the last admitted base). The acc-pressure
 			// allocation (#304) was the first change to move it; re-measured
 			// on b5fda602b the entry is 152 T (153 T at n=0) with no extra on
-			// the last base.
-			expectedFast := 152 + 37*n
+			// the last base. Sinking the pointer-walk's dead-on-the-fast-path
+			// `const 0` (W11 part 2) took its LD IXL,0 (11 T) off the entry:
+			// 141 T (142 T at n=0).
+			expectedFast := 141 + 37*n
 			if n == 0 {
-				expectedFast = 153
+				expectedFast = 142
 			}
 			// The guard-fallback trip was 258+178n through P28. O4+ (2b70eaa74)
 			// dropped the per-element cost to 94 T while raising the entry to
@@ -108,7 +110,10 @@ func TestSumProfileCostFullU8Domain(t *testing.T) {
 			// 326-T entry with 78 T per element, which is cheaper than the old
 			// model for every n ≥ 1. N1a (2520ce6c3) leaves it unchanged.
 			// Re-measured on b5fda602b: a 183-T entry and 69 T per element.
-			expectedFallback := 183 + 69*n
+			// W11 part 2: the sunk constant replaces LD E,IXL (8 T) by
+			// LD C,0 / LD E,C (11 T) on this path and drops LD IXL,0 (11 T)
+			// from the shared entry: 175 + 69n.
+			expectedFallback := 175 + 69*n
 			if (path == "fast" || path == "last-fast") && measured[1] != expectedFast {
 				t.Fatalf("fast model n=%d got=%d", n, measured[1])
 			}
