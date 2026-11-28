@@ -336,12 +336,12 @@ func (g *z80cg) genCmp(inst *Inst) {
 	if g.tryUnsignedPreservePairCmp(inst) {
 		return
 	}
-	// CmpSubCarry / CmpSubCarryNot: carry flag already set by the immediately
-	// preceding SUB.  No instruction needed — carry encodes a < b (C) or a >= b (NC).
-	// The predicate is pending like any other comparison, so a later flag
-	// writer saves it and a byte read resolves its condition.
+	// CmpSubCarry / CmpSubCarryNot: carry flag set by the preceding SUB when
+	// that SUB published its borrow (genSubCarryCmp) — carry encodes a < b (C)
+	// or a >= b (NC). The predicate is pending like any other comparison, so a
+	// later flag writer saves it and a byte read resolves its condition.
 	if inst.Cond == CmpSubCarry || inst.Cond == CmpSubCarryNot {
-		g.pendingFlagReg = inst.Dst
+		g.genSubCarryCmp(inst)
 		return
 	}
 	// A zero test of a flag-return call result that dies here, read while
