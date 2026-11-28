@@ -848,49 +848,6 @@ func (g *z80cg) saveAccIfLive(inst *Inst) func() {
 	return nil
 }
 
-// reorderAccMoves swaps consecutive instruction pairs where a move→A is followed
-// by an 8-bit ALU→nonA that will use A as scratch. By putting the ALU first,
-// A is free for scratch use and the move loads A last (preserving it for the call).
-func reorderAccMoves(insts []*Inst, ar *AllocResult) []*Inst {
-	result := make([]*Inst, len(insts))
-	copy(result, insts)
-
-	for i := 0; i < len(result)-1; i++ {
-		a, b := result[i], result[i+1]
-
-		// Pattern: a = OpMove, dst in A; b = 8-bit ALU, dst NOT in A.
-		if a.Op != OpMove {
-			continue
-		}
-		aLoc := ar.Locs[a.Dst]
-		if aLoc.Name != "A" {
-			continue
-		}
-
-		// b must be an 8-bit ALU op that needs A as scratch.
-		is8bitALU := (b.Op == OpAdd || b.Op == OpSub || b.Op == OpAnd ||
-			b.Op == OpOr || b.Op == OpXor) && b.Ty != nil && b.Ty.Width() <= 8
-		if !is8bitALU {
-			continue
-		}
-		bLoc := ar.Locs[b.Dst]
-		if bLoc.Name == "A" {
-			continue // b also targets A — no help from swapping
-		}
-
-		// Safety: b must not READ a.Dst, and a must not READ b.Dst.
-		bReadsA := b.Src[0] == a.Dst || b.Src[1] == a.Dst
-		aReadsB := a.Src[0] == b.Dst
-		if bReadsA || aReadsB {
-			continue // data dependency — cannot swap
-		}
-
-		// Swap.
-		result[i], result[i+1] = b, a
-	}
-	return result
-}
-
 // emit8ALU emits an 8-bit ALU instruction with A as the implicit destination.
 // MZA requires "ADD A, src" (two operands) but "SUB/AND/OR/XOR src" (one operand).
 func (g *z80cg) emit8ALU(mnem, src string) {
